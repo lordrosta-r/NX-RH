@@ -1,0 +1,12 @@
+**/node_modules
+**/.env
+**/dist
+server/public
+nginx/certs
+.git
+.gitignore
+*.log
+docker-compose*.yml
+nginx/
+scripts/
+database/

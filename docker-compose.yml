@@ -1,0 +1,103 @@
+# =============================================================================
+# NanoXplore RH — Docker Compose (Production / HA)
+#
+# Services:
+#   nginx  — Reverse proxy, SSL termination, load balancer
+#   app    — Express server (scale with: docker compose up --scale app=3)
+#   db     — MySQL 8 with persistent volume
+#
+# Usage:
+#   docker compose up -d
+#   docker compose up -d --scale app=3   ← high-availability mode
+# =============================================================================
+
+services:
+
+  # ── Nginx — Reverse Proxy + SSL ──────────────────────────────────────────
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: nx_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/certs:/etc/nginx/certs:ro          # Mount your TLS certs here
+      - nginx_logs:/var/log/nginx
+    depends_on:
+      app:
+        condition: service_healthy
+    networks:
+      - frontend
+    logging:
+      driver: "json-file"
+      options: { max-size: "10m", max-file: "3" }
+
+  # ── App — Express MPA Server (horizontally scalable) ─────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: nanoxplore-rh:latest
+    # No container_name when scaling — Docker assigns names automatically
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      NODE_ENV: production
+    depends_on:
+      db:
+        condition: service_healthy
+    expose:
+      - "3000"           # Internal only — Nginx proxies to this
+    networks:
+      - frontend
+      - backend
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    logging:
+      driver: "json-file"
+      options: { max-size: "10m", max-file: "5" }
+
+  # ── MySQL 8 ───────────────────────────────────────────────────────────────
+  db:
+    image: mysql:8.4
+    container_name: nx_db
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE:      ${DB_NAME}
+      MYSQL_USER:          ${DB_USER}
+      MYSQL_PASSWORD:      ${DB_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro   # runs once on first start
+    expose:
+      - "3306"             # Internal only — never expose DB to host in prod
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    logging:
+      driver: "json-file"
+      options: { max-size: "10m", max-file: "3" }
+
+# ── Networks ──────────────────────────────────────────────────────────────
+networks:
+  frontend:   # nginx ↔ app
+  backend:    # app ↔ db (isolated — nginx has no DB access)
+
+# ── Volumes ───────────────────────────────────────────────────────────────
+volumes:
+  db_data:    # MySQL data — survives container restarts
+  nginx_logs:

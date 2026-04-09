@@ -1,76 +1,81 @@
 /* =============================================================================
    Theme Variables — NanoXplore RH
-   Applied via data-theme="dark|light" on <html>.
-   All --th-* vars are consumed by login page components.
+   Appliqué via data-theme="dark|light" sur <html>.
+   Anti-flash : login.html lit localStorage et écrit data-theme AVANT React.
    ============================================================================= */
 
-/* ── Dark (default — cinematic login aesthetic) ──────────────────────────── */
+/* ── Dark (défaut — cinématique) ─────────────────────────────────────────── */
 :root,
 html[data-theme="dark"] {
-  --th-page-bg:             #000000;
-  --th-mosaic-opacity:      0.6;
+  --th-page-bg:           #000000;
+  --th-mosaic-opacity:    0.6;
+  --th-overlay-gradient:  linear-gradient(to top, #000 0%, rgba(0,0,0,0.80) 40%, rgba(0,0,0,0.55) 100%);
 
-  --th-card-bg:             rgba(24, 24, 27, 0.90);
-  --th-card-shadow:         0 25px 50px rgba(0, 0, 0, 0.50);
-  --th-card-title:          #ffffff;
+  --th-card-bg:           rgba(24, 24, 27, 0.90);
+  --th-card-shadow:       0 25px 50px rgba(0, 0, 0, 0.50);
+  --th-card-title:        #ffffff;
 
-  --th-label-color:         #a1a1aa;
-  --th-input-tray:          rgba(39, 39, 42, 0.50);
-  --th-input-tray-focus:    rgb(39, 39, 42);
-  --th-input-color:         #ffffff;
-  --th-input-placeholder:   #71717a;
+  --th-label-color:       #a1a1aa;
+  --th-input-tray:        rgba(39, 39, 42, 0.50);
+  --th-input-tray-focus:  rgb(39, 39, 42);
+  --th-input-color:       #ffffff;
+  --th-input-placeholder: #71717a;
 
-  --th-divider:             rgba(255, 255, 255, 0.08);
-  --th-footer-text:         #71717a;
-  --th-footer-link:         #d4d4d8;
-  --th-footer-link-dec:     rgba(161, 161, 170, 0.40);
-  --th-copyright:           #3f3f46;
+  --th-divider:           rgba(255, 255, 255, 0.08);
+  --th-footer-text:       #71717a;
+  --th-footer-link:       #d4d4d8;
+  --th-footer-link-dec:   rgba(161, 161, 170, 0.40);
+  --th-copyright:         #3f3f46;
 
-  --th-utility-link:        #a1a1aa;
-  --th-utility-link-hover:  #ffffff;
+  --th-utility-link:      #a1a1aa;
+  --th-utility-link-hover:#ffffff;
+  --th-tagline:           rgba(255, 255, 255, 0.60);
 
-  --th-checkbox-bg:         rgb(39, 39, 42);
-  --th-checkbox-border:     #52525b;
+  --th-checkbox-bg:       rgb(39, 39, 42);
+  --th-checkbox-border:   #52525b;
 
-  --th-controls-bg:         rgba(0, 0, 0, 0.40);
-  --th-controls-border:     rgba(255, 255, 255, 0.10);
-  --th-controls-icon:       rgba(255, 255, 255, 0.50);
-  --th-controls-icon-hover: rgba(255, 255, 255, 0.90);
-  --th-controls-text:       rgba(255, 255, 255, 0.80);
-  --th-controls-divider:    rgba(255, 255, 255, 0.12);
+  --th-controls-bg:       rgba(0, 0, 0, 0.40);
+  --th-controls-border:   rgba(255, 255, 255, 0.10);
+  --th-controls-icon:     rgba(255, 255, 255, 0.50);
+  --th-controls-icon-hover:rgba(255, 255, 255, 0.90);
+  --th-controls-text:     rgba(255, 255, 255, 0.80);
+  --th-controls-divider:  rgba(255, 255, 255, 0.12);
 }
 
 /* ── Light (sovereign white — "layers of fine paper") ───────────────────── */
 html[data-theme="light"] {
-  --th-page-bg:             var(--color-surface, #fcf9f8);
-  --th-mosaic-opacity:      0;       /* hide cinematic grid in light mode */
+  --th-page-bg:           var(--color-surface, #fcf9f8);
+  /* Images visibles mais très atténuées + overlay blanc chaud */
+  --th-mosaic-opacity:    0.12;
+  --th-overlay-gradient:  linear-gradient(to top, rgba(252,249,248,0.96) 0%, rgba(252,249,248,0.80) 50%, rgba(252,249,248,0.65) 100%);
 
-  --th-card-bg:             rgba(255, 255, 255, 0.96);
-  --th-card-shadow:         var(--shadow-float, 0 24px 64px rgba(28,27,27,0.12));
-  --th-card-title:          var(--color-on-surface, #1c1b1b);
+  --th-card-bg:           rgba(255, 255, 255, 0.96);
+  --th-card-shadow:       var(--shadow-float, 0 24px 64px rgba(28,27,27,0.10));
+  --th-card-title:        var(--color-on-surface, #1c1b1b);
 
-  --th-label-color:         var(--color-on-surface-variant, #5e3f3b);
-  --th-input-tray:          var(--color-surface-container-low, #f6f3f2);
-  --th-input-tray-focus:    var(--color-surface-container, #f0eded);
-  --th-input-color:         var(--color-on-surface, #1c1b1b);
-  --th-input-placeholder:   var(--color-outline, #936e69);
+  --th-label-color:       var(--color-on-surface-variant, #5e3f3b);
+  --th-input-tray:        var(--color-surface-container-low, #f6f3f2);
+  --th-input-tray-focus:  var(--color-surface-container, #f0eded);
+  --th-input-color:       var(--color-on-surface, #1c1b1b);
+  --th-input-placeholder: var(--color-outline, #936e69);
 
-  --th-divider:             var(--color-outline-variant, #e9bcb6);
-  --th-footer-text:         var(--color-on-surface-variant, #5e3f3b);
-  --th-footer-link:         var(--color-on-surface, #1c1b1b);
-  --th-footer-link-dec:     rgba(147, 110, 105, 0.40);
-  --th-copyright:           var(--color-outline, #936e69);
+  --th-divider:           var(--color-outline-variant, #e9bcb6);
+  --th-footer-text:       var(--color-on-surface-variant, #5e3f3b);
+  --th-footer-link:       var(--color-on-surface, #1c1b1b);
+  --th-footer-link-dec:   rgba(147, 110, 105, 0.40);
+  --th-copyright:         var(--color-outline, #936e69);
 
-  --th-utility-link:        var(--color-on-surface-variant, #5e3f3b);
-  --th-utility-link-hover:  var(--color-on-surface, #1c1b1b);
+  --th-utility-link:      var(--color-on-surface-variant, #5e3f3b);
+  --th-utility-link-hover:var(--color-on-surface, #1c1b1b);
+  --th-tagline:           var(--color-on-surface-variant, #5e3f3b);
 
-  --th-checkbox-bg:         var(--color-surface-container, #f0eded);
-  --th-checkbox-border:     var(--color-outline-variant, #e9bcb6);
+  --th-checkbox-bg:       var(--color-surface-container, #f0eded);
+  --th-checkbox-border:   var(--color-outline-variant, #e9bcb6);
 
-  --th-controls-bg:         rgba(255, 255, 255, 0.80);
-  --th-controls-border:     rgba(28, 27, 27, 0.10);
-  --th-controls-icon:       rgba(28, 27, 27, 0.45);
-  --th-controls-icon-hover: rgba(28, 27, 27, 0.90);
-  --th-controls-text:       rgba(28, 27, 27, 0.75);
-  --th-controls-divider:    rgba(28, 27, 27, 0.10);
+  --th-controls-bg:       rgba(255, 255, 255, 0.85);
+  --th-controls-border:   rgba(28, 27, 27, 0.10);
+  --th-controls-icon:     rgba(28, 27, 27, 0.45);
+  --th-controls-icon-hover:rgba(28, 27, 27, 0.90);
+  --th-controls-text:     rgba(28, 27, 27, 0.75);
+  --th-controls-divider:  rgba(28, 27, 27, 0.10);
 }

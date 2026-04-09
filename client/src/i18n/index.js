@@ -1,44 +1,44 @@
 // =============================================================================
-// i18n — Minimal translation engine (no library, no overhead)
+// i18n Engine — makeT factory
 //
-// Strategy: each page imports its own locale files.
-// The current locale is persisted in localStorage.
+// Ce fichier contient UNIQUEMENT l'infrastructure.
+// Les données de traduction vivent dans chaque page :
+//   client/src/pages/<page>/i18n/fr.js
+//   client/src/pages/<page>/i18n/en.js
+//   client/src/pages/<page>/i18n/index.js  → export const t = makeT({ fr, en })
 //
-// Usage:
-//   const { t, locale, setLocale } = useLocale()   ← inside React
-//   t('login.submit')                               → "Sign In" or "Connexion"
+// Usage dans une page :
+//   import { t as pageT } from './i18n'
+//   const { t, locale, setLocale } = useLocale(pageT)
 // =============================================================================
 
-import fr from './fr'
-import en from './en'
+const STORAGE_KEY       = 'nx_locale'
+export const FALLBACK   = 'fr'
+export const SUPPORTED  = ['fr', 'en']
 
-const LOCALES = { fr, en }
-const STORAGE_KEY = 'nx_locale'
-const FALLBACK    = 'fr'
-
-// Supported locale codes
-export const SUPPORTED_LOCALES = Object.keys(LOCALES)
-
-/**
- * Translate a key for a given locale.
- * Falls back to French, then to the raw key if nothing is found.
- */
-export function t(key, locale = getLocale()) {
-  return LOCALES[locale]?.[key]
-      ?? LOCALES[FALLBACK]?.[key]
-      ?? key
-}
-
-/** Read persisted locale from localStorage (defaults to 'fr'). */
+/** Read persisted locale from localStorage. */
 export function getLocale() {
   const stored = typeof localStorage !== 'undefined'
     ? localStorage.getItem(STORAGE_KEY)
     : null
-  return SUPPORTED_LOCALES.includes(stored) ? stored : FALLBACK
+  return SUPPORTED.includes(stored) ? stored : FALLBACK
 }
 
 /** Persist locale choice. */
 export function setLocale(locale) {
-  if (!SUPPORTED_LOCALES.includes(locale)) return
+  if (!SUPPORTED.includes(locale)) return
   localStorage.setItem(STORAGE_KEY, locale)
+}
+
+/**
+ * Factory — creates a page-scoped t() function.
+ * @param {{ [locale: string]: { [key: string]: string } }} locales
+ * @returns {function(key: string, locale?: string): string}
+ */
+export function makeT(locales) {
+  return function t(key, locale = getLocale()) {
+    return locales[locale]?.[key]
+        ?? locales[FALLBACK]?.[key]
+        ?? key
+  }
 }

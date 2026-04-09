@@ -1,0 +1,27 @@
+.login-controls {
+  position: fixed;
+  bottom:   1.5rem;
+  right:    1.5rem;
+  z-index:  30;
+  display:  flex;
+  align-items: center;
+  gap:      0.5rem;
+  background:              var(--th-controls-bg);
+  backdrop-filter:         blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border:        1px solid var(--th-controls-border);
+  border-radius: var(--radius-full, 0.75rem);
+  padding:       0.45rem 0.85rem;
+  transition:    background 0.3s, border-color 0.3s;
+}
+
+@media (max-width: 767px) {
+  .login-controls { display: none; }
+}
+
+.login-controls__divider {
+  width:       1px;
+  height:      1rem;
+  background:  var(--th-controls-divider);
+  flex-shrink: 0;
+}

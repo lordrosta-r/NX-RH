@@ -1,14 +1,8 @@
-import { GlobeIcon } from '../ui/icons'
+import { GlobeIcon } from '../../components/ui/icons'
 import './LanguageSelector.css'
 
-// =============================================================================
-// LanguageSelector — inline (used inside LoginControls pill)
-// Uses SVG GlobeIcon instead of Material Symbols font.
-//
-// Props:
-//   locale   {string}            — current locale ('fr' | 'en')
-//   onChange {function(string)}  — called on selection change
-// =============================================================================
+// Composant spécifique à la page Login — vit dans son dossier.
+// Props: locale {string}, onChange {function}
 
 const LOCALES = [
   { value: 'fr', label: 'Français' },
@@ -18,7 +12,7 @@ const LOCALES = [
 export default function LanguageSelector({ locale = 'fr', onChange }) {
   return (
     <div className="lang-selector">
-      <GlobeIcon size={14} color="var(--th-controls-icon, rgba(255,255,255,0.5))" />
+      <GlobeIcon size={14} color="var(--th-controls-icon)" />
       <select
         value={locale}
         onChange={e => onChange?.(e.target.value)}

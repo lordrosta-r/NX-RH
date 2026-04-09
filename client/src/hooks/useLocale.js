@@ -1,20 +1,17 @@
 import { useState, useCallback } from 'react'
-import { getLocale, setLocale as persist, t as translate } from '../i18n'
+import { getLocale, setLocale as persist } from '../i18n'
 
 // =============================================================================
 // useLocale — React hook for i18n
 //
-// Returns:
-//   locale    {string}            — current locale code ('fr' | 'en')
-//   setLocale {function(string)}  — change + persist locale
-//   t         {function(string)}  — translate a key in the current locale
+// Prend le `pageT` de la page courante (chaque page a ses propres traductions).
 //
-// Usage:
-//   const { t, locale, setLocale } = useLocale()
-//   <h1>{t('login.title')}</h1>
+// Usage :
+//   import { t as pageT } from './i18n'          ← dans la page
+//   const { t, locale, setLocale } = useLocale(pageT)
 // =============================================================================
 
-export function useLocale() {
+export function useLocale(pageT) {
   const [locale, setLocaleState] = useState(getLocale)
 
   const setLocale = useCallback((newLocale) => {
@@ -22,9 +19,10 @@ export function useLocale() {
     setLocaleState(newLocale)
   }, [])
 
+  // Re-bind pageT with the current locale on each render
   const t = useCallback(
-    (key) => translate(key, locale),
-    [locale]
+    (key) => pageT(key, locale),
+    [pageT, locale]
   )
 
   return { locale, setLocale, t }

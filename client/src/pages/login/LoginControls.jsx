@@ -1,11 +1,9 @@
-import ThemeToggle    from '../ui/ThemeToggle'
+import ThemeToggle      from '../../components/ui/ThemeToggle'
 import LanguageSelector from './LanguageSelector'
 import './LoginControls.css'
 
-// =============================================================================
-// LoginControls — Groups the Theme toggle and Language selector into one pill.
-// Replaces the standalone LanguageSelector on the login page.
-// =============================================================================
+// Pill flottante bas-droite — regroupe toggle thème + sélecteur langue.
+// Spécifique à la page Login.
 
 export default function LoginControls({ locale, onLocaleChange }) {
   return (

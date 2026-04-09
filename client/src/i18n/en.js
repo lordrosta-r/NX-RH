@@ -1,0 +1,24 @@
+// English translations — Login page
+export default {
+  'brand.tagline':          'The Sovereign Workspace',
+
+  'login.title':            'Sign In',
+  'login.email.label':      'Professional Email',
+  'login.email.placeholder':'name@nanoxplore.com',
+  'login.password.label':   'Password',
+  'login.submit':           'Sign In',
+  'login.submit.loading':   'Signing in…',
+  'login.remember':         'Remember me',
+  'login.help':             'Need help?',
+  'login.contact.admin':    'Contact administrator',
+
+  'login.legal.text':       'Secure administration platform. By signing in, you agree to the',
+  'login.legal.link':       'privacy terms',
+  'login.legal.suffix':     'of NanoXplore RH.',
+
+  'login.copyright':        '© 2026 Editorial Enterprise • Industrial Intelligence',
+
+  'theme.switch.dark':      'Switch to dark mode',
+  'theme.switch.light':     'Switch to light mode',
+  'lang.label':             'Language',
+}

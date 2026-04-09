@@ -1,0 +1,23 @@
+/* ThemeToggle — icon button, no background of its own (lives inside LoginControls) */
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  padding: 0.15rem;
+  cursor: pointer;
+  color: var(--th-controls-icon, rgba(255,255,255,0.50));
+  transition: color 0.15s ease;
+  line-height: 0;
+}
+
+.theme-toggle:hover {
+  color: var(--th-controls-icon-hover, rgba(255,255,255,0.90));
+}
+
+.theme-toggle:focus-visible {
+  outline: 2px solid var(--color-primary-container, #e50914);
+  outline-offset: 2px;
+  border-radius: 4px;
+}

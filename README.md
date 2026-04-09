@@ -404,7 +404,6 @@ Nginx uses Docker's internal DNS to round-robin requests across all `app` replic
 - [ ] Manager review & scoring interface
 - [ ] Email notification triggers
 - [ ] Export to PDF (evaluation reports)
-- [ ] LDAP group → role mapping
 - [ ] Audit log
 
 ---

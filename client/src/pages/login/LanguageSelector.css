@@ -1,0 +1,24 @@
+.lang-selector {
+  display:     flex;
+  align-items: center;
+  gap:         0.4rem;
+}
+
+.lang-selector__select {
+  background:     transparent;
+  border:         none;
+  color:          var(--th-controls-text);
+  font-size:      0.6875rem;
+  font-weight:    700;
+  font-family:    inherit;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  cursor:         pointer;
+  outline:        none;
+  appearance:     auto;
+}
+
+.lang-selector__select option {
+  background: #18181b;
+  color:      #ffffff;
+}

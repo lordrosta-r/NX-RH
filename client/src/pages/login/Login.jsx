@@ -1,23 +1,23 @@
 import { useState }       from 'react'
-import MosaicBackground   from '../../components/login/MosaicBackground'
-import LoginControls      from '../../components/login/LoginControls'
+import MosaicBackground   from './MosaicBackground'
+import LoginControls      from './LoginControls'
 import InputField         from '../../components/ui/InputField'
 import Checkbox           from '../../components/ui/Checkbox'
+import { t as pageT }     from './i18n'
 import { useLocale }      from '../../hooks/useLocale'
 import { useTheme }       from '../../hooks/useTheme'
 import './login.css'
 
 // =============================================================================
-// Login — Root page component
-// Design ref: docs/design/login/DESIGN.md ("Editorial Enterprise")
+// Login — Page racine
+// Tout ce qui est spécifique à cette page vit dans ce dossier.
+// Les composants partagés (InputField, Checkbox…) viennent de components/ui/.
 // =============================================================================
 
 export default function Login() {
-  // ── i18n + theme ──────────────────────────────────────────────────────────
-  const { t, locale, setLocale } = useLocale()
-  useTheme()   // initialises data-theme on <html> from localStorage
+  const { t, locale, setLocale } = useLocale(pageT)
+  useTheme()  // sync data-theme depuis localStorage si pas déjà fait par le script HTML
 
-  // ── Form state ─────────────────────────────────────────────────────────────
   const [email,    setEmail]    = useState('')
   const [password, setPassword] = useState('')
   const [remember, setRemember] = useState(false)
@@ -28,7 +28,6 @@ export default function Login() {
     e.preventDefault()
     setError(null)
     setLoading(true)
-
     try {
       const res  = await fetch('/api/auth/login', {
         method:      'POST',
@@ -36,21 +35,11 @@ export default function Login() {
         credentials: 'include',
         body:        JSON.stringify({ email, password }),
       })
-
       const data = await res.json()
-
-      if (!res.ok) {
-        setError(data.error || t('login.error'))
-        return
-      }
-
+      if (!res.ok) { setError(data.error || 'Identifiants invalides.'); return }
       sessionStorage.setItem('token', data.token)
       sessionStorage.setItem('user',  JSON.stringify(data.user))
-
-      window.location.href = ['admin', 'manager'].includes(data.user.role)
-        ? '/manager'
-        : '/dashboard'
-
+      window.location.href = ['admin', 'manager'].includes(data.user.role) ? '/manager' : '/dashboard'
     } catch {
       setError('Erreur réseau — veuillez réessayer.')
     } finally {
@@ -61,10 +50,10 @@ export default function Login() {
   return (
     <div className="login-page">
 
-      {/* ── Layer 0+1 — Cinematic background + overlay ── */}
+      {/* Mosaïque + overlay (z:0-1) */}
       <MosaicBackground />
 
-      {/* ── Layer 2 — Foreground ── */}
+      {/* Contenu (z:2) */}
       <main className="login-content">
 
         <header className="login-header">
@@ -76,7 +65,6 @@ export default function Login() {
           <h2 className="login-card__title">{t('login.title')}</h2>
 
           <form onSubmit={handleSubmit} className="login-form" noValidate>
-
             <InputField
               id="email"
               label={t('login.email.label')}
@@ -86,7 +74,6 @@ export default function Login() {
               onChange={e => setEmail(e.target.value)}
               autoComplete="email"
             />
-
             <InputField
               id="password"
               label={t('login.password.label')}
@@ -110,14 +97,10 @@ export default function Login() {
                 checked={remember}
                 onChange={e => setRemember(e.target.checked)}
               />
-              <a href="#" className="login-utility__link">
-                {t('login.help')}
-              </a>
+              <a href="#" className="login-utility__link">{t('login.help')}</a>
             </div>
-
           </form>
 
-          {/* Legal + Contact admin */}
           <div className="login-card__footer">
             <p>
               {t('login.legal.text')}{' '}
@@ -130,13 +113,11 @@ export default function Login() {
           </div>
         </div>
 
-        <footer className="login-page-footer">
-          {t('login.copyright')}
-        </footer>
+        <footer className="login-page-footer">{t('login.copyright')}</footer>
 
       </main>
 
-      {/* ── Layer 3 — Floating controls (theme + language) ── */}
+      {/* Pill flottante bas-droite (z:30) */}
       <LoginControls locale={locale} onLocaleChange={setLocale} />
 
     </div>

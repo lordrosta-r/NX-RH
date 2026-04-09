@@ -1,0 +1,58 @@
+/* =============================================================================
+   Checkbox — responds to dark/light via --th-* vars
+   ============================================================================= */
+
+.checkbox {
+  display:     inline-flex;
+  align-items: center;
+  gap:         0.5rem;
+  cursor:      pointer;
+  user-select: none;
+}
+
+.checkbox__input {
+  position: absolute;
+  opacity:  0;
+  width:    0;
+  height:   0;
+}
+
+.checkbox__box {
+  width:          1rem;
+  height:         1rem;
+  border-radius:  0.125rem;
+  background:     var(--th-checkbox-bg,     rgb(39,39,42));
+  border:         1px solid var(--th-checkbox-border, #52525b);
+  display:        flex;
+  align-items:    center;
+  justify-content:center;
+  flex-shrink:    0;
+  transition:     background 0.15s, border-color 0.15s;
+}
+
+.checkbox__input:checked + .checkbox__box {
+  background:   var(--color-primary-container, #e50914);
+  border-color: var(--color-primary-container, #e50914);
+}
+
+.checkbox__input:checked + .checkbox__box::after {
+  content:      '';
+  display:      block;
+  width:        0.3rem;
+  height:       0.55rem;
+  border:       2px solid #fff;
+  border-top:   none;
+  border-left:  none;
+  transform:    rotate(45deg) translate(-1px, -1px);
+}
+
+.checkbox__input:focus-visible + .checkbox__box {
+  outline:        2px solid var(--color-primary-container, #e50914);
+  outline-offset: 2px;
+}
+
+.checkbox__label {
+  font-size: 0.75rem;
+  color:     var(--th-utility-link, #a1a1aa);
+  transition: color 0.2s;
+}

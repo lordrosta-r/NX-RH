@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NanoXplore RH — Icon System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --red:    #e50914;
+      --bg:     #0a0a0a;
+      --card:   #18181b;
+      --border: rgba(255,255,255,0.08);
+      --text:   #ffffff;
+      --muted:  #71717a;
+      --label:  #a1a1aa;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 3rem 2rem;
+      min-height: 100vh;
+    }
+
+    /* Header */
+    .doc-header { margin-bottom: 3rem; border-bottom: 1px solid var(--border); padding-bottom: 2rem; }
+    .doc-header h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; }
+    .doc-header h1 span { color: var(--red); }
+    .doc-header p  { font-size: 0.8125rem; color: var(--muted); margin-top: 0.4rem; }
+
+    /* Section */
+    .doc-section { margin-bottom: 3rem; }
+    .doc-section h2 {
+      font-size: 0.625rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--label);
+      margin-bottom: 1.25rem;
+    }
+
+    /* Icon grid */
+    .icon-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 1rem;
+    }
+
+    .icon-card {
+      background:    var(--card);
+      border:        1px solid var(--border);
+      border-radius: 8px;
+      padding:       1.5rem 1rem 1rem;
+      display:       flex;
+      flex-direction:column;
+      align-items:   center;
+      gap:           0.75rem;
+      cursor:        default;
+      transition:    border-color 0.15s, background 0.15s;
+    }
+    .icon-card:hover {
+      border-color: var(--red);
+      background:   #1c1c1f;
+    }
+    .icon-card svg { display: block; }
+    .icon-card__name {
+      font-size:   0.7rem;
+      font-weight: 600;
+      color:       var(--label);
+      text-align:  center;
+    }
+    .icon-card__sizes {
+      display:   flex;
+      gap:       0.5rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .icon-card__sizes span {
+      font-size:   0.6rem;
+      color:       var(--muted);
+      background:  rgba(255,255,255,0.05);
+      padding:     0.15rem 0.4rem;
+      border-radius: 4px;
+    }
+
+    /* Usage table */
+    .usage-table { width: 100%; border-collapse: collapse; }
+    .usage-table th, .usage-table td {
+      text-align: left;
+      padding: 0.75rem 1rem;
+      font-size: 0.8125rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .usage-table th {
+      font-size: 0.625rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--label);
+    }
+    .usage-table td { color: var(--muted); }
+    .usage-table td:first-child { color: var(--text); font-weight: 600; }
+    code {
+      font-family: 'Menlo', 'Monaco', monospace;
+      font-size: 0.75rem;
+      background: rgba(255,255,255,0.06);
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      color: #93c5fd;
+    }
+
+    /* Color swatches */
+    .swatch-row { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+    .swatch {
+      display: flex; flex-direction: column; gap: 0.5rem; align-items: center;
+    }
+    .swatch__dot {
+      width: 2.5rem; height: 2.5rem; border-radius: 50%;
+      border: 1px solid var(--border);
+    }
+    .swatch__label { font-size: 0.6rem; color: var(--muted); text-align: center; }
+  </style>
+</head>
+<body>
+
+  <div class="doc-header">
+    <h1><span>NanoXplore RH</span> — Icon System</h1>
+    <p>SVG stroke icons · viewBox 24×24 · strokeWidth 2 · strokeLinecap round</p>
+  </div>
+
+  <!-- ── All Icons ── -->
+  <div class="doc-section">
+    <h2>Icônes disponibles</h2>
+    <div class="icon-grid">
+
+      <div class="icon-card">
+        <!-- SunIcon -->
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#e50914" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="4"/>
+          <line x1="12" y1="2" x2="12" y2="6"/>
+          <line x1="12" y1="18" x2="12" y2="22"/>
+          <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/>
+          <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/>
+          <line x1="2" y1="12" x2="6" y2="12"/>
+          <line x1="18" y1="12" x2="22" y2="12"/>
+          <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/>
+          <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/>
+        </svg>
+        <span class="icon-card__name">SunIcon</span>
+        <div class="icon-card__sizes"><span>12</span><span>16</span><span>18</span><span>24</span></div>
+      </div>
+
+      <div class="icon-card">
+        <!-- MoonIcon -->
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#e50914" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+        <span class="icon-card__name">MoonIcon</span>
+        <div class="icon-card__sizes"><span>12</span><span>16</span><span>18</span><span>24</span></div>
+      </div>
+
+      <div class="icon-card">
+        <!-- GlobeIcon -->
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#e50914" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="2" y1="12" x2="22" y2="12"/>
+          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+        </svg>
+        <span class="icon-card__name">GlobeIcon</span>
+        <div class="icon-card__sizes"><span>12</span><span>14</span><span>18</span><span>24</span></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── Usage ── -->
+  <div class="doc-section">
+    <h2>Usage</h2>
+    <table class="usage-table">
+      <thead>
+        <tr><th>Icône</th><th>Fichier</th><th>Contexte</th><th>Taille recommandée</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>SunIcon</td>
+          <td><code>icons/SunIcon.jsx</code></td>
+          <td>ThemeToggle — active en mode sombre (passer au clair)</td>
+          <td>15–18px</td>
+        </tr>
+        <tr>
+          <td>MoonIcon</td>
+          <td><code>icons/MoonIcon.jsx</code></td>
+          <td>ThemeToggle — active en mode clair (passer au sombre)</td>
+          <td>15–18px</td>
+        </tr>
+        <tr>
+          <td>GlobeIcon</td>
+          <td><code>icons/GlobeIcon.jsx</code></td>
+          <td>LanguageSelector — indicateur de langue</td>
+          <td>12–14px</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ── Props API ── -->
+  <div class="doc-section">
+    <h2>Props API (communes à toutes les icônes)</h2>
+    <table class="usage-table">
+      <thead>
+        <tr><th>Prop</th><th>Type</th><th>Défaut</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>size</td><td><code>number</code></td><td>18</td><td>Width & height en px</td></tr>
+        <tr><td>color</td><td><code>string</code></td><td>'currentColor'</td><td>Couleur du stroke SVG</td></tr>
+        <tr><td>strokeWidth</td><td><code>number</code></td><td>2</td><td>Épaisseur du trait</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ── Import ── -->
+  <div class="doc-section">
+    <h2>Import</h2>
+    <p style="font-size:0.8125rem; color:#71717a; margin-bottom:0.75rem;">
+      Toujours importer depuis le barrel export <code>icons/index.js</code> :
+    </p>
+    <pre style="background:#18181b; border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:1.25rem; font-size:0.8125rem; overflow-x:auto; color:#93c5fd;">
+import { SunIcon, MoonIcon, GlobeIcon } from '../components/ui/icons'
+
+&lt;SunIcon size={16} /&gt;
+&lt;MoonIcon size={16} color="var(--th-controls-icon)" /&gt;
+&lt;GlobeIcon size={14} color="currentColor" strokeWidth={1.5} /&gt;</pre>
+  </div>
+
+  <!-- ── Ajouter une icône ── -->
+  <div class="doc-section">
+    <h2>Ajouter une icône</h2>
+    <ol style="font-size:0.8125rem; color:#a1a1aa; line-height:2; padding-left:1.25rem;">
+      <li>Créer <code>client/src/components/ui/icons/NomIcon.jsx</code></li>
+      <li>Respecter les props <code>size</code>, <code>color</code>, <code>strokeWidth</code></li>
+      <li>Toujours <code>aria-hidden="true"</code> sur le SVG</li>
+      <li>Ajouter l'export dans <code>icons/index.js</code></li>
+      <li>Documenter ici dans cette page</li>
+    </ol>
+  </div>
+
+</body>
+</html>

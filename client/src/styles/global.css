@@ -3,6 +3,12 @@
    Minimal, utility-first foundation. No framework dependency.
    ============================================================================= */
 
+/* Design system tokens — must be first so all components can use the vars */
+@import './tokens.css';
+
+/* Theme variables (dark/light) — depends on tokens */
+@import './theme.css';
+
 /* ── Reset ─────────────────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; font-family: system-ui, -apple-system, sans-serif; font-size: 16px; }

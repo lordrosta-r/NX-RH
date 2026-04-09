@@ -1,17 +1,26 @@
-// =============================================================================
-// Login — Root component for the login page
-//
-// On success the server returns a JWT + sets an httpOnly cookie.
-// We redirect to /dashboard — Express then validates the cookie and
-// serves dashboard.html. No client-side routing needed.
-// =============================================================================
+import { useState }       from 'react'
+import MosaicBackground   from '../../components/login/MosaicBackground'
+import LoginControls      from '../../components/login/LoginControls'
+import InputField         from '../../components/ui/InputField'
+import Checkbox           from '../../components/ui/Checkbox'
+import { useLocale }      from '../../hooks/useLocale'
+import { useTheme }       from '../../hooks/useTheme'
+import './login.css'
 
-import React, { useState } from 'react'
-import Button from '../../components/ui/Button'
+// =============================================================================
+// Login — Root page component
+// Design ref: docs/design/login/DESIGN.md ("Editorial Enterprise")
+// =============================================================================
 
 export default function Login() {
+  // ── i18n + theme ──────────────────────────────────────────────────────────
+  const { t, locale, setLocale } = useLocale()
+  useTheme()   // initialises data-theme on <html> from localStorage
+
+  // ── Form state ─────────────────────────────────────────────────────────────
   const [email,    setEmail]    = useState('')
   const [password, setPassword] = useState('')
+  const [remember, setRemember] = useState(false)
   const [error,    setError]    = useState(null)
   const [loading,  setLoading]  = useState(false)
 
@@ -24,73 +33,112 @@ export default function Login() {
       const res  = await fetch('/api/auth/login', {
         method:      'POST',
         headers:     { 'Content-Type': 'application/json' },
-        credentials: 'include',          // send/receive cookies
+        credentials: 'include',
         body:        JSON.stringify({ email, password }),
       })
 
       const data = await res.json()
 
       if (!res.ok) {
-        setError(data.error || 'Login failed')
+        setError(data.error || t('login.error'))
         return
       }
 
-      // Store token for fetch calls that need the Authorization header
       sessionStorage.setItem('token', data.token)
       sessionStorage.setItem('user',  JSON.stringify(data.user))
 
-      // Let Express handle where to send the user based on their role
-      const destination = data.user.role === 'manager' || data.user.role === 'admin'
+      window.location.href = ['admin', 'manager'].includes(data.user.role)
         ? '/manager'
         : '/dashboard'
 
-      window.location.href = destination
-
     } catch {
-      setError('Network error — please try again.')
+      setError('Erreur réseau — veuillez réessayer.')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="page-center">
-      <div className="card">
-        <h1 className="card__title">NanoXplore RH</h1>
-        <p className="card__subtitle">Sign in to your account</p>
+    <div className="login-page">
 
-        <form onSubmit={handleSubmit} noValidate>
-          <div className="field">
-            <label htmlFor="email">Email</label>
-            <input
+      {/* ── Layer 0+1 — Cinematic background + overlay ── */}
+      <MosaicBackground />
+
+      {/* ── Layer 2 — Foreground ── */}
+      <main className="login-content">
+
+        <header className="login-header">
+          <h1 className="login-header__title">NanoXplore RH</h1>
+          <p className="login-header__tagline">{t('brand.tagline')}</p>
+        </header>
+
+        <div className="login-card">
+          <h2 className="login-card__title">{t('login.title')}</h2>
+
+          <form onSubmit={handleSubmit} className="login-form" noValidate>
+
+            <InputField
               id="email"
+              label={t('login.email.label')}
               type="email"
-              autoComplete="email"
-              required
+              placeholder={t('login.email.placeholder')}
               value={email}
               onChange={e => setEmail(e.target.value)}
+              autoComplete="email"
             />
-          </div>
 
-          <div className="field">
-            <label htmlFor="password">Password</label>
-            <input
+            <InputField
               id="password"
+              label={t('login.password.label')}
               type="password"
-              autoComplete="current-password"
-              required
+              placeholder="••••••••"
               value={password}
               onChange={e => setPassword(e.target.value)}
+              autoComplete="current-password"
             />
+
+            {error && <p className="login-error" role="alert">{error}</p>}
+
+            <button type="submit" className="btn--login" disabled={loading}>
+              {loading ? t('login.submit.loading') : t('login.submit')}
+            </button>
+
+            <div className="login-utility">
+              <Checkbox
+                id="remember"
+                label={t('login.remember')}
+                checked={remember}
+                onChange={e => setRemember(e.target.checked)}
+              />
+              <a href="#" className="login-utility__link">
+                {t('login.help')}
+              </a>
+            </div>
+
+          </form>
+
+          {/* Legal + Contact admin */}
+          <div className="login-card__footer">
+            <p>
+              {t('login.legal.text')}{' '}
+              <a href="#">{t('login.legal.link')}</a>
+              {' '}{t('login.legal.suffix')}
+            </p>
+            <a href="mailto:admin@nanoxplore.com" className="login-contact">
+              {t('login.contact.admin')}
+            </a>
           </div>
+        </div>
 
-          {error && <p className="error-msg">{error}</p>}
+        <footer className="login-page-footer">
+          {t('login.copyright')}
+        </footer>
 
-          <Button type="submit" disabled={loading} fullWidth>
-            {loading ? 'Signing in…' : 'Sign in'}
-          </Button>
-        </form>
-      </div>
+      </main>
+
+      {/* ── Layer 3 — Floating controls (theme + language) ── */}
+      <LoginControls locale={locale} onLocaleChange={setLocale} />
+
     </div>
   )
 }

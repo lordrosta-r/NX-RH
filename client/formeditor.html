@@ -3,19 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>NanoXplore RH — Dashboard</title>
-
-    <!-- Inter font — loaded before render to avoid FOUT -->
+    <title>NanoXplore RH — Éditeur de formulaires</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
-
-    <!--
-      Anti-flash: apply locale from localStorage synchronously before React
-      mounts, so the correct language is set on first paint.
-      The inner app pages (dashboard, manager) do not use data-theme —
-      they always render in Editorial Enterprise light mode.
-    -->
     <!-- Anti-flash: apply theme + locale before React mounts -->
     <script>
       (function () {
@@ -26,15 +17,9 @@
         if (l) document.documentElement.setAttribute('lang', l === 'fr' ? 'fr' : 'en')
       })()
     </script>
-
-    <!--
-      MPA entry point for the Dashboard page.
-      Express serves this at GET /dashboard (auth-protected).
-      Vite compiles it into server/public/dashboard.html.
-    -->
   </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/pages/dashboard/main.jsx"></script>
+    <script type="module" src="/src/pages/formeditor/main.jsx"></script>
   </body>
 </html>

@@ -2,7 +2,8 @@ export default {
   // Sidebar navigation
   'hr.nav.overview':   'Vue d\'ensemble',
   'hr.nav.campaigns':  'Campagnes',
-  'hr.nav.templates':  'Templates',
+  'hr.nav.formeditor': 'Éditeur de formulaires',
+  'hr.nav.resources':  'Ressources',
   'hr.nav.reports':    'Rapports',
   'hr.nav.settings':   'Paramètres',
 
@@ -56,16 +57,15 @@ export default {
 
   // Welcome banner
   'hr.welcome.greeting':          'Bonjour,',
-  'hr.welcome.tagline':           'Pilotez les campagnes d\'évaluation depuis un seul espace.',
-  'hr.welcome.badge':             'Campagne active',
-  'hr.welcome.headline.part1':    'Entretiens annuels',
-  'hr.welcome.headline.accent':   '2026',
-  'hr.welcome.headline.part2':    '— en cours.',
-  'hr.welcome.cta.primary':       'Nouvelle campagne',
-  'hr.welcome.cta.secondary':     'Voir les dossiers',
-  'hr.welcome.stat.employees':    'Employés',
-  'hr.welcome.stat.campaign':     'Campagne active',
-  'hr.welcome.stat.completion':   'Complétion',
+  'hr.welcome.tagline':           'Gérez les entretiens de 128 collaborateurs sur 5 services.',
+  'hr.welcome.desc':              'Créez les formulaires, lancez les campagnes, suivez la complétion par service et exportez les résultats.',
+  'hr.welcome.headline.part1':    'Votre espace de',
+  'hr.welcome.headline.accent':   'pilotage RH',
+  'hr.welcome.headline.part2':    '',
+  'hr.welcome.cta':               'Voir tous les dossiers employés →',
+  'hr.welcome.stat.employees':    'Collaborateurs',
+  'hr.welcome.stat.departments':  'Services',
+  'hr.welcome.stat.completion':   'Complétion globale',
 
   // Calendar
   'hr.calendar.title':            'Entretiens & échéances',

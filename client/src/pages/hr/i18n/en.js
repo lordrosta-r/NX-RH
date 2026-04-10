@@ -2,7 +2,8 @@ export default {
   // Sidebar navigation
   'hr.nav.overview':   'Overview',
   'hr.nav.campaigns':  'Campaigns',
-  'hr.nav.templates':  'Templates',
+  'hr.nav.formeditor': 'Form Editor',
+  'hr.nav.resources':  'Resources',
   'hr.nav.reports':    'Reports',
   'hr.nav.settings':   'Settings',
 
@@ -56,16 +57,15 @@ export default {
 
   // Welcome banner
   'hr.welcome.greeting':          'Hello,',
-  'hr.welcome.tagline':           'Manage all evaluation campaigns from one place.',
-  'hr.welcome.badge':             'Active Campaign',
-  'hr.welcome.headline.part1':    'Annual Reviews',
-  'hr.welcome.headline.accent':   '2026',
-  'hr.welcome.headline.part2':    '— in progress.',
-  'hr.welcome.cta.primary':       'New Campaign',
-  'hr.welcome.cta.secondary':     'View All Files',
+  'hr.welcome.tagline':           'Manage the reviews of 128 employees across 5 departments.',
+  'hr.welcome.desc':              'Create form templates, launch campaigns, track completion by department, and export results.',
+  'hr.welcome.headline.part1':    'Your',
+  'hr.welcome.headline.accent':   'HR control center',
+  'hr.welcome.headline.part2':    '',
+  'hr.welcome.cta':               'View all employee files →',
   'hr.welcome.stat.employees':    'Employees',
-  'hr.welcome.stat.campaign':     'Active Campaign',
-  'hr.welcome.stat.completion':   'Completion',
+  'hr.welcome.stat.departments':  'Departments',
+  'hr.welcome.stat.completion':   'Global Completion',
 
   // Calendar
   'hr.calendar.title':            'Interviews & Deadlines',

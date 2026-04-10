@@ -1,6 +1,7 @@
 // =============================================================================
 // HRWelcomeBanner — Hero card du dashboard RH
-// Greeting + tagline + 2 CTAs (gauche) + image avec overlay stats (droite).
+// Carte d'identité mission RH : greeting + chiffres clés + CTAs + image.
+// Différent de hr-camp qui est la vue opérationnelle de la campagne en cours.
 // Design: docs/design/dashboard/DESIGN.md
 // =============================================================================
 
@@ -13,34 +14,23 @@ export default function HRWelcomeBanner({ t, userName = '' }) {
   return (
     <section className="hrwb">
 
-      {/* ── Left — greeting + CTAs ─────────────────────────────────────── */}
+      {/* ── Left — greeting + mission + CTAs ──────────────────────────── */}
       <div className="hrwb__content">
         <p className="hrwb__greeting">
           {t('hr.welcome.greeting')} {userName || 'RH'}.
         </p>
         <p className="hrwb__tagline">{t('hr.welcome.tagline')}</p>
-
-        <div className="hrwb__badge">
-          <span className="hrwb__badge-dot" aria-hidden="true" />
-          {t('hr.welcome.badge')}
-        </div>
+        <p className="hrwb__desc">{t('hr.welcome.desc')}</p>
+        <a href="#reports" className="btn btn--sm">{t('hr.welcome.cta')}</a>
 
         <h2 className="hrwb__headline">
           {t('hr.welcome.headline.part1')}{' '}
           <span className="hrwb__headline-accent">
             {t('hr.welcome.headline.accent')}
-          </span>{' '}
-          {t('hr.welcome.headline.part2')}
+          </span>
+          {t('hr.welcome.headline.part2') ? ` ${t('hr.welcome.headline.part2')}` : ''}
         </h2>
 
-        <div className="hrwb__actions">
-          <button className="hrwb__btn hrwb__btn--primary">
-            {t('hr.welcome.cta.primary')}
-          </button>
-          <button className="hrwb__btn hrwb__btn--secondary">
-            {t('hr.welcome.cta.secondary')}
-          </button>
-        </div>
       </div>
 
       {/* ── Right — image + stat overlay ──────────────────────────────── */}
@@ -60,8 +50,8 @@ export default function HRWelcomeBanner({ t, userName = '' }) {
           </div>
           <div className="hrwb__stat-sep" aria-hidden="true" />
           <div className="hrwb__stat">
-            <span className="hrwb__stat-value">1</span>
-            <span className="hrwb__stat-label">{t('hr.welcome.stat.campaign')}</span>
+            <span className="hrwb__stat-value">5</span>
+            <span className="hrwb__stat-label">{t('hr.welcome.stat.departments')}</span>
           </div>
           <div className="hrwb__stat-sep" aria-hidden="true" />
           <div className="hrwb__stat">

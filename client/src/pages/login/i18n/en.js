@@ -12,5 +12,5 @@ export default {
   'login.legal.text':        'Secure administration platform. By signing in, you agree to the',
   'login.legal.link':        'privacy terms',
   'login.legal.suffix':      'of NanoXplore RH.',
-  'login.copyright':         '© 2026 Editorial Enterprise • Industrial Intelligence',
+  'login.copyright':         '© 2026 NanoXplore RH',
 }

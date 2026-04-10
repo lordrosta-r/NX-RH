@@ -16,7 +16,11 @@
 }
 
 @media (max-width: 767px) {
-  .login-controls { display: none; }
+  .login-controls {
+    bottom: 1rem;
+    right:  1rem;
+    padding: 0.4rem 0.7rem;
+  }
 }
 
 .login-controls__divider {

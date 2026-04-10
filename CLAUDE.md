@@ -40,10 +40,18 @@ client/src/components/ui/
 ├── Checkbox.jsx + Checkbox.css
 ├── ThemeToggle.jsx + ThemeToggle.css
 └── icons/
-    ├── SunIcon.jsx
-    ├── MoonIcon.jsx
-    ├── GlobeIcon.jsx
-    └── index.js          ← barrel export
+    ├── SunIcon.jsx          ← Login — thème
+    ├── MoonIcon.jsx         ← Login — thème
+    ├── GlobeIcon.jsx        ← Login — langue
+    ├── HomeIcon.jsx         ← Inner app nav — Dashboard
+    ├── ClipboardIcon.jsx    ← Inner app nav — Évaluation
+    ├── TrendIcon.jsx        ← Inner app nav — Progression
+    ├── GearIcon.jsx         ← Inner app nav — Paramètres
+    ├── BellIcon.jsx         ← Inner app — Notifications
+    ├── SearchIcon.jsx       ← Inner app — Recherche
+    ├── ArrowNEIcon.jsx      ← Inner app — Cartes interactives
+    ├── ChevronRightIcon.jsx ← Inner app — Liens inline
+    └── index.js             ← barrel export
 ```
 
 **Ne jamais** mettre de logique métier, d'appels API ou d'état applicatif ici.
@@ -60,14 +68,32 @@ client/src/
 ├── i18n/
 │   └── index.js          ← makeT() factory UNIQUEMENT — pas de données locale ici
 └── styles/
-    ├── tokens.css         ← Variables de design (couleurs, radius, typo)
-    ├── theme.css          ← Variables --th-* pour dark/light
+    ├── tokens.css         ← Variables de design (couleurs, radius, typo, sidebar)
+    ├── theme.css          ← Variables --th-* pour dark/light (login page)
     └── global.css         ← Reset + imports tokens + theme
 ```
 
 ---
 
-## 4. Ajouter une nouvelle page
+## 4. Deux familles de pages — design distinct
+
+### 4a. Page login (`/`)
+- Fond noir cinématique avec mosaic photos
+- Variables `--th-*` pour dark/light toggle
+- Anti-flash : script inline dans `login.html` qui applique `data-theme` avant React
+- Scroll désactivé (`height: 100dvh; overflow: hidden`)
+- Design ref : `docs/design/login/DESIGN.md`
+
+### 4b. Pages internes (`/dashboard`, `/manager`, `/hr`…)
+- **Sidebar dark violet** fixe 256px (`--color-sidebar: #2e1065`)
+- **Contenu "Editorial Enterprise"** : fond `--color-surface` (#fcf9f8), typographie Inter 900
+- **Pas de data-theme** pour l'instant — toujours en light mode Editorial
+- **Scroll normal** — le contenu doit pouvoir s'étendre
+- Design ref : `docs/design/dashboard/DESIGN.md`
+
+---
+
+## 5. Ajouter une nouvelle page
 
 ```bash
 # 1. Créer le dossier
@@ -88,18 +114,19 @@ touch client/src/pages/<page>/i18n/index.js
 
 ---
 
-## 5. CSS — Règles strictes
+## 6. CSS — Règles strictes
 
 | ✅ Faire | ❌ Ne pas faire |
 |----------|----------------|
-| Utiliser `var(--th-*)` pour toutes les couleurs thémables | Hardcoder `#ffffff`, `rgba(...)` dans les composants |
-| Utiliser `var(--color-*)` pour les tokens de brand | Utiliser Tailwind ou un framework CSS |
+| Utiliser `var(--th-*)` pour les couleurs de la page login | Hardcoder `#ffffff`, `rgba(...)` dans les composants |
+| Utiliser `var(--color-*)` pour les tokens de brand et pages internes | Utiliser Tailwind ou un framework CSS |
 | Un `.css` par `.jsx` dans le même dossier | Mettre les styles d'une page dans `global.css` |
 | Sections commentées dans le CSS | Écrire du CSS sans commentaires de contexte |
+| Pages internes : `var(--color-sidebar-*)` pour la sidebar | Hardcoder la couleur `#2e1065` directement |
 
 ---
 
-## 6. Traductions — i18n page par page
+## 7. Traductions — i18n page par page
 
 Chaque page gère ses propres chaînes. L'engine `makeT` est partagé, les données ne le sont pas.
 
@@ -115,29 +142,57 @@ import { t as pageT } from './i18n'
 const { t, locale, setLocale } = useLocale(pageT)
 ```
 
-**Clés de traduction** : format `<page>.<element>.<détail>` (ex: `login.submit.loading`).
+**Clés de traduction** : format `<page>.<section>.<élément>` (ex: `dashboard.campaign.badge`).
 
 ---
 
-## 7. Icônes
+## 8. Icônes
 
-- Toujours des **SVG stroke** (jamais emoji, jamais font-icon)
-- Props standards : `size`, `color`, `strokeWidth`
+- Toujours des **SVG stroke** (jamais emoji, jamais font-icon Material Symbols)
+- Props standards : `size` (défaut 18), `color` (défaut `currentColor`), `strokeWidth` (défaut 2)
 - Toujours `aria-hidden="true"` sur le SVG
-- Importer depuis le barrel : `import { SunIcon } from '../components/ui/icons'`
+- Importer depuis le barrel : `import { BellIcon } from '../../components/ui/icons'`
 - Documenter dans `docs/design/icons/index.html`
 
 ---
 
-## 8. Thème dark/light
+## 9. Thème dark/light
 
 - Le thème est écrit sur `<html data-theme="dark|light">` par `useTheme()`
-- **Anti-flash** : `login.html` (et toutes les pages) contient un script inline qui lit `localStorage` et applique `data-theme` AVANT que React ne monte
-- En mode clair : les images de fond restent visibles mais atténuées (`--th-mosaic-opacity: 0.10`)
+- **Anti-flash** : `login.html` contient un script inline qui lit `localStorage` et applique `data-theme` AVANT que React ne monte
+- En mode clair : les images de fond restent visibles mais atténuées (`--th-mosaic-opacity: 0.12`)
+- **Pages internes** : pas de toggle pour l'instant — toujours Editorial Enterprise light
 
 ---
 
-## 9. Docker & déploiement
+## 10. Sidebar des pages internes
+
+```jsx
+// Pattern — sidebar co-localisée dans le dossier de la page
+// Si la sidebar devient partagée entre 3+ pages, la déplacer dans components/ui/
+
+import DashboardSidebar from './DashboardSidebar'
+
+// Dans le JSX :
+<div className="db">
+  <DashboardSidebar t={t} user={user} />
+  <div className="db-main">
+    <header className="db-topbar">…</header>
+    <main className="db-content">…</main>
+  </div>
+</div>
+```
+
+Layout CSS clé :
+```css
+.db          { display: flex; min-height: 100vh; }
+.db-main     { margin-left: 256px; flex: 1; }
+.db-topbar   { position: sticky; top: 0; z-index: 40; }
+```
+
+---
+
+## 11. Docker & déploiement
 
 - Un seul `Dockerfile` multi-stage à la racine
 - Le build client sort dans `server/public/` (copié depuis l'étape builder)
@@ -146,9 +201,11 @@ const { t, locale, setLocale } = useLocale(pageT)
 
 ---
 
-## 10. Ce qu'on ne fait PAS (encore)
+## 12. Ce qu'on ne fait PAS (encore)
 
 - Pas de logique métier dans les composants UI
 - Pas de state management global (Redux, Zustand…) — useState suffit pour l'instant
 - Pas de React Router — Express gère la navigation entre pages
 - Pas de SSR — MPA classique avec Express servant du HTML statique compilé
+- Pas de dark mode sur les pages internes (login uniquement pour l'instant)
+- Pas de Material Symbols (font-icons) — SVG stroke uniquement

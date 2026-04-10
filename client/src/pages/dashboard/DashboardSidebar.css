@@ -1,0 +1,81 @@
+/* =============================================================================
+   DashboardSidebar — Dark violet fixed sidebar (brand + nav only)
+   User profile is in the topbar. See dashboard.css for user styles.
+   ============================================================================= */
+
+/* ── Shell ─────────────────────────────────────────────────────────────────── */
+.ds-sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 256px;
+  height: 100vh;
+  background: var(--color-sidebar);
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem 1rem;
+  z-index: 50;
+  overflow-y: auto;
+  font-family: var(--font-family);
+}
+
+/* ── Brand ─────────────────────────────────────────────────────────────────── */
+.ds-sidebar__brand {
+  padding: 0 0.5rem;
+  margin-bottom: 2.5rem;
+}
+
+.ds-sidebar__brand-name {
+  font-size: 1.125rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #ffffff;
+  line-height: 1.2;
+}
+
+.ds-sidebar__brand-sub {
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--color-sidebar-label);
+  margin-top: 0.2rem;
+}
+
+/* ── Navigation ────────────────────────────────────────────────────────────── */
+.ds-sidebar__nav {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.ds-sidebar__item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 1rem;
+  border-radius: var(--radius-md);
+  color: var(--color-sidebar-nav-text);
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.ds-sidebar__item:hover {
+  background: var(--color-sidebar-hover-bg);
+  color: var(--color-sidebar-nav-active);
+}
+
+/* Active — red pill */
+.ds-sidebar__item--active {
+  background: var(--color-sidebar-active-bg);
+  color: var(--color-sidebar-nav-active);
+  font-weight: 600;
+  box-shadow: 0 4px 14px rgba(184, 0, 11, 0.40);
+}
+
+.ds-sidebar__item--active:hover {
+  background: var(--color-primary-container);
+}

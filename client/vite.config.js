@@ -44,6 +44,8 @@ export default defineConfig({
         dashboard: resolve(__dirname, 'dashboard.html'),
         manager:   resolve(__dirname, 'manager.html'),
         hr:        resolve(__dirname, 'hr.html'),
+        formeditor:  resolve(__dirname, 'formeditor.html'),
+        evaluation:  resolve(__dirname, 'evaluation.html'),
       },
     },
   },

@@ -57,6 +57,8 @@ client/src/components/ui/
     ├── PaletteIcon.jsx      ← Inner app — Cycle thème topbar
     ├── DocumentIcon.jsx     ← Inner app — Form Editor
     ├── FolderIcon.jsx       ← Inner app — Ressources HR
+    ├── PlusIcon.jsx         ← Inner app — Form Editor (ajouter un champ)
+    ├── TrashIcon.jsx        ← Inner app — Form Editor (supprimer un champ)
     └── index.js             ← barrel export
 ```
 
@@ -90,7 +92,7 @@ client/src/
 - Scroll désactivé (`height: 100dvh; overflow: hidden`)
 - Design ref : `docs/design/login/DESIGN.md`
 
-### 4b. Pages internes (`/dashboard`, `/hr`, `/manager`…)
+### 4b. Pages internes (`/dashboard`, `/hr`, `/manager`, `/formeditor`…)
 - **Sidebar** : couleur via `--color-sidebar` (dark violet par défaut, overridé par `data-theme`)
 - Partagée via `components/ui/AppSidebar.jsx` — chaque page fournit ses `navItems`
 - **Contenu "Editorial Enterprise"** : fond `--color-surface` (#fcf9f8), typographie Inter 900

@@ -83,6 +83,8 @@ app.get('/',          sendPage('login'))
 app.get('/dashboard', authGuard(['admin', 'manager', 'employee']), sendPage('dashboard'))
 app.get('/manager',   authGuard(['admin', 'manager']),             sendPage('manager'))
 app.get('/hr',        authGuard(['admin', 'hr']),                  sendPage('hr'))
+app.get('/formeditor',  authGuard(['admin', 'hr']),                             sendPage('formeditor'))
+app.get('/evaluation', authGuard(['admin', 'hr', 'manager', 'employee']),     sendPage('evaluation'))
 
 // ─── API Routes ──────────────────────────────────────────────────────────────
 //

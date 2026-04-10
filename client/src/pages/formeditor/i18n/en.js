@@ -1,0 +1,62 @@
+export default {
+  'fe.nav.overview':   'Overview',
+  'fe.nav.campaigns':  'Campaigns',
+  'fe.nav.formeditor': 'Form Editor',
+  'fe.nav.resources':  'Resources',
+  'fe.nav.reports':    'Reports',
+  'fe.nav.settings':   'Settings',
+
+  'fe.banner.tagline':     'Create, customize and publish your evaluation forms.',
+  'fe.banner.desc':        'Build reusable templates, assign them to teams and track responses in real time.',
+  'fe.banner.headline.part1':  'Your forms,',
+  'fe.banner.headline.accent': 'your way.',
+  'fe.banner.cta':         'Create a form',
+
+  'fe.topbar.search':   'Search a form…',
+  'fe.topbar.date':     'April 10, 2026',
+
+  'fe.filter.all':      'All',
+  'fe.filter.active':   'Active',
+  'fe.filter.draft':    'Drafts',
+  'fe.filter.archived': 'Archived',
+
+  'fe.status.active':   'Active',
+  'fe.status.draft':    'Draft',
+  'fe.status.archived': 'Archived',
+
+  'fe.card.questions':  'questions',
+  'fe.card.responses':  'responses',
+  'fe.card.team':       'Team',
+  'fe.card.edit':       'Edit',
+  'fe.card.duplicate':  'Duplicate',
+  'fe.card.updated':    'Updated on',
+
+  'fe.section.forms':   'Forms',
+  'fe.section.empty':   'No forms in this category.',
+  'fe.section.new':     'New form',
+
+  'fe.create.title':       'Form title',
+  'fe.create.title.ph':    'E.g. Annual self-assessment 2026',
+  'fe.create.desc':        'Description',
+  'fe.create.desc.ph':     'Describe the purpose of this form…',
+  'fe.create.team':        'Target team',
+  'fe.create.team.all':    'All',
+  'fe.create.addfield':    'Add a field',
+  'fe.create.fields':      'Form fields',
+  'fe.create.preview':     'Preview',
+  'fe.create.empty':       'Add fields to see the preview.',
+  'fe.create.publish':     'Publish',
+  'fe.create.save':        'Save as draft',
+  'fe.create.cancel':      'Cancel',
+  'fe.create.back':        '← Back to list',
+  'fe.create.required':    'Required',
+  'fe.create.placeholder': 'Question label…',
+
+  'fe.field.text':     'Short text',
+  'fe.field.textarea': 'Long text',
+  'fe.field.rating':   'Rating (1–5)',
+  'fe.field.choice':   'Multiple choice',
+  'fe.field.scale':    'Scale',
+
+  'fe.tags.title': 'Tags',
+}

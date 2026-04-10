@@ -1,0 +1,21 @@
+// =============================================================================
+// HRSidebar — HR portal sidebar
+// Thin config wrapper around the shared AppSidebar component.
+// Nav items match HR.md role definition.
+// =============================================================================
+
+import React from 'react'
+import AppSidebar from '../../components/ui/AppSidebar'
+import { HomeIcon, ClipboardIcon, DocumentIcon, TrendIcon, GearIcon } from '../../components/ui/icons'
+
+export default function HRSidebar({ t, activeItem = 'overview' }) {
+  const navItems = [
+    { id: 'overview',  Icon: HomeIcon,      label: t('hr.nav.overview'),  active: activeItem === 'overview'  },
+    { id: 'campaigns', Icon: ClipboardIcon, label: t('hr.nav.campaigns'), active: activeItem === 'campaigns' },
+    { id: 'templates', Icon: DocumentIcon,  label: t('hr.nav.templates'), active: activeItem === 'templates' },
+    { id: 'reports',   Icon: TrendIcon,     label: t('hr.nav.reports'),   active: activeItem === 'reports'   },
+    { id: 'settings',  Icon: GearIcon,      label: t('hr.nav.settings'),  active: activeItem === 'settings'  },
+  ]
+
+  return <AppSidebar brandSub="HR Portal" navItems={navItems} />
+}

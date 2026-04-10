@@ -1,24 +1,27 @@
 import { useState, useEffect } from 'react'
 
 // =============================================================================
-// useTheme — React hook for dark/light mode
+// useTheme — React hook for 3-state theme cycle
 //
-// Writes `data-theme="dark|light"` on <html> so all CSS variables respond.
+// Writes `data-theme="dark|light|light-sidebar"` on <html>.
 // Persists choice in localStorage.
 //
+// Cycle order: dark → light → light-sidebar → dark
+//
 // Returns:
-//   theme       {string}   — 'dark' | 'light'
-//   toggleTheme {function} — flip between the two
-//   isDark      {boolean}  — shorthand
+//   theme       {string}   — 'dark' | 'light' | 'light-sidebar'
+//   cycleTheme  {function} — advance to next theme
+//   isDark      {boolean}  — shorthand for theme === 'dark'
 // =============================================================================
 
-const STORAGE_KEY  = 'nx_theme'
-const DEFAULT_THEME = 'dark'   // Login page defaults to cinematic dark
+const STORAGE_KEY   = 'nx_theme'
+const DEFAULT_THEME = 'dark'
+const THEMES        = ['dark', 'light', 'light-sidebar']
 
 export function useTheme() {
   const [theme, setThemeState] = useState(() => {
     const stored = localStorage.getItem(STORAGE_KEY)
-    return stored === 'light' || stored === 'dark' ? stored : DEFAULT_THEME
+    return THEMES.includes(stored) ? stored : DEFAULT_THEME
   })
 
   // Apply to <html> whenever theme changes
@@ -27,8 +30,14 @@ export function useTheme() {
     localStorage.setItem(STORAGE_KEY, theme)
   }, [theme])
 
-  const toggleTheme = () =>
-    setThemeState(current => current === 'dark' ? 'light' : 'dark')
+  const cycleTheme = () =>
+    setThemeState(current => {
+      const idx = THEMES.indexOf(current)
+      return THEMES[(idx + 1) % THEMES.length]
+    })
 
-  return { theme, toggleTheme, isDark: theme === 'dark' }
+  // Keep toggleTheme as alias for backward compat (login page)
+  const toggleTheme = cycleTheme
+
+  return { theme, cycleTheme, toggleTheme, isDark: theme === 'dark' }
 }

@@ -43,6 +43,7 @@ export default defineConfig({
         login:     resolve(__dirname, 'login.html'),
         dashboard: resolve(__dirname, 'dashboard.html'),
         manager:   resolve(__dirname, 'manager.html'),
+        hr:        resolve(__dirname, 'hr.html'),
       },
     },
   },

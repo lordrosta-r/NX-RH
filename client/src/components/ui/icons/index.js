@@ -21,3 +21,10 @@ export { default as ChevronRightIcon } from './ChevronRightIcon'
 // ── Inner app — card icons ────────────────────────────────────────────────────
 export { default as SparklesIcon     } from './SparklesIcon'
 export { default as HeartIcon        } from './HeartIcon'
+
+// ── Inner app — topbar ────────────────────────────────────────────────────────
+export { default as HelpIcon         } from './HelpIcon'
+export { default as PaletteIcon      } from './PaletteIcon'
+
+// ── Inner app — HR / shared ───────────────────────────────────────────────────
+export { default as DocumentIcon     } from './DocumentIcon'

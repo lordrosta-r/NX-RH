@@ -79,3 +79,21 @@ html[data-theme="light"] {
   --th-controls-text:     rgba(28, 27, 27, 0.75);
   --th-controls-divider:  rgba(28, 27, 27, 0.10);
 }
+
+/* ── Inner app dark mode — overrides --color-* surface tokens ───────────────
+   La sidebar reste toujours sombre (--color-sidebar hardcodé à #2e1065).
+   Seul le contenu principal (fond, cartes, texte) bascule en sombre.       */
+html[data-theme="dark"] {
+  --color-surface:                   #111010;
+  --color-surface-bright:            #161515;
+  --color-surface-container-lowest:  #1c1b1b;
+  --color-surface-container-low:     #201f1f;
+  --color-surface-container:         #252424;
+  --color-surface-container-high:    #2d2c2c;
+  --color-surface-container-highest: #323131;
+  --color-on-surface:                #eae7e7;
+  --color-on-surface-variant:        #b5a9a5;
+  --color-background:                #111010;
+  --color-on-background:             #eae7e7;
+  --color-outline-variant:           rgba(233,188,182,0.15);
+}

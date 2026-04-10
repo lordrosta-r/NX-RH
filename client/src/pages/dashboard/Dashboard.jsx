@@ -1,88 +1,277 @@
 // =============================================================================
-// Dashboard — Employee view
-// Shows the evaluations assigned to the current user.
+// Dashboard — Employee home page
+// Layout: dark violet sidebar + Editorial Enterprise main content.
+// Design: docs/design/dashboard/DESIGN.md
 // =============================================================================
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef, useCallback } from 'react'
+import './dashboard.css'
+import DashboardSidebar from './DashboardSidebar'
+import CampaignBanner   from './CampaignBanner'
+import { t as pageT }   from './i18n'
+import { useLocale }    from '../../hooks/useLocale'
+import { useTheme }     from '../../hooks/useTheme'
+import {
+  BellIcon, SearchIcon, ArrowNEIcon,
+  SunIcon, MoonIcon,
+  SparklesIcon, HeartIcon,
+} from '../../components/ui/icons'
 
-// Read user info written to sessionStorage at login time
+// ── Helpers ──────────────────────────────────────────────────────────────────
 function getCurrentUser() {
   try { return JSON.parse(sessionStorage.getItem('user')) } catch { return null }
 }
 
-function authHeaders() {
-  const token = sessionStorage.getItem('token')
-  return token ? { Authorization: `Bearer ${token}` } : {}
-}
+const NOTIF_COLORS = [
+  'var(--color-primary)',
+  'var(--color-secondary)',
+  'var(--color-tertiary)',
+  'var(--color-secondary-container)',
+]
 
+// ── Spotlight image (office interior — replaceable with a local asset in /public)
+const SPOTLIGHT_IMG = 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=70'
+
+// ── Component ────────────────────────────────────────────────────────────────
 export default function Dashboard() {
-  const user        = getCurrentUser()
-  const [evals,     setEvals]   = useState([])
-  const [loading,   setLoading] = useState(true)
-  const [error,     setError]   = useState(null)
+  const { t, locale }        = useLocale(pageT)
+  const { theme, toggleTheme, isDark } = useTheme()
+  const [user, setUser]      = useState(null)
+  const [notifOpen, setNotifOpen] = useState(false)
+  const notifRef = useRef(null)
 
+  useEffect(() => { setUser(getCurrentUser()) }, [])
+
+  // Close notification dropdown when clicking outside
   useEffect(() => {
-    fetch('/api/evaluations', { headers: authHeaders(), credentials: 'include' })
-      .then(r => r.json())
-      .then(data => {
-        if (data.error) throw new Error(data.error)
-        setEvals(data)
-      })
-      .catch(err => setError(err.message))
-      .finally(() => setLoading(false))
-  }, [])
+    if (!notifOpen) return
+    function onClickOutside(e) {
+      if (notifRef.current && !notifRef.current.contains(e.target)) {
+        setNotifOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', onClickOutside)
+    return () => document.removeEventListener('mousedown', onClickOutside)
+  }, [notifOpen])
 
-  async function handleLogout() {
-    await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
-    sessionStorage.clear()
-    window.location.href = '/'
-  }
+  const notifItems = [1, 2, 3, 4].map(n => ({
+    id:    n,
+    color: NOTIF_COLORS[n - 1],
+    text:  t(`dashboard.notif.${n}`),
+    meta:  t(`dashboard.notif.${n}.meta`),
+  }))
+
+  const dateLabel = new Date().toLocaleDateString(
+    locale === 'fr' ? 'fr-FR' : 'en-US',
+    { day: 'numeric', month: 'long', year: 'numeric' }
+  )
+
+  // User info
+  const first    = user?.firstName ?? ''
+  const last     = user?.lastName  ?? ''
+  const initials = `${first[0] ?? ''}${last[0] ?? ''}`.toUpperCase() || 'U'
+  const fullName = first || last ? `${first} ${last}`.trim() : 'Utilisateur'
+  const role     = user?.role ?? 'employee'
 
   return (
-    <div className="page">
-      <header className="topbar">
-        <span className="topbar__brand">NanoXplore RH</span>
-        <div className="topbar__user">
-          <span>{user?.firstName} {user?.lastName}</span>
-          <button className="btn btn--ghost" onClick={handleLogout}>Logout</button>
-        </div>
-      </header>
+    <div className="db">
 
-      <main className="content">
-        <h2>My Evaluations</h2>
+      {/* ── Sidebar ─────────────────────────────────────────────────────── */}
+      <DashboardSidebar t={t} />
 
-        {loading && <p>Loading…</p>}
-        {error   && <p className="error-msg">{error}</p>}
+      {/* ── Main area ───────────────────────────────────────────────────── */}
+      <div className="db-main">
 
-        {!loading && !error && evals.length === 0 && (
-          <p className="empty-state">No evaluations assigned yet.</p>
-        )}
+        {/* ── Topbar ──────────────────────────────────────────────────── */}
+        <header className="db-topbar">
 
-        {!loading && evals.length > 0 && (
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Campaign</th>
-                <th>Evaluatee</th>
-                <th>Status</th>
-                <th>Score</th>
-                <th>Submitted</th>
-              </tr>
-            </thead>
-            <tbody>
-              {evals.map(ev => (
-                <tr key={ev.id}>
-                  <td>{ev.campaign_id}</td>
-                  <td>{ev.evaluatee_name}</td>
-                  <td><span className={`badge badge--${ev.status}`}>{ev.status}</span></td>
-                  <td>{ev.score ?? '—'}</td>
-                  <td>{ev.submitted_at ? new Date(ev.submitted_at).toLocaleDateString() : '—'}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </main>
+          {/* Search pill */}
+          <div className="db-search" role="search">
+            <SearchIcon size={15} color="var(--color-outline)" />
+            <input
+              type="text"
+              className="db-search__input"
+              placeholder={t('dashboard.search.placeholder')}
+              aria-label={t('dashboard.search.placeholder')}
+            />
+          </div>
+
+          {/* Right cluster */}
+          <div className="db-topbar__right">
+
+            {/* Date */}
+            <span className="db-topbar__date">{dateLabel}</span>
+
+            <div className="db-topbar__sep" aria-hidden="true" />
+
+            {/* Theme toggle */}
+            <button
+              className="db-icon-btn"
+              onClick={toggleTheme}
+              aria-label={isDark ? 'Passer en mode clair' : 'Passer en mode sombre'}
+              title={isDark ? 'Mode clair' : 'Mode sombre'}
+            >
+              {isDark
+                ? <SunIcon  size={17} color="var(--color-on-surface-variant)" />
+                : <MoonIcon size={17} color="var(--color-on-surface-variant)" />
+              }
+            </button>
+
+            {/* Notification bell + dropdown */}
+            <div className="db-notif-wrap" ref={notifRef}>
+              <button
+                className="db-icon-btn db-icon-btn--notif"
+                onClick={() => setNotifOpen(o => !o)}
+                aria-label="Notifications"
+                aria-expanded={notifOpen}
+              >
+                <BellIcon size={17} color="var(--color-on-surface-variant)" />
+                <span className="db-bell-dot" aria-hidden="true" />
+              </button>
+
+              {notifOpen && (
+                <div className="db-notif-dropdown" role="dialog" aria-label="Notifications">
+                  <div className="db-notif-dropdown__header">
+                    <span className="db-notif-dropdown__title">
+                      {t('dashboard.notifications.title').toUpperCase()}
+                    </span>
+                    <span className="db-notif-dropdown__badge">{notifItems.length}</span>
+                  </div>
+                  <ul className="db-notif-dropdown__list">
+                    {notifItems.map(({ id, color, text, meta }, idx) => (
+                      <li key={id} className={`db-notif-item${idx < notifItems.length - 1 ? ' db-notif-item--sep' : ''}`}>
+                        <span className="db-notif-item__dot" style={{ background: color }} aria-hidden="true" />
+                        <div>
+                          <p className="db-notif-item__text">{text}</p>
+                          <p className="db-notif-item__meta">{meta}</p>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                  <button className="db-notif-dropdown__footer" onClick={() => setNotifOpen(false)}>
+                    {t('dashboard.notifications.viewall')}
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div className="db-topbar__sep" aria-hidden="true" />
+
+            {/* User profile — top right */}
+            <div className="db-topbar__user">
+              <div className="db-topbar__user-info">
+                <p className="db-topbar__user-name">{fullName}</p>
+                <p className="db-topbar__user-role">{role}</p>
+              </div>
+              <div className="db-topbar__avatar" aria-hidden="true">{initials}</div>
+            </div>
+
+          </div>
+        </header>
+
+        {/* ── Page content ────────────────────────────────────────────── */}
+        <main className="db-content">
+
+          {/* Welcome */}
+          <section className="db-greeting">
+            <h2 className="db-greeting__title">
+              {t('dashboard.welcome.greeting')} {first || 'vous'}.
+            </h2>
+            <p className="db-greeting__tagline">
+              {t('dashboard.welcome.tagline')}
+            </p>
+          </section>
+
+          {/* Hero campaign banner */}
+          <div className="db-banner-wrap">
+            <CampaignBanner t={t} progress={0} />
+          </div>
+
+          {/* ── Bento grid ──────────────────────────────────────────── */}
+          <div className="db-bento">
+
+            {/* Quick card — Growth Journey */}
+            <article className="db-card">
+              <div className="db-card__top">
+                <div className="db-card__icon db-card__icon--violet">
+                  <SparklesIcon size={18} color="var(--color-secondary)" strokeWidth={1.5} />
+                </div>
+                <span className="db-card__arrow">
+                  <ArrowNEIcon size={14} color="var(--color-outline-variant)" />
+                </span>
+              </div>
+              <div>
+                <h3 className="db-card__title">{t('dashboard.card.growth.title')}</h3>
+                <p  className="db-card__text">{t('dashboard.card.growth.body')}</p>
+              </div>
+            </article>
+
+            {/* Quick card — Peer Feedback */}
+            <article className="db-card">
+              <div className="db-card__top">
+                <div className="db-card__icon db-card__icon--red">
+                  <HeartIcon size={18} color="var(--color-primary)" strokeWidth={1.5} />
+                </div>
+                <span className="db-card__arrow">
+                  <ArrowNEIcon size={14} color="var(--color-outline-variant)" />
+                </span>
+              </div>
+              <div>
+                <h3 className="db-card__title">{t('dashboard.card.feedback.title')}</h3>
+                <p  className="db-card__text">{t('dashboard.card.feedback.body')}</p>
+              </div>
+            </article>
+
+            {/* Notification center — row-span 2 */}
+            <aside className="db-notifs">
+              <div className="db-notifs__header">
+                <h3 className="db-notifs__title">
+                  {t('dashboard.notifications.title').toUpperCase()}
+                </h3>
+                <span className="db-notifs__badge">{notifItems.length}</span>
+              </div>
+              <ul className="db-notifs__list">
+                {notifItems.map(({ id, color, text, meta }, idx) => (
+                  <li key={id} className={`db-notif${idx < notifItems.length - 1 ? ' db-notif--sep' : ''}`}>
+                    <span className="db-notif__dot" style={{ background: color }} aria-hidden="true" />
+                    <div>
+                      <p className="db-notif__text">{text}</p>
+                      <p className="db-notif__meta">{meta}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+              <button className="db-notifs__viewall">
+                {t('dashboard.notifications.viewall')}
+              </button>
+            </aside>
+
+            {/* Team spotlight — col-span 2, with real image */}
+            <article className="db-spotlight">
+              <img
+                src={SPOTLIGHT_IMG}
+                alt=""
+                className="db-spotlight__img"
+                aria-hidden="true"
+                onError={e => { e.target.style.display = 'none' }}
+              />
+              {/* Fallback gradient always rendered (visible if img fails) */}
+              <div className="db-spotlight__bg" aria-hidden="true" />
+              <div className="db-spotlight__overlay">
+                <div className="db-spotlight__kicker">
+                  <span className="db-spotlight__line" aria-hidden="true" />
+                  <span className="db-spotlight__label">
+                    {t('dashboard.spotlight.label').toUpperCase()}
+                  </span>
+                </div>
+                <h3 className="db-spotlight__title">{t('dashboard.spotlight.title')}</h3>
+                <p  className="db-spotlight__body">{t('dashboard.spotlight.body')}</p>
+              </div>
+            </article>
+
+          </div>
+        </main>
+      </div>
     </div>
   )
 }

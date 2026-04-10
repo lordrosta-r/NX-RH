@@ -1,9 +1,28 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>NanoXplore RH — Dashboard</title>
+
+    <!-- Inter font — loaded before render to avoid FOUT -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+    <!--
+      Anti-flash: apply locale from localStorage synchronously before React
+      mounts, so the correct language is set on first paint.
+      The inner app pages (dashboard, manager) do not use data-theme —
+      they always render in Editorial Enterprise light mode.
+    -->
+    <script>
+      (function () {
+        var l = localStorage.getItem('nx_locale')
+        if (l) document.documentElement.setAttribute('lang', l === 'fr' ? 'fr' : 'en')
+      })()
+    </script>
+
     <!--
       MPA entry point for the Dashboard page.
       Express serves this at GET /dashboard (auth-protected).

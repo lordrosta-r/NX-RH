@@ -1,11 +1,12 @@
 // =============================================================================
 // CampaignBanner — Hero section of the employee dashboard
-// Editorial Enterprise headline + circular progress ring + CTA.
+// Contains the welcome greeting + editorial headline + progress ring + CTA.
 // Design: docs/design/dashboard/DESIGN.md
 // =============================================================================
 
 import React from 'react'
 import './CampaignBanner.css'
+import { BellIcon } from '../../components/ui/icons'
 
 // ── Circular SVG progress ring ──────────────────────────────────────────────
 function ProgressRing({ value = 0, size = 192, trackWidth = 10 }) {
@@ -45,14 +46,24 @@ function ProgressRing({ value = 0, size = 192, trackWidth = 10 }) {
 }
 
 // ── Banner component ────────────────────────────────────────────────────────
-export default function CampaignBanner({ t, progress = 0 }) {
+export default function CampaignBanner({ t, progress = 0, userName = '' }) {
   return (
     <section className="cb">
 
-      {/* Left — headline block */}
+      {/* Left — greeting + headline block */}
       <div className="cb__content">
+
+        {/* Welcome greeting — inside the card */}
+        <p className="cb__greeting">
+          {t('dashboard.welcome.greeting')} {userName || 'vous'}.
+        </p>
+        <p className="cb__tagline">
+          {t('dashboard.welcome.tagline')}
+        </p>
+
+        {/* Active Campaign badge — bell icon + label */}
         <div className="cb__badge">
-          <span className="cb__badge-dot" aria-hidden="true" />
+          <BellIcon size={11} color="var(--color-error)" strokeWidth={2} />
           {t('dashboard.campaign.badge')}
         </div>
 

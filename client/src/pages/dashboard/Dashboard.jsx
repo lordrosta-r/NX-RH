@@ -4,18 +4,29 @@
 // Design: docs/design/dashboard/DESIGN.md
 // =============================================================================
 
-import React, { useEffect, useState, useRef, useCallback } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import './dashboard.css'
 import DashboardSidebar from './DashboardSidebar'
 import CampaignBanner   from './CampaignBanner'
+import CalendarWidget   from '../../components/ui/CalendarWidget'
 import { t as pageT }   from './i18n'
 import { useLocale }    from '../../hooks/useLocale'
 import { useTheme }     from '../../hooks/useTheme'
 import {
   BellIcon, SearchIcon, ArrowNEIcon,
-  SunIcon, MoonIcon,
+  SunIcon, MoonIcon, PaletteIcon, HelpIcon,
   SparklesIcon, HeartIcon,
 } from '../../components/ui/icons'
+
+// ── Mock calendar events (remplacer par API quand dispo) ─────────────────────
+// typeLabel is rendered in the legend — no i18n key needed inside CalendarWidget
+const makeCalendarEvents = (t) => [
+  { date: '2026-04-15', type: 'deadline',  label: t('dashboard.calendar.type.deadline'),  typeLabel: t('dashboard.calendar.type.deadline'),  color: 'var(--color-error)' },
+  { date: '2026-04-22', type: 'interview', label: t('dashboard.calendar.type.interview'), typeLabel: t('dashboard.calendar.type.interview'), color: 'var(--color-secondary)' },
+  { date: '2026-04-28', type: 'campaign',  label: t('dashboard.calendar.type.campaign'),  typeLabel: t('dashboard.calendar.type.campaign'),  color: 'var(--color-primary)' },
+  { date: '2026-05-05', type: 'feedback',  label: t('dashboard.calendar.type.feedback'),  typeLabel: t('dashboard.calendar.type.feedback'),  color: 'var(--color-tertiary)' },
+  { date: '2026-05-12', type: 'interview', label: t('dashboard.calendar.type.interview'), typeLabel: t('dashboard.calendar.type.interview'), color: 'var(--color-secondary)' },
+]
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 function getCurrentUser() {
@@ -32,11 +43,25 @@ const NOTIF_COLORS = [
 // ── Spotlight image (office interior — replaceable with a local asset in /public)
 const SPOTLIGHT_IMG = 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=70'
 
+// ── Theme icon — one per state ────────────────────────────────────────────────
+function ThemeIcon({ theme }) {
+  const props = { size: 17, color: 'var(--color-on-surface-variant)' }
+  if (theme === 'dark')         return <SunIcon     {...props} />
+  if (theme === 'light')        return <PaletteIcon {...props} />
+  return                               <MoonIcon    {...props} />
+}
+
+function themeLabel(theme) {
+  if (theme === 'dark')  return 'Passer en mode clair'
+  if (theme === 'light') return 'Passer en mode sidebar claire'
+  return 'Passer en mode sombre'
+}
+
 // ── Component ────────────────────────────────────────────────────────────────
 export default function Dashboard() {
-  const { t, locale }        = useLocale(pageT)
-  const { theme, toggleTheme, isDark } = useTheme()
-  const [user, setUser]      = useState(null)
+  const { t, locale }          = useLocale(pageT)
+  const { theme, cycleTheme }  = useTheme()
+  const [user, setUser]        = useState(null)
   const [notifOpen, setNotifOpen] = useState(false)
   const notifRef = useRef(null)
 
@@ -104,17 +129,23 @@ export default function Dashboard() {
 
             <div className="db-topbar__sep" aria-hidden="true" />
 
-            {/* Theme toggle */}
+            {/* Theme cycle */}
             <button
               className="db-icon-btn"
-              onClick={toggleTheme}
-              aria-label={isDark ? 'Passer en mode clair' : 'Passer en mode sombre'}
-              title={isDark ? 'Mode clair' : 'Mode sombre'}
+              onClick={cycleTheme}
+              aria-label={themeLabel(theme)}
+              title={themeLabel(theme)}
             >
-              {isDark
-                ? <SunIcon  size={17} color="var(--color-on-surface-variant)" />
-                : <MoonIcon size={17} color="var(--color-on-surface-variant)" />
-              }
+              <ThemeIcon theme={theme} />
+            </button>
+
+            {/* Help */}
+            <button
+              className="db-icon-btn"
+              aria-label="Aide"
+              title="Aide"
+            >
+              <HelpIcon size={17} color="var(--color-on-surface-variant)" strokeWidth={1.5} />
             </button>
 
             {/* Notification bell + dropdown */}
@@ -172,19 +203,9 @@ export default function Dashboard() {
         {/* ── Page content ────────────────────────────────────────────── */}
         <main className="db-content">
 
-          {/* Welcome */}
-          <section className="db-greeting">
-            <h2 className="db-greeting__title">
-              {t('dashboard.welcome.greeting')} {first || 'vous'}.
-            </h2>
-            <p className="db-greeting__tagline">
-              {t('dashboard.welcome.tagline')}
-            </p>
-          </section>
-
-          {/* Hero campaign banner */}
+          {/* Hero campaign banner — greeting lives inside the card */}
           <div className="db-banner-wrap">
-            <CampaignBanner t={t} progress={0} />
+            <CampaignBanner t={t} progress={0} userName={first || 'vous'} />
           </div>
 
           {/* ── Bento grid ──────────────────────────────────────────── */}
@@ -231,8 +252,8 @@ export default function Dashboard() {
                 <span className="db-notifs__badge">{notifItems.length}</span>
               </div>
               <ul className="db-notifs__list">
-                {notifItems.map(({ id, color, text, meta }, idx) => (
-                  <li key={id} className={`db-notif${idx < notifItems.length - 1 ? ' db-notif--sep' : ''}`}>
+                {notifItems.slice(0, 2).map(({ id, color, text, meta }, idx) => (
+                  <li key={id} className={`db-notif${idx < 1 ? ' db-notif--sep' : ''}`}>
                     <span className="db-notif__dot" style={{ background: color }} aria-hidden="true" />
                     <div>
                       <p className="db-notif__text">{text}</p>
@@ -245,6 +266,15 @@ export default function Dashboard() {
                 {t('dashboard.notifications.viewall')}
               </button>
             </aside>
+
+            {/* Calendar — col-span 2 */}
+            <div className="db-calendar-wrap">
+              <CalendarWidget
+                title={t('dashboard.calendar.title')}
+                events={makeCalendarEvents(t)}
+                locale={locale}
+              />
+            </div>
 
             {/* Team spotlight — col-span 2, with real image */}
             <article className="db-spotlight">

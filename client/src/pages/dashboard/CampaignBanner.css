@@ -25,6 +25,23 @@
   max-width: 600px;
 }
 
+/* Welcome greeting — top of the card */
+.cb__greeting {
+  font-size: clamp(1.5rem, 2.5vw, 2rem);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--color-on-surface);
+  margin: 0 0 0.25rem 0;
+}
+
+.cb__tagline {
+  font-size: 0.9375rem;
+  color: var(--color-on-surface-variant);
+  margin: 0 0 1.5rem 0;
+  line-height: 1.5;
+}
+
 /* Active Campaign badge — pill */
 .cb__badge {
   display: inline-flex;

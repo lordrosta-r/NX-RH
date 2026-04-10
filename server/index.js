@@ -82,6 +82,7 @@ app.get('/api/health', async (_req, res) => {
 app.get('/',          sendPage('login'))
 app.get('/dashboard', authGuard(['admin', 'manager', 'employee']), sendPage('dashboard'))
 app.get('/manager',   authGuard(['admin', 'manager']),             sendPage('manager'))
+app.get('/hr',        authGuard(['admin', 'hr']),                  sendPage('hr'))
 
 // ─── API Routes ──────────────────────────────────────────────────────────────
 //

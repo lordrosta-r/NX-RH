@@ -40,6 +40,13 @@ export default {
   'dashboard.notif.4':      'New form template available',
   'dashboard.notif.4.meta': '3 days ago · HR',
 
+  // Calendar widget
+  'dashboard.calendar.title':          'Deadlines',
+  'dashboard.calendar.type.campaign':  'Campaign',
+  'dashboard.calendar.type.interview': 'Interview',
+  'dashboard.calendar.type.feedback':  'Peer Feedback',
+  'dashboard.calendar.type.deadline':  'Deadline',
+
   // Team spotlight
   'dashboard.spotlight.label': 'Team Spotlight',
   'dashboard.spotlight.title': 'Building the future of NanoXplore together.',

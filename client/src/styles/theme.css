@@ -80,6 +80,18 @@ html[data-theme="light"] {
   --th-controls-divider:  rgba(28, 27, 27, 0.10);
 }
 
+/* ── Light-sidebar theme — white content area + light `#f6f3f2` sidebar ─────
+   Third theme: fond blanc, sidebar claire. Sidebar tokens overridden here.  */
+html[data-theme="light-sidebar"] {
+  --color-sidebar:            #f6f3f2;
+  --color-sidebar-brand-text: var(--color-on-surface, #1c1b1b);
+  --color-sidebar-nav-text:   rgba(28, 27, 27, 0.55);
+  --color-sidebar-nav-active: var(--color-secondary, #5b00df);
+  --color-sidebar-active-bg:  rgba(91, 0, 223, 0.08);
+  --color-sidebar-hover-bg:   var(--color-surface-container, #f0eded);
+  --color-sidebar-label:      var(--color-on-surface-variant, #5e3f3b);
+}
+
 /* ── Inner app dark mode — overrides --color-* surface tokens ───────────────
    La sidebar reste toujours sombre (--color-sidebar hardcodé à #2e1065).
    Seul le contenu principal (fond, cartes, texte) bascule en sombre.       */

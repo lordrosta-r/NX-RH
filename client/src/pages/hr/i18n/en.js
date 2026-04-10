@@ -1,0 +1,103 @@
+export default {
+  // Sidebar navigation
+  'hr.nav.overview':   'Overview',
+  'hr.nav.campaigns':  'Campaigns',
+  'hr.nav.templates':  'Templates',
+  'hr.nav.reports':    'Reports',
+  'hr.nav.settings':   'Settings',
+
+  // Topbar
+  'hr.search.placeholder': 'Search an employee, a campaign…',
+
+  // KPI strip
+  'hr.kpi.campaigns.label':   'Active Campaigns',
+  'hr.kpi.campaigns.sub':     'currently running',
+  'hr.kpi.completion.label':  'Global Completion',
+  'hr.kpi.completion.sub':    'this week +12%',
+  'hr.kpi.overdue.label':     'Overdue',
+  'hr.kpi.overdue.sub':       'need a follow-up',
+  'hr.kpi.validated.label':   'Validated Interviews',
+  'hr.kpi.validated.sub':     'out of 128 total',
+
+  // Campaign status card
+  'hr.camp.badge':           'Active Campaign',
+  'hr.camp.title':           '2026 Annual Reviews',
+  'hr.camp.dates':           'Opened March 1 · Closes April 28, 2026',
+  'hr.camp.phase.self':      'Self-Assessment',
+  'hr.camp.phase.review':    'N-1 Review',
+  'hr.camp.phase.interview': 'Interviews',
+  'hr.camp.cta.close':       'Close Campaign',
+  'hr.camp.cta.view':        'View All Files',
+
+  // Alerts panel
+  'hr.alerts.title':     'Alerts',
+  'hr.alert.1.text':     '8 employees haven\'t started their self-assessment',
+  'hr.alert.1.meta':     'Follow-up recommended · Campaign 2026',
+  'hr.alert.2.text':     'Campaign closes in 5 days',
+  'hr.alert.2.meta':     'April 28, 2026 · Annual Reviews',
+  'hr.alert.3.text':     '3 managers with no interview scheduled',
+  'hr.alert.3.meta':     'R&D · Finance · Marketing',
+  'hr.alert.4.text':     'New template ready to publish',
+  'hr.alert.4.meta':     'Draft · Created 2 days ago',
+
+  // Department table
+  'hr.depts.title':       'Completion by Department',
+  'hr.depts.col.dept':    'Department',
+  'hr.depts.col.total':   'Employees',
+  'hr.depts.col.rate':    'Completion',
+  'hr.depts.viewall':     'View all departments',
+
+  // Quick actions
+  'hr.actions.title':     'Quick Actions',
+  'hr.actions.campaign':  'New Campaign',
+  'hr.actions.template':  'Create Template',
+  'hr.actions.export':    'Export Data',
+  'hr.actions.close':     'Close Campaign',
+
+  // Welcome banner
+  'hr.welcome.greeting':          'Hello,',
+  'hr.welcome.tagline':           'Manage all evaluation campaigns from one place.',
+  'hr.welcome.badge':             'Active Campaign',
+  'hr.welcome.headline.part1':    'Annual Reviews',
+  'hr.welcome.headline.accent':   '2026',
+  'hr.welcome.headline.part2':    '— in progress.',
+  'hr.welcome.cta.primary':       'New Campaign',
+  'hr.welcome.cta.secondary':     'View All Files',
+  'hr.welcome.stat.employees':    'Employees',
+  'hr.welcome.stat.campaign':     'Active Campaign',
+  'hr.welcome.stat.completion':   'Completion',
+
+  // Calendar
+  'hr.calendar.title':            'Interviews & Deadlines',
+  'hr.calendar.type.interview':   'Interview',
+  'hr.calendar.type.deadline':    'Deadline',
+  'hr.calendar.type.meeting':     'HR Meeting',
+  'hr.calendar.type.report':      'Report',
+
+  // Form editor
+  'hr.form.title':                'Form Editor',
+  'hr.form.new':                  'New Template',
+  'hr.form.viewall':              'View all templates',
+  'hr.form.status.published':     'Published',
+  'hr.form.status.draft':         'Draft',
+  'hr.form.tpl.1.name':           'Annual Review — Standard',
+  'hr.form.tpl.2.name':           '360° Evaluation — Managers',
+  'hr.form.tpl.3.name':           'Skills Assessment',
+  'hr.form.tpl.type.self':        'Self-Assessment',
+  'hr.form.tpl.type.peer':        'Peer Feedback',
+
+  // Resources
+  'hr.res.title':                 'Resources',
+  'hr.res.sub':                   'Published documents accessible to employees',
+  'hr.res.publish':               'Publish a document',
+  'hr.res.status.published':      'Published',
+  'hr.res.status.draft':          'Draft',
+  'hr.res.1.name':                '2026 Annual Review Guide.pdf',
+  'hr.res.1.date':                'March 2, 2026',
+  'hr.res.2.name':                'Manager Evaluation Grid.xlsx',
+  'hr.res.2.date':                'March 15, 2026',
+  'hr.res.3.name':                'Internal Mobility Policy.pdf',
+  'hr.res.3.date':                'Apr. 1, 2026',
+  'hr.res.4.name':                '2026 Employee Handbook.pdf',
+  'hr.res.4.date':                'Jan. 10, 2026',
+}

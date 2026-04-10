@@ -35,6 +35,8 @@ Réservé aux composants **100% réutilisables, sans logique métier** :
 
 ```
 client/src/components/ui/
+├── AppSidebar.jsx + AppSidebar.css  ← Sidebar partagée toutes pages internes
+├── CalendarWidget.jsx + CalendarWidget.css  ← Calendrier partagé
 ├── Button.jsx + Button.css
 ├── InputField.jsx + InputField.css
 ├── Checkbox.jsx + Checkbox.css
@@ -45,12 +47,15 @@ client/src/components/ui/
     ├── GlobeIcon.jsx        ← Login — langue
     ├── HomeIcon.jsx         ← Inner app nav — Dashboard
     ├── ClipboardIcon.jsx    ← Inner app nav — Évaluation
-    ├── TrendIcon.jsx        ← Inner app nav — Progression
+    ├── TrendIcon.jsx        ← Inner app nav — Progression / Rapports
     ├── GearIcon.jsx         ← Inner app nav — Paramètres
     ├── BellIcon.jsx         ← Inner app — Notifications
     ├── SearchIcon.jsx       ← Inner app — Recherche
     ├── ArrowNEIcon.jsx      ← Inner app — Cartes interactives
     ├── ChevronRightIcon.jsx ← Inner app — Liens inline
+    ├── HelpIcon.jsx         ← Inner app — Aide topbar
+    ├── PaletteIcon.jsx      ← Inner app — Cycle thème topbar
+    ├── DocumentIcon.jsx     ← Inner app — Templates / Ressources
     └── index.js             ← barrel export
 ```
 
@@ -84,10 +89,11 @@ client/src/
 - Scroll désactivé (`height: 100dvh; overflow: hidden`)
 - Design ref : `docs/design/login/DESIGN.md`
 
-### 4b. Pages internes (`/dashboard`, `/manager`, `/hr`…)
-- **Sidebar dark violet** fixe 256px (`--color-sidebar: #2e1065`)
+### 4b. Pages internes (`/dashboard`, `/hr`, `/manager`…)
+- **Sidebar** : couleur via `--color-sidebar` (dark violet par défaut, overridé par `data-theme`)
+- Partagée via `components/ui/AppSidebar.jsx` — chaque page fournit ses `navItems`
 - **Contenu "Editorial Enterprise"** : fond `--color-surface` (#fcf9f8), typographie Inter 900
-- **Pas de data-theme** pour l'instant — toujours en light mode Editorial
+- **3 thèmes** : `dark` · `light` · `light-sidebar` (cycle via `useTheme().cycleTheme`)
 - **Scroll normal** — le contenu doit pouvoir s'étendre
 - Design ref : `docs/design/dashboard/DESIGN.md`
 
@@ -168,8 +174,17 @@ const { t, locale, setLocale } = useLocale(pageT)
 ## 10. Sidebar des pages internes
 
 ```jsx
-// Pattern — sidebar co-localisée dans le dossier de la page
-// Si la sidebar devient partagée entre 3+ pages, la déplacer dans components/ui/
+// Pattern — sidebar partagée via AppSidebar (components/ui/)
+// Chaque page crée un thin wrapper (ex: DashboardSidebar, HRSidebar)
+// qui passe ses navItems + brandSub à AppSidebar.
+
+import AppSidebar from '../../components/ui/AppSidebar'
+
+// Thin wrapper (co-localisé dans la page) :
+export default function HRSidebar({ t, activeItem }) {
+  const navItems = [ /* items spécifiques à la page */ ]
+  return <AppSidebar brandSub="HR Portal" navItems={navItems} />
+}
 
 import DashboardSidebar from './DashboardSidebar'
 
@@ -207,5 +222,5 @@ Layout CSS clé :
 - Pas de state management global (Redux, Zustand…) — useState suffit pour l'instant
 - Pas de React Router — Express gère la navigation entre pages
 - Pas de SSR — MPA classique avec Express servant du HTML statique compilé
-- Pas de dark mode sur les pages internes (login uniquement pour l'instant)
+- ~~Pas de dark mode sur les pages internes~~ — 3 thèmes implémentés : `dark` · `light` · `light-sidebar`
 - Pas de Material Symbols (font-icons) — SVG stroke uniquement

@@ -38,8 +38,23 @@
 .hrwb__tagline {
   font-size: 0.9375rem;
   color: var(--color-on-surface-variant);
-  margin: 0 0 1.5rem 0;
+  margin: 0 0 0.5rem 0;
   line-height: 1.5;
+}
+
+.hrwb__desc {
+  font-size: 0.8125rem;
+  color: var(--color-on-surface-variant);
+  opacity: 0.75;
+  margin: 0 0 0.75rem 0;
+  line-height: 1.6;
+}
+
+/* CTA uses shared .btn .btn--sm from global.css */
+.hrwb__content .btn {
+  align-self: flex-start;
+  margin-bottom: 1.5rem;
+  text-decoration: none;
 }
 
 /* Badge */
@@ -85,42 +100,6 @@
 
 .hrwb__headline-accent { color: var(--color-primary); }
 
-/* CTAs */
-.hrwb__actions {
-  display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
-.hrwb__btn {
-  padding: 0.75rem 1.75rem;
-  border-radius: var(--radius-full);
-  font-size: 0.8125rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  cursor: pointer;
-  border: none;
-  font-family: var(--font-family);
-  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
-  white-space: nowrap;
-}
-
-.hrwb__btn--primary {
-  background: var(--gradient-primary);
-  color: var(--color-on-primary);
-  box-shadow: var(--shadow-cta);
-}
-
-.hrwb__btn--primary:hover  { transform: scale(1.03); box-shadow: var(--shadow-cta-hover); }
-.hrwb__btn--primary:active { transform: scale(0.97); }
-
-.hrwb__btn--secondary {
-  background: var(--color-surface-container-low);
-  color: var(--color-on-surface);
-}
-
-.hrwb__btn--secondary:hover { filter: brightness(0.95); }
 
 /* ── Right — image + stats ─────────────────────────────────────────────────── */
 .hrwb__visual {

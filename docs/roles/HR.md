@@ -27,6 +27,21 @@ HR voit toute l'organisation en **lecture** pour piloter les campagnes. Il n'est
 
 ---
 
+## Navigation — Sidebar HR
+
+| Item | Route | Description |
+|---|---|---|
+| Vue d'ensemble | `/hr` | Dashboard principal — KPIs, campagne, alertes, aperçu rapide |
+| Campagnes | `/hr#campaigns` | Créer, activer, clore les campagnes |
+| Éditeur de formulaires | `/hr#formeditor` | Créer et publier les templates de formulaires |
+| Ressources | `/hr#resources` | Bibliothèque de documents publiés aux employés |
+| Rapports | `/hr#reports` | Exports CSV, synthèses par département |
+| Paramètres | `/hr#settings` | — |
+
+> **Note :** L'Éditeur de formulaires et les Ressources sont aussi accessibles en **accès rapide** depuis la Vue d'ensemble (widgets de la page home).
+
+---
+
 ## Étape 0 : Créer des templates de formulaires
 
 Avant de pouvoir créer une campagne, HR doit disposer d'au moins un template publié.

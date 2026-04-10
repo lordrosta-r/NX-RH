@@ -234,7 +234,7 @@ export default function HRDashboard() {
             <article className="hr-camp">
               <div className="hr-camp__head">
                 <div className="hr-camp__badge">
-                  <span className="hr-camp__badge-dot" aria-hidden="true" />
+                  <BellIcon size={10} color="var(--color-error)" strokeWidth={2} />
                   {t('hr.camp.badge').toUpperCase()}
                 </div>
                 <h2 className="hr-camp__title">{t('hr.camp.title')}</h2>

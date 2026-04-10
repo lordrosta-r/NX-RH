@@ -60,7 +60,7 @@
   background:       var(--th-card-bg);
   backdrop-filter:  blur(40px);
   -webkit-backdrop-filter: blur(40px);
-  border-radius:    var(--radius-md, 0.5rem);
+  border-radius:    var(--radius-sm, 0.25rem);
   padding:          2rem;
   box-shadow:       var(--th-card-shadow);
 }

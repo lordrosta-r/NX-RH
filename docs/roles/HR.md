@@ -33,7 +33,7 @@ HR voit toute l'organisation en **lecture** pour piloter les campagnes. Il n'est
 |---|---|---|
 | Vue d'ensemble | `/hr` | Dashboard principal — KPIs, campagne, alertes, aperçu rapide |
 | Campagnes | `/hr#campaigns` | Créer, activer, clore les campagnes |
-| Éditeur de formulaires | `/hr#formeditor` | Créer et publier les templates de formulaires |
+| Éditeur de formulaires | `/formeditor` | Créer et publier les templates de formulaires (page dédiée) |
 | Ressources | `/hr#resources` | Bibliothèque de documents publiés aux employés |
 | Rapports | `/hr#reports` | Exports CSV, synthèses par département |
 | Paramètres | `/hr#settings` | — |
@@ -57,14 +57,16 @@ Un template est un **modèle de formulaire réutilisable** qui définit :
 ### Créer un template
 
 ```
-/manager → onglet "Templates"
+/formeditor → Vue liste
   │
-  ├─ Cliquer "Nouveau template"
-  ├─ Nommer le template (ex : "Entretien annuel 2026 — Standard")
-  ├─ Choisir le type de formulaire
-  ├─ Ajouter les sections et questions
-  ├─ Prévisualiser le rendu employé
-  └─ Publier le template → disponible pour les campagnes
+  ├─ Cliquer "+ Créer un formulaire"
+  ├─ Renseigner le titre, la description, l'équipe cible et les tags
+  ├─ Ajouter des questions via le bouton "+" dans la liste
+  │    Chaque question a un type (Échelle, Texte long, Texte court, Choix multiple)
+  │    configuré dans le panneau "Component Configuration" (droite)
+  ├─ Drag & drop pour réordonner les questions
+  ├─ Configurer la validation : obligatoire, coefficient, anonyme
+  └─ Publier → disponible pour les campagnes
 ```
 
 > Un template non publié (brouillon) n'est pas utilisable dans une campagne.

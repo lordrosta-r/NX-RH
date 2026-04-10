@@ -55,7 +55,8 @@ client/src/components/ui/
     ├── ChevronRightIcon.jsx ← Inner app — Liens inline
     ├── HelpIcon.jsx         ← Inner app — Aide topbar
     ├── PaletteIcon.jsx      ← Inner app — Cycle thème topbar
-    ├── DocumentIcon.jsx     ← Inner app — Templates / Ressources
+    ├── DocumentIcon.jsx     ← Inner app — Form Editor
+    ├── FolderIcon.jsx       ← Inner app — Ressources HR
     └── index.js             ← barrel export
 ```
 

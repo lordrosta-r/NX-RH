@@ -22,7 +22,7 @@ Ce fichier recense les améliorations envisageables pour enrichir la plateforme.
 
 | Fonctionnalité | Description |
 |---|---|
-| **Tableau de suivi avancé** | Vue kanban des évaluations par statut (pending → in_progress → submitted → validated) |
+| **Tableau de suivi avancé** | Vue kanban des évaluations par statut (assigned → in_progress → submitted → validated) |
 | **Alertes et rappels** | Notifications email/in-app automatiques pour les évaluations en retard |
 | **Calendrier d'entretiens** | Planifier les entretiens avec intégration Google Calendar / Outlook (ICS) |
 | **Notes privées** | Le manager peut prendre des notes privées sur un collaborateur, visibles uniquement par lui |

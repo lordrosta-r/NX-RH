@@ -2,8 +2,8 @@
 # NanoXplore RH — Docker Compose Override (Development)
 #
 # Extends docker-compose.yml for local development:
-#   - Exposes MySQL port for GUI clients (TablePlus, DBeaver…)
-#   - Mounts server/ source for live-reload with nodemon
+#   - Exposes MongoDB port for GUI clients (Compass, Studio 3T…)
+#   - Mounts mongo/server/ source for live-reload with nodemon
 #   - Skips nginx (access app directly on port 3000)
 #
 # Usage:
@@ -19,16 +19,16 @@ services:
     environment:
       NODE_ENV: development
     volumes:
-      - ./server:/app:delegated      # Live-reload server source
-      - /app/node_modules            # Keep container's node_modules isolated
+      - ./mongo/server:/app:delegated  # Live-reload server source
+      - /app/node_modules              # Keep container's node_modules isolated
     ports:
-      - "3000:3000"                  # Direct access — no nginx in dev
+      - "3000:3000"                    # Direct access — no nginx in dev
 
-  db:
+  mongo:
     ports:
-      - "3306:3306"                  # Expose for local DB clients
+      - "27017:27017"                  # Expose for local DB clients
 
   # Disable nginx in dev mode
   nginx:
     profiles:
-      - production                   # Only starts with --profile production
+      - production                     # Only starts with --profile production

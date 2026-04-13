@@ -32,11 +32,11 @@ RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 WORKDIR /app
 
 # Install production dependencies only
-COPY server/package*.json ./
+COPY mongo/server/package*.json ./
 RUN npm ci --omit=dev
 
 # Copy server source
-COPY server/ .
+COPY mongo/server/ .
 
 # Copy compiled client assets into Express's static directory
 COPY --from=client-builder /build/dist ./public

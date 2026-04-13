@@ -11,16 +11,16 @@ import { resolve } from 'path'
 // own route (e.g. GET /dashboard → server/public/dashboard.html).
 //
 // ┌──────────────────┐     build     ┌───────────────────────┐
-// │ client/login.html│ ──────────── ▶│ server/public/login/  │
-// │ client/dash.html │ ──────────── ▶│ server/public/dashb.. │
-// │ client/mgr.html  │ ──────────── ▶│ server/public/manager/│
+// │ client/login.html│ ──────────── ▶│ mongo/server/public/login/  │
+// │ client/dash.html │ ──────────── ▶│ mongo/server/public/dashb.. │
+// │ client/mgr.html  │ ──────────── ▶│ mongo/server/public/manager/│
 // └──────────────────┘               └───────────────────────┘
 //
 // To add a new page:
 //   1. Create client/<page>.html
 //   2. Create client/src/pages/<page>/main.jsx
 //   3. Add the entry below under rollupOptions.input
-//   4. Add the Express route in server/index.js
+//   4. Add the Express route in mongo/server/index.js
 // =============================================================================
 
 export default defineConfig({
@@ -32,7 +32,7 @@ export default defineConfig({
   build: {
     // Compiled output lands directly in the server's static directory.
     // Express will serve this folder as static files + MPA HTML routes.
-    outDir: resolve(__dirname, '../server/public'),
+    outDir: resolve(__dirname, '../mongo/server/public'),
     emptyOutDir: true,
 
     rollupOptions: {

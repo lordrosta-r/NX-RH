@@ -1,0 +1,43 @@
+// =============================================================================
+// config/db.js — Connexion MongoDB via Mongoose
+// Lit MONGO_URI depuis les variables d'environnement.
+// Gestion du graceful shutdown pour éviter les connexions perdues.
+// =============================================================================
+
+const mongoose = require('mongoose')
+
+const MONGO_URI = process.env.MONGO_URI
+
+if (!MONGO_URI) {
+  console.error('[DB] MONGO_URI manquante — vérifiez votre fichier .env')
+  process.exit(1)
+}
+
+// Options Mongoose — on garde le minimum nécessaire
+const OPTIONS = {
+  serverSelectionTimeoutMS: 5000,  // échoue vite en dev si Mongo est down
+  socketTimeoutMS: 45000,
+}
+
+async function connect() {
+  try {
+    await mongoose.connect(MONGO_URI, OPTIONS)
+    console.log('[DB] Connecté à MongoDB')
+  } catch (err) {
+    console.error('[DB] Connexion échouée :', err.message)
+    process.exit(1)
+  }
+}
+
+// Libère la connexion proprement à l'arrêt du process (SIGINT = Ctrl+C, SIGTERM = Docker stop)
+function gracefulShutdown(signal) {
+  mongoose.connection.close(() => {
+    console.log(`[DB] Connexion fermée (${signal})`)
+    process.exit(0)
+  })
+}
+
+process.on('SIGINT',  () => gracefulShutdown('SIGINT'))
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'))
+
+module.exports = { connect }

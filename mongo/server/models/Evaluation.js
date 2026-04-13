@@ -1,0 +1,149 @@
+// =============================================================================
+// models/Evaluation.js — Évaluations (formulaires remplis)
+//
+// Une évaluation = un formulaire assigné à un évaluateur pour un évaluatee.
+// Compound unique index : (campaignId, formId, evaluatorId, evaluateeId)
+//   → un évaluateur ne peut remplir qu'une fois le même form pour la même personne.
+//
+// evaluatorId est TOUJOURS stocké (nécessaire pour l'index unique),
+// mais les routes ne le retournent JAMAIS si form.isAnonymous = true.
+//
+// Lifecycle : assigned → in_progress → submitted → reviewed
+//           → signed_evaluatee → signed_manager → signed_hr → validated
+// =============================================================================
+
+const { Schema, model }          = require('mongoose')
+const { EVALUATION_STATUSES }    = require('../config/constants')
+
+// Transitions autorisées par rôle — utilisées dans les routes PATCH
+const VALID_TRANSITIONS = {
+  assigned:        ['in_progress'],
+  in_progress:     ['submitted'],
+  submitted:       ['reviewed'],
+  reviewed:        ['signed_evaluatee'],
+  signed_evaluatee:['signed_manager'],
+  signed_manager:  ['signed_hr'],       // RH signe avant la validation finale
+  signed_hr:       ['validated'],
+  validated:       [],  // terminal
+}
+
+// Transitions autorisées par rôle spécifique (hors admin)
+// NOTE : 'admin' n'apparaît pas dans ROLE_TRANSITIONS — il peut effectuer
+// n'importe quelle transition valide de VALID_TRANSITIONS.
+// Les routes vérifient ADMIN_ROLES.includes(role) pour ce bypass.
+const ROLE_TRANSITIONS = {
+  employee:  {
+    assigned:    ['in_progress'],
+    in_progress: ['submitted'],
+    reviewed:    ['signed_evaluatee'],   // l'employé signe après review du manager
+  },
+  manager:   {
+    submitted:         ['reviewed'],
+    signed_evaluatee:  ['signed_manager'],  // le manager co-signe après l'employé
+  },
+  director:  {
+    submitted:        ['reviewed'],
+    signed_evaluatee: ['signed_manager'],
+  },
+  // HR peut signer directement depuis reviewed OU signed_manager (bypass intentionnel :
+  // permet à RH de valider même si l'employé ou le manager n'a pas encore signé).
+  hr:        {
+    reviewed:         ['signed_hr'],
+    signed_evaluatee: ['signed_hr'],
+    signed_manager:   ['signed_hr'],
+  },
+}
+
+const LOCKED_STATUSES = ['submitted', 'reviewed', 'signed_evaluatee', 'signed_manager', 'signed_hr', 'validated']
+
+// Sous-schema d'une réponse — simple {questionId, value}
+const answerSchema = new Schema({
+  questionId: { type: String, required: true },
+  value:      { type: Schema.Types.Mixed },
+}, { _id: false })
+
+const evaluationSchema = new Schema({
+  campaignId:  { type: Schema.Types.ObjectId, ref: 'Campaign', required: true, index: true },
+  formId:      { type: Schema.Types.ObjectId, ref: 'Form',     required: true, index: true },
+  evaluatorId: { type: Schema.Types.ObjectId, ref: 'User',     required: true, index: true },
+  evaluateeId: { type: Schema.Types.ObjectId, ref: 'User',     required: true, index: true },
+
+  status: {
+    type: String,
+    enum: EVALUATION_STATUSES,
+    default: 'assigned',
+    index: true,
+  },
+
+  // Réponses — embarquées (toujours lues avec l'évaluation)
+  answers: {
+    type: [answerSchema],
+    default: [],
+    validate: {
+      validator: arr => arr.length <= 500,
+      message: 'Maximum 500 réponses par évaluation',
+    },
+  },
+
+  // Horodatage de la dernière sauvegarde des réponses.
+  // Mis à jour automatiquement par pre-save à chaque modification d'answers.
+  // Affiché côté client : "Dernière sauvegarde à 14h32".
+  lastSavedAt: { type: Date, default: null },
+
+  // Score global optionnel (0–100), ajouté par le reviewer
+  score: { type: Number, min: 0, max: 100, default: null },
+
+  // Commentaire du reviewer (manager ou directeur)
+  reviewerComment: { type: String, default: '', maxlength: 5000 },
+  reviewedBy:      { type: Schema.Types.ObjectId, ref: 'User', default: null },
+
+  // Réaction de l'évaluatee après lecture
+  evaluateeComment: { type: String, default: '', maxlength: 5000 },
+  disagreementFlag: { type: Boolean, default: false },
+
+  // Horodatages des signatures
+  signedByEvaluateeAt: { type: Date, default: null },
+  signedByManagerAt:   { type: Date, default: null },
+  signedByHrAt:        { type: Date, default: null },
+
+}, { timestamps: true })
+
+// Compound unique index — empêche le doublon d'assignation
+evaluationSchema.index(
+  { campaignId: 1, formId: 1, evaluatorId: 1, evaluateeId: 1 },
+  { unique: true }
+)
+evaluationSchema.index({ campaignId: 1, status: 1 })
+evaluationSchema.index({ evaluateeId: 1, campaignId: 1 })
+evaluationSchema.index({ evaluatorId: 1, campaignId: 1 })
+
+// Answer-lock : les réponses ne peuvent plus être modifiées une fois locked.
+// FIX de l'ancienne version : on vérifie !isModified('status'), pas this.status.
+//   → Si status ET answers changent ensemble (ex: soumission initiale), c'est autorisé.
+//   → Si seules les answers changent alors qu'on est déjà locked, c'est bloqué.
+//
+// SAVE AUTOMATIQUE ("Enregistrer") :
+//   En statut 'assigned' ou 'in_progress', les réponses sont librement modifiables.
+//   À chaque save d'answers :
+//     1. lastSavedAt est mis à jour (affiché côté client : "Dernière sauvegarde à 14h32")
+//     2. Si status est encore 'assigned', il passe automatiquement à 'in_progress'
+evaluationSchema.pre('save', function (next) {
+  const alreadyLocked = !this.isNew && this.isModified('answers') && !this.isModified('status')
+  if (alreadyLocked && LOCKED_STATUSES.includes(this.status)) {
+    return next(new Error('Les réponses ne peuvent plus être modifiées après soumission'))
+  }
+
+  if (this.isModified('answers')) {
+    this.lastSavedAt = new Date()
+    if (this.status === 'assigned') {
+      this.status = 'in_progress'
+    }
+  }
+
+  next()
+})
+
+evaluationSchema.statics.VALID_TRANSITIONS  = VALID_TRANSITIONS
+evaluationSchema.statics.LOCKED_STATUSES    = LOCKED_STATUSES
+
+module.exports = { Evaluation: model('Evaluation', evaluationSchema), VALID_TRANSITIONS, ROLE_TRANSITIONS, LOCKED_STATUSES }

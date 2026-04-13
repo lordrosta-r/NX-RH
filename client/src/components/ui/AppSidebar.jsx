@@ -8,7 +8,12 @@
 import React from 'react'
 import './AppSidebar.css'
 
-export default function AppSidebar({ brandSub = '', navItems = [] }) {
+export default function AppSidebar({
+  brandSub = '',
+  navItems = [],
+  labelNavigation = 'Main navigation',
+  labelComingSoon = 'Coming soon',
+}) {
   return (
     <aside className="app-sidebar">
 
@@ -19,18 +24,36 @@ export default function AppSidebar({ brandSub = '', navItems = [] }) {
       </div>
 
       {/* Navigation */}
-      <nav className="app-sidebar__nav" aria-label="Navigation principale">
-        {navItems.map(({ id, Icon, label, active, href = `#${id}` }) => (
-          <a
-            key={id}
-            href={href}
-            className={`app-sidebar__item${active ? ' app-sidebar__item--active' : ''}`}
-            aria-current={active ? 'page' : undefined}
-          >
-            <Icon size={18} strokeWidth={active ? 2 : 1.5} />
-            <span>{label}</span>
-          </a>
-        ))}
+      <nav className="app-sidebar__nav" aria-label={labelNavigation}>
+        {navItems.map(({ id, Icon, label, active, href = `#${id}`, disabled = false }) => {
+          const content = (
+            <>
+              <Icon size={18} strokeWidth={active ? 2 : 1.5} />
+              <span>{label}</span>
+            </>
+          )
+          const cls = `app-sidebar__item${active ? ' app-sidebar__item--active' : ''}${disabled ? ' app-sidebar__item--disabled' : ''}`
+          return disabled ? (
+            <span
+              key={id}
+              className={cls}
+              aria-disabled="true"
+              role="none"
+              title={labelComingSoon}
+            >
+              {content}
+            </span>
+          ) : (
+            <a
+              key={id}
+              href={href}
+              className={cls}
+              aria-current={active ? 'page' : undefined}
+            >
+              {content}
+            </a>
+          )
+        })}
       </nav>
 
     </aside>

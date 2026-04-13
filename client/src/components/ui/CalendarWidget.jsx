@@ -39,7 +39,13 @@ function getFirstDayOfWeek(year, month) {
   return day === 0 ? 6 : day - 1
 }
 
-export default function CalendarWidget({ title = '', events = [], locale = 'fr' }) {
+export default function CalendarWidget({
+  title = '',
+  events = [],
+  locale = 'fr',
+  labelPrevMonth = 'Previous month',
+  labelNextMonth = 'Next month',
+}) {
   const today = new Date()
   const [viewYear,  setViewYear]  = useState(today.getFullYear())
   const [viewMonth, setViewMonth] = useState(today.getMonth())
@@ -97,10 +103,10 @@ export default function CalendarWidget({ title = '', events = [], locale = 'fr' 
           <h3 className="cal__month">{monthLabel}</h3>
         </div>
         <div className="cal__nav">
-          <button className="cal__nav-btn" onClick={prevMonth} aria-label="Mois précédent">
+          <button type="button" className="cal__nav-btn" onClick={prevMonth} aria-label={labelPrevMonth}>
             <ChevronLeft />
           </button>
-          <button className="cal__nav-btn" onClick={nextMonth} aria-label="Mois suivant">
+          <button type="button" className="cal__nav-btn" onClick={nextMonth} aria-label={labelNextMonth}>
             <ChevronRight />
           </button>
         </div>
@@ -119,8 +125,9 @@ export default function CalendarWidget({ title = '', events = [], locale = 'fr' 
           return (
             <button
               key={day}
+              type="button"
               className={['cal__cell', isToday(day) ? 'cal__cell--today' : '', evts.length ? 'cal__cell--has-event' : ''].join(' ')}
-              aria-label={evts.length ? evts.map(e => e.label).join(', ') : undefined}
+              aria-label={`${day}${evts.length ? ': ' + evts.map(e => e.label).join(', ') : ''}`}
             >
               <span className="cal__day-num">{day}</span>
               {evts.length > 0 && (

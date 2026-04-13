@@ -33,3 +33,7 @@ export { default as FolderIcon       } from './FolderIcon'
 // ── Inner app — Form Editor ───────────────────────────────────────────────────
 export { default as PlusIcon         } from './PlusIcon'
 export { default as TrashIcon        } from './TrashIcon'
+
+// ── Shared — form inputs ──────────────────────────────────────────────────────
+export { default as EyeIcon          } from './EyeIcon'
+export { default as EyeOffIcon       } from './EyeOffIcon'

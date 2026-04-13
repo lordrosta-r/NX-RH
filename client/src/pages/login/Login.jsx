@@ -27,21 +27,41 @@ export default function Login() {
   async function handleSubmit(e) {
     e.preventDefault()
     setError(null)
+
+    // Client-side validation
+    if (!email.trim() || !password) { setError(t('login.error.empty')); return }
+
     setLoading(true)
     try {
       const res  = await fetch('/api/auth/login', {
         method:      'POST',
         headers:     { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body:        JSON.stringify({ email, password }),
+        body:        JSON.stringify({ email: email.trim(), password, remember }),
       })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        setError(data.error || t('login.error.invalid'))
+        setLoading(false)
+        return
+      }
       const data = await res.json()
-      if (!res.ok) { setError(data.error || 'Identifiants invalides.'); return }
-      sessionStorage.setItem('token', data.token)
-      sessionStorage.setItem('user',  JSON.stringify(data.user))
-      window.location.href = ['admin', 'manager'].includes(data.user.role) ? '/manager' : '/dashboard'
+      if (!data.user?.role) {
+        setError(t('login.error.invalid'))
+        setLoading(false)
+        return
+      }
+      // Auth is handled by the HttpOnly cookie set by the server.
+      // No token or user data stored client-side (sessionStorage is XSS-vulnerable).
+      const roleRedirects = {
+        admin:    '/hr',
+        hr:       '/hr',
+        director: '/manager',
+        manager:  '/manager',
+      }
+      window.location.href = roleRedirects[data.user?.role] ?? '/dashboard'
     } catch {
-      setError('Erreur réseau — veuillez réessayer.')
+      setError(t('login.error.network'))
     } finally {
       setLoading(false)
     }
@@ -50,11 +70,15 @@ export default function Login() {
   return (
     <div className="login-page">
 
+      <a className="skip-link" href="#main-content">
+        {t('login.a11y.skip')}
+      </a>
+
       {/* Mosaïque + overlay (z:0-1) */}
       <MosaicBackground />
 
       {/* Contenu (z:2) */}
-      <main className="login-content">
+      <main className="login-content" id="main-content">
 
         <header className="login-header">
           <h1 className="login-header__title">NanoXplore RH</h1>
@@ -73,6 +97,10 @@ export default function Login() {
               value={email}
               onChange={e => setEmail(e.target.value)}
               autoComplete="email"
+              disabled={loading}
+              required
+              error={!!error}
+              errorMessage={error || null}
             />
             <InputField
               id="password"
@@ -82,9 +110,12 @@ export default function Login() {
               value={password}
               onChange={e => setPassword(e.target.value)}
               autoComplete="current-password"
+              disabled={loading}
+              required
+              error={!!error}
+              labelShowPassword={t('login.input.show_password')}
+              labelHidePassword={t('login.input.hide_password')}
             />
-
-            {error && <p className="login-error" role="alert">{error}</p>}
 
             <button type="submit" className="btn--login" disabled={loading}>
               {loading ? t('login.submit.loading') : t('login.submit')}
@@ -118,7 +149,13 @@ export default function Login() {
       </main>
 
       {/* Pill flottante bas-droite (z:30) */}
-      <LoginControls locale={locale} onLocaleChange={setLocale} />
+      <LoginControls locale={locale} onLocaleChange={setLocale}
+        labelLight={t('login.theme.to_dark')}
+        labelDark={t('login.theme.to_light')}
+        labelFr={t('login.lang.fr')}
+        labelEn={t('login.lang.en')}
+        labelSelectLanguage={t('login.lang.select')}
+      />
 
     </div>
   )

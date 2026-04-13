@@ -9,6 +9,10 @@ export default {
   'ev.topbar.form':    'Active Evaluation Form',
   'ev.topbar.home':    'Employee Portal',
   'ev.topbar.search':  'Search…',
+  'ev.topbar.theme':        'Change theme',
+  'ev.topbar.help':         'Help',
+  'ev.topbar.notifications':'Notifications',
+  'ev.topbar.lang':         'Change language',
 
   // Home — hero banner
   'ev.home.greeting':         'Hello',
@@ -28,6 +32,8 @@ export default {
   // Home — my forms section
   'ev.home.forms.title':       'My forms to complete',
   'ev.home.forms.empty':       'No pending forms.',
+  'ev.home.loading':           'Loading evaluations…',
+  'ev.home.error.load':        'Failed to load evaluations.',
 
   // Form status
   'ev.status.todo':       'To do',
@@ -74,4 +80,35 @@ export default {
   'ev.tip2.body':  'This self-evaluation is confidential. It will only be read by your direct manager and the HR team.',
   'ev.tip3.title': 'Security',
   'ev.tip3.body':  'Your answers are automatically saved. You can return to complete the form before the deadline.',
+  'ev.footer.saving':    'Saving…',
+  'ev.form.last_saved':  'Last saved at',
+  'ev.yesno.yes':        'Yes',
+  'ev.yesno.no':         'No',
+  'ev.form.textarea_placeholder': 'Your answer…',
+  'ev.form.loading':     'Loading…',
+
+  // Status (extended — MongoDB statuses)
+  'ev.status.assigned':         'Assigned',
+  'ev.status.reviewed':         'Reviewed',
+  'ev.status.signed_evaluatee': 'Signed (evaluatee)',
+  'ev.status.signed_manager':   'Signed (manager)',
+  'ev.status.signed_hr':        'Signed (HR)',
+  'ev.status.validated':        'Validated',
+
+  // Form errors
+  'ev.error.not_found':    'Evaluation not found',
+  'ev.error.save_failed':  'Save failed',
+  'ev.error.submit_failed':'Submission failed',
+
+  // Submitted state
+  'ev.submitted.title': 'Evaluation submitted',
+  'ev.submitted.desc':  'Your self-evaluation has been successfully submitted. You will be notified of your review date shortly.',
+  'ev.submitted.back':  '← Back to home',
+
+  // Campaign stats (mock — TODO: fetch from API)
+  'ev.home.campaign.stats_placeholder': '',
+
+  // Sidebar accessibility
+  'ev.nav.label':       'Main navigation',
+  'ev.nav.coming_soon': 'Coming soon',
 }

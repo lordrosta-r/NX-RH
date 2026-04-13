@@ -18,7 +18,12 @@
   appearance:     auto;
 }
 
+.lang-selector__select:focus-visible {
+  outline:        2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
 .lang-selector__select option {
-  background: #18181b;
-  color:      #ffffff;
+  background: var(--th-surface);
+  color:      var(--th-on-surface);
 }

@@ -42,11 +42,25 @@ export default {
   'hr.alert.4.meta':     'Draft · Created 2 days ago',
 
   // Department table
-  'hr.depts.title':       'Completion by Department',
-  'hr.depts.col.dept':    'Department',
-  'hr.depts.col.total':   'Employees',
-  'hr.depts.col.rate':    'Completion',
-  'hr.depts.viewall':     'View all departments',
+  'hr.depts.title':           'Completion by Department',
+  'hr.depts.col.name':        'Department',
+  'hr.depts.col.dept':        'Department',
+  'hr.depts.col.total':       'Employees',
+  'hr.depts.col.progress':    'Progress',
+  'hr.depts.col.pct':         '%',
+  'hr.depts.col.rate':        'Completion',
+  'hr.depts.viewall':         'View all departments',
+
+  // Topbar actions
+  'hr.help.aria':             'Help',
+  'hr.help.title':            'Help',
+  // Theme cycle
+  'hr.theme.to_light':    'Switch to light mode',
+  'hr.theme.to_sidebar':  'Switch to sidebar light',
+  'hr.theme.to_dark':     'Switch to dark mode',
+  // Logout
+  'hr.logout.aria':       'Sign out',
+  'hr.logout.title':      'Sign out',
 
   // Quick actions
   'hr.actions.title':     'Quick Actions',
@@ -100,4 +114,19 @@ export default {
   'hr.res.3.date':                'Apr. 1, 2026',
   'hr.res.4.name':                '2026 Employee Handbook.pdf',
   'hr.res.4.date':                'Jan. 10, 2026',
+
+  // Sidebar accessibility
+  'hr.nav.label':       'Main navigation',
+  'hr.nav.coming_soon': 'Coming soon',
+
+  // CalendarWidget navigation
+  'hr.calendar.prev_month': 'Previous month',
+  'hr.calendar.next_month': 'Next month',
+
+  // Alerts aria-label
+  'hr.alerts.aria': 'Alerts',
+
+  // Action buttons aria-labels
+  'hr.actions.edit':     'Edit',
+  'hr.actions.download': 'Download',
 }

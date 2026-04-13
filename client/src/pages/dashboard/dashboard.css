@@ -4,8 +4,6 @@
    Design: Editorial Enterprise — docs/design/dashboard/DESIGN.md
    ============================================================================= */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
-
 /* ── Page shell ────────────────────────────────────────────────────────────── */
 .db {
   display: flex;
@@ -105,6 +103,11 @@
   color: var(--color-on-surface);
 }
 
+.db-icon-btn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
 /* Bell notification dot */
 .db-icon-btn--notif .db-bell-dot {
   position: absolute;
@@ -156,7 +159,7 @@
 
 .db-notif-dropdown__badge {
   background: var(--color-primary);
-  color: #ffffff;
+  color: var(--color-on-primary);
   font-size: 0.625rem;
   font-weight: 700;
   padding: 0.1rem 0.4rem;
@@ -180,7 +183,7 @@
 }
 
 .db-notif-item--sep {
-  border-bottom: 1px solid rgba(28, 27, 27, 0.06);
+  border-bottom: 1px solid var(--color-divider);
 }
 
 .db-notif-item__dot {
@@ -225,7 +228,7 @@
 
 .db-notif-dropdown__footer:hover {
   color: var(--color-primary);
-  background: rgba(184, 0, 11, 0.04);
+  background: var(--color-primary-tint);
 }
 
 /* ── User profile (topbar right) ───────────────────────────────────────────── */
@@ -266,7 +269,7 @@
   justify-content: center;
   font-size: 0.6875rem;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--color-on-primary);
   flex-shrink: 0;
   letter-spacing: 0.03em;
   cursor: pointer;
@@ -329,8 +332,8 @@
   justify-content: center;
 }
 
-.db-card__icon--violet { background: rgba(91, 0, 223, 0.08); }
-.db-card__icon--red    { background: rgba(184, 0, 11, 0.07); }
+.db-card__icon--violet { background: var(--color-secondary-tint-08); }
+.db-card__icon--red    { background: var(--color-primary-tint-07); }
 
 .db-card__arrow { opacity: 0.35; transition: opacity 0.2s ease; }
 .db-card:hover .db-card__arrow { opacity: 1; }
@@ -384,7 +387,7 @@
 
 .db-notifs__badge {
   background: var(--color-primary);
-  color: #ffffff;
+  color: var(--color-on-primary);
   font-size: 0.625rem;
   font-weight: 700;
   padding: 0.15rem 0.45rem;
@@ -408,7 +411,7 @@
   padding-bottom: 0.75rem;
 }
 
-.db-notif--sep { border-bottom: 1px solid rgba(28, 27, 27, 0.06); }
+.db-notif--sep { border-bottom: 1px solid var(--color-divider); }
 
 .db-notif__dot {
   width: 7px;
@@ -452,7 +455,7 @@
 
 .db-notifs__viewall:hover {
   color: var(--color-primary);
-  background: rgba(184, 0, 11, 0.04);
+  background: var(--color-primary-tint);
 }
 
 /* ── Team spotlight ────────────────────────────────────────────────────────── */
@@ -470,7 +473,7 @@
 .db-spotlight__bg {
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, #1a1035 0%, #2d1b69 40%, #0f0a1e 100%);
+  background: var(--th-hero-gradient, linear-gradient(135deg, #1a1035 0%, #2d1b69 40%, #0f0a1e 100%));
   z-index: 0;
 }
 
@@ -526,7 +529,7 @@
   font-size: 0.5625rem;
   font-weight: 700;
   letter-spacing: 0.18em;
-  color: rgba(207, 189, 255, 0.85);
+  color: var(--color-on-secondary-muted);
 }
 
 .db-spotlight__title {
@@ -534,7 +537,7 @@
   font-weight: 900;
   letter-spacing: -0.02em;
   line-height: 1.15;
-  color: #ffffff;
+  color: var(--color-on-primary);
   max-width: 28rem;
   margin: 0 0 0.75rem 0;
 }
@@ -542,7 +545,7 @@
 .db-spotlight__body {
   font-size: 0.875rem;
   line-height: 1.5;
-  color: rgba(255, 255, 255, 0.65);
+  color: var(--color-on-secondary-faint);
   max-width: 26rem;
   margin: 0;
 }

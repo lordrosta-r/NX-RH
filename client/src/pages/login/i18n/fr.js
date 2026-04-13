@@ -13,4 +13,19 @@ export default {
   'login.legal.link':        'termes de confidentialité',
   'login.legal.suffix':      'de NanoXplore RH.',
   'login.copyright':         '© 2026 NanoXplore RH',
+  'login.error.empty':       'Veuillez remplir tous les champs.',
+  'login.error.invalid':     'Identifiants invalides.',
+  'login.error.network':     'Erreur réseau — veuillez réessayer.',
+  'login.theme.to_dark':     'Passer en mode sombre',
+  'login.theme.to_light':    'Passer en mode clair',
+  'login.input.show_password': 'Afficher le mot de passe',
+  'login.input.hide_password': 'Masquer le mot de passe',
+
+  // Language selector
+  'login.lang.fr': 'Français',
+  'login.lang.en': 'Anglais',
+  'login.lang.select': 'Sélectionner la langue',
+
+  // Accessibility
+  'login.a11y.skip': 'Aller au contenu principal',
 }

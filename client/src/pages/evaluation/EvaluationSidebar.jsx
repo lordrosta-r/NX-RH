@@ -13,5 +13,8 @@ export default function EvaluationSidebar({ t }) {
     { id: 'progress',   Icon: TrendIcon,     label: t('ev.nav.progress'),   active: false, href: '/dashboard#progress' },
     { id: 'settings',   Icon: GearIcon,      label: t('ev.nav.settings'),   active: false, href: '/dashboard#settings' },
   ]
-  return <AppSidebar brandSub="Employee Portal" navItems={navItems} />
+  return <AppSidebar brandSub="Employee Portal" navItems={navItems}
+    labelNavigation={t('ev.nav.label')}
+    labelComingSoon={t('ev.nav.coming_soon')}
+  />
 }

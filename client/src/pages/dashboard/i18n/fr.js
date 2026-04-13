@@ -8,6 +8,15 @@ export default {
   // Topbar
   'dashboard.search.placeholder': 'Rechercher…',
 
+  // Topbar actions
+  'dashboard.help.aria':         'Aide',
+  'dashboard.help.title':        'Aide',
+  'dashboard.logout.aria':       'Se déconnecter',
+  'dashboard.logout.title':      'Se déconnecter',
+  'dashboard.theme.to_light':    'Passer en mode clair',
+  'dashboard.theme.to_sidebar':  'Passer en mode sidebar claire',
+  'dashboard.theme.to_dark':     'Passer en mode sombre',
+
   // Welcome greeting
   'dashboard.welcome.greeting': 'Bienvenue,',
   'dashboard.welcome.tagline':  'Voici l\'état de votre parcours professionnel aujourd\'hui.',
@@ -51,4 +60,15 @@ export default {
   'dashboard.spotlight.label': 'À la une',
   'dashboard.spotlight.title': 'Construire l\'avenir de NanoXplore ensemble.',
   'dashboard.spotlight.body':  'Découvrez comment l\'équipe R&D a réduit ses délais de production de 40 % au cours du dernier trimestre.',
+
+  // Sidebar accessibility
+  'dashboard.nav.label':       'Navigation principale',
+  'dashboard.nav.coming_soon': 'Bientôt disponible',
+
+  // Notification bell
+  'dashboard.notifications.aria_bell': 'Notifications',
+
+  // CalendarWidget navigation
+  'dashboard.calendar.prev_month': 'Mois précédent',
+  'dashboard.calendar.next_month': 'Mois suivant',
 }

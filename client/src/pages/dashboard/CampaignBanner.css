@@ -171,14 +171,14 @@
   width: 24rem;
   height: 24rem;
   border-radius: 50%;
-  background: rgba(91, 0, 223, 0.04);
+  background: var(--color-secondary-tint);
   filter: blur(60px);
   pointer-events: none;
   transition: background 0.6s ease;
 }
 
 .cb:hover .cb__glow {
-  background: rgba(91, 0, 223, 0.08);
+  background: var(--color-secondary-tint-08);
 }
 
 /* ── Responsive ────────────────────────────────────────────────────────────── */

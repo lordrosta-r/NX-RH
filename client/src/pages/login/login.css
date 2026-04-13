@@ -1,7 +1,4 @@
-/* =============================================================================
-   Login page — layout & card
-   Tient sur UNE seule hauteur d'écran, pas de scroll de page.
-   ============================================================================= */
+/* ── Login page — layout & card ── */
 
 /* ── Verrouillage du scroll au niveau racine (injecté via login.html) ─────
    html, body { height: 100%; overflow: hidden; }  ← dans login.html <style>
@@ -104,7 +101,7 @@
 .login-error {
   font-size:     0.8125rem;
   color:         var(--color-error, #ba1a1a);
-  background:    rgba(186, 26, 26, 0.08);
+  background:    var(--color-error-tint-06);
   border-radius: var(--radius-md, 0.5rem);
   padding:       0.6rem 0.85rem;
 }
@@ -114,7 +111,7 @@
   width:          100%;
   padding:        0.9rem;
   background:     var(--gradient-primary, linear-gradient(135deg,#b8000b 0%,#e50914 100%));
-  color:          #ffffff;
+  color:          var(--color-on-primary);
   font-family:    inherit;
   font-size:      0.875rem;
   font-weight:    800;

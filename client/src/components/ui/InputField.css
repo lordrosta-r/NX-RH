@@ -17,16 +17,6 @@
   transition:      color 0.2s;
 }
 
-.input-field__tray {
-  background:    var(--th-input-tray, rgba(39,39,42,0.5));
-  border-radius: var(--radius-md, 0.5rem);
-  transition:    background 0.2s ease;
-}
-
-.input-field__tray:focus-within {
-  background: var(--th-input-tray-focus, rgb(39,39,42));
-}
-
 .input-field__input {
   width:            100%;
   background:       transparent;
@@ -49,12 +39,69 @@
   border-bottom-color: var(--color-primary-container, #e50914);
 }
 
+/* Wrapper (replaces tray in updated InputField) */
+.input-field__wrapper {
+  position:      relative;
+  display:       flex;
+  align-items:   center;
+  background:    var(--th-input-tray, rgba(39,39,42,0.5));
+  border-radius: var(--radius-md, 0.5rem);
+  transition:    background 0.2s ease;
+}
+
+.input-field__wrapper:focus-within {
+  background: var(--th-input-tray-focus, rgb(39,39,42));
+}
+
+.input-field__wrapper .input-field__input {
+  width: 100%;
+}
+
+/* Password toggle button */
+.input-field__toggle {
+  position:      absolute;
+  right:         10px;
+  background:    none;
+  border:        none;
+  cursor:        pointer;
+  padding:       4px;
+  font-size:     1rem;
+  line-height:   1;
+  color:         var(--th-text-secondary);
+  border-radius: var(--radius-xs, 0.25rem);
+}
+
+.input-field__toggle:focus-visible {
+  outline:        2px solid var(--color-primary);
+  outline-offset: 1px;
+}
+
+/* Error message */
+.input-field__error-msg {
+  margin:      4px 0 0;
+  font-size:   0.75rem;
+  color:       var(--color-error, #ba1a1a);
+  line-height: 1.4;
+}
+
+/* Required asterisk */
+.input-field__required {
+  color:       var(--color-error, #ba1a1a);
+  margin-left: 2px;
+}
+
+/* Disabled state */
+.input-field--disabled .input-field__input {
+  opacity: 0.5;
+  cursor:  not-allowed;
+}
+
 /* Error state */
 .input-field--error .input-field__label {
   color: var(--color-error, #ba1a1a);
 }
-.input-field--error .input-field__tray {
-  background: rgba(186, 26, 26, 0.05);
+.input-field--error .input-field__wrapper {
+  background: var(--color-error-tint);
 }
 .input-field--error .input-field__input:focus {
   border-bottom-color: var(--color-error, #ba1a1a);

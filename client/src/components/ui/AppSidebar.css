@@ -74,7 +74,7 @@
   background: var(--color-sidebar-active-bg);
   color: var(--color-sidebar-nav-active);
   font-weight: 600;
-  box-shadow: 0 4px 14px rgba(184, 0, 11, 0.40);
+  box-shadow: var(--shadow-sidebar-active);
 }
 
 .app-sidebar__item--active:hover {
@@ -90,6 +90,9 @@ html[data-theme="light-sidebar"] .app-sidebar__item--active {
   padding-left: calc(1rem - 3px);
 }
 
-html[data-theme="light-sidebar"] .app-sidebar__item--active:hover {
-  background: rgba(91, 0, 223, 0.12);
+/* Disabled nav item — not yet available */
+.app-sidebar__item--disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
 }

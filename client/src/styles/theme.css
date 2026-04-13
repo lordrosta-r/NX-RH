@@ -40,6 +40,14 @@ html[data-theme="dark"] {
   --th-controls-icon-hover:rgba(255, 255, 255, 0.90);
   --th-controls-text:     rgba(255, 255, 255, 0.80);
   --th-controls-divider:  rgba(255, 255, 255, 0.12);
+
+  --th-hero-gradient: linear-gradient(135deg, #1a1035 0%, #2d1b69 40%, #0f0a1e 100%);
+
+  --th-text-secondary:          var(--color-on-surface-variant);
+  --th-surface:                 var(--color-surface);
+  --th-on-surface:              var(--color-on-surface);
+  --th-surface-container-low:   var(--color-surface-container-low);
+  --th-surface-container:       var(--color-surface-container);
 }
 
 /* ── Light (sovereign white — "layers of fine paper") ───────────────────── */
@@ -72,12 +80,20 @@ html[data-theme="light"] {
   --th-checkbox-bg:       var(--color-surface-container, #f0eded);
   --th-checkbox-border:   var(--color-outline-variant, #e9bcb6);
 
+  --th-text-secondary:          var(--color-on-surface-variant);
+  --th-surface:                 var(--color-surface);
+  --th-on-surface:              var(--color-on-surface);
+  --th-surface-container-low:   var(--color-surface-container-low);
+  --th-surface-container:       var(--color-surface-container);
+
   --th-controls-bg:       rgba(255, 255, 255, 0.85);
   --th-controls-border:   rgba(28, 27, 27, 0.10);
   --th-controls-icon:     rgba(28, 27, 27, 0.45);
   --th-controls-icon-hover:rgba(28, 27, 27, 0.90);
   --th-controls-text:     rgba(28, 27, 27, 0.75);
   --th-controls-divider:  rgba(28, 27, 27, 0.10);
+
+  --th-hero-gradient: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary, var(--color-primary)) 100%);
 }
 
 /* ── Light-sidebar theme — white content area + light `#f6f3f2` sidebar ─────
@@ -90,6 +106,49 @@ html[data-theme="light-sidebar"] {
   --color-sidebar-active-bg:  rgba(91, 0, 223, 0.08);
   --color-sidebar-hover-bg:   var(--color-surface-container, #f0eded);
   --color-sidebar-label:      var(--color-on-surface-variant, #5e3f3b);
+
+  /* Mêmes --th-* que light pour que les pages non-sidebar fonctionnent */
+  --th-page-bg:           var(--color-surface, #fcf9f8);
+  --th-mosaic-opacity:    0.12;
+  --th-overlay-gradient:  linear-gradient(to top, rgba(252,249,248,0.96) 0%, rgba(252,249,248,0.80) 50%, rgba(252,249,248,0.65) 100%);
+
+  --th-card-bg:           rgba(255, 255, 255, 0.96);
+  --th-card-shadow:       var(--shadow-float, 0 24px 64px rgba(28,27,27,0.10));
+  --th-card-title:        var(--color-on-surface, #1c1b1b);
+
+  --th-label-color:       var(--color-on-surface-variant, #5e3f3b);
+  --th-input-tray:        var(--color-surface-container-low, #f6f3f2);
+  --th-input-tray-focus:  var(--color-surface-container, #f0eded);
+  --th-input-color:       var(--color-on-surface, #1c1b1b);
+  --th-input-placeholder: var(--color-outline, #936e69);
+
+  --th-divider:           var(--color-outline-variant, #e9bcb6);
+  --th-footer-text:       var(--color-on-surface-variant, #5e3f3b);
+  --th-footer-link:       var(--color-on-surface, #1c1b1b);
+  --th-footer-link-dec:   rgba(147, 110, 105, 0.40);
+  --th-copyright:         var(--color-outline, #936e69);
+
+  --th-utility-link:      var(--color-on-surface-variant, #5e3f3b);
+  --th-utility-link-hover:var(--color-on-surface, #1c1b1b);
+  --th-tagline:           var(--color-on-surface-variant, #5e3f3b);
+
+  --th-checkbox-bg:       var(--color-surface-container, #f0eded);
+  --th-checkbox-border:   var(--color-outline-variant, #e9bcb6);
+
+  --th-text-secondary:          var(--color-on-surface-variant);
+  --th-surface:                 var(--color-surface);
+  --th-on-surface:              var(--color-on-surface);
+  --th-surface-container-low:   var(--color-surface-container-low);
+  --th-surface-container:       var(--color-surface-container);
+
+  --th-controls-bg:       rgba(255, 255, 255, 0.85);
+  --th-controls-border:   rgba(28, 27, 27, 0.10);
+  --th-controls-icon:     rgba(28, 27, 27, 0.45);
+  --th-controls-icon-hover:rgba(28, 27, 27, 0.90);
+  --th-controls-text:     rgba(28, 27, 27, 0.75);
+  --th-controls-divider:  rgba(28, 27, 27, 0.10);
+
+  --th-hero-gradient: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary, var(--color-primary)) 100%);
 }
 
 /* ── Inner app dark mode — overrides --color-* surface tokens ───────────────

@@ -15,6 +15,7 @@ const mongoose   = require('mongoose')
 const { Evaluation, Form, Campaign, User, VALID_TRANSITIONS, ROLE_TRANSITIONS, LOCKED_STATUSES } = require('../models')
 const { getVisibleUserIds } = require('../services/managerVisibility')
 const { ADMIN_ROLES }       = require('../config/constants')
+const { EVALUATION_STATUSES } = require('../config/constants')
 
 // Enlève evaluatorId/evaluatorName si le form est anonyme
 function sanitizeAnonymity(doc) {
@@ -35,6 +36,14 @@ router.get('/', async (req, res, next) => {
         return res.status(400).json({ error: 'campaignId invalide' })
       }
       filter.campaignId = req.query.campaignId
+    }
+
+    // Filtre status : whitelist stricte pour éviter l'injection NoSQL
+    if (req.query.status !== undefined) {
+      if (typeof req.query.status !== 'string' || !EVALUATION_STATUSES.includes(req.query.status)) {
+        return res.status(400).json({ error: 'status invalide' })
+      }
+      filter.status = req.query.status
     }
 
     const role = req.user.role
@@ -296,6 +305,29 @@ router.patch('/:id', async (req, res, next) => {
       evaluation.score = req.body.score
     }
 
+    // Commentaire du reviewer (manager/director/admin/hr)
+    if (req.body.reviewerComment !== undefined) {
+      if (!['manager', 'director', 'admin', 'hr'].includes(role)) {
+        return res.status(403).json({ error: 'Seuls les managers et admins peuvent ajouter un commentaire reviewer' })
+      }
+      if (typeof req.body.reviewerComment !== 'string' || req.body.reviewerComment.length > 5000) {
+        return res.status(400).json({ error: 'reviewerComment invalide (max 5000 chars)' })
+      }
+      evaluation.reviewerComment = req.body.reviewerComment
+    }
+
+    // Commentaire de l'évalué (employee ou admin)
+    if (req.body.evaluateeComment !== undefined) {
+      const isEvaluatee = evaluation.evaluateeId.toString() === uid
+      if (!isEvaluatee && !['admin', 'hr'].includes(role)) {
+        return res.status(403).json({ error: 'Seul l\'évalué ou un admin peut ajouter un commentaire evaluatee' })
+      }
+      if (typeof req.body.evaluateeComment !== 'string' || req.body.evaluateeComment.length > 5000) {
+        return res.status(400).json({ error: 'evaluateeComment invalide (max 5000 chars)' })
+      }
+      evaluation.evaluateeComment = req.body.evaluateeComment
+    }
+
     // Transition de statut
     if (req.body.status !== undefined) {
       const allowed = role === 'admin'
@@ -311,7 +343,13 @@ router.patch('/:id', async (req, res, next) => {
     }
 
     await evaluation.save()
-    res.json({ id: evaluation._id, status: evaluation.status, lastSavedAt: evaluation.lastSavedAt })
+    res.json({
+      id:               evaluation._id,
+      status:           evaluation.status,
+      lastSavedAt:      evaluation.lastSavedAt,
+      reviewerComment:  evaluation.reviewerComment,
+      evaluateeComment: evaluation.evaluateeComment,
+    })
   } catch (err) {
     next(err)
   }

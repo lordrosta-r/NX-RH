@@ -20,7 +20,7 @@ const { authGuard } = require('../middleware/authGuard')
 
 const loginLimiter = rateLimit({
   windowMs:       15 * 60 * 1000,
-  max:            10,
+  max:            process.env.NODE_ENV === 'test' ? 1000 : 10,
   keyGenerator:   (req) => req.body?.email?.toLowerCase() || ipKeyGenerator(req),
   standardHeaders: true,
   legacyHeaders:  false,

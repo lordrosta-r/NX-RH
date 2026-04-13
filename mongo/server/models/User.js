@@ -65,20 +65,24 @@ const userSchema = new Schema({
   },
 
   // DN LDAP complet — jamais retourné par défaut.
-  // sparse: true sur l'index explicite = ignore les null (comptes locaux).
-  // BUG corrigé : sparse:true retiré du champ pour éviter un double index.
+  // Pas de default null ici : le champ doit être ABSENT (undefined) pour les
+  // comptes locaux afin que l'index partiel l'ignore correctement.
   ldapDn: {
     type: String,
     select: false,
-    default: null,
   },
 
   isActive: { type: Boolean, default: true },
 
 }, { timestamps: true })
 
-// Index sparse unique sur ldapDn : un seul user par DN LDAP, null ignoré
-userSchema.index({ ldapDn: 1 }, { unique: true, sparse: true })
+// Index partiel unique sur ldapDn : seuls les vrais DN LDAP (strings) sont indexés.
+// partialFilterExpression est préférable à sparse:true car default:null cause
+// l'indexation des null avec sparse, créant des conflits de doublon.
+userSchema.index(
+  { ldapDn: 1 },
+  { unique: true, partialFilterExpression: { ldapDn: { $type: 'string' } } }
+)
 userSchema.index({ department: 1 })
 userSchema.index({ managerId: 1, isActive: 1 })
 userSchema.index({ managerId: 1, role: 1, isActive: 1 })
@@ -97,7 +101,9 @@ userSchema.pre('save', async function (next) {
 // Sécurité : un utilisateur ne peut pas être son propre manager
 userSchema.pre('save', async function (next) {
   if (this.managerId && this.managerId.equals(this._id)) {
-    return next(new Error('Un utilisateur ne peut pas être son propre manager'))
+    const err = new Error('Un utilisateur ne peut pas être son propre manager')
+    err.status = 400
+    return next(err)
   }
   if (this.managerId) {
     let current = this.managerId
@@ -105,7 +111,11 @@ userSchema.pre('save', async function (next) {
     for (let depth = 0; depth < 20; depth++) {
       if (!current) break
       const key = current.toString()
-      if (visited.has(key)) return next(new Error('Cycle hiérarchique détecté'))
+      if (visited.has(key)) {
+        const err = new Error('Cycle hiérarchique détecté')
+        err.status = 400
+        return next(err)
+      }
       visited.add(key)
       const parent = await this.constructor.findById(current, 'managerId').lean()
       current = parent?.managerId ?? null

@@ -7,18 +7,25 @@ import './ThemeToggle.css'
 // Reads & writes theme via useTheme hook (sets data-theme on <html>).
 //
 // Props:
-//   size  {number} — icon size in px (default 16)
+//   size        {number} — icon size in px (default 16)
+//   labelLight  {string} — aria-label/title when in light mode (action = switch to dark)
+//   labelDark   {string} — aria-label/title when in dark mode (action = switch to light)
 // =============================================================================
 
-export default function ThemeToggle({ size = 16 }) {
-  const { isDark, toggleTheme, theme } = useTheme()
+export default function ThemeToggle({
+  size       = 16,
+  labelLight = 'Switch to dark mode',
+  labelDark  = 'Switch to light mode',
+}) {
+  const { isDark, toggleTheme } = useTheme()
+  const label = isDark ? labelDark : labelLight
 
   return (
     <button
       className="theme-toggle"
       onClick={toggleTheme}
-      aria-label={isDark ? 'Passer en mode clair' : 'Passer en mode sombre'}
-      title={isDark ? 'Mode clair' : 'Mode sombre'}
+      aria-label={label}
+      title={label}
       type="button"
     >
       {isDark

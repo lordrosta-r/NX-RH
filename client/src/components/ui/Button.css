@@ -1,0 +1,75 @@
+/* =============================================================================
+   Button — variants, sizes, loading state
+   Import this in any component that uses <Button />.
+   ============================================================================= */
+
+/* ── Base ─────────────────────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .4rem;
+  border: none;
+  border-radius: var(--radius-md);
+  font-family: var(--font-family);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition: filter .15s, opacity .15s, background .15s;
+  white-space: nowrap;
+}
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+
+/* ── Sizes ────────────────────────────────────────────────────────────────── */
+.btn--md  { padding: .65rem 1.35rem; font-size: .9rem; }
+.btn--sm  { padding: .4rem .9rem;    font-size: .8rem; }
+.btn--full { width: 100%; }
+
+/* ── Variants ─────────────────────────────────────────────────────────────── */
+.btn--primary {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+.btn--primary:hover:not(:disabled) { filter: brightness(1.1); }
+
+.btn--secondary {
+  background: var(--color-secondary);
+  color: var(--color-on-secondary);
+}
+.btn--secondary:hover:not(:disabled) { filter: brightness(0.88); }
+
+.btn--danger {
+  background: var(--color-error);
+  color: var(--color-on-error);
+}
+.btn--danger:hover:not(:disabled) { filter: brightness(1.1); }
+
+.btn--ghost {
+  background: transparent;
+  color: var(--color-on-surface);
+  border: 1.5px solid var(--color-outline-variant);
+}
+.btn--ghost:hover:not(:disabled) {
+  background: var(--color-surface-container);
+}
+
+/* ── Loading spinner ──────────────────────────────────────────────────────── */
+.btn__spinner {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: btn-spin .6s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes btn-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Focus visible ────────────────────────────────────────────────────────── */
+.btn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}

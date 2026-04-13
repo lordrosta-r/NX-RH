@@ -26,6 +26,17 @@ import { resolve } from 'path'
 export default defineConfig({
   plugins: [react()],
 
+  // ── Test configuration (Vitest) ────────────────────────────────────────────
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: ['./src/__tests__/setup.js'],
+    include: ['src/__tests__/**/*.test.{js,jsx}'],
+    coverage: {
+      reporter: ['text', 'lcov'],
+    },
+  },
+
   // All paths in HTML files are resolved relative to this
   base: '/',
 

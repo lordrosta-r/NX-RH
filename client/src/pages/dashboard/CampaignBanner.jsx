@@ -81,13 +81,21 @@ export default function CampaignBanner({ t, progress = 0, userName = '' }) {
       {/* Right — ring + CTA */}
       <div className="cb__cta-area">
         <div className="cb__ring-wrap">
-          <ProgressRing value={progress} size={192} trackWidth={10} />
-          {/* Center text — overlaid via CSS absolute positioning */}
-          <div className="cb__ring-text">
-            <span className="cb__ring-value">{progress}%</span>
-            <span className="cb__ring-label">
-              {t('dashboard.campaign.progress.label').toUpperCase()}
-            </span>
+          <div
+            role="progressbar"
+            aria-valuenow={progress}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label={`${t('dashboard.campaign.progress.label')} : ${progress}%`}
+          >
+            <ProgressRing value={progress} size={192} trackWidth={10} />
+            {/* Center text — overlaid via CSS absolute positioning */}
+            <div className="cb__ring-text">
+              <span className="cb__ring-value">{progress}%</span>
+              <span className="cb__ring-label">
+                {t('dashboard.campaign.progress.label').toUpperCase()}
+              </span>
+            </div>
           </div>
         </div>
 

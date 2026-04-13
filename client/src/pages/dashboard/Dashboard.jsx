@@ -12,6 +12,7 @@ import CalendarWidget   from '../../components/ui/CalendarWidget'
 import { t as pageT }   from './i18n'
 import { useLocale }    from '../../hooks/useLocale'
 import { useTheme }     from '../../hooks/useTheme'
+import { useAuthUser }  from '../../hooks/useAuthUser'
 import {
   BellIcon, SearchIcon, ArrowNEIcon,
   SunIcon, MoonIcon, PaletteIcon, HelpIcon,
@@ -28,11 +29,6 @@ const makeCalendarEvents = (t) => [
   { date: '2026-05-12', type: 'interview', label: t('dashboard.calendar.type.interview'), typeLabel: t('dashboard.calendar.type.interview'), color: 'var(--color-secondary)' },
 ]
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
-function getCurrentUser() {
-  try { return JSON.parse(sessionStorage.getItem('user')) } catch { return null }
-}
-
 const NOTIF_COLORS = [
   'var(--color-primary)',
   'var(--color-secondary)',
@@ -41,7 +37,7 @@ const NOTIF_COLORS = [
 ]
 
 // ── Spotlight image (office interior — replaceable with a local asset in /public)
-const SPOTLIGHT_IMG = 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=70'
+const SPOTLIGHT_IMG = '/assets/spotlight.jpg'
 
 // ── Theme icon — one per state ────────────────────────────────────────────────
 function ThemeIcon({ theme }) {
@@ -51,21 +47,19 @@ function ThemeIcon({ theme }) {
   return                               <MoonIcon    {...props} />
 }
 
-function themeLabel(theme) {
-  if (theme === 'dark')  return 'Passer en mode clair'
-  if (theme === 'light') return 'Passer en mode sidebar claire'
-  return 'Passer en mode sombre'
-}
-
 // ── Component ────────────────────────────────────────────────────────────────
 export default function Dashboard() {
   const { t, locale }          = useLocale(pageT)
   const { theme, cycleTheme }  = useTheme()
-  const [user, setUser]        = useState(null)
+  const { user, loading }      = useAuthUser()
   const [notifOpen, setNotifOpen] = useState(false)
   const notifRef = useRef(null)
 
-  useEffect(() => { setUser(getCurrentUser()) }, [])
+  function themeLabel(th) {
+    if (th === 'dark')  return t('dashboard.theme.to_light')
+    if (th === 'light') return t('dashboard.theme.to_sidebar')
+    return t('dashboard.theme.to_dark')
+  }
 
   // Close notification dropdown when clicking outside
   useEffect(() => {
@@ -78,6 +72,23 @@ export default function Dashboard() {
     document.addEventListener('mousedown', onClickOutside)
     return () => document.removeEventListener('mousedown', onClickOutside)
   }, [notifOpen])
+
+  // Close notification dropdown on Escape key
+  useEffect(() => {
+    if (!notifOpen) return
+    const onKey = (e) => { if (e.key === 'Escape') setNotifOpen(false) }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [notifOpen])
+
+  if (loading) return null
+  if (!user)   return null
+
+  async function handleLogout() {
+    try { await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }) } catch { /* ignore logout network errors */ }
+    sessionStorage.clear()
+    window.location.href = '/'
+  }
 
   const notifItems = [1, 2, 3, 4].map(n => ({
     id:    n,
@@ -131,6 +142,7 @@ export default function Dashboard() {
 
             {/* Theme cycle */}
             <button
+              type="button"
               className="db-icon-btn"
               onClick={cycleTheme}
               aria-label={themeLabel(theme)}
@@ -141,9 +153,10 @@ export default function Dashboard() {
 
             {/* Help */}
             <button
+              type="button"
               className="db-icon-btn"
-              aria-label="Aide"
-              title="Aide"
+              aria-label={t('dashboard.help.aria')}
+              title={t('dashboard.help.title')}
             >
               <HelpIcon size={17} color="var(--color-on-surface-variant)" strokeWidth={1.5} />
             </button>
@@ -151,9 +164,10 @@ export default function Dashboard() {
             {/* Notification bell + dropdown */}
             <div className="db-notif-wrap" ref={notifRef}>
               <button
+                type="button"
                 className="db-icon-btn db-icon-btn--notif"
                 onClick={() => setNotifOpen(o => !o)}
-                aria-label="Notifications"
+                aria-label={t('dashboard.notifications.aria_bell')}
                 aria-expanded={notifOpen}
               >
                 <BellIcon size={17} color="var(--color-on-surface-variant)" />
@@ -161,7 +175,7 @@ export default function Dashboard() {
               </button>
 
               {notifOpen && (
-                <div className="db-notif-dropdown" role="dialog" aria-label="Notifications">
+                <div className="db-notif-dropdown" role="dialog" aria-modal="true" aria-label={t('dashboard.notifications.title')}>
                   <div className="db-notif-dropdown__header">
                     <span className="db-notif-dropdown__title">
                       {t('dashboard.notifications.title').toUpperCase()}
@@ -179,7 +193,7 @@ export default function Dashboard() {
                       </li>
                     ))}
                   </ul>
-                  <button className="db-notif-dropdown__footer" onClick={() => setNotifOpen(false)}>
+                  <button type="button" className="db-notif-dropdown__footer" onClick={() => setNotifOpen(false)}>
                     {t('dashboard.notifications.viewall')}
                   </button>
                 </div>
@@ -195,13 +209,28 @@ export default function Dashboard() {
                 <p className="db-topbar__user-role">{role}</p>
               </div>
               <div className="db-topbar__avatar" aria-hidden="true">{initials}</div>
+              <button
+                type="button"
+                className="db-icon-btn"
+                onClick={handleLogout}
+                aria-label={t('dashboard.logout.aria')}
+                title={t('dashboard.logout.title')}
+              >
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
+                  stroke="var(--color-on-surface-variant)" strokeWidth="1.5"
+                  strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
+                  <polyline points="16 17 21 12 16 7"/>
+                  <line x1="21" y1="12" x2="9" y2="12"/>
+                </svg>
+              </button>
             </div>
 
           </div>
         </header>
 
         {/* ── Page content ────────────────────────────────────────────── */}
-        <main className="db-content">
+        <main className="db-content" id="main-content">
 
           {/* Hero campaign banner — greeting lives inside the card */}
           <div className="db-banner-wrap">
@@ -262,7 +291,7 @@ export default function Dashboard() {
                   </li>
                 ))}
               </ul>
-              <button className="db-notifs__viewall">
+              <button type="button" className="db-notifs__viewall" onClick={() => setNotifOpen(false)}>
                 {t('dashboard.notifications.viewall')}
               </button>
             </aside>
@@ -273,6 +302,8 @@ export default function Dashboard() {
                 title={t('dashboard.calendar.title')}
                 events={makeCalendarEvents(t)}
                 locale={locale}
+                labelPrevMonth={t('dashboard.calendar.prev_month')}
+                labelNextMonth={t('dashboard.calendar.next_month')}
               />
             </div>
 
@@ -281,6 +312,7 @@ export default function Dashboard() {
               <img
                 src={SPOTLIGHT_IMG}
                 alt=""
+                loading="lazy"
                 className="db-spotlight__img"
                 aria-hidden="true"
                 onError={e => { e.target.style.display = 'none' }}

@@ -113,7 +113,7 @@
 .hrwb__img-bg {
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, #2e1065 0%, #1a0a3e 100%);
+  background: var(--th-hero-gradient);
   z-index: 0;
 }
 
@@ -184,7 +184,7 @@
   width: 20rem;
   height: 20rem;
   border-radius: 50%;
-  background: rgba(91, 0, 223, 0.04);
+  background: var(--color-secondary-tint);
   filter: blur(50px);
   pointer-events: none;
 }

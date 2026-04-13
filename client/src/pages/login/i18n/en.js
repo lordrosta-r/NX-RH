@@ -13,4 +13,19 @@ export default {
   'login.legal.link':        'privacy terms',
   'login.legal.suffix':      'of NanoXplore RH.',
   'login.copyright':         '© 2026 NanoXplore RH',
+  'login.error.empty':       'Please fill in all fields.',
+  'login.error.invalid':     'Invalid credentials.',
+  'login.error.network':     'Network error — please try again.',
+  'login.theme.to_dark':     'Switch to dark mode',
+  'login.theme.to_light':    'Switch to light mode',
+  'login.input.show_password': 'Show password',
+  'login.input.hide_password': 'Hide password',
+
+  // Language selector
+  'login.lang.fr': 'French',
+  'login.lang.en': 'English',
+  'login.lang.select': 'Select language',
+
+  // Accessibility
+  'login.a11y.skip': 'Skip to main content',
 }

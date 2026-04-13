@@ -9,6 +9,10 @@ export default {
   'ev.topbar.form':    'Formulaire d\'évaluation actif',
   'ev.topbar.home':    'Portail Employé',
   'ev.topbar.search':  'Rechercher…',
+  'ev.topbar.theme':        'Changer le thème',
+  'ev.topbar.help':         'Aide',
+  'ev.topbar.notifications':'Notifications',
+  'ev.topbar.lang':         'Changer la langue',
 
   // Home — hero banner
   'ev.home.greeting':         'Bonjour',
@@ -28,6 +32,8 @@ export default {
   // Home — my forms section
   'ev.home.forms.title':       'Mes formulaires à compléter',
   'ev.home.forms.empty':       'Aucun formulaire en attente.',
+  'ev.home.loading':           'Chargement des évaluations…',
+  'ev.home.error.load':        'Impossible de charger les évaluations.',
 
   // Form status
   'ev.status.todo':       'À compléter',
@@ -74,4 +80,35 @@ export default {
   'ev.tip2.body':  'Cette auto-évaluation est confidentielle. Elle ne sera lue que par votre manager direct et l\'équipe RH.',
   'ev.tip3.title': 'Sécurité',
   'ev.tip3.body':  'Vos réponses sont sauvegardées automatiquement. Vous pouvez revenir compléter le formulaire avant la date limite.',
+  'ev.footer.saving':    'Enregistrement…',
+  'ev.form.last_saved':  'Dernière sauvegarde à',
+  'ev.yesno.yes':        'Oui',
+  'ev.yesno.no':         'Non',
+  'ev.form.textarea_placeholder': 'Votre réponse…',
+  'ev.form.loading':     'Chargement…',
+
+  // Status (extended — MongoDB statuses)
+  'ev.status.assigned':         'Assigné',
+  'ev.status.reviewed':         'Examiné',
+  'ev.status.signed_evaluatee': 'Signé (évaluataire)',
+  'ev.status.signed_manager':   'Signé (manager)',
+  'ev.status.signed_hr':        'Signé (RH)',
+  'ev.status.validated':        'Validé',
+
+  // Form errors
+  'ev.error.not_found':    'Évaluation introuvable',
+  'ev.error.save_failed':  'Sauvegarde échouée',
+  'ev.error.submit_failed':'Soumission échouée',
+
+  // Submitted state
+  'ev.submitted.title': 'Évaluation soumise',
+  'ev.submitted.desc':  'Votre auto-évaluation a bien été transmise. Vous serez notifié(e) de la date de votre entretien prochainement.',
+  'ev.submitted.back':  '← Retour à l\'accueil',
+
+  // Campaign stats (mock — TODO: fetch from API)
+  'ev.home.campaign.stats_placeholder': '',
+
+  // Sidebar accessibility
+  'ev.nav.label':       'Navigation principale',
+  'ev.nav.coming_soon': 'Bientôt disponible',
 }

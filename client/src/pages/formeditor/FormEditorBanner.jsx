@@ -5,7 +5,7 @@
 import React from 'react'
 import './FormEditorBanner.css'
 
-export default function FormEditorBanner({ t }) {
+export default function FormEditorBanner({ t, formCount = 0, activeCount = 0, responseCount = 0 }) {
   return (
     <section className="feb">
       <div className="feb__content">
@@ -18,16 +18,16 @@ export default function FormEditorBanner({ t }) {
       </div>
       <div className="feb__stats">
         <div className="feb__stat">
-          <span className="feb__stat-value">4</span>
-          <span className="feb__stat-label">Formulaires</span>
+          <span className="feb__stat-value">{formCount}</span>
+          <span className="feb__stat-label">{t('fe.banner.forms')}</span>
         </div>
         <div className="feb__stat">
-          <span className="feb__stat-value">2</span>
-          <span className="feb__stat-label">Actifs</span>
+          <span className="feb__stat-value">{activeCount}</span>
+          <span className="feb__stat-label">{t('fe.banner.active')}</span>
         </div>
         <div className="feb__stat">
-          <span className="feb__stat-value">179</span>
-          <span className="feb__stat-label">Réponses totales</span>
+          <span className="feb__stat-value">{responseCount}</span>
+          <span className="feb__stat-label">{t('fe.banner.responses')}</span>
         </div>
       </div>
     </section>

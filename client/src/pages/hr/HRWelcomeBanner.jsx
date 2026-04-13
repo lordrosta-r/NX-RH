@@ -38,6 +38,7 @@ export default function HRWelcomeBanner({ t, userName = '' }) {
         <img
           src={HERO_IMG}
           alt=""
+          loading="lazy"
           className="hrwb__img"
           aria-hidden="true"
           onError={e => { e.target.style.display = 'none' }}

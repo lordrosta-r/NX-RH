@@ -42,11 +42,25 @@ export default {
   'hr.alert.4.meta':     'Brouillon · Créé il y a 2 jours',
 
   // Department table
-  'hr.depts.title':       'Complétion par service',
-  'hr.depts.col.dept':    'Service',
-  'hr.depts.col.total':   'Employés',
-  'hr.depts.col.rate':    'Complétion',
-  'hr.depts.viewall':     'Voir tous les services',
+  'hr.depts.title':           'Complétion par service',
+  'hr.depts.col.name':        'Service',
+  'hr.depts.col.dept':        'Service',
+  'hr.depts.col.total':       'Employés',
+  'hr.depts.col.progress':    'Progression',
+  'hr.depts.col.pct':         '%',
+  'hr.depts.col.rate':        'Complétion',
+  'hr.depts.viewall':         'Voir tous les services',
+
+  // Topbar actions
+  'hr.help.aria':             'Aide',
+  'hr.help.title':            'Aide',
+  // Theme cycle
+  'hr.theme.to_light':    'Passer en mode clair',
+  'hr.theme.to_sidebar':  'Passer en mode sidebar claire',
+  'hr.theme.to_dark':     'Passer en mode sombre',
+  // Logout
+  'hr.logout.aria':       'Se déconnecter',
+  'hr.logout.title':      'Se déconnecter',
 
   // Quick actions
   'hr.actions.title':     'Actions rapides',
@@ -100,4 +114,19 @@ export default {
   'hr.res.3.date':                '1 avr. 2026',
   'hr.res.4.name':                'Livret d\'accueil 2026.pdf',
   'hr.res.4.date':                '10 janv. 2026',
+
+  // Sidebar accessibility
+  'hr.nav.label':       'Navigation principale',
+  'hr.nav.coming_soon': 'Bientôt disponible',
+
+  // CalendarWidget navigation
+  'hr.calendar.prev_month': 'Mois précédent',
+  'hr.calendar.next_month': 'Mois suivant',
+
+  // Alerts aria-label
+  'hr.alerts.aria': 'Alertes',
+
+  // Action buttons aria-labels
+  'hr.actions.edit':     'Modifier',
+  'hr.actions.download': 'Télécharger',
 }

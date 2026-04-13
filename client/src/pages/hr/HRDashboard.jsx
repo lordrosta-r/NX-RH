@@ -13,6 +13,7 @@ import CalendarWidget   from '../../components/ui/CalendarWidget'
 import { t as pageT }  from './i18n'
 import { useLocale }   from '../../hooks/useLocale'
 import { useTheme }    from '../../hooks/useTheme'
+import { useAuthUser } from '../../hooks/useAuthUser'
 import {
   BellIcon, SearchIcon,
   SunIcon, MoonIcon, PaletteIcon, HelpIcon, DocumentIcon,
@@ -74,9 +75,6 @@ const makeCalendarEvents = (t) => [
 ]
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
-function getCurrentUser() {
-  try { return JSON.parse(sessionStorage.getItem('user')) } catch { return null }
-}
 
 function ThemeIcon({ theme }) {
   const p = { size: 17, color: 'var(--color-on-surface-variant)' }
@@ -85,10 +83,10 @@ function ThemeIcon({ theme }) {
   return                        <MoonIcon    {...p} />
 }
 
-function themeLabel(theme) {
-  if (theme === 'dark')  return 'Passer en mode clair'
-  if (theme === 'light') return 'Passer en mode sidebar claire'
-  return 'Passer en mode sombre'
+function themeLabel(theme, t) {
+  if (theme === 'dark')  return t('hr.theme.to_light')
+  if (theme === 'light') return t('hr.theme.to_sidebar')
+  return t('hr.theme.to_dark')
 }
 
 function deptColor(pct) {
@@ -116,11 +114,9 @@ function ResourceTypeIcon({ type }) {
 export default function HRDashboard() {
   const { t, locale }         = useLocale(pageT)
   const { theme, cycleTheme } = useTheme()
-  const [user, setUser]       = useState(null)
+  const { user, loading }     = useAuthUser()
   const [notifOpen, setNotifOpen] = useState(false)
   const notifRef = useRef(null)
-
-  useEffect(() => { setUser(getCurrentUser()) }, [])
 
   useEffect(() => {
     if (!notifOpen) return
@@ -130,6 +126,20 @@ export default function HRDashboard() {
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
   }, [notifOpen])
+
+  if (loading) return null
+  if (!user)   return null
+  if (!['admin', 'hr'].includes(user.role)) {
+    // eslint-disable-next-line react-hooks/immutability
+    window.location.href = '/dashboard'
+    return null
+  }
+
+  async function handleLogout() {
+    try { await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }) } catch { /* ignore logout network errors */ }
+    sessionStorage.clear()
+    window.location.href = '/'
+  }
 
   const dateLabel = new Date().toLocaleDateString(
     locale === 'fr' ? 'fr-FR' : 'en-US',
@@ -161,22 +171,22 @@ export default function HRDashboard() {
             <span className="hr-topbar__date">{dateLabel}</span>
             <div className="hr-topbar__sep" aria-hidden="true" />
 
-            <button className="hr-icon-btn" onClick={cycleTheme} aria-label={themeLabel(theme)} title={themeLabel(theme)}>
+            <button type="button" className="hr-icon-btn" onClick={cycleTheme} aria-label={themeLabel(theme, t)} title={themeLabel(theme, t)}>
               <ThemeIcon theme={theme} />
             </button>
-            <button className="hr-icon-btn" aria-label="Aide" title="Aide">
+            <button type="button" className="hr-icon-btn" aria-label={t('hr.help.aria')} title={t('hr.help.title')}>
               <HelpIcon size={17} color="var(--color-on-surface-variant)" strokeWidth={1.5} />
             </button>
 
             <div className="hr-notif-wrap" ref={notifRef}>
-              <button className="hr-icon-btn hr-icon-btn--notif"
+              <button type="button" className="hr-icon-btn hr-icon-btn--notif"
                 onClick={() => setNotifOpen(o => !o)}
-                aria-label="Alertes" aria-expanded={notifOpen}>
+                aria-label={t('hr.alerts.aria')} aria-expanded={notifOpen}>
                 <BellIcon size={17} color="var(--color-on-surface-variant)" />
                 <span className="hr-bell-dot" aria-hidden="true" />
               </button>
               {notifOpen && (
-                <div className="hr-notif-dropdown" role="dialog" aria-label="Alertes">
+                <div className="hr-notif-dropdown" role="dialog" aria-modal="true" aria-label={t('hr.alerts.aria')}>
                   <div className="hr-notif-dropdown__header">
                     <span className="hr-notif-dropdown__title">{t('hr.alerts.title').toUpperCase()}</span>
                     <span className="hr-notif-dropdown__badge">{ALERTS.length}</span>
@@ -192,7 +202,7 @@ export default function HRDashboard() {
                       </li>
                     ))}
                   </ul>
-                  <button className="hr-notif-dropdown__footer" onClick={() => setNotifOpen(false)}>
+                  <button type="button" className="hr-notif-dropdown__footer" onClick={() => setNotifOpen(false)}>
                     {t('hr.depts.viewall')}
                   </button>
                 </div>
@@ -206,12 +216,27 @@ export default function HRDashboard() {
                 <p className="hr-topbar__user-role">{role}</p>
               </div>
               <div className="hr-topbar__avatar" aria-hidden="true">{initials}</div>
+              <button
+                type="button"
+                className="hr-icon-btn"
+                onClick={handleLogout}
+                aria-label={t('hr.logout.aria')}
+                title={t('hr.logout.title')}
+              >
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
+                  stroke="var(--color-on-surface-variant)" strokeWidth="1.5"
+                  strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
+                  <polyline points="16 17 21 12 16 7"/>
+                  <line x1="21" y1="12" x2="9" y2="12"/>
+                </svg>
+              </button>
             </div>
           </div>
         </header>
 
         {/* ── Page content ────────────────────────────────────────────── */}
-        <main className="hr-content">
+        <main className="hr-content" id="main-content">
 
           {/* ── Welcome banner ────────────────────────────────────────── */}
           <HRWelcomeBanner t={t} userName={first} />
@@ -247,16 +272,22 @@ export default function HRDashboard() {
                       <span className="hr-phase__name">{t(`hr.camp.phase.${id}`)}</span>
                       <span className="hr-phase__count">{done}/{total}</span>
                     </div>
-                    <div className="hr-phase__track">
-                      <div className="hr-phase__bar" style={{ width: `${pct}%` }} />
+                    <div className="hr-phase__track"
+                      role="progressbar"
+                      aria-valuenow={pct}
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                      aria-label={`${t(`hr.camp.phase.${id}`)}: ${pct}%`}
+                    >
+                      <div className="hr-phase__bar" style={{ width: `${pct}%` }} aria-hidden="true" />
                     </div>
                     <span className="hr-phase__pct">{pct}%</span>
                   </div>
                 ))}
               </div>
               <div className="hr-camp__actions">
-                <button className="hr-camp__btn hr-camp__btn--secondary">{t('hr.camp.cta.view')}</button>
-                <button className="hr-camp__btn hr-camp__btn--danger">{t('hr.camp.cta.close')}</button>
+                <button type="button" className="hr-camp__btn hr-camp__btn--secondary">{t('hr.camp.cta.view')}</button>
+                <button type="button" className="hr-camp__btn hr-camp__btn--danger">{t('hr.camp.cta.close')}</button>
               </div>
             </article>
 
@@ -283,37 +314,49 @@ export default function HRDashboard() {
               <div className="hr-depts__header">
                 <h3 className="hr-depts__title">{t('hr.depts.title').toUpperCase()}</h3>
               </div>
-              <div className="hr-depts__table">
-                {DEPARTMENTS.map(({ name, total, pct }) => (
-                  <div key={name} className="hr-dept-row">
-                    <span className="hr-dept-row__name">{name}</span>
-                    <span className="hr-dept-row__total">{total}</span>
-                    <div className="hr-dept-row__track">
-                      <div className="hr-dept-row__bar" style={{ width: `${pct}%`, background: deptColor(pct) }} />
-                    </div>
-                    <span className="hr-dept-row__pct" style={{ color: deptColor(pct) }}>{pct}%</span>
-                  </div>
-                ))}
-              </div>
-              <button className="hr-depts__viewall">{t('hr.depts.viewall')}</button>
+              <table className="hr-depts__table">
+                <thead>
+                  <tr>
+                    <th scope="col">{t('hr.depts.col.name')}</th>
+                    <th scope="col">{t('hr.depts.col.total')}</th>
+                    <th scope="col">{t('hr.depts.col.progress')}</th>
+                    <th scope="col">{t('hr.depts.col.pct')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {DEPARTMENTS.map(({ name, total, pct }) => (
+                    <tr key={name}>
+                      <td className="hr-dept-row__name">{name}</td>
+                      <td className="hr-dept-row__total">{total}</td>
+                      <td>
+                        <div className="hr-dept-row__track">
+                          <div className="hr-dept-row__bar" style={{ width: `${pct}%`, background: deptColor(pct) }} />
+                        </div>
+                      </td>
+                      <td className="hr-dept-row__pct" style={{ color: deptColor(pct) }}>{pct}%</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <button type="button" className="hr-depts__viewall">{t('hr.depts.viewall')}</button>
             </article>
 
             <article className="hr-actions">
               <h3 className="hr-actions__title">{t('hr.actions.title').toUpperCase()}</h3>
               <div className="hr-actions__list">
-                <button className="hr-action-btn hr-action-btn--primary">
+                <button type="button" className="hr-action-btn hr-action-btn--primary">
                   <span className="hr-action-btn__icon">+</span>
                   {t('hr.actions.campaign')}
                 </button>
-                <button className="hr-action-btn">
+                <button type="button" className="hr-action-btn">
                   <span className="hr-action-btn__icon">+</span>
                   {t('hr.actions.template')}
                 </button>
-                <button className="hr-action-btn">
+                <button type="button" className="hr-action-btn">
                   <span className="hr-action-btn__icon">↓</span>
                   {t('hr.actions.export')}
                 </button>
-                <button className="hr-action-btn hr-action-btn--danger">
+                <button type="button" className="hr-action-btn hr-action-btn--danger">
                   <span className="hr-action-btn__icon">○</span>
                   {t('hr.actions.close')}
                 </button>
@@ -326,13 +369,15 @@ export default function HRDashboard() {
                 title={t('hr.calendar.title')}
                 events={makeCalendarEvents(t)}
                 locale={locale}
+                labelPrevMonth={t('hr.calendar.prev_month')}
+                labelNextMonth={t('hr.calendar.next_month')}
               />
             </div>
 
             <article className="hr-form-editor">
               <div className="hr-form-editor__header">
                 <h3 className="hr-form-editor__title">{t('hr.form.title').toUpperCase()}</h3>
-                <button className="hr-form-editor__new">+ {t('hr.form.new')}</button>
+                <button type="button" className="hr-form-editor__new">+ {t('hr.form.new')}</button>
               </div>
               <ul className="hr-form-editor__list">
                 {TEMPLATES.map(({ id, nameKey, typeKey, status, campaigns }) => (
@@ -352,11 +397,11 @@ export default function HRDashboard() {
                         <span className="hr-tpl__used">{campaigns} camp.</span>
                       )}
                     </div>
-                    <button className="hr-tpl__edit" aria-label="Modifier">✎</button>
+                    <button type="button" className="hr-tpl__edit" aria-label={t('hr.actions.edit')}>✎</button>
                   </li>
                 ))}
               </ul>
-              <button className="hr-form-editor__viewall">{t('hr.form.viewall')}</button>
+              <button type="button" className="hr-form-editor__viewall">{t('hr.form.viewall')}</button>
             </article>
 
             {/* Row 4 — Resources (full width) */}
@@ -366,7 +411,7 @@ export default function HRDashboard() {
                   <h3 className="hr-resources__title">{t('hr.res.title').toUpperCase()}</h3>
                   <p className="hr-resources__sub">{t('hr.res.sub')}</p>
                 </div>
-                <button className="hr-resources__publish">+ {t('hr.res.publish')}</button>
+                <button type="button" className="hr-resources__publish">+ {t('hr.res.publish')}</button>
               </div>
               <div className="hr-resources__grid">
                 {RESOURCES.map(({ id, nameKey, type, dateKey, status }) => (
@@ -381,7 +426,7 @@ export default function HRDashboard() {
                     <span className={`hr-resource__status hr-resource__status--${status}`}>
                       {t(`hr.res.status.${status}`)}
                     </span>
-                    <button className="hr-resource__dl" aria-label="Télécharger">↓</button>
+                    <button type="button" className="hr-resource__dl" aria-label={t('hr.actions.download')}>↓</button>
                   </div>
                 ))}
               </div>

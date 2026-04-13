@@ -15,5 +15,8 @@ export default function FormEditorSidebar({ t }) {
     { id: 'reports',    Icon: TrendIcon,     label: t('fe.nav.reports'),    active: false, href: '/hr#reports' },
     { id: 'settings',   Icon: GearIcon,      label: t('fe.nav.settings'),   active: false, href: '/hr#settings'},
   ]
-  return <AppSidebar brandSub="HR Portal" navItems={navItems} />
+  return <AppSidebar brandSub="HR Portal" navItems={navItems}
+    labelNavigation={t('fe.nav.label')}
+    labelComingSoon={t('fe.nav.coming_soon')}
+  />
 }

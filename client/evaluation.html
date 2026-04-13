@@ -2,6 +2,8 @@
 <html lang="fr">
   <head>
     <meta charset="UTF-8" />
+    <meta http-equiv="Content-Security-Policy"
+          content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://images.unsplash.com https://lh3.googleusercontent.com; connect-src 'self';">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>NanoXplore RH — Évaluation</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -10,16 +12,27 @@
     <!-- Anti-flash: apply theme + locale before React mounts -->
     <script>
       (function () {
-        var t = localStorage.getItem('nx_theme')
-        var valid = ['dark', 'light', 'light-sidebar']
-        document.documentElement.setAttribute('data-theme', valid.indexOf(t) !== -1 ? t : 'dark')
-        var l = localStorage.getItem('nx_locale')
-        if (l) document.documentElement.setAttribute('lang', l === 'fr' ? 'fr' : 'en')
+        try {
+          var t = localStorage.getItem('nx_theme')
+          var valid = ['dark', 'light', 'light-sidebar']
+          document.documentElement.setAttribute('data-theme', valid.indexOf(t) !== -1 ? t : 'dark')
+          var l = localStorage.getItem('nx_locale')
+          if (l) document.documentElement.setAttribute('lang', l === 'fr' ? 'fr' : 'en')
+          var skipEl = document.getElementById('skip-link')
+          if (skipEl) {
+            var sl = localStorage.getItem('nx_locale')
+            skipEl.textContent = (sl === 'en') ? 'Skip to main content' : 'Aller au contenu principal'
+          }
+        } catch (e) {
+          document.documentElement.setAttribute('data-theme', 'dark')
+          document.documentElement.setAttribute('lang', 'fr')
+        }
       })()
     </script>
   </head>
   <body>
-    <div id="root"></div>
+    <a id="skip-link" href="#main-content" class="skip-link">Aller au contenu principal</a>
+    <div id="root" tabindex="-1"></div>
     <script type="module" src="/src/pages/evaluation/main.jsx"></script>
   </body>
 </html>

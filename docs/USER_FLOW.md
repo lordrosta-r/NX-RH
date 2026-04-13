@@ -162,12 +162,44 @@ La navigation interne à chaque page est gérée par des onglets et des panels, 
 
 ---
 
-## 5. Statuts d'une évaluation
+## 5. Lifecycle d'une évaluation
+
+### Les 8 statuts
 
 ```
-pending       →  in_progress  →  submitted  →  reviewed  →  validated
-   │                                                              │
-   └── L'employé n'a pas encore commencé                         └── Entretien terminé et validé par le manager
+assigned → in_progress → submitted → reviewed → signed_evaluatee → signed_manager → signed_hr → validated
 ```
 
-Une évaluation ne peut revenir à un statut antérieur qu'en cas d'action explicite d'un Manager ou HR (réouverture).
+| Statut | Description |
+|---|---|
+| `assigned` | L'évaluation est créée et assignée à l'évaluateur. Aucune réponse n'a encore été saisie. |
+| `in_progress` | L'évaluateur a commencé à remplir le formulaire. Réponses modifiables (sauvegarde auto). |
+| `submitted` | L'évaluateur a soumis le formulaire. Les réponses sont verrouillées. |
+| `reviewed` | Le manager (ou directeur) a examiné l'évaluation et ajouté son commentaire/score. |
+| `signed_evaluatee` | L'évaluatee a pris connaissance de l'évaluation et l'a signée. |
+| `signed_manager` | Le manager a co-signé l'évaluation après l'entretien. |
+| `signed_hr` | RH a contre-signé pour archivage officiel. |
+| `validated` | Statut terminal — l'évaluation est finalisée et archivée en lecture seule. |
+
+### Transitions autorisées par rôle
+
+| Rôle | Peut effectuer |
+|---|---|
+| `employee` | `assigned → in_progress`, `in_progress → submitted` |
+| `manager` | `submitted → reviewed` |
+| `director` | `submitted → reviewed` |
+| `hr` | `reviewed → signed_hr`, `signed_manager → signed_hr` |
+| `admin` | Toutes les transitions |
+
+> **Note :** La transition `assigned → in_progress` se déclenche aussi automatiquement dès qu'une première réponse est sauvegardée (pre-save Mongoose).
+
+### Étapes de signature
+
+1. **signed_evaluatee** — L'évaluatee accuse réception de l'évaluation révisée par son manager. Il peut ajouter un commentaire ou poser un `disagreementFlag` avant de signer.
+2. **signed_manager** — Le manager co-signe après la tenue de l'entretien en face à face.
+3. **signed_hr** — RH contre-signe pour valider le circuit officiel. Déclenche l'archivage.
+4. **validated** — État final. Données en lecture seule pour tous les rôles.
+
+Les horodatages de signature (`signedByEvaluateeAt`, `signedByManagerAt`, `signedByHrAt`) sont conservés dans le document Evaluation.
+
+Une évaluation ne peut jamais revenir à un statut antérieur sauf action explicite d'un Admin.

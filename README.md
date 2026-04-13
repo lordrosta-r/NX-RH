@@ -14,7 +14,7 @@
 [![Node.js](https://img.shields.io/badge/Node.js-20%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org)
 [![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)](https://react.dev)
 [![Vite](https://img.shields.io/badge/Vite-5-646CFF?logo=vite&logoColor=white)](https://vitejs.dev)
-[![MySQL](https://img.shields.io/badge/MySQL-8-4479A1?logo=mysql&logoColor=white)](https://mysql.com)
+[![MongoDB](https://img.shields.io/badge/MongoDB-7-47A248?logo=mongodb&logoColor=white)](https://mongodb.com)
 [![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white)](https://docker.com)
 [![nginx](https://img.shields.io/badge/nginx-1.27-009639?logo=nginx&logoColor=white)](https://nginx.org)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
@@ -73,7 +73,7 @@
                                         └──────────┬───────────┘    │
                                                    │                  │
                                         ┌──────────▼───────────┐    │
-                                        │       MySQL 8         │    │
+                                        │      MongoDB 7        │    │
                                         │  (persistent volume)  │    │
                                         └──────────────────────┘    │
                                                                       │
@@ -88,7 +88,7 @@
 
 ```
   client/login.html ──▶ src/pages/login/main.jsx   ──┐
-  client/dashboard.html ▶ src/pages/dashboard/main.jsx├─▶ Vite build ──▶ server/public/
+  client/dashboard.html ▶ src/pages/dashboard/main.jsx├─▶ Vite build ──▶ mongo/server/public/
   client/manager.html  ──▶ src/pages/manager/main.jsx ┘
 
   Browser ──GET /dashboard──▶ Express ──authGuard──▶ sendFile(public/dashboard.html)
@@ -104,7 +104,7 @@
 | **Reverse Proxy** | Nginx 1.27 | SSL termination, load balancing, rate limiting, gzip |
 | **Backend** | Node.js 20 + Express 4 | MPA router, REST API, JWT auth |
 | **Frontend** | React 18 + Vite 5 | Per-page UI bundles (MPA mode) |
-| **Database** | MySQL 8 | Relational data, JSON columns for dynamic forms |
+| **Database** | MongoDB 7 | Document store, Mongoose ODM |
 | **Auth** | JWT + bcrypt / LDAP | Local or directory-based authentication |
 | **Mail** | Nodemailer | Any SMTP relay |
 | **Container** | Docker + Compose | Single-command deployment |
@@ -175,14 +175,14 @@ Password: changeme
 
 ```bash
 # 1. Install dependencies
-cd server && npm install
+cd mongo/server && npm install
 cd ../client && npm install
 
 # 2. Initialize the database
-mysql -u root -p < database/init.sql
+node mongo/database/seed.js
 
 # 3. Start the backend (port 3000)
-cd server && npm run dev
+cd mongo/server && npm run dev
 
 # 4. Start Vite dev server with HMR (port 5173)
 cd client && npm run dev
@@ -197,7 +197,7 @@ cd client && npm run dev
 |----------|---------|-------------|
 | `NODE_ENV` | `development` | `production` enables secure cookies |
 | `PORT` | `3000` | Express listen port |
-| `DB_HOST` | `localhost` | MySQL hostname (use `db` inside Docker) |
+| `MONGO_URI` | `mongodb://...` | MongoDB connection URI (use `mongo` inside Docker) |
 | `DB_NAME` | `nanoxplore_rh` | Database name |
 | `JWT_SECRET` | — | **Required** — min 64 random chars |
 | `JWT_EXPIRES_IN` | `8h` | Token expiry duration |
@@ -236,7 +236,7 @@ LDAP_USER_SEARCH_BASE=OU=Users,DC=corp,DC=local
 | `activedirectory` | Windows AD | `sAMAccountName` / UPN |
 | `openldap` | Linux OpenLDAP | `uid` / `cn` |
 
-> The LDAP service module is at `server/services/ldap.js`.
+> The LDAP service module is at `mongo/server/services/ldap.js`.
 
 ---
 
@@ -283,13 +283,11 @@ nanoxplore-rh/
 │   ├── gen-certs.sh              ← Self-signed cert generator (dev)
 │   └── certbot-init.sh           ← Let's Encrypt issuance (prod)
 │
-├── database/
-│   └── init.sql                  ← Schema: users, campaigns, forms, evaluations
 │
-├── server/                       ← Express backend
+├── mongo/server/                 ← Express backend
 │   ├── index.js                  ← App entry: MPA routes + API mounts
 │   ├── config/
-│   │   └── db.js                 ← mysql2 connection pool
+│   │   └── db.js                 ← Mongoose connection
 │   ├── middleware/
 │   │   └── authGuard.js          ← JWT guard (cookie + Bearer header)
 │   ├── routes/
@@ -336,7 +334,7 @@ touch client/src/pages/new-page/NewPage.jsx
 #   'new-page': resolve(__dirname, 'new-page.html'),
 
 # 4. Register in Express
-# server/index.js:
+# mongo/server/index.js:
 #   app.get('/new-page', authGuard([...]), sendPage('new-page'))
 ```
 
@@ -380,7 +378,7 @@ Scale the app tier horizontally with a single command:
 docker compose up -d --scale app=3
 ```
 
-Nginx uses Docker's internal DNS to round-robin requests across all `app` replicas. The `db` tier remains a single MySQL instance — for full HA at the DB layer, configure a MySQL Group Replication or Galera cluster and update `DB_HOST` accordingly.
+Nginx uses Docker's internal DNS to round-robin requests across all `app` replicas. The `mongo` tier remains a single MongoDB instance — for full HA at the DB layer, configure a MongoDB Replica Set and update `MONGO_URI` accordingly.
 
 ---
 
@@ -389,7 +387,7 @@ Nginx uses Docker's internal DNS to round-robin requests across all `app` replic
 - All traffic is HTTPS-only (HTTP → 301 redirect)
 - JWT stored in **httpOnly** cookies (not accessible to JavaScript)
 - LDAP bind password never leaves the server
-- MySQL is on an isolated Docker network — never exposed to the host in production
+- MongoDB is on an isolated Docker network — never exposed to the host in production
 - Nginx rate-limits `/api/auth/login` to 5 req/min per IP
 - `server_tokens off` hides nginx version from response headers
 - Non-root user inside the Docker container
@@ -415,5 +413,5 @@ MIT © NanoXplore — see [LICENSE](LICENSE) for details.
 ---
 
 <div align="center">
-  <sub>Built with Express · React · Vite · MySQL · Docker</sub>
+  <sub>Built with Express · React · Vite · MongoDB · Docker</sub>
 </div>

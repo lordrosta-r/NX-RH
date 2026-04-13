@@ -19,6 +19,10 @@ router.get('/', async (req, res, next) => {
       return res.status(403).json({ error: 'Insufficient permissions' })
     }
 
+    // Filtre isActive explicite : ?isActive=true|false (sinon : pas de filtre)
+    if (req.query.isActive === 'true') filter.isActive = true
+    else if (req.query.isActive === 'false') filter.isActive = false
+
     if (role && ROLES.includes(role)) filter.role = role
     if (department && typeof department === 'string' && department.length <= 100) {
       filter.department = department
@@ -100,6 +104,13 @@ router.post('/', async (req, res, next) => {
     const { firstName, lastName, email, role, department, position, managerId } = req.body
     const tempPassword = require('crypto').randomBytes(16).toString('hex')
 
+    if (!firstName || !lastName || !email) {
+      return res.status(400).json({ error: 'firstName, lastName et email sont requis' })
+    }
+    if (role && !ROLES.includes(role)) {
+      return res.status(400).json({ error: `Rôle invalide : ${role}` })
+    }
+
     const user = new User({
       email,
       firstName,
@@ -149,12 +160,11 @@ router.patch('/:id', async (req, res, next) => {
 
     // Les non-admins ne peuvent pas changer leur rôle, manager, statut, département ni poste
     if (!isAdmin) {
-      delete updates.role
-      delete updates.managerId
-      delete updates.isActive
-      delete updates.department
-      delete updates.position
-      delete updates.email
+      const protectedFields = ['role', 'managerId', 'isActive', 'department', 'position', 'email']
+      const forbidden = protectedFields.filter(f => req.body[f] !== undefined)
+      if (forbidden.length > 0) {
+        return res.status(403).json({ error: `Champs protégés non modifiables : ${forbidden.join(', ')}` })
+      }
     }
 
     const user = await User.findById(req.params.id)

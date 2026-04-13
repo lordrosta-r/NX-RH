@@ -23,6 +23,16 @@ router.get('/', async (req, res, next) => {
   } catch (err) { next(err) }
 })
 
+// GET /api/events/:id — détail d'un événement
+router.get('/:id', async (req, res, next) => {
+  try {
+    if (!mongoose.isValidObjectId(req.params.id)) return res.status(400).json({ error: 'ID invalide' })
+    const event = await Event.findById(req.params.id).lean()
+    if (!event) return res.status(404).json({ error: 'Événement introuvable' })
+    res.json(event)
+  } catch (err) { next(err) }
+})
+
 // POST /api/events — admin/hr uniquement
 router.post('/', async (req, res, next) => {
   try {

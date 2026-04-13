@@ -26,6 +26,12 @@ router.get('/', async (req, res, next) => {
       filter.status = req.query.status
     }
 
+    // Les employés ne voient que les campagnes actives
+    const ADMIN_ROLES_LOCAL = ['admin', 'hr', 'director', 'manager']
+    if (!ADMIN_ROLES_LOCAL.includes(req.user.role)) {
+      filter.status = 'active'
+    }
+
     if (req.query.page) {
       const page  = Math.max(1, parseInt(req.query.page)  || 1)
       const limit = Math.min(100, parseInt(req.query.limit) || 50)
@@ -146,7 +152,7 @@ router.patch('/:id', async (req, res, next) => {
     })
 
     await campaign.save()
-    res.json({ id: campaign._id })
+    res.json(campaign.toObject())
   } catch (err) {
     next(err)
   }

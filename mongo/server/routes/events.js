@@ -29,6 +29,13 @@ router.get('/:id', async (req, res, next) => {
     if (!mongoose.isValidObjectId(req.params.id)) return res.status(400).json({ error: 'ID invalide' })
     const event = await Event.findById(req.params.id).lean()
     if (!event) return res.status(404).json({ error: 'Événement introuvable' })
+
+    // Contrôle d'accès : vérifier que le rôle de l'utilisateur est dans targetRoles
+    if (req.user.role !== 'admin' && req.user.role !== 'hr') {
+      const hasAccess = event.targetRoles.length === 0 || event.targetRoles.includes(req.user.role)
+      if (!hasAccess) return res.status(403).json({ error: 'Accès refusé' })
+    }
+
     res.json(event)
   } catch (err) { next(err) }
 })

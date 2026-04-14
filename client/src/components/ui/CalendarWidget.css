@@ -127,6 +127,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  font-weight: 700;
 }
 
 .cal__day-num {
@@ -140,10 +141,6 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-}
-
-.cal__cell--today .cal__day-num {
-  font-weight: 700;
 }
 
 /* Event dots row */

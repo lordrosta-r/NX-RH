@@ -213,7 +213,7 @@ Layout CSS clé :
 ## 11. Docker & déploiement
 
 - Un seul `Dockerfile` multi-stage à la racine
-- Le build client sort dans `server/public/` (copié depuis l'étape builder)
+- Le build client sort dans `mongo/server/public/` (copié depuis l'étape builder)
 - `docker compose up -d --scale app=3` pour le mode HA
 - Certificats TLS dans `nginx/certs/` (jamais committés)
 

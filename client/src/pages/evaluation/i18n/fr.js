@@ -10,6 +10,9 @@ export default {
   'ev.topbar.home':    'Portail Employé',
   'ev.topbar.search':  'Rechercher…',
   'ev.topbar.theme':        'Changer le thème',
+  'ev.topbar.theme.to_light':   'Passer en mode clair',
+  'ev.topbar.theme.to_sidebar': 'Passer en mode sidebar clair',
+  'ev.topbar.theme.to_dark':    'Passer en mode sombre',
   'ev.topbar.help':         'Aide',
   'ev.topbar.notifications':'Notifications',
   'ev.topbar.lang':         'Changer la langue',
@@ -72,6 +75,7 @@ export default {
   'ev.footer.save':    'Enregistrer le brouillon',
   'ev.footer.discard': 'Annuler',
   'ev.footer.submit':  'Soumettre l\'évaluation',
+  'ev.footer.sign':    'Signer l\'évaluation',
 
   // Tips
   'ev.tip1.title': 'Conseil éditorial',

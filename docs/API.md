@@ -7,7 +7,7 @@
 
 ## Authentification
 
-Le cookie `token` (httpOnly, sameSite=strict) est émis par `POST /api/auth/login` et consommé automatiquement par le navigateur. Le middleware `authGuard` accepte aussi un header `Authorization: Bearer <token>` pour les clients non-navigateurs.
+Le cookie `token` (httpOnly, sameSite=strict) est émis par `POST /api/auth/login` et consommé automatiquement par le navigateur. Le middleware `authGuard` lit **uniquement** ce cookie — il n'existe pas d'alternative via header `Authorization`.
 
 ---
 

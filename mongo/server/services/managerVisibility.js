@@ -91,7 +91,7 @@ async function getVisibleUserIds(managerId, campaign) {
   const visibleIds = new Set(directReports.map(u => u._id.toString()))
 
   // 2. Visibilité étendue si configurée pour ce manager dans la campagne
-  const grant = (campaign.extendedVisibility || []).find(
+  const grant = (campaign?.extendedVisibility ?? []).find(
     g => g.managerId.toString() === managerIdStr
   )
 

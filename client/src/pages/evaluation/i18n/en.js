@@ -10,6 +10,9 @@ export default {
   'ev.topbar.home':    'Employee Portal',
   'ev.topbar.search':  'Search…',
   'ev.topbar.theme':        'Change theme',
+  'ev.topbar.theme.to_light':   'Switch to light mode',
+  'ev.topbar.theme.to_sidebar': 'Switch to sidebar mode',
+  'ev.topbar.theme.to_dark':    'Switch to dark mode',
   'ev.topbar.help':         'Help',
   'ev.topbar.notifications':'Notifications',
   'ev.topbar.lang':         'Change language',
@@ -72,6 +75,7 @@ export default {
   'ev.footer.save':    'Save Draft',
   'ev.footer.discard': 'Discard',
   'ev.footer.submit':  'Submit Evaluation',
+  'ev.footer.sign':    'Sign Evaluation',
 
   // Tips
   'ev.tip1.title': 'Editorial Tip',

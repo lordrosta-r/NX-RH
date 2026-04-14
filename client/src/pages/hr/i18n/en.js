@@ -50,6 +50,7 @@ export default {
   'hr.depts.col.pct':         '%',
   'hr.depts.col.rate':        'Completion',
   'hr.depts.viewall':         'View all departments',
+  'hr.alerts.viewall':        'View all alerts',
 
   // Topbar actions
   'hr.help.aria':             'Help',

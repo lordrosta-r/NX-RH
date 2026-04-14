@@ -17,8 +17,8 @@ Identique pour tous les rôles. L'utilisateur saisit son email professionnel et 
 ### Redirection automatique post-connexion
 
 ```
-Rôle Admin     →  /manager   (accès total + outils admin)
-Rôle HR        →  /manager   (tableau de bord RH)
+Rôle Admin     →  /hr        (accès total + outils admin)
+Rôle HR        →  /hr        (tableau de bord RH)
 Rôle Director  →  /manager   (vue consolidée de sa sous-arborescence)
 Rôle Manager   →  /manager   (son équipe directe)
 Rôle Employee  →  /dashboard (ses propres évaluations)
@@ -31,7 +31,7 @@ Rôle Employee  →  /dashboard (ses propres évaluations)
 ### Phase 1 — Préparation (RH)
 
 ```
-RH se connecte → /manager (onglet Campagnes)
+RH se connecte → /hr (onglet Campagnes)
   │
   ├─ Vérifie qu'un template existe (sinon : créer un template d'abord)
   ├─ Clique "Nouvelle campagne"
@@ -120,8 +120,9 @@ Manager
 
 ```
 /                ← Login (toujours accessible)
-/dashboard       ← Employés uniquement
-/manager         ← Managers, Directors, HR, Admin
+/dashboard       ← Employés (et tout rôle authentifié)
+/manager         ← Managers, Directors, Admin
+/hr              ← HR, Admin
 ```
 
 La navigation interne à chaque page est gérée par des onglets et des panels, pas par des changements d'URL (MPA + composants React par page).

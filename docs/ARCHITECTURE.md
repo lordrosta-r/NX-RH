@@ -70,7 +70,7 @@ NX/
 │   └── config/
 │       └── constants.js      ← ROLES, DEPARTMENTS, QUESTION_TYPES, FORM_TYPES
 │
-└── mysql/server/             ← Backend secondaire (non actif en v1 MongoDB)
+
 ```
 
 ---
@@ -81,7 +81,7 @@ NX/
 1. POST /api/auth/login
    → vérifie email + bcrypt(password)
    → émet cookie httpOnly "token" (JWT, 8h, sameSite=strict)
-   → retourne aussi { token, user } dans le body
+   → retourne { user: { id, email, firstName, lastName, role } } dans le body (pas de token)
 
 2. Chaque page protégée monte useAuthUser()
    → GET /api/auth/me (credentials: 'include')
@@ -89,7 +89,7 @@ NX/
    → si ok : setUser(data) + sessionStorage (affichage seulement)
 
 3. authGuard middleware (côté serveur)
-   → lit req.cookies.token ou Authorization: Bearer <token>
+   → lit req.cookies.token UNIQUEMENT (cookie httpOnly)
    → jwt.verify() → attache req.user = { id, email, role }
    → 401 si absent/expiré, 403 si rôle insuffisant
 

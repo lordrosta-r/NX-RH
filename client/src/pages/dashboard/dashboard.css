@@ -500,8 +500,8 @@
   inset: 0;
   background: linear-gradient(
     to top,
-    rgba(0, 0, 0, 0.82) 0%,
-    rgba(0, 0, 0, 0.35) 55%,
+    var(--color-overlay-heavy) 0%,
+    var(--color-overlay-mid) 55%,
     transparent 100%
   );
   display: flex;

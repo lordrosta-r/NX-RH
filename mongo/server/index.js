@@ -77,7 +77,17 @@ app.use((_req, res, next) => {
 app.use(express.json({ limit: '100kb' }))
 app.use(express.urlencoded({ extended: false, limit: '100kb' }))
 app.use(cookieParser())
-app.use(express.static(PUBLIC_DIR))
+// Redirect /page.html → /page (strip .html extension)
+app.use((req, res, next) => {
+  if (req.path.endsWith('.html')) {
+    const clean = req.path.slice(0, -5) || '/'
+    const qs = req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : ''
+    return res.redirect(301, clean + qs)
+  }
+  next()
+})
+
+app.use(express.static(PUBLIC_DIR, { extensions: [] }))
 
 // ─── Health check ────────────────────────────────────────────────────────────
 
@@ -94,6 +104,7 @@ app.get('/api/health', async (_req, res) => {
 // ─── MPA Page Routes ─────────────────────────────────────────────────────────
 
 app.get('/',           sendPage('login'))
+app.get('/login',      sendPage('login'))
 app.get('/dashboard',  authGuard(['admin', 'director', 'manager', 'employee', 'hr']), sendPage('dashboard'))
 app.get('/manager',    authGuard(['admin', 'director', 'manager']),                   sendPage('manager'))
 app.get('/hr',         authGuard(['admin', 'hr']),                                    sendPage('hr'))

@@ -6,11 +6,12 @@
 // =============================================================================
 import React, { useState, useRef, useEffect } from 'react'
 import './formeditor.css'
+import '../../components/ui/Button.css'
 import { t as pageT } from './i18n'
 import { useLocale } from '../../hooks/useLocale'
 import { useTheme } from '../../hooks/useTheme'
 import { useAuthUser } from '../../hooks/useAuthUser'
-import FormEditorSidebar from './FormEditorSidebar'
+import HRSidebar from '../hr/HRSidebar'
 import FormEditorBanner from './FormEditorBanner'
 import {
   SearchIcon, BellIcon, HelpIcon, PaletteIcon,
@@ -825,9 +826,11 @@ export default function FormEditor() {
   }
 
   // ── Shell ──────────────────────────────────────────────────────────────────
+  // Adapter: HRSidebar uses hr.nav.* keys; FormEditor i18n has the same labels under fe.nav.*
+  const hrT = (key) => t(key.replace('hr.nav.', 'fe.nav.'))
   return (
     <div className="fe">
-      <FormEditorSidebar t={t} />
+      <HRSidebar t={hrT} activeItem="formeditor" />
       <div className="fe-main">
 
         {/* Topbar */}

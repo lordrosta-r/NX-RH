@@ -15,7 +15,7 @@ WORKDIR /build/client
 
 # Install dependencies first (layer cache)
 COPY client/package*.json ./
-RUN npm ci
+RUN npm install
 
 # Copy source and build
 # --outDir overrides vite.config.js so output lands in a known Docker path

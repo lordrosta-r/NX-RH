@@ -57,13 +57,15 @@ app.use(cors({
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
-      defaultSrc: ["'self'"],
+      defaultSrc:              ["'self'"],
       // Hash covers the anti-flash inline <script> present in every .html entry point
-      scriptSrc:  ["'self'", "'sha256-41QRkuG2u/36vjTzg1hZt9WHedga1/Q/Yk59rGLjxaE='"],
-      styleSrc:   ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
-      fontSrc:    ["'self'", 'https://fonts.gstatic.com'],
-      imgSrc:     ["'self'", 'data:', 'https://images.unsplash.com'],
-      connectSrc: ["'self'"],
+      scriptSrc:               ["'self'", "'sha256-41QRkuG2u/36vjTzg1hZt9WHedga1/Q/Yk59rGLjxaE='"],
+      styleSrc:                ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+      fontSrc:                 ["'self'", 'https://fonts.gstatic.com'],
+      imgSrc:                  ["'self'", 'data:', 'https://images.unsplash.com'],
+      connectSrc:              ["'self'"],
+      // Only force HTTPS upgrades in production — breaks local HTTP dev/test otherwise
+      upgradeInsecureRequests: process.env.NODE_ENV === 'production' ? [] : null,
     }
   },
   hsts: process.env.NODE_ENV === 'production'

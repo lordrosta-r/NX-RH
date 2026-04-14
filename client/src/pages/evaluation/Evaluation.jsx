@@ -28,8 +28,10 @@ function getScaleLabel(n, max, t) {
   return String(n)
 }
 
-// Statuts verrouillés — les réponses ne peuvent plus être modifiées
-const LOCKED_STATUSES = ['submitted', 'reviewed', 'signed_evaluatee', 'signed_manager', 'signed_hr', 'validated']
+// Statuts où les réponses ne peuvent plus être modifiées
+const ANSWER_LOCKED_STATUSES = ['submitted', 'reviewed', 'signed_evaluatee', 'signed_manager', 'signed_hr', 'validated']
+// Statuts où aucune action n'est possible (banner "soumis" uniquement)
+const FULLY_LOCKED_STATUSES  = ['submitted', 'signed_evaluatee', 'signed_manager', 'signed_hr', 'validated']
 
 const STATUS_META = {
   // MongoDB statuses (used in form view)
@@ -57,6 +59,7 @@ export default function Evaluation() {
   const [answers,     setAnswers]    = useState({})
   const [status,      setStatus]     = useState('assigned')
   const [saving,      setSaving]     = useState(false)
+  const [submitting,  setSubmitting] = useState(false)
   const [evalLoading, setEvalLoading]= useState(false)
   const [error,       setError]      = useState(null)
   const [lastSaved,   setLastSaved]  = useState(null)   // "HH:mm" string or null
@@ -78,7 +81,7 @@ export default function Evaluation() {
       .catch(() => { if (!cancelled) setMyEvalsError(t('ev.home.error.load')) })
       .finally(() => { if (!cancelled) setMyEvalsLoading(false) })
     return () => { cancelled = true }
-  }, [])
+  }, [t])
 
   // ── Load evaluation from API on mount ───────────────────────────────────────
   useEffect(() => {
@@ -102,7 +105,7 @@ export default function Evaluation() {
       .catch(err => { if (!cancelled) setError(err.message) })
       .finally(() => { if (!cancelled) setEvalLoading(false) })
     return () => { cancelled = true }
-  }, [evaluationId])
+  }, [evaluationId, t])
 
   if (authLoading) return null
   if (!user)       return null
@@ -140,7 +143,8 @@ export default function Evaluation() {
   }
 
   async function handleSubmit() {
-    if (!evaluationId) return
+    if (!evaluationId || submitting) return
+    setSubmitting(true)
     await handleSave()
     try {
       const r = await fetch(`/api/evaluations/${evaluationId}`, {
@@ -153,6 +157,27 @@ export default function Evaluation() {
       setStatus('submitted')
     } catch (err) {
       setError(err.message)
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  async function handleSign() {
+    if (!evaluationId || submitting) return
+    setSubmitting(true)
+    try {
+      const r = await fetch(`/api/evaluations/${evaluationId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ status: 'signed_evaluatee' }),
+      })
+      if (!r.ok) throw new Error(t('ev.error.submit_failed'))
+      setStatus('signed_evaluatee')
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -164,7 +189,7 @@ export default function Evaluation() {
   const statusLabel = STATUS_META[status] ? t(STATUS_META[status].labelKey) : status
 
   const isAnonymous = evaluation?.formId?.isAnonymous || false
-  const isReadOnly  = LOCKED_STATUSES.includes(status)
+  const isReadOnly  = ANSWER_LOCKED_STATUSES.includes(status)
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
@@ -191,7 +216,8 @@ export default function Evaluation() {
               <SearchIcon size={14} color="var(--color-on-surface-variant)" />
               <input type="search" aria-label={t('ev.topbar.search')} placeholder={t('ev.topbar.search')} />
             </div>
-            <button type="button" className="ev-icon-btn" onClick={cycleTheme} title={t('ev.topbar.theme')} aria-label={t('ev.topbar.theme')}>
+            <button type="button" className="ev-icon-btn" onClick={cycleTheme} title={t('ev.topbar.theme')}
+              aria-label={theme === 'dark' ? t('ev.topbar.theme.to_light') : theme === 'light' ? t('ev.topbar.theme.to_sidebar') : t('ev.topbar.theme.to_dark')}>
               <PaletteIcon size={17} color="var(--color-on-surface-variant)" />
             </button>
             <button type="button" className="ev-icon-btn" title={t('ev.topbar.help')} aria-label={t('ev.topbar.help')}>
@@ -278,7 +304,7 @@ export default function Evaluation() {
                     <p className="ev-myforms__empty">{t('ev.home.forms.empty')}</p>
                   ) : myEvals.map(ev => {
                     const meta   = STATUS_META[ev.status] || STATUS_META['assigned']
-                    const isDone = LOCKED_STATUSES.includes(ev.status)
+                    const isDone = ANSWER_LOCKED_STATUSES.includes(ev.status)
                     const answeredCount = ev.answers?.length ?? 0
                     return (
                       <div key={ev._id} className={`ev-fcard ev-fcard--${ev.status}`}>
@@ -372,8 +398,8 @@ export default function Evaluation() {
                   </div>
                 </div>
 
-                {/* Locked / submitted state */}
-                {LOCKED_STATUSES.includes(status) ? (
+                {/* Fully locked — no action possible (submitted/signed/validated) */}
+                {FULLY_LOCKED_STATUSES.includes(status) ? (
                   <div className="ev-submitted">
                     <SparklesIcon size={28} color="var(--color-secondary)" strokeWidth={1.5} />
                     <h2 className="ev-submitted__title">{t('ev.submitted.title')}</h2>
@@ -500,17 +526,25 @@ export default function Evaluation() {
                       <div aria-live="polite" aria-atomic="true" className="sr-only">
                         {saving ? t('ev.footer.saving') : ''}
                       </div>
-                      <div className="ev-footer__left">
-                        <button type="button" className="ev-footer__ghost" onClick={handleDiscard}>
-                          {t('ev.footer.discard')}
+                      {status === 'reviewed' ? (
+                        <button type="button" className="ev-footer__submit" onClick={handleSign} disabled={submitting}>
+                          {t('ev.footer.sign')}
                         </button>
-                        <button type="button" className="ev-footer__save" onClick={handleSave} disabled={saving}>
-                          {saving ? t('ev.footer.saving') : t('ev.footer.save')}
-                        </button>
-                      </div>
-                      <button type="button" className="ev-footer__submit" onClick={handleSubmit}>
-                        {t('ev.footer.submit')}
-                      </button>
+                      ) : (
+                        <>
+                          <div className="ev-footer__left">
+                            <button type="button" className="ev-footer__ghost" onClick={handleDiscard}>
+                              {t('ev.footer.discard')}
+                            </button>
+                            <button type="button" className="ev-footer__save" onClick={handleSave} disabled={saving}>
+                              {saving ? t('ev.footer.saving') : t('ev.footer.save')}
+                            </button>
+                          </div>
+                          <button type="button" className="ev-footer__submit" onClick={handleSubmit} disabled={submitting}>
+                            {t('ev.footer.submit')}
+                          </button>
+                        </>
+                      )}
                     </footer>
 
                     {/* Tips */}

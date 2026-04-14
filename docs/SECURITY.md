@@ -64,7 +64,7 @@ _Source : `mongo/server/middleware/authGuard.js`, `mongo/server/index.js`_
 const authGuard = (allowedRoles = []) => (req, res, next) => { ... }
 ```
 
-- Lit le token depuis **`req.cookies.token`** (priorité cookie) ou **`Authorization: Bearer <token>`**
+- Lit le token depuis **`req.cookies.token`** (cookie httpOnly uniquement)
 - Vérifie la signature avec `jwt.verify(token, process.env.JWT_SECRET)`
 - Distingue les deux types d'erreur JWT :
   - `TokenExpiredError` → `"Session expirée"` (401)
@@ -159,9 +159,21 @@ app.use(cors({
 _Source : `mongo/server/index.js`_
 
 ```js
-app.use(helmet({ contentSecurityPolicy: false }))
-app.use((req, res, next) => {
-  res.setHeader('X-Frame-Options', 'DENY')
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc:  ["'self'"],
+      styleSrc:   ["'self'", "'unsafe-inline'"],
+      imgSrc:     ["'self'", 'data:'],
+      connectSrc: ["'self'"],
+    }
+  },
+  hsts: process.env.NODE_ENV === 'production'
+    ? { maxAge: 31536000, includeSubDomains: true }
+    : false,
+}))
+app.use((_req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff')
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin')
   next()
@@ -170,11 +182,12 @@ app.use((req, res, next) => {
 
 | Header | Valeur | Protection |
 |---|---|---|
-| `X-Frame-Options` | `DENY` | Empêche le clickjacking (iframes) |
+| `Content-Security-Policy` | Directives strictes (voir ci-dessus) | Bloque les ressources non autorisées |
+| `X-Frame-Options` | `DENY` (géré par Helmet frameguard) | Empêche le clickjacking (iframes) |
 | `X-Content-Type-Options` | `nosniff` | Empêche le MIME sniffing |
 | `Referrer-Policy` | `strict-origin-when-cross-origin` | Limite les informations envoyées dans `Referer` |
 
-La CSP Helmet est désactivée (`contentSecurityPolicy: false`) car chaque page HTML déclare sa propre CSP via `<meta http-equiv>` (voir section 12).
+La CSP Helmet est activée avec une politique stricte côté serveur. Les pages HTML déclarent en complément leur propre CSP via `<meta http-equiv>` (voir section 12).
 
 ---
 

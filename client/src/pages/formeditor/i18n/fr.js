@@ -154,6 +154,7 @@ export default {
   'fe.nav.coming_soon': 'Bientôt disponible',
 
   // Aria-labels (HC-01, HC-02)
+  'fe.select.campaign_placeholder': '— Campagne —',
   'fe.select.campaign':     'Campagne',
   'fe.select.form_type':    'Type de formulaire',
   'fe.btn.configure':       'Configurer',

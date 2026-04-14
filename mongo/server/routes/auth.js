@@ -16,12 +16,22 @@ const { ipKeyGenerator } = require('express-rate-limit')
 const User      = require('../models/User')
 const { authGuard } = require('../middleware/authGuard')
 
-// ─── Rate limiter — POST /login ──────────────────────────────────────────────
+// ─── Rate limiters — POST /login ─────────────────────────────────────────────
+// Deux limiters distincts : un par email (anti brute-force), un par IP (anti spray)
 
-const loginLimiter = rateLimit({
+const loginByEmailLimiter = rateLimit({
   windowMs:       15 * 60 * 1000,
-  max:            process.env.NODE_ENV === 'test' ? 1000 : 10,
-  keyGenerator:   (req) => req.body?.email?.toLowerCase() || ipKeyGenerator(req),
+  max:            process.env.NODE_ENV === 'test' ? 1000 : 5,
+  keyGenerator:   (req) => `email:${req.body?.email?.toLowerCase() || 'unknown'}`,
+  standardHeaders: true,
+  legacyHeaders:  false,
+  message:        { error: 'Trop de tentatives. Réessayez dans 15 minutes.' },
+})
+
+const loginByIPLimiter = rateLimit({
+  windowMs:       15 * 60 * 1000,
+  max:            process.env.NODE_ENV === 'test' ? 1000 : 20,
+  keyGenerator:   (req) => `ip:${ipKeyGenerator(req)}`,
   standardHeaders: true,
   legacyHeaders:  false,
   message:        { error: 'Trop de tentatives. Réessayez dans 15 minutes.' },
@@ -29,7 +39,7 @@ const loginLimiter = rateLimit({
 
 // ─── POST /api/auth/login ────────────────────────────────────────────────────
 
-router.post('/login', loginLimiter, async (req, res, next) => {
+router.post('/login', loginByEmailLimiter, loginByIPLimiter, async (req, res, next) => {
   try {
     const { email, password, remember } = req.body
 
@@ -37,8 +47,13 @@ router.post('/login', loginLimiter, async (req, res, next) => {
       return res.status(400).json({ error: 'Email et mot de passe requis' })
     }
 
+    // Vérification de longueur AVANT la regex pour éviter un ReDoS
+    if (email.length > 254 || password.length > 128) {
+      return res.status(400).json({ error: 'Email invalide' })
+    }
+
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
-    if (!emailRegex.test(email) || email.length > 254) {
+    if (!emailRegex.test(email)) {
       return res.status(400).json({ error: 'Email invalide' })
     }
 
@@ -88,7 +103,12 @@ router.post('/login', loginLimiter, async (req, res, next) => {
 // ─── POST /api/auth/logout ───────────────────────────────────────────────────
 
 router.post('/logout', (_req, res) => {
-  res.clearCookie('token', { path: '/' })
+  res.clearCookie('token', {
+    httpOnly: true,
+    secure:   process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    path:     '/',
+  })
   res.json({ message: 'Déconnecté' })
 })
 
@@ -103,7 +123,12 @@ router.get('/me', authGuard(), async (req, res, next) => {
       .lean()
 
     if (!user || !user.isActive) {
-      res.clearCookie('token', { path: '/' })
+      res.clearCookie('token', {
+        httpOnly: true,
+        secure:   process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        path:     '/',
+      })
       return res.status(401).json({ error: 'Session invalide' })
     }
 

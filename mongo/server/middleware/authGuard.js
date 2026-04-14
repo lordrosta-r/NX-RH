@@ -34,7 +34,12 @@ const authGuard = (allowedRoles = []) => async (req, res, next) => {
   try {
     const dbUser = await User.findById(payload.id, 'isActive').lean()
     if (!dbUser || !dbUser.isActive) {
-      res.clearCookie('token', { path: '/' })
+      res.clearCookie('token', {
+        httpOnly: true,
+        secure:   process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        path:     '/',
+      })
       if (isApi) return res.status(401).json({ error: 'Compte désactivé' })
       return res.redirect('/')
     }

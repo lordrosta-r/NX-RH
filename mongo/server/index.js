@@ -33,6 +33,7 @@ const evaluationRoutes  = require('./routes/evaluations')
 // ─── App setup ───────────────────────────────────────────────────────────────
 
 const app  = express()
+app.set('trust proxy', 1)
 const PORT = process.env.PORT || 3000
 
 const PUBLIC_DIR = path.join(__dirname, 'public')
@@ -111,12 +112,12 @@ app.use('/api/', apiLimiter)
 
 app.use('/api/auth',        authRoutes)
 app.use('/api/users',       mutationLimiter, authenticated, userRoutes)
-app.use('/api/campaigns',   authenticated, campaignRoutes)
-app.use('/api/forms',       authenticated, formRoutes)
+app.use('/api/campaigns',   mutationLimiter, authenticated, campaignRoutes)
+app.use('/api/forms',       mutationLimiter, authenticated, formRoutes)
 app.use('/api/evaluations/bulk', mutationLimiter)
 app.use('/api/evaluations', authenticated, evaluationRoutes)
-app.use('/api/events',     authenticated, eventRoutes)
-app.use('/api/resources',  authenticated, resourceRoutes)
+app.use('/api/events',      mutationLimiter, authenticated, eventRoutes)
+app.use('/api/resources',   mutationLimiter, authenticated, resourceRoutes)
 
 // ─── 404 Fallback ────────────────────────────────────────────────────────────
 

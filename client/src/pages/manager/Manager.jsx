@@ -37,7 +37,7 @@ export default function Manager() {
       .catch(() => { if (!cancelled) setError(t('manager.error.load')) })
       .finally(() => { if (!cancelled) setEvLoading(false) })
     return () => { cancelled = true }
-  }, [])
+  }, [t])
 
   if (authLoading) return null
   if (!user)       return null

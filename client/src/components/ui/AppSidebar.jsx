@@ -38,7 +38,8 @@ export default function AppSidebar({
               key={id}
               className={cls}
               aria-disabled="true"
-              role="none"
+              role="link"
+              tabIndex={0}
               title={labelComingSoon}
             >
               {content}

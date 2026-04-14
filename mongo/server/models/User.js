@@ -16,6 +16,7 @@ const userSchema = new Schema({
     unique: true,
     lowercase: true,
     trim: true,
+    maxlength: 254,
     match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Email invalide'],
   },
 

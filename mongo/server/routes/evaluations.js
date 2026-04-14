@@ -57,7 +57,6 @@ router.get('/', async (req, res, next) => {
       // On a besoin de la campagne pour calculer extendedVisibility
       let visibleIds = []
       if (req.query.campaignId) {
-        const { Campaign } = require('../models/Campaign')
         const campaign = await Campaign.findById(req.query.campaignId).lean()
         if (campaign) {
           visibleIds = await getVisibleUserIds(req.user.id, campaign)
@@ -119,7 +118,7 @@ router.get('/:id', async (req, res, next) => {
       .populate('formId', 'title formType isAnonymous questions')
       .populate('evaluatorId', 'firstName lastName')
       .populate('evaluateeId', 'firstName lastName department position')
-      .populate('campaignId', 'name status')
+      .populate('campaignId', 'name status extendedVisibility')
       .lean()
 
     if (!evaluation) return res.status(404).json({ error: 'Évaluation introuvable' })
@@ -136,6 +135,21 @@ router.get('/:id', async (req, res, next) => {
 
     // Contrôle d'accès : manager ne voit que les évaluations dans son périmètre
     if (role === 'manager') {
+      const visibleIds = await getVisibleUserIds(req.user.id, evaluation.campaignId)
+      const evaluateeId = evaluation.evaluateeId?._id?.toString() ?? evaluation.evaluateeId?.toString()
+      const evaluatorId = evaluation.evaluatorId?._id?.toString() ?? evaluation.evaluatorId?.toString()
+      if (
+        !visibleIds.includes(evaluateeId) &&
+        !visibleIds.includes(evaluatorId) &&
+        uid !== evaluateeId &&
+        uid !== evaluatorId
+      ) {
+        return res.status(403).json({ error: 'Accès refusé' })
+      }
+    }
+
+    // Contrôle d'accès : director ne voit que les évaluations dans son périmètre
+    if (role === 'director') {
       const visibleIds = await getVisibleUserIds(req.user.id)
       const evaluateeId = evaluation.evaluateeId?._id?.toString() ?? evaluation.evaluateeId?.toString()
       const evaluatorId = evaluation.evaluatorId?._id?.toString() ?? evaluation.evaluatorId?.toString()
@@ -294,6 +308,9 @@ router.patch('/:id', async (req, res, next) => {
     if (req.body.score !== undefined) {
       if (!['manager', 'director', 'admin', 'hr'].includes(role)) {
         return res.status(403).json({ error: 'Seuls les managers et admins peuvent ajouter un score' })
+      }
+      if (evaluation.status === 'validated') {
+        return res.status(403).json({ error: 'Score non modifiable sur une évaluation validée' })
       }
       // Vérifier que le manager est bien responsable de l'évalué (pas nécessaire pour admin/hr)
       if (['manager', 'director'].includes(role)) {

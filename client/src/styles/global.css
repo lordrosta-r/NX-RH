@@ -33,7 +33,7 @@
 
 /* ── Reset ─────────────────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { height: 100%; font-family: system-ui, -apple-system, sans-serif; font-size: 16px; }
+html, body { height: 100%; font-family: var(--font-family); font-size: 16px; }
 body { background: var(--color-background); color: var(--color-on-background); }
 
 /* ── Layout helpers ─────────────────────────────────────────────────────────── */
@@ -58,7 +58,7 @@ body { background: var(--color-background); color: var(--color-on-background); }
 /* ── Form fields ────────────────────────────────────────────────────────────── */
 .field        { display: flex; flex-direction: column; gap: .4rem; margin-bottom: 1.25rem; }
 .field label  { font-size: .85rem; font-weight: 600; color: var(--color-on-surface-variant); }
-.field input  { padding: .65rem .85rem; border: 1.5px solid var(--color-outline-variant); border-radius: 8px; font-size: 1rem; transition: border-color .2s; background: var(--color-surface-container-low); color: var(--color-on-surface); }
+.field input  { padding: .65rem .85rem; border: 1.5px solid var(--color-outline-variant); border-radius: var(--radius-md); font-size: 1rem; transition: border-color .2s; background: var(--color-surface-container-low); color: var(--color-on-surface); }
 .field input:focus { outline: none; border-color: var(--color-secondary); }
 .field input:focus-visible {
   outline: 2px solid var(--color-primary);
@@ -69,14 +69,14 @@ body { background: var(--color-background); color: var(--color-on-background); }
 /* Button variants and sizes are defined in components/ui/Button.css */
 
 /* ── Table ──────────────────────────────────────────────────────────────────── */
-.table            { width: 100%; border-collapse: collapse; background: var(--color-surface-container-lowest); border-radius: 10px; overflow: hidden; box-shadow: var(--shadow-ambient); }
+.table            { width: 100%; border-collapse: collapse; background: var(--color-surface-container-lowest); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-ambient); }
 .table th, .table td { padding: .85rem 1rem; text-align: left; font-size: .9rem; }
 .table th         { background: var(--color-surface-container-low); font-weight: 600; color: var(--color-on-surface-variant); border-bottom: 1.5px solid var(--color-outline-variant); }
 .table tr + tr td { border-top: 1px solid var(--color-outline-variant); }
 .table tr:hover td { background: var(--color-surface-container-low); }
 
 /* ── Status badges ──────────────────────────────────────────────────────────── */
-.badge           { display: inline-block; padding: .2rem .65rem; border-radius: 99px; font-size: .75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+.badge           { display: inline-block; padding: .2rem .65rem; border-radius: var(--radius-full); font-size: .75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
 .badge--assigned        { background: var(--color-badge-assigned-bg);            color: var(--color-badge-assigned-fg); }
 .badge--in_progress     { background: var(--color-badge-progress-bg);            color: var(--color-badge-progress-fg); }
 .badge--submitted       { background: var(--color-badge-submitted-bg);           color: var(--color-badge-submitted-fg); }

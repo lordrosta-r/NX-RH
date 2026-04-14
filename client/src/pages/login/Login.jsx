@@ -70,10 +70,6 @@ export default function Login() {
   return (
     <div className="login-page">
 
-      <a className="skip-link" href="#main-content">
-        {t('login.a11y.skip')}
-      </a>
-
       {/* Mosaïque + overlay (z:0-1) */}
       <MosaicBackground />
 

@@ -117,6 +117,10 @@ evaluationSchema.index({ campaignId: 1, status: 1 })
 evaluationSchema.index({ evaluateeId: 1, campaignId: 1 })
 evaluationSchema.index({ evaluatorId: 1, campaignId: 1 })
 
+evaluationSchema.post('init', function() {
+  this._originalStatus = this.status;
+});
+
 // Answer-lock : les réponses ne peuvent plus être modifiées une fois locked.
 // FIX de l'ancienne version : on vérifie !isModified('status'), pas this.status.
 //   → Si status ET answers changent ensemble (ex: soumission initiale), c'est autorisé.
@@ -128,9 +132,9 @@ evaluationSchema.index({ evaluatorId: 1, campaignId: 1 })
 //     1. lastSavedAt est mis à jour (affiché côté client : "Dernière sauvegarde à 14h32")
 //     2. Si status est encore 'assigned', il passe automatiquement à 'in_progress'
 evaluationSchema.pre('save', function (next) {
-  const alreadyLocked = !this.isNew && this.isModified('answers') && !this.isModified('status')
-  if (alreadyLocked && LOCKED_STATUSES.includes(this.status)) {
-    return next(new Error('Les réponses ne peuvent plus être modifiées après soumission'))
+  const LOCKED = ['submitted', 'reviewed', 'signed_evaluatee', 'signed_manager', 'signed_hr', 'validated']
+  if (this._originalStatus && LOCKED.includes(this._originalStatus) && this.isModified('answers')) {
+    return next(new Error('Answers locked after submission'))
   }
 
   if (this.isModified('answers')) {

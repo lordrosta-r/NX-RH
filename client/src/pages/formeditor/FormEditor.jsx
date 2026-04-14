@@ -546,7 +546,7 @@ export default function FormEditor() {
                   aria-label={t('fe.select.campaign')}
                   required
                 >
-                  <option value="">— Campagne —</option>
+                  <option value="">{t('fe.select.campaign_placeholder')}</option>
                   {campaigns.map(c => (
                     <option key={c._id} value={c._id}>{c.name}</option>
                   ))}
@@ -563,6 +563,7 @@ export default function FormEditor() {
                 </select>
                 <select
                   className="fe-fheader__select"
+                  aria-label={t('fe.create.team')}
                   value={formTeam}
                   onChange={e => setFormTeam(e.target.value)}
                 >
@@ -574,6 +575,7 @@ export default function FormEditor() {
                 </select>
                 <input
                   className="fe-fheader__tags"
+                  aria-label={t('fe.tags.title')}
                   placeholder={t('fe.create.tags_ph')}
                   value={formTags}
                   onChange={e => setFormTags(e.target.value)}
@@ -808,7 +810,7 @@ export default function FormEditor() {
 
         {/* Bottom actions */}
         <div className="fe-builder__actions">
-          <button type="button" className="btn btn--md" onClick={handlePublish}>
+          <button type="button" className="btn btn--md" onClick={handlePublish} disabled={saving}>
             {t('fe.create.publish')}
           </button>
           <button type="button" className="fe-builder__ghost" onClick={handleSave} disabled={saving}>
@@ -834,7 +836,8 @@ export default function FormEditor() {
             <SearchIcon size={15} color="var(--color-on-surface-variant)" strokeWidth={1.5} />
             <input
               className="fe-topbar__input"
-              type="text"
+              type="search"
+              aria-label={t('fe.topbar.search')}
               placeholder={t('fe.topbar.search')}
             />
           </div>

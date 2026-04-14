@@ -144,6 +144,7 @@ export default {
   'fe.nav.coming_soon': 'Coming soon',
 
   // Aria-labels (HC-01, HC-02)
+  'fe.select.campaign_placeholder': '— Campaign —',
   'fe.select.campaign':     'Campaign',
   'fe.select.form_type':    'Form type',
   'fe.btn.configure':       'Configure',

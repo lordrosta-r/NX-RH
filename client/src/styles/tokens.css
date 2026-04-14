@@ -110,6 +110,10 @@
   /* ── Dividers ─────────────────────────────────────────────────────────────── */
   --color-divider:             rgba(28, 27, 27, 0.06);
 
+  /* ── Overlay blacks (pour les gradients sur images) ─────────────────────── */
+  --color-overlay-heavy:       rgba(0, 0, 0, 0.82);
+  --color-overlay-mid:         rgba(0, 0, 0, 0.35);
+
   /* ── Inner App Sidebar (dark violet — always dark regardless of theme) ──────
      Référence : docs/design/dashboard/DESIGN.md                                */
   --color-sidebar:            #2e1065;                      /* violet-950        */

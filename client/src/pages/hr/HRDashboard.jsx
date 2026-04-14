@@ -127,6 +127,13 @@ export default function HRDashboard() {
     return () => document.removeEventListener('mousedown', handler)
   }, [notifOpen])
 
+  useEffect(() => {
+    if (!notifOpen) return
+    const onKey = (e) => { if (e.key === 'Escape') setNotifOpen(false) }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [notifOpen])
+
   if (loading) return null
   if (!user)   return null
   if (!['admin', 'hr'].includes(user.role)) {
@@ -203,7 +210,7 @@ export default function HRDashboard() {
                     ))}
                   </ul>
                   <button type="button" className="hr-notif-dropdown__footer" onClick={() => setNotifOpen(false)}>
-                    {t('hr.depts.viewall')}
+                    {t('hr.alerts.viewall')}
                   </button>
                 </div>
               )}
@@ -329,8 +336,14 @@ export default function HRDashboard() {
                       <td className="hr-dept-row__name">{name}</td>
                       <td className="hr-dept-row__total">{total}</td>
                       <td>
-                        <div className="hr-dept-row__track">
-                          <div className="hr-dept-row__bar" style={{ width: `${pct}%`, background: deptColor(pct) }} />
+                        <div className="hr-dept-row__track"
+                          role="progressbar"
+                          aria-valuenow={pct}
+                          aria-valuemin={0}
+                          aria-valuemax={100}
+                          aria-label={`${name}: ${pct}%`}
+                        >
+                          <div className="hr-dept-row__bar" style={{ width: `${pct}%`, background: deptColor(pct) }} aria-hidden="true" />
                         </div>
                       </td>
                       <td className="hr-dept-row__pct" style={{ color: deptColor(pct) }}>{pct}%</td>

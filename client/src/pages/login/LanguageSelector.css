@@ -14,9 +14,10 @@
   text-transform: uppercase;
   letter-spacing: -0.02em;
   cursor:         pointer;
-  outline:        none;
   appearance:     auto;
 }
+
+.lang-selector__select:focus:not(:focus-visible) { outline: none; }
 
 .lang-selector__select:focus-visible {
   outline:        2px solid var(--color-primary);

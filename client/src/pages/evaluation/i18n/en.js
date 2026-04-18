@@ -4,21 +4,13 @@ export default {
   'ev.nav.evaluation': 'My Evaluation',
   'ev.nav.progress':   'Progress',
   'ev.nav.settings':   'Settings',
+  'ev.nav.label':       'Main navigation',
+  'ev.nav.coming_soon': 'Coming soon',
 
   // Topbar
-  'ev.topbar.form':    'Active Evaluation Form',
-  'ev.topbar.home':    'Employee Portal',
   'ev.topbar.search':  'Search…',
-  'ev.topbar.theme':        'Change theme',
-  'ev.topbar.theme.to_light':   'Switch to light mode',
-  'ev.topbar.theme.to_sidebar': 'Switch to sidebar mode',
-  'ev.topbar.theme.to_dark':    'Switch to dark mode',
-  'ev.topbar.help':         'Help',
-  'ev.topbar.notifications':'Notifications',
-  'ev.topbar.lang':         'Change language',
 
   // Home — hero banner
-  'ev.home.greeting':         'Hello',
   'ev.home.hero.tagline':     'Active campaign — Annual Cycle 2026',
   'ev.home.hero.headline1':   'Your journey',
   'ev.home.hero.headline2':   'starts here.',
@@ -28,7 +20,6 @@ export default {
   // Home — campaign card
   'ev.home.campaign.label':    'Active campaign',
   'ev.home.campaign.title':    'Annual Self-Evaluation 2026',
-  'ev.home.campaign.deadline': 'Deadline',
   'ev.home.campaign.progress': 'Overall progress',
   'ev.home.campaign.team':     'Company-wide · 128 employees',
 
@@ -38,13 +29,15 @@ export default {
   'ev.home.loading':           'Loading evaluations…',
   'ev.home.error.load':        'Failed to load evaluations.',
 
-  // Form status
-  'ev.status.todo':       'To do',
-  'ev.status.inprogress': 'In progress',
-  'ev.status.done':       'Completed',
-  'ev.status.draft':      'Draft',
-  'ev.status.saved':      'Saved',
-  'ev.status.submitted':  'Submitted',
+  // Form status (MongoDB statuses)
+  'ev.status.assigned':         'Assigned',
+  'ev.status.inprogress':       'In progress',
+  'ev.status.submitted':        'Submitted',
+  'ev.status.reviewed':         'Reviewed',
+  'ev.status.signed_evaluatee': 'Signed (evaluatee)',
+  'ev.status.signed_manager':   'Signed (manager)',
+  'ev.status.signed_hr':        'Signed (HR)',
+  'ev.status.validated':        'Validated',
 
   // Form card actions
   'ev.form.start':    'Start →',
@@ -52,9 +45,7 @@ export default {
   'ev.form.view':     'View →',
 
   // Form section labels
-  'ev.section.required': 'REQUIRED',
-  'ev.section.optional': 'OPTIONAL',
-  'ev.section.mandatory':'MANDATORY',
+  'ev.section.mandatory': 'MANDATORY',
 
   // Scale labels
   'ev.scale.1': 'Poor',
@@ -63,16 +54,20 @@ export default {
   'ev.scale.4': 'Good',
   'ev.scale.5': 'Excellent',
 
-  // Slider
-  'ev.slider.low':  'Low',
-  'ev.slider.high': 'High',
-
   // Form hero
   'ev.form.campaign':     'Annual Cycle 2026',
-  'ev.form.back':         '← Back',
+  'ev.form.loading':      'Loading…',
+  'ev.form.last_saved':   'Last saved at',
+  'ev.form.textarea_placeholder': 'Your answer…',
+  'ev.form.anonymous':    'This evaluation is anonymous. Your responses will not be linked to your identity.',
+
+  // Yes/No
+  'ev.yesno.yes': 'Yes',
+  'ev.yesno.no':  'No',
 
   // Footer actions
   'ev.footer.save':    'Save Draft',
+  'ev.footer.saving':  'Saving…',
   'ev.footer.discard': 'Discard',
   'ev.footer.submit':  'Submit Evaluation',
   'ev.footer.sign':    'Sign Evaluation',
@@ -84,20 +79,6 @@ export default {
   'ev.tip2.body':  'This self-evaluation is confidential. It will only be read by your direct manager and the HR team.',
   'ev.tip3.title': 'Security',
   'ev.tip3.body':  'Your answers are automatically saved. You can return to complete the form before the deadline.',
-  'ev.footer.saving':    'Saving…',
-  'ev.form.last_saved':  'Last saved at',
-  'ev.yesno.yes':        'Yes',
-  'ev.yesno.no':         'No',
-  'ev.form.textarea_placeholder': 'Your answer…',
-  'ev.form.loading':     'Loading…',
-
-  // Status (extended — MongoDB statuses)
-  'ev.status.assigned':         'Assigned',
-  'ev.status.reviewed':         'Reviewed',
-  'ev.status.signed_evaluatee': 'Signed (evaluatee)',
-  'ev.status.signed_manager':   'Signed (manager)',
-  'ev.status.signed_hr':        'Signed (HR)',
-  'ev.status.validated':        'Validated',
 
   // Form errors
   'ev.error.not_found':    'Evaluation not found',
@@ -108,11 +89,4 @@ export default {
   'ev.submitted.title': 'Evaluation submitted',
   'ev.submitted.desc':  'Your self-evaluation has been successfully submitted. You will be notified of your review date shortly.',
   'ev.submitted.back':  '← Back to home',
-
-  // Campaign stats (mock — TODO: fetch from API)
-  'ev.home.campaign.stats_placeholder': '',
-
-  // Sidebar accessibility
-  'ev.nav.label':       'Main navigation',
-  'ev.nav.coming_soon': 'Coming soon',
 }

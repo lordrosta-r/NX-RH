@@ -4,6 +4,24 @@
    html, body { height: 100%; overflow: hidden; }  ← dans login.html <style>
    ─────────────────────────────────────────────────────────────────────────── */
 
+/* ── Skip link — keyboard a11y ── */
+.skip-link {
+  position:   absolute;
+  top:        -100%;
+  left:       0.5rem;
+  z-index:    100;
+  padding:    0.5rem 1rem;
+  background: var(--th-card-bg);
+  color:      var(--th-card-title);
+  font-size:  0.8125rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm, 0.25rem);
+  text-decoration: none;
+}
+.skip-link:focus {
+  top: 0.5rem;
+}
+
 .login-page {
   height:     100dvh;   /* dynamic viewport height — gère les barres mobiles */
   background: var(--th-page-bg, #000);
@@ -93,17 +111,8 @@
   font-size:       0.75rem;
   color:           var(--th-utility-link);
   text-decoration: none;
-  transition:      color 0.15s;
-}
-.login-utility__link:hover { color: var(--th-utility-link-hover); }
-
-/* ── Error ── */
-.login-error {
-  font-size:     0.8125rem;
-  color:         var(--color-error, #ba1a1a);
-  background:    var(--color-error-tint-06);
-  border-radius: var(--radius-md, 0.5rem);
-  padding:       0.6rem 0.85rem;
+  cursor:          default;
+  opacity:         0.6;
 }
 
 /* ── CTA button ── */
@@ -144,6 +153,13 @@
   text-decoration:       underline;
   text-underline-offset: 4px;
   text-decoration-color: var(--th-footer-link-dec);
+}
+.login-legal-link {
+  color:                 var(--th-footer-link);
+  text-decoration:       underline;
+  text-underline-offset: 4px;
+  text-decoration-color: var(--th-footer-link-dec);
+  cursor:                default;
 }
 
 .login-contact {

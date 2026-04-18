@@ -70,41 +70,41 @@ export default function Evaluation() {
   const [myEvalsError,  setMyEvalsError]  = useState(null)
 
   useEffect(() => {
-    let cancelled = false
-    fetch('/api/evaluations', { credentials: 'include' })
+    const ac = new AbortController()
+    fetch('/api/evaluations', { credentials: 'include', signal: ac.signal })
       .then(r => {
         if (r.status === 401 || r.status === 403) { window.location.href = '/'; return null }
-        if (!r.ok) throw new Error(t('ev.error.load_failed') || 'load error')
+        if (!r.ok) throw new Error(t('ev.home.error.load'))
         return r.json()
       })
-      .then(data => { if (!cancelled && data) setMyEvals(data) })
-      .catch(() => { if (!cancelled) setMyEvalsError(t('ev.home.error.load')) })
-      .finally(() => { if (!cancelled) setMyEvalsLoading(false) })
-    return () => { cancelled = true }
+      .then(data => { if (data) setMyEvals(data) })
+      .catch(err => { if (err.name !== 'AbortError') setMyEvalsError(t('ev.home.error.load')) })
+      .finally(() => { if (!ac.signal.aborted) setMyEvalsLoading(false) })
+    return () => ac.abort()
   }, [t])
 
   // ── Load evaluation from API on mount ───────────────────────────────────────
   useEffect(() => {
     if (!evaluationId) return
-    let cancelled = false
+    const ac = new AbortController()
     setEvalLoading(true)
-    fetch(`/api/evaluations/${evaluationId}`, { credentials: 'include' })
+    fetch(`/api/evaluations/${evaluationId}`, { credentials: 'include', signal: ac.signal })
       .then(r => {
         if (r.status === 401 || r.status === 403) { window.location.href = '/'; return null }
         if (!r.ok) throw new Error(t('ev.error.not_found'))
         return r.json()
       })
       .then(data => {
-        if (cancelled || !data) return
+        if (!data) return
         setEvaluation(data)
         setStatus(data.status)
         const initial = {}
         data.answers?.forEach(a => { initial[a.questionId] = a.value })
         setAnswers(initial)
       })
-      .catch(err => { if (!cancelled) setError(err.message) })
-      .finally(() => { if (!cancelled) setEvalLoading(false) })
-    return () => { cancelled = true }
+      .catch(err => { if (err.name !== 'AbortError') setError(err.message) })
+      .finally(() => { if (!ac.signal.aborted) setEvalLoading(false) })
+    return () => ac.abort()
   }, [evaluationId, t])
 
   if (authLoading) return null
@@ -181,6 +181,11 @@ export default function Evaluation() {
     }
   }
 
+  // ── Campaign progress (computed from fetched evaluations) ─────────────────
+  const CAMPAIGN_DONE_STATUSES = ['submitted', 'reviewed', 'signed_evaluatee', 'signed_manager', 'signed_hr', 'validated']
+  const campaignDone = myEvals.filter(ev => CAMPAIGN_DONE_STATUSES.includes(ev.status)).length
+  const campaignPct  = myEvals.length > 0 ? Math.round((campaignDone / myEvals.length) * 100) : 0
+
   // ── Progress ───────────────────────────────────────────────────────────────
   const allQ     = evaluation?.formId?.questions || []
   const answered = allQ.filter(q => answers[q.id] !== undefined && answers[q.id] !== '').length
@@ -252,12 +257,16 @@ export default function Evaluation() {
               </div>
               <div className="ev-campaign-card__right">
                 <span className="ev-campaign-card__pct-lbl">{t('ev.home.campaign.progress')}</span>
-                <span className="ev-campaign-card__pct-val">67%</span>
-                <div className="ev-campaign-card__bar">
-                  <div className="ev-campaign-card__fill" style={{ width: '67%' }} />
-                </div>
-                {/* TODO: fetch from API */}
-                <span className="ev-campaign-card__sub">{t('ev.home.campaign.stats_placeholder')}</span>
+                {myEvalsLoading ? (
+                  <span className="ev-campaign-card__pct-val">—</span>
+                ) : (
+                  <>
+                    <span className="ev-campaign-card__pct-val">{campaignPct}%</span>
+                    <div className="ev-campaign-card__bar">
+                      <div className="ev-campaign-card__fill" style={{ width: `${campaignPct}%` }} />
+                    </div>
+                  </>
+                )}
               </div>
             </section>
 
@@ -371,6 +380,14 @@ export default function Evaluation() {
                     <span className="ev-progress__lbl" aria-hidden="true">{answered} / {allQ.length} questions</span>
                   </div>
                 </div>
+
+                {/* Anonymous notice for upward feedback evaluations */}
+                {isAnonymous && (
+                  <div className="ev-anon-notice" role="note">
+                    <span className="ev-anon-notice__icon" aria-hidden="true">🔒</span>
+                    <p className="ev-anon-notice__text">{t('ev.form.anonymous')}</p>
+                  </div>
+                )}
 
                 {/* Fully locked — no action possible (submitted/signed/validated) */}
                 {FULLY_LOCKED_STATUSES.includes(status) ? (

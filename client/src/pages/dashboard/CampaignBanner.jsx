@@ -46,20 +46,49 @@ function ProgressRing({ value = 0, size = 192, trackWidth = 10 }) {
 }
 
 // ── Banner component ────────────────────────────────────────────────────────
-export default function CampaignBanner({ t, progress = 0, userName = '' }) {
+export default function CampaignBanner({ t, campaign, loading, error, userName = '' }) {
+  const greeting = (
+    <>
+      <p className="cb__greeting">
+        {t('dashboard.welcome.greeting')} {userName || 'vous'}.
+      </p>
+      <p className="cb__tagline">{t('dashboard.welcome.tagline')}</p>
+    </>
+  )
+
+  if (loading) {
+    return (
+      <section className="cb">
+        <div className="cb__content">{greeting}<p className="cb__body">{t('dashboard.loading')}</p></div>
+      </section>
+    )
+  }
+
+  if (error) {
+    return (
+      <section className="cb">
+        <div className="cb__content">{greeting}<p className="cb__body">{t('dashboard.error')}</p></div>
+      </section>
+    )
+  }
+
+  if (!campaign) {
+    return (
+      <section className="cb">
+        <div className="cb__content">{greeting}<p className="cb__body">{t('dashboard.campaign.empty')}</p></div>
+      </section>
+    )
+  }
+
+  const progress     = campaign.progress ?? 0
+  const campaignName = campaign.name || campaign.title || t('dashboard.campaign.headline.accent')
+
   return (
     <section className="cb">
 
       {/* Left — greeting + headline block */}
       <div className="cb__content">
-
-        {/* Welcome greeting — inside the card */}
-        <p className="cb__greeting">
-          {t('dashboard.welcome.greeting')} {userName || 'vous'}.
-        </p>
-        <p className="cb__tagline">
-          {t('dashboard.welcome.tagline')}
-        </p>
+        {greeting}
 
         {/* Active Campaign badge — bell icon + label */}
         <div className="cb__badge">
@@ -69,13 +98,11 @@ export default function CampaignBanner({ t, progress = 0, userName = '' }) {
 
         <h2 className="cb__headline">
           {t('dashboard.campaign.headline.part1')}{' '}
-          <span className="cb__headline-accent">
-            {t('dashboard.campaign.headline.accent')}
-          </span>{' '}
+          <span className="cb__headline-accent">{campaignName}</span>{' '}
           {t('dashboard.campaign.headline.part2')}
         </h2>
 
-        <p className="cb__body">{t('dashboard.campaign.body')}</p>
+        <p className="cb__body">{campaign.description || t('dashboard.campaign.body')}</p>
       </div>
 
       {/* Right — ring + CTA */}
@@ -89,7 +116,6 @@ export default function CampaignBanner({ t, progress = 0, userName = '' }) {
             aria-label={`${t('dashboard.campaign.progress.label')} : ${progress}%`}
           >
             <ProgressRing value={progress} size={192} trackWidth={10} />
-            {/* Center text — overlaid via CSS absolute positioning */}
             <div className="cb__ring-text">
               <span className="cb__ring-value">{progress}%</span>
               <span className="cb__ring-label">

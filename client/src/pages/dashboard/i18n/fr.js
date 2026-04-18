@@ -17,6 +17,10 @@ export default {
   'dashboard.theme.to_sidebar':  'Passer en mode sidebar claire',
   'dashboard.theme.to_dark':     'Passer en mode sombre',
 
+  // Shared states
+  'dashboard.loading': 'Chargement…',
+  'dashboard.error':   'Une erreur est survenue. Veuillez réessayer.',
+
   // Welcome greeting
   'dashboard.welcome.greeting': 'Bienvenue,',
   'dashboard.welcome.tagline':  'Voici l\'état de votre parcours professionnel aujourd\'hui.',
@@ -30,6 +34,7 @@ export default {
   'dashboard.campaign.cta':               'Démarrer',
   'dashboard.campaign.progress.label':    'Complété',
   'dashboard.campaign.phase':             'Phase : Auto-évaluation',
+  'dashboard.campaign.empty':             'Aucune campagne active pour le moment.',
 
   // Quick cards
   'dashboard.card.growth.title': 'Parcours de croissance',
@@ -40,14 +45,8 @@ export default {
   // Notification center
   'dashboard.notifications.title':   'Centre de notifications',
   'dashboard.notifications.viewall': 'Voir toute l\'activité',
-  'dashboard.notif.1':      'La campagne d\'entretien annuel est ouverte jusqu\'au 28 mars',
-  'dashboard.notif.1.meta': 'Il y a 5 heures · Systèmes RH',
-  'dashboard.notif.2':      'Rappel : complétez votre auto-évaluation avant le 15 mars',
-  'dashboard.notif.2.meta': 'Hier · Campagne 2026',
-  'dashboard.notif.3':      'Entretien avec votre manager planifié le 22 mars',
-  'dashboard.notif.3.meta': 'Il y a 2 jours · Entretiens',
-  'dashboard.notif.4':      'Nouveau template de formulaire disponible',
-  'dashboard.notif.4.meta': 'Il y a 3 jours · RH',
+  'dashboard.notif.pending_eval':    'Évaluation en attente',
+  'dashboard.notif.empty':           'Aucune notification pour le moment.',
 
   // Calendar widget
   'dashboard.calendar.title':          'Échéances',

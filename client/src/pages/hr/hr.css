@@ -32,6 +32,33 @@
   gap: 1.5rem;
 }
 
+/* ── Loading / Empty / Error states ────────────────────────────────────────── */
+.hr-loading {
+  padding: 2rem;
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--color-on-surface-variant);
+  opacity: 0.6;
+}
+
+.hr-empty {
+  padding: 2rem;
+  text-align: center;
+  font-size: 0.8125rem;
+  color: var(--color-on-surface-variant);
+  opacity: 0.55;
+  margin: 0;
+}
+
+.hr-error {
+  padding: 1rem 1.5rem;
+  background: var(--color-error-tint);
+  color: var(--color-error);
+  border-radius: var(--radius-md);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
 /* ── KPI strip ─────────────────────────────────────────────────────────────── */
 .hr-kpis {
   display: grid;

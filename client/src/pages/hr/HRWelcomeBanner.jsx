@@ -10,7 +10,7 @@ import './HRWelcomeBanner.css'
 
 const HERO_IMG = 'https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=900&q=70'
 
-export default function HRWelcomeBanner({ t, userName = '' }) {
+export default function HRWelcomeBanner({ t, userName = '', employees = 0, departments = 0, completion = 0 }) {
   return (
     <section className="hrwb">
 
@@ -46,17 +46,17 @@ export default function HRWelcomeBanner({ t, userName = '' }) {
         <div className="hrwb__img-bg" aria-hidden="true" />
         <div className="hrwb__stats">
           <div className="hrwb__stat">
-            <span className="hrwb__stat-value">128</span>
+            <span className="hrwb__stat-value">{employees}</span>
             <span className="hrwb__stat-label">{t('hr.welcome.stat.employees')}</span>
           </div>
           <div className="hrwb__stat-sep" aria-hidden="true" />
           <div className="hrwb__stat">
-            <span className="hrwb__stat-value">5</span>
+            <span className="hrwb__stat-value">{departments}</span>
             <span className="hrwb__stat-label">{t('hr.welcome.stat.departments')}</span>
           </div>
           <div className="hrwb__stat-sep" aria-hidden="true" />
           <div className="hrwb__stat">
-            <span className="hrwb__stat-value">67%</span>
+            <span className="hrwb__stat-value">{completion}%</span>
             <span className="hrwb__stat-label">{t('hr.welcome.stat.completion')}</span>
           </div>
         </div>

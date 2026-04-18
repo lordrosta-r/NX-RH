@@ -117,6 +117,9 @@ export default function FormEditor() {
   const [error, setError]                       = useState(null)
   const [selectedCampaign, setSelectedCampaign] = useState('')
   const [isAnonymous, setIsAnonymous]           = useState(false)
+  const [initialLoading, setInitialLoading]     = useState(true)
+  const [loadError, setLoadError]               = useState(false)
+  const [confirmDialog, setConfirmDialog]       = useState(null)
 
   // ── Beforeunload warning ───────────────────────────────────────────────────
   useEffect(() => {
@@ -128,23 +131,29 @@ export default function FormEditor() {
     return () => window.removeEventListener('beforeunload', handler)
   }, [view, formTitle, formDesc, fields])
 
-  // ── Load campaigns on mount ────────────────────────────────────────────────
+  // ── Load campaigns + forms on mount ────────────────────────────────────────
   useEffect(() => {
     let cancelled = false
-    fetch('/api/campaigns?status=active', { credentials: 'include' })
-      .then(r => r.ok ? r.json() : [])
-      .then(data => { if (!cancelled) setCampaigns(data) })
-      .catch(() => { if (!cancelled) setCampaigns([]) })
-    return () => { cancelled = true }
-  }, [])
-
-  // ── Load forms on mount ────────────────────────────────────────────────────
-  useEffect(() => {
-    let cancelled = false
-    fetch('/api/forms', { credentials: 'include' })
-      .then(r => r.ok ? r.json() : [])
-      .then(data => { if (!cancelled) setForms(data) })
-      .catch(() => { if (!cancelled) setForms([]) })
+    const normalize = (res) => Array.isArray(res) ? res : (res?.data ?? [])
+    Promise.all([
+      fetch('/api/campaigns?status=active', { credentials: 'include' })
+        .then(r => { if (!r.ok) throw new Error(r.statusText); return r.json() })
+        .then(normalize),
+      fetch('/api/forms', { credentials: 'include' })
+        .then(r => { if (!r.ok) throw new Error(r.statusText); return r.json() })
+        .then(normalize),
+    ])
+      .then(([c, f]) => {
+        if (cancelled) return
+        setCampaigns(c)
+        setForms(f)
+      })
+      .catch(() => {
+        if (!cancelled) setLoadError(true)
+      })
+      .finally(() => {
+        if (!cancelled) setInitialLoading(false)
+      })
     return () => { cancelled = true }
   }, [])
 
@@ -355,17 +364,22 @@ export default function FormEditor() {
         body: JSON.stringify(payload),
       })
       if (r.status === 409) {
-        let data = null
-        try { data = await r.json() } catch { /* ignore parse error */ }
-        setError(t('fe.error.frozen_since').replace('{date}', data?.frozenAt ? new Date(data.frozenAt).toLocaleDateString('fr-FR') : ''))
+        let detail = null
+        try { detail = await r.json() } catch { detail = null }
+        const dateStr = detail?.frozenAt
+          ? new Date(detail.frozenAt).toLocaleDateString('fr-FR')
+          : ''
+        setError(t('fe.error.frozen_since').replace('{date}', dateStr))
         return
       }
       if (!r.ok) throw new Error(t('fe.error.save_failed'))
       const data = await r.json()
       if (!editingId) setEditingId(data.id)
+      const normalize = (res) => Array.isArray(res) ? res : (res?.data ?? [])
       const updated = await fetch('/api/forms', { credentials: 'include' })
-        .then(res => res.ok ? res.json() : null)
-        .catch(err => { console.warn('[FormEditor] refetch failed:', err.message); return null })
+        .then(res => { if (!res.ok) throw new Error(); return res.json() })
+        .then(normalize)
+        .catch(() => null)
       if (updated) setForms(updated)
       setView('list')
     } catch (err) {
@@ -377,7 +391,13 @@ export default function FormEditor() {
 
   function handleBack() {
     const isDirty = formTitle.trim() || formDesc.trim() || fields.length > 0
-    if (isDirty && !window.confirm(t('fe.confirm.unsaved_changes'))) return
+    if (isDirty) {
+      setConfirmDialog({
+        message: t('fe.confirm.unsaved_changes'),
+        onConfirm() { setConfirmDialog(null); setError(null); setView('list') },
+      })
+      return
+    }
     setError(null)
     setView('list')
   }
@@ -423,7 +443,21 @@ export default function FormEditor() {
         </div>
 
         {/* Form cards grid */}
-        {filteredForms.length === 0 ? (
+        {initialLoading ? (
+          <div className="fe-loading" aria-live="polite">{t('fe.loading')}</div>
+        ) : loadError ? (
+          <div className="fe-error" role="alert">{t('fe.error.load')}</div>
+        ) : forms.length === 0 ? (
+          <div className="fe-empty-state">
+            <DocumentIcon size={48} color="var(--color-on-surface-variant)" strokeWidth={1} />
+            <h3 className="fe-empty-state__title">{t('fe.empty.title')}</h3>
+            <p className="fe-empty-state__desc">{t('fe.empty.desc')}</p>
+            <button type="button" className="btn btn--md" onClick={openCreate}>
+              <PlusIcon size={15} color="currentColor" strokeWidth={2.5} />
+              {t('fe.banner.cta')}
+            </button>
+          </div>
+        ) : filteredForms.length === 0 ? (
           <p className="fe-empty">{t('fe.section.empty')}</p>
         ) : (
           <div className="fe-grid">
@@ -851,6 +885,36 @@ export default function FormEditor() {
           {view === 'list' ? renderList() : renderCreate()}
         </main>
       </div>
+
+      {/* Confirm dialog (replaces window.confirm) */}
+      {confirmDialog && (
+        <div className="fe-confirm-overlay" onClick={() => setConfirmDialog(null)}>
+          <div
+            className="fe-confirm-dialog"
+            role="alertdialog"
+            aria-modal="true"
+            onClick={e => e.stopPropagation()}
+          >
+            <p className="fe-confirm-msg">{confirmDialog.message}</p>
+            <div className="fe-confirm-actions">
+              <button
+                type="button"
+                className="fe-confirm-cancel"
+                onClick={() => setConfirmDialog(null)}
+              >
+                {t('fe.confirm.cancel')}
+              </button>
+              <button
+                type="button"
+                className="btn btn--md"
+                onClick={confirmDialog.onConfirm}
+              >
+                {t('fe.confirm.leave')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -96,6 +96,8 @@ export default {
 
   // Confirm dialogs
   'fe.confirm.unsaved_changes': 'You have unsaved changes. Leave anyway?',
+  'fe.confirm.cancel': 'Cancel',
+  'fe.confirm.leave':  'Leave',
 
   // Frozen form
   'fe.frozen.warning': 'This form is frozen — questions can no longer be modified.',
@@ -150,4 +152,10 @@ export default {
   'fe.btn.configure':       'Configure',
   'fe.btn.delete_question': 'Delete question',
   'fe.scale.range':         'Scale 1 to {max}',
+
+  // Loading / error / empty states
+  'fe.loading':              'Loading…',
+  'fe.error.load':           'Failed to load data. Please refresh the page.',
+  'fe.empty.title':          'No forms yet',
+  'fe.empty.desc':           'Create your first evaluation form to get started.',
 }

@@ -99,7 +99,7 @@
 /* --color-success token now available */
 .fe-tag--active   { background: var(--color-success-light);  color: var(--color-success); }
 .fe-tag--draft    { background: var(--color-surface-container); color: var(--color-on-surface-variant); }
-.fe-tag--archived { background: rgba(28, 27, 27, 0.06); color: var(--color-on-surface-variant); opacity: 0.7; }
+.fe-tag--archived { background: color-mix(in srgb, var(--color-on-surface) 6%, transparent); color: var(--color-on-surface-variant); opacity: 0.7; }
 
 /* ── Card content ─────────────────────────────────────────────────────────── */
 .fe-card__title {
@@ -181,6 +181,100 @@
   transition: background 0.15s ease;
 }
 .fe-card__action:hover { background: var(--color-surface-container-low); }
+
+/* ── Loading state ─────────────────────────────────────────────────────────── */
+.fe-loading {
+  text-align: center;
+  padding: 3rem 0;
+  font-size: 0.9375rem;
+  color: var(--color-on-surface-variant);
+  opacity: 0.6;
+}
+
+/* ── Error banner ─────────────────────────────────────────────────────────── */
+.fe-error {
+  padding: 0.75rem 1.25rem;
+  margin-bottom: 1rem;
+  background: color-mix(in srgb, var(--color-error) 10%, transparent);
+  color: var(--color-error);
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 600;
+  border-left: 3px solid var(--color-error);
+}
+
+/* ── Rich empty state (no forms at all) ───────────────────────────────────── */
+.fe-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 4rem 2rem;
+  text-align: center;
+  opacity: 0.7;
+}
+
+.fe-empty-state__title {
+  font-size: 1.125rem;
+  font-weight: 800;
+  color: var(--color-on-surface);
+  margin: 0.5rem 0 0 0;
+}
+
+.fe-empty-state__desc {
+  font-size: 0.875rem;
+  color: var(--color-on-surface-variant);
+  margin: 0 0 0.5rem 0;
+  max-width: 360px;
+  line-height: 1.5;
+}
+
+/* ── Confirm dialog overlay ───────────────────────────────────────────────── */
+.fe-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: color-mix(in srgb, var(--color-on-surface) 40%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fe-confirm-dialog {
+  background: var(--color-surface-container-lowest, #fff);
+  border-radius: var(--radius-xl);
+  padding: 2rem 2.25rem;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 8px 32px color-mix(in srgb, var(--color-on-surface) 15%, transparent);
+}
+
+.fe-confirm-msg {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-on-surface);
+  margin: 0 0 1.5rem 0;
+  line-height: 1.5;
+}
+
+.fe-confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.fe-confirm-cancel {
+  padding: 0.625rem 1.25rem;
+  border-radius: var(--radius-lg);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-on-surface-variant);
+  background: transparent;
+  border: 1.5px solid var(--color-surface-container-high);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.fe-confirm-cancel:hover { background: var(--color-surface-container-low); }
 
 /* ── Empty state ──────────────────────────────────────────────────────────── */
 .fe-empty {
@@ -432,41 +526,6 @@
   color: var(--color-on-surface-variant);
   opacity: 0.5;
   font-style: italic;
-}
-
-/* ── Slider preview in qcard ──────────────────────────────────────────────── */
-.fe-qcard__preview--slider {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  width: 100%;
-}
-
-.fe-qcard__slider-lbl {
-  font-size: 0.625rem;
-  font-weight: 700;
-  color: var(--color-on-surface-variant);
-  opacity: 0.5;
-  flex-shrink: 0;
-}
-
-.fe-qcard__slider-track {
-  flex: 1;
-  height: 4px;
-  background: var(--color-surface-container-high);
-  border-radius: 2px;
-  position: relative;
-}
-
-.fe-qcard__slider-thumb {
-  position: absolute;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: var(--color-secondary);
-  opacity: 0.5;
 }
 
 .fe-qcard__radio {
@@ -837,10 +896,6 @@
 
 @media (max-width: 768px) {
   .fe-main { margin-left: 0; }
-
-  .fe-topbar {
-    padding: 0 1rem;
-  }
 
   .fe-content {
     padding: 1rem;

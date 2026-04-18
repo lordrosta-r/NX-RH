@@ -57,13 +57,14 @@ export default function Login() {
       }
       // Auth is handled by the HttpOnly cookie set by the server.
       // No token or user data stored client-side (sessionStorage is XSS-vulnerable).
-      const roleRedirects = {
-        admin:    '/hr',
+      const ROLE_HOME = {
+        admin:    '/admin',
         hr:       '/hr',
-        director: '/manager',
+        director: '/director',
         manager:  '/manager',
+        employee: '/employee',
       }
-      window.location.href = roleRedirects[data.user.role] ?? '/dashboard'
+      window.location.href = ROLE_HOME[data.user.role] ?? '/employee'
     } catch {
       setError(t('login.error.network'))
     } finally {

@@ -27,7 +27,7 @@ const authGuard = (allowedRoles = []) => async (req, res, next) => {
 
   if (allowedRoles.length > 0 && !allowedRoles.includes(payload.role)) {
     if (isApi) return res.status(403).json({ error: 'Insufficient permissions' })
-    return res.redirect('/dashboard')
+    return res.redirect('/employee')
   }
 
   // Vérification DB : compte toujours actif

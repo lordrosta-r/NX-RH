@@ -4,13 +4,12 @@
 // =============================================================================
 import React from 'react'
 import AppSidebar from '../../components/ui/AppSidebar'
-import { HomeIcon, ClipboardIcon, TrendIcon, GearIcon } from '../../components/ui/icons'
+import { HomeIcon, ClipboardIcon, GearIcon } from '../../components/ui/icons'
 
 export default function EvaluationSidebar({ t }) {
   const navItems = [
-    { id: 'dashboard',  Icon: HomeIcon,      label: t('ev.nav.dashboard'),  active: false, href: '/dashboard'  },
+    { id: 'home',       Icon: HomeIcon,      label: t('ev.nav.dashboard'),  active: false, href: '/employee'  },
     { id: 'evaluation', Icon: ClipboardIcon, label: t('ev.nav.evaluation'), active: true,  href: '/evaluation' },
-    { id: 'progress',   Icon: TrendIcon,     label: t('ev.nav.progress'),   active: false, href: '/dashboard#progress' },
     { id: 'settings',   Icon: GearIcon,      label: t('ev.nav.settings'),   active: false, href: '/settings' },
   ]
   return <AppSidebar brandSub="Employee Portal" navItems={navItems}

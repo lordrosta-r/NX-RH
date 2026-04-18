@@ -6,7 +6,7 @@
 import React from 'react'
 import AppSidebar from '../../components/ui/AppSidebar'
 import {
-  HomeIcon, ClipboardIcon, TrendIcon,
+  HomeIcon, ClipboardIcon,
   DocumentIcon, FolderIcon, GearIcon,
 } from '../../components/ui/icons'
 
@@ -16,14 +16,32 @@ function buildItems(role, t) {
     label: t('settings.nav.settings'), active: true,
   }
 
-  // hr / admin → portail HR (super-set)
-  if (role === 'hr' || role === 'admin') {
+  // admin → portail Admin (super-set)
+  if (role === 'admin') {
     return [
-      { id: 'overview',   href: '/hr',         Icon: HomeIcon,      label: 'HR Overview',   active: false },
-      { id: 'campaigns',  href: '#',           Icon: ClipboardIcon, label: 'Campaigns',     active: false, disabled: true },
-      { id: 'formeditor', href: '/formeditor', Icon: DocumentIcon,  label: 'Form Editor',   active: false },
-      { id: 'resources',  href: '#',           Icon: FolderIcon,    label: 'Resources',     active: false, disabled: true },
-      { id: 'reports',    href: '#',           Icon: TrendIcon,     label: 'Reports',       active: false, disabled: true },
+      { id: 'overview',   href: '/admin',      Icon: HomeIcon,      label: 'Admin Overview', active: false },
+      { id: 'hr',         href: '/hr',         Icon: FolderIcon,    label: 'HR Portal',      active: false },
+      { id: 'campaigns',  href: '/campaigns',  Icon: ClipboardIcon, label: 'Campagnes',      active: false },
+      { id: 'formeditor', href: '/formeditor', Icon: DocumentIcon,  label: 'Form Editor',    active: false },
+      settingsItem,
+    ]
+  }
+
+  // hr → portail HR
+  if (role === 'hr') {
+    return [
+      { id: 'overview',   href: '/hr',         Icon: HomeIcon,      label: 'HR Overview', active: false },
+      { id: 'campaigns',  href: '/campaigns',  Icon: ClipboardIcon, label: 'Campagnes',   active: false },
+      { id: 'formeditor', href: '/formeditor', Icon: DocumentIcon,  label: 'Form Editor', active: false },
+      settingsItem,
+    ]
+  }
+
+  // director → portail Director
+  if (role === 'director') {
+    return [
+      { id: 'overview',    href: '/director',   Icon: HomeIcon,      label: 'Director Overview', active: false },
+      { id: 'evaluations', href: '/manager',    Icon: ClipboardIcon, label: 'Evaluations',       active: false },
       settingsItem,
     ]
   }
@@ -31,17 +49,15 @@ function buildItems(role, t) {
   // manager → portail Manager
   if (role === 'manager') {
     return [
-      { id: 'evaluations', href: '/manager', Icon: ClipboardIcon, label: 'Evaluations', active: false },
-      { id: 'team',        href: '#',        Icon: HomeIcon,      label: 'Team',        active: false, disabled: true },
+      { id: 'evaluations', href: '/manager',  Icon: ClipboardIcon, label: 'Evaluations', active: false },
       settingsItem,
     ]
   }
 
-  // employee / director → portail employé (defaut)
+  // employee (defaut)
   return [
-    { id: 'home',       href: '/dashboard',  Icon: HomeIcon,      label: 'Dashboard',  active: false },
+    { id: 'home',       href: '/employee',   Icon: HomeIcon,      label: 'Mon espace', active: false },
     { id: 'evaluation', href: '/evaluation', Icon: ClipboardIcon, label: 'Evaluation', active: false },
-    { id: 'growth',     href: '#',           Icon: TrendIcon,     label: 'Growth',     active: false, disabled: true },
     settingsItem,
   ]
 }

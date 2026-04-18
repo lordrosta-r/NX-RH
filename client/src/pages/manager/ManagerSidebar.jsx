@@ -6,12 +6,11 @@
 
 import React from 'react'
 import AppSidebar from '../../components/ui/AppSidebar'
-import { ClipboardIcon, HomeIcon, GearIcon } from '../../components/ui/icons'
+import { ClipboardIcon, GearIcon } from '../../components/ui/icons'
 
 export default function ManagerSidebar({ t, activeItem = 'evaluations' }) {
   const navItems = [
     { id: 'evaluations', href: '/manager',  Icon: ClipboardIcon, label: t('manager.nav.evaluations'), active: activeItem === 'evaluations' },
-    { id: 'team',        href: '#', disabled: true, Icon: HomeIcon, label: t('manager.nav.team'), active: activeItem === 'team' },
     { id: 'settings',    href: '/settings', Icon: GearIcon, label: t('manager.nav.settings'), active: activeItem === 'settings' },
   ]
 

@@ -51,13 +51,16 @@ export default defineConfig({
       // Each key becomes a named chunk. The value must point to an HTML file
       // that references its own <script type="module"> React entry point.
       input: {
-        login:     resolve(__dirname, 'login.html'),
-        dashboard: resolve(__dirname, 'dashboard.html'),
-        manager:   resolve(__dirname, 'manager.html'),
-        hr:        resolve(__dirname, 'hr.html'),
-        formeditor:  resolve(__dirname, 'formeditor.html'),
-        evaluation:  resolve(__dirname, 'evaluation.html'),
-        settings:    resolve(__dirname, 'settings.html'),
+        login:      resolve(__dirname, 'login.html'),
+        employee:   resolve(__dirname, 'employee.html'),
+        manager:    resolve(__dirname, 'manager.html'),
+        director:   resolve(__dirname, 'director.html'),
+        hr:         resolve(__dirname, 'hr.html'),
+        admin:      resolve(__dirname, 'admin.html'),
+        formeditor: resolve(__dirname, 'formeditor.html'),
+        campaigns:  resolve(__dirname, 'campaigns.html'),
+        evaluation: resolve(__dirname, 'evaluation.html'),
+        settings:   resolve(__dirname, 'settings.html'),
       },
     },
   },

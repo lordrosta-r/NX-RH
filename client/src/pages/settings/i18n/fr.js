@@ -64,6 +64,12 @@ export default {
   // Role space (contextual links)
   'settings.space.heading': 'Mes espaces',
   'settings.space.subtitle': 'Accès rapides aux outils de votre rôle.',
+  'settings.space.admin':       'Espace admin',
+  'settings.space.admin.desc':  'Gouvernance & santé système.',
+  'settings.space.director':    'Espace directeur',
+  'settings.space.director.desc':'Vue agrégée de mes équipes.',
+  'settings.space.employee':    'Mon espace',
+  'settings.space.employee.desc':'Mon parcours personnel.',
   'settings.space.dashboard':  'Tableau de bord',
   'settings.space.dashboard.desc':  'Mon espace personnel.',
   'settings.space.evaluation': 'Mon évaluation',

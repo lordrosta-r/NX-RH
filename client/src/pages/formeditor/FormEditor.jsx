@@ -159,7 +159,7 @@ export default function FormEditor() {
 
   if (authLoading) return null
   if (!user)       return null
-  if (!['admin', 'hr'].includes(user.role)) { window.location.href = '/dashboard'; return null }
+  if (!['admin', 'hr'].includes(user.role)) { window.location.href = '/employee'; return null }
 
   // Form types aligned with MongoDB enum
   const FORM_TYPES = [

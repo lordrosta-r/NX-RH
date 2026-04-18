@@ -180,6 +180,7 @@ async function start() {
   }
 
   await connect()
+  require('./services/scheduler').start()
   app.listen(PORT, () => {
     console.log(`NanoXplore RH (MongoDB) → http://localhost:${PORT}`)
   })

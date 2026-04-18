@@ -27,6 +27,35 @@ function sanitizeAnonymity(doc) {
   return doc
 }
 
+// ─── GET /api/evaluations/history ────────────────────────────────────────────
+// Liste les évaluations passées (toutes campagnes, statut terminal/avancé) où
+// l'utilisateur courant est évalué OU évaluateur. Utilisé par la timeline
+// "Historique des entretiens" sur la page employée.
+router.get('/history', async (req, res, next) => {
+  try {
+    const uid = new mongoose.Types.ObjectId(req.user.id)
+    const COMPLETED = ['submitted', 'reviewed', 'signed_evaluatee', 'signed_manager', 'signed_hr', 'validated']
+
+    const filter = {
+      $or:    [{ evaluateeId: uid }, { evaluatorId: uid }],
+      status: { $in: COMPLETED },
+    }
+
+    const items = await Evaluation.find(filter)
+      .populate('formId', 'title formType isAnonymous')
+      .populate('evaluatorId', 'firstName lastName')
+      .populate('evaluateeId', 'firstName lastName department')
+      .populate('campaignId', 'name startDate endDate status')
+      .sort({ updatedAt: -1 })
+      .limit(200)
+      .lean()
+
+    res.json({ data: items.map(sanitizeAnonymity) })
+  } catch (err) {
+    next(err)
+  }
+})
+
 // ─── GET /api/evaluations ────────────────────────────────────────────────────
 
 router.get('/', async (req, res, next) => {

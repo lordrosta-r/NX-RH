@@ -70,6 +70,20 @@ export default function Evaluation() {
   const [myEvalsLoading, setMyEvalsLoading] = useState(true)
   const [myEvalsError,  setMyEvalsError]  = useState(null)
 
+  // ── Load evaluation history (terminated evaluations across all campaigns) ──
+  const [history,        setHistory]        = useState([])
+  const [historyLoading, setHistoryLoading] = useState(true)
+
+  useEffect(() => {
+    const ac = new AbortController()
+    fetch('/api/evaluations/history', { credentials: 'include', signal: ac.signal })
+      .then(r => r.ok ? r.json() : { data: [] })
+      .then(data => { setHistory(data.data || []) })
+      .catch(() => { /* silent — history is optional */ })
+      .finally(() => { if (!ac.signal.aborted) setHistoryLoading(false) })
+    return () => ac.abort()
+  }, [])
+
   useEffect(() => {
     const ac = new AbortController()
     fetch('/api/evaluations', { credentials: 'include', signal: ac.signal })
@@ -108,6 +122,32 @@ export default function Evaluation() {
       .finally(() => { if (!ac.signal.aborted) setEvalLoading(false) })
     return () => ac.abort()
   }, [evaluationId, t])
+
+  // ── Auto-save (brouillon) ───────────────────────────────────────────────────
+  // Sauvegarde automatique 2s après la dernière modification, uniquement si
+  // l'évaluation est encore modifiable. Évite les pertes de saisie au reload.
+  useEffect(() => {
+    if (!evaluationId || !evaluation) return
+    if (ANSWER_LOCKED_STATUSES.includes(status)) return
+    if (Object.keys(answers).length === 0) return
+    const handle = setTimeout(() => {
+      const payload = {
+        answers: Object.entries(answers).map(([questionId, value]) => ({ questionId, value })),
+      }
+      fetch(`/api/evaluations/${evaluationId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(payload),
+      }).then(r => {
+        if (r.ok) {
+          setLastSaved(new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }))
+          if (status === 'assigned') setStatus('in_progress')
+        }
+      }).catch(() => { /* silent — manual save still available */ })
+    }, 2000)
+    return () => clearTimeout(handle)
+  }, [answers, evaluationId, evaluation, status])
 
   if (authLoading) return null
   if (!user)       return null
@@ -323,6 +363,56 @@ export default function Evaluation() {
                     )
                   })}
                 </div>
+              )}
+            </section>
+
+            {/* History — past evaluations across all campaigns */}
+            <section className="ev-history">
+              <h2 className="ev-myforms__title">{t('ev.home.history.title')}</h2>
+              {historyLoading ? (
+                <p className="ev-myforms__loading">{t('ev.home.loading')}</p>
+              ) : history.length === 0 ? (
+                <p className="ev-myforms__empty">{t('ev.home.history.empty')}</p>
+              ) : (
+                <ul className="ev-history__list">
+                  {history.map(h => {
+                    const meta = STATUS_META[h.status] || STATUS_META.assigned
+                    const date = h.signedByHrAt || h.signedByEvaluateeAt || h.updatedAt
+                    return (
+                      <li key={h._id} className="ev-history__item">
+                        <div className="ev-history__main">
+                          <span className={`ev-fcard__badge ev-fcard__badge--${h.status}`}>
+                            {t(meta.labelKey)}
+                          </span>
+                          <div className="ev-history__info">
+                            <p className="ev-history__title">{h.formId?.title || '—'}</p>
+                            <p className="ev-history__sub">
+                              {h.campaignId?.name || '—'}
+                              {date && (
+                                <> · {new Date(date).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US')}</>
+                              )}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="ev-history__actions">
+                          <a
+                            href={`/evaluation?id=${h._id}`}
+                            className="ev-fcard__cta ev-fcard__cta--ghost"
+                          >
+                            {t('ev.form.view')}
+                          </a>
+                          <a
+                            href={`/api/evaluations/${h._id}/pdf`}
+                            className="ev-fcard__cta ev-fcard__cta--ghost"
+                            download
+                          >
+                            {t('ev.action.pdf')}
+                          </a>
+                        </div>
+                      </li>
+                    )
+                  })}
+                </ul>
               )}
             </section>
 

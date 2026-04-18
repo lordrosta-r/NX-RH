@@ -11,7 +11,7 @@
 
 const router     = require('express').Router()
 const mongoose   = require('mongoose')
-const { Campaign, Evaluation, User, CAMPAIGN_TRANSITIONS: VALID_TRANSITIONS } = require('../models')
+const { Campaign, Evaluation, Form, User, CAMPAIGN_TRANSITIONS: VALID_TRANSITIONS } = require('../models')
 const { ADMIN_ROLES } = require('../config/constants')
 const { notifyMany }  = require('../services/notificationService')
 
@@ -169,6 +169,175 @@ router.patch('/:id', async (req, res, next) => {
     }
 
     res.json(campaign.toObject())
+  } catch (err) {
+    next(err)
+  }
+})
+
+// ─── POST /api/campaigns/:id/clone ───────────────────────────────────────────
+// Duplique une campagne (statut → draft) ainsi que tous ses formulaires
+// (sans frozenAt). Les évaluations ne sont pas clonées : la nouvelle campagne
+// repart vierge. Les dates sont décalées d'un an par défaut, surchargeables
+// via { startDate, endDate } dans le body.
+router.post('/:id/clone', async (req, res, next) => {
+  try {
+    if (!ADMIN_ROLES.includes(req.user.role)) {
+      return res.status(403).json({ error: 'Réservé aux admins et RH' })
+    }
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({ error: 'ID invalide' })
+    }
+
+    const source = await Campaign.findById(req.params.id).lean()
+    if (!source) return res.status(404).json({ error: 'Campagne introuvable' })
+
+    const ONE_YEAR_MS = 365 * 24 * 60 * 60 * 1000
+    const startDate = req.body.startDate
+      ? new Date(req.body.startDate)
+      : new Date(new Date(source.startDate).getTime() + ONE_YEAR_MS)
+    const endDate = req.body.endDate
+      ? new Date(req.body.endDate)
+      : new Date(new Date(source.endDate).getTime() + ONE_YEAR_MS)
+    if (endDate < startDate) {
+      return res.status(400).json({ error: 'endDate doit être après startDate' })
+    }
+
+    const newName = (req.body.name && String(req.body.name).trim())
+      || `${source.name} (copie)`
+
+    const cloned = await Campaign.create({
+      name:               newName.slice(0, 200),
+      description:        source.description || '',
+      startDate,
+      endDate,
+      status:             'draft',
+      targetDepartments:  source.targetDepartments || [],
+      extendedVisibility: source.extendedVisibility || [],
+      createdBy:          req.user.id,
+    })
+
+    // Clone tous les formulaires associés (sans frozenAt → modifiables)
+    const sourceForms = await Form.find({ campaignId: source._id }).lean()
+    if (sourceForms.length) {
+      const cloneDocs = sourceForms.map(f => ({
+        campaignId:  cloned._id,
+        title:       f.title,
+        description: f.description || '',
+        formType:    f.formType,
+        isAnonymous: f.isAnonymous,
+        questions:   f.questions,
+        frozenAt:    null,
+        createdBy:   req.user.id,
+      }))
+      await Form.insertMany(cloneDocs)
+    }
+
+    res.status(201).json({ id: cloned._id, formsCloned: sourceForms.length })
+  } catch (err) {
+    next(err)
+  }
+})
+
+// ─── GET /api/campaigns/:id/analytics ────────────────────────────────────────
+// Retourne des agrégats pour les rapports analytiques RH :
+//   - statusDistribution : nb d'évaluations par statut
+//   - scoreDistribution  : histogramme par tranche de 10 (0-9, 10-19, … 90-100)
+//   - byDepartment       : { dept, total, completed, completionPct, avgScore }
+//   - completionPct      : pourcentage global de complétion
+//   - avgScore           : moyenne des scores non null
+router.get('/:id/analytics', async (req, res, next) => {
+  try {
+    if (!ADMIN_ROLES.includes(req.user.role)) {
+      return res.status(403).json({ error: 'Réservé aux admins et RH' })
+    }
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({ error: 'ID invalide' })
+    }
+    const campaignId = new mongoose.Types.ObjectId(req.params.id)
+    const campaign = await Campaign.findById(campaignId).lean()
+    if (!campaign) return res.status(404).json({ error: 'Campagne introuvable' })
+
+    const COMPLETED = ['submitted', 'reviewed', 'signed_evaluatee', 'signed_manager', 'signed_hr', 'validated']
+
+    const [statusAgg, scoreAgg, deptAgg] = await Promise.all([
+      Evaluation.aggregate([
+        { $match: { campaignId } },
+        { $group: { _id: '$status', count: { $sum: 1 } } },
+      ]),
+      Evaluation.aggregate([
+        { $match: { campaignId, score: { $ne: null } } },
+        {
+          $bucket: {
+            groupBy: '$score',
+            boundaries: [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 101],
+            default: 'other',
+            output:  { count: { $sum: 1 }, avg: { $avg: '$score' } },
+          },
+        },
+      ]),
+      Evaluation.aggregate([
+        { $match: { campaignId } },
+        { $lookup: { from: 'users', localField: 'evaluateeId', foreignField: '_id', as: 'evaluatee' } },
+        { $unwind: '$evaluatee' },
+        {
+          $group: {
+            _id:       '$evaluatee.department',
+            total:     { $sum: 1 },
+            completed: { $sum: { $cond: [{ $in: ['$status', COMPLETED] }, 1, 0] } },
+            scoreSum:  { $sum: { $ifNull: ['$score', 0] } },
+            scoreCount: { $sum: { $cond: [{ $ne: ['$score', null] }, 1, 0] } },
+          },
+        },
+        { $sort: { _id: 1 } },
+      ]),
+    ])
+
+    const statusDistribution = statusAgg.reduce((acc, x) => {
+      acc[x._id] = x.count
+      return acc
+    }, {})
+
+    const totalEvals = statusAgg.reduce((s, x) => s + x.count, 0)
+    const completedEvals = statusAgg
+      .filter(x => COMPLETED.includes(x._id))
+      .reduce((s, x) => s + x.count, 0)
+    const completionPct = totalEvals > 0 ? Math.round((completedEvals / totalEvals) * 100) : 0
+
+    const scoreDistribution = scoreAgg
+      .filter(b => b._id !== 'other')
+      .map(b => ({
+        from:  b._id,
+        to:    b._id + 9,
+        count: b.count,
+      }))
+
+    const allScores = await Evaluation.aggregate([
+      { $match: { campaignId, score: { $ne: null } } },
+      { $group: { _id: null, avg: { $avg: '$score' }, count: { $sum: 1 } } },
+    ])
+    const avgScore = allScores[0]?.avg !== undefined && allScores[0]?.avg !== null
+      ? Math.round(allScores[0].avg * 10) / 10
+      : null
+
+    const byDepartment = deptAgg.map(d => ({
+      department:    d._id || '—',
+      total:         d.total,
+      completed:     d.completed,
+      completionPct: d.total > 0 ? Math.round((d.completed / d.total) * 100) : 0,
+      avgScore:      d.scoreCount > 0 ? Math.round((d.scoreSum / d.scoreCount) * 10) / 10 : null,
+    }))
+
+    res.json({
+      campaignId:         campaign._id,
+      campaignName:       campaign.name,
+      totalEvaluations:   totalEvals,
+      completedEvaluations: completedEvals,
+      completionPct,
+      avgScore,
+      statusDistribution,
+      scoreDistribution,
+      byDepartment,
+    })
   } catch (err) {
     next(err)
   }

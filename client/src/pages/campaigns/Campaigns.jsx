@@ -178,6 +178,23 @@ export default function Campaigns() {
     } catch (err) { setError(err.message) }
   }
 
+  // ── Clone campaign ───────────────────────────────────────────────────────
+  async function handleClone(c) {
+    const id = c._id || c.id
+    if (!id) return
+    if (!window.confirm(t('cmp.confirm.clone'))) return
+    try {
+      const r = await fetch(`/api/campaigns/${id}/clone`, {
+        method: 'POST', credentials: 'include',
+      })
+      if (!r.ok) {
+        const d = await r.json().catch(() => ({}))
+        throw new Error(d.error || `HTTP ${r.status}`)
+      }
+      loadCampaigns()
+    } catch (err) { setError(err.message) }
+  }
+
   // ── Edit ─────────────────────────────────────────────────────────────────
   function openEdit(c) {
     setEditForm({
@@ -326,7 +343,8 @@ export default function Campaigns() {
               {sorted.map(c => (
                 <CampaignCard key={c._id || c.id} c={c} t={t} fmtDate={fmtDate}
                   onDetail={openDetail} onEdit={openEdit}
-                  onTransition={handleTransition} onAssign={openAssign} />
+                  onTransition={handleTransition} onAssign={openAssign}
+                  onClone={handleClone} />
               ))}
             </section>
           )}
@@ -348,6 +366,7 @@ export default function Campaigns() {
             t={t} fmtDate={fmtDate}
             onTransition={handleTransition} onAssign={openAssign}
             onEdit={openEdit} onClose={() => setDetail(null)}
+            onClone={handleClone}
           />
 
           {/* Edit campaign */}

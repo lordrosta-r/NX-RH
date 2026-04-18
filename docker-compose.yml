@@ -66,7 +66,7 @@ services:
 
   # ── MongoDB 7 ─────────────────────────────────────────────────────────────
   mongo:
-    image: mongo:7-alpine
+    image: mongo:7
     container_name: nx_mongo
     restart: unless-stopped
     environment:

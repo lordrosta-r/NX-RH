@@ -5,19 +5,17 @@
 // Design: docs/design/dashboard/DESIGN.md
 // =============================================================================
 
-import React, { useEffect, useState, useRef } from 'react'
+import React from 'react'
 import './hr.css'
 import HRSidebar        from './HRSidebar'
 import HRWelcomeBanner  from './HRWelcomeBanner'
 import CalendarWidget   from '../../components/ui/CalendarWidget'
+import AppTopbar        from '../../components/ui/AppTopbar'
 import { t as pageT }  from './i18n'
 import { useLocale }   from '../../hooks/useLocale'
 import { useTheme }    from '../../hooks/useTheme'
 import { useAuthUser } from '../../hooks/useAuthUser'
-import {
-  BellIcon, SearchIcon,
-  SunIcon, MoonIcon, PaletteIcon, HelpIcon, DocumentIcon,
-} from '../../components/ui/icons'
+import { DocumentIcon, BellIcon } from '../../components/ui/icons'
 
 // ── Mock data ────────────────────────────────────────────────────────────────
 
@@ -76,18 +74,6 @@ const makeCalendarEvents = (t) => [
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-function ThemeIcon({ theme }) {
-  const p = { size: 17, color: 'var(--color-on-surface-variant)' }
-  if (theme === 'dark')  return <SunIcon     {...p} />
-  if (theme === 'light') return <PaletteIcon {...p} />
-  return                        <MoonIcon    {...p} />
-}
-
-function themeLabel(theme, t) {
-  if (theme === 'dark')  return t('hr.theme.to_light')
-  if (theme === 'light') return t('hr.theme.to_sidebar')
-  return t('hr.theme.to_dark')
-}
 
 function deptColor(pct) {
   if (pct >= 80) return 'var(--color-secondary)'
@@ -112,52 +98,27 @@ function ResourceTypeIcon({ type }) {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 export default function HRDashboard() {
-  const { t, locale }         = useLocale(pageT)
+  const { t, locale, setLocale } = useLocale(pageT)
   const { theme, cycleTheme } = useTheme()
   const { user, loading }     = useAuthUser()
-  const [notifOpen, setNotifOpen] = useState(false)
-  const notifRef = useRef(null)
-
-  useEffect(() => {
-    if (!notifOpen) return
-    const handler = (e) => {
-      if (notifRef.current && !notifRef.current.contains(e.target)) setNotifOpen(false)
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [notifOpen])
-
-  useEffect(() => {
-    if (!notifOpen) return
-    const onKey = (e) => { if (e.key === 'Escape') setNotifOpen(false) }
-    document.addEventListener('keydown', onKey)
-    return () => document.removeEventListener('keydown', onKey)
-  }, [notifOpen])
 
   if (loading) return null
   if (!user)   return null
   if (!['admin', 'hr'].includes(user.role)) {
-    // eslint-disable-next-line react-hooks/immutability
     window.location.href = '/dashboard'
     return null
   }
 
   async function handleLogout() {
-    try { await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }) } catch { /* ignore logout network errors */ }
+    try { await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }) } catch { /* ignore */ }
     sessionStorage.clear()
     window.location.href = '/'
   }
 
-  const dateLabel = new Date().toLocaleDateString(
-    locale === 'fr' ? 'fr-FR' : 'en-US',
-    { day: 'numeric', month: 'long', year: 'numeric' }
-  )
-
-  const first    = user?.firstName ?? 'RH'
-  const last     = user?.lastName  ?? ''
-  const initials = `${first[0] ?? 'R'}${last[0] ?? 'H'}`.toUpperCase()
-  const fullName = first || last ? `${first} ${last}`.trim() : 'RH Admin'
-  const role     = user?.role ?? 'hr'
+  const first = user?.firstName ?? 'RH'
+  const notifItems = ALERTS.map(({ id, level, textKey, metaKey }) => ({
+    id, color: alertColor(level), text: t(textKey), meta: t(metaKey),
+  }))
 
   return (
     <div className="hr">
@@ -165,82 +126,13 @@ export default function HRDashboard() {
 
       <div className="hr-main">
 
-        {/* ── Topbar ──────────────────────────────────────────────────── */}
-        <header className="hr-topbar">
-          <div className="hr-search" role="search">
-            <SearchIcon size={15} color="var(--color-outline)" />
-            <input type="text" className="hr-search__input"
-              placeholder={t('hr.search.placeholder')}
-              aria-label={t('hr.search.placeholder')} />
-          </div>
-
-          <div className="hr-topbar__right">
-            <span className="hr-topbar__date">{dateLabel}</span>
-            <div className="hr-topbar__sep" aria-hidden="true" />
-
-            <button type="button" className="hr-icon-btn" onClick={cycleTheme} aria-label={themeLabel(theme, t)} title={themeLabel(theme, t)}>
-              <ThemeIcon theme={theme} />
-            </button>
-            <button type="button" className="hr-icon-btn" aria-label={t('hr.help.aria')} title={t('hr.help.title')}>
-              <HelpIcon size={17} color="var(--color-on-surface-variant)" strokeWidth={1.5} />
-            </button>
-
-            <div className="hr-notif-wrap" ref={notifRef}>
-              <button type="button" className="hr-icon-btn hr-icon-btn--notif"
-                onClick={() => setNotifOpen(o => !o)}
-                aria-label={t('hr.alerts.aria')} aria-expanded={notifOpen}>
-                <BellIcon size={17} color="var(--color-on-surface-variant)" />
-                <span className="hr-bell-dot" aria-hidden="true" />
-              </button>
-              {notifOpen && (
-                <div className="hr-notif-dropdown" role="dialog" aria-modal="true" aria-label={t('hr.alerts.aria')}>
-                  <div className="hr-notif-dropdown__header">
-                    <span className="hr-notif-dropdown__title">{t('hr.alerts.title').toUpperCase()}</span>
-                    <span className="hr-notif-dropdown__badge">{ALERTS.length}</span>
-                  </div>
-                  <ul className="hr-notif-dropdown__list">
-                    {ALERTS.map(({ id, level, textKey, metaKey }, idx) => (
-                      <li key={id} className={`hr-notif-item${idx < ALERTS.length - 1 ? ' hr-notif-item--sep' : ''}`}>
-                        <span className="hr-notif-item__dot" style={{ background: alertColor(level) }} aria-hidden="true" />
-                        <div>
-                          <p className="hr-notif-item__text">{t(textKey)}</p>
-                          <p className="hr-notif-item__meta">{t(metaKey)}</p>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                  <button type="button" className="hr-notif-dropdown__footer" onClick={() => setNotifOpen(false)}>
-                    {t('hr.alerts.viewall')}
-                  </button>
-                </div>
-              )}
-            </div>
-
-            <div className="hr-topbar__sep" aria-hidden="true" />
-            <div className="hr-topbar__user">
-              <div className="hr-topbar__user-info">
-                <p className="hr-topbar__user-name">{fullName}</p>
-                <p className="hr-topbar__user-role">{role}</p>
-              </div>
-              <div className="hr-topbar__avatar" aria-hidden="true">{initials}</div>
-              <button
-                type="button"
-                className="hr-icon-btn"
-                onClick={handleLogout}
-                aria-label={t('hr.logout.aria')}
-                title={t('hr.logout.title')}
-              >
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
-                  stroke="var(--color-on-surface-variant)" strokeWidth="1.5"
-                  strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
-                  <polyline points="16 17 21 12 16 7"/>
-                  <line x1="21" y1="12" x2="9" y2="12"/>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </header>
+        <AppTopbar
+          searchPlaceholder={t('hr.search.placeholder')}
+          locale={locale} setLocale={setLocale}
+          theme={theme} cycleTheme={cycleTheme}
+          notifItems={notifItems}
+          user={user} onLogout={handleLogout}
+        />
 
         {/* ── Page content ────────────────────────────────────────────── */}
         <main className="hr-content" id="main-content">

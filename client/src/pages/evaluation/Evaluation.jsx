@@ -7,12 +7,12 @@
 import React, { useState, useEffect } from 'react'
 import './evaluation.css'
 import EvaluationSidebar from './EvaluationSidebar'
+import AppTopbar         from '../../components/ui/AppTopbar'
 import { t as pageT }    from './i18n'
 import { useLocale }     from '../../hooks/useLocale'
 import { useTheme }      from '../../hooks/useTheme'
 import { useAuthUser }   from '../../hooks/useAuthUser'
 import {
-  SearchIcon, PaletteIcon, BellIcon, HelpIcon,
   SparklesIcon, HeartIcon, GearIcon, ArrowNEIcon,
 } from '../../components/ui/icons'
 
@@ -192,51 +192,25 @@ export default function Evaluation() {
   const isReadOnly  = ANSWER_LOCKED_STATUSES.includes(status)
 
   // ── Render ─────────────────────────────────────────────────────────────────
+
+  async function handleLogout() {
+    try { await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }) } catch { /* ignore */ }
+    sessionStorage.clear()
+    window.location.href = '/'
+  }
+
   return (
     <div className="ev">
       <EvaluationSidebar t={t} />
 
       <div className="ev-main" role="main" id="main-content">
 
-        {/* Topbar */}
-        <header className="ev-topbar">
-          <div className="ev-topbar__left">
-            {view === 'form' && (
-              <button type="button" className="ev-back-btn" onClick={() => setView('home')}>
-                {t('ev.form.back')}
-              </button>
-            )}
-            <span className="ev-topbar__title">
-              {view === 'form' ? t('ev.topbar.form') : t('ev.topbar.home')}
-            </span>
-          </div>
-
-          <div className="ev-topbar__right">
-            <div className="ev-search">
-              <SearchIcon size={14} color="var(--color-on-surface-variant)" />
-              <input type="search" aria-label={t('ev.topbar.search')} placeholder={t('ev.topbar.search')} />
-            </div>
-            <button type="button" className="ev-icon-btn" onClick={cycleTheme} title={t('ev.topbar.theme')}
-              aria-label={theme === 'dark' ? t('ev.topbar.theme.to_light') : theme === 'light' ? t('ev.topbar.theme.to_sidebar') : t('ev.topbar.theme.to_dark')}>
-              <PaletteIcon size={17} color="var(--color-on-surface-variant)" />
-            </button>
-            <button type="button" className="ev-icon-btn" title={t('ev.topbar.help')} aria-label={t('ev.topbar.help')}>
-              <HelpIcon size={17} color="var(--color-on-surface-variant)" strokeWidth={1.5} />
-            </button>
-            <button type="button" className="ev-icon-btn" title={t('ev.topbar.notifications')} aria-label={t('ev.topbar.notifications')}>
-              <BellIcon size={17} color="var(--color-on-surface-variant)" />
-            </button>
-            <button
-              type="button"
-              className="ev-icon-btn"
-              onClick={() => setLocale(locale === 'fr' ? 'en' : 'fr')}
-              title={t('ev.topbar.lang')}
-              aria-label={t('ev.topbar.lang')}
-            >
-              <span className="ev-locale">{locale.toUpperCase()}</span>
-            </button>
-          </div>
-        </header>
+        <AppTopbar
+          searchPlaceholder={t('ev.topbar.search')}
+          locale={locale} setLocale={setLocale}
+          theme={theme} cycleTheme={cycleTheme}
+          user={user} onLogout={handleLogout}
+        />
 
         {/* ── HOME VIEW ──────────────────────────────────────────────────── */}
         {view === 'home' && (

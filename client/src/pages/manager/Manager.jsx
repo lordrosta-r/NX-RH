@@ -58,10 +58,10 @@ export default function Manager() {
         credentials: 'include',
         body: JSON.stringify({ status: newStatus }),
       })
-      if (!r.ok) throw new Error()
+      if (!r.ok) throw new Error(`HTTP ${r.status}`)
       setEvaluations(prev => prev.map(e => e._id === id ? { ...e, status: newStatus } : e))
-    } catch {
-      setError(t('manager.error.update_failed'))
+    } catch (err) {
+      setError(err.message || t('manager.error.update_failed'))
     }
   }
 

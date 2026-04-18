@@ -4,7 +4,7 @@
 // Design: docs/design/dashboard/DESIGN.md
 // =============================================================================
 
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import './dashboard.css'
 import DashboardSidebar from './DashboardSidebar'
 import CampaignBanner   from './CampaignBanner'
@@ -18,15 +18,13 @@ import {
   ArrowNEIcon, SparklesIcon, HeartIcon,
 } from '../../components/ui/icons'
 
-// ── Mock calendar events (remplacer par API quand dispo) ─────────────────────
-// typeLabel is rendered in the legend — no i18n key needed inside CalendarWidget
-const makeCalendarEvents = (t) => [
-  { date: '2026-04-15', type: 'deadline',  label: t('dashboard.calendar.type.deadline'),  typeLabel: t('dashboard.calendar.type.deadline'),  color: 'var(--color-error)' },
-  { date: '2026-04-22', type: 'interview', label: t('dashboard.calendar.type.interview'), typeLabel: t('dashboard.calendar.type.interview'), color: 'var(--color-secondary)' },
-  { date: '2026-04-28', type: 'campaign',  label: t('dashboard.calendar.type.campaign'),  typeLabel: t('dashboard.calendar.type.campaign'),  color: 'var(--color-primary)' },
-  { date: '2026-05-05', type: 'feedback',  label: t('dashboard.calendar.type.feedback'),  typeLabel: t('dashboard.calendar.type.feedback'),  color: 'var(--color-tertiary)' },
-  { date: '2026-05-12', type: 'interview', label: t('dashboard.calendar.type.interview'), typeLabel: t('dashboard.calendar.type.interview'), color: 'var(--color-secondary)' },
-]
+// ── Color mappings ───────────────────────────────────────────────────────────
+const EVENT_COLORS = {
+  deadline:  'var(--color-error)',
+  interview: 'var(--color-secondary)',
+  campaign:  'var(--color-primary)',
+  feedback:  'var(--color-tertiary)',
+}
 
 const NOTIF_COLORS = [
   'var(--color-primary)',
@@ -42,11 +40,87 @@ const SPOTLIGHT_IMG = '/assets/spotlight.jpg'
 // ── Component ────────────────────────────────────────────────────────────────
 export default function Dashboard() {
   const { t, locale, setLocale } = useLocale(pageT)
-  const { theme, cycleTheme }  = useTheme()
-  const { user, loading }      = useAuthUser()
+  const { theme, cycleTheme }    = useTheme()
+  const { user, loading: authLoading } = useAuthUser()
 
-  if (loading) return null
-  if (!user)   return null
+  // ── Calendar events ──────────────────────────────────────────────────────
+  const [events, setEvents]               = useState([])
+  const [eventsLoading, setEventsLoading] = useState(true)
+  const [eventsError, setEventsError]     = useState(null)
+
+  // ── Pending evaluations (notifications) ──────────────────────────────────
+  const [evaluations, setEvaluations]   = useState([])
+  const [evalsLoading, setEvalsLoading] = useState(true)
+  const [evalsError, setEvalsError]     = useState(null)
+
+  // ── Active campaign ──────────────────────────────────────────────────────
+  const [campaign, setCampaign]               = useState(null)
+  const [campaignLoading, setCampaignLoading] = useState(true)
+  const [campaignError, setCampaignError]     = useState(null)
+
+  useEffect(() => {
+    if (!user) return
+    let cancelled = false
+    async function load() {
+      try {
+        const res = await fetch('/api/events', { credentials: 'include' })
+        if (!res.ok) throw new Error(res.statusText)
+        const json = await res.json()
+        if (!cancelled) setEvents(json.data || json)
+      } catch (err) {
+        if (!cancelled) setEventsError(err.message)
+      } finally {
+        if (!cancelled) setEventsLoading(false)
+      }
+    }
+    load()
+    return () => { cancelled = true }
+  }, [user])
+
+  useEffect(() => {
+    if (!user) return
+    let cancelled = false
+    async function load() {
+      try {
+        const res = await fetch(
+          `/api/evaluations?evaluateeId=${user._id}&status=assigned`,
+          { credentials: 'include' },
+        )
+        if (!res.ok) throw new Error(res.statusText)
+        const json = await res.json()
+        if (!cancelled) setEvaluations(json.data || json)
+      } catch (err) {
+        if (!cancelled) setEvalsError(err.message)
+      } finally {
+        if (!cancelled) setEvalsLoading(false)
+      }
+    }
+    load()
+    return () => { cancelled = true }
+  }, [user])
+
+  useEffect(() => {
+    if (!user) return
+    let cancelled = false
+    async function load() {
+      try {
+        const res = await fetch('/api/campaigns?status=active', { credentials: 'include' })
+        if (!res.ok) throw new Error(res.statusText)
+        const json = await res.json()
+        const list = json.data || json
+        if (!cancelled) setCampaign(Array.isArray(list) ? list[0] || null : list)
+      } catch (err) {
+        if (!cancelled) setCampaignError(err.message)
+      } finally {
+        if (!cancelled) setCampaignLoading(false)
+      }
+    }
+    load()
+    return () => { cancelled = true }
+  }, [user])
+
+  if (authLoading) return null
+  if (!user)       return null
 
   async function handleLogout() {
     try { await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }) } catch { /* ignore */ }
@@ -54,9 +128,23 @@ export default function Dashboard() {
     window.location.href = '/'
   }
 
-  const notifItems = [1, 2, 3, 4].map(n => ({
-    id: n, color: NOTIF_COLORS[n - 1],
-    text: t(`dashboard.notif.${n}`), meta: t(`dashboard.notif.${n}.meta`),
+  // ── Map evaluations → notification items ─────────────────────────────────
+  const notifItems = evaluations.map((ev, i) => ({
+    id:    ev._id || i,
+    color: NOTIF_COLORS[i % NOTIF_COLORS.length],
+    text:  ev.title || ev.campaignName || t('dashboard.notif.pending_eval'),
+    meta:  ev.createdAt
+      ? new Date(ev.createdAt).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US')
+      : '',
+  }))
+
+  // ── Map events → CalendarWidget format ───────────────────────────────────
+  const calendarEvents = events.map(ev => ({
+    date:      ev.date,
+    type:      ev.type || 'campaign',
+    label:     ev.title || ev.label || '',
+    typeLabel: t(`dashboard.calendar.type.${ev.type}`) || ev.type || '',
+    color:     EVENT_COLORS[ev.type] || 'var(--color-primary)',
   }))
 
   const first = user?.firstName ?? ''
@@ -81,9 +169,15 @@ export default function Dashboard() {
         {/* ── Page content ────────────────────────────────────────────── */}
         <main className="db-content" id="main-content">
 
-          {/* Hero campaign banner — greeting lives inside the card */}
+          {/* Hero campaign banner */}
           <div className="db-banner-wrap">
-            <CampaignBanner t={t} progress={0} userName={first || 'vous'} />
+            <CampaignBanner
+              t={t}
+              campaign={campaign}
+              loading={campaignLoading}
+              error={campaignError}
+              userName={first || 'vous'}
+            />
           </div>
 
           {/* ── Bento grid ──────────────────────────────────────────── */}
@@ -121,39 +215,59 @@ export default function Dashboard() {
               </div>
             </article>
 
-            {/* Notification center — row-span 2 */}
+            {/* Notification center */}
             <aside className="db-notifs">
               <div className="db-notifs__header">
                 <h3 className="db-notifs__title">
                   {t('dashboard.notifications.title').toUpperCase()}
                 </h3>
-                <span className="db-notifs__badge">{notifItems.length}</span>
+                {notifItems.length > 0 && (
+                  <span className="db-notifs__badge">{notifItems.length}</span>
+                )}
               </div>
-              <ul className="db-notifs__list">
-                {notifItems.slice(0, 2).map(({ id, color, text, meta }, idx) => (
-                  <li key={id} className={`db-notif${idx < 1 ? ' db-notif--sep' : ''}`}>
-                    <span className="db-notif__dot" style={{ background: color }} aria-hidden="true" />
-                    <div>
-                      <p className="db-notif__text">{text}</p>
-                      <p className="db-notif__meta">{meta}</p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-              <button type="button" className="db-notifs__viewall">
-                {t('dashboard.notifications.viewall')}
-              </button>
+
+              {evalsLoading ? (
+                <p className="db-status-msg">{t('dashboard.loading')}</p>
+              ) : evalsError ? (
+                <p className="db-status-msg db-status-msg--error">{t('dashboard.error')}</p>
+              ) : notifItems.length === 0 ? (
+                <p className="db-status-msg">{t('dashboard.notif.empty')}</p>
+              ) : (
+                <ul className="db-notifs__list">
+                  {notifItems.slice(0, 4).map(({ id, color, text, meta }, idx) => (
+                    <li key={id} className={`db-notif${idx < notifItems.length - 1 ? ' db-notif--sep' : ''}`}>
+                      <span className="db-notif__dot" style={{ background: color }} aria-hidden="true" />
+                      <div>
+                        <p className="db-notif__text">{text}</p>
+                        <p className="db-notif__meta">{meta}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              {notifItems.length > 0 && (
+                <button type="button" className="db-notifs__viewall">
+                  {t('dashboard.notifications.viewall')}
+                </button>
+              )}
             </aside>
 
-            {/* Calendar — col-span 2 */}
+            {/* Calendar */}
             <div className="db-calendar-wrap">
-              <CalendarWidget
-                title={t('dashboard.calendar.title')}
-                events={makeCalendarEvents(t)}
-                locale={locale}
-                labelPrevMonth={t('dashboard.calendar.prev_month')}
-                labelNextMonth={t('dashboard.calendar.next_month')}
-              />
+              {eventsLoading ? (
+                <p className="db-status-msg">{t('dashboard.loading')}</p>
+              ) : eventsError ? (
+                <p className="db-status-msg db-status-msg--error">{t('dashboard.error')}</p>
+              ) : (
+                <CalendarWidget
+                  title={t('dashboard.calendar.title')}
+                  events={calendarEvents}
+                  locale={locale}
+                  labelPrevMonth={t('dashboard.calendar.prev_month')}
+                  labelNextMonth={t('dashboard.calendar.next_month')}
+                />
+              )}
             </div>
 
             {/* Team spotlight — col-span 2, with real image */}
@@ -166,7 +280,6 @@ export default function Dashboard() {
                 aria-hidden="true"
                 onError={e => { e.target.style.display = 'none' }}
               />
-              {/* Fallback gradient always rendered (visible if img fails) */}
               <div className="db-spotlight__bg" aria-hidden="true" />
               <div className="db-spotlight__overlay">
                 <div className="db-spotlight__kicker">

@@ -295,6 +295,19 @@
   margin: 0;
 }
 
+/* ── Status messages (loading / error / empty) ─────────────────────────────── */
+.db-status-msg {
+  font-size: 0.8125rem;
+  color: var(--color-on-surface-variant);
+  text-align: center;
+  padding: 2rem 1rem;
+  margin: 0;
+}
+
+.db-status-msg--error {
+  color: var(--color-error);
+}
+
 /* ── Responsive ────────────────────────────────────────────────────────────── */
 @media (max-width: 1100px) {
   .db-bento {
@@ -316,5 +329,4 @@
   .db-notifs,
   .db-calendar-wrap,
   .db-spotlight     { grid-column: 1; grid-row: auto; }
-  .db-search        { width: 100%; }
 }

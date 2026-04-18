@@ -27,8 +27,6 @@ export default {
   'manager.status.signed_manager': 'Signé (manager)',
   'manager.status.signed_hr': 'Signé (RH)',
   'manager.status.validated': 'Validé',
-  // Logout
-  'manager.logout': 'Se déconnecter',
   // Loading
   'manager.loading': 'Chargement…',
   // Error
@@ -41,13 +39,6 @@ export default {
   // Pagination
   'manager.pagination.prev': 'Précédent',
   'manager.pagination.next': 'Suivant',
-  // Theme
-  'manager.theme.to_dark':  'Passer en mode sombre',
-  'manager.theme.to_light': 'Passer en mode clair',
-
-  // Language toggle
-  'manager.lang.aria': 'Changer la langue',
-
   // Sidebar accessibility
   'manager.nav.label':       'Navigation principale',
   'manager.nav.coming_soon': 'Bientôt disponible',

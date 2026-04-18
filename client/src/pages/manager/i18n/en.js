@@ -27,8 +27,6 @@ export default {
   'manager.status.signed_manager': 'Signed (Manager)',
   'manager.status.signed_hr': 'Signed (HR)',
   'manager.status.validated': 'Validated',
-  // Logout
-  'manager.logout': 'Sign out',
   // Loading
   'manager.loading': 'Loading…',
   // Error
@@ -41,13 +39,6 @@ export default {
   // Pagination
   'manager.pagination.prev': 'Previous',
   'manager.pagination.next': 'Next',
-  // Theme
-  'manager.theme.to_dark':  'Switch to dark mode',
-  'manager.theme.to_light': 'Switch to light mode',
-
-  // Language toggle
-  'manager.lang.aria': 'Change language',
-
   // Sidebar accessibility
   'manager.nav.label':       'Main navigation',
   'manager.nav.coming_soon': 'Coming soon',

@@ -253,6 +253,19 @@
   margin: 0 0 1rem 0;
 }
 
+.ev-myforms__loading,
+.ev-myforms__empty {
+  font-size: 0.875rem;
+  color: var(--color-on-surface-variant);
+  padding: 2rem 0;
+}
+
+.ev-myforms__error {
+  font-size: 0.875rem;
+  color: var(--color-error);
+  padding: 2rem 0;
+}
+
 .ev-myforms__list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -658,6 +671,31 @@
 .ev-textarea:focus:not(:focus-visible) { outline: none; }
 .ev-textarea:focus { border-color: var(--color-secondary); }
 .ev-textarea:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+
+/* ── Anonymous notice ────────────────────────────────────────────────────────── */
+.ev-anon-notice {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1.25rem;
+  background: color-mix(in srgb, var(--color-secondary) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-secondary) 20%, transparent);
+  border-radius: var(--radius-md);
+  margin-bottom: 1.5rem;
+}
+
+.ev-anon-notice__icon {
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.ev-anon-notice__text {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-on-surface);
+  margin: 0;
+  line-height: 1.5;
+}
 
 /* ── Submitted state ────────────────────────────────────────────────────────── */
 .ev-submitted {

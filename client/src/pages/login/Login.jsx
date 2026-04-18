@@ -14,9 +14,12 @@ import './login.css'
 // Les composants partagés (InputField, Checkbox…) viennent de components/ui/.
 // =============================================================================
 
+// Basic email check — server does full validation
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
 export default function Login() {
   const { t, locale, setLocale } = useLocale(pageT)
-  useTheme()  // sync data-theme depuis localStorage si pas déjà fait par le script HTML
+  useTheme()
 
   const [email,    setEmail]    = useState('')
   const [password, setPassword] = useState('')
@@ -28,16 +31,17 @@ export default function Login() {
     e.preventDefault()
     setError(null)
 
-    // Client-side validation
-    if (!email.trim() || !password) { setError(t('login.error.empty')); return }
+    const trimmedEmail = email.trim()
+    if (!trimmedEmail || !password) { setError(t('login.error.empty')); return }
+    if (!EMAIL_RE.test(trimmedEmail)) { setError(t('login.error.email')); return }
 
     setLoading(true)
     try {
-      const res  = await fetch('/api/auth/login', {
+      const res = await fetch('/api/auth/login', {
         method:      'POST',
         headers:     { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body:        JSON.stringify({ email: email.trim(), password, remember }),
+        body:        JSON.stringify({ email: trimmedEmail, password, remember }),
       })
       if (!res.ok) {
         const data = await res.json().catch(() => ({}))
@@ -45,8 +49,8 @@ export default function Login() {
         setLoading(false)
         return
       }
-      const data = await res.json()
-      if (!data.user?.role) {
+      const data = await res.json().catch(() => null)
+      if (!data?.user?.role) {
         setError(t('login.error.invalid'))
         setLoading(false)
         return
@@ -59,7 +63,7 @@ export default function Login() {
         director: '/manager',
         manager:  '/manager',
       }
-      window.location.href = roleRedirects[data.user?.role] ?? '/dashboard'
+      window.location.href = roleRedirects[data.user.role] ?? '/dashboard'
     } catch {
       setError(t('login.error.network'))
     } finally {
@@ -69,6 +73,11 @@ export default function Login() {
 
   return (
     <div className="login-page">
+
+      {/* Skip link — keyboard a11y */}
+      <a href="#main-content" className="skip-link">
+        {t('login.a11y.skip')}
+      </a>
 
       {/* Mosaïque + overlay (z:0-1) */}
       <MosaicBackground />
@@ -84,7 +93,12 @@ export default function Login() {
         <div className="login-card">
           <h2 className="login-card__title">{t('login.title')}</h2>
 
-          <form onSubmit={handleSubmit} className="login-form" noValidate>
+          <form
+            onSubmit={handleSubmit}
+            className="login-form"
+            noValidate
+            aria-label={t('login.title')}
+          >
             <InputField
               id="email"
               label={t('login.email.label')}
@@ -102,7 +116,7 @@ export default function Login() {
               id="password"
               label={t('login.password.label')}
               type="password"
-              placeholder="••••••••"
+              placeholder={t('login.password.placeholder')}
               value={password}
               onChange={e => setPassword(e.target.value)}
               autoComplete="current-password"
@@ -124,14 +138,18 @@ export default function Login() {
                 checked={remember}
                 onChange={e => setRemember(e.target.checked)}
               />
-              <a href="#" className="login-utility__link">{t('login.help')}</a>
+              {/* TODO: future feature — password recovery */}
+              <span className="login-utility__link" aria-disabled="true">
+                {t('login.help')}
+              </span>
             </div>
           </form>
 
           <div className="login-card__footer">
             <p>
               {t('login.legal.text')}{' '}
-              <a href="#">{t('login.legal.link')}</a>
+              {/* TODO: future feature — link to privacy policy */}
+              <span className="login-legal-link">{t('login.legal.link')}</span>
               {' '}{t('login.legal.suffix')}
             </p>
             <a href="mailto:admin@nanoxplore.com" className="login-contact">
@@ -145,7 +163,9 @@ export default function Login() {
       </main>
 
       {/* Pill flottante bas-droite (z:30) */}
-      <LoginControls locale={locale} onLocaleChange={setLocale}
+      <LoginControls
+        locale={locale}
+        onLocaleChange={setLocale}
         labelLight={t('login.theme.to_dark')}
         labelDark={t('login.theme.to_light')}
         labelFr={t('login.lang.fr')}

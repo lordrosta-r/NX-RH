@@ -17,6 +17,10 @@ export default {
   'dashboard.theme.to_sidebar':  'Switch to light sidebar mode',
   'dashboard.theme.to_dark':     'Switch to dark mode',
 
+  // Shared states
+  'dashboard.loading': 'Loading…',
+  'dashboard.error':   'Something went wrong. Please try again.',
+
   // Welcome greeting
   'dashboard.welcome.greeting': 'Welcome back,',
   'dashboard.welcome.tagline':  'Here is what\'s happening with your professional journey today.',
@@ -30,6 +34,7 @@ export default {
   'dashboard.campaign.cta':               'Get Started',
   'dashboard.campaign.progress.label':    'Complete',
   'dashboard.campaign.phase':             'Phase: Self-Assessment',
+  'dashboard.campaign.empty':             'No active campaign at the moment.',
 
   // Quick cards
   'dashboard.card.growth.title': 'Growth Journey',
@@ -40,14 +45,8 @@ export default {
   // Notification center
   'dashboard.notifications.title':   'Notification Center',
   'dashboard.notifications.viewall': 'View All Activity',
-  'dashboard.notif.1':      'Annual review window is now open until March 28th',
-  'dashboard.notif.1.meta': '5 hours ago · HR Systems',
-  'dashboard.notif.2':      'Reminder: complete your self-assessment before March 15th',
-  'dashboard.notif.2.meta': 'Yesterday · 2026 Campaign',
-  'dashboard.notif.3':      'Manager interview scheduled for March 22nd',
-  'dashboard.notif.3.meta': '2 days ago · Interviews',
-  'dashboard.notif.4':      'New form template available',
-  'dashboard.notif.4.meta': '3 days ago · HR',
+  'dashboard.notif.pending_eval':    'Pending evaluation',
+  'dashboard.notif.empty':           'No notifications at the moment.',
 
   // Calendar widget
   'dashboard.calendar.title':          'Deadlines',

@@ -258,7 +258,6 @@
   .mgr-main    { margin-left: 0; }
   .mgr-content { padding: 1.5rem; }
   .mgr-kpis    { grid-template-columns: 1fr 1fr; }
-  .mgr-search  { width: 100%; }
 }
 
 @media (max-width: 480px) {

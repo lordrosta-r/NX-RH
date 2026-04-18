@@ -4,7 +4,7 @@ import './LanguageSelector.css'
 // Composant spécifique à la page Login — vit dans son dossier.
 // Props: locale {string}, onChange {function}, labelFr {string}, labelEn {string}
 
-export default function LanguageSelector({ locale = 'fr', onChange, labelFr, labelEn, labelSelectLanguage = 'Sélectionner la langue' }) {
+export default function LanguageSelector({ locale = 'fr', onChange, labelFr, labelEn, labelSelectLanguage = '' }) {
   const LOCALES = [
     { value: 'fr', label: labelFr || 'Français' },
     { value: 'en', label: labelEn || 'English'  },

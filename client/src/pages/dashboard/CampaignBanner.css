@@ -58,20 +58,6 @@
   margin-bottom: 1.25rem;
 }
 
-.cb__badge-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--color-error);
-  flex-shrink: 0;
-  animation: pulse-dot 2s infinite;
-}
-
-@keyframes pulse-dot {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50%       { opacity: 0.5; transform: scale(0.75); }
-}
-
 /* Headline — editorial, maximum impact */
 .cb__headline {
   font-size: clamp(2rem, 3.5vw, 3rem);

@@ -29,6 +29,10 @@ export default {
   'ev.home.loading':           'Loading evaluations…',
   'ev.home.error.load':        'Failed to load evaluations.',
 
+  // Home — history
+  'ev.home.history.title':     'Past reviews',
+  'ev.home.history.empty':     'No completed reviews yet.',
+
   // Form status (MongoDB statuses)
   'ev.status.assigned':         'Assigned',
   'ev.status.inprogress':       'In progress',

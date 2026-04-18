@@ -106,6 +106,11 @@ const evaluationSchema = new Schema({
   signedByManagerAt:   { type: Date, default: null },
   signedByHrAt:        { type: Date, default: null },
 
+  // Dernier rappel d'échéance envoyé (utilisé par le scheduler pour éviter les
+  // doublons d'emails — on ne renvoie pas si un rappel a déjà été envoyé dans
+  // les dernières 20h pour la même évaluation).
+  lastReminderAt: { type: Date, default: null },
+
 }, { timestamps: true })
 
 // Compound unique index — empêche le doublon d'assignation

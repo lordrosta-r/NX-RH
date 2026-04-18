@@ -9,7 +9,7 @@ const STATUS_LABELS = {
   archived: 'cmp.status.archived',
 }
 
-export default function CampaignCard({ c, t, fmtDate, onDetail, onEdit, onTransition, onAssign }) {
+export default function CampaignCard({ c, t, fmtDate, onDetail, onEdit, onTransition, onAssign, onClone }) {
   return (
     <article className={`cmp-card cmp-card--${c.status}`}>
       <header className="cmp-card__head">
@@ -67,6 +67,9 @@ export default function CampaignCard({ c, t, fmtDate, onDetail, onEdit, onTransi
             {t('cmp.action.assign')}
           </button>
         )}
+        <button type="button" className="cmp-btn cmp-btn--sm" onClick={() => onClone(c)}>
+          {t('cmp.card.clone')}
+        </button>
       </div>
     </article>
   )

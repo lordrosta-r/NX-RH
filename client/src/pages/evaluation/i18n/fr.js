@@ -29,6 +29,10 @@ export default {
   'ev.home.loading':           'Chargement des évaluations…',
   'ev.home.error.load':        'Impossible de charger les évaluations.',
 
+  // Home — history
+  'ev.home.history.title':     'Historique des entretiens',
+  'ev.home.history.empty':     'Aucun entretien terminé pour le moment.',
+
   // Form status (MongoDB statuses)
   'ev.status.assigned':         'Assigné',
   'ev.status.inprogress':       'En cours',

@@ -2,8 +2,6 @@
 <html lang="fr">
   <head>
     <meta charset="UTF-8" />
-    <meta http-equiv="Content-Security-Policy"
-          content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://images.unsplash.com https://lh3.googleusercontent.com; connect-src 'self';">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>NanoXplore RH — Connexion</title>
 
@@ -16,11 +14,6 @@
           document.documentElement.setAttribute('data-theme', valid.indexOf(t) !== -1 ? t : 'dark')
           var l = localStorage.getItem('nx_locale')
           if (l) document.documentElement.setAttribute('lang', l === 'fr' ? 'fr' : 'en')
-          var skipEl = document.getElementById('skip-link')
-          if (skipEl) {
-            var sl = localStorage.getItem('nx_locale')
-            skipEl.textContent = (sl === 'en') ? 'Skip to main content' : 'Aller au contenu principal'
-          }
         } catch (e) {
           document.documentElement.setAttribute('data-theme', 'dark')
           document.documentElement.setAttribute('lang', 'fr')
@@ -37,7 +30,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
   </head>
   <body>
-    <a id="skip-link" href="#main-content" class="skip-link">Aller au contenu principal</a>
     <div id="root" tabindex="-1"></div>
     <script type="module" src="/src/pages/login/main.jsx"></script>
   </body>

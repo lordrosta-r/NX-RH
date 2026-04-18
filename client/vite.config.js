@@ -70,11 +70,12 @@ export default defineConfig({
   // ── Dev server ─────────────────────────────────────────────────────────────
   // `vite dev` serves the React pages with HMR.
   // API calls are transparently proxied to the running Express backend.
+  // In Docker, VITE_API_TARGET points to the internal "app" service.
   server: {
     port: 5173,
     proxy: {
       '/api': {
-        target: 'http://localhost:3000',
+        target: process.env.VITE_API_TARGET || 'http://localhost:3000',
         changeOrigin: true,
       },
     },

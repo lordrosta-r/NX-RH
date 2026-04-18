@@ -26,7 +26,6 @@ export default function Login() {
   const [remember, setRemember] = useState(false)
   const [error,    setError]    = useState(null)
   const [loading,  setLoading]  = useState(false)
-  const [forgotOpen, setForgotOpen] = useState(false)
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -140,13 +139,6 @@ export default function Login() {
                 checked={remember}
                 onChange={e => setRemember(e.target.checked)}
               />
-              <button
-                type="button"
-                className="login-utility__link"
-                onClick={() => setForgotOpen(true)}
-              >
-                {t('login.forgot')}
-              </button>
             </div>
           </form>
 
@@ -165,23 +157,7 @@ export default function Login() {
 
         <footer className="login-page-footer">{t('login.copyright')}</footer>
 
-        {/* Forgot-password stub modal */}
-        {forgotOpen && (
-          <div className="login-modal-backdrop" onClick={() => setForgotOpen(false)}>
-            <div className="login-modal" role="dialog" aria-labelledby="forgot-title" onClick={e => e.stopPropagation()}>
-              <h3 id="forgot-title" className="login-modal__title">{t('login.forgot.title')}</h3>
-              <p className="login-modal__body">{t('login.forgot.body')}</p>
-              <div className="login-modal__actions">
-                <a href="mailto:admin@nanoxplore.com" className="login-modal__link">
-                  {t('login.forgot.contact')}
-                </a>
-                <button type="button" className="login-modal__close" onClick={() => setForgotOpen(false)}>
-                  {t('login.forgot.close')}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+
 
       </main>
 

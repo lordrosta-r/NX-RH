@@ -105,6 +105,12 @@ export default function HRDashboard() {
   const [loading, setLoading] = useState(true)
   const [error, setError]     = useState(null)
 
+  // ── Event modal state (must be declared before any early return) ───────────
+  const [eventModalOpen, setEventModalOpen] = useState(false)
+  const [eventForm, setEventForm]           = useState({ title: '', date: '', type: 'meeting' })
+  const [eventEditing, setEventEditing]     = useState(null)
+  const [eventSaving, setEventSaving]       = useState(false)
+
   // ── Fetch all HR data in parallel ─────────────────────────────────────────
   useEffect(() => {
     let cancelled = false
@@ -275,11 +281,6 @@ export default function HRDashboard() {
   }))
 
   // Event modal state
-  const [eventModalOpen, setEventModalOpen] = useState(false)
-  const [eventForm, setEventForm]           = useState({ title: '', date: '', type: 'meeting' })
-  const [eventEditing, setEventEditing]     = useState(null)
-  const [eventSaving, setEventSaving]       = useState(false)
-
   function openCreateEvent() {
     setEventEditing(null)
     setEventForm({ title: '', date: '', type: 'meeting' })

@@ -4,19 +4,18 @@
 // Design: docs/design/dashboard/DESIGN.md
 // =============================================================================
 
-import React, { useEffect, useState, useRef } from 'react'
+import React from 'react'
 import './dashboard.css'
 import DashboardSidebar from './DashboardSidebar'
 import CampaignBanner   from './CampaignBanner'
 import CalendarWidget   from '../../components/ui/CalendarWidget'
+import AppTopbar        from '../../components/ui/AppTopbar'
 import { t as pageT }   from './i18n'
 import { useLocale }    from '../../hooks/useLocale'
 import { useTheme }     from '../../hooks/useTheme'
 import { useAuthUser }  from '../../hooks/useAuthUser'
 import {
-  BellIcon, SearchIcon, ArrowNEIcon,
-  SunIcon, MoonIcon, PaletteIcon, HelpIcon,
-  SparklesIcon, HeartIcon,
+  ArrowNEIcon, SparklesIcon, HeartIcon,
 } from '../../components/ui/icons'
 
 // ── Mock calendar events (remplacer par API quand dispo) ─────────────────────
@@ -39,75 +38,28 @@ const NOTIF_COLORS = [
 // ── Spotlight image (office interior — replaceable with a local asset in /public)
 const SPOTLIGHT_IMG = '/assets/spotlight.jpg'
 
-// ── Theme icon — one per state ────────────────────────────────────────────────
-function ThemeIcon({ theme }) {
-  const props = { size: 17, color: 'var(--color-on-surface-variant)' }
-  if (theme === 'dark')         return <SunIcon     {...props} />
-  if (theme === 'light')        return <PaletteIcon {...props} />
-  return                               <MoonIcon    {...props} />
-}
 
 // ── Component ────────────────────────────────────────────────────────────────
 export default function Dashboard() {
-  const { t, locale }          = useLocale(pageT)
+  const { t, locale, setLocale } = useLocale(pageT)
   const { theme, cycleTheme }  = useTheme()
   const { user, loading }      = useAuthUser()
-  const [notifOpen, setNotifOpen] = useState(false)
-  const notifRef = useRef(null)
-
-  function themeLabel(th) {
-    if (th === 'dark')  return t('dashboard.theme.to_light')
-    if (th === 'light') return t('dashboard.theme.to_sidebar')
-    return t('dashboard.theme.to_dark')
-  }
-
-  // Close notification dropdown when clicking outside
-  useEffect(() => {
-    if (!notifOpen) return
-    function onClickOutside(e) {
-      if (notifRef.current && !notifRef.current.contains(e.target)) {
-        setNotifOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', onClickOutside)
-    return () => document.removeEventListener('mousedown', onClickOutside)
-  }, [notifOpen])
-
-  // Close notification dropdown on Escape key
-  useEffect(() => {
-    if (!notifOpen) return
-    const onKey = (e) => { if (e.key === 'Escape') setNotifOpen(false) }
-    document.addEventListener('keydown', onKey)
-    return () => document.removeEventListener('keydown', onKey)
-  }, [notifOpen])
 
   if (loading) return null
   if (!user)   return null
 
   async function handleLogout() {
-    try { await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }) } catch { /* ignore logout network errors */ }
+    try { await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }) } catch { /* ignore */ }
     sessionStorage.clear()
     window.location.href = '/'
   }
 
   const notifItems = [1, 2, 3, 4].map(n => ({
-    id:    n,
-    color: NOTIF_COLORS[n - 1],
-    text:  t(`dashboard.notif.${n}`),
-    meta:  t(`dashboard.notif.${n}.meta`),
+    id: n, color: NOTIF_COLORS[n - 1],
+    text: t(`dashboard.notif.${n}`), meta: t(`dashboard.notif.${n}.meta`),
   }))
 
-  const dateLabel = new Date().toLocaleDateString(
-    locale === 'fr' ? 'fr-FR' : 'en-US',
-    { day: 'numeric', month: 'long', year: 'numeric' }
-  )
-
-  // User info
-  const first    = user?.firstName ?? ''
-  const last     = user?.lastName  ?? ''
-  const initials = `${first[0] ?? ''}${last[0] ?? ''}`.toUpperCase() || 'U'
-  const fullName = first || last ? `${first} ${last}`.trim() : 'Utilisateur'
-  const role     = user?.role ?? 'employee'
+  const first = user?.firstName ?? ''
 
   return (
     <div className="db">
@@ -118,116 +70,13 @@ export default function Dashboard() {
       {/* ── Main area ───────────────────────────────────────────────────── */}
       <div className="db-main">
 
-        {/* ── Topbar ──────────────────────────────────────────────────── */}
-        <header className="db-topbar">
-
-          {/* Search pill */}
-          <div className="db-search" role="search">
-            <SearchIcon size={15} color="var(--color-outline)" />
-            <input
-              type="text"
-              className="db-search__input"
-              placeholder={t('dashboard.search.placeholder')}
-              aria-label={t('dashboard.search.placeholder')}
-            />
-          </div>
-
-          {/* Right cluster */}
-          <div className="db-topbar__right">
-
-            {/* Date */}
-            <span className="db-topbar__date">{dateLabel}</span>
-
-            <div className="db-topbar__sep" aria-hidden="true" />
-
-            {/* Theme cycle */}
-            <button
-              type="button"
-              className="db-icon-btn"
-              onClick={cycleTheme}
-              aria-label={themeLabel(theme)}
-              title={themeLabel(theme)}
-            >
-              <ThemeIcon theme={theme} />
-            </button>
-
-            {/* Help */}
-            <button
-              type="button"
-              className="db-icon-btn"
-              aria-label={t('dashboard.help.aria')}
-              title={t('dashboard.help.title')}
-            >
-              <HelpIcon size={17} color="var(--color-on-surface-variant)" strokeWidth={1.5} />
-            </button>
-
-            {/* Notification bell + dropdown */}
-            <div className="db-notif-wrap" ref={notifRef}>
-              <button
-                type="button"
-                className="db-icon-btn db-icon-btn--notif"
-                onClick={() => setNotifOpen(o => !o)}
-                aria-label={t('dashboard.notifications.aria_bell')}
-                aria-expanded={notifOpen}
-              >
-                <BellIcon size={17} color="var(--color-on-surface-variant)" />
-                <span className="db-bell-dot" aria-hidden="true" />
-              </button>
-
-              {notifOpen && (
-                <div className="db-notif-dropdown" role="dialog" aria-modal="true" aria-label={t('dashboard.notifications.title')}>
-                  <div className="db-notif-dropdown__header">
-                    <span className="db-notif-dropdown__title">
-                      {t('dashboard.notifications.title').toUpperCase()}
-                    </span>
-                    <span className="db-notif-dropdown__badge">{notifItems.length}</span>
-                  </div>
-                  <ul className="db-notif-dropdown__list">
-                    {notifItems.map(({ id, color, text, meta }, idx) => (
-                      <li key={id} className={`db-notif-item${idx < notifItems.length - 1 ? ' db-notif-item--sep' : ''}`}>
-                        <span className="db-notif-item__dot" style={{ background: color }} aria-hidden="true" />
-                        <div>
-                          <p className="db-notif-item__text">{text}</p>
-                          <p className="db-notif-item__meta">{meta}</p>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                  <button type="button" className="db-notif-dropdown__footer" onClick={() => setNotifOpen(false)}>
-                    {t('dashboard.notifications.viewall')}
-                  </button>
-                </div>
-              )}
-            </div>
-
-            <div className="db-topbar__sep" aria-hidden="true" />
-
-            {/* User profile — top right */}
-            <div className="db-topbar__user">
-              <div className="db-topbar__user-info">
-                <p className="db-topbar__user-name">{fullName}</p>
-                <p className="db-topbar__user-role">{role}</p>
-              </div>
-              <div className="db-topbar__avatar" aria-hidden="true">{initials}</div>
-              <button
-                type="button"
-                className="db-icon-btn"
-                onClick={handleLogout}
-                aria-label={t('dashboard.logout.aria')}
-                title={t('dashboard.logout.title')}
-              >
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
-                  stroke="var(--color-on-surface-variant)" strokeWidth="1.5"
-                  strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
-                  <polyline points="16 17 21 12 16 7"/>
-                  <line x1="21" y1="12" x2="9" y2="12"/>
-                </svg>
-              </button>
-            </div>
-
-          </div>
-        </header>
+        <AppTopbar
+          searchPlaceholder={t('dashboard.search.placeholder')}
+          locale={locale} setLocale={setLocale}
+          theme={theme} cycleTheme={cycleTheme}
+          notifItems={notifItems}
+          user={user} onLogout={handleLogout}
+        />
 
         {/* ── Page content ────────────────────────────────────────────── */}
         <main className="db-content" id="main-content">
@@ -291,7 +140,7 @@ export default function Dashboard() {
                   </li>
                 ))}
               </ul>
-              <button type="button" className="db-notifs__viewall" onClick={() => setNotifOpen(false)}>
+              <button type="button" className="db-notifs__viewall">
                 {t('dashboard.notifications.viewall')}
               </button>
             </aside>

@@ -12,9 +12,9 @@ import { useLocale } from '../../hooks/useLocale'
 import { useTheme } from '../../hooks/useTheme'
 import { useAuthUser } from '../../hooks/useAuthUser'
 import HRSidebar from '../hr/HRSidebar'
+import AppTopbar from '../../components/ui/AppTopbar'
 import FormEditorBanner from './FormEditorBanner'
 import {
-  SearchIcon, BellIcon, HelpIcon, PaletteIcon,
   PlusIcon, TrashIcon, DocumentIcon,
 } from '../../components/ui/icons'
 
@@ -89,7 +89,7 @@ function QuestionPreview({ field, t }) {
 export default function FormEditor() {
   const { user, loading: authLoading } = useAuthUser()
   const { t, locale, setLocale } = useLocale(pageT)
-  const { cycleTheme } = useTheme()
+  const { theme, cycleTheme } = useTheme()
 
   // Views: 'list' | 'create'
   const [view, setView]         = useState('list')
@@ -826,48 +826,25 @@ export default function FormEditor() {
   }
 
   // ── Shell ──────────────────────────────────────────────────────────────────
-  // Adapter: HRSidebar uses hr.nav.* keys; FormEditor i18n has the same labels under fe.nav.*
   const hrT = (key) => t(key.replace('hr.nav.', 'fe.nav.'))
+
+  async function handleLogout() {
+    try { await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }) } catch { /* ignore */ }
+    sessionStorage.clear()
+    window.location.href = '/'
+  }
+
   return (
     <div className="fe">
       <HRSidebar t={hrT} activeItem="formeditor" />
       <div className="fe-main">
 
-        {/* Topbar */}
-        <header className="fe-topbar">
-          <div className="fe-topbar__search">
-            <SearchIcon size={15} color="var(--color-on-surface-variant)" strokeWidth={1.5} />
-            <input
-              className="fe-topbar__input"
-              type="search"
-              aria-label={t('fe.topbar.search')}
-              placeholder={t('fe.topbar.search')}
-            />
-          </div>
-          <div className="fe-topbar__right">
-            <span className="fe-topbar__date">
-              {new Date().toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' })}
-            </span>
-            <button type="button" className="fe-topbar__icon-btn" onClick={cycleTheme} aria-label={t('fe.topbar.theme')}>
-              <PaletteIcon size={18} color="var(--color-on-surface-variant)" />
-            </button>
-            <button type="button" className="fe-topbar__icon-btn" aria-label={t('fe.topbar.help')}>
-              <HelpIcon size={18} color="var(--color-on-surface-variant)" />
-            </button>
-            <button type="button" className="fe-topbar__icon-btn" aria-label={t('fe.topbar.notifications')}>
-              <BellIcon size={18} color="var(--color-on-surface-variant)" />
-            </button>
-            <button
-              type="button"
-              className="fe-topbar__locale"
-              aria-label={t('fe.topbar.lang')}
-              onClick={() => setLocale(locale === 'fr' ? 'en' : 'fr')}
-            >
-              {locale.toUpperCase()}
-            </button>
-            <div className="fe-topbar__avatar" aria-hidden="true">{t('fe.topbar.avatar')}</div>
-          </div>
-        </header>
+        <AppTopbar
+          searchPlaceholder={t('fe.topbar.search')}
+          locale={locale} setLocale={setLocale}
+          theme={theme} cycleTheme={cycleTheme}
+          user={user} onLogout={handleLogout}
+        />
 
         {/* Content */}
         <main className="fe-content" id="main-content">

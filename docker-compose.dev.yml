@@ -2,15 +2,36 @@
 # NanoXplore RH — Docker Compose Override (Development)
 #
 # Extends docker-compose.yml for local development:
+#   - Adds a Vite dev server container (client) on port 5173 with HMR
 #   - Exposes MongoDB port for GUI clients (Compass, Studio 3T…)
 #   - Mounts mongo/server/ source for live-reload with nodemon
-#   - Skips nginx (access app directly on port 3000)
+#   - Skips nginx (access frontend on 5173, API on 3000)
 #
 # Usage:
-#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
 # =============================================================================
 
 services:
+
+  # ── Vite dev server (HMR) ────────────────────────────────────────────────
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: nx_client
+    environment:
+      VITE_API_TARGET: http://app:3000
+    volumes:
+      - ./client:/app:delegated
+      - /app/node_modules           # Keep container's node_modules isolated
+    ports:
+      - "5173:5173"
+    depends_on:
+      app:
+        condition: service_healthy
+    networks:
+      - frontend
+
   app:
     build:
       target: server           # Skip the client-builder stage

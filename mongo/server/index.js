@@ -59,7 +59,7 @@ app.use(helmet({
     directives: {
       defaultSrc:              ["'self'"],
       // Hash covers the anti-flash inline <script> present in every .html entry point
-      scriptSrc:               ["'self'", "'sha256-41QRkuG2u/36vjTzg1hZt9WHedga1/Q/Yk59rGLjxaE='"],
+      scriptSrc:               ["'self'", "'sha256-uB2fGBNjJqj03XemKOQzxo4jGZQj8buFmmu22ZvTFzY='"],
       styleSrc:                ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
       fontSrc:                 ["'self'", 'https://fonts.gstatic.com'],
       imgSrc:                  ["'self'", 'data:', 'https://images.unsplash.com', 'https://lh3.googleusercontent.com'],

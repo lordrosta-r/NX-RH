@@ -1,5 +1,5 @@
 // ChevronRightIcon — Inline arrow for "Explore Growth →" style links
-export default function ChevronRightIcon({ size = 16, color = 'currentColor', strokeWidth = 2 }) {
+export default function ChevronRightIcon({ size = 18, color = 'currentColor', strokeWidth = 2 }) {
   return (
     <svg
       width={size} height={size}

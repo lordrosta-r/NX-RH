@@ -1,5 +1,5 @@
 // DocumentIcon — file/template (stroke, 24×24 grid)
-export default function DocumentIcon({ size = 24, color = 'currentColor', strokeWidth = 1.5 }) {
+export default function DocumentIcon({ size = 18, color = 'currentColor', strokeWidth = 2 }) {
   return (
     <svg
       width={size}

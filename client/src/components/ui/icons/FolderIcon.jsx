@@ -1,5 +1,5 @@
 // FolderIcon — ressources / bibliothèque de documents (stroke, 24×24 grid)
-export default function FolderIcon({ size = 24, color = 'currentColor', strokeWidth = 1.5 }) {
+export default function FolderIcon({ size = 18, color = 'currentColor', strokeWidth = 2 }) {
   return (
     <svg
       width={size}

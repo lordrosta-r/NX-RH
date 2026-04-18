@@ -1,5 +1,5 @@
 // PaletteIcon — theme cycle indicator (stroke, 24×24 grid)
-export default function PaletteIcon({ size = 24, color = 'currentColor', strokeWidth = 1.5 }) {
+export default function PaletteIcon({ size = 18, color = 'currentColor', strokeWidth = 2 }) {
   return (
     <svg
       width={size}
@@ -13,9 +13,9 @@ export default function PaletteIcon({ size = 24, color = 'currentColor', strokeW
       aria-hidden="true"
     >
       <circle cx="12" cy="12" r="9" />
-      <circle cx="9"  cy="10" r="1" fill={color} stroke="none" />
-      <circle cx="15" cy="10" r="1" fill={color} stroke="none" />
-      <circle cx="12" cy="15" r="1" fill={color} stroke="none" />
+      <circle cx="9"  cy="10" r="1" />
+      <circle cx="15" cy="10" r="1" />
+      <circle cx="12" cy="15" r="1" />
     </svg>
   )
 }

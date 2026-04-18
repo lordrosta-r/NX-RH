@@ -67,6 +67,11 @@
   color: var(--color-on-surface);
 }
 
+.cal__nav-btn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
 /* ── Day-of-week row ───────────────────────────────────────────────────────── */
 .cal__dow {
   display: grid;
@@ -115,6 +120,12 @@
 
 .cal__cell--has-event:hover {
   background: var(--color-surface-container-low);
+}
+
+.cal__cell:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
+  border-radius: var(--radius-md);
 }
 
 /* Today — primary red circle */

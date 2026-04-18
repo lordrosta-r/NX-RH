@@ -20,14 +20,18 @@ const THEMES        = ['dark', 'light', 'light-sidebar']
 
 export function useTheme() {
   const [theme, setThemeState] = useState(() => {
-    const stored = localStorage.getItem(STORAGE_KEY)
-    return THEMES.includes(stored) ? stored : DEFAULT_THEME
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY)
+      return THEMES.includes(stored) ? stored : DEFAULT_THEME
+    } catch {
+      return DEFAULT_THEME
+    }
   })
 
   // Apply to <html> whenever theme changes
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme)
-    localStorage.setItem(STORAGE_KEY, theme)
+    try { localStorage.setItem(STORAGE_KEY, theme) } catch { /* private browsing */ }
   }, [theme])
 
   const cycleTheme = () =>

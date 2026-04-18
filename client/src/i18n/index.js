@@ -16,18 +16,20 @@ const STORAGE_KEY       = 'nx_locale'
 export const FALLBACK   = 'fr'
 export const SUPPORTED  = ['fr', 'en']
 
-/** Read persisted locale from localStorage. */
+/** Read persisted locale from localStorage (safe in private browsing). */
 export function getLocale() {
-  const stored = typeof localStorage !== 'undefined'
-    ? localStorage.getItem(STORAGE_KEY)
-    : null
-  return SUPPORTED.includes(stored) ? stored : FALLBACK
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY)
+    return SUPPORTED.includes(stored) ? stored : FALLBACK
+  } catch {
+    return FALLBACK
+  }
 }
 
-/** Persist locale choice. */
+/** Persist locale choice (safe in private browsing). */
 export function setLocale(locale) {
   if (!SUPPORTED.includes(locale)) return
-  localStorage.setItem(STORAGE_KEY, locale)
+  try { localStorage.setItem(STORAGE_KEY, locale) } catch { /* private browsing */ }
 }
 
 /**

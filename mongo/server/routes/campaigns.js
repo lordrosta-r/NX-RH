@@ -11,8 +11,9 @@
 
 const router     = require('express').Router()
 const mongoose   = require('mongoose')
-const { Campaign, Evaluation, CAMPAIGN_TRANSITIONS: VALID_TRANSITIONS } = require('../models')
+const { Campaign, Evaluation, User, CAMPAIGN_TRANSITIONS: VALID_TRANSITIONS } = require('../models')
 const { ADMIN_ROLES } = require('../config/constants')
+const { notifyMany }  = require('../services/notificationService')
 
 // ─── GET /api/campaigns ──────────────────────────────────────────────────────
 
@@ -152,6 +153,21 @@ router.patch('/:id', async (req, res, next) => {
     })
 
     await campaign.save()
+
+    // ── Fire-and-forget: notify users when campaign goes active ──────────────
+    if (req.body.status === 'active') {
+      ;(async () => {
+        try {
+          const filter = { isActive: true }
+          if (campaign.targetDepartments?.length) {
+            filter.department = { $in: campaign.targetDepartments }
+          }
+          const users = await User.find(filter).lean()
+          if (users.length) await notifyMany('campaignLaunch', users, { campaignName: campaign.name })
+        } catch (_) { /* notification failure must never block */ }
+      })()
+    }
+
     res.json(campaign.toObject())
   } catch (err) {
     next(err)

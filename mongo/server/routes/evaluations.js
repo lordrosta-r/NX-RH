@@ -16,6 +16,7 @@ const { Evaluation, Form, Campaign, User, VALID_TRANSITIONS, ROLE_TRANSITIONS, L
 const { getVisibleUserIds } = require('../services/managerVisibility')
 const { ADMIN_ROLES }       = require('../config/constants')
 const { EVALUATION_STATUSES } = require('../config/constants')
+const { notify, notifyMany }  = require('../services/notificationService')
 const PDFDocument = require('pdfkit')
 
 // Enlève evaluatorId/evaluatorName si le form est anonyme
@@ -250,6 +251,18 @@ router.post('/bulk', async (req, res, next) => {
       lastSavedAt: null,
     }))
     const result = await Evaluation.insertMany(sanitized, { ordered: false })
+
+    // ── Fire-and-forget: notify assigned evaluatees ──────────────────────────
+    ;(async () => {
+      try {
+        const evaluateeIds = [...new Set(sanitized.map(e => e.evaluateeId?.toString()).filter(Boolean))]
+        const campaignId = sanitized[0]?.campaignId
+        const campaign = campaignId ? await Campaign.findById(campaignId, 'name').lean() : null
+        const evaluatees = await User.find({ _id: { $in: evaluateeIds }, isActive: true }).lean()
+        if (evaluatees.length) await notifyMany('evaluationAssigned', evaluatees, { campaignName: campaign?.name || '' })
+      } catch (_) { /* notification failure must never block */ }
+    })()
+
     res.status(201).json({ created: result.length })
   } catch (err) {
     // Certains doublons peuvent être ignorés
@@ -361,6 +374,52 @@ router.patch('/:id', async (req, res, next) => {
     }
 
     await evaluation.save()
+
+    // ── Fire-and-forget notifications on status change ───────────────────────
+    if (req.body.status) {
+      const newStatus = req.body.status
+      ;(async () => {
+        try {
+          const campaign = evaluation.campaignId
+            ? await Campaign.findById(evaluation.campaignId, 'name').lean()
+            : null
+          const cName = campaign?.name || ''
+
+          if (newStatus === 'submitted') {
+            // Notify manager that evaluatee submitted
+            const evaluatee = await User.findById(evaluation.evaluateeId, 'managerId firstName').lean()
+            if (evaluatee?.managerId) {
+              const manager = await User.findById(evaluatee.managerId).lean()
+              if (manager) await notify('evaluationSubmitted', manager, { evaluatorName: evaluatee.firstName, campaignName: cName })
+            }
+          } else if (newStatus === 'reviewed') {
+            // Notify evaluatee that their evaluation was reviewed
+            const evaluatee = await User.findById(evaluation.evaluateeId).lean()
+            if (evaluatee) await notify('managerActionRequired', evaluatee, { campaignName: cName })
+          } else if (newStatus === 'signed_evaluatee') {
+            // Notify manager that evaluatee signed
+            const evaluatee = await User.findById(evaluation.evaluateeId, 'managerId firstName').lean()
+            if (evaluatee?.managerId) {
+              const manager = await User.findById(evaluatee.managerId).lean()
+              if (manager) await notify('evaluationSubmitted', manager, { evaluatorName: evaluatee.firstName, campaignName: cName })
+            }
+          } else if (newStatus === 'signed_manager') {
+            // Notify HR users that manager co-signed
+            const hrUsers = await User.find({ role: { $in: ['hr', 'admin'] }, isActive: true }).lean()
+            if (hrUsers.length) await notifyMany('evaluationSubmitted', hrUsers, { evaluatorName: 'Manager', campaignName: cName })
+          } else if (newStatus === 'signed_hr') {
+            // Notify evaluatee + manager that cycle is complete
+            const evaluatee = await User.findById(evaluation.evaluateeId).lean()
+            if (evaluatee) await notify('managerActionRequired', evaluatee, { campaignName: cName })
+            if (evaluatee?.managerId) {
+              const manager = await User.findById(evaluatee.managerId).lean()
+              if (manager) await notify('evaluationSubmitted', manager, { evaluatorName: evaluatee.firstName, campaignName: cName })
+            }
+          }
+        } catch (_) { /* notification failure must never block */ }
+      })()
+    }
+
     res.json({
       id:               evaluation._id,
       status:           evaluation.status,

@@ -21,8 +21,8 @@
   width:          1rem;
   height:         1rem;
   border-radius:  0.125rem;
-  background:     var(--th-checkbox-bg,     rgb(39,39,42));
-  border:         1px solid var(--th-checkbox-border, #52525b);
+  background:     var(--th-checkbox-bg);
+  border:         1px solid var(--th-checkbox-border);
   display:        flex;
   align-items:    center;
   justify-content:center;
@@ -31,8 +31,8 @@
 }
 
 .checkbox__input:checked + .checkbox__box {
-  background:   var(--color-primary-container, #e50914);
-  border-color: var(--color-primary-container, #e50914);
+  background:   var(--color-primary-container);
+  border-color: var(--color-primary-container);
 }
 
 .checkbox__input:checked + .checkbox__box::after {
@@ -40,19 +40,19 @@
   display:      block;
   width:        0.3rem;
   height:       0.55rem;
-  border:       2px solid var(--color-on-primary, #fff);
+  border:       2px solid var(--color-on-primary);
   border-top:   none;
   border-left:  none;
   transform:    rotate(45deg) translate(-1px, -1px);
 }
 
 .checkbox__input:focus-visible + .checkbox__box {
-  outline:        2px solid var(--color-primary-container, #e50914);
+  outline:        2px solid var(--color-primary-container);
   outline-offset: 2px;
 }
 
 .checkbox__label {
   font-size: 0.75rem;
-  color:     var(--th-utility-link, #a1a1aa);
+  color:     var(--th-utility-link);
   transition: color 0.2s;
 }

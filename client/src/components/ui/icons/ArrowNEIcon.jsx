@@ -1,5 +1,5 @@
 // ArrowNEIcon — North-east arrow for interactive cards
-export default function ArrowNEIcon({ size = 16, color = 'currentColor', strokeWidth = 2 }) {
+export default function ArrowNEIcon({ size = 18, color = 'currentColor', strokeWidth = 2 }) {
   return (
     <svg
       width={size} height={size}

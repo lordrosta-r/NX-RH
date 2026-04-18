@@ -1,5 +1,5 @@
 // HelpIcon — question mark circle (stroke, 24×24 grid)
-export default function HelpIcon({ size = 24, color = 'currentColor', strokeWidth = 1.5 }) {
+export default function HelpIcon({ size = 18, color = 'currentColor', strokeWidth = 2 }) {
   return (
     <svg
       width={size}
@@ -14,7 +14,7 @@ export default function HelpIcon({ size = 24, color = 'currentColor', strokeWidt
     >
       <circle cx="12" cy="12" r="9" />
       <path d="M9.5 9a2.5 2.5 0 0 1 5 0c0 1.5-2.5 2-2.5 3.5" />
-      <circle cx="12" cy="17" r="0.5" fill={color} />
+      <line x1="12" y1="17" x2="12.01" y2="17" />
     </svg>
   )
 }

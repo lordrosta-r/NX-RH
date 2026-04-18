@@ -13,7 +13,7 @@
   font-weight:     700;
   text-transform:  uppercase;
   letter-spacing:  0.1em;
-  color:           var(--th-label-color, #a1a1aa);
+  color:           var(--th-label-color);
   transition:      color 0.2s;
 }
 
@@ -23,7 +23,7 @@
   border:           none;
   border-bottom:    2px solid transparent;
   border-radius:    var(--radius-md, 0.5rem) var(--radius-md, 0.5rem) 0 0;
-  color:            var(--th-input-color, #ffffff);
+  color:            var(--th-input-color);
   padding:          1rem;
   font-size:        0.875rem;
   font-family:      inherit;
@@ -32,11 +32,11 @@
 }
 
 .input-field__input::placeholder {
-  color: var(--th-input-placeholder, #71717a);
+  color: var(--th-input-placeholder);
 }
 
 .input-field__input:focus {
-  border-bottom-color: var(--color-primary-container, #e50914);
+  border-bottom-color: var(--color-primary-container);
 }
 
 /* Wrapper (replaces tray in updated InputField) */
@@ -44,13 +44,13 @@
   position:      relative;
   display:       flex;
   align-items:   center;
-  background:    var(--th-input-tray, rgba(39,39,42,0.5));
+  background:    var(--th-input-tray);
   border-radius: var(--radius-md, 0.5rem);
   transition:    background 0.2s ease;
 }
 
 .input-field__wrapper:focus-within {
-  background: var(--th-input-tray-focus, rgb(39,39,42));
+  background: var(--th-input-tray-focus);
 }
 
 .input-field__wrapper .input-field__input {
@@ -80,13 +80,13 @@
 .input-field__error-msg {
   margin:      4px 0 0;
   font-size:   0.75rem;
-  color:       var(--color-error, #ba1a1a);
+  color:       var(--color-error);
   line-height: 1.4;
 }
 
 /* Required asterisk */
 .input-field__required {
-  color:       var(--color-error, #ba1a1a);
+  color:       var(--color-error);
   margin-left: 2px;
 }
 
@@ -98,11 +98,11 @@
 
 /* Error state */
 .input-field--error .input-field__label {
-  color: var(--color-error, #ba1a1a);
+  color: var(--color-error);
 }
 .input-field--error .input-field__wrapper {
   background: var(--color-error-tint);
 }
 .input-field--error .input-field__input:focus {
-  border-bottom-color: var(--color-error, #ba1a1a);
+  border-bottom-color: var(--color-error);
 }

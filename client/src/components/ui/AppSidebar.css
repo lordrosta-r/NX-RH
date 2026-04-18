@@ -30,7 +30,7 @@
   font-size: 1.125rem;
   font-weight: 800;
   letter-spacing: -0.02em;
-  color: var(--color-sidebar-brand-text, #ffffff);
+  color: var(--color-sidebar-brand-text);
   line-height: 1.2;
 }
 
@@ -86,7 +86,7 @@ html[data-theme="light-sidebar"] .app-sidebar__item--active {
   background: var(--color-sidebar-active-bg);
   color: var(--color-sidebar-nav-active);
   box-shadow: none;
-  border-left: 3px solid var(--color-secondary, #5b00df);
+  border-left: 3px solid var(--color-secondary);
   padding-left: calc(1rem - 3px);
 }
 

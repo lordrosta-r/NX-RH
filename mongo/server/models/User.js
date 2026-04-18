@@ -7,7 +7,17 @@
 
 const { Schema, model } = require('mongoose')
 const bcrypt = require('bcrypt')
-const { ROLES, DEPARTMENTS, BCRYPT_ROUNDS, AUTH_SOURCES } = require('../config/constants')
+const { ROLES, DEPARTMENTS, BCRYPT_ROUNDS, AUTH_SOURCES, LOCALES, THEMES, NOTIF_PREF_KEYS } = require('../config/constants')
+
+// Defaults notifications — strict subset des clés autorisées
+const DEFAULT_NOTIF_PREFS = {
+  campaignLaunch:        true,
+  evaluationAssigned:    true,
+  evaluationSubmitted:   true,
+  deadlineReminder:      true,
+  managerActionRequired: true,
+  systemAlerts:          false,
+}
 
 const userSchema = new Schema({
   email: {
@@ -72,6 +82,28 @@ const userSchema = new Schema({
     type: String,
     select: false,
   },
+
+  // Préférences utilisateur — persistées en DB pour suivre l'utilisateur entre devices.
+  // localStorage reste le cache anti-flash côté client.
+  locale: { type: String, enum: LOCALES, default: 'fr' },
+  theme:  { type: String, enum: THEMES,  default: 'dark' },
+
+  // Préférences de notifications — sous-ensemble booléen de NOTIF_PREF_KEYS.
+  // Validation stricte au PATCH côté route, defaults gérés ici.
+  notificationPrefs: {
+    type: Object,
+    default: () => ({ ...DEFAULT_NOTIF_PREFS }),
+    validate: {
+      validator(v) {
+        if (!v || typeof v !== 'object') return false
+        return Object.keys(v).every(k => NOTIF_PREF_KEYS.includes(k) && typeof v[k] === 'boolean')
+      },
+      message: 'notificationPrefs invalides',
+    },
+  },
+
+  // Date de dernière connexion — mise à jour au login (fire-and-forget).
+  lastLoginAt: { type: Date, default: null },
 
   isActive: { type: Boolean, default: true },
 

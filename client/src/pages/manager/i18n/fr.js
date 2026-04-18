@@ -2,6 +2,7 @@ export default {
   // Nav
   'manager.nav.evaluations': 'Évaluations',
   'manager.nav.team': 'Mon équipe',
+  'manager.nav.settings': 'Paramètres',
   // Topbar
   'manager.search.placeholder': 'Rechercher…',
   // Welcome

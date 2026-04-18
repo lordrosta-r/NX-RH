@@ -114,6 +114,7 @@ app.get('/manager',    authGuard(['admin', 'director', 'manager']),             
 app.get('/hr',         authGuard(['admin', 'hr']),                                    sendPage('hr'))
 app.get('/formeditor', authGuard(['admin', 'hr']),                                    sendPage('formeditor'))
 app.get('/evaluation', authGuard(['admin', 'director', 'manager', 'employee', 'hr']), sendPage('evaluation'))
+app.get('/settings',   authGuard(['admin', 'director', 'manager', 'employee', 'hr']), sendPage('settings'))
 
 // ─── API Routes ──────────────────────────────────────────────────────────────
 

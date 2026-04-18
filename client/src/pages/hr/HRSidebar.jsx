@@ -18,7 +18,7 @@ export default function HRSidebar({ t, activeItem = 'overview' }) {
     { id: 'formeditor', href: '/formeditor',      Icon: DocumentIcon,  label: t('hr.nav.formeditor'), active: activeItem === 'formeditor' },
     { id: 'resources',  href: '#', disabled: true, Icon: FolderIcon,    label: t('hr.nav.resources'),  active: activeItem === 'resources'  },
     { id: 'reports',    href: '#', disabled: true, Icon: TrendIcon,     label: t('hr.nav.reports'),    active: activeItem === 'reports'    },
-    { id: 'settings',   href: '#', disabled: true, Icon: GearIcon,      label: t('hr.nav.settings'),   active: activeItem === 'settings'   },
+    { id: 'settings',   href: '/settings',          Icon: GearIcon,      label: t('hr.nav.settings'),   active: activeItem === 'settings'   },
   ]
 
   return <AppSidebar brandSub="HR Portal" navItems={navItems}

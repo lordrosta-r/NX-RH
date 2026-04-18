@@ -16,6 +16,7 @@ const { Evaluation, Form, Campaign, User, VALID_TRANSITIONS, ROLE_TRANSITIONS, L
 const { getVisibleUserIds } = require('../services/managerVisibility')
 const { ADMIN_ROLES }       = require('../config/constants')
 const { EVALUATION_STATUSES } = require('../config/constants')
+const PDFDocument = require('pdfkit')
 
 // Enlève evaluatorId/evaluatorName si le form est anonyme
 function sanitizeAnonymity(doc) {
@@ -367,6 +368,100 @@ router.patch('/:id', async (req, res, next) => {
       reviewerComment:  evaluation.reviewerComment,
       evaluateeComment: evaluation.evaluateeComment,
     })
+  } catch (err) {
+    next(err)
+  }
+})
+
+// ─── GET /api/evaluations/:id/pdf — Export evaluation as PDF ─────────────────
+
+router.get('/:id/pdf', async (req, res, next) => {
+  try {
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({ error: 'ID invalide' })
+    }
+
+    const evaluation = await Evaluation.findById(req.params.id)
+      .populate('formId', 'title formType sections')
+      .populate('evaluatorId', 'firstName lastName')
+      .populate('evaluateeId', 'firstName lastName department')
+      .populate('campaignId', 'name')
+      .lean()
+
+    if (!evaluation) return res.status(404).json({ error: 'Évaluation introuvable' })
+
+    // Access check: admin/hr can export any, others can only export their own
+    const uid = req.user.id
+    if (!ADMIN_ROLES.includes(req.user.role)) {
+      const isOwn = [
+        String(evaluation.evaluatorId?._id || evaluation.evaluatorId),
+        String(evaluation.evaluateeId?._id || evaluation.evaluateeId),
+      ].includes(uid)
+      if (!isOwn) return res.status(403).json({ error: 'Accès interdit' })
+    }
+
+    // Build PDF
+    const doc = new PDFDocument({ size: 'A4', margin: 50 })
+
+    res.setHeader('Content-Type', 'application/pdf')
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="evaluation-${req.params.id}.pdf"`,
+    )
+    doc.pipe(res)
+
+    // Title
+    doc.fontSize(20).font('Helvetica-Bold')
+       .text('NanoXplore RH — Évaluation', { align: 'center' })
+    doc.moveDown()
+
+    // Meta
+    doc.fontSize(12).font('Helvetica')
+    if (evaluation.campaignId?.name) {
+      doc.text(`Campagne : ${evaluation.campaignId.name}`)
+    }
+    if (evaluation.formId?.title) {
+      doc.text(`Formulaire : ${evaluation.formId.title}`)
+    }
+    const evaluatee = evaluation.evaluateeId
+    if (evaluatee?.firstName) {
+      doc.text(`Évalué : ${evaluatee.firstName} ${evaluatee.lastName}${evaluatee.department ? ` (${evaluatee.department})` : ''}`)
+    }
+    const evaluator = evaluation.evaluatorId
+    if (evaluator?.firstName) {
+      doc.text(`Évaluateur : ${evaluator.firstName} ${evaluator.lastName}`)
+    }
+    doc.text(`Statut : ${evaluation.status}`)
+    doc.moveDown()
+
+    // Answers
+    const answers = evaluation.answers || []
+    if (answers.length > 0) {
+      doc.fontSize(14).font('Helvetica-Bold').text('Réponses')
+      doc.moveDown(0.5)
+      doc.fontSize(11).font('Helvetica')
+      answers.forEach((a, i) => {
+        const label = a.questionLabel || a.questionId || `Question ${i + 1}`
+        const value = a.value != null ? String(a.value) : '—'
+        doc.font('Helvetica-Bold').text(`${i + 1}. ${label}`, { continued: false })
+        doc.font('Helvetica').text(`   ${value}`)
+        doc.moveDown(0.3)
+      })
+    }
+
+    // Comments
+    if (evaluation.reviewerComment) {
+      doc.moveDown()
+      doc.fontSize(12).font('Helvetica-Bold').text('Commentaire du manager')
+      doc.font('Helvetica').text(evaluation.reviewerComment)
+    }
+    if (evaluation.evaluateeComment) {
+      doc.moveDown()
+      doc.fontSize(12).font('Helvetica-Bold').text('Commentaire de l\'évalué')
+      doc.font('Helvetica').text(evaluation.evaluateeComment)
+    }
+
+    doc.end()
   } catch (err) {
     next(err)
   }

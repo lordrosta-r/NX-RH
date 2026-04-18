@@ -727,6 +727,37 @@
   margin: 0;
 }
 
+.ev-submitted__actions {
+  display: flex; gap: 12px; flex-wrap: wrap;
+}
+
+.ev-banner__cta--ghost {
+  background: transparent;
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
+  text-decoration: none;
+  display: inline-flex; align-items: center;
+  padding: 0.7rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+.ev-banner__cta--ghost:hover { background: var(--color-surface-container); }
+
+/* ── Comments ────────────────────────────────────────────────────────────── */
+.ev-submitted__comments { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; width: 100%; max-width: 420px; text-align: left; }
+.ev-comment-block { padding: 10px 14px; background: var(--color-surface-container-low); border-radius: 8px; }
+.ev-comment-block__label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--color-on-surface-variant); margin: 0 0 4px; }
+.ev-comment-block__text  { font-size: 0.85rem; margin: 0; line-height: 1.5; white-space: pre-wrap; }
+.ev-comment-field { display: flex; flex-direction: column; gap: 4px; width: 100%; }
+.ev-comment-field span { font-size: 0.8rem; font-weight: 600; }
+.ev-comment-field textarea {
+  padding: 10px 12px; border: 1px solid var(--color-outline-variant); border-radius: 8px;
+  font-size: 0.85rem; font-family: inherit; background: var(--color-surface);
+  color: var(--color-on-surface); resize: vertical;
+}
+.ev-footer__sign-wrap { display: flex; flex-direction: column; gap: 14px; width: 100%; align-items: flex-end; }
+
 /* ── Footer — matching Stitch ───────────────────────────────────────────────── */
 .ev-footer {
   display: flex;

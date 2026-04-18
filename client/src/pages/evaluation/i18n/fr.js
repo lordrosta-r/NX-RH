@@ -89,4 +89,11 @@ export default {
   'ev.submitted.title': 'Évaluation soumise',
   'ev.submitted.desc':  'Votre auto-évaluation a bien été transmise. Vous serez notifié(e) de la date de votre entretien prochainement.',
   'ev.submitted.back':  '← Retour à l\'accueil',
+  'ev.action.pdf':       'Télécharger le PDF',
+
+  // Comments
+  'ev.comment.reviewer':             'Commentaire du réviseur',
+  'ev.comment.evaluatee':            'Mon commentaire',
+  'ev.comment.evaluatee_placeholder':'Ajoutez votre commentaire personnel avant de signer…',
+  'ev.comment.score':                'Score attribué',
 }

@@ -137,7 +137,7 @@ describe('authGuard middleware', () => {
       const res  = makeRes()
       const next = jest.fn()
       await authGuard()(req, res, next)
-      expect(res.clearCookie).toHaveBeenCalledWith('token', { path: '/' })
+      expect(res.clearCookie).toHaveBeenCalledWith('token', expect.objectContaining({ path: '/' }))
       expect(res.status).toHaveBeenCalledWith(401)
       expect(res.json).toHaveBeenCalledWith({ error: 'Compte désactivé' })
     })

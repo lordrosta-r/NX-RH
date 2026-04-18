@@ -43,4 +43,13 @@ export default {
   // Sidebar accessibility
   'manager.nav.label':       'Navigation principale',
   'manager.nav.coming_soon': 'Bientôt disponible',
+  // Review modal
+  'manager.review.title':              'Réviser l\'évaluation',
+  'manager.review.cosign_title':       'Co-signer l\'évaluation',
+  'manager.review.answers':            'Réponses du collaborateur',
+  'manager.review.score':              'Score (0-100)',
+  'manager.review.comment':            'Commentaire du réviseur',
+  'manager.review.comment_placeholder':'Ajoutez un commentaire sur cette évaluation…',
+  'manager.review.cancel':             'Annuler',
+  'manager.review.submit':             'Valider la révision',
 }

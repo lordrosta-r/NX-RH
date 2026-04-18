@@ -42,6 +42,7 @@ export default {
   'fe.card.team':       'Équipe',
   'fe.card.edit':       'Modifier',
   'fe.card.duplicate':  'Dupliquer',
+  'fe.card.copy':       'Copie',
   'fe.card.updated':    'Modifié le',
 
   // Section titles

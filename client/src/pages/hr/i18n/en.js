@@ -115,7 +115,23 @@ export default {
   // Alerts aria-label
   'hr.alerts.aria': 'Alerts',
 
+  // HR Signing queue
+  'hr.signing.title':      'HR Signatures & Validation',
+  'hr.signing.pending':    'To sign',
+  'hr.signing.toValidate': 'To validate',
+  'hr.signing.sign':       'Sign',
+  'hr.signing.validate':   'Validate',
+
   // Loading / Error states
   'hr.loading':     'Loading…',
   'hr.error.load':  'Failed to load data. Please refresh the page.',
+
+  // Event modal
+  'hr.event.add':         'Add event',
+  'hr.event.edit':        'Edit event',
+  'hr.event.title_label': 'Title',
+  'hr.event.date':        'Date',
+  'hr.event.type':        'Type',
+  'hr.event.cancel':      'Cancel',
+  'hr.event.save':        'Save',
 }

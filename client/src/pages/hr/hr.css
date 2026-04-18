@@ -808,6 +808,52 @@
 .hr-resource:hover .hr-resource__dl { opacity: 1; }
 .hr-resource__dl:hover { background: var(--color-surface-container-high); }
 
+/* ── HR Signing queue ──────────────────────────────────────────────────────── */
+.hr-signing {
+  grid-column: 1 / -1;
+  background: var(--color-surface-container);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: 16px;
+  padding: 20px 24px;
+}
+.hr-signing__title {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
+  color: var(--color-on-surface-variant); margin: 0 0 12px;
+}
+.hr-signing__sub {
+  font-size: 13px; font-weight: 600; color: var(--color-on-surface);
+  margin: 12px 0 8px;
+}
+.hr-signing__list { display: flex; flex-direction: column; gap: 8px; }
+.hr-signing__row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 8px 12px;
+  background: var(--color-surface);
+  border-radius: 8px;
+}
+.hr-signing__name { flex: 1; font-weight: 600; font-size: 14px; }
+
+/* ── Event modal ───────────────────────────────────────────────────────────── */
+.hr-modal-backdrop { position: fixed; inset: 0; z-index: 800; background: rgba(0,0,0,.45); display: flex; align-items: center; justify-content: center; }
+.hr-modal { background: var(--color-surface); border-radius: 12px; padding: 28px 32px; width: 420px; max-width: 90vw; }
+.hr-modal__title { font-size: 1.1rem; font-weight: 700; margin: 0 0 18px; }
+.hr-modal__actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 18px; }
+.hr-event-form { display: flex; flex-direction: column; gap: 14px; }
+.hr-event-field { display: flex; flex-direction: column; gap: 3px; }
+.hr-event-field span { font-size: 0.8rem; font-weight: 600; }
+.hr-event-field input,
+.hr-event-field select { padding: 8px 10px; border: 1px solid var(--color-outline-variant); border-radius: 8px; font-size: 0.85rem; font-family: inherit; background: var(--color-surface); color: var(--color-on-surface); }
+
+/* Calendar head (title + add btn) */
+.hr-calendar-head { display: flex; flex-direction: column; gap: 10px; }
+
+/* Event list below calendar */
+.hr-event-list { list-style: none; padding: 0; margin: 10px 0 0; display: flex; flex-direction: column; gap: 6px; }
+.hr-event-item { display: flex; align-items: center; gap: 8px; font-size: 0.82rem; }
+.hr-event-item__dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.hr-event-item__title { flex: 1; font-weight: 500; }
+.hr-event-item__date { color: var(--color-on-surface-variant); font-size: 0.75rem; }
+
 /* ── Responsive ────────────────────────────────────────────────────────────── */
 @media (max-width: 1200px) {
   .hr-kpis { grid-template-columns: repeat(2, 1fr); }

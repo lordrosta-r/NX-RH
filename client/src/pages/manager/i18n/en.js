@@ -43,4 +43,13 @@ export default {
   // Sidebar accessibility
   'manager.nav.label':       'Main navigation',
   'manager.nav.coming_soon': 'Coming soon',
+  // Review modal
+  'manager.review.title':              'Review evaluation',
+  'manager.review.cosign_title':       'Co-sign evaluation',
+  'manager.review.answers':            'Employee answers',
+  'manager.review.score':              'Score (0-100)',
+  'manager.review.comment':            'Reviewer comment',
+  'manager.review.comment_placeholder':'Add a comment about this evaluation…',
+  'manager.review.cancel':             'Cancel',
+  'manager.review.submit':             'Submit review',
 }

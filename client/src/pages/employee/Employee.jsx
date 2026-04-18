@@ -15,7 +15,7 @@ import { useLocale }    from '../../hooks/useLocale'
 import { useTheme }     from '../../hooks/useTheme'
 import { useAuthUser }  from '../../hooks/useAuthUser'
 import {
-  ArrowNEIcon, SparklesIcon, HeartIcon,
+  ArrowNEIcon, SparklesIcon, HeartIcon, ChevronRightIcon,
 } from '../../components/ui/icons'
 
 // ── Color mappings ───────────────────────────────────────────────────────────
@@ -58,6 +58,12 @@ export default function Employee() {
   const [campaignLoading, setCampaignLoading] = useState(true)
   const [campaignError, setCampaignError]     = useState(null)
 
+  // ── Quick stats ──────────────────────────────────────────────────────────
+  const [stats, setStats] = useState({ total: 0, pending: 0, completed: 0 })
+
+  // ── Resources ────────────────────────────────────────────────────────────
+  const [resources, setResources] = useState([])
+
   useEffect(() => {
     if (!user) return
     let cancelled = false
@@ -96,6 +102,28 @@ export default function Employee() {
       }
     }
     load()
+    return () => { cancelled = true }
+  }, [user])
+
+  // Compute stats from evaluations
+  useEffect(() => {
+    if (!evaluations.length) return
+    const pending   = evaluations.filter(e => ['assigned', 'in_progress'].includes(e.status)).length
+    const completed = evaluations.filter(e => !['assigned', 'in_progress'].includes(e.status)).length
+    setStats({ total: evaluations.length, pending, completed })
+  }, [evaluations])
+
+  // Fetch published resources
+  useEffect(() => {
+    if (!user) return
+    let cancelled = false
+    fetch('/api/resources', { credentials: 'include' })
+      .then(r => r.ok ? r.json() : [])
+      .then(data => {
+        const list = Array.isArray(data) ? data : (data.data || [])
+        if (!cancelled) setResources(list.filter(r => r.status === 'published').slice(0, 3))
+      })
+      .catch(() => {})
     return () => { cancelled = true }
   }, [user])
 
@@ -214,6 +242,45 @@ export default function Employee() {
                 <p  className="db-card__text">{t('dashboard.card.feedback.body')}</p>
               </div>
             </article>
+
+            {/* Evaluation progress mini-stats */}
+            <article className="db-stats">
+              <h3 className="db-stats__title">{t('dashboard.stats.title')}</h3>
+              <div className="db-stats__grid">
+                <div className="db-stats__item">
+                  <span className="db-stats__value">{stats.total}</span>
+                  <span className="db-stats__label">{t('dashboard.stats.total')}</span>
+                </div>
+                <div className="db-stats__item db-stats__item--warning">
+                  <span className="db-stats__value">{stats.pending}</span>
+                  <span className="db-stats__label">{t('dashboard.stats.pending')}</span>
+                </div>
+                <div className="db-stats__item db-stats__item--success">
+                  <span className="db-stats__value">{stats.completed}</span>
+                  <span className="db-stats__label">{t('dashboard.stats.completed')}</span>
+                </div>
+              </div>
+              {stats.pending > 0 && (
+                <a href="/evaluation" className="db-stats__cta">
+                  {t('dashboard.stats.cta')} <ChevronRightIcon size={14} />
+                </a>
+              )}
+            </article>
+
+            {/* Quick resources */}
+            {resources.length > 0 && (
+              <aside className="db-resources">
+                <h3 className="db-resources__title">{t('dashboard.resources.title')}</h3>
+                <ul className="db-resources__list">
+                  {resources.map(r => (
+                    <li key={r._id} className="db-resources__item">
+                      <span className="db-resources__name">{r.title}</span>
+                      <span className="db-resources__type">{r.type.toUpperCase()}</span>
+                    </li>
+                  ))}
+                </ul>
+              </aside>
+            )}
 
             {/* Notification center */}
             <aside className="db-notifs">

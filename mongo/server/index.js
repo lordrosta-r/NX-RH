@@ -118,6 +118,8 @@ app.get('/formeditor', authGuard(['hr', 'admin']),                              
 app.get('/campaigns',  authGuard(['hr', 'admin']),                                    sendPage('campaigns'))
 app.get('/evaluation', authGuard(['employee', 'manager', 'director', 'hr', 'admin']), sendPage('evaluation'))
 app.get('/settings',   authGuard(['employee', 'manager', 'director', 'hr', 'admin']), sendPage('settings'))
+app.get('/resources',  authGuard(['hr', 'admin']),                                    sendPage('resources'))
+app.get('/users',      authGuard(['hr', 'admin']),                                    sendPage('users'))
 
 // Backward-compat redirect (old /dashboard → new /employee)
 app.get('/dashboard',  (req, res) => res.redirect(301, '/employee'))

@@ -61,4 +61,20 @@ router.delete('/:id', async (req, res, next) => {
   } catch (err) { next(err) }
 })
 
+// PATCH /api/events/:id — admin/hr uniquement
+router.patch('/:id', async (req, res, next) => {
+  try {
+    if (!ADMIN_ROLES.includes(req.user.role)) return res.status(403).json({ error: 'Forbidden' })
+    if (!mongoose.isValidObjectId(req.params.id)) return res.status(400).json({ error: 'ID invalide' })
+    const event = await Event.findById(req.params.id)
+    if (!event) return res.status(404).json({ error: 'Événement introuvable' })
+    const { title, date, type } = req.body
+    if (title !== undefined) event.title = title
+    if (date  !== undefined) event.date  = date
+    if (type  !== undefined) event.type  = type
+    await event.save()
+    res.json(event)
+  } catch (err) { next(err) }
+})
+
 module.exports = router

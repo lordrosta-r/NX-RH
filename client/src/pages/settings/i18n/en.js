@@ -26,7 +26,6 @@ export default {
   'settings.profile.never':         'Never',
   'settings.profile.created':       'Member since',
   'settings.profile.empty':         '—',
-  'settings.profile.password.note': 'Password managed by your corporate directory — contact your IT admin to change it.',
 
   // Roles
   'settings.role.admin':    'Administrator',

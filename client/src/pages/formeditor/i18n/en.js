@@ -36,6 +36,7 @@ export default {
   'fe.card.team':       'Team',
   'fe.card.edit':       'Edit',
   'fe.card.duplicate':  'Duplicate',
+  'fe.card.copy':       'Copy',
   'fe.card.updated':    'Updated on',
 
   'fe.section.forms':   'Forms',

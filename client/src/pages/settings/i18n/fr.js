@@ -26,7 +26,6 @@ export default {
   'settings.profile.never':         'Jamais',
   'settings.profile.created':       'Membre depuis',
   'settings.profile.empty':         '—',
-  'settings.profile.password.note': 'Mot de passe géré par l\'annuaire d\'entreprise — contactez votre administrateur IT pour le modifier.',
 
   // Roles
   'settings.role.admin':    'Administrateur',

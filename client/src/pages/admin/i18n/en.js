@@ -1,8 +1,10 @@
 export default {
   'admin.nav.overview':    'Overview',
   'admin.nav.hr':          'HR portal',
+  'admin.nav.users':       'Users',
   'admin.nav.campaigns':   'Campaigns',
   'admin.nav.formeditor':  'Forms',
+  'admin.nav.resources':   'Resources',
   'admin.nav.settings':    'Settings',
   'admin.nav.label':       'Main navigation',
   'admin.nav.coming_soon': 'Coming soon',

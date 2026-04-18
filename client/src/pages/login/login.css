@@ -185,3 +185,46 @@
   letter-spacing: 0.2em;
   color:          var(--th-copyright);
 }
+
+/* ── Forgot-password modal ── */
+.login-modal-backdrop {
+  position: fixed; inset: 0; z-index: 50;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex; align-items: center; justify-content: center;
+}
+.login-modal {
+  background: var(--th-card-bg);
+  border-radius: var(--radius-md, 12px);
+  padding: 28px 32px;
+  max-width: 420px; width: 90%;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+}
+.login-modal__title {
+  font-family: 'Inter', sans-serif;
+  font-weight: 700; font-size: 18px;
+  color: var(--th-card-title);
+  margin: 0 0 12px;
+}
+.login-modal__body {
+  font-size: 14px; line-height: 1.5;
+  color: var(--th-card-body);
+  margin: 0 0 20px;
+}
+.login-modal__actions {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+.login-modal__link {
+  font-size: 13px; font-weight: 600;
+  color: var(--color-primary, #e50914);
+  text-decoration: none;
+}
+.login-modal__link:hover { text-decoration: underline; }
+.login-modal__close {
+  background: var(--th-card-border);
+  border: none; border-radius: 6px;
+  padding: 8px 18px;
+  font-size: 13px; font-weight: 600;
+  color: var(--th-card-title);
+  cursor: pointer;
+}
+.login-modal__close:hover { opacity: 0.8; }

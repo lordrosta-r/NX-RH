@@ -1,0 +1,116 @@
+/* ── Resources page — styles ── */
+
+/* Hero */
+.res-hero { margin-bottom: 28px; }
+.res-hero__eyebrow {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.12em; color: var(--color-primary);
+  margin-bottom: 8px;
+}
+.res-hero__title {
+  font-family: 'Inter', sans-serif; font-weight: 900; font-size: 28px;
+  color: var(--color-on-surface); margin: 0 0 8px;
+}
+.res-hero__sub {
+  font-size: 14px; line-height: 1.6; color: var(--color-outline);
+  max-width: 640px;
+}
+
+/* Actions bar */
+.res-actions {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 20px;
+}
+
+/* Buttons */
+.res-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border: 1px solid var(--color-outline-variant);
+  border-radius: 8px; font-size: 13px; font-weight: 600;
+  background: var(--color-surface); color: var(--color-on-surface);
+  cursor: pointer; transition: background 0.15s;
+}
+.res-btn:hover { background: var(--color-surface-container); }
+.res-btn--primary {
+  background: var(--color-primary); color: #fff; border-color: var(--color-primary);
+}
+.res-btn--primary:hover { opacity: 0.9; }
+.res-btn--sm { padding: 4px 10px; font-size: 12px; }
+.res-btn--danger { color: var(--color-error); border-color: var(--color-error); }
+.res-btn--danger:hover { background: var(--color-error); color: #fff; }
+
+/* States */
+.res-loading, .res-empty { color: var(--color-outline); font-size: 14px; text-align: center; padding: 40px 0; }
+.res-error { color: var(--color-error); font-size: 13px; margin-bottom: 12px; }
+
+/* Table */
+.res-table-wrap { overflow-x: auto; }
+.res-table {
+  width: 100%; border-collapse: collapse; font-size: 13px;
+}
+.res-table th {
+  text-align: left; font-weight: 700; font-size: 11px;
+  text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--color-outline); padding: 10px 12px;
+  border-bottom: 2px solid var(--color-outline-variant);
+}
+.res-table td {
+  padding: 12px; border-bottom: 1px solid var(--color-outline-variant);
+  color: var(--color-on-surface); vertical-align: top;
+}
+.res-cell--title { display: flex; flex-direction: column; gap: 2px; }
+.res-cell--desc { font-size: 12px; color: var(--color-outline); }
+.res-cell--roles { font-size: 12px; }
+.res-cell--actions { display: flex; gap: 6px; }
+
+/* Status badge */
+.res-status {
+  display: inline-block; padding: 2px 10px; border-radius: 12px;
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+}
+.res-status--draft     { background: var(--color-surface-container); color: var(--color-outline); }
+.res-status--published { background: var(--color-primary); color: #fff; }
+
+/* Type badge */
+.res-type {
+  display: inline-block; padding: 2px 8px; border-radius: 6px;
+  font-size: 11px; font-weight: 600;
+  background: var(--color-secondary-container); color: var(--color-on-surface);
+}
+
+/* ── Modal ── */
+.res-modal-backdrop {
+  position: fixed; inset: 0; z-index: 50;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex; align-items: center; justify-content: center;
+}
+.res-modal {
+  background: var(--color-surface); border-radius: 12px;
+  padding: 28px 32px; max-width: 520px; width: 92%;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+  max-height: 90vh; overflow-y: auto;
+}
+.res-modal__title {
+  font-family: 'Inter', sans-serif; font-weight: 800; font-size: 18px;
+  color: var(--color-on-surface); margin: 0 0 20px;
+}
+.res-form { display: flex; flex-direction: column; gap: 14px; }
+.res-field {
+  display: flex; flex-direction: column; gap: 4px;
+  font-size: 13px; color: var(--color-on-surface);
+}
+.res-field span, .res-field legend {
+  font-weight: 600; font-size: 12px; text-transform: uppercase;
+  letter-spacing: 0.04em; color: var(--color-outline);
+}
+.res-field input, .res-field textarea, .res-field select {
+  padding: 8px 12px; border: 1px solid var(--color-outline-variant);
+  border-radius: 8px; font-size: 14px; background: var(--color-surface);
+  color: var(--color-on-surface);
+}
+.res-field input:focus, .res-field textarea:focus, .res-field select:focus {
+  outline: 2px solid var(--color-primary); outline-offset: -1px;
+}
+.res-checks { display: flex; flex-wrap: wrap; gap: 8px; }
+.res-check { display: flex; align-items: center; gap: 4px; font-size: 13px; }
+.res-modal__actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 8px; }

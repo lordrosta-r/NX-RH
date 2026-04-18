@@ -212,6 +212,34 @@ export default function FormEditor() {
     setView('create')
   }
 
+  async function handleDuplicate(formId) {
+    const r = await fetch(`/api/forms/${formId}`, { credentials: 'include' })
+    if (!r.ok) {
+      if (r.status === 401 || r.status === 403) { window.location.href = '/'; return }
+      setError(t('fe.error.load_failed'))
+      return
+    }
+    const form = await r.json()
+    setEditingId(null) // null → POST (create) on save
+    setFormTitle(`${form.title} — ${t('fe.card.copy')}`)
+    setFormDesc(form.description)
+    setFormType(form.formType || 'self_evaluation')
+    setIsAnonymous(form.isAnonymous)
+    setSelectedCampaign(form.campaignId?._id || form.campaignId || '')
+    setFormTeam('Tous'); setFormTags('')
+    setFrozen(false)
+    setError(null)
+    setFields(form.questions.map(q => ({
+      id:       `field-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      type:     q.type,
+      label:    q.label,
+      required: q.required,
+      scale:    q.scale || 5,
+      options:  (q.options || []).map((label, i) => ({ id: `opt-${i}`, label, value: '' })),
+    })))
+    setView('create')
+  }
+
   function makeDefaultOptions() {
     return ['A', 'B', 'C'].map(l => {
       optCounter.current += 1
@@ -506,7 +534,7 @@ export default function FormEditor() {
                     <button type="button" className="fe-card__action" onClick={() => handleEdit(form._id)}>
                       {t('fe.card.edit')}
                     </button>
-                    <button type="button" className="fe-card__action">
+                    <button type="button" className="fe-card__action" onClick={() => handleDuplicate(form._id)}>
                       {t('fe.card.duplicate')}
                     </button>
                   </div>

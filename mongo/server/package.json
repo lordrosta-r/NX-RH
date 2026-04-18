@@ -13,7 +13,9 @@
   },
   "jest": {
     "testEnvironment": "node",
-    "testMatch": ["**/__tests__/**/*.test.js"],
+    "testMatch": [
+      "**/__tests__/**/*.test.js"
+    ],
     "clearMocks": true,
     "restoreMocks": true
   },
@@ -30,7 +32,9 @@
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
     "ldapjs": "^3.0.7",
-    "mongoose": "^8.4.0"
+    "mongoose": "^8.4.0",
+    "nodemailer": "^8.0.5",
+    "pdfkit": "^0.18.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

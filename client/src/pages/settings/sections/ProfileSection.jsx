@@ -1,5 +1,5 @@
 // =============================================================================
-// ProfileSection — read-only profile data + LDAP password note
+// ProfileSection — read-only profile data
 // =============================================================================
 
 import React, { useEffect, useState } from 'react'
@@ -55,8 +55,6 @@ export default function ProfileSection({ t, locale, user }) {
         <div className="st-field"><dt>{t('settings.profile.lastlogin')}</dt><dd>{lastLogin}</dd></div>
         <div className="st-field"><dt>{t('settings.profile.created')}</dt><dd>{created}</dd></div>
       </dl>
-
-      <p className="st-note">{t('settings.profile.password.note')}</p>
     </section>
   )
 }

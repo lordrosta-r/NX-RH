@@ -61,6 +61,8 @@ export default defineConfig({
         campaigns:  resolve(__dirname, 'campaigns.html'),
         evaluation: resolve(__dirname, 'evaluation.html'),
         settings:   resolve(__dirname, 'settings.html'),
+        resources:  resolve(__dirname, 'resources.html'),
+        users:      resolve(__dirname, 'users.html'),
       },
     },
   },

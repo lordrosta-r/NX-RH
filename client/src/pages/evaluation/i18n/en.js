@@ -89,4 +89,11 @@ export default {
   'ev.submitted.title': 'Evaluation submitted',
   'ev.submitted.desc':  'Your self-evaluation has been successfully submitted. You will be notified of your review date shortly.',
   'ev.submitted.back':  '← Back to home',
+  'ev.action.pdf':       'Download PDF',
+
+  // Comments
+  'ev.comment.reviewer':             'Reviewer comment',
+  'ev.comment.evaluatee':            'My comment',
+  'ev.comment.evaluatee_placeholder':'Add your personal comment before signing…',
+  'ev.comment.score':                'Score',
 }

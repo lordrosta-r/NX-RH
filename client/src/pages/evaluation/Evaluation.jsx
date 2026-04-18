@@ -63,6 +63,7 @@ export default function Evaluation() {
   const [evalLoading, setEvalLoading]= useState(false)
   const [error,       setError]      = useState(null)
   const [lastSaved,   setLastSaved]  = useState(null)   // "HH:mm" string or null
+  const [evaluateeComment, setEvaluateeComment] = useState('')
 
   // ── Load assigned evaluations for home view ────────────────────────────────
   const [myEvals,       setMyEvals]       = useState([])
@@ -98,6 +99,7 @@ export default function Evaluation() {
         if (!data) return
         setEvaluation(data)
         setStatus(data.status)
+        setEvaluateeComment(data.evaluateeComment || '')
         const initial = {}
         data.answers?.forEach(a => { initial[a.questionId] = a.value })
         setAnswers(initial)
@@ -166,11 +168,13 @@ export default function Evaluation() {
     if (!evaluationId || submitting) return
     setSubmitting(true)
     try {
+      const body = { status: 'signed_evaluatee' }
+      if (evaluateeComment.trim()) body.evaluateeComment = evaluateeComment.trim()
       const r = await fetch(`/api/evaluations/${evaluationId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ status: 'signed_evaluatee' }),
+        body: JSON.stringify(body),
       })
       if (!r.ok) throw new Error(t('ev.error.submit_failed'))
       setStatus('signed_evaluatee')
@@ -397,9 +401,41 @@ export default function Evaluation() {
                     <p className="ev-submitted__desc">
                       {t('ev.submitted.desc')}
                     </p>
-                    <button type="button" className="ev-banner__cta" onClick={() => setView('home')}>
-                      {t('ev.submitted.back')}
-                    </button>
+                    {/* Comments display */}
+                    {(evaluation.reviewerComment || evaluation.evaluateeComment || evaluation.score != null) && (
+                      <div className="ev-submitted__comments">
+                        {evaluation.score != null && (
+                          <div className="ev-comment-block">
+                            <p className="ev-comment-block__label">{t('ev.comment.score')}</p>
+                            <p className="ev-comment-block__text">{evaluation.score}/100</p>
+                          </div>
+                        )}
+                        {evaluation.reviewerComment && (
+                          <div className="ev-comment-block">
+                            <p className="ev-comment-block__label">{t('ev.comment.reviewer')}</p>
+                            <p className="ev-comment-block__text">{evaluation.reviewerComment}</p>
+                          </div>
+                        )}
+                        {evaluation.evaluateeComment && (
+                          <div className="ev-comment-block">
+                            <p className="ev-comment-block__label">{t('ev.comment.evaluatee')}</p>
+                            <p className="ev-comment-block__text">{evaluation.evaluateeComment}</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    <div className="ev-submitted__actions">
+                      <button type="button" className="ev-banner__cta" onClick={() => setView('home')}>
+                        {t('ev.submitted.back')}
+                      </button>
+                      <a
+                        href={`/api/evaluations/${evaluationId}/pdf`}
+                        className="ev-banner__cta ev-banner__cta--ghost"
+                        download
+                      >
+                        {t('ev.action.pdf')}
+                      </a>
+                    </div>
                   </div>
                 ) : (
                   <>
@@ -518,9 +554,31 @@ export default function Evaluation() {
                         {saving ? t('ev.footer.saving') : ''}
                       </div>
                       {status === 'reviewed' ? (
-                        <button type="button" className="ev-footer__submit" onClick={handleSign} disabled={submitting}>
-                          {t('ev.footer.sign')}
-                        </button>
+                        <div className="ev-footer__sign-wrap">
+                          {/* Reviewer comment (read-only) */}
+                          {evaluation.reviewerComment && (
+                            <div className="ev-comment-block">
+                              <p className="ev-comment-block__label">{t('ev.comment.reviewer')}</p>
+                              <p className="ev-comment-block__text">{evaluation.reviewerComment}</p>
+                            </div>
+                          )}
+                          {evaluation.score != null && (
+                            <div className="ev-comment-block">
+                              <p className="ev-comment-block__label">{t('ev.comment.score')}</p>
+                              <p className="ev-comment-block__text">{evaluation.score}/100</p>
+                            </div>
+                          )}
+                          {/* Evaluatee comment input */}
+                          <label className="ev-comment-field">
+                            <span>{t('ev.comment.evaluatee')}</span>
+                            <textarea rows={4} maxLength={5000} value={evaluateeComment}
+                              onChange={e => setEvaluateeComment(e.target.value)}
+                              placeholder={t('ev.comment.evaluatee_placeholder')} />
+                          </label>
+                          <button type="button" className="ev-footer__submit" onClick={handleSign} disabled={submitting}>
+                            {t('ev.footer.sign')}
+                          </button>
+                        </div>
                       ) : (
                         <>
                           <div className="ev-footer__left">

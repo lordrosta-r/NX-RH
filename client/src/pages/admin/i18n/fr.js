@@ -2,8 +2,10 @@ export default {
   // Navigation sidebar
   'admin.nav.overview':    'Vue d\'ensemble',
   'admin.nav.hr':          'Espace RH',
+  'admin.nav.users':       'Utilisateurs',
   'admin.nav.campaigns':   'Campagnes',
   'admin.nav.formeditor':  'Formulaires',
+  'admin.nav.resources':   'Ressources',
   'admin.nav.settings':    'Paramètres',
   'admin.nav.label':       'Navigation principale',
   'admin.nav.coming_soon': 'Bientôt disponible',

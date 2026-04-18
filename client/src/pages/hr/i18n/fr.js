@@ -115,7 +115,23 @@ export default {
   // Alerts aria-label
   'hr.alerts.aria': 'Alertes',
 
+  // HR Signing queue
+  'hr.signing.title':      'Signatures & validations RH',
+  'hr.signing.pending':    'À signer',
+  'hr.signing.toValidate': 'À valider',
+  'hr.signing.sign':       'Signer',
+  'hr.signing.validate':   'Valider',
+
   // Loading / Error states
   'hr.loading':     'Chargement…',
   'hr.error.load':  'Erreur lors du chargement des données. Veuillez rafraîchir la page.',
+
+  // Event modal
+  'hr.event.add':         'Ajouter un événement',
+  'hr.event.edit':        'Modifier l\'événement',
+  'hr.event.title_label': 'Titre',
+  'hr.event.date':        'Date',
+  'hr.event.type':        'Type',
+  'hr.event.cancel':      'Annuler',
+  'hr.event.save':        'Enregistrer',
 }

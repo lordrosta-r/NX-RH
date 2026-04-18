@@ -24,6 +24,13 @@ export default function Manager() {
   const [error, setError]             = useState(null)
   const [page, setPage]               = useState(1)
 
+  // Review modal state
+  const [reviewTarget, setReviewTarget] = useState(null)   // full evaluation object
+  const [reviewScore, setReviewScore]   = useState('')
+  const [reviewComment, setReviewComment] = useState('')
+  const [reviewLoading, setReviewLoading] = useState(false)
+  const [reviewSaving, setReviewSaving]   = useState(false)
+
   useEffect(() => {
     let cancelled = false
     fetch('/api/evaluations', { credentials: 'include' })
@@ -63,6 +70,49 @@ export default function Manager() {
     } catch (err) {
       setError(err.message || t('manager.error.update_failed'))
     }
+  }
+
+  // ── Review modal ──────────────────────────────────────────────────────────
+  async function openReview(ev) {
+    setReviewTarget(ev)
+    setReviewScore(ev.score ?? '')
+    setReviewComment(ev.reviewerComment ?? '')
+    setReviewLoading(true)
+    try {
+      const r = await fetch(`/api/evaluations/${ev._id}`, { credentials: 'include' })
+      if (r.ok) {
+        const full = await r.json()
+        setReviewTarget(full)
+        setReviewScore(full.score ?? '')
+        setReviewComment(full.reviewerComment ?? '')
+      }
+    } catch { /* keep partial data */ }
+    finally { setReviewLoading(false) }
+  }
+
+  async function submitReview(e) {
+    e.preventDefault()
+    if (!reviewTarget) return
+    setReviewSaving(true)
+    const isCosign = reviewTarget.status === 'signed_evaluatee'
+    const newStatus = isCosign ? 'signed_manager' : 'reviewed'
+    try {
+      const body = { status: newStatus }
+      if (reviewScore !== '' && reviewScore !== null) body.score = Number(reviewScore)
+      if (reviewComment) body.reviewerComment = reviewComment
+      const r = await fetch(`/api/evaluations/${reviewTarget._id}`, {
+        method: 'PATCH', credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+      if (!r.ok) throw new Error(`HTTP ${r.status}`)
+      setEvaluations(prev => prev.map(e => e._id === reviewTarget._id
+        ? { ...e, status: newStatus, score: body.score ?? e.score, reviewerComment: body.reviewerComment ?? e.reviewerComment }
+        : e
+      ))
+      setReviewTarget(null)
+    } catch (err) { setError(err.message || t('manager.error.update_failed')) }
+    finally { setReviewSaving(false) }
   }
 
   async function handleLogout() {
@@ -155,7 +205,7 @@ export default function Manager() {
                           <button
                             type="button"
                             className="mgr-btn mgr-btn--sm"
-                            onClick={() => handleAction(ev._id, 'review')}
+                            onClick={() => openReview(ev)}
                           >
                             {t('manager.action.review')}
                           </button>
@@ -164,7 +214,7 @@ export default function Manager() {
                           <button
                             type="button"
                             className="mgr-btn mgr-btn--sm mgr-btn--primary"
-                            onClick={() => handleAction(ev._id, 'cosign')}
+                            onClick={() => openReview(ev)}
                           >
                             {t('manager.action.cosign')}
                           </button>
@@ -197,6 +247,67 @@ export default function Manager() {
                   </button>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* ── Review modal ────────────────────────────────────────── */}
+          {reviewTarget && (
+            <div className="mgr-modal-backdrop" onClick={() => setReviewTarget(null)}>
+              <div className="mgr-modal" role="dialog" aria-labelledby="mgr-review-title" onClick={e => e.stopPropagation()}>
+                <h3 id="mgr-review-title" className="mgr-modal__title">
+                  {reviewTarget.status === 'signed_evaluatee' ? t('manager.review.cosign_title') : t('manager.review.title')}
+                </h3>
+                <p className="mgr-modal__sub">
+                  {reviewTarget.evaluateeId?.firstName} {reviewTarget.evaluateeId?.lastName}
+                  {reviewTarget.formId?.title ? ` — ${reviewTarget.formId.title}` : ''}
+                </p>
+
+                {reviewLoading ? (
+                  <p className="mgr-loading">{t('manager.loading')}</p>
+                ) : (
+                  <>
+                    {/* Read-only answers */}
+                    {reviewTarget.answers?.length > 0 && (
+                      <div className="mgr-review-answers">
+                        <h4 className="mgr-review-answers__title">{t('manager.review.answers')}</h4>
+                        {reviewTarget.answers.map((a, i) => {
+                          const q = reviewTarget.formId?.questions?.find(qq => qq.id === a.questionId)
+                          return (
+                            <div key={a.questionId || i} className="mgr-review-answer">
+                              <p className="mgr-review-answer__q">{q?.label || `Q${i + 1}`}</p>
+                              <p className="mgr-review-answer__v">{String(a.value)}</p>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
+
+                    {/* Score + comment form */}
+                    <form onSubmit={submitReview} className="mgr-review-form">
+                      <label className="mgr-field">
+                        <span>{t('manager.review.score')}</span>
+                        <input type="number" min={0} max={100} value={reviewScore}
+                          onChange={e => setReviewScore(e.target.value)}
+                          placeholder="0 – 100" />
+                      </label>
+                      <label className="mgr-field">
+                        <span>{t('manager.review.comment')}</span>
+                        <textarea rows={4} maxLength={5000} value={reviewComment}
+                          onChange={e => setReviewComment(e.target.value)}
+                          placeholder={t('manager.review.comment_placeholder')} />
+                      </label>
+                      <div className="mgr-modal__actions">
+                        <button type="button" className="mgr-btn" onClick={() => setReviewTarget(null)}>
+                          {t('manager.review.cancel')}
+                        </button>
+                        <button type="submit" className="mgr-btn mgr-btn--primary" disabled={reviewSaving}>
+                          {reviewTarget.status === 'signed_evaluatee' ? t('manager.action.cosign') : t('manager.review.submit')}
+                        </button>
+                      </div>
+                    </form>
+                  </>
+                )}
+              </div>
             </div>
           )}
 

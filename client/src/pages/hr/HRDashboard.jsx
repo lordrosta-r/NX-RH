@@ -162,6 +162,45 @@ export default function HRDashboard() {
   const isLoading   = loading && !data
   const hasError    = !!error && !data
 
+  // HR-actionable evaluations (those HR can sign or validate)
+  const hrActionable = evaluations.filter(e =>
+    ['signed_manager', 'signed_evaluatee', 'reviewed'].includes(e.status)
+  )
+  const hrValidatable = evaluations.filter(e => e.status === 'signed_hr')
+
+  async function handleHRSign(id) {
+    try {
+      const r = await fetch(`/api/evaluations/${id}`, {
+        method: 'PATCH', credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'signed_hr' }),
+      })
+      if (!r.ok) throw new Error(`HTTP ${r.status}`)
+      // refresh data
+      const evalRes = await fetch('/api/evaluations?limit=500', { credentials: 'include' })
+      if (evalRes.ok) {
+        const evals = await evalRes.json()
+        setData(prev => ({ ...prev, evals }))
+      }
+    } catch (err) { setError(err.message) }
+  }
+
+  async function handleValidate(id) {
+    try {
+      const r = await fetch(`/api/evaluations/${id}`, {
+        method: 'PATCH', credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'validated' }),
+      })
+      if (!r.ok) throw new Error(`HTTP ${r.status}`)
+      const evalRes = await fetch('/api/evaluations?limit=500', { credentials: 'include' })
+      if (evalRes.ok) {
+        const evals = await evalRes.json()
+        setData(prev => ({ ...prev, evals }))
+      }
+    } catch (err) { setError(err.message) }
+  }
+
   // KPIs
   const inProgressCount = evaluations.filter(e => e.status === 'in_progress').length
   const activeCampCount = campaigns.length
@@ -234,6 +273,59 @@ export default function HRDashboard() {
     typeLabel: t(`hr.calendar.type.${evt.type || 'meeting'}`),
     color: EVENT_COLORS[evt.type] || 'var(--color-outline)',
   }))
+
+  // Event modal state
+  const [eventModalOpen, setEventModalOpen] = useState(false)
+  const [eventForm, setEventForm]           = useState({ title: '', date: '', type: 'meeting' })
+  const [eventEditing, setEventEditing]     = useState(null)
+  const [eventSaving, setEventSaving]       = useState(false)
+
+  function openCreateEvent() {
+    setEventEditing(null)
+    setEventForm({ title: '', date: '', type: 'meeting' })
+    setEventModalOpen(true)
+  }
+
+  function openEditEvent(evt) {
+    setEventEditing(evt)
+    setEventForm({ title: evt.title || '', date: (evt.date || '').slice(0, 10), type: evt.type || 'meeting' })
+    setEventModalOpen(true)
+  }
+
+  async function handleSaveEvent(e) {
+    e.preventDefault()
+    setEventSaving(true)
+    try {
+      const url = eventEditing ? `/api/events/${eventEditing._id || eventEditing.id}` : '/api/events'
+      const method = eventEditing ? 'PATCH' : 'POST'
+      const r = await fetch(url, {
+        method, credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(eventForm),
+      })
+      if (!r.ok) throw new Error(`HTTP ${r.status}`)
+      setEventModalOpen(false)
+      // Refresh events
+      const evtRes = await fetch('/api/events', { credentials: 'include' })
+      if (evtRes.ok) {
+        const newEvents = await evtRes.json()
+        setData(prev => ({ ...prev, events: newEvents }))
+      }
+    } catch (err) { setError(err.message) }
+    finally { setEventSaving(false) }
+  }
+
+  async function handleDeleteEvent(id) {
+    try {
+      const r = await fetch(`/api/events/${id}`, { method: 'DELETE', credentials: 'include' })
+      if (!r.ok) throw new Error(`HTTP ${r.status}`)
+      const evtRes = await fetch('/api/events', { credentials: 'include' })
+      if (evtRes.ok) {
+        const newEvents = await evtRes.json()
+        setData(prev => ({ ...prev, events: newEvents }))
+      }
+    } catch (err) { setError(err.message) }
+  }
 
   // Welcome banner stats
   const totalUsers = data?.users?.total ?? users.length
@@ -318,8 +410,30 @@ export default function HRDashboard() {
                     ))}
                   </div>
                   <div className="hr-camp__actions">
-                    <button type="button" className="hr-camp__btn hr-camp__btn--secondary">{t('hr.camp.cta.view')}</button>
-                    <button type="button" className="hr-camp__btn hr-camp__btn--danger">{t('hr.camp.cta.close')}</button>
+                    <button type="button" className="hr-camp__btn hr-camp__btn--secondary"
+                      onClick={() => { window.location.href = `/campaigns` }}>
+                      {t('hr.camp.cta.view')}
+                    </button>
+                    <button type="button" className="hr-camp__btn hr-camp__btn--danger"
+                      onClick={async () => {
+                        const id = activeCampaign._id || activeCampaign.id
+                        try {
+                          const r = await fetch(`/api/campaigns/${id}`, {
+                            method: 'PATCH', credentials: 'include',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ status: 'closed' }),
+                          })
+                          if (!r.ok) throw new Error(`HTTP ${r.status}`)
+                          // Refresh campaigns
+                          const campRes = await fetch('/api/campaigns?status=active&limit=50', { credentials: 'include' })
+                          if (campRes.ok) {
+                            const camps = await campRes.json()
+                            setData(prev => ({ ...prev, camps }))
+                          }
+                        } catch (err) { setError(err.message) }
+                      }}>
+                      {t('hr.camp.cta.close')}
+                    </button>
                   </div>
                 </>
               ) : (
@@ -350,6 +464,51 @@ export default function HRDashboard() {
                 </ul>
               )}
             </aside>
+
+            {/* Row 1b — HR Signing queue */}
+            {(hrActionable.length > 0 || hrValidatable.length > 0) && (
+              <article className="hr-signing">
+                <h3 className="hr-signing__title">{t('hr.signing.title').toUpperCase()}</h3>
+                {hrActionable.length > 0 && (
+                  <>
+                    <p className="hr-signing__sub">{t('hr.signing.pending')} ({hrActionable.length})</p>
+                    <div className="hr-signing__list">
+                      {hrActionable.slice(0, 10).map(ev => (
+                        <div key={ev._id} className="hr-signing__row">
+                          <span className="hr-signing__name">
+                            {ev.evaluateeId?.firstName} {ev.evaluateeId?.lastName}
+                          </span>
+                          <span className={`mgr-badge mgr-badge--${ev.status}`}>{ev.status}</span>
+                          <button type="button" className="hr-camp__btn hr-camp__btn--secondary"
+                            onClick={() => handleHRSign(ev._id)}>
+                            {t('hr.signing.sign')}
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+                {hrValidatable.length > 0 && (
+                  <>
+                    <p className="hr-signing__sub">{t('hr.signing.toValidate')} ({hrValidatable.length})</p>
+                    <div className="hr-signing__list">
+                      {hrValidatable.slice(0, 10).map(ev => (
+                        <div key={ev._id} className="hr-signing__row">
+                          <span className="hr-signing__name">
+                            {ev.evaluateeId?.firstName} {ev.evaluateeId?.lastName}
+                          </span>
+                          <span className="mgr-badge mgr-badge--signed_hr">signed_hr</span>
+                          <button type="button" className="hr-camp__btn hr-camp__btn--primary"
+                            onClick={() => handleValidate(ev._id)}>
+                            {t('hr.signing.validate')}
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </article>
+            )}
 
             {/* Row 2 — Department completion + Quick actions */}
             <article className="hr-depts">
@@ -392,25 +551,32 @@ export default function HRDashboard() {
                   </tbody>
                 </table>
               )}
-              <button type="button" className="hr-depts__viewall">{t('hr.depts.viewall')}</button>
+              <button type="button" className="hr-depts__viewall"
+                onClick={() => { window.location.href = '/users?deptFilter=all' }}>
+                {t('hr.depts.viewall')}
+              </button>
             </article>
 
             <article className="hr-actions">
               <h3 className="hr-actions__title">{t('hr.actions.title').toUpperCase()}</h3>
               <div className="hr-actions__list">
-                <button type="button" className="hr-action-btn hr-action-btn--primary">
+                <button type="button" className="hr-action-btn hr-action-btn--primary"
+                  onClick={() => { window.location.href = '/campaigns' }}>
                   <span className="hr-action-btn__icon">+</span>
                   {t('hr.actions.campaign')}
                 </button>
-                <button type="button" className="hr-action-btn">
+                <button type="button" className="hr-action-btn"
+                  onClick={() => { window.location.href = '/formeditor' }}>
                   <span className="hr-action-btn__icon">+</span>
                   {t('hr.actions.template')}
                 </button>
-                <button type="button" className="hr-action-btn">
+                <button type="button" className="hr-action-btn"
+                  onClick={() => { window.location.href = '/resources' }}>
                   <span className="hr-action-btn__icon">↓</span>
                   {t('hr.actions.export')}
                 </button>
-                <button type="button" className="hr-action-btn hr-action-btn--danger">
+                <button type="button" className="hr-action-btn hr-action-btn--danger"
+                  onClick={() => { window.location.href = '/campaigns' }}>
                   <span className="hr-action-btn__icon">○</span>
                   {t('hr.actions.close')}
                 </button>
@@ -419,19 +585,41 @@ export default function HRDashboard() {
 
             {/* Row 3 — Calendar + Form Editor */}
             <div className="hr-calendar-wrap">
-              <CalendarWidget
-                title={t('hr.calendar.title')}
-                events={calendarEvents}
-                locale={locale}
-                labelPrevMonth={t('hr.calendar.prev_month')}
-                labelNextMonth={t('hr.calendar.next_month')}
-              />
+              <div className="hr-calendar-head">
+                <CalendarWidget
+                  title={t('hr.calendar.title')}
+                  events={calendarEvents}
+                  locale={locale}
+                  labelPrevMonth={t('hr.calendar.prev_month')}
+                  labelNextMonth={t('hr.calendar.next_month')}
+                />
+                <button type="button" className="hr-camp__btn hr-camp__btn--secondary" onClick={openCreateEvent}>
+                  + {t('hr.event.add')}
+                </button>
+              </div>
+              {/* Event list for editing/deleting */}
+              {events.length > 0 && (
+                <ul className="hr-event-list">
+                  {events.slice(0, 8).map(evt => (
+                    <li key={evt._id || evt.id} className="hr-event-item">
+                      <span className="hr-event-item__dot" style={{ background: EVENT_COLORS[evt.type] || 'var(--color-outline)' }} />
+                      <span className="hr-event-item__title">{evt.title}</span>
+                      <span className="hr-event-item__date">{(evt.date || '').slice(0, 10)}</span>
+                      <button type="button" className="hr-tpl__edit" onClick={() => openEditEvent(evt)}>✎</button>
+                      <button type="button" className="hr-tpl__edit" onClick={() => handleDeleteEvent(evt._id || evt.id)}>×</button>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
 
             <article className="hr-form-editor">
               <div className="hr-form-editor__header">
                 <h3 className="hr-form-editor__title">{t('hr.form.title').toUpperCase()}</h3>
-                <button type="button" className="hr-form-editor__new">+ {t('hr.form.new')}</button>
+                <button type="button" className="hr-form-editor__new"
+                  onClick={() => { window.location.href = '/formeditor' }}>
+                  + {t('hr.form.new')}
+                </button>
               </div>
               {isLoading ? (
                 <div className="hr-loading">{t('hr.loading')}</div>
@@ -453,12 +641,18 @@ export default function HRDashboard() {
                           {t(`hr.form.status.${f.status || 'draft'}`)}
                         </span>
                       </div>
-                      <button type="button" className="hr-tpl__edit" aria-label={t('hr.actions.edit')}>✎</button>
+                      <button type="button" className="hr-tpl__edit" aria-label={t('hr.actions.edit')}
+                        onClick={() => { window.location.href = `/formeditor?edit=${f._id || f.id}` }}>
+                        ✎
+                      </button>
                     </li>
                   ))}
                 </ul>
               )}
-              <button type="button" className="hr-form-editor__viewall">{t('hr.form.viewall')}</button>
+              <button type="button" className="hr-form-editor__viewall"
+                onClick={() => { window.location.href = '/formeditor' }}>
+                {t('hr.form.viewall')}
+              </button>
             </article>
 
             {/* Row 4 — Resources (full width) */}
@@ -468,7 +662,10 @@ export default function HRDashboard() {
                   <h3 className="hr-resources__title">{t('hr.res.title').toUpperCase()}</h3>
                   <p className="hr-resources__sub">{t('hr.res.sub')}</p>
                 </div>
-                <button type="button" className="hr-resources__publish">+ {t('hr.res.publish')}</button>
+                <button type="button" className="hr-resources__publish"
+                  onClick={() => { window.location.href = '/resources' }}>
+                  + {t('hr.res.publish')}
+                </button>
               </div>
               {isLoading ? (
                 <div className="hr-loading">{t('hr.loading')}</div>
@@ -492,7 +689,10 @@ export default function HRDashboard() {
                       <span className={`hr-resource__status hr-resource__status--${r.status || 'draft'}`}>
                         {t(`hr.res.status.${r.status || 'draft'}`)}
                       </span>
-                      <button type="button" className="hr-resource__dl" aria-label={t('hr.actions.download')}>↓</button>
+                      <button type="button" className="hr-resource__dl" aria-label={t('hr.actions.download')}
+                        onClick={() => { window.location.href = `/api/resources/${r._id || r.id}` }}>
+                        ↓
+                      </button>
                     </div>
                   ))}
                 </div>
@@ -500,6 +700,48 @@ export default function HRDashboard() {
             </article>
 
           </div>
+
+          {/* Event modal */}
+          {eventModalOpen && (
+            <div className="hr-modal-backdrop" onClick={() => setEventModalOpen(false)}>
+              <div className="hr-modal" role="dialog" aria-labelledby="hr-event-title" onClick={e => e.stopPropagation()}>
+                <h3 id="hr-event-title" className="hr-modal__title">
+                  {eventEditing ? t('hr.event.edit') : t('hr.event.add')}
+                </h3>
+                <form onSubmit={handleSaveEvent} className="hr-event-form">
+                  <label className="hr-event-field">
+                    <span>{t('hr.event.title_label')}</span>
+                    <input type="text" required value={eventForm.title}
+                      onChange={e => setEventForm(p => ({ ...p, title: e.target.value }))} />
+                  </label>
+                  <label className="hr-event-field">
+                    <span>{t('hr.event.date')}</span>
+                    <input type="date" required value={eventForm.date}
+                      onChange={e => setEventForm(p => ({ ...p, date: e.target.value }))} />
+                  </label>
+                  <label className="hr-event-field">
+                    <span>{t('hr.event.type')}</span>
+                    <select value={eventForm.type}
+                      onChange={e => setEventForm(p => ({ ...p, type: e.target.value }))}>
+                      <option value="meeting">Meeting</option>
+                      <option value="interview">Interview</option>
+                      <option value="deadline">Deadline</option>
+                      <option value="report">Report</option>
+                    </select>
+                  </label>
+                  <div className="hr-modal__actions">
+                    <button type="button" className="hr-camp__btn" onClick={() => setEventModalOpen(false)}>
+                      {t('hr.event.cancel')}
+                    </button>
+                    <button type="submit" className="hr-camp__btn hr-camp__btn--primary" disabled={eventSaving}>
+                      {t('hr.event.save')}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
         </main>
       </div>
     </div>

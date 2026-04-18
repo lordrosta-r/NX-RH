@@ -70,4 +70,14 @@ export default {
   // CalendarWidget navigation
   'dashboard.calendar.prev_month': 'Mois précédent',
   'dashboard.calendar.next_month': 'Mois suivant',
+
+  // Evaluation stats
+  'dashboard.stats.title':     'Mes évaluations',
+  'dashboard.stats.total':     'Total',
+  'dashboard.stats.pending':   'En attente',
+  'dashboard.stats.completed': 'Terminées',
+  'dashboard.stats.cta':       'Compléter mes évaluations',
+
+  // Resources
+  'dashboard.resources.title': 'Ressources récentes',
 }

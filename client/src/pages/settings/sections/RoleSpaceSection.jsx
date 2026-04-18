@@ -10,28 +10,37 @@ import {
 function spacesFor(role) {
   if (role === 'admin') {
     return [
+      { id: 'admin',      href: '/admin',      Icon: HomeIcon },
       { id: 'hr',         href: '/hr',         Icon: FolderIcon },
       { id: 'manager',    href: '/manager',    Icon: ClipboardIcon },
       { id: 'formeditor', href: '/formeditor', Icon: DocumentIcon },
-      { id: 'dashboard',  href: '/dashboard',  Icon: HomeIcon },
+      { id: 'employee',   href: '/employee',   Icon: HomeIcon },
     ]
   }
   if (role === 'hr') {
     return [
       { id: 'hr',         href: '/hr',         Icon: FolderIcon },
+      { id: 'campaigns',  href: '/campaigns',  Icon: ClipboardIcon },
       { id: 'formeditor', href: '/formeditor', Icon: DocumentIcon },
-      { id: 'dashboard',  href: '/dashboard',  Icon: HomeIcon },
+      { id: 'employee',   href: '/employee',   Icon: HomeIcon },
     ]
   }
-  if (role === 'director' || role === 'manager') {
+  if (role === 'director') {
     return [
-      { id: 'manager',   href: '/manager',   Icon: ClipboardIcon },
-      { id: 'dashboard', href: '/dashboard', Icon: HomeIcon },
+      { id: 'director',   href: '/director',   Icon: HomeIcon },
+      { id: 'manager',    href: '/manager',    Icon: ClipboardIcon },
+      { id: 'employee',   href: '/employee',   Icon: HomeIcon },
+    ]
+  }
+  if (role === 'manager') {
+    return [
+      { id: 'manager',  href: '/manager',  Icon: ClipboardIcon },
+      { id: 'employee', href: '/employee', Icon: HomeIcon },
     ]
   }
   // employee
   return [
-    { id: 'dashboard',  href: '/dashboard',  Icon: HomeIcon },
+    { id: 'employee',   href: '/employee',   Icon: HomeIcon },
     { id: 'evaluation', href: '/evaluation', Icon: ClipboardIcon },
   ]
 }

@@ -64,6 +64,12 @@ export default {
   // Role space (contextual links)
   'settings.space.heading': 'My spaces',
   'settings.space.subtitle': 'Quick links to the tools you can access.',
+  'settings.space.admin':        'Admin space',
+  'settings.space.admin.desc':   'System governance & health.',
+  'settings.space.director':     'Director space',
+  'settings.space.director.desc':'Aggregated view of my teams.',
+  'settings.space.employee':     'My space',
+  'settings.space.employee.desc':'My personal journey.',
   'settings.space.dashboard':  'Dashboard',
   'settings.space.dashboard.desc':  'My personal space.',
   'settings.space.evaluation': 'My evaluation',
@@ -74,6 +80,8 @@ export default {
   'settings.space.hr.desc':         'Campaigns, resources, reports.',
   'settings.space.formeditor': 'Form editor',
   'settings.space.formeditor.desc': 'Design evaluation questionnaires.',
+  'settings.space.campaigns':  'Campaigns',
+  'settings.space.campaigns.desc': 'Launch and track evaluation campaigns.',
 
   // Danger zone
   'settings.danger.heading':  'Session zone',

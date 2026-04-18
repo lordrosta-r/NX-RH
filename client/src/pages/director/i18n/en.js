@@ -1,0 +1,44 @@
+export default {
+  'director.nav.overview':    'Aggregated view',
+  'director.nav.evaluations': 'Evaluations',
+  'director.nav.settings':    'Settings',
+  'director.nav.label':       'Main navigation',
+  'director.nav.coming_soon': 'Coming soon',
+
+  'director.search.placeholder': 'Search…',
+  'director.help.aria':  'Help',
+  'director.help.title': 'Help',
+  'director.logout.aria':  'Sign out',
+  'director.logout.title': 'Sign out',
+  'director.theme.to_light':   'Switch to light mode',
+  'director.theme.to_sidebar': 'Switch to light sidebar mode',
+  'director.theme.to_dark':    'Switch to dark mode',
+  'director.notifications.aria_bell': 'Notifications',
+
+  'director.hero.eyebrow': 'Director',
+  'director.hero.title':   'Aggregated view of my teams',
+  'director.hero.sub':     'Drive the evaluation campaign across your whole scope. Numbers include your full hierarchical sub-tree.',
+
+  'director.completion.heading': 'Overall progress',
+  'director.completion.hint':    'signed evaluations out of total',
+
+  'director.kpis.label':       'Key indicators',
+  'director.kpi.total':        'Evaluations',
+  'director.kpi.managers':     'Active managers',
+  'director.kpi.in_progress':  'In progress',
+  'director.kpi.submitted':    'To review',
+  'director.kpi.reviewed':     'Reviewed',
+  'director.kpi.signed':       'Signed',
+
+  'director.list.heading':  'My workspaces',
+  'director.list.subtitle': 'Access the tools of your role.',
+  'director.actions.manager':         'Detailed manager view',
+  'director.actions.manager.desc':    'Evaluations to review.',
+  'director.actions.evaluation':      'My evaluation',
+  'director.actions.evaluation.desc': 'My own questionnaires.',
+  'director.actions.settings':        'Settings',
+  'director.actions.settings.desc':   'My personal preferences.',
+
+  'director.loading':   'Loading…',
+  'director.error.load':'Could not load evaluations.',
+}

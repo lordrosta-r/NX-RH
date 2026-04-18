@@ -109,12 +109,18 @@ app.get('/api/health', async (_req, res) => {
 
 app.get('/',           sendPage('login'))
 app.get('/login',      sendPage('login'))
-app.get('/dashboard',  authGuard(['admin', 'director', 'manager', 'employee', 'hr']), sendPage('dashboard'))
-app.get('/manager',    authGuard(['admin', 'director', 'manager']),                   sendPage('manager'))
-app.get('/hr',         authGuard(['admin', 'hr']),                                    sendPage('hr'))
-app.get('/formeditor', authGuard(['admin', 'hr']),                                    sendPage('formeditor'))
-app.get('/evaluation', authGuard(['admin', 'director', 'manager', 'employee', 'hr']), sendPage('evaluation'))
-app.get('/settings',   authGuard(['admin', 'director', 'manager', 'employee', 'hr']), sendPage('settings'))
+app.get('/employee',   authGuard(['employee', 'manager', 'director', 'hr', 'admin']), sendPage('employee'))
+app.get('/manager',    authGuard(['manager', 'director', 'admin']),                   sendPage('manager'))
+app.get('/director',   authGuard(['director', 'admin']),                              sendPage('director'))
+app.get('/hr',         authGuard(['hr', 'admin']),                                    sendPage('hr'))
+app.get('/admin',      authGuard(['admin']),                                          sendPage('admin'))
+app.get('/formeditor', authGuard(['hr', 'admin']),                                    sendPage('formeditor'))
+app.get('/campaigns',  authGuard(['hr', 'admin']),                                    sendPage('campaigns'))
+app.get('/evaluation', authGuard(['employee', 'manager', 'director', 'hr', 'admin']), sendPage('evaluation'))
+app.get('/settings',   authGuard(['employee', 'manager', 'director', 'hr', 'admin']), sendPage('settings'))
+
+// Backward-compat redirect (old /dashboard → new /employee)
+app.get('/dashboard',  (req, res) => res.redirect(301, '/employee'))
 
 // ─── API Routes ──────────────────────────────────────────────────────────────
 

@@ -43,7 +43,7 @@ export default function Manager() {
   if (authLoading) return null
   if (!user)       return null
   if (!['admin', 'director', 'manager'].includes(user.role)) {
-    window.location.href = '/dashboard'
+    window.location.href = '/employee'
     return null
   }
 

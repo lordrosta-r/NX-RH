@@ -1,12 +1,12 @@
 // =============================================================================
-// Dashboard — Employee home page
+// Employee — Employee home page (formerly /dashboard)
 // Layout: dark violet sidebar + Editorial Enterprise main content.
 // Design: docs/design/dashboard/DESIGN.md
 // =============================================================================
 
 import React, { useState, useEffect } from 'react'
-import './dashboard.css'
-import DashboardSidebar from './DashboardSidebar'
+import './employee.css'
+import EmployeeSidebar from './EmployeeSidebar'
 import CampaignBanner   from './CampaignBanner'
 import CalendarWidget   from '../../components/ui/CalendarWidget'
 import AppTopbar        from '../../components/ui/AppTopbar'
@@ -38,7 +38,7 @@ const SPOTLIGHT_IMG = '/assets/spotlight.jpg'
 
 
 // ── Component ────────────────────────────────────────────────────────────────
-export default function Dashboard() {
+export default function Employee() {
   const { t, locale, setLocale } = useLocale(pageT)
   const { theme, cycleTheme }    = useTheme()
   const { user, loading: authLoading } = useAuthUser()
@@ -153,7 +153,7 @@ export default function Dashboard() {
     <div className="db">
 
       {/* ── Sidebar ─────────────────────────────────────────────────────── */}
-      <DashboardSidebar t={t} />
+      <EmployeeSidebar t={t} />
 
       {/* ── Main area ───────────────────────────────────────────────────── */}
       <div className="db-main">

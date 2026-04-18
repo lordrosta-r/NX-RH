@@ -106,6 +106,8 @@ export default {
 
   // Confirm dialogs
   'fe.confirm.unsaved_changes': 'Vous avez des modifications non enregistrées. Quitter quand même ?',
+  'fe.confirm.cancel': 'Annuler',
+  'fe.confirm.leave':  'Quitter',
 
   // Frozen form
   'fe.frozen.warning': 'Ce formulaire est gelé — les questions ne peuvent plus être modifiées.',
@@ -160,4 +162,10 @@ export default {
   'fe.btn.configure':       'Configurer',
   'fe.btn.delete_question': 'Supprimer la question',
   'fe.scale.range':         'Échelle de 1 à {max}',
+
+  // Loading / error / empty states
+  'fe.loading':              'Chargement…',
+  'fe.error.load':           'Impossible de charger les données. Veuillez rafraîchir la page.',
+  'fe.empty.title':          'Aucun formulaire pour le moment',
+  'fe.empty.desc':           'Créez votre premier formulaire d\'évaluation pour commencer.',
 }

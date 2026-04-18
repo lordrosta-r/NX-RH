@@ -57,6 +57,7 @@ export default defineConfig({
         hr:        resolve(__dirname, 'hr.html'),
         formeditor:  resolve(__dirname, 'formeditor.html'),
         evaluation:  resolve(__dirname, 'evaluation.html'),
+        settings:    resolve(__dirname, 'settings.html'),
       },
     },
   },

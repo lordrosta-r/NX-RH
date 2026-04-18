@@ -16,7 +16,7 @@ import { useState, useEffect } from 'react'
 
 const STORAGE_KEY   = 'nx_theme'
 const DEFAULT_THEME = 'dark'
-const THEMES        = ['dark', 'light', 'light-sidebar']
+export const THEMES = ['dark', 'light', 'light-sidebar']
 
 export function useTheme() {
   const [theme, setThemeState] = useState(() => {
@@ -40,8 +40,13 @@ export function useTheme() {
       return THEMES[(idx + 1) % THEMES.length]
     })
 
+  // Sélection directe d'un thème (utilisé par /settings).
+  const setTheme = (name) => {
+    if (THEMES.includes(name)) setThemeState(name)
+  }
+
   // Keep toggleTheme as alias for backward compat (login page)
   const toggleTheme = cycleTheme
 
-  return { theme, cycleTheme, toggleTheme, isDark: theme === 'dark' }
+  return { theme, setTheme, cycleTheme, toggleTheme, isDark: theme === 'dark' }
 }

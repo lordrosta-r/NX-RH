@@ -87,7 +87,10 @@ function mockUserFindById(overrides = {}) {
 describe('POST /api/auth/login', () => {
   const app = buildApp()
 
-  beforeEach(() => jest.clearAllMocks())
+  beforeEach(() => {
+    jest.clearAllMocks()
+    User.updateOne = jest.fn().mockResolvedValue({ acknowledged: true })
+  })
 
   it('returns 400 when email is missing', async () => {
     const res = await request(app).post('/api/auth/login').send({ password: 'secret' })
@@ -152,6 +155,19 @@ describe('POST /api/auth/login', () => {
     expect(cookie).toBeDefined()
     expect(cookie[0]).toMatch(/token=/)
     expect(cookie[0]).toMatch(/HttpOnly/i)
+  })
+
+  it('updates lastLoginAt on successful login (fire-and-forget)', async () => {
+    const hash = await bcrypt.hash('secret123', 10)
+    mockUserFind({ passwordHash: hash })
+    const res = await request(app)
+      .post('/api/auth/login')
+      .send({ email: 'alice@corp.com', password: 'secret123' })
+    expect(res.status).toBe(200)
+    expect(User.updateOne).toHaveBeenCalledWith(
+      { _id: validUser._id },
+      { $set: { lastLoginAt: expect.any(Date) } },
+    )
   })
 
   it('does not expose passwordHash in response', async () => {
@@ -228,5 +244,102 @@ describe('GET /api/auth/me', () => {
       .get('/api/auth/me')
       .set('Cookie', `token=${token}`)
     expect(res.status).toBe(401)
+  })
+})
+
+// ─── PATCH /api/auth/preferences ─────────────────────────────────────────────
+
+describe('PATCH /api/auth/preferences', () => {
+  const app = buildApp()
+
+  function tokenFor(user = validUser) {
+    return jwt.sign(
+      { id: user._id, email: user.email, role: user.role },
+      SECRET,
+      { algorithm: 'HS256', expiresIn: '1h' }
+    )
+  }
+
+  beforeEach(() => {
+    jest.clearAllMocks()
+    User.updateOne = jest.fn().mockResolvedValue({ acknowledged: true })
+  })
+
+  it('returns 401 without token', async () => {
+    const res = await request(app)
+      .patch('/api/auth/preferences')
+      .send({ locale: 'en' })
+    expect(res.status).toBe(401)
+  })
+
+  it('rejects unknown notification key', async () => {
+    const res = await request(app)
+      .patch('/api/auth/preferences')
+      .set('Cookie', `token=${tokenFor()}`)
+      .send({ notificationPrefs: { unknownKey: true } })
+    expect(res.status).toBe(400)
+    expect(res.body.error).toMatch(/inconnue/i)
+  })
+
+  it('rejects invalid locale enum', async () => {
+    const res = await request(app)
+      .patch('/api/auth/preferences')
+      .set('Cookie', `token=${tokenFor()}`)
+      .send({ locale: 'es' })
+    expect(res.status).toBe(400)
+    expect(res.body.error).toMatch(/locale/i)
+  })
+
+  it('rejects invalid theme enum', async () => {
+    const res = await request(app)
+      .patch('/api/auth/preferences')
+      .set('Cookie', `token=${tokenFor()}`)
+      .send({ theme: 'neon' })
+    expect(res.status).toBe(400)
+    expect(res.body.error).toMatch(/th[èe]me/i)
+  })
+
+  it('rejects non-boolean notification value', async () => {
+    const res = await request(app)
+      .patch('/api/auth/preferences')
+      .set('Cookie', `token=${tokenFor()}`)
+      .send({ notificationPrefs: { evaluationAssigned: 'yes' } })
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 400 when no preference provided', async () => {
+    const res = await request(app)
+      .patch('/api/auth/preferences')
+      .set('Cookie', `token=${tokenFor()}`)
+      .send({})
+    expect(res.status).toBe(400)
+  })
+
+  it('updates locale + theme + notificationPrefs and returns fresh prefs', async () => {
+    // Mock for both reads (current notif merge + final fetch)
+    User.findById = jest.fn().mockReturnValue({
+      select: jest.fn().mockReturnValue({
+        lean: jest.fn().mockResolvedValue({
+          locale: 'en',
+          theme:  'light',
+          notificationPrefs: { evaluationAssigned: false, deadlineReminder: true },
+        }),
+      }),
+    })
+    const res = await request(app)
+      .patch('/api/auth/preferences')
+      .set('Cookie', `token=${tokenFor()}`)
+      .send({
+        locale: 'en',
+        theme:  'light',
+        notificationPrefs: { evaluationAssigned: false },
+      })
+    expect(res.status).toBe(200)
+    expect(User.updateOne).toHaveBeenCalledWith(
+      { _id: validUser._id },
+      { $set: expect.objectContaining({ locale: 'en', theme: 'light' }) },
+    )
+    expect(res.body.locale).toBe('en')
+    expect(res.body.theme).toBe('light')
   })
 })

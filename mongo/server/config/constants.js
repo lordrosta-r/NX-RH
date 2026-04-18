@@ -61,10 +61,34 @@ const AUTH_SOURCES = ['local', 'ldap']
 
 const BCRYPT_ROUNDS = parseInt(process.env.BCRYPT_ROUNDS, 10) || 12
 
+// Préférences utilisateur — locale, thème, notifications
+const LOCALES = ['fr', 'en']
+const THEMES  = ['dark', 'light', 'light-sidebar']
+const NOTIF_PREF_KEYS = [
+  'campaignLaunch',
+  'evaluationAssigned',
+  'evaluationSubmitted',
+  'deadlineReminder',
+  'managerActionRequired',
+  'systemAlerts',
+]
+
+// Mapping des notifications pertinentes par rôle.
+// Source de vérité unique : le backend filtre /me et valide PATCH /preferences
+// d'après cette table — le front se contente d'afficher ce qu'il reçoit.
+const NOTIF_KEYS_BY_ROLE = {
+  employee: ['evaluationAssigned', 'deadlineReminder', 'managerActionRequired'],
+  manager:  ['evaluationAssigned', 'deadlineReminder', 'evaluationSubmitted'],
+  director: ['evaluationAssigned', 'deadlineReminder', 'evaluationSubmitted'],
+  hr:       ['evaluationAssigned', 'deadlineReminder', 'evaluationSubmitted', 'campaignLaunch'],
+  admin:    ['evaluationAssigned', 'deadlineReminder', 'evaluationSubmitted', 'campaignLaunch', 'systemAlerts'],
+}
+
 module.exports = {
   ROLES, DEPARTMENTS, QUESTION_TYPES, FORM_TYPES,
   ADMIN_ROLES, MANAGER_ROLES,
   EVENT_TYPES, RESOURCE_TYPES,
   CAMPAIGN_STATUSES, EVALUATION_STATUSES, AUTH_SOURCES,
   BCRYPT_ROUNDS,
+  LOCALES, THEMES, NOTIF_PREF_KEYS, NOTIF_KEYS_BY_ROLE,
 }

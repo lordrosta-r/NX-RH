@@ -15,6 +15,24 @@ const rateLimit    = require('express-rate-limit')
 const { ipKeyGenerator } = require('express-rate-limit')
 const User      = require('../models/User')
 const { authGuard } = require('../middleware/authGuard')
+const { LOCALES, THEMES, NOTIF_PREF_KEYS, NOTIF_KEYS_BY_ROLE } = require('../config/constants')
+
+// Renvoie les clés de notifications autorisées pour un rôle.
+// Source de vérité unique : NOTIF_KEYS_BY_ROLE dans config/constants.js.
+function allowedNotifKeysFor(role) {
+  return NOTIF_KEYS_BY_ROLE[role] || NOTIF_KEYS_BY_ROLE.employee
+}
+
+// Filtre un objet notificationPrefs pour ne conserver que les clés
+// autorisées pour le rôle donné.
+function filterNotifPrefsByRole(prefs, role) {
+  const allowed = allowedNotifKeysFor(role)
+  const out = {}
+  for (const k of allowed) {
+    if (prefs && Object.prototype.hasOwnProperty.call(prefs, k)) out[k] = !!prefs[k]
+  }
+  return out
+}
 
 // ─── Rate limiters — POST /login ─────────────────────────────────────────────
 // Deux limiters distincts : un par email (anti brute-force), un par IP (anti spray)
@@ -86,6 +104,10 @@ router.post('/login', loginByEmailLimiter, loginByIPLimiter, async (req, res, ne
       maxAge:   remember ? 30 * 24 * 60 * 60 * 1000 : 8 * 60 * 60 * 1000,
     })
 
+    // Mise à jour de lastLoginAt — fire-and-forget, n'échoue jamais le login.
+    User.updateOne({ _id: user._id }, { $set: { lastLoginAt: new Date() } })
+      .catch(err => console.error('[auth] lastLoginAt update failed', err.message))
+
     res.json({
       user: {
         id:        user._id,
@@ -119,7 +141,7 @@ router.post('/logout', (_req, res) => {
 router.get('/me', authGuard(), async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id)
-      .select('firstName lastName email role department position isActive')
+      .select('firstName lastName email role department position isActive locale theme notificationPrefs lastLoginAt authSource managerId createdAt')
       .lean()
 
     if (!user || !user.isActive) {
@@ -132,7 +154,73 @@ router.get('/me', authGuard(), async (req, res, next) => {
       return res.status(401).json({ error: 'Session invalide' })
     }
 
+    // Filtre les préférences de notification selon le rôle pour
+    // n'envoyer au client que les clés qu'il peut effectivement gérer.
+    user.notificationPrefs = filterNotifPrefsByRole(user.notificationPrefs, user.role)
+
     res.json({ id: user._id, ...user })
+  } catch (err) {
+    next(err)
+  }
+})
+
+// ─── PATCH /api/auth/preferences ───────────────────────────────
+// Met à jour les préférences de l'utilisateur courant (locale / theme / notificationPrefs).
+// Whitelist stricte — tout champ inconnu est ignoré ou rejeté.
+
+router.patch('/preferences', authGuard(), async (req, res, next) => {
+  try {
+    const { locale, theme, notificationPrefs } = req.body || {}
+    const updates = {}
+
+    if (locale !== undefined) {
+      if (!LOCALES.includes(locale)) {
+        return res.status(400).json({ error: `Locale invalide. Valeurs autorisées : ${LOCALES.join(', ')}` })
+      }
+      updates.locale = locale
+    }
+
+    if (theme !== undefined) {
+      if (!THEMES.includes(theme)) {
+        return res.status(400).json({ error: `Thème invalide. Valeurs autorisées : ${THEMES.join(', ')}` })
+      }
+      updates.theme = theme
+    }
+
+    if (notificationPrefs !== undefined) {
+      if (!notificationPrefs || typeof notificationPrefs !== 'object' || Array.isArray(notificationPrefs)) {
+        return res.status(400).json({ error: 'notificationPrefs doit être un objet' })
+      }
+      const allowedForRole = allowedNotifKeysFor(req.user.role)
+      const cleaned = {}
+      for (const [key, val] of Object.entries(notificationPrefs)) {
+        if (!NOTIF_PREF_KEYS.includes(key)) {
+          return res.status(400).json({ error: `Clé de notification inconnue : ${key}` })
+        }
+        if (!allowedForRole.includes(key)) {
+          return res.status(403).json({ error: `Clé de notification non autorisée pour votre rôle : ${key}` })
+        }
+        if (typeof val !== 'boolean') {
+          return res.status(400).json({ error: `notificationPrefs.${key} doit être booléen` })
+        }
+        cleaned[key] = val
+      }
+      // Merge avec l'existant (ne pas écraser les autres clés)
+      const current = await User.findById(req.user.id).select('notificationPrefs').lean()
+      updates.notificationPrefs = { ...(current?.notificationPrefs || {}), ...cleaned }
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ error: 'Aucune préférence à mettre à jour' })
+    }
+
+    await User.updateOne({ _id: req.user.id }, { $set: updates })
+    const fresh = await User.findById(req.user.id)
+      .select('locale theme notificationPrefs')
+      .lean()
+    // Ne renvoyer que les clés autorisées pour le rôle
+    fresh.notificationPrefs = filterNotifPrefsByRole(fresh.notificationPrefs, req.user.role)
+    res.json(fresh)
   } catch (err) {
     next(err)
   }

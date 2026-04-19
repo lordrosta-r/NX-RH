@@ -769,7 +769,7 @@ export default function FormEditor() {
                   <div className="fe-panel-section">
                     <h4 className="fe-panel-section__hd">{t('fe.config.scale_range')}</h4>
                     <div className="fe-config__scale-row">
-                      {[2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
+                      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
                         <button
                           type="button"
                           key={n}

@@ -64,6 +64,9 @@ export default function Employee() {
   // ── Resources ────────────────────────────────────────────────────────────
   const [resources, setResources] = useState([])
 
+  // ── Mobile sidebar ───────────────────────────────────────────────────────
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+
   useEffect(() => {
     if (!user) return
     let cancelled = false
@@ -181,7 +184,7 @@ export default function Employee() {
     <div className="db">
 
       {/* ── Sidebar ─────────────────────────────────────────────────────── */}
-      <EmployeeSidebar t={t} />
+      <EmployeeSidebar t={t} sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
       {/* ── Main area ───────────────────────────────────────────────────── */}
       <div className="db-main">
@@ -192,6 +195,7 @@ export default function Employee() {
           theme={theme} cycleTheme={cycleTheme}
           notifItems={notifItems}
           user={user} onLogout={handleLogout}
+          onMenuToggle={() => setSidebarOpen(o => !o)}
         />
 
         {/* ── Page content ────────────────────────────────────────────── */}

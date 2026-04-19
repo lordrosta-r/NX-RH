@@ -28,7 +28,7 @@ const DEPARTMENTS = [
   'Operations', 'Executive',
 ]
 
-function CampaignsSidebar({ t, role }) {
+function CampaignsSidebar({ t, role, sidebarOpen, setSidebarOpen }) {
   const items = role === 'admin'
     ? [
         { id: 'overview',   href: '/admin',      Icon: HomeIcon,      label: t('cmp.nav.admin'),       active: false },
@@ -52,6 +52,7 @@ function CampaignsSidebar({ t, role }) {
       navItems={items}
       labelNavigation={t('cmp.nav.label')}
       labelComingSoon={t('cmp.nav.coming_soon')}
+      sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}
     />
   )
 }
@@ -60,7 +61,7 @@ export default function Campaigns() {
   const { t, locale, setLocale } = useLocale(pageT)
   const { theme, cycleTheme } = useTheme()
   const { user, loading: authLoading } = useAuthUser()
-
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [campaigns, setCampaigns] = useState([])
   const [loading, setLoading]     = useState(true)
   const [error, setError]         = useState(null)
@@ -297,7 +298,7 @@ export default function Campaigns() {
 
   return (
     <div className="db">
-      <CampaignsSidebar t={t} role={user.role} />
+      <CampaignsSidebar t={t} role={user.role} sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
       <div className="db-main">
         <AppTopbar
@@ -306,6 +307,7 @@ export default function Campaigns() {
           locale={locale} setLocale={setLocale}
           user={user} onLogout={handleLogout}
           searchPlaceholder={t('cmp.search.placeholder')}
+          onMenuToggle={() => setSidebarOpen(o => !o)}
           tKeys={{
             help:   { aria: 'cmp.help.aria',   title: 'cmp.help.title' },
             theme:  { to_light: 'cmp.theme.to_light', to_sidebar: 'cmp.theme.to_sidebar', to_dark: 'cmp.theme.to_dark' },

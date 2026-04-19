@@ -867,6 +867,7 @@
 }
 
 @media (max-width: 768px) {
+  .ev-main    { margin-left: 0; }
   .ev-myforms__list { grid-template-columns: 1fr; }
   .ev-campaign-card { flex-direction: column; align-items: flex-start; }
 }

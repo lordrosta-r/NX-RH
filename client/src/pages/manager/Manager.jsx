@@ -19,6 +19,7 @@ export default function Manager() {
   const { t, locale, setLocale } = useLocale(pageT)
   const { theme, cycleTheme }    = useTheme()
   const { user, loading: authLoading } = useAuthUser()
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [evaluations, setEvaluations] = useState([])
   const [evLoading, setEvLoading]     = useState(true)
   const [error, setError]             = useState(null)
@@ -117,7 +118,7 @@ export default function Manager() {
     <div className="mgr">
 
       {/* ── Sidebar ─────────────────────────────────────────────────────── */}
-      <ManagerSidebar t={t} activeItem="evaluations" />
+      <ManagerSidebar t={t} activeItem="evaluations" sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
       {/* ── Main area ───────────────────────────────────────────────────── */}
       <div className="mgr-main">
@@ -127,6 +128,7 @@ export default function Manager() {
           locale={locale} setLocale={setLocale}
           theme={theme} cycleTheme={cycleTheme}
           user={user} onLogout={handleLogout}
+          onMenuToggle={() => setSidebarOpen(o => !o)}
         />
 
         {/* ── Page content ────────────────────────────────────────────── */}

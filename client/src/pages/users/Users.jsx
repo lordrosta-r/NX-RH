@@ -24,7 +24,7 @@ const DEPARTMENTS = [
 ]
 
 // ── Adaptive sidebar ─────────────────────────────────────────────────────────
-function UsersSidebar({ t, role }) {
+function UsersSidebar({ t, role, sidebarOpen, setSidebarOpen }) {
   const items = role === 'admin'
     ? [
         { id: 'overview',   href: '/admin',      Icon: HomeIcon,      label: t('usr.nav.admin'),       active: false },
@@ -49,6 +49,7 @@ function UsersSidebar({ t, role }) {
       navItems={items}
       labelNavigation={t('usr.nav.label')}
       labelComingSoon={t('usr.nav.coming_soon')}
+      sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}
     />
   )
 }
@@ -65,7 +66,7 @@ export default function Users() {
   const { t, locale, setLocale } = useLocale(pageT)
   const { theme, cycleTheme }    = useTheme()
   const { user, loading: authLoading } = useAuthUser()
-
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [users, setUsers]       = useState([])
   const [total, setTotal]       = useState(0)
   const [page, setPage]         = useState(1)
@@ -173,7 +174,7 @@ export default function Users() {
 
   return (
     <div className="db">
-      <UsersSidebar t={t} role={user.role} />
+      <UsersSidebar t={t} role={user.role} sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
       <div className="db-main">
         <AppTopbar
@@ -182,6 +183,7 @@ export default function Users() {
           locale={locale} setLocale={setLocale}
           user={user} onLogout={handleLogout}
           searchPlaceholder={t('usr.search.placeholder')}
+          onMenuToggle={() => setSidebarOpen(o => !o)}
           tKeys={{
             help:   { aria: 'usr.help.aria',   title: 'usr.help.title' },
             theme:  { to_light: 'usr.theme.to_light', to_sidebar: 'usr.theme.to_sidebar', to_dark: 'usr.theme.to_dark' },

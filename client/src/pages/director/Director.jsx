@@ -16,7 +16,7 @@ export default function Director() {
   const { t, locale, setLocale } = useLocale(pageT)
   const { theme, cycleTheme } = useTheme()
   const { user, loading: authLoading } = useAuthUser()
-
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [evals, setEvals]    = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError]    = useState(null)
@@ -69,7 +69,7 @@ export default function Director() {
 
   return (
     <div className="db">
-      <DirectorSidebar t={t} activeItem="overview" />
+      <DirectorSidebar t={t} activeItem="overview" sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
       <div className="db-main">
         <AppTopbar
@@ -81,6 +81,7 @@ export default function Director() {
           user={user}
           onLogout={handleLogout}
           searchPlaceholder={t('director.search.placeholder')}
+          onMenuToggle={() => setSidebarOpen(o => !o)}
           tKeys={{
             help:   { aria: 'director.help.aria',   title: 'director.help.title' },
             theme:  { to_light: 'director.theme.to_light', to_sidebar: 'director.theme.to_sidebar', to_dark: 'director.theme.to_dark' },

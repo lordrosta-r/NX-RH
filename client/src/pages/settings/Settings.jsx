@@ -3,7 +3,7 @@
 // Layout: dynamic sidebar (role-aware) + Editorial Enterprise main content.
 // =============================================================================
 
-import React, { useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import './settings.css'
 
 import SettingsSidebar      from './SettingsSidebar'
@@ -23,6 +23,7 @@ export default function Settings() {
   const { t, locale, setLocale }       = useLocale(pageT)
   const { theme, setTheme, cycleTheme } = useTheme()
   const { user, loading: authLoading } = useAuthUser()
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   // Sync locale + theme from server prefs when /me arrives.
   // Runs only once when user becomes available (subsequent local changes
@@ -56,7 +57,7 @@ export default function Settings() {
 
   return (
     <div className="st">
-      <SettingsSidebar t={t} role={user.role} />
+      <SettingsSidebar t={t} role={user.role} sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
       <div className="st-main">
         <AppTopbar
@@ -65,6 +66,7 @@ export default function Settings() {
           theme={theme} cycleTheme={cycleTheme}
           notifItems={[]}
           user={user} onLogout={handleLogout}
+          onMenuToggle={() => setSidebarOpen(o => !o)}
         />
 
         <main className="st-content" id="main-content">

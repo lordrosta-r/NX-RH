@@ -100,7 +100,7 @@ export default function HRDashboard() {
   const { t, locale, setLocale } = useLocale(pageT)
   const { theme, cycleTheme } = useTheme()
   const { user, loading: authLoading } = useAuthUser()
-
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [data, setData]       = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError]     = useState(null)
@@ -334,7 +334,7 @@ export default function HRDashboard() {
 
   return (
     <div className="hr">
-      <HRSidebar t={t} activeItem="overview" />
+      <HRSidebar t={t} activeItem="overview" sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
       <div className="hr-main">
 
@@ -344,6 +344,7 @@ export default function HRDashboard() {
           theme={theme} cycleTheme={cycleTheme}
           notifItems={notifItems}
           user={user} onLogout={handleLogout}
+          onMenuToggle={() => setSidebarOpen(o => !o)}
         />
 
         {/* ── Page content ────────────────────────────────────────────── */}

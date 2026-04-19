@@ -6,7 +6,7 @@ import React from 'react'
 import AppSidebar from '../../components/ui/AppSidebar'
 import { HomeIcon, ClipboardIcon, GearIcon } from '../../components/ui/icons'
 
-export default function EvaluationSidebar({ t }) {
+export default function EvaluationSidebar({ t, sidebarOpen, setSidebarOpen }) {
   const navItems = [
     { id: 'home',       Icon: HomeIcon,      label: t('ev.nav.dashboard'),  active: false, href: '/employee'  },
     { id: 'evaluation', Icon: ClipboardIcon, label: t('ev.nav.evaluation'), active: true,  href: '/evaluation' },
@@ -15,5 +15,6 @@ export default function EvaluationSidebar({ t }) {
   return <AppSidebar brandSub="Employee Portal" navItems={navItems}
     labelNavigation={t('ev.nav.label')}
     labelComingSoon={t('ev.nav.coming_soon')}
+    sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}
   />
 }

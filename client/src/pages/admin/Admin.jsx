@@ -17,7 +17,7 @@ export default function Admin() {
   const { t, locale, setLocale } = useLocale(pageT)
   const { theme, cycleTheme } = useTheme()
   const { user, loading: authLoading } = useAuthUser()
-
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [users, setUsers]       = useState([])
   const [usersLoad, setUsersLoad] = useState(true)
   const [health, setHealth]     = useState(null)
@@ -67,7 +67,7 @@ export default function Admin() {
 
   return (
     <div className="db">
-      <AdminSidebar t={t} activeItem="overview" />
+      <AdminSidebar t={t} activeItem="overview" sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
       <div className="db-main">
         <AppTopbar
@@ -79,6 +79,7 @@ export default function Admin() {
           user={user}
           onLogout={handleLogout}
           searchPlaceholder={t('admin.search.placeholder')}
+          onMenuToggle={() => setSidebarOpen(o => !o)}
           tKeys={{
             help:   { aria: 'admin.help.aria',   title: 'admin.help.title' },
             theme:  { to_light: 'admin.theme.to_light', to_sidebar: 'admin.theme.to_sidebar', to_dark: 'admin.theme.to_dark' },

@@ -51,7 +51,7 @@ export default function Evaluation() {
   const { t, locale, setLocale } = useLocale(pageT)
   const { theme, cycleTheme }    = useTheme()
   const { user, loading: authLoading } = useAuthUser()
-
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const evaluationId = new URLSearchParams(window.location.search).get('id')
 
   const [view,        setView]       = useState(() => evaluationId ? 'form' : 'home')   // 'home' | 'form'
@@ -250,7 +250,7 @@ export default function Evaluation() {
 
   return (
     <div className="ev">
-      <EvaluationSidebar t={t} />
+      <EvaluationSidebar t={t} sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
       <div className="ev-main" role="main" id="main-content">
 
@@ -259,6 +259,7 @@ export default function Evaluation() {
           locale={locale} setLocale={setLocale}
           theme={theme} cycleTheme={cycleTheme}
           user={user} onLogout={handleLogout}
+          onMenuToggle={() => setSidebarOpen(o => !o)}
         />
 
         {/* ── HOME VIEW ──────────────────────────────────────────────────── */}

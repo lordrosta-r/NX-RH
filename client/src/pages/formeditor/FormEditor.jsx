@@ -14,9 +14,7 @@ import { useAuthUser } from '../../hooks/useAuthUser'
 import FormEditorSidebar from './FormEditorSidebar'
 import AppTopbar from '../../components/ui/AppTopbar'
 import FormEditorBanner from './FormEditorBanner'
-import {
-  PlusIcon, TrashIcon, DocumentIcon,
-} from '../../components/ui/icons'
+import { Plus, Trash2, Pencil, FileText as DocumentIcon } from 'lucide-react'
 
 const STATUS_FILTER = ['all', 'active', 'archived']
 
@@ -464,7 +462,7 @@ export default function FormEditor() {
             ))}
           </div>
           <button type="button" className="fe-create-btn btn btn--md" onClick={openCreate}>
-            <PlusIcon size={15} color="currentColor" strokeWidth={2.5} />
+            <Plus size={15} color="currentColor" strokeWidth={2.5} />
             {t('fe.banner.cta')}
           </button>
         </div>
@@ -480,7 +478,7 @@ export default function FormEditor() {
             <h3 className="fe-empty-state__title">{t('fe.empty.title')}</h3>
             <p className="fe-empty-state__desc">{t('fe.empty.desc')}</p>
             <button type="button" className="btn btn--md" onClick={openCreate}>
-              <PlusIcon size={15} color="currentColor" strokeWidth={2.5} />
+              <Plus size={15} color="currentColor" strokeWidth={2.5} />
               {t('fe.banner.cta')}
             </button>
           </div>
@@ -552,35 +550,29 @@ export default function FormEditor() {
     const activeFieldObj = fields.find(f => f.id === activeField) || null
 
     return (
-      <div className="fe-builder">
-        <button type="button" className="fe-builder__back" onClick={handleBack}>
-          {t('fe.create.back')}
-        </button>
+      <>
+        {/* ── LEFT CANVAS ─────────────────────────────────────────────────── */}
+        <section className="fe-canvas">
+          <div className="fe-canvas__inner">
 
-        {frozen && (
-          <div className="fe-frozen-banner" role="alert">
-            {t('fe.frozen.warning')}
-          </div>
-        )}
+            {/* Banners */}
+            {frozen && (
+              <div className="fe-frozen-banner" role="alert">
+                {t('fe.frozen.warning')}
+              </div>
+            )}
+            {error && (
+              <div className="fe-validation-errors fe-validation-errors--api" role="alert">
+                <p>{error}</p>
+              </div>
+            )}
+            {validationErrors.length > 0 && (
+              <div className="fe-validation-errors" role="alert">
+                {validationErrors.map((e, i) => <p key={i}>{e}</p>)}
+              </div>
+            )}
 
-        {error && (
-          <div className="fe-validation-errors fe-validation-errors--api" role="alert">
-            <p>{error}</p>
-          </div>
-        )}
-
-        {validationErrors.length > 0 && (
-          <div className="fe-validation-errors" role="alert">
-            {validationErrors.map((e, i) => <p key={i}>{e}</p>)}
-          </div>
-        )}
-
-        <div className="fe-builder__layout">
-
-          {/* ── LEFT: form structure ──────────────────────────────────────── */}
-          <div className="fe-builder__left">
-
-            {/* Form header — metadata */}
+            {/* Form header — editable metadata */}
             <div className="fe-fheader">
               <span className="fe-fheader__arch">{t('fe.fheader.arch')}</span>
               <label htmlFor="fe-form-title" className="sr-only">{t('fe.create.title')}</label>
@@ -673,12 +665,7 @@ export default function FormEditor() {
                         onClick={e => { e.stopPropagation(); setActiveField(field.id) }}
                         aria-label={t('fe.btn.configure')}
                       >
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-                          stroke="currentColor" strokeWidth="2"
-                          strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                          <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
-                          <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                        </svg>
+                        <Pencil size={13} aria-hidden="true" />
                       </button>
                       <button
                         type="button"
@@ -687,7 +674,7 @@ export default function FormEditor() {
                         aria-label={t('fe.btn.delete_question')}
                         disabled={frozen}
                       >
-                        <TrashIcon size={13} color="currentColor" strokeWidth={2} />
+                        <Trash2 size={13} aria-hidden="true" />
                       </button>
                     </div>
                   </div>
@@ -699,50 +686,57 @@ export default function FormEditor() {
                 </div>
               ))}
 
-              {/* Add card — default type rating, changed via config panel */}
-              <button type="button" className="fe-qcard fe-qcard--add" onClick={() => addField('rating')} disabled={frozen}>
-                <PlusIcon size={22} color="var(--color-on-surface-variant)" strokeWidth={1.5} />
+              {/* Add question */}
+              <button type="button" className="fe-qcard--add" onClick={() => addField('rating')} disabled={frozen}>
+                <Plus size={28} strokeWidth={1.5} aria-hidden="true" />
                 <span>{t('fe.create.add_question')}</span>
               </button>
             </div>
 
           </div>
+        </section>
 
-          {/* ── RIGHT: component configuration ───────────────────────────── */}
-          <div className="fe-builder__right">
+        {/* ── RIGHT PANEL ─────────────────────────────────────────────────── */}
+        <aside className="fe-panel">
+          <div className="fe-panel__scroll">
             {activeFieldObj ? (
               <div className="fe-config">
-                <span className="fe-config__title">{t('fe.config.title')}</span>
 
-                <div className="fe-config__block">
-                  <label className="fe-config__lbl" htmlFor={`fe-q-label-${activeFieldObj.id}`}>
-                    {t('fe.config.question_title')}
-                  </label>
-                  <input
-                    id={`fe-q-label-${activeFieldObj.id}`}
-                    className="fe-config__input"
-                    value={activeFieldObj.label}
-                    placeholder={t('fe.create.question_title_ph')}
-                    onChange={e => updateField(activeFieldObj.id, 'label', e.target.value)}
-                  />
+                {/* Component Configuration */}
+                <div className="fe-panel-section">
+                  <h4 className="fe-panel-section__hd">{t('fe.config.title')}</h4>
+
+                  <div className="fe-config__block">
+                    <label className="fe-config__lbl" htmlFor={`fe-q-label-${activeFieldObj.id}`}>
+                      {t('fe.config.question_title')}
+                    </label>
+                    <input
+                      id={`fe-q-label-${activeFieldObj.id}`}
+                      className="fe-config__input"
+                      value={activeFieldObj.label}
+                      placeholder={t('fe.create.question_title_ph')}
+                      onChange={e => updateField(activeFieldObj.id, 'label', e.target.value)}
+                    />
+                  </div>
+
+                  <div className="fe-config__block">
+                    <label className="fe-config__lbl" htmlFor={`fe-q-desc-${activeFieldObj.id}`}>
+                      {t('fe.config.question_desc')}
+                    </label>
+                    <textarea
+                      id={`fe-q-desc-${activeFieldObj.id}`}
+                      className="fe-config__input fe-config__input--area"
+                      value={activeFieldObj.description || ''}
+                      placeholder={t('fe.create.question_desc_ph')}
+                      rows={3}
+                      onChange={e => updateField(activeFieldObj.id, 'description', e.target.value)}
+                    />
+                  </div>
                 </div>
 
-                <div className="fe-config__block">
-                  <label className="fe-config__lbl" htmlFor={`fe-q-desc-${activeFieldObj.id}`}>
-                    {t('fe.config.question_desc')}
-                  </label>
-                  <textarea
-                    id={`fe-q-desc-${activeFieldObj.id}`}
-                    className="fe-config__input fe-config__input--area"
-                    value={activeFieldObj.description || ''}
-                    placeholder={t('fe.create.question_desc_ph')}
-                    rows={3}
-                    onChange={e => updateField(activeFieldObj.id, 'description', e.target.value)}
-                  />
-                </div>
-
-                <div className="fe-config__block">
-                  <span className="fe-config__lbl">{t('fe.config.validation_logic')}</span>
+                {/* Validation Logic */}
+                <div className="fe-panel-section">
+                  <h4 className="fe-panel-section__hd">{t('fe.config.validation_logic')}</h4>
                   <div className="fe-config__toggles">
                     {[
                       { key: 'required',  label: t('fe.config.toggle_required')  },
@@ -754,7 +748,7 @@ export default function FormEditor() {
                       return (
                         <div key={key} className="fe-config__toggle-row">
                           <span className="fe-config__toggle-lbl">{label}</span>
-                           <button
+                          <button
                             type="button"
                             className={`fe-toggle${checked ? ' fe-toggle--on' : ''}`}
                             onClick={() => { if (!isAnonymousForced) updateField(activeFieldObj.id, key, !activeFieldObj[key]) }}
@@ -770,10 +764,10 @@ export default function FormEditor() {
                   </div>
                 </div>
 
-                {/* Rating config — only for rating type */}
+                {/* Rating scale range — only for rating type */}
                 {activeFieldObj.type === 'rating' && (
-                  <div className="fe-config__block">
-                    <label className="fe-config__lbl">{t('fe.config.scale_range')}</label>
+                  <div className="fe-panel-section">
+                    <h4 className="fe-panel-section__hd">{t('fe.config.scale_range')}</h4>
                     <div className="fe-config__scale-row">
                       {[2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
                         <button
@@ -790,8 +784,9 @@ export default function FormEditor() {
                   </div>
                 )}
 
-                <div className="fe-config__block">
-                  <span className="fe-config__lbl">{t('fe.config.interface_opts')}</span>
+                {/* Interface Options */}
+                <div className="fe-panel-section">
+                  <h4 className="fe-panel-section__hd">{t('fe.config.interface_opts')}</h4>
                   <div className="fe-config__opts">
                     {IFACE_OPTS.map(({ type, key, d }) => (
                       <button
@@ -813,14 +808,14 @@ export default function FormEditor() {
 
                 {/* Options — only for choice type */}
                 {activeFieldObj.type === 'choice' && (
-                  <div className="fe-config__block">
-                    <span className="fe-config__lbl">{t('fe.config.options')}</span>
+                  <div className="fe-panel-section">
+                    <h4 className="fe-panel-section__hd">{t('fe.config.options')}</h4>
                     <div className="fe-opts-list">
                       {activeFieldObj.options.map((opt, i) => (
                         <div key={opt.id} className="fe-opt-row">
                           <input
                             className="fe-opt-row__label"
-                           placeholder={t('fe.create.option_label_ph').replace('{n}', String(i + 1))}
+                            placeholder={t('fe.create.option_label_ph').replace('{n}', String(i + 1))}
                             value={opt.label}
                             onChange={e => updateOption(activeFieldObj.id, opt.id, 'label', e.target.value)}
                           />
@@ -836,7 +831,7 @@ export default function FormEditor() {
                             onClick={() => removeOption(activeFieldObj.id, opt.id)}
                             aria-label={t('fe.config.remove_option')}
                           >
-                            <TrashIcon size={13} color="currentColor" strokeWidth={2} />
+                            <Trash2 size={13} aria-hidden="true" />
                           </button>
                         </div>
                       ))}
@@ -845,44 +840,32 @@ export default function FormEditor() {
                         className="fe-opts-add"
                         onClick={() => addOption(activeFieldObj.id)}
                       >
-                        <PlusIcon size={12} color="var(--color-secondary)" strokeWidth={2.5} />
+                        <Plus size={12} strokeWidth={2.5} aria-hidden="true" />
                         {t('fe.create.add_option')}
                       </button>
                     </div>
                   </div>
                 )}
 
-                <div className="fe-config__footer">
-                  <button type="button" className="fe-config__discard" onClick={() => setActiveField(null)}>
-                    {t('fe.create.cancel')}
-                  </button>
-                  <button type="button" className="btn btn--md" onClick={() => setActiveField(null)}>{t('fe.config.save')}</button>
-                </div>
               </div>
             ) : (
               <div className="fe-config fe-config--idle">
-                <span className="fe-config__title">{t('fe.config.title')}</span>
-                <p className="fe-config__hint">
-                  {t('fe.config.idle_hint')}
-                </p>
+                <p className="fe-config__hint">{t('fe.config.idle_hint')}</p>
               </div>
             )}
           </div>
-        </div>
 
-        {/* Bottom actions */}
-        <div className="fe-builder__actions">
-          <button type="button" className="btn btn--md" onClick={handlePublish} disabled={saving}>
-            {t('fe.create.publish')}
-          </button>
-          <button type="button" className="fe-builder__ghost" onClick={handleSave} disabled={saving}>
-            {saving ? '…' : t('fe.create.save')}
-          </button>
-          <button type="button" className="fe-builder__ghost fe-builder__ghost--muted" onClick={handleBack}>
-            {t('fe.create.cancel')}
-          </button>
-        </div>
-      </div>
+          {/* Sticky footer */}
+          <div className="fe-panel__footer">
+            <button type="button" className="fe-panel__discard" onClick={handleBack}>
+              {t('fe.create.cancel')}
+            </button>
+            <button type="button" className="fe-panel__save" onClick={handlePublish} disabled={saving}>
+              {saving ? '…' : t('fe.create.publish')}
+            </button>
+          </div>
+        </aside>
+      </>
     )
   }
 
@@ -913,9 +896,15 @@ export default function FormEditor() {
         />
 
         {/* Content */}
-        <main className="db-content fe" id="main-content">
-          {view === 'list' ? renderList() : renderCreate()}
-        </main>
+        {view === 'list' ? (
+          <main className="db-content fe" id="main-content">
+            {renderList()}
+          </main>
+        ) : (
+          <section className="fe-studio" id="main-content">
+            {renderCreate()}
+          </section>
+        )}
       </div>
 
       {/* Confirm dialog (replaces window.confirm) */}

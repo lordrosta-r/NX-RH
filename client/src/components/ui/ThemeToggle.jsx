@@ -17,13 +17,13 @@ export default function ThemeToggle({
   labelLight = 'Switch to dark mode',
   labelDark  = 'Switch to light mode',
 }) {
-  const { isDark, toggleTheme } = useTheme()
+  const { isDark, setTheme } = useTheme()
   const label = isDark ? labelDark : labelLight
 
   return (
     <button
       className="theme-toggle"
-      onClick={toggleTheme}
+      onClick={() => setTheme(isDark ? 'light' : 'dark')}
       aria-label={label}
       title={label}
       type="button"

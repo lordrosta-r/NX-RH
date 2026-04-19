@@ -23,7 +23,8 @@ export default {
 
   // Hero
   'res.hero.eyebrow': 'Resources',
-  'res.hero.title':   'HR Document Library',
+  'res.hero.title':         'HR Document Library',
+  'res.hero.title_suffix':  'published resources',
   'res.hero.sub':     'Manage and share reference documents for your organization. Publish guides, templates and procedures accessible to all employees.',
 
   // Status

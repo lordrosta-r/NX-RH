@@ -19,9 +19,11 @@ export default {
   'cmp.theme.to_dark':    'Switch to dark mode',
   'cmp.notifications.aria_bell': 'Notifications',
 
-  'cmp.hero.eyebrow': 'Campaigns',
-  'cmp.hero.title':   'Evaluation campaign control',
-  'cmp.hero.sub':     'Create, launch, track and close your annual or ad-hoc review cycles. Each campaign bundles its forms and evaluations.',
+  'cmp.hero.eyebrow':      'Evaluation campaigns',
+  'cmp.hero.title':        'Evaluation campaign control',
+  'cmp.hero.title_accent': 'Active',
+  'cmp.hero.title_rest':   'evaluation campaigns',
+  'cmp.hero.sub':          'Create, launch, track and close your annual or ad-hoc review cycles. Each campaign bundles its forms and evaluations.',
 
   'cmp.status.draft':    'Draft',
   'cmp.status.active':   'Active',

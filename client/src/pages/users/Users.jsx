@@ -196,13 +196,15 @@ export default function Users() {
           {/* Hero */}
           <section className="usr-hero">
             <p className="usr-hero__eyebrow">{t('usr.hero.eyebrow')}</p>
-            <h1 className="usr-hero__title">{t('usr.hero.title')}</h1>
+            <h1 className="usr-hero__title">
+              <span className="usr-hero__accent">{total || users.length}</span> {t('usr.hero.title_suffix')}
+            </h1>
             <p className="usr-hero__sub">{t('usr.hero.sub')}</p>
           </section>
 
           {/* Action bar + filters */}
           <div className="usr-toolbar">
-            <button type="button" className="usr-btn usr-btn--primary" onClick={openCreate}>
+            <button type="button" className="usr-btn usr-btn--cta" onClick={openCreate}>
               <PlusIcon size={16} /> {t('usr.cta.add')}
             </button>
 

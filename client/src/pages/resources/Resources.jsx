@@ -192,13 +192,15 @@ export default function Resources() {
           {/* Hero */}
           <section className="res-hero">
             <p className="res-hero__eyebrow">{t('res.hero.eyebrow')}</p>
-            <h1 className="res-hero__title">{t('res.hero.title')}</h1>
+            <h1 className="res-hero__title">
+              <span className="res-hero__accent">{resources.length}</span> {t('res.hero.title_suffix')}
+            </h1>
             <p className="res-hero__sub">{t('res.hero.sub')}</p>
           </section>
 
           {/* Action bar */}
           <div className="res-actions">
-            <button type="button" className="res-btn res-btn--primary" onClick={openCreate}>
+            <button type="button" className="res-btn res-btn--cta" onClick={openCreate}>
               <PlusIcon size={16} /> {t('res.cta.add')}
             </button>
           </div>

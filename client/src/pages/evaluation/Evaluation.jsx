@@ -12,9 +12,7 @@ import { t as pageT }    from './i18n'
 import { useLocale }     from '../../hooks/useLocale'
 import { useTheme }      from '../../hooks/useTheme'
 import { useAuthUser }   from '../../hooks/useAuthUser'
-import {
-  SparklesIcon, HeartIcon, GearIcon, ArrowNEIcon,
-} from '../../components/ui/icons'
+import { Sparkles, Heart, Settings, ArrowUpRight, Lock, Save } from 'lucide-react'
 
 // ── Images ────────────────────────────────────────────────────────────────────
 const HERO_IMG = 'https://images.unsplash.com/photo-1521737852567-6949f3f9f2b5?auto=format&fit=crop&w=1400&q=70'
@@ -197,6 +195,11 @@ export default function Evaluation() {
       })
       if (!r.ok) throw new Error(t('ev.error.submit_failed'))
       setStatus('submitted')
+      // Refresh home view so form card shows updated status
+      fetch('/api/evaluations', { credentials: 'include' })
+        .then(r2 => r2.ok ? r2.json() : null)
+        .then(data => { if (data) setMyEvals(data) })
+        .catch(() => {})
     } catch (err) {
       setError(err.message)
     } finally {
@@ -358,7 +361,7 @@ export default function Evaluation() {
                           onClick={() => { window.location.href = `/evaluation?id=${ev._id}` }}
                         >
                           {ev.status === 'in_progress' ? t('ev.form.continue') : isDone ? t('ev.form.view') : t('ev.form.start')}
-                          {!isDone && <ArrowNEIcon size={13} strokeWidth={2} />}
+                          {!isDone && <ArrowUpRight size={13} strokeWidth={2} aria-hidden="true" />}
                         </button>
                       </div>
                     )
@@ -453,7 +456,8 @@ export default function Evaluation() {
                         aria-live="polite"
                         aria-atomic="true"
                       >
-                        💾 {t('ev.form.last_saved')} {lastSaved}
+                        <Save size={13} strokeWidth={2} aria-hidden="true" />
+                        {t('ev.form.last_saved')} {lastSaved}
                       </span>
                     )}
                   </div>
@@ -479,7 +483,7 @@ export default function Evaluation() {
                 {/* Anonymous notice for upward feedback evaluations */}
                 {isAnonymous && (
                   <div className="ev-anon-notice" role="note">
-                    <span className="ev-anon-notice__icon" aria-hidden="true">🔒</span>
+                    <Lock size={16} strokeWidth={2} className="ev-anon-notice__icon" aria-hidden="true" />
                     <p className="ev-anon-notice__text">{t('ev.form.anonymous')}</p>
                   </div>
                 )}
@@ -487,7 +491,7 @@ export default function Evaluation() {
                 {/* Fully locked — no action possible (submitted/signed/validated) */}
                 {FULLY_LOCKED_STATUSES.includes(status) ? (
                   <div className="ev-submitted">
-                    <SparklesIcon size={28} color="var(--color-secondary)" strokeWidth={1.5} />
+                    <Sparkles size={28} color="var(--color-secondary)" strokeWidth={1.5} aria-hidden="true" />
                     <h2 className="ev-submitted__title">{t('ev.submitted.title')}</h2>
                     <p className="ev-submitted__desc">
                       {t('ev.submitted.desc')}
@@ -516,7 +520,7 @@ export default function Evaluation() {
                       </div>
                     )}
                     <div className="ev-submitted__actions">
-                      <button type="button" className="ev-banner__cta" onClick={() => setView('home')}>
+                      <button type="button" className="ev-banner__cta" onClick={() => { window.history.pushState({}, '', '/evaluation'); setView('home') }}>
                         {t('ev.submitted.back')}
                       </button>
                       <a
@@ -690,21 +694,21 @@ export default function Evaluation() {
                     {/* Tips */}
                     <div className="ev-tips">
                       <div className="ev-tip">
-                        <SparklesIcon size={16} color="var(--color-on-surface-variant)" strokeWidth={1.5} />
+                        <Sparkles size={16} color="var(--color-on-surface-variant)" strokeWidth={1.5} aria-hidden="true" />
                         <div>
                           <p className="ev-tip__title">{t('ev.tip1.title')}</p>
                           <p className="ev-tip__body">{t('ev.tip1.body')}</p>
                         </div>
                       </div>
                       <div className="ev-tip">
-                        <HeartIcon size={16} color="var(--color-on-surface-variant)" strokeWidth={1.5} />
+                        <Heart size={16} color="var(--color-on-surface-variant)" strokeWidth={1.5} aria-hidden="true" />
                         <div>
                           <p className="ev-tip__title">{t('ev.tip2.title')}</p>
                           <p className="ev-tip__body">{t('ev.tip2.body')}</p>
                         </div>
                       </div>
                       <div className="ev-tip">
-                        <GearIcon size={16} color="var(--color-on-surface-variant)" strokeWidth={1.5} />
+                        <Settings size={16} color="var(--color-on-surface-variant)" strokeWidth={1.5} aria-hidden="true" />
                         <div>
                           <p className="ev-tip__title">{t('ev.tip3.title')}</p>
                           <p className="ev-tip__body">{t('ev.tip3.body')}</p>

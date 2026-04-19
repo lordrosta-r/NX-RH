@@ -115,13 +115,13 @@ export default function Manager() {
   }
 
   return (
-    <div className="mgr">
+    <div className="db">
 
       {/* ── Sidebar ─────────────────────────────────────────────────────── */}
       <ManagerSidebar t={t} activeItem="evaluations" sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
       {/* ── Main area ───────────────────────────────────────────────────── */}
-      <div className="mgr-main">
+      <div className="db-main">
 
         <AppTopbar
           searchPlaceholder={t('manager.search.placeholder')}
@@ -132,13 +132,16 @@ export default function Manager() {
         />
 
         {/* ── Page content ────────────────────────────────────────────── */}
-        <main className="mgr-content" id="main-content">
+        <main className="db-content mgr" id="main-content">
 
-          {/* Welcome heading */}
-          <div className="mgr-welcome">
-            <h1 className="mgr-welcome__title">{t('manager.welcome.title')}</h1>
-            <p  className="mgr-welcome__sub">{t('manager.welcome.subtitle')}</p>
-          </div>
+          {/* Hero */}
+          <section className="mgr-hero">
+            <p className="mgr-hero__eyebrow">{t('manager.hero.eyebrow')}</p>
+            <h1 className="mgr-hero__title">
+              <span className="mgr-hero__accent">{t('manager.hero.title_accent')}</span> {t('manager.hero.title_rest')}
+            </h1>
+            <p className="mgr-hero__sub">{t('manager.welcome.subtitle')}</p>
+          </section>
 
           {/* ── KPI strip ───────────────────────────────────────────── */}
           <div className="mgr-kpis">

@@ -17,7 +17,10 @@ export default {
   'settings.search.placeholder': 'Rechercher dans les paramètres…',
 
   // Page header
-  'settings.page.title':    'Mes Paramètres',
+  'settings.page.title':         'Mes Paramètres',
+  'settings.hero.eyebrow':       'PRÉFÉRENCES',
+  'settings.hero.title_accent':  'Mes',
+  'settings.hero.title_rest':    'paramètres',
   'settings.page.subtitle': 'Gérez votre profil, vos préférences et vos notifications.',
 
   // Profile

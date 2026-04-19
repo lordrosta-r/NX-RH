@@ -94,7 +94,9 @@ export default function Director() {
           {/* Hero */}
           <section className="dir-hero">
             <p className="dir-hero__eyebrow">{t('director.hero.eyebrow')}</p>
-            <h1 className="dir-hero__title">{t('director.hero.title')}</h1>
+            <h1 className="dir-hero__title">
+              <span className="dir-hero__accent">{t('director.hero.title_accent')}</span> {t('director.hero.title_rest')}
+            </h1>
             <p className="dir-hero__sub">{t('director.hero.sub')}</p>
           </section>
 

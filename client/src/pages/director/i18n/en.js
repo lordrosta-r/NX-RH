@@ -16,7 +16,9 @@ export default {
   'director.notifications.aria_bell': 'Notifications',
 
   'director.hero.eyebrow': 'Director',
-  'director.hero.title':   'Aggregated view of my teams',
+  'director.hero.title':         'Aggregated view of my teams',
+  'director.hero.title_accent':  'Aggregated view',
+  'director.hero.title_rest':    'of my teams',
   'director.hero.sub':     'Drive the evaluation campaign across your whole scope. Numbers include your full hierarchical sub-tree.',
 
   'director.completion.heading': 'Overall progress',

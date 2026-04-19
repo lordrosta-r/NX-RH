@@ -320,13 +320,15 @@ export default function Campaigns() {
           {/* Hero */}
           <section className="cmp-hero">
             <p className="cmp-hero__eyebrow">{t('cmp.hero.eyebrow')}</p>
-            <h1 className="cmp-hero__title">{t('cmp.hero.title')}</h1>
+            <h1 className="cmp-hero__title">
+              <span className="cmp-hero__accent">{t('cmp.hero.title_accent')}</span> {t('cmp.hero.title_rest')}
+            </h1>
             <p className="cmp-hero__sub">{t('cmp.hero.sub')}</p>
           </section>
 
           {/* Action bar */}
           <div className="cmp-actions">
-            <button type="button" className="cmp-btn cmp-btn--primary" onClick={() => setWizardOpen(true)}>
+            <button type="button" className="cmp-btn cmp-btn--cta" onClick={() => setWizardOpen(true)}>
               <PlusIcon size={16} /> {t('cmp.cta.create')}
             </button>
           </div>

@@ -23,7 +23,8 @@ export default {
 
   // Hero
   'usr.hero.eyebrow': 'Administration',
-  'usr.hero.title':   'User Management',
+  'usr.hero.title':         'User management',
+  'usr.hero.title_suffix':  'managed users',
   'usr.hero.sub':     'Create, edit and deactivate user accounts. Assign roles and departments to structure your organization.',
 
   // Filters

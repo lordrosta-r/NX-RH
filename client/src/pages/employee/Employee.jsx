@@ -260,27 +260,27 @@ export default function Employee() {
                   <span className="db-stats__label">{t('dashboard.stats.completed')}</span>
                 </div>
               </div>
-              {stats.pending > 0 && (
-                <a href="/evaluation" className="db-stats__cta">
-                  {t('dashboard.stats.cta')} <ChevronRightIcon size={14} />
-                </a>
-              )}
+              <a
+                href="/evaluation"
+                className="db-stats__cta"
+                style={stats.pending === 0 ? { visibility: 'hidden' } : undefined}
+              >
+                {t('dashboard.stats.cta')} <ChevronRightIcon size={14} />
+              </a>
             </article>
 
             {/* Quick resources */}
-            {resources.length > 0 && (
-              <aside className="db-resources">
-                <h3 className="db-resources__title">{t('dashboard.resources.title')}</h3>
-                <ul className="db-resources__list">
-                  {resources.map(r => (
-                    <li key={r._id} className="db-resources__item">
-                      <span className="db-resources__name">{r.title}</span>
-                      <span className="db-resources__type">{r.type.toUpperCase()}</span>
-                    </li>
-                  ))}
-                </ul>
-              </aside>
-            )}
+            <aside className="db-resources" style={resources.length === 0 ? { visibility: 'hidden' } : undefined}>
+              <h3 className="db-resources__title">{t('dashboard.resources.title')}</h3>
+              <ul className="db-resources__list">
+                {resources.map(r => (
+                  <li key={r._id} className="db-resources__item">
+                    <span className="db-resources__name">{r.title}</span>
+                    <span className="db-resources__type">{r.type.toUpperCase()}</span>
+                  </li>
+                ))}
+              </ul>
+            </aside>
 
             {/* Notification center */}
             <aside className="db-notifs">

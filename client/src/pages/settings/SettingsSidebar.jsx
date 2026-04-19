@@ -7,7 +7,7 @@ import React from 'react'
 import AppSidebar from '../../components/ui/AppSidebar'
 import {
   HomeIcon, ClipboardIcon,
-  DocumentIcon, FolderIcon, GearIcon,
+  DocumentIcon, FolderIcon, GearIcon, SearchIcon,
 } from '../../components/ui/icons'
 
 function buildItems(role, t) {
@@ -19,10 +19,11 @@ function buildItems(role, t) {
   // admin → portail Admin (super-set)
   if (role === 'admin') {
     return [
-      { id: 'overview',   href: '/admin',      Icon: HomeIcon,      label: 'Admin Overview', active: false },
-      { id: 'hr',         href: '/hr',         Icon: FolderIcon,    label: 'HR Portal',      active: false },
-      { id: 'campaigns',  href: '/campaigns',  Icon: ClipboardIcon, label: 'Campagnes',      active: false },
-      { id: 'formeditor', href: '/formeditor', Icon: DocumentIcon,  label: 'Form Editor',    active: false },
+      { id: 'overview',   href: '/admin',      Icon: HomeIcon,      label: t('settings.nav.overview'),   active: false },
+      { id: 'users',      href: '/users',      Icon: SearchIcon,    label: t('settings.nav.users'),      active: false },
+      { id: 'campaigns',  href: '/campaigns',  Icon: ClipboardIcon, label: t('settings.nav.campaigns'),  active: false },
+      { id: 'formeditor', href: '/formeditor', Icon: DocumentIcon,  label: t('settings.nav.formeditor'), active: false },
+      { id: 'resources',  href: '/resources',  Icon: FolderIcon,    label: t('settings.nav.resources'),  active: false },
       settingsItem,
     ]
   }
@@ -30,9 +31,9 @@ function buildItems(role, t) {
   // hr → portail HR
   if (role === 'hr') {
     return [
-      { id: 'overview',   href: '/hr',         Icon: HomeIcon,      label: 'HR Overview', active: false },
-      { id: 'campaigns',  href: '/campaigns',  Icon: ClipboardIcon, label: 'Campagnes',   active: false },
-      { id: 'formeditor', href: '/formeditor', Icon: DocumentIcon,  label: 'Form Editor', active: false },
+      { id: 'overview',   href: '/hr',         Icon: HomeIcon,      label: t('settings.nav.overview'),   active: false },
+      { id: 'campaigns',  href: '/campaigns',  Icon: ClipboardIcon, label: t('settings.nav.campaigns'),  active: false },
+      { id: 'formeditor', href: '/formeditor', Icon: DocumentIcon,  label: t('settings.nav.formeditor'), active: false },
       settingsItem,
     ]
   }
@@ -40,8 +41,8 @@ function buildItems(role, t) {
   // director → portail Director
   if (role === 'director') {
     return [
-      { id: 'overview',    href: '/director',   Icon: HomeIcon,      label: 'Director Overview', active: false },
-      { id: 'evaluations', href: '/manager',    Icon: ClipboardIcon, label: 'Evaluations',       active: false },
+      { id: 'overview',    href: '/director', Icon: HomeIcon,      label: t('settings.nav.overview'),    active: false },
+      { id: 'evaluations', href: '/manager',  Icon: ClipboardIcon, label: t('settings.nav.evaluations'), active: false },
       settingsItem,
     ]
   }
@@ -49,15 +50,15 @@ function buildItems(role, t) {
   // manager → portail Manager
   if (role === 'manager') {
     return [
-      { id: 'evaluations', href: '/manager',  Icon: ClipboardIcon, label: 'Evaluations', active: false },
+      { id: 'evaluations', href: '/manager', Icon: ClipboardIcon, label: t('settings.nav.evaluations'), active: false },
       settingsItem,
     ]
   }
 
-  // employee (defaut)
+  // employee (défaut)
   return [
-    { id: 'home',       href: '/employee',   Icon: HomeIcon,      label: 'Mon espace', active: false },
-    { id: 'evaluation', href: '/evaluation', Icon: ClipboardIcon, label: 'Evaluation', active: false },
+    { id: 'home',       href: '/employee',   Icon: HomeIcon,      label: t('settings.nav.overview'),  active: false },
+    { id: 'evaluation', href: '/evaluation', Icon: ClipboardIcon, label: t('settings.nav.evaluation'), active: false },
     settingsItem,
   ]
 }

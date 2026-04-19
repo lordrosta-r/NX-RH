@@ -32,7 +32,6 @@ function CampaignsSidebar({ t, role }) {
   const items = role === 'admin'
     ? [
         { id: 'overview',   href: '/admin',      Icon: HomeIcon,      label: t('cmp.nav.admin'),       active: false },
-        { id: 'hr',         href: '/hr',         Icon: FolderIcon,    label: t('cmp.nav.hr'),          active: false },
         { id: 'users',      href: '/users',      Icon: SearchIcon,    label: t('cmp.nav.users'),       active: false },
         { id: 'campaigns',  href: '/campaigns',  Icon: ClipboardIcon, label: t('cmp.nav.campaigns'),   active: true },
         { id: 'formeditor', href: '/formeditor', Icon: DocumentIcon,  label: t('cmp.nav.formeditor'),  active: false },
@@ -99,14 +98,17 @@ export default function Campaigns() {
       .finally(() => setLoading(false))
   }
 
-  useEffect(() => { loadCampaigns() }, [])
+  useEffect(() => { loadCampaigns() }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!authLoading && user && !['hr', 'admin'].includes(user.role)) {
+      window.location.href = '/employee'
+    }
+  }, [authLoading, user])
 
   if (authLoading) return null
   if (!user) return null
-  if (!['hr', 'admin'].includes(user.role)) {
-    window.location.href = '/employee'
-    return null
-  }
+  if (!['hr', 'admin'].includes(user.role)) return null
 
   async function handleLogout() {
     try { await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }) } catch { /* ignore */ }

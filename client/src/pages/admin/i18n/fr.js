@@ -1,7 +1,6 @@
 export default {
   // Navigation sidebar
   'admin.nav.overview':    'Vue d\'ensemble',
-  'admin.nav.hr':          'Espace RH',
   'admin.nav.users':       'Utilisateurs',
   'admin.nav.campaigns':   'Campagnes',
   'admin.nav.formeditor':  'Formulaires',
@@ -24,7 +23,7 @@ export default {
   // Hero
   'admin.hero.eyebrow': 'Administration',
   'admin.hero.title':   'Gouvernance & santé du système',
-  'admin.hero.sub':     'Vue consolidée des utilisateurs, des rôles et de l\'état de la plateforme. Vous accédez à tous les espaces de l\'application depuis ici.',
+  'admin.hero.sub':     'Vue consolidée des utilisateurs, des rôles et de l\'état de la plateforme. Gérez les comptes, les campagnes et la configuration depuis cet espace.',
 
   // KPIs
   'admin.kpis.label':         'Indicateurs clés',
@@ -40,14 +39,12 @@ export default {
 
   // Actions
   'admin.actions.heading':         'Accès rapides',
-  'admin.actions.hr':              'Espace RH',
-  'admin.actions.hr.desc':         'Vue RH, campagnes, formulaires.',
-  'admin.actions.director':        'Espace Directeur',
-  'admin.actions.director.desc':   'Vue agrégée des équipes.',
-  'admin.actions.manager':         'Espace Manager',
-  'admin.actions.manager.desc':    'Évaluations à reviewer.',
+  'admin.actions.users':           'Utilisateurs',
+  'admin.actions.users.desc':      'Gérer les comptes, rôles et accès.',
   'admin.actions.campaigns':       'Campagnes',
   'admin.actions.campaigns.desc':  'Lancer et suivre les campagnes.',
+  'admin.actions.resources':       'Ressources',
+  'admin.actions.resources.desc':  'Bibliothèque de documents RH.',
   'admin.actions.formeditor':      'Éditeur de formulaires',
   'admin.actions.formeditor.desc': 'Construire les questionnaires.',
   'admin.actions.settings':        'Paramètres',

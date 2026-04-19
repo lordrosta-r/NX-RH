@@ -15,6 +15,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 2rem;
+  min-height: 260px; /* prevents layout shift between loading/loaded states */
 }
 
 /* ── Left — headline block ─────────────────────────────────────────────────── */
@@ -144,6 +145,8 @@
   transition: transform 0.15s ease, box-shadow 0.15s ease;
   font-family: var(--font-family);
   white-space: nowrap;
+  text-decoration: none;
+  display: inline-block;
 }
 
 .cb__btn:hover  { transform: scale(1.04); box-shadow: var(--shadow-cta-hover); }

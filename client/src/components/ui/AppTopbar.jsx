@@ -79,11 +79,6 @@ export default function AppTopbar({
   const fullName = first || last ? `${first} ${last}`.trim() : 'Admin'
   const role     = user?.role ?? ''
 
-  const dateLabel = new Date().toLocaleDateString(
-    locale === 'fr' ? 'fr-FR' : 'en-US',
-    { day: 'numeric', month: 'long', year: 'numeric' },
-  )
-
   const themeLabel = theme === 'dark'  ? lbl.theme_light
     : theme === 'light' ? lbl.theme_sidebar
     : lbl.theme_dark
@@ -122,7 +117,6 @@ export default function AppTopbar({
 
       {/* Right cluster */}
       <div className="apptb__right">
-        <span className="apptb__date">{dateLabel}</span>
         <div className="apptb__sep" aria-hidden="true" />
 
         {/* Theme */}

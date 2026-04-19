@@ -59,9 +59,11 @@
   border-radius: var(--radius-md);
   color: var(--color-sidebar-nav-text);
   font-size: 0.875rem;
-  font-weight: 500;
+  font-weight: 600;
   text-decoration: none;
   transition: background 0.15s ease, color 0.15s ease;
+  /* Prevent layout shift: reserve space for bold text upfront */
+  min-height: 2.5rem;
 }
 
 .app-sidebar__item:hover {
@@ -73,7 +75,6 @@
 .app-sidebar__item--active {
   background: var(--color-sidebar-active-bg);
   color: var(--color-sidebar-nav-active);
-  font-weight: 600;
   box-shadow: var(--shadow-sidebar-active);
 }
 

@@ -54,7 +54,7 @@ export default function Evaluation() {
 
   const evaluationId = new URLSearchParams(window.location.search).get('id')
 
-  const [view,        setView]       = useState('home')   // 'home' | 'form'
+  const [view,        setView]       = useState(() => evaluationId ? 'form' : 'home')   // 'home' | 'form'
   const [evaluation,  setEvaluation] = useState(null)
   const [answers,     setAnswers]    = useState({})
   const [status,      setStatus]     = useState('assigned')
@@ -274,7 +274,7 @@ export default function Evaluation() {
                   <span className="ev-banner__accent">{t('ev.home.hero.headline2')}</span>
                 </h1>
                 <p className="ev-banner__desc">{t('ev.home.hero.desc')}</p>
-                <button type="button" className="ev-banner__cta" onClick={() => setView('form')}>
+                <button type="button" className="ev-banner__cta" onClick={() => document.getElementById('ev-myforms')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
                   {t('ev.home.hero.cta')} →
                 </button>
               </div>
@@ -315,7 +315,7 @@ export default function Evaluation() {
             </section>
 
             {/* My forms */}
-            <section className="ev-myforms">
+            <section id="ev-myforms" className="ev-myforms">
               <h2 className="ev-myforms__title">{t('ev.home.forms.title')}</h2>
 
               {myEvalsLoading && (
@@ -492,9 +492,9 @@ export default function Evaluation() {
                       {t('ev.submitted.desc')}
                     </p>
                     {/* Comments display */}
-                    {(evaluation.reviewerComment || evaluation.evaluateeComment || evaluation.score != null) && (
+                    {(evaluation.reviewerComment || evaluation.evaluateeComment || evaluation.score !== null) && (
                       <div className="ev-submitted__comments">
-                        {evaluation.score != null && (
+                        {evaluation.score !== null && (
                           <div className="ev-comment-block">
                             <p className="ev-comment-block__label">{t('ev.comment.score')}</p>
                             <p className="ev-comment-block__text">{evaluation.score}/100</p>
@@ -652,7 +652,7 @@ export default function Evaluation() {
                               <p className="ev-comment-block__text">{evaluation.reviewerComment}</p>
                             </div>
                           )}
-                          {evaluation.score != null && (
+                          {evaluation.score !== null && (
                             <div className="ev-comment-block">
                               <p className="ev-comment-block__label">{t('ev.comment.score')}</p>
                               <p className="ev-comment-block__text">{evaluation.score}/100</p>

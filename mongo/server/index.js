@@ -129,8 +129,8 @@ app.get('/dashboard',  (req, res) => res.redirect(301, '/employee'))
 const authenticated = authGuard(['admin', 'director', 'manager', 'employee', 'hr'])
 
 // Rate limiters API
-const apiLimiter = rateLimit({ windowMs: 60 * 1000, max: 100, standardHeaders: true, legacyHeaders: false })
-const mutationLimiter = rateLimit({ windowMs: 60 * 1000, max: 20, standardHeaders: true, legacyHeaders: false })
+const apiLimiter = rateLimit({ windowMs: 60 * 1000, max: 2000, standardHeaders: true, legacyHeaders: false })
+const mutationLimiter = rateLimit({ windowMs: 60 * 1000, max: 500, standardHeaders: true, legacyHeaders: false })
 
 app.use('/api/', apiLimiter)
 

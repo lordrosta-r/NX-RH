@@ -32,8 +32,7 @@ export default function Settings() {
     if (!user || syncedRef.current) return
     syncedRef.current = true
     if (user.locale && user.locale !== locale) setLocale(user.locale)
-    if (user.theme  && user.theme  !== theme)  setTheme(user.theme)
-  }, [user, locale, theme, setLocale, setTheme])
+  }, [user, locale, setLocale])
 
   if (authLoading) return null
   if (!user)       return null

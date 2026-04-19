@@ -34,7 +34,7 @@
 /* ── Reset ─────────────────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; font-family: var(--font-family); font-size: 16px; }
-body { background: var(--color-background); color: var(--color-on-background); }
+body { background: var(--color-background); color: var(--color-on-background); overflow-x: hidden; }
 
 /* ── Layout helpers ─────────────────────────────────────────────────────────── */
 .page        { display: flex; flex-direction: column; min-height: 100vh; }

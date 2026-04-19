@@ -3,6 +3,15 @@ export default {
   'settings.nav.label':       'Navigation principale',
   'settings.nav.coming_soon': 'Bientôt disponible',
   'settings.nav.settings':    'Paramètres',
+  // Nav items par rôle
+  'settings.nav.overview':    'Vue d\'ensemble',
+  'settings.nav.evaluation':  'Mon évaluation',
+  'settings.nav.campaigns':   'Campagnes',
+  'settings.nav.formeditor':  'Formulaires',
+  'settings.nav.resources':   'Ressources',
+  'settings.nav.users':       'Utilisateurs',
+  'settings.nav.hr':          'RH Portal',
+  'settings.nav.evaluations': 'Évaluations',
 
   // Topbar
   'settings.search.placeholder': 'Rechercher dans les paramètres…',

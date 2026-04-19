@@ -1,6 +1,6 @@
 export default {
   // Navigation sidebar
-  'dashboard.nav.home':       'Dashboard',
+  'dashboard.nav.home':       'Vue d\'ensemble',
   'dashboard.nav.evaluation': 'Mon évaluation',
   'dashboard.nav.growth':     'Ma progression',
   'dashboard.nav.settings':   'Paramètres',

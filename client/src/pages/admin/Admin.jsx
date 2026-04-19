@@ -39,12 +39,15 @@ export default function Admin() {
     return () => { cancelled = true }
   }, [t])
 
+  useEffect(() => {
+    if (!authLoading && user && user.role !== 'admin') {
+      window.location.href = '/employee'
+    }
+  }, [authLoading, user])
+
   if (authLoading) return null
   if (!user) return null
-  if (user.role !== 'admin') {
-    window.location.href = '/employee'
-    return null
-  }
+  if (user.role !== 'admin') return null
 
   async function handleLogout() {
     try { await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }) } catch { /* ignore */ }
@@ -139,17 +142,9 @@ export default function Admin() {
           <section className="adm-card" aria-labelledby="adm-actions">
             <h2 id="adm-actions" className="adm-card__title">{t('admin.actions.heading')}</h2>
             <div className="adm-actions">
-              <a className="adm-action" href="/hr">
-                <span className="adm-action__name">{t('admin.actions.hr')}</span>
-                <span className="adm-action__desc">{t('admin.actions.hr.desc')}</span>
-              </a>
-              <a className="adm-action" href="/director">
-                <span className="adm-action__name">{t('admin.actions.director')}</span>
-                <span className="adm-action__desc">{t('admin.actions.director.desc')}</span>
-              </a>
-              <a className="adm-action" href="/manager">
-                <span className="adm-action__name">{t('admin.actions.manager')}</span>
-                <span className="adm-action__desc">{t('admin.actions.manager.desc')}</span>
+              <a className="adm-action" href="/users">
+                <span className="adm-action__name">{t('admin.actions.users')}</span>
+                <span className="adm-action__desc">{t('admin.actions.users.desc')}</span>
               </a>
               <a className="adm-action" href="/campaigns">
                 <span className="adm-action__name">{t('admin.actions.campaigns')}</span>
@@ -158,6 +153,10 @@ export default function Admin() {
               <a className="adm-action" href="/formeditor">
                 <span className="adm-action__name">{t('admin.actions.formeditor')}</span>
                 <span className="adm-action__desc">{t('admin.actions.formeditor.desc')}</span>
+              </a>
+              <a className="adm-action" href="/resources">
+                <span className="adm-action__name">{t('admin.actions.resources')}</span>
+                <span className="adm-action__desc">{t('admin.actions.resources.desc')}</span>
               </a>
               <a className="adm-action" href="/settings">
                 <span className="adm-action__name">{t('admin.actions.settings')}</span>

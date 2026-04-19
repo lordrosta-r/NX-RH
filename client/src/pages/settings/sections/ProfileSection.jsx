@@ -18,8 +18,12 @@ export default function ProfileSection({ t, locale, user }) {
   const [manager, setManager] = useState(null)
 
   useEffect(() => {
-    if (!user?.managerId) { setManager(null); return }
     let cancelled = false
+    if (!user?.managerId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setManager(null)
+      return
+    }
     fetch(`/api/users/${user.managerId}`, { credentials: 'include' })
       .then(r => r.ok ? r.json() : null)
       .then(data => { if (!cancelled && data) setManager(data) })

@@ -5,6 +5,11 @@ export default {
   'dashboard.nav.growth':     'Ma progression',
   'dashboard.nav.settings':   'Paramètres',
 
+  // Mini-SPA topbar nav
+  'employee.nav.overview':   'Vue d\'ensemble',
+  'employee.nav.evaluation': 'Évaluation',
+  'employee.nav.settings':   'Paramètres',
+
   // Topbar
   'dashboard.search.placeholder': 'Rechercher…',
 

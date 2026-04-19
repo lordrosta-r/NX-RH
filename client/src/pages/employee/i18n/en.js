@@ -5,6 +5,11 @@ export default {
   'dashboard.nav.growth':     'My Growth',
   'dashboard.nav.settings':   'Settings',
 
+  // Mini-SPA topbar nav
+  'employee.nav.overview':   'Overview',
+  'employee.nav.evaluation': 'Evaluation',
+  'employee.nav.settings':   'Settings',
+
   // Topbar
   'dashboard.search.placeholder': 'Search…',
 

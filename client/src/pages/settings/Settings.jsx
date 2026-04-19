@@ -19,7 +19,7 @@ import { useLocale }    from '../../hooks/useLocale'
 import { useTheme }     from '../../hooks/useTheme'
 import { useAuthUser }  from '../../hooks/useAuthUser'
 
-export default function Settings() {
+export default function Settings({ embedded = false }) {
   const { t, locale, setLocale }       = useLocale(pageT)
   const { theme, setTheme, cycleTheme } = useTheme()
   const { user, loading: authLoading } = useAuthUser()
@@ -55,6 +55,38 @@ export default function Settings() {
     return res.json()
   }
 
+  const stContent = (
+    <main className="db-content st" id="main-content">
+      <section className="st-hero">
+        <p className="st-hero__eyebrow">{t('settings.hero.eyebrow')}</p>
+        <h1 className="st-hero__title">
+          <span className="st-hero__accent">{t('settings.hero.title_accent')}</span> {t('settings.hero.title_rest')}
+        </h1>
+        <p className="st-hero__sub">{t('settings.page.subtitle')}</p>
+      </section>
+
+      <div className="st-stack">
+        <ProfileSection       t={t} locale={locale} user={user} />
+        <PreferencesSection
+          t={t}
+          locale={locale} setLocale={setLocale}
+          theme={theme}   setTheme={setTheme}
+          savePreferences={savePreferences}
+        />
+        <NotificationsSection
+          t={t}
+          prefs={user.notificationPrefs}
+          savePreferences={savePreferences}
+        />
+        <RoleSpaceSection t={t} role={user.role} />
+        <DangerSection    t={t} onLogout={handleLogout} />
+      </div>
+    </main>
+  )
+
+  // Mode embedded : juste le main, le shell parent fournit sidebar+topbar+wrapper
+  if (embedded) return stContent
+
   return (
     <div className="db">
       <SettingsSidebar t={t} role={user.role} sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
@@ -69,32 +101,7 @@ export default function Settings() {
           onMenuToggle={() => setSidebarOpen(o => !o)}
         />
 
-        <main className="db-content st" id="main-content">
-          <section className="st-hero">
-            <p className="st-hero__eyebrow">{t('settings.hero.eyebrow')}</p>
-            <h1 className="st-hero__title">
-              <span className="st-hero__accent">{t('settings.hero.title_accent')}</span> {t('settings.hero.title_rest')}
-            </h1>
-            <p className="st-hero__sub">{t('settings.page.subtitle')}</p>
-          </section>
-
-          <div className="st-stack">
-            <ProfileSection       t={t} locale={locale} user={user} />
-            <PreferencesSection
-              t={t}
-              locale={locale} setLocale={setLocale}
-              theme={theme}   setTheme={setTheme}
-              savePreferences={savePreferences}
-            />
-            <NotificationsSection
-              t={t}
-              prefs={user.notificationPrefs}
-              savePreferences={savePreferences}
-            />
-            <RoleSpaceSection t={t} role={user.role} />
-            <DangerSection    t={t} onLogout={handleLogout} />
-          </div>
-        </main>
+        {stContent}
       </div>
     </div>
   )

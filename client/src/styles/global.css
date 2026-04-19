@@ -128,6 +128,10 @@ h2           { font-size: 1.25rem; font-weight: 700; margin-bottom: 1.25rem; }
   min-width: 0;
 }
 
+/* Mode embedded (mini-SPA shell) — pas de sidebar offset */
+.db--embedded { display: block; min-height: auto; }
+.db--embedded > .db-main { margin-left: 0; min-height: auto; }
+
 /* Mobile: sidebar collapses (handled by AppSidebar.css), main takes full width */
 @media (max-width: 767px) {
   .db-main    { margin-left: 0; }

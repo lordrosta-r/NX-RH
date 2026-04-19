@@ -5,6 +5,16 @@
    Shell (.db / .db-main / .db-content) is defined in styles/global.css.
    ============================================================================= */
 
+/* ── Mini-SPA shell (pas de sidebar — nav dans le topbar) ───────────────────── */
+.emp {
+  min-height: 100vh;
+  background: var(--color-surface);
+  font-family: var(--font-family);
+  color: var(--color-on-surface);
+  display: flex;
+  flex-direction: column;
+}
+
 /* ── Campaign banner wrapper ───────────────────────────────────────────────── */
 .db-banner-wrap {
   margin-bottom: 1.25rem;

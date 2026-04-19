@@ -67,6 +67,7 @@ export default function AppTopbar({
   user,
   onLogout,
   onMenuToggle,
+  nav,
 }) {
   const lbl = L[locale] ?? L.fr
   const [notifOpen, setNotifOpen] = useState(false)
@@ -115,16 +116,21 @@ export default function AppTopbar({
         </button>
       )}
 
-      {/* Search */}
-      <div className="apptb__search" role="search">
-        <SearchIcon size={15} color="var(--color-outline)" />
-        <input
-          type="text"
-          className="apptb__search-input"
-          placeholder={searchPlaceholder ?? lbl.search}
-          aria-label={searchPlaceholder ?? lbl.search}
-        />
-      </div>
+      {/* Nav (mini-SPA) — affiché à la place de la search */}
+      {nav}
+
+      {/* Search — masquée si un nav est fourni */}
+      {!nav && (
+        <div className="apptb__search" role="search">
+          <SearchIcon size={15} color="var(--color-outline)" />
+          <input
+            type="text"
+            className="apptb__search-input"
+            placeholder={searchPlaceholder ?? lbl.search}
+            aria-label={searchPlaceholder ?? lbl.search}
+          />
+        </div>
+      )}
 
       {/* Right cluster */}
       <div className="apptb__right">

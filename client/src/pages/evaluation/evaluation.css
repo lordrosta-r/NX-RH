@@ -21,6 +21,10 @@
   min-height: 100vh;
 }
 
+/* Mode embedded (mini-SPA Employee) — pas de sidebar offset */
+.ev--embedded { display: block; min-height: auto; }
+.ev--embedded .ev-main { margin-left: 0; min-height: auto; }
+
 
 /* ── Scrollable content area ────────────────────────────────────────────────── */
 .ev-content {

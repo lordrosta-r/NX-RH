@@ -45,7 +45,7 @@ const STATUS_META = {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-export default function Evaluation() {
+export default function Evaluation({ embedded = false }) {
   const { t, locale, setLocale } = useLocale(pageT)
   const { theme, cycleTheme }    = useTheme()
   const { user, loading: authLoading } = useAuthUser()
@@ -252,19 +252,22 @@ export default function Evaluation() {
   }
 
   return (
-    <div className="ev">
-      <EvaluationSidebar t={t} sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+    <div className={embedded ? 'ev ev--embedded' : 'ev'}>
+      {!embedded && (
+        <EvaluationSidebar t={t} sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+      )}
 
       <div className="ev-main" role="main" id="main-content">
 
-        <AppTopbar
-          searchPlaceholder={t('ev.topbar.search')}
-          locale={locale} setLocale={setLocale}
-          theme={theme} cycleTheme={cycleTheme}
-          user={user} onLogout={handleLogout}
-          onMenuToggle={() => setSidebarOpen(o => !o)}
-        />
-
+        {!embedded && (
+          <AppTopbar
+            searchPlaceholder={t('ev.topbar.search')}
+            locale={locale} setLocale={setLocale}
+            theme={theme} cycleTheme={cycleTheme}
+            user={user} onLogout={handleLogout}
+            onMenuToggle={() => setSidebarOpen(o => !o)}
+          />
+        )}
         {/* ── HOME VIEW ──────────────────────────────────────────────────── */}
         {view === 'home' && (
           <div className="ev-content">

@@ -109,7 +109,7 @@ app.get('/api/health', async (_req, res) => {
 
 app.get('/',           sendPage('login'))
 app.get('/login',      sendPage('login'))
-app.get('/employee',   authGuard(['employee', 'manager', 'director', 'hr', 'admin']), sendPage('employee'))
+app.get(/^\/employee(\/.*)?$/, authGuard(['employee', 'manager', 'director', 'hr', 'admin']), sendPage('employee'))
 app.get('/manager',    authGuard(['manager', 'director', 'admin']),                   sendPage('manager'))
 app.get('/director',   authGuard(['director', 'admin']),                              sendPage('director'))
 app.get('/hr',         authGuard(['hr', 'admin']),                                    sendPage('hr'))

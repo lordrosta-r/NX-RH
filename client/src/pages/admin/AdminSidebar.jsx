@@ -8,7 +8,7 @@ import {
   HomeIcon, ClipboardIcon, DocumentIcon, GearIcon, SearchIcon, FolderIcon,
 } from '../../components/ui/icons'
 
-export default function AdminSidebar({ t, activeItem = 'overview' }) {
+export default function AdminSidebar({ t, activeItem = 'overview', sidebarOpen, setSidebarOpen }) {
   const navItems = [
     { id: 'overview',   href: '/admin',      Icon: HomeIcon,      label: t('admin.nav.overview'),   active: activeItem === 'overview'   },
     { id: 'users',      href: '/users',      Icon: SearchIcon,    label: t('admin.nav.users'),      active: activeItem === 'users'      },
@@ -24,6 +24,7 @@ export default function AdminSidebar({ t, activeItem = 'overview' }) {
       navItems={navItems}
       labelNavigation={t('admin.nav.label')}
       labelComingSoon={t('admin.nav.coming_soon')}
+      sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}
     />
   )
 }

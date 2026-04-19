@@ -71,13 +71,14 @@ function brandSubFor(role) {
   return 'Employee Portal'
 }
 
-export default function SettingsSidebar({ t, role = 'employee' }) {
+export default function SettingsSidebar({ t, role = 'employee', sidebarOpen, setSidebarOpen }) {
   return (
     <AppSidebar
       brandSub={brandSubFor(role)}
       navItems={buildItems(role, t)}
       labelNavigation={t('settings.nav.label')}
       labelComingSoon={t('settings.nav.coming_soon')}
+      sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}
     />
   )
 }

@@ -10,7 +10,7 @@ import {
   HomeIcon, ClipboardIcon, DocumentIcon, FolderIcon, GearIcon,
 } from '../../components/ui/icons'
 
-export default function HRSidebar({ t, activeItem = 'overview' }) {
+export default function HRSidebar({ t, activeItem = 'overview', sidebarOpen, setSidebarOpen }) {
   const navItems = [
     { id: 'overview',    href: '/hr',          Icon: HomeIcon,      label: t('hr.nav.overview'),    active: activeItem === 'overview'    },
     { id: 'campaigns',   href: '/campaigns',   Icon: ClipboardIcon, label: t('hr.nav.campaigns'),   active: activeItem === 'campaigns'   },
@@ -22,5 +22,6 @@ export default function HRSidebar({ t, activeItem = 'overview' }) {
   return <AppSidebar brandSub="HR Portal" navItems={navItems}
     labelNavigation={t('hr.nav.label')}
     labelComingSoon={t('hr.nav.coming_soon')}
+    sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}
   />
 }

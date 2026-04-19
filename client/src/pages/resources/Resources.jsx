@@ -21,7 +21,7 @@ const RESOURCE_TYPES = ['pdf', 'xlsx', 'docx', 'pptx']
 const ROLES          = ['admin', 'hr', 'director', 'manager', 'employee']
 
 // ── Adaptive sidebar ─────────────────────────────────────────────────────────
-function ResourcesSidebar({ t, role }) {
+function ResourcesSidebar({ t, role, sidebarOpen, setSidebarOpen }) {
   const items = role === 'admin'
     ? [
         { id: 'overview',   href: '/admin',      Icon: HomeIcon,      label: t('res.nav.admin'),       active: false },
@@ -45,6 +45,7 @@ function ResourcesSidebar({ t, role }) {
       navItems={items}
       labelNavigation={t('res.nav.label')}
       labelComingSoon={t('res.nav.coming_soon')}
+      sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}
     />
   )
 }
@@ -59,7 +60,7 @@ export default function Resources() {
   const { t, locale, setLocale } = useLocale(pageT)
   const { theme, cycleTheme }    = useTheme()
   const { user, loading: authLoading } = useAuthUser()
-
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [resources, setResources] = useState([])
   const [loading, setLoading]     = useState(true)
   const [error, setError]         = useState(null)
@@ -169,7 +170,7 @@ export default function Resources() {
 
   return (
     <div className="db">
-      <ResourcesSidebar t={t} role={user.role} />
+      <ResourcesSidebar t={t} role={user.role} sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
       <div className="db-main">
         <AppTopbar
@@ -178,6 +179,7 @@ export default function Resources() {
           locale={locale} setLocale={setLocale}
           user={user} onLogout={handleLogout}
           searchPlaceholder={t('res.search.placeholder')}
+          onMenuToggle={() => setSidebarOpen(o => !o)}
           tKeys={{
             help:   { aria: 'res.help.aria',   title: 'res.help.title' },
             theme:  { to_light: 'res.theme.to_light', to_sidebar: 'res.theme.to_sidebar', to_dark: 'res.theme.to_dark' },

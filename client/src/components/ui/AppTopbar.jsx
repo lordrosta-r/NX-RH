@@ -68,6 +68,7 @@ export default function AppTopbar({
   notifItems = [],
   user,
   onLogout,
+  onMenuToggle,
 }) {
   const lbl = L[locale] ?? L.fr
   const [notifOpen, setNotifOpen] = useState(false)
@@ -103,6 +104,18 @@ export default function AppTopbar({
 
   return (
     <header className="apptb">
+
+      {/* Hamburger — mobile only */}
+      {onMenuToggle && (
+        <button
+          type="button"
+          className="apptb__hamburger"
+          onClick={onMenuToggle}
+          aria-label="Ouvrir le menu"
+        >
+          <span /><span /><span />
+        </button>
+      )}
 
       {/* Search */}
       <div className="apptb__search" role="search">

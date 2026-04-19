@@ -91,8 +91,7 @@ export default function FormEditor() {
   const { user, loading: authLoading } = useAuthUser()
   const { t, locale, setLocale } = useLocale(pageT)
   const { theme, cycleTheme } = useTheme()
-
-  // Views: 'list' | 'create'
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [view, setView]         = useState('list')
   const [filter, setFilter]     = useState('all')
   const [editingId, setEditingId] = useState(null)
@@ -901,8 +900,8 @@ export default function FormEditor() {
   return (
     <div className="fe">
       {user.role === 'admin'
-        ? <AdminSidebar t={adminT} activeItem="formeditor" />
-        : <HRSidebar t={hrT} activeItem="formeditor" />
+        ? <AdminSidebar t={adminT} activeItem="formeditor" sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+        : <HRSidebar t={hrT} activeItem="formeditor" sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
       }
       <div className="fe-main">
 
@@ -911,6 +910,7 @@ export default function FormEditor() {
           locale={locale} setLocale={setLocale}
           theme={theme} cycleTheme={cycleTheme}
           user={user} onLogout={handleLogout}
+          onMenuToggle={() => setSidebarOpen(o => !o)}
         />
 
         {/* Content */}

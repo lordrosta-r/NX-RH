@@ -5,7 +5,7 @@
 // Design: docs/design/dashboard/DESIGN.md
 // =============================================================================
 
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import './AppSidebar.css'
 
 export default function AppSidebar({
@@ -13,50 +13,85 @@ export default function AppSidebar({
   navItems = [],
   labelNavigation = 'Main navigation',
   labelComingSoon = 'Coming soon',
+  // sidebarOpen / setSidebarOpen optionnels — injectés par la topbar via context ou prop drilling.
+  // Si non fournis, la sidebar gère son propre état.
+  sidebarOpen,
+  setSidebarOpen,
 }) {
+  const [localOpen, setLocalOpen] = useState(false)
+  const open    = sidebarOpen    !== undefined ? sidebarOpen    : localOpen
+  const setOpen = setSidebarOpen !== undefined ? setSidebarOpen : setLocalOpen
+
+  // Fermer sur resize → desktop
+  useEffect(() => {
+    const onResize = () => { if (window.innerWidth >= 768) setOpen(false) }
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [setOpen])
+
+  // Fermer sur Escape
+  useEffect(() => {
+    if (!open) return
+    const handler = e => { if (e.key === 'Escape') setOpen(false) }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [open, setOpen])
+
   return (
-    <aside className="app-sidebar">
+    <>
+      {/* Overlay mobile */}
+      {open && (
+        <div
+          className="app-sidebar__overlay"
+          aria-hidden="true"
+          onClick={() => setOpen(false)}
+        />
+      )}
 
-      {/* Brand */}
-      <div className="app-sidebar__brand">
-        <div className="app-sidebar__brand-name">NanoXplore RH</div>
-        <div className="app-sidebar__brand-sub">{brandSub}</div>
-      </div>
+      <aside className={`app-sidebar${open ? ' app-sidebar--open' : ''}`}>
 
-      {/* Navigation */}
-      <nav className="app-sidebar__nav" aria-label={labelNavigation}>
-        {navItems.map(({ id, Icon, label, active, href = `#${id}`, disabled = false }) => {
-          const content = (
-            <>
-              <Icon size={18} strokeWidth={active ? 2 : 1.5} />
-              <span>{label}</span>
-            </>
-          )
-          const cls = `app-sidebar__item${active ? ' app-sidebar__item--active' : ''}${disabled ? ' app-sidebar__item--disabled' : ''}`
-          return disabled ? (
-            <span
-              key={id}
-              className={cls}
-              aria-disabled="true"
-              role="link"
-              tabIndex={0}
-              title={labelComingSoon}
-            >
-              {content}
-            </span>
-          ) : (
-            <a
-              key={id}
-              href={href}
-              className={cls}
-              aria-current={active ? 'page' : undefined}
-            >
-              {content}
-            </a>
-          )
-        })}
-      </nav>
+        {/* Brand */}
+        <div className="app-sidebar__brand">
+          <div className="app-sidebar__brand-name">NanoXplore RH</div>
+          <div className="app-sidebar__brand-sub">{brandSub}</div>
+        </div>
 
-    </aside>
+        {/* Navigation */}
+        <nav className="app-sidebar__nav" aria-label={labelNavigation}>
+          {navItems.map(({ id, Icon, label, active, href = `#${id}`, disabled = false }) => {
+            const content = (
+              <>
+                <Icon size={18} strokeWidth={active ? 2 : 1.5} />
+                <span>{label}</span>
+              </>
+            )
+            const cls = `app-sidebar__item${active ? ' app-sidebar__item--active' : ''}${disabled ? ' app-sidebar__item--disabled' : ''}`
+            return disabled ? (
+              <span
+                key={id}
+                className={cls}
+                aria-disabled="true"
+                role="link"
+                tabIndex={0}
+                title={labelComingSoon}
+              >
+                {content}
+              </span>
+            ) : (
+              <a
+                key={id}
+                href={href}
+                className={cls}
+                aria-current={active ? 'page' : undefined}
+                onClick={() => setOpen(false)}
+              >
+                {content}
+              </a>
+            )
+          })}
+        </nav>
+
+      </aside>
+    </>
   )
 }

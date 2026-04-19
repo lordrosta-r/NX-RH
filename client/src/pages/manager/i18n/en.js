@@ -6,7 +6,10 @@ export default {
   // Topbar
   'manager.search.placeholder': 'Search…',
   // Welcome
-  'manager.welcome.title': 'Manager Dashboard',
+  'manager.welcome.title':       'Manager Dashboard',
+  'manager.hero.eyebrow':        'MANAGER WORKSPACE',
+  'manager.hero.title_accent':   'My team',
+  'manager.hero.title_rest':     'to review',
   'manager.welcome.subtitle': 'Manage and validate your team evaluations',
   // Table
   'manager.table.evaluatee': 'Evaluatee',

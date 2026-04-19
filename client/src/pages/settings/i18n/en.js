@@ -17,7 +17,10 @@ export default {
   'settings.search.placeholder': 'Search settings…',
 
   // Page header
-  'settings.page.title':    'My Settings',
+  'settings.page.title':         'My Settings',
+  'settings.hero.eyebrow':       'PREFERENCES',
+  'settings.hero.title_accent':  'My',
+  'settings.hero.title_rest':    'settings',
   'settings.page.subtitle': 'Manage your profile, preferences and notifications.',
 
   // Profile

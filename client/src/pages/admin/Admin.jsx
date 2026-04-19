@@ -92,7 +92,9 @@ export default function Admin() {
           {/* Hero */}
           <section className="adm-hero">
             <p className="adm-hero__eyebrow">{t('admin.hero.eyebrow')}</p>
-            <h1 className="adm-hero__title">{t('admin.hero.title')}</h1>
+            <h1 className="adm-hero__title">
+              <span className="adm-hero__accent">{t('admin.hero.title_accent')}</span> {t('admin.hero.title_rest')}
+            </h1>
             <p className="adm-hero__sub">{t('admin.hero.sub')}</p>
           </section>
 

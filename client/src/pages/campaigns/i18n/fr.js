@@ -22,9 +22,11 @@ export default {
   'cmp.notifications.aria_bell': 'Notifications',
 
   // Hero
-  'cmp.hero.eyebrow': 'Campagnes',
-  'cmp.hero.title':   'Pilotage des campagnes d\'évaluation',
-  'cmp.hero.sub':     'Créez, lancez, suivez et clôturez vos cycles d\'entretien annuel ou ponctuel. Chaque campagne regroupe ses formulaires et ses évaluations.',
+  'cmp.hero.eyebrow':      'Campagnes d\'évaluation',
+  'cmp.hero.title':        'Pilotage des campagnes d\'évaluation',
+  'cmp.hero.title_accent': 'Campagnes',
+  'cmp.hero.title_rest':   'd\'évaluation en cours',
+  'cmp.hero.sub':          'Créez, lancez, suivez et clôturez vos cycles d\'entretien annuel ou ponctuel. Chaque campagne regroupe ses formulaires et ses évaluations.',
 
   // Status
   'cmp.status.draft':    'Brouillon',

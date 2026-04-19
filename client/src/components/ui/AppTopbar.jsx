@@ -8,7 +8,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import './AppTopbar.css'
 import {
-  BellIcon, SearchIcon, HelpIcon,
+  BellIcon, SearchIcon,
   SunIcon, MoonIcon, PaletteIcon, GlobeIcon,
 } from './icons'
 
@@ -19,7 +19,6 @@ const L = {
     theme_light:   'Passer en mode clair',
     theme_sidebar: 'Passer en mode sidebar claire',
     theme_dark:    'Passer en mode sombre',
-    help:          'Aide',
     notif:         'Notifications',
     notif_title:   'NOTIFICATIONS',
     notif_all:     'Voir tout',
@@ -31,7 +30,6 @@ const L = {
     theme_light:   'Switch to light mode',
     theme_sidebar: 'Switch to light sidebar',
     theme_dark:    'Switch to dark mode',
-    help:          'Help',
     notif:         'Notifications',
     notif_title:   'NOTIFICATIONS',
     notif_all:     'View all',
@@ -136,12 +134,6 @@ export default function AppTopbar({
         <button type="button" className="apptb__icon-btn"
           onClick={cycleTheme} aria-label={themeLabel} title={themeLabel}>
           <ThemeIcon theme={theme} />
-        </button>
-
-        {/* Help */}
-        <button type="button" className="apptb__icon-btn"
-          aria-label={lbl.help} title={lbl.help}>
-          <HelpIcon size={17} color="var(--color-on-surface-variant)" strokeWidth={1.5} />
         </button>
 
         {/* Notifications */}

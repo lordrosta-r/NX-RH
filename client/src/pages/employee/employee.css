@@ -2,32 +2,8 @@
    Dashboard — Employee home page
    Layout: fixed sidebar (256px) + scrollable main content
    Design: Editorial Enterprise — docs/design/dashboard/DESIGN.md
+   Shell (.db / .db-main / .db-content) is defined in styles/global.css.
    ============================================================================= */
-
-/* ── Page shell ────────────────────────────────────────────────────────────── */
-.db {
-  display: flex;
-  min-height: 100vh;
-  background: var(--color-surface);
-  font-family: var(--font-family);
-  color: var(--color-on-surface);
-}
-
-/* ── Main area (right of sidebar) ─────────────────────────────────────────── */
-.db-main {
-  margin-left: 256px;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-}
-
-
-/* ── Page content ──────────────────────────────────────────────────────────── */
-.db-content {
-  padding: 2.5rem 2.5rem 4rem;
-  flex: 1;
-}
 
 /* ── Campaign banner wrapper ───────────────────────────────────────────────── */
 .db-banner-wrap {

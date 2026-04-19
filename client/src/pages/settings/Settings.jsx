@@ -56,10 +56,10 @@ export default function Settings() {
   }
 
   return (
-    <div className="st">
+    <div className="db">
       <SettingsSidebar t={t} role={user.role} sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
-      <div className="st-main">
+      <div className="db-main">
         <AppTopbar
           searchPlaceholder={t('settings.search.placeholder')}
           locale={locale} setLocale={(l) => { setLocale(l); savePreferences({ locale: l }).catch(() => {}) }}
@@ -69,11 +69,14 @@ export default function Settings() {
           onMenuToggle={() => setSidebarOpen(o => !o)}
         />
 
-        <main className="st-content" id="main-content">
-          <header className="st-header">
-            <h1 className="st-title">{t('settings.page.title')}</h1>
-            <p  className="st-subtitle">{t('settings.page.subtitle')}</p>
-          </header>
+        <main className="db-content st" id="main-content">
+          <section className="st-hero">
+            <p className="st-hero__eyebrow">{t('settings.hero.eyebrow')}</p>
+            <h1 className="st-hero__title">
+              <span className="st-hero__accent">{t('settings.hero.title_accent')}</span> {t('settings.hero.title_rest')}
+            </h1>
+            <p className="st-hero__sub">{t('settings.page.subtitle')}</p>
+          </section>
 
           <div className="st-stack">
             <ProfileSection       t={t} locale={locale} user={user} />

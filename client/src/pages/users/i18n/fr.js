@@ -23,7 +23,8 @@ export default {
 
   // Hero
   'usr.hero.eyebrow': 'Administration',
-  'usr.hero.title':   'Gestion des utilisateurs',
+  'usr.hero.title':         'Gestion des utilisateurs',
+  'usr.hero.title_suffix':  'utilisateurs gérés',
   'usr.hero.sub':     'Créez, modifiez et désactivez les comptes utilisateurs. Attribuez les rôles et les départements pour structurer votre organisation.',
 
   // Filters

@@ -4,13 +4,13 @@
 // =============================================================================
 import React from 'react'
 import AppSidebar from '../../components/ui/AppSidebar'
-import { HomeIcon, ClipboardIcon, GearIcon } from '../../components/ui/icons'
+import { Home, ClipboardList, Settings } from 'lucide-react'
 
 export default function EvaluationSidebar({ t, sidebarOpen, setSidebarOpen }) {
   const navItems = [
-    { id: 'home',       Icon: HomeIcon,      label: t('ev.nav.dashboard'),  active: false, href: '/employee'  },
-    { id: 'evaluation', Icon: ClipboardIcon, label: t('ev.nav.evaluation'), active: true,  href: '/evaluation' },
-    { id: 'settings',   Icon: GearIcon,      label: t('ev.nav.settings'),   active: false, href: '/settings' },
+    { id: 'home',       Icon: Home,          label: t('ev.nav.dashboard'),  active: false, href: '/employee'  },
+    { id: 'evaluation', Icon: ClipboardList, label: t('ev.nav.evaluation'), active: true,  href: '/evaluation' },
+    { id: 'settings',   Icon: Settings,      label: t('ev.nav.settings'),   active: false, href: '/settings' },
   ]
   return <AppSidebar brandSub="Employee Portal" navItems={navItems}
     labelNavigation={t('ev.nav.label')}

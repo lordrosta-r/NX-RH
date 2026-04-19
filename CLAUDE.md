@@ -157,11 +157,23 @@ const { t, locale, setLocale } = useLocale(pageT)
 
 ## 8. Icônes
 
+**Bibliothèque principale : `lucide-react`** (installée dans `client/`)
+
 - Toujours des **SVG stroke** (jamais emoji, jamais font-icon Material Symbols)
-- Props standards : `size` (défaut 18), `color` (défaut `currentColor`), `strokeWidth` (défaut 2)
-- Toujours `aria-hidden="true"` sur le SVG
-- Importer depuis le barrel : `import { BellIcon } from '../../components/ui/icons'`
-- Documenter dans `docs/design/icons/index.html`
+- Props standards Lucide : `size` (défaut 18), `color` (défaut `currentColor`), `strokeWidth` (défaut 2), `aria-hidden="true"`
+- Importer directement depuis lucide-react : `import { Home, ClipboardList, Settings } from 'lucide-react'`
+- Les composants Lucide sont compatibles avec le pattern `AppSidebar` : `{ id, Icon, label }` → `<Icon size={18} strokeWidth={...} />`
+- Les icônes custom SVG dans `components/ui/icons/` sont conservées pour la compatibilité (pages non encore migrées), mais les **nouvelles pages utilisent lucide-react**.
+
+```jsx
+// ✅ Nouveau standard
+import { Home, Bell, Settings, Lock, Save } from 'lucide-react'
+<Home size={18} strokeWidth={1.5} aria-hidden="true" />
+
+// 🔴 Jamais ça
+<span>🔒</span>   // emoji
+import { HomeIcon } from '../../components/ui/icons'  // legacy, ne pas utiliser pour les nouvelles pages
+```
 
 ---
 

@@ -19,7 +19,9 @@ export default {
   'admin.notifications.aria_bell': 'Notifications',
 
   'admin.hero.eyebrow': 'Administration',
-  'admin.hero.title':   'System governance & health',
+  'admin.hero.title':         'System governance & health',
+  'admin.hero.title_accent':  'Governance',
+  'admin.hero.title_rest':    '& system health',
   'admin.hero.sub':     'Consolidated view of users, roles and platform status. Manage accounts, campaigns and configuration from this space.',
 
   'admin.kpis.label':         'Key indicators',

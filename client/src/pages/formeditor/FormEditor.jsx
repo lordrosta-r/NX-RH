@@ -11,8 +11,7 @@ import { t as pageT } from './i18n'
 import { useLocale } from '../../hooks/useLocale'
 import { useTheme } from '../../hooks/useTheme'
 import { useAuthUser } from '../../hooks/useAuthUser'
-import HRSidebar from '../hr/HRSidebar'
-import AdminSidebar from '../admin/AdminSidebar'
+import FormEditorSidebar from './FormEditorSidebar'
 import AppTopbar from '../../components/ui/AppTopbar'
 import FormEditorBanner from './FormEditorBanner'
 import {
@@ -888,9 +887,6 @@ export default function FormEditor() {
   }
 
   // ── Shell ──────────────────────────────────────────────────────────────────
-  const hrT    = (key) => t(key.replace('hr.nav.',    'fe.nav.'))
-  const adminT  = (key) => t(key.replace('admin.nav.', 'fe.nav.'))
-
   async function handleLogout() {
     try { await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }) } catch { /* ignore */ }
     sessionStorage.clear()
@@ -898,12 +894,15 @@ export default function FormEditor() {
   }
 
   return (
-    <div className="fe">
-      {user.role === 'admin'
-        ? <AdminSidebar t={adminT} activeItem="formeditor" sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
-        : <HRSidebar t={hrT} activeItem="formeditor" sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
-      }
-      <div className="fe-main">
+    <div className="db">
+      <FormEditorSidebar
+        t={t}
+        role={user.role === 'admin' ? 'admin' : 'hr'}
+        activeItem="formeditor"
+        sidebarOpen={sidebarOpen}
+        setSidebarOpen={setSidebarOpen}
+      />
+      <div className="db-main">
 
         <AppTopbar
           searchPlaceholder={t('fe.topbar.search')}
@@ -914,7 +913,7 @@ export default function FormEditor() {
         />
 
         {/* Content */}
-        <main className="fe-content" id="main-content">
+        <main className="db-content fe" id="main-content">
           {view === 'list' ? renderList() : renderCreate()}
         </main>
       </div>

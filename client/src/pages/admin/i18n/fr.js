@@ -22,7 +22,9 @@ export default {
 
   // Hero
   'admin.hero.eyebrow': 'Administration',
-  'admin.hero.title':   'Gouvernance & santé du système',
+  'admin.hero.title':         'Gouvernance & santé du système',
+  'admin.hero.title_accent':  'Gouvernance',
+  'admin.hero.title_rest':    '& santé du système',
   'admin.hero.sub':     'Vue consolidée des utilisateurs, des rôles et de l\'état de la plateforme. Gérez les comptes, les campagnes et la configuration depuis cet espace.',
 
   // KPIs

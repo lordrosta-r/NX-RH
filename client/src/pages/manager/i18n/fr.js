@@ -6,7 +6,10 @@ export default {
   // Topbar
   'manager.search.placeholder': 'Rechercher…',
   // Welcome
-  'manager.welcome.title': 'Tableau de bord manager',
+  'manager.welcome.title':       'Tableau de bord manager',
+  'manager.hero.eyebrow':        'ESPACE MANAGER',
+  'manager.hero.title_accent':   'Mon équipe',
+  'manager.hero.title_rest':     'à évaluer',
   'manager.welcome.subtitle': 'Gérez et validez les évaluations de votre équipe',
   // Table
   'manager.table.evaluatee': 'Collaborateur',

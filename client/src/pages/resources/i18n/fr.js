@@ -23,7 +23,8 @@ export default {
 
   // Hero
   'res.hero.eyebrow': 'Ressources',
-  'res.hero.title':   'Base documentaire RH',
+  'res.hero.title':         'Base documentaire RH',
+  'res.hero.title_suffix':  'ressources publiées',
   'res.hero.sub':     'Gérez et partagez les documents de référence de votre organisation. Publiez des guides, modèles et procédures accessibles à l\'ensemble des collaborateurs.',
 
   // Status

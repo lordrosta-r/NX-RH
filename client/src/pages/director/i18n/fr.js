@@ -16,7 +16,9 @@ export default {
   'director.notifications.aria_bell': 'Notifications',
 
   'director.hero.eyebrow': 'Direction',
-  'director.hero.title':   'Vue agrégée de mes équipes',
+  'director.hero.title':         'Vue agrégée de mes équipes',
+  'director.hero.title_accent':  'Vue agrégée',
+  'director.hero.title_rest':    'de mes équipes',
   'director.hero.sub':     'Pilotez la campagne d\'évaluation sur l\'ensemble de votre périmètre. Les chiffres incluent toute votre sous-arborescence hiérarchique.',
 
   'director.completion.heading': 'Avancement global',

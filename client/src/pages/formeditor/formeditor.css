@@ -6,6 +6,16 @@
 /* ── Layout shell ──────────────────────────────────────────────────────────── */
 /* (.db / .db-main / .db-content come from AppSidebar's css; .fe scopes the page-specific styles only) */
 
+/* ── Token overrides — neutral greys instead of warm brand tones ─────────── */
+/* The global tokens use warm brown tones (brand identity for login/hero).    */
+/* Inside the Form Editor, text and borders should be neutral/dark.           */
+.fe,
+.fe-studio {
+  --color-on-surface-variant: #5f6368;  /* neutral dark grey  (was #5e3f3b brown)  */
+  --color-outline:            #80868b;  /* neutral mid grey   (was #936e69 brown)   */
+  --color-outline-variant:    #dadce0;  /* neutral light grey (was #e9bcb6 rosé)    */
+}
+
 /* ── Page wrapper ──────────────────────────────────────────────────────────── */
 .fe { padding: 0 2rem 4rem; max-width: 1400px; }
 
@@ -129,7 +139,7 @@
 
 .fe-card__desc {
   font-size: 0.8125rem;
-  color: var(--color-on-surface-variant);
+  color: var(--color-on-surface);
   margin: 0;
   line-height: 1.5;
   display: -webkit-box;
@@ -370,7 +380,7 @@
   border-bottom: 2px solid transparent;
   font-family: var(--font-family);
   font-size: 1rem;
-  color: var(--color-on-surface-variant);
+  color: var(--color-on-surface);
   line-height: 1.5;
   padding: 0;
   resize: none;
@@ -392,7 +402,7 @@
   border: 1px solid var(--color-surface-container-high);
   border-radius: var(--radius-xs);
   font-size: 0.8125rem;
-  color: var(--color-on-surface-variant);
+  color: var(--color-on-surface);
   font-family: var(--font-family);
   cursor: pointer;
 }
@@ -406,7 +416,7 @@
   border: 1px solid var(--color-surface-container-high);
   border-radius: var(--radius-xs);
   font-size: 0.8125rem;
-  color: var(--color-on-surface-variant);
+  color: var(--color-on-surface);
   font-family: var(--font-family);
 }
 .fe-fheader__tags:focus { outline: none; border-color: var(--color-secondary); }
@@ -421,8 +431,8 @@
 
 .fe-questions__empty {
   font-size: 0.875rem;
-  color: var(--color-on-surface-variant);
-  opacity: 0.5;
+  color: var(--color-on-surface);
+  opacity: 1;
   text-align: center;
   padding: 2rem 0;
   margin: 0;
@@ -500,7 +510,7 @@
 }
 .fe-qcard__desc {
   font-size: 0.8125rem;
-  color: var(--color-on-surface-variant);
+  color: var(--color-on-surface);
   margin: 0 0 0.75rem 0;
   line-height: 1.5;
 }
@@ -521,7 +531,7 @@
   border: 1.5px solid var(--color-surface-container-high);
   font-size: 0.8125rem;
   font-weight: 700;
-  color: var(--color-on-surface-variant);
+  color: var(--color-on-surface);
 }
 
 .fe-qcard__text-preview {
@@ -700,8 +710,8 @@
 
 .fe-config__hint {
   font-size: 0.875rem;
-  color: var(--color-on-surface-variant);
-  opacity: 0.4;
+  color: var(--color-on-surface);
+  opacity: 1;
   text-align: center;
   margin: 0;
 }
@@ -888,7 +898,7 @@
   border: 1.5px solid var(--color-outline-variant);
   border-radius: var(--radius-xs);
   background: var(--color-surface-container-lowest);
-  color: var(--color-on-surface-variant);
+  color: var(--color-on-surface);
   font-weight: var(--font-weight-semibold);
   font-size: .85rem;
   cursor: pointer;

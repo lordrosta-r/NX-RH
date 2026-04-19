@@ -12,6 +12,7 @@ import { useLocale } from '../../hooks/useLocale'
 import { useTheme } from '../../hooks/useTheme'
 import { useAuthUser } from '../../hooks/useAuthUser'
 import HRSidebar from '../hr/HRSidebar'
+import AdminSidebar from '../admin/AdminSidebar'
 import AppTopbar from '../../components/ui/AppTopbar'
 import FormEditorBanner from './FormEditorBanner'
 import {
@@ -857,7 +858,7 @@ export default function FormEditor() {
                   <button type="button" className="fe-config__discard" onClick={() => setActiveField(null)}>
                     {t('fe.create.cancel')}
                   </button>
-                  <button type="button" className="btn btn--md">{t('fe.config.save')}</button>
+                  <button type="button" className="btn btn--md" onClick={() => setActiveField(null)}>{t('fe.config.save')}</button>
                 </div>
               </div>
             ) : (
@@ -888,7 +889,8 @@ export default function FormEditor() {
   }
 
   // ── Shell ──────────────────────────────────────────────────────────────────
-  const hrT = (key) => t(key.replace('hr.nav.', 'fe.nav.'))
+  const hrT    = (key) => t(key.replace('hr.nav.',    'fe.nav.'))
+  const adminT  = (key) => t(key.replace('admin.nav.', 'fe.nav.'))
 
   async function handleLogout() {
     try { await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }) } catch { /* ignore */ }
@@ -898,7 +900,10 @@ export default function FormEditor() {
 
   return (
     <div className="fe">
-      <HRSidebar t={hrT} activeItem="formeditor" />
+      {user.role === 'admin'
+        ? <AdminSidebar t={adminT} activeItem="formeditor" />
+        : <HRSidebar t={hrT} activeItem="formeditor" />
+      }
       <div className="fe-main">
 
         <AppTopbar

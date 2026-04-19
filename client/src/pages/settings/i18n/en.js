@@ -3,6 +3,15 @@ export default {
   'settings.nav.label':       'Main navigation',
   'settings.nav.coming_soon': 'Coming soon',
   'settings.nav.settings':    'Settings',
+  // Nav items by role
+  'settings.nav.overview':    'Overview',
+  'settings.nav.evaluation':  'My evaluation',
+  'settings.nav.campaigns':   'Campaigns',
+  'settings.nav.formeditor':  'Form Editor',
+  'settings.nav.resources':   'Resources',
+  'settings.nav.users':       'Users',
+  'settings.nav.hr':          'HR Portal',
+  'settings.nav.evaluations': 'Evaluations',
 
   // Topbar
   'settings.search.placeholder': 'Search settings…',

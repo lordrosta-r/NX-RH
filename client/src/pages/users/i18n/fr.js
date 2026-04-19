@@ -1,7 +1,7 @@
 export default {
   // Navigation sidebar
   'usr.nav.hr':          'Espace RH',
-  'usr.nav.admin':       'Vue Admin',
+  'usr.nav.admin':       'Vue d\'ensemble',
   'usr.nav.users':       'Utilisateurs',
   'usr.nav.campaigns':   'Campagnes',
   'usr.nav.formeditor':  'Formulaires',

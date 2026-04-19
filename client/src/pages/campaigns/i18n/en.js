@@ -1,5 +1,5 @@
 export default {
-  'cmp.nav.admin':       'Admin overview',
+  'cmp.nav.admin':       'Overview',
   'cmp.nav.hr':          'HR portal',
   'cmp.nav.campaigns':   'Campaigns',
   'cmp.nav.formeditor':  'Forms',

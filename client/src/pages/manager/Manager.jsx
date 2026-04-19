@@ -47,30 +47,15 @@ export default function Manager() {
     return () => { cancelled = true }
   }, [t])
 
+  useEffect(() => {
+    if (!authLoading && user && !['admin', 'director', 'manager'].includes(user.role)) {
+      window.location.href = '/employee'
+    }
+  }, [authLoading, user])
+
   if (authLoading) return null
   if (!user)       return null
-  if (!['admin', 'director', 'manager'].includes(user.role)) {
-    window.location.href = '/employee'
-    return null
-  }
-
-  async function handleAction(id, action) {
-    const statusMap = { review: 'reviewed', cosign: 'signed_manager' }
-    const newStatus = statusMap[action]
-    if (!newStatus) return
-    try {
-      const r = await fetch(`/api/evaluations/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ status: newStatus }),
-      })
-      if (!r.ok) throw new Error(`HTTP ${r.status}`)
-      setEvaluations(prev => prev.map(e => e._id === id ? { ...e, status: newStatus } : e))
-    } catch (err) {
-      setError(err.message || t('manager.error.update_failed'))
-    }
-  }
+  if (!['admin', 'director', 'manager'].includes(user.role)) return null
 
   // ── Review modal ──────────────────────────────────────────────────────────
   async function openReview(ev) {

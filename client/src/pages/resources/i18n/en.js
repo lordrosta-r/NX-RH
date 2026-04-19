@@ -1,7 +1,7 @@
 export default {
   // Navigation sidebar
   'res.nav.hr':          'HR portal',
-  'res.nav.admin':       'Admin overview',
+  'res.nav.admin':       'Overview',
   'res.nav.users':       'Users',
   'res.nav.campaigns':   'Campaigns',
   'res.nav.formeditor':  'Forms',

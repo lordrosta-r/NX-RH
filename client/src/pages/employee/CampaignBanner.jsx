@@ -47,66 +47,48 @@ function ProgressRing({ value = 0, size = 192, trackWidth = 10 }) {
 
 // ── Banner component ────────────────────────────────────────────────────────
 export default function CampaignBanner({ t, campaign, loading, error, userName = '' }) {
-  const greeting = (
-    <>
-      <p className="cb__greeting">
-        {t('dashboard.welcome.greeting')} {userName || 'vous'}.
-      </p>
-      <p className="cb__tagline">{t('dashboard.welcome.tagline')}</p>
-    </>
-  )
+  const progress     = !loading && !error && campaign ? (campaign.progress ?? 0) : 0
+  const campaignName = !loading && !error && campaign
+    ? (campaign.name || campaign.title || t('dashboard.campaign.headline.accent'))
+    : null
 
-  if (loading) {
-    return (
-      <section className="cb">
-        <div className="cb__content">{greeting}<p className="cb__body">{t('dashboard.loading')}</p></div>
-      </section>
-    )
-  }
+  const statusText = loading
+    ? t('dashboard.loading')
+    : error
+      ? t('dashboard.error')
+      : !campaign
+        ? t('dashboard.campaign.empty')
+        : (campaign.description || t('dashboard.campaign.body'))
 
-  if (error) {
-    return (
-      <section className="cb">
-        <div className="cb__content">{greeting}<p className="cb__body">{t('dashboard.error')}</p></div>
-      </section>
-    )
-  }
-
-  if (!campaign) {
-    return (
-      <section className="cb">
-        <div className="cb__content">{greeting}<p className="cb__body">{t('dashboard.campaign.empty')}</p></div>
-      </section>
-    )
-  }
-
-  const progress     = campaign.progress ?? 0
-  const campaignName = campaign.name || campaign.title || t('dashboard.campaign.headline.accent')
+  const isReady = !loading && !error && campaign
 
   return (
     <section className="cb">
 
       {/* Left — greeting + headline block */}
       <div className="cb__content">
-        {greeting}
+        <p className="cb__greeting">
+          {t('dashboard.welcome.greeting')} {userName || 'vous'}.
+        </p>
+        <p className="cb__tagline">{t('dashboard.welcome.tagline')}</p>
 
-        {/* Active Campaign badge — bell icon + label */}
-        <div className="cb__badge">
+        {/* Active Campaign badge */}
+        <div className="cb__badge" style={!isReady ? { visibility: 'hidden' } : undefined}>
           <BellIcon size={11} color="var(--color-error)" strokeWidth={2} />
           {t('dashboard.campaign.badge')}
         </div>
 
-        <h2 className="cb__headline">
+        <h2 className="cb__headline" style={!isReady ? { visibility: 'hidden' } : undefined}>
           {t('dashboard.campaign.headline.part1')}{' '}
           <span className="cb__headline-accent">{campaignName}</span>{' '}
           {t('dashboard.campaign.headline.part2')}
         </h2>
 
-        <p className="cb__body">{campaign.description || t('dashboard.campaign.body')}</p>
+        <p className="cb__body">{statusText}</p>
       </div>
 
-      {/* Right — ring + CTA */}
-      <div className="cb__cta-area">
+      {/* Right — ring + CTA — always in DOM to stabilise banner height */}
+      <div className="cb__cta-area" style={!isReady ? { visibility: 'hidden' } : undefined}>
         <div className="cb__ring-wrap">
           <div
             role="progressbar"
@@ -125,9 +107,9 @@ export default function CampaignBanner({ t, campaign, loading, error, userName =
           </div>
         </div>
 
-        <button className="cb__btn">
+        <a className="cb__btn" href="/evaluation">
           {t('dashboard.campaign.cta')}
-        </button>
+        </a>
       </div>
 
       {/* Decorative ambient glow */}

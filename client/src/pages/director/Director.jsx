@@ -31,12 +31,15 @@ export default function Director() {
     return () => { cancelled = true }
   }, [t])
 
+  useEffect(() => {
+    if (!authLoading && user && !['director', 'admin'].includes(user.role)) {
+      window.location.href = '/employee'
+    }
+  }, [authLoading, user])
+
   if (authLoading) return null
   if (!user) return null
-  if (!['director', 'admin'].includes(user.role)) {
-    window.location.href = '/employee'
-    return null
-  }
+  if (!['director', 'admin'].includes(user.role)) return null
 
   async function handleLogout() {
     try { await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }) } catch { /* ignore */ }

@@ -1,6 +1,8 @@
 export default {
   // Nav (same HR nav labels reused from HRSidebar)
   'fe.nav.overview':   'Vue d\'ensemble',
+  'fe.nav.hr':         'Portail RH',
+  'fe.nav.users':      'Utilisateurs',
   'fe.nav.campaigns':  'Campagnes',
   'fe.nav.formeditor': 'Éditeur de formulaires',
   'fe.nav.resources':  'Ressources',

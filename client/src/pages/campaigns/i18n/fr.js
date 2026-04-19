@@ -1,6 +1,6 @@
 export default {
   // Navigation sidebar
-  'cmp.nav.admin':       'Vue Admin',
+  'cmp.nav.admin':       'Vue d\'ensemble',
   'cmp.nav.hr':          'Espace RH',
   'cmp.nav.campaigns':   'Campagnes',
   'cmp.nav.formeditor':  'Formulaires',

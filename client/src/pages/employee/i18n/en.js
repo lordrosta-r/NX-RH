@@ -1,6 +1,6 @@
 export default {
   // Navigation sidebar
-  'dashboard.nav.home':       'Dashboard',
+  'dashboard.nav.home':       'Overview',
   'dashboard.nav.evaluation': 'My Evaluation',
   'dashboard.nav.growth':     'My Growth',
   'dashboard.nav.settings':   'Settings',

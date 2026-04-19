@@ -33,7 +33,6 @@ export default function PreferencesSection({
   function handleTheme(next) {
     if (next === theme) return
     setTheme(next)
-    persist({ theme: next })
   }
 
   return (

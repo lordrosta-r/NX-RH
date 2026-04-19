@@ -28,7 +28,6 @@ function UsersSidebar({ t, role }) {
   const items = role === 'admin'
     ? [
         { id: 'overview',   href: '/admin',      Icon: HomeIcon,      label: t('usr.nav.admin'),       active: false },
-        { id: 'hr',         href: '/hr',         Icon: FolderIcon,    label: t('usr.nav.hr'),          active: false },
         { id: 'users',      href: '/users',      Icon: SearchIcon,    label: t('usr.nav.users'),       active: true },
         { id: 'campaigns',  href: '/campaigns',  Icon: ClipboardIcon, label: t('usr.nav.campaigns'),   active: false },
         { id: 'formeditor', href: '/formeditor', Icon: DocumentIcon,  label: t('usr.nav.formeditor'),  active: false },
@@ -106,8 +105,8 @@ export default function Users() {
       .finally(() => setLoading(false))
   }
 
-  useEffect(() => { loadUsers(1); setPage(1) }, [search, roleFilter, deptFilter, activeFilter])
-  useEffect(() => { loadUsers(page) }, [page])
+  useEffect(() => { loadUsers(1); setPage(1) }, [search, roleFilter, deptFilter, activeFilter]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { loadUsers(page) }, [page]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (authLoading) return null
   if (!user) return null

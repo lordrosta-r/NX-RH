@@ -1,6 +1,5 @@
 export default {
   'admin.nav.overview':    'Overview',
-  'admin.nav.hr':          'HR portal',
   'admin.nav.users':       'Users',
   'admin.nav.campaigns':   'Campaigns',
   'admin.nav.formeditor':  'Forms',
@@ -21,7 +20,7 @@ export default {
 
   'admin.hero.eyebrow': 'Administration',
   'admin.hero.title':   'System governance & health',
-  'admin.hero.sub':     'Consolidated view of users, roles and platform status. All application spaces are reachable from here.',
+  'admin.hero.sub':     'Consolidated view of users, roles and platform status. Manage accounts, campaigns and configuration from this space.',
 
   'admin.kpis.label':         'Key indicators',
   'admin.kpi.users_total':    'Users',
@@ -34,14 +33,12 @@ export default {
   'admin.roles.heading': 'Role distribution',
 
   'admin.actions.heading':         'Quick links',
-  'admin.actions.hr':              'HR portal',
-  'admin.actions.hr.desc':         'HR overview, campaigns, forms.',
-  'admin.actions.director':        'Director portal',
-  'admin.actions.director.desc':   'Aggregated team view.',
-  'admin.actions.manager':         'Manager portal',
-  'admin.actions.manager.desc':    'Evaluations to review.',
+  'admin.actions.users':           'Users',
+  'admin.actions.users.desc':      'Manage accounts, roles and access.',
   'admin.actions.campaigns':       'Campaigns',
   'admin.actions.campaigns.desc':  'Launch and track campaigns.',
+  'admin.actions.resources':       'Resources',
+  'admin.actions.resources.desc':  'HR document library.',
   'admin.actions.formeditor':      'Form editor',
   'admin.actions.formeditor.desc': 'Build questionnaires.',
   'admin.actions.settings':        'Settings',

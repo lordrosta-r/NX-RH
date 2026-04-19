@@ -1,5 +1,7 @@
 export default {
   'fe.nav.overview':   'Overview',
+  'fe.nav.hr':         'HR Portal',
+  'fe.nav.users':      'Users',
   'fe.nav.campaigns':  'Campaigns',
   'fe.nav.formeditor': 'Form Editor',
   'fe.nav.resources':  'Resources',

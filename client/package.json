@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "prebuild": "eslint src/ --rule '{\"react-hooks/rules-of-hooks\": \"error\"}' --quiet",
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint src/",

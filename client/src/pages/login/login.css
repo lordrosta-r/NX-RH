@@ -127,7 +127,7 @@
   letter-spacing: 0.05em;
   text-transform: uppercase;
   border:         none;
-  border-radius:  var(--radius-md, 0.5rem);
+  border-radius:  0;
   cursor:         pointer;
   box-shadow:     var(--shadow-cta, 0 10px 30px rgba(229,9,20,0.20));
   transition:     box-shadow 0.2s, transform 0.1s;

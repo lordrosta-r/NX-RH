@@ -43,7 +43,7 @@ html[data-theme="dark"] {
 
   --th-hero-gradient: linear-gradient(135deg, #1a1035 0%, #2d1b69 40%, #0f0a1e 100%);
 
-  --th-text-secondary:          var(--color-on-surface-variant);
+  --th-text-secondary:          #a1a1aa;
   --th-surface:                 var(--color-surface);
   --th-on-surface:              var(--color-on-surface);
   --th-surface-container-low:   var(--color-surface-container-low);
@@ -61,26 +61,26 @@ html[data-theme="light"] {
   --th-card-shadow:       var(--shadow-float, 0 24px 64px rgba(28,27,27,0.10));
   --th-card-title:        var(--color-on-surface, #1c1b1b);
 
-  --th-label-color:       var(--color-on-surface-variant, #5e3f3b);
+  --th-label-color:       #5f6368;
   --th-input-tray:        var(--color-surface-container-low, #f6f3f2);
   --th-input-tray-focus:  var(--color-surface-container, #f0eded);
   --th-input-color:       var(--color-on-surface, #1c1b1b);
-  --th-input-placeholder: var(--color-outline, #936e69);
+  --th-input-placeholder: #80868b;
 
-  --th-divider:           var(--color-outline-variant, #e9bcb6);
-  --th-footer-text:       var(--color-on-surface-variant, #5e3f3b);
+  --th-divider:           #dadce0;
+  --th-footer-text:       #5f6368;
   --th-footer-link:       var(--color-on-surface, #1c1b1b);
-  --th-footer-link-dec:   rgba(147, 110, 105, 0.40);
-  --th-copyright:         var(--color-outline, #936e69);
+  --th-footer-link-dec:   rgba(128, 134, 139, 0.40);
+  --th-copyright:         #80868b;
 
-  --th-utility-link:      var(--color-on-surface-variant, #5e3f3b);
+  --th-utility-link:      #5f6368;
   --th-utility-link-hover:var(--color-on-surface, #1c1b1b);
-  --th-tagline:           var(--color-on-surface-variant, #5e3f3b);
+  --th-tagline:           #5f6368;
 
   --th-checkbox-bg:       var(--color-surface-container, #f0eded);
-  --th-checkbox-border:   var(--color-outline-variant, #e9bcb6);
+  --th-checkbox-border:   #dadce0;
 
-  --th-text-secondary:          var(--color-on-surface-variant);
+  --th-text-secondary:          #5f6368;
   --th-surface:                 var(--color-surface);
   --th-on-surface:              var(--color-on-surface);
   --th-surface-container-low:   var(--color-surface-container-low);
@@ -105,7 +105,7 @@ html[data-theme="light-sidebar"] {
   --color-sidebar-nav-active: var(--color-secondary, #5b00df);
   --color-sidebar-active-bg:  rgba(91, 0, 223, 0.08);
   --color-sidebar-hover-bg:   var(--color-surface-container, #f0eded);
-  --color-sidebar-label:      var(--color-on-surface-variant, #5e3f3b);
+  --color-sidebar-label:      #5f6368;
 
   /* Mêmes --th-* que light pour que les pages non-sidebar fonctionnent */
   --th-page-bg:           var(--color-surface, #fcf9f8);
@@ -116,26 +116,26 @@ html[data-theme="light-sidebar"] {
   --th-card-shadow:       var(--shadow-float, 0 24px 64px rgba(28,27,27,0.10));
   --th-card-title:        var(--color-on-surface, #1c1b1b);
 
-  --th-label-color:       var(--color-on-surface-variant, #5e3f3b);
+  --th-label-color:       #5f6368;
   --th-input-tray:        var(--color-surface-container-low, #f6f3f2);
   --th-input-tray-focus:  var(--color-surface-container, #f0eded);
   --th-input-color:       var(--color-on-surface, #1c1b1b);
-  --th-input-placeholder: var(--color-outline, #936e69);
+  --th-input-placeholder: #80868b;
 
-  --th-divider:           var(--color-outline-variant, #e9bcb6);
-  --th-footer-text:       var(--color-on-surface-variant, #5e3f3b);
+  --th-divider:           #dadce0;
+  --th-footer-text:       #5f6368;
   --th-footer-link:       var(--color-on-surface, #1c1b1b);
-  --th-footer-link-dec:   rgba(147, 110, 105, 0.40);
-  --th-copyright:         var(--color-outline, #936e69);
+  --th-footer-link-dec:   rgba(128, 134, 139, 0.40);
+  --th-copyright:         #80868b;
 
-  --th-utility-link:      var(--color-on-surface-variant, #5e3f3b);
+  --th-utility-link:      #5f6368;
   --th-utility-link-hover:var(--color-on-surface, #1c1b1b);
-  --th-tagline:           var(--color-on-surface-variant, #5e3f3b);
+  --th-tagline:           #5f6368;
 
   --th-checkbox-bg:       var(--color-surface-container, #f0eded);
-  --th-checkbox-border:   var(--color-outline-variant, #e9bcb6);
+  --th-checkbox-border:   #dadce0;
 
-  --th-text-secondary:          var(--color-on-surface-variant);
+  --th-text-secondary:          #5f6368;
   --th-surface:                 var(--color-surface);
   --th-on-surface:              var(--color-on-surface);
   --th-surface-container-low:   var(--color-surface-container-low);

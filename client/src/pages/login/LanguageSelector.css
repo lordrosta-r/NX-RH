@@ -1,10 +1,14 @@
 .lang-selector {
+  position:    relative;
   display:     flex;
   align-items: center;
-  gap:         0.4rem;
 }
 
-.lang-selector__select {
+/* ── Bouton déclencheur ───────────────────────────────────────────────────── */
+.lang-selector__btn {
+  display:        flex;
+  align-items:    center;
+  gap:            0.4rem;
   background:     transparent;
   border:         none;
   color:          var(--th-controls-text);
@@ -14,17 +18,54 @@
   text-transform: uppercase;
   letter-spacing: -0.02em;
   cursor:         pointer;
-  appearance:     auto;
+  padding:        0;
+  outline:        none;
 }
 
-.lang-selector__select:focus:not(:focus-visible) { outline: none; }
-
-.lang-selector__select:focus-visible {
-  outline:        2px solid var(--color-primary);
-  outline-offset: 2px;
+.lang-selector__current {
+  line-height: 1;
 }
 
-.lang-selector__select option {
-  background: var(--th-surface);
-  color:      var(--th-on-surface);
+/* ── Menu déroulant ───────────────────────────────────────────────────────── */
+.lang-selector__menu {
+  position:         absolute;
+  bottom:           calc(100% + 0.5rem);
+  right:            0;
+  list-style:       none;
+  margin:           0;
+  padding:          0.25rem;
+  background:       var(--th-controls-bg);
+  border:           1px solid var(--th-controls-border);
+  border-radius:    var(--radius-sm, 0.25rem);
+  backdrop-filter:  blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  min-width:        5rem;
+  z-index:          50;
+}
+
+.lang-selector__opt {
+  display:        block;
+  width:          100%;
+  text-align:     left;
+  background:     transparent;
+  border:         none;
+  color:          var(--th-controls-text);
+  font-size:      0.6875rem;
+  font-weight:    700;
+  font-family:    inherit;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  padding:        0.3rem 0.5rem;
+  border-radius:  var(--radius-xs, 0.125rem);
+  cursor:         pointer;
+  outline:        none;
+  width:          100%;
+}
+
+.lang-selector__opt:hover {
+  background: var(--th-controls-border);
+}
+
+.lang-selector__opt--active {
+  color: var(--th-controls-icon);
 }

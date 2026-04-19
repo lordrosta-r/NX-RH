@@ -253,8 +253,6 @@ export default function FormEditor() {
       label: '',
       description: '',
       required: false,
-      weightage: false,
-      anonymous: formType === 'upward_feedback',
       scale: 5,  // default scale for rating questions (2-10)
       options: type === 'choice' ? makeDefaultOptions() : [],
     }
@@ -738,29 +736,18 @@ export default function FormEditor() {
                 <div className="fe-panel-section">
                   <h4 className="fe-panel-section__hd">{t('fe.config.validation_logic')}</h4>
                   <div className="fe-config__toggles">
-                    {[
-                      { key: 'required',  label: t('fe.config.toggle_required')  },
-                      { key: 'weightage', label: t('fe.config.toggle_weightage') },
-                      { key: 'anonymous', label: t('fe.config.toggle_anonymous') },
-                    ].map(({ key, label }) => {
-                      const isAnonymousForced = key === 'anonymous' && formType === 'upward_feedback'
-                      const checked = isAnonymousForced ? true : !!activeFieldObj[key]
-                      return (
-                        <div key={key} className="fe-config__toggle-row">
-                          <span className="fe-config__toggle-lbl">{label}</span>
-                          <button
-                            type="button"
-                            className={`fe-toggle${checked ? ' fe-toggle--on' : ''}`}
-                            onClick={() => { if (!isAnonymousForced) updateField(activeFieldObj.id, key, !activeFieldObj[key]) }}
-                            role="switch"
-                            aria-checked={checked}
-                            disabled={isAnonymousForced}
-                          >
-                            <span className="fe-toggle__thumb" />
-                          </button>
-                        </div>
-                      )
-                    })}
+                    <div className="fe-config__toggle-row">
+                      <span className="fe-config__toggle-lbl">{t('fe.config.toggle_required')}</span>
+                      <button
+                        type="button"
+                        className={`fe-toggle${activeFieldObj.required ? ' fe-toggle--on' : ''}`}
+                        onClick={() => updateField(activeFieldObj.id, 'required', !activeFieldObj.required)}
+                        role="switch"
+                        aria-checked={!!activeFieldObj.required}
+                      >
+                        <span className="fe-toggle__thumb" />
+                      </button>
+                    </div>
                   </div>
                 </div>
 

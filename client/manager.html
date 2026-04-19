@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="fr">
   <head>
+    <!-- Fond immédiat — évite le flash blanc Safari -->
+    <style>html, body { background: #fcf9f8; }</style>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>NanoXplore RH — Manager</title>
@@ -17,6 +19,7 @@
           var t = localStorage.getItem('nx_theme')
           var valid = ['dark', 'light', 'light-sidebar']
           document.documentElement.setAttribute('data-theme', valid.indexOf(t) !== -1 ? t : 'dark')
+          if (t === 'dark') document.documentElement.style.background = '#111010'
           var l = localStorage.getItem('nx_locale')
           if (l) document.documentElement.setAttribute('lang', l === 'fr' ? 'fr' : 'en')
         } catch (e) {

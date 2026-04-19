@@ -5,24 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>NanoXplore RH — Connexion</title>
 
-    <!-- Anti-flash : applique data-theme + lang AVANT que React monte -->
+    <!-- Fond noir immédiat — évite le flash blanc Safari avant tout rendu -->
+    <style>html, body { background: #000; height: 100%; overflow: hidden; }</style>
+
+    <!-- Anti-flash : affine le thème (light → gris clair) + lang AVANT que React monte -->
     <script>
       (function () {
+        var BG = { 'light': '#f5f5f5', 'light-sidebar': '#f5f5f5' }
         try {
           var t = localStorage.getItem('nx_theme')
-          var valid = ['dark', 'light', 'light-sidebar']
-          document.documentElement.setAttribute('data-theme', valid.indexOf(t) !== -1 ? t : 'dark')
+          if (t && BG[t]) document.documentElement.style.background = BG[t]
+          document.documentElement.setAttribute('data-theme', ['dark','light','light-sidebar'].indexOf(t) !== -1 ? t : 'dark')
           var l = localStorage.getItem('nx_locale')
           if (l) document.documentElement.setAttribute('lang', l === 'fr' ? 'fr' : 'en')
         } catch (e) {
           document.documentElement.setAttribute('data-theme', 'dark')
-          document.documentElement.setAttribute('lang', 'fr')
         }
       })()
     </script>
-
-    <!-- Verrou scroll page entière -->
-    <style>html, body { height: 100%; overflow: hidden; }</style>
 
     <!-- Inter (design system typography) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />

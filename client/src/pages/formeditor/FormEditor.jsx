@@ -164,7 +164,6 @@ export default function FormEditor() {
     { value: 'manager_evaluation',  label: t('fe.type.manager_evaluation')  },
     { value: 'peer_review',         label: t('fe.type.peer_review')         },
     { value: 'upward_feedback',     label: t('fe.type.upward_feedback')     },
-    { value: 'director_evaluation', label: t('fe.type.director_evaluation') },
   ]
 
   // Filter forms — derive status from frozenAt (active | archived)

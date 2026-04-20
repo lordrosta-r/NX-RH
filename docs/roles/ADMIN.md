@@ -51,7 +51,7 @@ L'Admin a accès à un panel de gestion des utilisateurs :
 Paramètres → Utilisateurs → Nouvel utilisateur
   ├─ Email professionnel
   ├─ Nom, prénom, poste
-  ├─ Rôle : admin / hr / director / manager / employee
+  ├─ Rôle : admin / hr / manager / employee
   ├─ Rattachement hiérarchique (manager_id) si applicable
   └─ Mot de passe initial (ou invitation par email)
 ```
@@ -62,6 +62,8 @@ Paramètres → Utilisateurs → Nouvel utilisateur
 - Modifier le rattachement hiérarchique (changer de manager)
 - Réinitialiser le mot de passe
 - Désactiver le compte (soft delete — les données sont conservées)
+
+Un manager peut superviser d'autres managers via `managerId` sans rôle dédié "director".
 
 ### Désactiver un utilisateur
 

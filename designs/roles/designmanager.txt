@@ -55,7 +55,7 @@ Le Manager est un employé de son propre N+1. Quand il se connecte, il a deux es
 
 ### Le Manager Fantôme (Ne fait rien après la deadline)
 * Le système envoie des alertes automatiques (configurées lors de la campagne).
-* Si la deadline est dépassée : le RH voit un widget rouge dans `/hr/campaigns/:id` et peut escalader au Director (N+2) ou réassigner les évaluations.
+* Si la deadline est dépassée : le RH voit un widget rouge dans `/hr/campaigns/:id` et peut escalader au manager N+2 ou réassigner les évaluations.
 
 ### L'Employé Conteste la Synthèse du Manager
 * Après signature du Manager, l'employé a deux options :

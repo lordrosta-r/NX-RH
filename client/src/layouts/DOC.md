@@ -93,3 +93,6 @@ CSS global utilisé :
 son `<Outlet />` avec la route enfant correspondante. `ProtectedRoute`
 fonctionne de la même manière mais ajoute la vérification du rôle avant
 de rendre son propre `<Outlet />`.
+
+Note produit : le portail `director` a été retiré. Les comptes legacy `director`
+restent autorisés sur les vues manager le temps d'assainir les données.

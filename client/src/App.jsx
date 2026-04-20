@@ -37,10 +37,8 @@ export default function App() {
           <Route path="/manager" element={<Placeholder name="Manager" />} />
         </Route>
 
-        {/* Director */}
-        <Route element={<ProtectedRoute allowedRoles={['director', 'admin']} />}>
-          <Route path="/director" element={<Placeholder name="Director" />} />
-        </Route>
+        {/* Legacy director accounts are folded into manager */}
+        <Route path="/director" element={<Navigate to="/manager" replace />} />
 
         {/* HR section */}
         <Route element={<ProtectedRoute allowedRoles={['hr', 'admin']} />}>

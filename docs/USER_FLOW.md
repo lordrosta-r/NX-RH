@@ -19,9 +19,8 @@ Identique pour tous les rôles. L'utilisateur saisit son email professionnel et 
 ```
 Rôle Admin     →  /hr        (accès total + outils admin)
 Rôle HR        →  /hr        (tableau de bord RH)
-Rôle Director  →  /manager   (vue consolidée de sa sous-arborescence)
 Rôle Manager   →  /manager   (son équipe directe)
-Rôle Employee  →  /dashboard (ses propres évaluations)
+Rôle Employee  →  /employee  (ses propres évaluations)
 ```
 
 ---
@@ -105,14 +104,14 @@ Manager
 
 ## 3. Ce que voit chaque rôle à chaque phase
 
-| Phase | Employee | Manager | Director | HR | Admin |
-|---|---|---|---|---|---|
-| Préparation | — | — | — | ✓ crée | ✓ accès total |
-| Auto-évaluation | ✓ remplit | lecture seule | lecture (son périmètre) | vue globale | vue globale |
-| Bilan N-1 | ✓ remplit | ✓ commente + valide | lecture (son périmètre) | vue globale | vue globale |
-| Objectifs futurs | ✓ propose | ✓ finalise | lecture (son périmètre) | vue globale | vue globale |
-| Aspirations | ✓ remplit | lecture seule | lecture (son périmètre) | vue globale | vue globale |
-| Entretien | lecture seule | ✓ conduit + valide | vue agrégée | vue globale | vue globale |
+| Phase | Employee | Manager | HR | Admin |
+|---|---|---|---|---|
+| Préparation | — | — | ✓ crée | ✓ accès total |
+| Auto-évaluation | ✓ remplit | lecture seule | vue globale | vue globale |
+| Bilan N-1 | ✓ remplit | ✓ commente + valide | vue globale | vue globale |
+| Objectifs futurs | ✓ propose | ✓ finalise | vue globale | vue globale |
+| Aspirations | ✓ remplit | lecture seule | vue globale | vue globale |
+| Entretien | lecture seule | ✓ conduit + valide | vue globale | vue globale |
 
 ---
 
@@ -120,8 +119,8 @@ Manager
 
 ```
 /                ← Login (toujours accessible)
-/dashboard       ← Employés (et tout rôle authentifié)
-/manager         ← Managers, Directors, Admin
+/employee        ← Employés (et tout rôle authentifié)
+/manager         ← Managers, Admin, comptes legacy director
 /hr              ← HR, Admin
 ```
 
@@ -138,7 +137,7 @@ La navigation interne à chaque page est gérée par des onglets et des panels, 
 │ Mon équipe│ (liste des membres + statuts)           │
 │ Campagnes│ (si HR ou Admin)                         │
 │ Templates│ (si HR ou Admin)                         │
-│ Rapports │ (si HR, Director ou Admin)               │
+│ Rapports │ (si HR ou Admin)                         │
 │ Paramètres│ (si Admin)                              │
 └──────────┴──────────────────────────────────────────┘
 ```
@@ -176,7 +175,7 @@ assigned → in_progress → submitted → reviewed → signed_evaluatee → sig
 | `assigned` | L'évaluation est créée et assignée à l'évaluateur. Aucune réponse n'a encore été saisie. |
 | `in_progress` | L'évaluateur a commencé à remplir le formulaire. Réponses modifiables (sauvegarde auto). |
 | `submitted` | L'évaluateur a soumis le formulaire. Les réponses sont verrouillées. |
-| `reviewed` | Le manager (ou directeur) a examiné l'évaluation et ajouté son commentaire/score. |
+| `reviewed` | Le manager a examiné l'évaluation et ajouté son commentaire/score. |
 | `signed_evaluatee` | L'évaluatee a pris connaissance de l'évaluation et l'a signée. |
 | `signed_manager` | Le manager a co-signé l'évaluation après l'entretien. |
 | `signed_hr` | RH a contre-signé pour archivage officiel. |
@@ -188,7 +187,6 @@ assigned → in_progress → submitted → reviewed → signed_evaluatee → sig
 |---|---|
 | `employee` | `assigned → in_progress`, `in_progress → submitted` |
 | `manager` | `submitted → reviewed` |
-| `director` | `submitted → reviewed` |
 | `hr` | `reviewed → signed_hr`, `signed_manager → signed_hr` |
 | `admin` | Toutes les transitions |
 

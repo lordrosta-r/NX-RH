@@ -77,16 +77,18 @@ const authGuard = (allowedRoles = []) => (req, res, next) => { ... }
 | Rôle | Pages accessibles |
 |---|---|
 | `admin` | Toutes |
-| `hr` | `/dashboard`, `/hr`, `/formeditor`, `/evaluation` |
-| `director` | `/dashboard`, `/manager`, `/evaluation` |
-| `manager` | `/dashboard`, `/manager`, `/evaluation` |
-| `employee` | `/dashboard`, `/evaluation` |
+| `hr` | `/employee`, `/hr`, `/formeditor`, `/evaluation` |
+| `manager` | `/employee`, `/manager`, `/evaluation` |
+| `employee` | `/employee`, `/evaluation` |
+
+> Compatibilité : les comptes legacy `director` sont redirigés vers `/manager`.
 
 ### Application des rôles (index.js)
 
 ```js
 app.get('/hr',         authGuard(['admin', 'hr']),                                    sendPage('hr'))
 app.get('/manager',    authGuard(['admin', 'director', 'manager']),                   sendPage('manager'))
+app.get('/director',   authGuard(['admin', 'director']),                              (req, res) => res.redirect(302, '/manager'))
 app.get('/formeditor', authGuard(['admin', 'hr']),                                    sendPage('formeditor'))
 ```
 

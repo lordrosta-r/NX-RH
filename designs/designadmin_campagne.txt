@@ -15,11 +15,11 @@ Quand on clique sur une campagne (ex: *Bilan Annuel 2026*), voici comment elle e
    * *Exemple :* Le système mappe automatiquement le Template "Tech" pour la R&D, le Template "Sales" pour les Commerciaux, et le Template "Executive" pour le Codir. Tout se lance le même jour, sous le même nom de campagne, mais l'expérience s'adapte au collaborateur.
 
 3. **Les Règles de Visibilité & Gouvernance (Réponse au problème N+2)**
-   * *C'est ici que l'on configure la visibilité pour les "Directors" (Managers de Managers).*
+   * *C'est ici que l'on configure la visibilité pour les managers qui supervisent d'autres managers.*
    * Lors de la création de la campagne, le RH/Admin dispose d'un panneau **"Gouvernance des Données"**.
-   * Toggle 1 : `[x] Autoriser les N+2 (Directors) à lire les formulaires de leur sous-arborescence.`
+   * Toggle 1 : `[x] Autoriser les managers N+2 à lire les formulaires de leur sous-arborescence.`
    * Toggle 2 : `[ ] Masquer les champs sensibles (Ex: Souhaits Salariaux, Santé mentale) aux N+2.`
-   * *Pourquoi ce routing ?* Parce que dans certaines entreprises, le Director doit valider les augmentations de ses équipes (donc il doit tout voir). Dans d'autres, c'est confidentiel entre le N+1 et la RH. C'est donc un **paramètre au niveau de la campagne**, pas codé en dur.
+   * *Pourquoi ce routing ?* Parce que dans certaines entreprises, un manager principal doit valider les augmentations de ses équipes (donc il doit tout voir). Dans d'autres, c'est confidentiel entre le N+1 et la RH. C'est donc un **paramètre au niveau de la campagne**, pas codé en dur.
 
 4. **Le Moteur de Workflow (Les Phasing)**
    * Phase 1 : `Setup` (Brouillon RH).
@@ -41,7 +41,7 @@ L'Admin n'est pas un RH. C'est le garant technique, la sécurité, et l'intégra
 ### B. L'Urgence Structurelle (Le "Tree Fixer")
 Dans la vraie vie, un manager démissionne en plein milieu du mois de décembre, pendant la campagne. Ses 10 employés sont "Orphelins" dans le système.
 * Le tableau de bord Admin dispose d'un widget **"Alerte d'Orphelinat"**.
-* L'Admin clique sur l'équipe orpheline, et utilise un outil **"Mass-Reassign"** pour transférer les droits de validation au N+2 (le Director) ou à un manager par intérim. Les formulaires en cours sont instantanément débloqués et routés vers la bonne personne.
+* L'Admin clique sur l'équipe orpheline, et utilise un outil **"Mass-Reassign"** pour transférer les droits de validation au manager N+2 ou à un manager par intérim. Les formulaires en cours sont instantanément débloqués et routés vers la bonne personne.
 
 ### C. Mode "Impersonation" (Se connecter en tant que)
 * Outil indispensable du support de niveau 2. L'Admin peut se connecter *dans la peau* d'un employé (avec un bandeau rouge géant "MODE IMPERSONATION" pour des raisons légales et l'action enregistrée dans l'Audit Log) afin de comprendre pourquoi l'employé dit "mon bouton soumettre est grisé". 
@@ -74,14 +74,14 @@ Dans la vraie vie, un manager démissionne en plein milieu du mois de décembre,
 ### I. Le Navigateur d'Organigramme Tactique (Smart Org-Chart)
 * Exit le vieux tableau Excel. L'Admin et les RH disposent d'un **Organigramme visuel interactif** (Node/Graph tree) pour explorer l'entreprise. Fini les listes plates, on bascule sur des vues ingénieuses :
   * **Mode "All" (Vue Macro) :** L'arbre complet de l'entreprise en dézoom pour comprendre la structure.
-  * **Mode "Ligne Managériale" :** L'outil masque tous les collaborateurs individuels pour ne laisser que le "squelette" (Directors, Managers). C'est parfait pour vérifier visuellement les chaînes de validation avant une campagne.
+   * **Mode "Ligne Managériale" :** L'outil masque tous les collaborateurs individuels pour ne laisser que le squelette managérial. C'est parfait pour vérifier visuellement les chaînes de validation avant une campagne.
   * **Mode "Hub Équipe" :** On clique sur un Manager, et l'arbre masque le reste du monde pour isoler l'équipe directe (N-1). Très utile pour le RH qui analyse un micro-climat.
   * **Mode "Diagnostic / Orphelins" (Spécial Admin) :** Met l'arbre en grisé et surligne en rouge les "Nœuds Cassés" (Employé dont le manager est parti, boucles hiérarchiques). L'Admin peut réparer le lien d'un simple Drag & Drop.
 * Génération de **Clés d'API (API Keys) & Webhooks** pour que l'équipe Data de l'entreprise puisse aspirer les statistiques dépersonnalisées.
 
 ### J. Le "Sandbox Mode" (Environnement de test)
 * Avant de lancer un "Bilan Annuel" à 2000 employés, l'Admin peut créer une **Campagne Fantôme (Sandbox)**.
-* Il la lance sur 3 utilisateurs fictifs, imite un N+1 et un RH, et valide que le routing des notifications et l'arbre d'approbation (N+2) fonctionne sans polluer la vraie base de données.
+* Il la lance sur 3 utilisateurs fictifs, imite un N+1 et un RH, et valide que le routing des notifications et l'arbre d'approbation managérial fonctionne sans polluer la vraie base de données.
 
 ---
 

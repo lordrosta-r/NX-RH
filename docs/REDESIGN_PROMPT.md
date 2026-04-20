@@ -1,4 +1,4 @@
-# Redesign Prompt — Inner Pages (Admin, Director, Manager, Campaigns, Users, Resources, FormEditor)
+# Redesign Prompt — Inner Pages (Admin, Manager, Campaigns, Users, Resources, FormEditor)
 
 > **Objective:** Bring all 7 inner pages listed below into full visual and structural parity with the "Editorial Enterprise" design established by `Employee.jsx` and `HRDashboard.jsx`. Each page must feel like it belongs to the same design system — same surface hierarchy, same typography rules, same component patterns, zero design drift.
 
@@ -220,58 +220,13 @@ Grid of 4 cards in 2×2 or 4×1 responsive:
 
 ---
 
-### 3.2 Director (`pages/director/`)
+### 3.2 Director (`pages/director/`) — obsolete
 
-**Current issues:**
-- No visual completion rate indicator
-- No trend indicators on KPIs
-- Manager breakdown is a plain table with no visual hierarchy
+Le rôle `director` n'est plus une cible produit.
 
-**Redesign requirements:**
-
-**Hero:**
-- Eyebrow: `"VUE DIRECTEUR"` / `"DIRECTOR VIEW"`
-- Headline with `<span accent>` on the user's first name
-- Sub: total employees under direction + active campaign name
-
-**KPI Bento (4 cards):**
-| Card | Value | Visual extra |
-|---|---|---|
-| Équipes sous direction | manager count | `UsersIcon` |
-| Évaluations totales | total count | `ClipboardIcon` |
-| Taux de complétion | `completionPct%` | Inline progress bar (CSS, no library) |
-| Campagnes actives | count | `FlagIcon` |
-
-**Completion progress bar (inline CSS):**
-```jsx
-<div className="dir-progress-track">
-  <div className="dir-progress-fill" style={{ width: `${completionPct}%` }} />
-</div>
-```
-```css
-.dir-progress-track {
-  height: 6px;
-  border-radius: var(--radius-full);
-  background: var(--color-surface-container-high);
-  margin-top: 0.75rem;
-  overflow: hidden;
-}
-.dir-progress-fill {
-  height: 100%;
-  border-radius: var(--radius-full);
-  background: var(--color-secondary);
-  transition: width 0.6s ease;
-}
-```
-
-**Manager breakdown:**
-- Keep as a table (§1.8), but add a mini progress bar per row in the completion column
-- Status pill per manager using §1.7 rules
-- Each manager row is clickable (navigates to filtered evaluation list)
-
-**Trend badges:**
-- Add a small `+N%` or `−N%` badge next to KPI values when trend data is available
-- Badge background: `rgba(0,130,80,0.10)` (positive) or `var(--color-error-container)` (negative)
+- Ne plus créer ni maintenir de portail dédié `pages/director/`.
+- Toute supervision multi-équipes doit être absorbée par `pages/manager/`.
+- Si un manager a un périmètre étendu, il reste dans le même espace `/manager` avec des données agrégées supplémentaires.
 
 ---
 
@@ -539,9 +494,8 @@ Implement pages in this order to minimize risk and validate the design system in
 2. **Users** — token drift fix + table rules
 3. **Resources** — clone Users fix with different vocabulary
 4. **Admin** — KPI bento refactor (most impactful visual change)
-5. **Director** — completion bar + trend badges
-6. **Manager** — status grouping + slide panel
-7. **FormEditor** — structural fix last (highest complexity, most risk)
+5. **Manager** — status grouping + slide panel
+6. **FormEditor** — structural fix last (highest complexity, most risk)
 
 After each page: run `npm run build` from `client/` and verify zero errors before proceeding.
 

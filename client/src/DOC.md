@@ -13,6 +13,12 @@ index.html → src/main.jsx → <App /> → React Router v7 → Pages
 3. **`App.jsx`** — déclare toutes les routes via React Router v7
 4. **Pages** — chaque route rend un composant de `pages/`
 
+## Simplification des rôles
+
+- Le produit n'expose plus de portail `director` distinct.
+- Un manager peut superviser d'autres managers via la hiérarchie, sans rôle supplémentaire côté UX.
+- Les comptes historiques `director` sont temporairement rabattus vers `/manager` pour éviter une rupture brutale.
+
 ## Structure des dossiers
 
 | Dossier | Rôle |

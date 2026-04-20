@@ -8,7 +8,7 @@ Transformer les données brutes collectées via les formulaires d'évaluation en
 ## 1. LES 5 DASHBOARDS STRATÉGIQUES
 
 ### Dashboard 1 : Flight Risk Radar (Risque de Départ)
-**Audience** : RH, Director.
+**Audience** : RH, Manager principal.
 **Source de données** : Smart Block "Météo" (satisfaction 1-10) + Smart Block "Mobilité" (flag oui/non + type) + tendance historique.
 **Visualisation** : Scatter plot avec :
 * Axe X = Satisfaction (1-10, tirée du dernier Smart Block Météo rempli).
@@ -18,7 +18,7 @@ Transformer les données brutes collectées via les formulaires d'évaluation en
 **Action** : Cliquer sur un point → fiche employé. Le RH peut lancer une action de rétention.
 
 ### Dashboard 2 : Goal Gap Analysis (Objectifs : Fixés vs Atteints)
-**Audience** : RH, Director, Manager.
+**Audience** : RH, Manager principal, Manager.
 **Source de données** : Objectifs N-1 (target + réalisation), Smart Block "Import Dynamique N-1".
 **Visualisation** : Bar chart empilé par département/équipe.
 * Barre verte = Objectifs atteints.
@@ -28,7 +28,7 @@ Transformer les données brutes collectées via les formulaires d'évaluation en
 **Action** : Drill-down par équipe, puis par individu. Identifier les équipes sur-performantes et sous-performantes.
 
 ### Dashboard 3 : Skills Gap Map (Carte de Compétences)
-**Audience** : RH, Director.
+**Audience** : RH, Manager principal.
 **Source de données** : Smart Block "Compétences" (notation par compétence-clé), Aspirations (formations souhaitées).
 **Visualisation** : Radar chart (spider chart) par département.
 * Chaque branche = une compétence-clé (Leadership, Technique, Communication, Innovation…).
@@ -38,7 +38,7 @@ Transformer les données brutes collectées via les formulaires d'évaluation en
 **Action** : Identifier les besoins de formation prioritaires. Exporter vers un plan de formation.
 
 ### Dashboard 4 : Sentiment Heatmap (Climat Social)
-**Audience** : RH, Director.
+**Audience** : RH, Manager principal.
 **Source de données** : Smart Block "Météo" agrégé par équipe, par département, par trimestre.
 **Visualisation** : Heatmap calendaire (style GitHub contribution graph).
 * Axe X = Mois/Trimestres.
@@ -47,14 +47,14 @@ Transformer les données brutes collectées via les formulaires d'évaluation en
 **Action** : Détecter les dégradations saisonnières (post-restructuration, post-évaluation…). Corrélation avec turnover.
 
 ### Dashboard 5 : Succession Pipeline (Viviers de Talents)
-**Audience** : RH, Director.
+**Audience** : RH, Manager principal.
 **Source de données** : Performance (note globale), Ancienneté, Aspirations ("évolution souhaitée"), Flag mobilité ("veut évoluer en interne").
 **Visualisation** : 9-Box Grid classique (Performance x Potentiel).
 * Axe X = Performance (tirée de la dernière évaluation).
 * Axe Y = Potentiel (estimé via : aspiration d'évolution + note croissante sur 3 ans + formation demandée).
 * Chaque case = nombre d'employés + noms.
 * Case top-right = "Stars" (haute performance + haut potentiel) → Successeurs identifiés.
-**Action** : Le Director clique sur une case → voit la liste. Il peut taguer un employé comme "Successeur potentiel pour le poste X".
+**Action** : Le manager principal clique sur une case → voit la liste. Il peut taguer un employé comme "Successeur potentiel pour le poste X".
 
 ---
 
@@ -102,7 +102,7 @@ Transformer les données brutes collectées via les formulaires d'évaluation en
 Les dashboards sont accessibles depuis **deux points d'entrée** :
 
 * `/hr/analytics` → RH voit **tous** les dashboards sur **toute l'organisation**.
-* `/director/analytics` → Le Director voit les mêmes dashboards mais **filtrés sur sa branche** uniquement.
+* `/manager` → Un manager avec visibilité étendue voit les mêmes dashboards, filtrés sur sa branche uniquement.
 
 Le Manager n'a **pas** accès aux dashboards analytics (il voit uniquement les données de son équipe directe dans son Dashboard classique).
 
@@ -124,7 +124,7 @@ Le Manager n'a **pas** accès aux dashboards analytics (il voit uniquement les d
 
 ## 5. CONSIDÉRATIONS RGPD
 
-* Les dashboards affichent des **données agrégées** par défaut. Le drill-down vers l'individu n'est possible que pour le RH et le Director de la branche.
+* Les dashboards affichent des **données agrégées** par défaut. Le drill-down vers l'individu n'est possible que pour le RH et le manager responsable de la branche.
 * Les données de type "Météo" et "Aspirations" ne sont **jamais** exposées nominativement dans les exports CSV — elles sont anonymisées par défaut.
 * Le Smart Block "Demande Salariale" n'alimente **aucun** dashboard. Il est traité manuellement dans `/hr/requests` par le RH uniquement.
 * Durée de rétention configurable par l'Admin dans `/admin/compliance` (par défaut : 5 ans après la dernière campagne de l'employé).

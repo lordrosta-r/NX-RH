@@ -1,6 +1,6 @@
 // =============================================================================
 // AppSidebar — Shared inner-app sidebar (brand + nav)
-// Used by all inner pages: dashboard (employee), hr, manager, director…
+// Used by all inner pages: employee, hr, manager…
 // Each page provides its own navItems and brandSub — no business logic here.
 // Design: docs/design/dashboard/DESIGN.md
 // =============================================================================

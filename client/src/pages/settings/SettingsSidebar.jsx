@@ -11,13 +11,14 @@ import {
 } from '../../components/ui/icons'
 
 function buildItems(role, t) {
+  const effectiveRole = role === 'director' ? 'manager' : role
   const settingsItem = {
     id: 'settings', href: '/settings', Icon: GearIcon,
     label: t('settings.nav.settings'), active: true,
   }
 
   // admin → portail Admin (super-set)
-  if (role === 'admin') {
+  if (effectiveRole === 'admin') {
     return [
       { id: 'overview',   href: '/admin',      Icon: HomeIcon,      label: t('settings.nav.overview'),   active: false },
       { id: 'users',      href: '/users',      Icon: SearchIcon,    label: t('settings.nav.users'),      active: false },
@@ -29,7 +30,7 @@ function buildItems(role, t) {
   }
 
   // hr → portail HR
-  if (role === 'hr') {
+  if (effectiveRole === 'hr') {
     return [
       { id: 'overview',   href: '/hr',         Icon: HomeIcon,      label: t('settings.nav.overview'),   active: false },
       { id: 'campaigns',  href: '/campaigns',  Icon: ClipboardIcon, label: t('settings.nav.campaigns'),  active: false },
@@ -38,17 +39,7 @@ function buildItems(role, t) {
     ]
   }
 
-  // director → portail Director
-  if (role === 'director') {
-    return [
-      { id: 'overview',    href: '/director', Icon: HomeIcon,      label: t('settings.nav.overview'),    active: false },
-      { id: 'evaluations', href: '/manager',  Icon: ClipboardIcon, label: t('settings.nav.evaluations'), active: false },
-      settingsItem,
-    ]
-  }
-
-  // manager → portail Manager
-  if (role === 'manager') {
+  if (effectiveRole === 'manager') {
     return [
       { id: 'evaluations', href: '/manager', Icon: ClipboardIcon, label: t('settings.nav.evaluations'), active: false },
       settingsItem,
@@ -64,10 +55,9 @@ function buildItems(role, t) {
 }
 
 function brandSubFor(role) {
-  if (role === 'admin')    return 'Admin Portal'
-  if (role === 'hr')       return 'HR Portal'
-  if (role === 'manager')  return 'Manager Portal'
-  if (role === 'director') return 'Director Portal'
+  if (role === 'admin') return 'Admin Portal'
+  if (role === 'hr') return 'HR Portal'
+  if (role === 'manager' || role === 'director') return 'Manager Portal'
   return 'Employee Portal'
 }
 

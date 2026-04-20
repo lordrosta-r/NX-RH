@@ -18,15 +18,15 @@ Le rôle HR est **transverse** — il n'est pas dans la ligne hiérarchique mana
              │
            [ HR ]           ← pilotage du processus (transverse)
              │
-     ┌───────┴────────┐
- [Director]       [Director]
+     ┌───────────────┐
+   [Manager principal]
      │
-  [Manager]  [Manager]
+    [Manager]  [Manager]
      │
- [Employee] [Employee]
+   [Employee] [Employee]
 ```
 
-HR voit toute l'organisation en **lecture** pour piloter les campagnes. Il n'est pas le supérieur hiérarchique des managers — il coordonne le processus.
+HR voit toute l'organisation en **lecture** pour piloter les campagnes. Il n'est pas le supérieur hiérarchique des managers — il coordonne le processus. Un manager peut superviser d'autres managers sans rôle distinct supplémentaire.
 
 ---
 

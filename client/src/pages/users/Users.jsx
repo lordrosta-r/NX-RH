@@ -16,7 +16,7 @@ import { useLocale }   from '../../hooks/useLocale'
 import { useTheme }    from '../../hooks/useTheme'
 import { useAuthUser } from '../../hooks/useAuthUser'
 
-const ROLES       = ['admin', 'hr', 'director', 'manager', 'employee']
+const ROLES       = ['admin', 'hr', 'manager', 'employee']
 const DEPARTMENTS = [
   'Engineering', 'Product', 'Design', 'Data', 'Security', 'Infrastructure',
   'Finance', 'Legal', 'HR', 'Sales', 'Marketing', 'Customer Success',

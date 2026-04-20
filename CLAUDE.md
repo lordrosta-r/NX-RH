@@ -265,7 +265,27 @@ Pas de HTML supplémentaire, pas d'entrée Vite, pas de route Express.
 
 ---
 
-## 11. Ce qu'on ne fait PAS
+## 11. Documentation par dossier -- DOC.md
+
+Chaque dossier significatif contient un fichier `DOC.md` qui documente :
+- Ce que le dossier contient et son role dans l'application
+- Comment les fichiers fonctionnent ensemble
+- Ce qui a change pendant la migration (historique des decisions)
+- Les points d'attention ou pieges a eviter
+
+### Regles pour les agents IA (Copilot, Claude, etc.)
+
+1. **Avant de modifier un dossier** : lire son `DOC.md` s'il existe
+2. **Apres avoir modifie un dossier** : mettre a jour son `DOC.md`
+3. **Lors de la creation d'un nouveau dossier significatif** : creer un `DOC.md`
+
+Un "dossier significatif" = tout dossier qui contient de la logique metier ou de
+l'infrastructure partagee (contexts/, layouts/, pages/*, hooks/, etc.).
+Ne pas creer de DOC.md pour les dossiers triviaux (i18n/, icons/).
+
+---
+
+## 12. Ce qu'on ne fait PAS
 
 - Pas de Redux / Zustand / Jotai — TanStack Query + contextes suffisent
 - Pas de SSR — SPA classique avec React Router

@@ -68,6 +68,7 @@ export default function AppTopbar({
   onLogout,
   onMenuToggle,
   nav,
+  brand,
 }) {
   const lbl = L[locale] ?? L.fr
   const [notifOpen, setNotifOpen] = useState(false)
@@ -103,6 +104,9 @@ export default function AppTopbar({
 
   return (
     <header className="apptb">
+
+      {/* Brand logo — optionnel, affiché avant la nav (mini-SPA sans sidebar) */}
+      {brand && <div className="apptb__brand">{brand}</div>}
 
       {/* Hamburger — mobile only */}
       {onMenuToggle && (

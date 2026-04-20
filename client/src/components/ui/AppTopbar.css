@@ -16,6 +16,19 @@
   gap: 1rem;
 }
 
+/* ── Brand logo (mini-SPA sans sidebar) ─────────────────────────────────────── */
+.apptb__brand {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin-right: 0.5rem;
+}
+.apptb__brand img {
+  height: 28px;
+  width: auto;
+  display: block;
+}
+
 /* ── Search pill ─────────────────────────────────────────────────────────────── */
 .apptb__search {
   display: flex;

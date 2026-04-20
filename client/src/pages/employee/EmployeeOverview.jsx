@@ -32,7 +32,7 @@ const NOTIF_COLORS = [
 const SPOTLIGHT_IMG = '/assets/spotlight.jpg'
 
 
-export default function EmployeeOverview({ t, locale, user, onNotifItemsChange }) {
+export default function EmployeeOverview({ t, locale, user, onNotifItemsChange, navigate, isActive }) {
   const [events, setEvents]               = useState([])
   const [eventsLoading, setEventsLoading] = useState(true)
   const [eventsError, setEventsError]     = useState(null)
@@ -164,6 +164,8 @@ export default function EmployeeOverview({ t, locale, user, onNotifItemsChange }
           loading={campaignLoading}
           error={campaignError}
           userName={first || 'vous'}
+          onNavigate={() => navigate('evaluation')}
+          isActive={isActive}
         />
       </div>
 
@@ -216,6 +218,7 @@ export default function EmployeeOverview({ t, locale, user, onNotifItemsChange }
           </div>
           <a
             href="/employee/evaluation"
+            onClick={(e) => { e.preventDefault(); navigate('evaluation'); }}
             className="db-stats__cta"
             style={stats.pending === 0 ? { visibility: 'hidden' } : undefined}
           >

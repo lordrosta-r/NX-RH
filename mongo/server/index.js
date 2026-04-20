@@ -116,8 +116,8 @@ app.get('/hr',         authGuard(['hr', 'admin']),                              
 app.get('/admin',      authGuard(['admin']),                                          sendPage('admin'))
 app.get('/formeditor', authGuard(['hr', 'admin']),                                    sendPage('formeditor'))
 app.get('/campaigns',  authGuard(['hr', 'admin']),                                    sendPage('campaigns'))
-app.get('/evaluation', authGuard(['employee', 'manager', 'director', 'hr', 'admin']), sendPage('evaluation'))
-app.get('/settings',   authGuard(['employee', 'manager', 'director', 'hr', 'admin']), sendPage('settings'))
+app.get('/evaluation', authGuard(['manager', 'director', 'hr', 'admin']), sendPage('evaluation'))
+app.get('/settings',   authGuard(['manager', 'director', 'hr', 'admin']), sendPage('settings'))
 app.get('/resources',  authGuard(['hr', 'admin']),                                    sendPage('resources'))
 app.get('/users',      authGuard(['hr', 'admin']),                                    sendPage('users'))
 

@@ -13,7 +13,7 @@ L'application devient l'assistante du RH et non l'inverse. Le RH devient un "Arc
 ### 1. Hiérarchie & Droits (L'Arbre de Visibilité Intelligent) - `/hr/directory` & `/manager`
 L'outil gère finement la notion de **Périmètre de visibilité** via un arbre hiérarchique (RBAC + Graphes), détruisant la rigidité des silos :
 * **Manager direct (N+1)** : Ne voit que son équipe directe (`/manager`). Il suit, évalue et valide ses propres subordonnés.
-* **Director (Manager de Managers)** : Possède un espace de "Supervision" (`/director/dashboard`). Il voit l'avancement et les KPI de **TOUTE sa sous-arborescence** (ses N-2, N-3, etc.). Il n'évalue personne directement (sauf ses propres N-1), mais il a accès en *Lecture Seule* aux évaluations de sa descendance. Cela permet l'équilibrage du pouvoir et d'éviter qu'une équipe entière soit saignée ou surnotée par un manager défaillant.
+* **Manager principal (Manager de Managers)** : Utilise le même espace `/manager` avec une visibilité étendue. Il voit l'avancement et les KPI de **toute sa sous-arborescence** (ses N-2, N-3, etc.) sans qu'un rôle produit séparé soit nécessaire.
 * **Admin / RH** : Le "God Mode". Vision globale de l'entreprise, accès à la configuration des rôles, et modification de l'arbre en temps réel (ex: Qui remplace un manager en arrêt maladie ?).
 
 ### 2. Le "Form Builder" Intelligent - `/hr/templates`

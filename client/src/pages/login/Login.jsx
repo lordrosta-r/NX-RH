@@ -60,7 +60,7 @@ export default function Login() {
       const ROLE_HOME = {
         admin:    '/admin',
         hr:       '/hr',
-        director: '/director',
+        director: '/manager',
         manager:  '/manager',
         employee: '/employee',
       }

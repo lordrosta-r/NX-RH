@@ -132,7 +132,7 @@ export default function Admin() {
           <section className="adm-card" aria-labelledby="adm-roles">
             <h2 id="adm-roles" className="adm-card__title">{t('admin.roles.heading')}</h2>
             <div className="adm-roles">
-              {['admin', 'hr', 'director', 'manager', 'employee'].map(r => (
+              {['admin', 'hr', 'manager', 'employee'].map(r => (
                 <div key={r} className="adm-role">
                   <span className={`adm-role__badge adm-role__badge--${r}`}>{r}</span>
                   <span className="adm-role__count">{stats.byRole[r] || 0}</span>

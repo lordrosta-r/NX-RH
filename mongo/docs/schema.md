@@ -22,7 +22,7 @@
 | `passwordHash` | String | **select:false** — null si LDAP |
 | `firstName` | String | required |
 | `lastName` | String | required |
-| `role` | String | enum: admin / director / manager / employee — **toujours géré en DB, jamais depuis LDAP** |
+| `role` | String | enum: admin / hr / manager / employee — **toujours géré en DB, jamais depuis LDAP** |
 | `department` | String | nullable |
 | `position` | String | titre de poste, nullable |
 | `managerId` | ObjectId → User | nullable, index |
@@ -62,7 +62,7 @@
 | `campaignId` | ObjectId → Campaign | required, index |
 | `title` | String | required |
 | `description` | String | instructions affichées avant de remplir |
-| `formType` | String | enum: self_evaluation / manager_evaluation / upward_feedback / director_evaluation / peer_360 |
+| `formType` | String | enum: self_evaluation / manager_evaluation / upward_feedback / peer_360 |
 | `isAnonymous` | Boolean | default: false — **forcé true** si upward_feedback |
 | `questions` | Array | min 1 — IDs uniques validés par pre-save |
 | `frozenAt` | Date | null jusqu'à la 1ère évaluation — protège les questions |
@@ -95,7 +95,7 @@
 | `answers` | Array | `[{questionId, value}]` — lock après submitted |
 | `lastSavedAt` | Date | màj automatique à chaque save d'answers ("Dernière sauvegarde à 14h32") |
 | `score` | Number | 0–100, nullable |
-| `reviewerComment` | String | par manager ou directeur |
+| `reviewerComment` | String | par manager |
 | `reviewedBy` | ObjectId → User | nullable |
 | `evaluateeComment` | String | |
 | `disagreementFlag` | Boolean | default: false |

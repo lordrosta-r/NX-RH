@@ -37,9 +37,10 @@ Toutes les erreurs retournent un objet JSON uniforme :
 |---|---|
 | `admin` | Accès total, gestion des utilisateurs et du système |
 | `hr` | Pilotage des campagnes et formulaires |
-| `director` | Vue consolidée de sa sous-arborescence managériale |
 | `manager` | Gestion de son équipe directe |
 | `employee` | Accès à ses propres évaluations uniquement |
+
+> Compatibilité : les comptes historiques `director` sont temporairement rabattus sur le comportement manager.
 
 ---
 
@@ -104,18 +105,18 @@ Revalide la session et retourne l'utilisateur courant.
 #### `GET /api/users`
 Liste les utilisateurs selon le scope du rôle appelant.
 
-**Auth :** requise — `admin`, `hr`, `director`, `manager`
+**Auth :** requise — `admin`, `hr`, `manager`
 
 | Rôle | Scope |
 |---|---|
-| `admin`, `hr`, `director` | Tous les utilisateurs actifs |
-| `manager` | Ses subordonnés directs uniquement |
+| `admin`, `hr` | Tous les utilisateurs actifs |
+| `manager` | Ses subordonnés directs ou son périmètre étendu si configuré |
 
 **Query params**
 
 | Paramètre | Type | Description |
 |---|---|---|
-| `role` | string | Filtrer par rôle (`admin`, `hr`, `director`, `manager`, `employee`) |
+| `role` | string | Filtrer par rôle (`admin`, `hr`, `manager`, `employee`) |
 | `department` | string | Filtrer par département |
 | `search` | string | Recherche regex sur prénom, nom, email |
 
@@ -345,7 +346,7 @@ Liste les évaluations selon le scope du rôle.
 | Rôle | Scope |
 |---|---|
 | `employee` | Ses propres évaluations (évaluateur ou évaluatee) |
-| `manager`, `director` | Les siennes + celles de ses subordonnés visibles (voir [Visibilité étendue](#visibilité-étendue)) |
+| `manager` | Les siennes + celles de ses subordonnés visibles (voir [Visibilité étendue](#visibilité-étendue)) |
 | `admin`, `hr` | Toutes les évaluations |
 
 **Query params**
@@ -427,7 +428,7 @@ Sauvegarde des réponses et/ou effectue une transition de statut.
 |---|---|---|
 | `answers` | ❌ | `Answer[]` — verrouillées après `submitted` |
 | `status` | ❌ | Nouvelle statut (transitions selon rôle) |
-| `score` | ❌ | Score 0–100 — `manager`, `director`, `admin`, `hr` uniquement |
+| `score` | ❌ | Score 0–100 — `manager`, `admin`, `hr` uniquement |
 
 **Réponse 200**
 ```json
@@ -440,7 +441,6 @@ Sauvegarde des réponses et/ou effectue une transition de statut.
 |---|---|
 | `employee` | `assigned → in_progress`, `in_progress → submitted` |
 | `manager` | `submitted → reviewed` |
-| `director` | `submitted → reviewed` |
 | `hr` | `reviewed → signed_hr`, `signed_manager → signed_hr` |
 | `admin` | Toutes les transitions |
 
@@ -472,7 +472,6 @@ assigned → in_progress → submitted → reviewed → signed_evaluatee → sig
 | `self_evaluation` | L'employé ou le manager s'auto-évalue | Non |
 | `manager_evaluation` | Le manager évalue un membre de son équipe | Non |
 | `upward_feedback` | L'équipe évalue son manager | **Toujours** |
-| `director_evaluation` | Le directeur évalue un manager | Non |
 | `peer_review` | Les pairs s'évaluent mutuellement | Non |
 
 ---

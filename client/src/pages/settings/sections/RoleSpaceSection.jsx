@@ -8,7 +8,8 @@ import {
 } from '../../../components/ui/icons'
 
 function spacesFor(role) {
-  if (role === 'admin') {
+  const effectiveRole = role === 'director' ? 'manager' : role
+  if (effectiveRole === 'admin') {
     return [
       { id: 'admin',      href: '/admin',      Icon: HomeIcon },
       { id: 'hr',         href: '/hr',         Icon: FolderIcon },
@@ -17,7 +18,7 @@ function spacesFor(role) {
       { id: 'employee',   href: '/employee',   Icon: HomeIcon },
     ]
   }
-  if (role === 'hr') {
+  if (effectiveRole === 'hr') {
     return [
       { id: 'hr',         href: '/hr',         Icon: FolderIcon },
       { id: 'campaigns',  href: '/campaigns',  Icon: ClipboardIcon },
@@ -25,14 +26,7 @@ function spacesFor(role) {
       { id: 'employee',   href: '/employee',   Icon: HomeIcon },
     ]
   }
-  if (role === 'director') {
-    return [
-      { id: 'director',   href: '/director',   Icon: HomeIcon },
-      { id: 'manager',    href: '/manager',    Icon: ClipboardIcon },
-      { id: 'employee',   href: '/employee',   Icon: HomeIcon },
-    ]
-  }
-  if (role === 'manager') {
+  if (effectiveRole === 'manager') {
     return [
       { id: 'manager',  href: '/manager',  Icon: ClipboardIcon },
       { id: 'employee', href: '/employee', Icon: HomeIcon },

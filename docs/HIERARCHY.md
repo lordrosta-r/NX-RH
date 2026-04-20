@@ -11,16 +11,16 @@
                         │   HR    │  ← pilotage du processus
                         └─────────┘
 
-          ┌──────────────────────────────────────┐
-          │           Director A                 │
-          │  (manage des managers)               │
-          └──────┬───────────────────────┬───────┘
-                 │                       │
-          ┌──────┴──────┐         ┌──────┴──────┐
-          │  Manager A  │         │  Manager B  │
-          └──┬──┬──┬────┘         └──┬──┬───────┘
-             │  │  │                 │  │
-           Emp Emp Emp             Emp  Emp
+             ┌──────────────────────────────────────┐
+             │         Manager principal            │
+             │   (peut superviser d'autres managers)│
+             └──────┬───────────────────────┬───────┘
+                  │                       │
+             ┌──────┴──────┐         ┌──────┴──────┐
+             │  Manager A  │         │  Manager B  │
+             └──┬──┬──┬────┘         └──┬──┬───────┘
+                │  │  │                 │  │
+              Emp Emp Emp             Emp  Emp
 ```
 
 **Note :** HR et Admin sont des rôles transverses — ils ne sont pas dans la ligne hiérarchique managériale. Un HR peut voir toute l'organisation mais il n'est le supérieur d'aucun manager.
@@ -32,8 +32,7 @@
 | | Ses propres données | Son équipe directe | Sous-arbre récursif | Toute l'organisation |
 |---|:---:|:---:|:---:|:---:|
 | **Employee** | ✓ | — | — | — |
-| **Manager** | ✓ | ✓ (directs uniquement) | — | — |
-| **Director** | ✓ | ✓ | ✓ (son périmètre) | — |
+| **Manager** | ✓ | ✓ (directs uniquement) | ✓ si visibilité étendue | — |
 | **HR** | ✓ | — | — | ✓ (lecture) |
 | **Admin** | ✓ | ✓ | ✓ | ✓ (lecture + admin) |
 
@@ -43,23 +42,23 @@
 
 ## Matrice "qui peut faire quoi"
 
-| Action | Employee | Manager | Director | HR | Admin |
-|---|:---:|:---:|:---:|:---:|:---:|
-| Remplir ses formulaires | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Commenter les formulaires de son équipe | — | ✓ | — | — | — |
-| Valider un entretien | — | ✓ | (via délégation) | — | ✓ |
-| Voir les statuts de son équipe | — | ✓ | ✓ | ✓ | ✓ |
-| Vue agrégée de sa sous-arborescence | — | — | ✓ | — | ✓ |
-| Vue globale de l'organisation | — | — | — | ✓ | ✓ |
-| Créer un template de formulaire | — | — | — | ✓ | ✓ |
-| Publier un template | — | — | — | ✓ | ✓ |
-| Créer une campagne | — | — | — | ✓ | ✓ |
-| Gérer le cycle de vie d'une campagne | — | — | — | ✓ | ✓ |
-| Exporter les données | — | — | — | ✓ | ✓ |
-| Créer / modifier des utilisateurs | — | — | — | — | ✓ |
-| Changer les rôles | — | — | — | — | ✓ |
-| Configurer LDAP | — | — | — | — | ✓ |
-| Configurer SMTP | — | — | — | — | ✓ |
+| Action | Employee | Manager | HR | Admin |
+|---|:---:|:---:|:---:|:---:|
+| Remplir ses formulaires | ✓ | ✓ | ✓ | ✓ |
+| Commenter les formulaires de son équipe | — | ✓ | — | — |
+| Valider un entretien | — | ✓ | — | ✓ |
+| Voir les statuts de son équipe | — | ✓ | ✓ | ✓ |
+| Vue agrégée de sa sous-arborescence | — | ✓ si visibilité étendue | — | ✓ |
+| Vue globale de l'organisation | — | — | ✓ | ✓ |
+| Créer un template de formulaire | — | — | ✓ | ✓ |
+| Publier un template | — | — | ✓ | ✓ |
+| Créer une campagne | — | — | ✓ | ✓ |
+| Gérer le cycle de vie d'une campagne | — | — | ✓ | ✓ |
+| Exporter les données | — | — | ✓ | ✓ |
+| Créer / modifier des utilisateurs | — | — | — | ✓ |
+| Changer les rôles | — | — | — | ✓ |
+| Configurer LDAP | — | — | — | ✓ |
+| Configurer SMTP | — | — | — | ✓ |
 
 ---
 
@@ -68,8 +67,8 @@
 ### Règle 1 — Isolation des équipes
 Un manager ne peut accéder qu'aux données des utilisateurs dont le champ `manager_id` en base pointe vers son propre `id`. Aucune exception.
 
-### Règle 2 — Visibilité récursive du Director
-La visibilité du directeur est calculée par une traversée récursive de l'arbre `manager_id`. L'arbre peut avoir N niveaux de profondeur sans limite technique.
+### Règle 2 — Visibilité récursive du manager principal
+Un manager peut recevoir une visibilité étendue calculée par une traversée récursive de l'arbre `manager_id`. L'arbre peut avoir N niveaux de profondeur sans limite technique, sans introduire de rôle dédié supplémentaire.
 
 ### Règle 3 — HR est transverse, pas hiérarchique
 HR voit tout en lecture pour piloter le processus, mais n'est pas un supérieur hiérarchique. Il ne peut pas conduire d'entretiens ni valider des évaluations.

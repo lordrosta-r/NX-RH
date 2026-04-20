@@ -1,0 +1,88 @@
+# DESIGN MANAGER (N+1) - NANOXPLORE RH (10/10)
+
+## RÔLE
+Le Manager est le pilier opérationnel de la campagne d'évaluation. C'est lui qui valide, signe, recadre et accompagne ses N-1. Il fait 50% du travail concret.
+
+---
+
+## 1. LE FLOW MANAGER COMPLET
+
+### A. Hors Campagne (La Quotidienne)
+* Le Manager se connecte sur `/manager`.
+* Il voit la **liste de son équipe directe** (cartes visuelles : Photo, Nom, Poste).
+* Pour chaque membre, il consulte les **Objectifs annuels en cours** (jauges 0-100%, tirées de `/goals`).
+* Il peut laisser un **Feedback court** (micro-commentaire d'encouragement ou de recadrage) visible par l'employé sur son Dashboard.
+* Il voit un mini-graphique "sparkline" montrant l'évolution de chaque employé sur les derniers mois.
+
+### B. Pendant la Campagne (L'Action)
+* Le Dashboard `/manager` change d'état : un **Compteur d'Urgence** apparaît en haut.
+  * *"3 entretiens sur 8 restent à valider. Deadline : 15 Décembre."*
+* Chaque carte d'employé affiche un **Badge de statut** :
+  * ⚪ Pas commencé
+  * 🔵 En cours (brouillon)
+  * 🟢 Soumis → **"Attend ton action !"**
+  * 🟣 Validé & Signé
+
+### C. La Fiche Pré-Entretien (`/manager/review/:evalId`) — L'Écran Clé
+Quand l'employé a cliqué "Soumettre", le Manager reçoit la notification. Il clique et arrive sur un **écran Split-View** :
+
+* **Panneau Gauche (Lecture Seule - 60%)** : Le formulaire complet de l'employé tel qu'il l'a rempli.
+  * Auto-évaluation (texte + notation Soft Skills).
+  * Bilan N-1 avec les jauges d'objectifs figées et le commentaire de l'employé.
+  * Aspirations (Lecture seule : le Manager ne peut pas modifier cette section, il en prend connaissance).
+* **Panneau Droit (Rédaction Manager - 40%)** : Le "Carnet du Manager" :
+  * **Par objectif N-1** : Champ "Appréciation Manager" (Atteint / Partiellement / Non Atteint + Commentaire). Le Manager peut être en désaccord avec l'employé.
+  * **Note Globale** (si le template l'exige) : Curseur ou étoiles.
+  * **Commentaire de Synthèse Libre** : Le texte final qui résume l'entretien.
+  * **Validation/Modification des Objectifs N+1** : Les brouillons proposés par l'employé apparaissent ici. Le Manager peut les valider, les modifier ou en ajouter de nouveaux.
+
+### D. La Signature & Clôture
+Après l'entretien physique en face-à-face, le Manager revient sur l'outil :
+* Il clique sur **"Valider & Signer"**.
+* Le statut passe en `signed_manager`.
+* L'employé reçoit une notification et doit à son tour **Contresigner** (accepter) ou **Contester** (refuser avec commentaire).
+* Une fois les deux signatures apposées, le document est scellé (PDF archivé).
+* Les objectifs N+1 validés descendent automatiquement dans le Dashboard `/employee/goals` du collaborateur pour la nouvelle année.
+
+### E. Le Manager est aussi évalué
+Le Manager est un employé de son propre N+1. Quand il se connecte, il a deux espaces dans sa navigation :
+* **"Mon Équipe"** → Le Dashboard Manager (ses N-1).
+* **"Mon Évaluation"** → Son propre formulaire d'employé (rempli exactement comme n'importe quel employé, évalué par son propre N+1).
+
+---
+
+## 2. CAS AUX LIMITES GÉRÉS
+
+### Le Manager Fantôme (Ne fait rien après la deadline)
+* Le système envoie des alertes automatiques (configurées lors de la campagne).
+* Si la deadline est dépassée : le RH voit un widget rouge dans `/hr/campaigns/:id` et peut escalader au Director (N+2) ou réassigner les évaluations.
+
+### L'Employé Conteste la Synthèse du Manager
+* Après signature du Manager, l'employé a deux options :
+  1. **Contresigner** → Document scellé.
+  2. **Contester** → Un champ "Commentaire de Contestation" s'ouvre. Le document est scellé avec la mention "Contesté par l'employé". Le RH est alerté dans `/hr/requests`.
+
+### Transfert d'Équipe en pleine campagne
+* L'évaluation reste liée à l'ancien Manager (celui qui a géré la période évaluée). Le nouveau Manager ne récupère l'employé qu'à la prochaine campagne.
+
+---
+
+## 3. ARCHITECTURE PAGES MANAGER (SPA)
+
+Le shell Manager utilise une **Topbar** avec navigation centrée (pas de Sidebar, l'interface reste épurée).
+
+```text
+/manager                            ← Shell (Topbar + nav "Mon Équipe / Mon Évaluation / Historique")
+  ├── /                             ← [Page] ManagerDashboard.jsx (Cartes d'équipe + Compteur Urgence + Sparklines Goals)
+  ├── /team/:userId                 ← [Page] ManagerTeamMemberView.jsx (Fiche Goals + Historique d'un membre)
+  ├── /review/:evalId               ← [Page] ManagerReviewForm.jsx (Split-View: Lecture Employé + Rédaction Manager)
+  └── /history                      ← [Page] ManagerHistory.jsx (Entretiens clôturés de l'équipe, PDF téléchargeables)
+```
+
+## 4. CE QUE LE MANAGER NE PEUT PAS FAIRE
+* Voir les équipes d'autres managers.
+* Créer ou modifier des templates de formulaires.
+* Lancer ou administrer une campagne.
+* Modifier les Aspirations d'un employé (lecture seule).
+* Valider l'évaluation d'un employé hors de son équipe directe.
+* Accéder aux paramètres système, à l'organigramme global ou aux analytics RH.

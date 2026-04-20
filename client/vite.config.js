@@ -4,24 +4,11 @@ import tailwindcss from '@tailwindcss/vite'
 import { resolve } from 'path'
 
 // =============================================================================
-// Vite MPA Configuration — NanoXplore RH
+// Vite SPA Configuration — NanoXplore RH
 //
-// This is the heart of the Multi-Page Architecture on the frontend.
-// Each HTML file is an independent entry point. Vite produces a separate
-// JS/CSS bundle per page, and Express serves each compiled HTML file at its
-// own route (e.g. GET /dashboard → server/public/dashboard.html).
-//
-// ┌──────────────────┐     build     ┌───────────────────────┐
-// │ client/login.html│ ──────────── ▶│ mongo/server/public/login/  │
-// │ client/dash.html │ ──────────── ▶│ mongo/server/public/dashb.. │
-// │ client/mgr.html  │ ──────────── ▶│ mongo/server/public/manager/│
-// └──────────────────┘               └───────────────────────┘
-//
-// To add a new page:
-//   1. Create client/<page>.html
-//   2. Create client/src/pages/<page>/main.jsx
-//   3. Add the entry below under rollupOptions.input
-//   4. Add the Express route in mongo/server/index.js
+// Single entry point: client/index.html → src/main.jsx → React Router v7
+// Vite produces one JS/CSS bundle. Express serves index.html for all
+// non-API routes (SPA fallback).
 // =============================================================================
 
 export default defineConfig({
@@ -42,29 +29,13 @@ export default defineConfig({
   base: '/',
 
   build: {
-    // Compiled output lands directly in the server's static directory.
-    // Express will serve this folder as static files + MPA HTML routes.
+    // Output goes to the server's static directory.
+    // Express serves this folder + SPA fallback for all non-API routes.
     outDir: resolve(__dirname, '../mongo/server/public'),
     emptyOutDir: true,
 
     rollupOptions: {
-      // ── MPA Entry Points ─────────────────────────────────────────────────
-      // Each key becomes a named chunk. The value must point to an HTML file
-      // that references its own <script type="module"> React entry point.
-      input: {
-        login:      resolve(__dirname, 'login.html'),
-        employee:   resolve(__dirname, 'employee.html'),
-        manager:    resolve(__dirname, 'manager.html'),
-        director:   resolve(__dirname, 'director.html'),
-        hr:         resolve(__dirname, 'hr.html'),
-        admin:      resolve(__dirname, 'admin.html'),
-        formeditor: resolve(__dirname, 'formeditor.html'),
-        campaigns:  resolve(__dirname, 'campaigns.html'),
-        evaluation: resolve(__dirname, 'evaluation.html'),
-        settings:   resolve(__dirname, 'settings.html'),
-        resources:  resolve(__dirname, 'resources.html'),
-        users:      resolve(__dirname, 'users.html'),
-      },
+      input: resolve(__dirname, 'index.html'),
     },
   },
 

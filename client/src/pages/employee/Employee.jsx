@@ -1,6 +1,6 @@
 // =============================================================================
 // Employee — Shell mini-SPA du portail Employee
-// Routes internes (History API) :
+// Routes (React Router, basename implicite /employee via BrowserRouter) :
 //   /employee              → EmployeeOverview
 //   /employee/evaluation   → Evaluation (embedded)
 //   /employee/settings     → Settings (embedded)
@@ -9,6 +9,7 @@
 // =============================================================================
 
 import React, { useState } from 'react'
+import { Routes, Route, useLocation } from 'react-router-dom'
 import './employee.css'
 import LogoImg          from '../../components/ui/icons/images.png'
 import EmployeeOverview from './EmployeeOverview'
@@ -20,14 +21,13 @@ import { t as pageT }   from './i18n'
 import { useLocale }    from '../../hooks/useLocale'
 import { useTheme }     from '../../hooks/useTheme'
 import { useAuthUser }  from '../../hooks/useAuthUser'
-import { useRouter }    from '../../hooks/useRouter'
 
 
 export default function Employee() {
   const { t, locale, setLocale } = useLocale(pageT)
   const { theme, cycleTheme }    = useTheme()
   const { user, loading: authLoading } = useAuthUser()
-  const { path, navigate }       = useRouter('/employee')
+  const { pathname }             = useLocation()
   const [notifItems, setNotifItems] = useState([])
 
   if (authLoading) return null
@@ -39,10 +39,11 @@ export default function Employee() {
     window.location.href = '/'
   }
 
+  // pathname est l'URL complète (/employee, /employee/evaluation…)
   const navItems = [
-    { id: 'overview',   href: '/employee',            label: t('employee.nav.overview'),   active: path === '' },
-    { id: 'evaluation', href: '/employee/evaluation', label: t('employee.nav.evaluation'), active: path === 'evaluation' },
-    { id: 'settings',   href: '/employee/settings',   label: t('employee.nav.settings'),   active: path === 'settings' },
+    { id: 'overview',   href: '/employee',            label: t('employee.nav.overview'),   active: pathname === '/employee' },
+    { id: 'evaluation', href: '/employee/evaluation', label: t('employee.nav.evaluation'), active: pathname.startsWith('/employee/evaluation') },
+    { id: 'settings',   href: '/employee/settings',   label: t('employee.nav.settings'),   active: pathname.startsWith('/employee/settings') },
   ]
 
   return (
@@ -52,26 +53,21 @@ export default function Employee() {
         nav={<AppTopbarNav items={navItems} />}
         locale={locale} setLocale={setLocale}
         theme={theme} cycleTheme={cycleTheme}
-        notifItems={path === '' ? notifItems : []}
+        notifItems={pathname === '/employee' ? notifItems : []}
         user={user} onLogout={handleLogout}
       />
 
-      <div style={{ display: path === '' ? 'block' : 'none' }}>
-        <EmployeeOverview
-          t={t} locale={locale} user={user}
-          onNotifItemsChange={setNotifItems}
-          navigate={navigate}
-          isActive={path === ''}
-        />
-      </div>
-
-      <div style={{ display: path === 'evaluation' ? 'block' : 'none' }}>
-        <Evaluation embedded />
-      </div>
-
-      <div style={{ display: path === 'settings' ? 'block' : 'none' }}>
-        <Settings embedded />
-      </div>
+      <Routes>
+        <Route path="/employee" element={
+          <EmployeeOverview
+            t={t} locale={locale} user={user}
+            onNotifItemsChange={setNotifItems}
+          />
+        } />
+        <Route path="/employee/evaluation" element={<Evaluation embedded />} />
+        <Route path="/employee/evaluation/:id" element={<Evaluation embedded />} />
+        <Route path="/employee/settings"   element={<Settings   embedded />} />
+      </Routes>
     </div>
   )
 }

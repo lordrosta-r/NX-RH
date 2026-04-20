@@ -1,0 +1,85 @@
+# L'EXPÉRIENCE RH (10/10) - LE CENTRE DE COMMANDEMENT & DATA
+
+## CRITIQUE DU MODÈLE RH ARCHAIQUE
+Dans les vieux SIRH, les RH passent leur vie à jouer aux "flics" : emails de relance téléphonés, extractions `.csv` fastidieuses, formulaires rigides codés en dur. Pire encore, les données saisies (demandes d'augmentation, mobilité, mal-être) meurent au fond d'un PDF que personne ne lit jamais de manière agrégée. 
+
+Le RH y subit le processus au lieu de le piloter.
+
+---
+
+## LE MODÈLE 10/10 : L'ORCHESTRATEUR DE TALENTS
+L'application devient l'assistante du RH et non l'inverse. Le RH devient un "Architecte" de l'expérience et un analyste. La plateforme automatise le reste.
+
+### 1. Hiérarchie & Droits (L'Arbre de Visibilité Intelligent) - `/hr/directory` & `/manager`
+L'outil gère finement la notion de **Périmètre de visibilité** via un arbre hiérarchique (RBAC + Graphes), détruisant la rigidité des silos :
+* **Manager direct (N+1)** : Ne voit que son équipe directe (`/manager`). Il suit, évalue et valide ses propres subordonnés.
+* **Director (Manager de Managers)** : Possède un espace de "Supervision" (`/director/dashboard`). Il voit l'avancement et les KPI de **TOUTE sa sous-arborescence** (ses N-2, N-3, etc.). Il n'évalue personne directement (sauf ses propres N-1), mais il a accès en *Lecture Seule* aux évaluations de sa descendance. Cela permet l'équilibrage du pouvoir et d'éviter qu'une équipe entière soit saignée ou surnotée par un manager défaillant.
+* **Admin / RH** : Le "God Mode". Vision globale de l'entreprise, accès à la configuration des rôles, et modification de l'arbre en temps réel (ex: Qui remplace un manager en arrêt maladie ?).
+
+### 2. Le "Form Builder" Intelligent - `/hr/templates`
+Fini les demandes à l'équipe IT pour modifier un champ JSON. L'interface est un Drag & Drop moderne (type Typeform / Notion). L'intelligence vient des **"Smart Data Blocks"** (Blocs extracteurs de données) :
+* **Bloc `Curseur Météo/Climat (1-10)`** : L'employé indique son niveau d'épanouissement. Ce point de donnée ne meurt pas dans un PDF, il viendra nourrir un Graphique RH Global.
+* **Bloc `Demande de Mobilité / Salaire`** : Composant spécifique. Si coché par l'employé, la plateforme déclenche un "Flag" qui isolera et remontera cette demande dans un tableau de bord RH dédié.
+* **Bloc `Import Dynamique N-1`** : Le lien avec le passé. Le bloc interroge la base au moment de l'ouverture du formulaire pour injecter les **Objectifs validés l'an dernier** et inclure automatiquement le contexte sans double saisie.
+
+### 3. L'Usine à Campagnes (Le Tunnel de Création & Lancement - `/hr/campaigns/new`)
+Lancer une campagne est un acte fort. L'interface ne doit pas être un long formulaire décourageant, mais un **"Wizard" par étapes (Tunnel guidé)** qui s'assure que rien n'est oublié :
+
+* **Étape 1 : Identité de la Campagne (Setup)**
+  * Le RH définit le Nom public ("Bilan Annuel 2026") et la Description "Soft" ("Ce bilan a pour but de discuter de vos réussites sur l'année écoulée..."). C'est ce texte qui apparaîtra dans le Dashboard des employés.
+
+* **Étape 2 : Ciblage & Mapping (Qui évalue-t-on et avec quoi ?)**
+  * Fini le syndrome de la page blanche ou la sélection manuelle. Le système propose des **"Smart Presets" (Règles préconfigurées)** que le RH applique en un clic :
+    * 🎯 *Preset "Les Confirmés"* : Exclut automatiquement les employés avec moins de 6 mois d'ancienneté (pas d'entretien annuel pour ceux en période d'essai).
+    * 🎯 *Preset "Ligne Managériale"* : Ne cible que les employés ayant au moins 1 subordonné (pour leur envoyer un `Template Évaluation Manager` spécifique).
+    * 🎯 *Preset "All-Active"* : Toute l'entreprise sauf les démissionnaires/suspendus.
+  * Le RH peut aussi passer en **Mode Avancé (Custom Builder)** pour créer des requêtes précises : *Département = R&D* + *Localisation = Paris*. On y associe ensuite le `Template Tech`.
+  * Le système calcule en temps réel : *"L'audience actuelle est de 145 collaborateurs."*
+
+* **Étape 3 : La Machine à Remonter le Temps (Liaison Historique)**
+  * C'est là que l'intelligence métier agit. Le RH coche `"Importer les Objectifs validés l'an dernier"`.
+  * Le système demande : *Depuis quelle campagne ?* Le RH sélectionne "Bilan Annuel 2025" dans le menu déroulant. Au moment de l'ouverture du formulaire par les employés, le code ira pomper l'historique "Goals" rattaché à 2025 pour peupler l'étape "Bilan N-1".
+
+* **Étape 4 : Le Calendrier & Les Jalons**
+  * Date d'ouverture (Go-Live).
+  * Date butoir (Deadline) pour l'Employee : *Au-delà, l'auto-éval est soumise d'office.*
+  * Date butoir pour le Manager : *Au-delà de laquelle l'entretien doit avoir eu lieu et être signé.*
+
+* **Étape 5 : Revue Finale & Go-Live (Écran de Contrôle)**
+  * Avant de cliquer, un écran de synthèse résume l'impact. L'application lance ses vérifications (Sanity Check) : *"Attention, 3 collaborateurs dans la cible n'ont pas de manager assigné valide. Allez corriger l'organigramme ou excluez-les."*
+  * Clic sur "Activer". L'outil crée en base de données les entités et envoie instantanément la communication (Notification Email/Slack) aux cibles.
+
+### 4. Le Suivi des Demandes (L'Inbox RH Transversale) - `/hr/requests`
+C'est la révolution de la plateforme. L'évaluation n'est plus une impasse.
+Dès que les évaluations sont soumises/validées, les données des Smart Blocks sont extraites dans des onglets dédiés :
+* **Demandes d'Augmentation** : Tableau listant (Nom, Manager, Performance N-1, Demande). Le RH a sa base de travail pour distribuer les enveloppes budgétaires.
+* **Mobilité Interne** : Les talents exprimant une envie d'évoluer (changer de poste, de département) remontent ici. Le RH croise ça avec ses postes ouverts en interne.
+
+### 5. Climat Social & Analytics (La Vraie Data Décisionnelle) - `/hr/analytics`
+Le Dashboard ne se contente pas des chiffres basiques de complétion administratifs :
+* **Santé & Épanouissement (Sentiment Analysis)** : En couplant le bloc `Curseur Météo` et le tracker continu de la page `/goals` des employés, l'app génère des "Heatmaps" (Cartes de chaleur).
+* **Insights RH** : Le RH peut croiser : **[L'Épanouissement (Météo)] contre [La Performance Réelle (% Atteinte Objectifs)]**.
+  *Exemple d'Alerte : "L'équipe 'Tech' atteint 90% de ses objectifs, mais la jauge météo est à 3/10 depuis 2 trimestres."* -> Détection immédiate d'un risque de Burnout ou de fuite systémique (Flight Risk). 
+
+---
+
+## ARCHITECTURE DES PAGES RH (Front-end SPA)
+
+L'espace RH (Data Heavy) utilise un Layout à **Sidebar Latérale fixe (`AppSidebar`)** + **Topbar (`AppTopbar`)** pour naviguer confortablement entre les modules transversaux.
+
+```text
+/hr                                 ← Shell Parent (Sidebar "Navigation RH" + Topbar)
+  ├── /                             ← [Page] HRDashboard.jsx (Vues Macro, eNPS, Heatmaps de climat social)
+  ├── /campaigns                    ← [Page] HRCampaignsList.jsx (Bord de suivi des campagnes en cours/passées)
+  │   ├── /new                      ← [Page] HRCampaignWizard.jsx (Tunnel 5 étapes: Cible, Lien N-1, Dates, Alertes)
+  │   └── /:id                      ← [Page] HRCampaignDetail.jsx (Focus sur l'avancement d'une campagne et relances)
+  ├── /templates                    ← [Page] HRTemplatesList.jsx (Librairie de modèles de formulaires)
+  │   └── /:id/builder              ← [Page] HRFormBuilder.jsx (Interface visuelle + Ajout des "Smart Blocks")
+  ├── /directory                    ← [Page] HRDirectory.jsx (Annuaire global, gestion fine de l'arbre et des Rôles)
+  │   └── /:userId                  ← [Page] HRTalentProfile.jsx (Fiche CRM Employé : historique + objectifs N en cours)
+  ├── /requests                     ← [Page] HRRequestsInbox.jsx (Tableau transversal : Extractions Mobilité/Augmentations)
+  └── /analytics                    ← [Page] HRAnalytics.jsx (Exports, rapports consolidés, croisement Sentiment/Performance)
+```
+
+**Conclusion :** 
+L'application devient le **CRM Humain** de l'entreprise. En liant le Quotidien (suivi des Goals), le Passé (les bilans N-1) et le Futur (les requêtes de carrières et mobilités), le RH arrête de courir après les feuilles et devient un véritable "Business Partner" hautement stratégique.

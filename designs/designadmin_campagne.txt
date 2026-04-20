@@ -1,0 +1,105 @@
+# L'EXPÉRIENCE ADMIN & LA MÉCANIQUE DES CAMPAGNES (10/10)
+
+## 1. L'ANATOMIE D'UNE CAMPAGNE : COMMENT EST-CE CONSTRUIT ?
+Une campagne n'est pas juste un formulaire envoyé à des gens. C'est un **"Moteur d'Orchestration"**. C'est une entité vivante (un objet en base de données) qui relie le temps, les gens et les données.
+
+### Structure d'une Campagne (Les 4 Piliers)
+Quand on clique sur une campagne (ex: *Bilan Annuel 2026*), voici comment elle est structurée techniquement et visuellement :
+
+1. **Les Métadonnées (Le Contexte)**
+   * **Nom & Période** : "Q1 2026", "Annuel 25-26".
+   * **Liaison Temporelle** : Le pointeur vers la campagne précédente (pour l'import N-1).
+
+2. **Le Ciblage & Mapping (L'Audience)**
+   * Une campagne peut embarquer **plusieurs templates**. 
+   * *Exemple :* Le système mappe automatiquement le Template "Tech" pour la R&D, le Template "Sales" pour les Commerciaux, et le Template "Executive" pour le Codir. Tout se lance le même jour, sous le même nom de campagne, mais l'expérience s'adapte au collaborateur.
+
+3. **Les Règles de Visibilité & Gouvernance (Réponse au problème N+2)**
+   * *C'est ici que l'on configure la visibilité pour les "Directors" (Managers de Managers).*
+   * Lors de la création de la campagne, le RH/Admin dispose d'un panneau **"Gouvernance des Données"**.
+   * Toggle 1 : `[x] Autoriser les N+2 (Directors) à lire les formulaires de leur sous-arborescence.`
+   * Toggle 2 : `[ ] Masquer les champs sensibles (Ex: Souhaits Salariaux, Santé mentale) aux N+2.`
+   * *Pourquoi ce routing ?* Parce que dans certaines entreprises, le Director doit valider les augmentations de ses équipes (donc il doit tout voir). Dans d'autres, c'est confidentiel entre le N+1 et la RH. C'est donc un **paramètre au niveau de la campagne**, pas codé en dur.
+
+4. **Le Moteur de Workflow (Les Phasing)**
+   * Phase 1 : `Setup` (Brouillon RH).
+   * Phase 2 : `Calibration` (Le RH vérifie que tout le monde a bien un manager attribué avant de lancer).
+   * Phase 3 : `Auto-éval` (Employé).
+   * Phase 4 : `Manager Review`.
+   * Phase 5 : `Clôture & Signatures`.
+
+---
+
+## 2. L'EXPÉRIENCE ADMIN (SYSADMIN) - `/admin`
+L'Admin n'est pas un RH. C'est le garant technique, la sécurité, et l'intégration. Son interface n'a pas de fioritures, c'est du "Hard Data".
+
+### A. Gestion de la "Tuyauterie" (Intégrations & Sécurité)
+* **Single Sign-On (SSO) & LDAP :** L'Admin configure la connexion via Google Workspace, Microsoft Entra ID ou Okta. Aucun employé ne crée son compte manuellement.
+* **Audit Logs :** Un tableau de bord strict (Type de log, IP, Action). *"Qui a modifié la note de performance de Romain le 12 Décembre à 14h ?"* -> Le log indique que c'est le RH, le manager est couvert.
+* **Webhook & API :** Possibilité de lier NanoXplore RH à d'autres outils (ex: Slack pour les notifications, ou Payfit pour remonter automatiquement les nouveaux salaires acceptés lors des campagnes).
+
+### B. L'Urgence Structurelle (Le "Tree Fixer")
+Dans la vraie vie, un manager démissionne en plein milieu du mois de décembre, pendant la campagne. Ses 10 employés sont "Orphelins" dans le système.
+* Le tableau de bord Admin dispose d'un widget **"Alerte d'Orphelinat"**.
+* L'Admin clique sur l'équipe orpheline, et utilise un outil **"Mass-Reassign"** pour transférer les droits de validation au N+2 (le Director) ou à un manager par intérim. Les formulaires en cours sont instantanément débloqués et routés vers la bonne personne.
+
+### C. Mode "Impersonation" (Se connecter en tant que)
+* Outil indispensable du support de niveau 2. L'Admin peut se connecter *dans la peau* d'un employé (avec un bandeau rouge géant "MODE IMPERSONATION" pour des raisons légales et l'action enregistrée dans l'Audit Log) afin de comprendre pourquoi l'employé dit "mon bouton soumettre est grisé". 
+
+### D. Gestion Data & Conformité (Le RGPD au cœur)
+* Les données RH sont ultra-sensibles. L'Admin gère la **"Data Retention Policy"**. 
+* Un employé quitte l'entreprise ? L'Admin peut déclencher une routine d'**Anonymisation** (suppression du nom/prénom, mais conservation des statistiques de performance pour les moyennes annuelles de l'entreprise).
+* **Politique d'Archivage** : Suppression automatique des évaluations datant de plus de 5 ans.
+* **Mass Import / Export** : Un "Mapper Excel/CSV" puissant. Quand l'entreprise acquiert une startup de 50 personnes, l'Admin upload le fichier Excel, mappe les colonnes (Colonne A -> Prénom, Colonne B -> Email) et injecte tout le monde dans l'arbre d'un seul coup.
+
+### E. Le Moteur de Permissions (Custom RBAC)
+* Admin, HR, Manager, Employee : ce sont les "rôles système" de base.
+* Mais l'Admin 10/10 peut créer des **Rôles Personnalisés** :
+  * *Exemple : "HR Assistant"* -> Peut lire les profils et les statistiques `/hr/analytics`, mais ne peut *pas* créer de campagnes ni lancer le process de signature.
+  * *Exemple : "External Auditor"* -> Ne voit que la page Audit Logs en lecture seule.
+
+### F. Personnalisation & Tenant (Le White-labeling)
+* C'est l'Admin qui définit les couleurs de l'application (Variables CSS poussées depuis la DB), le logo de l'entreprise pour la topbar, et la langue par défaut.
+* Configuration du **serveur SMTP** de l'entreprise : les emails partent de `rh@monentreprise.com`.
+
+### G. Import "AI-Ready" des Formulaires (Infrastructure as Code)
+* Le Drag & Drop, c'est bien, mais chronophage pour 50 questions. L'Admin dispose d'un module d'**Import CSV / JSON / YAML de Templates**.
+* *Use-case 10/10 :* Le RH demande à ChatGPT : *"Génère un formulaire d'évaluation pour des développeurs seniors avec 10 questions de soft skills, formaté en CSV"*. L'Admin upload le fichier, et l'outil génère instantanément les blocs, les échelles de notation et les titres.
+* Permet également aux entreprises de dupliquer facilement leurs formulaires d'une instance à une autre.
+
+### H. Gestion des Communications (Email Templating)
+* L'Admin ne règle pas juste le serveur mail, il contrôle **les modèles (templates) d'emails**.
+* Un éditeur HTML/Texte avec des variables (ex: `Bonjour {{employee.firstName}}, votre campagne {{campaign.name}} vous attend`). L'entreprise peut rédiger ses propres textes de relance avec le ton de sa marque (corporate vs startup).
+
+### I. Le Navigateur d'Organigramme Tactique (Smart Org-Chart)
+* Exit le vieux tableau Excel. L'Admin et les RH disposent d'un **Organigramme visuel interactif** (Node/Graph tree) pour explorer l'entreprise. Fini les listes plates, on bascule sur des vues ingénieuses :
+  * **Mode "All" (Vue Macro) :** L'arbre complet de l'entreprise en dézoom pour comprendre la structure.
+  * **Mode "Ligne Managériale" :** L'outil masque tous les collaborateurs individuels pour ne laisser que le "squelette" (Directors, Managers). C'est parfait pour vérifier visuellement les chaînes de validation avant une campagne.
+  * **Mode "Hub Équipe" :** On clique sur un Manager, et l'arbre masque le reste du monde pour isoler l'équipe directe (N-1). Très utile pour le RH qui analyse un micro-climat.
+  * **Mode "Diagnostic / Orphelins" (Spécial Admin) :** Met l'arbre en grisé et surligne en rouge les "Nœuds Cassés" (Employé dont le manager est parti, boucles hiérarchiques). L'Admin peut réparer le lien d'un simple Drag & Drop.
+* Génération de **Clés d'API (API Keys) & Webhooks** pour que l'équipe Data de l'entreprise puisse aspirer les statistiques dépersonnalisées.
+
+### J. Le "Sandbox Mode" (Environnement de test)
+* Avant de lancer un "Bilan Annuel" à 2000 employés, l'Admin peut créer une **Campagne Fantôme (Sandbox)**.
+* Il la lance sur 3 utilisateurs fictifs, imite un N+1 et un RH, et valide que le routing des notifications et l'arbre d'approbation (N+2) fonctionne sans polluer la vraie base de données.
+
+---
+
+## ARCHITECTURE DU PORTAIL ADMIN (SPA)
+Le shell Admin ressemble à un véritable panneau de contrôle d'infrastructure cloud AWS (`AppSidebar` ultra technique, vue large).
+
+```text
+/admin                              ← Shell (Sidebar Technique + Topbar)
+  ├── /                             ← [Page] AdminDashboard.jsx (Santé système, Requêtes API, Licences actives)
+  ├── /users                        ← [Page] UserManagement.jsx (Mass-Import Employés, Impersonation, Désactivation)
+  ├── /org-chart                    ← [Page] OrgChartFixer.jsx (Outil visuel pour réparer les nœuds orphelins)
+  ├── /roles                        ← [Page] RolesPermissions.jsx (Création de rôles custom & matrice d'accès)
+  ├── /templates-import             ← [Page] TemplateImporter.jsx (Module d'ingestion CSV/JSON généré par l'IA)
+  ├── /communications               ← [Page] EmailTemplating.jsx (Éditeur des messages de relance et de bienvenue)
+  ├── /compliance                   ← [Page] DataRetention.jsx (RGPD, règles d'anonymisation et de purge auto)
+  ├── /security                     ← [Page] AuditLogs.jsx (Le registre légal inaltérable de toutes les actions)
+  ├── /integrations                 ← [Page] APIAndWebhooks.jsx (Configuration API, Webhooks, Clés Secrètes)
+  ├── /sandbox                      ← [Page] SandboxManager.jsx (Outil de simulation de campagne à blanc)
+  └── /settings                     ← [Page] TenantConfig.jsx (Branding, SMTP, Noms de domaine, Devise)
+```
+**Conclusion sur le modèle Admin 10/10 :** Il fait bien plus que "resetter un mot de passe". C'est le **SysAdmin de l'Humain**. Il dompte la complexité hiérarchique grâce à un Org-Chart visuel ultra-logique, permet d'utiliser l'IA pour générer des formulaires tentaculaires en 2 secondes, exporte les datas brutes via API, et s'assure via un Sandbox qu'aucun bug ne viendra érafler les campagnes RH.

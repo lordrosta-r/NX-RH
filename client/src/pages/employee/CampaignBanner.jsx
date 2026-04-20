@@ -46,8 +46,22 @@ function ProgressRing({ value = 0, size = 192, trackWidth = 10 }) {
 }
 
 // ── Banner component ────────────────────────────────────────────────────────
-export default function CampaignBanner({ t, campaign, loading, error, userName = '' }) {
-  const progress     = !loading && !error && campaign ? (campaign.progress ?? 0) : 0
+export default function CampaignBanner({ t, campaign, loading, error, userName = '', onNavigate, isActive = true }) {
+  const [animatedProgress, setAnimatedProgress] = React.useState(0)
+  const actualProgress = !loading && !error && campaign ? (campaign.progress ?? 0) : 0
+
+  // Trigger animation only when becoming active again
+  React.useEffect(() => {
+    if (!isActive) {
+      setAnimatedProgress(0)
+    } else {
+      // small delay to allow display:block to paint before transitioning
+      const timer = setTimeout(() => setAnimatedProgress(actualProgress), 50)
+      return () => clearTimeout(timer)
+    }
+  }, [isActive, actualProgress])
+
+  const progress     = animatedProgress
   const campaignName = !loading && !error && campaign
     ? (campaign.name || campaign.title || t('dashboard.campaign.headline.accent'))
     : null
@@ -107,7 +121,16 @@ export default function CampaignBanner({ t, campaign, loading, error, userName =
           </div>
         </div>
 
-        <a className="cb__btn" href="/evaluation">
+        <a
+          className="cb__btn"
+          href="/employee/evaluation"
+          onClick={(e) => {
+            if (onNavigate) {
+              e.preventDefault();
+              onNavigate();
+            }
+          }}
+        >
           {t('dashboard.campaign.cta')}
         </a>
       </div>

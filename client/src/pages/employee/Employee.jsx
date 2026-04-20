@@ -10,6 +10,7 @@
 
 import React, { useState } from 'react'
 import './employee.css'
+import LogoImg          from '../../components/ui/icons/images.png'
 import EmployeeOverview from './EmployeeOverview'
 import Evaluation       from '../evaluation/Evaluation'
 import Settings         from '../settings/Settings'
@@ -26,7 +27,7 @@ export default function Employee() {
   const { t, locale, setLocale } = useLocale(pageT)
   const { theme, cycleTheme }    = useTheme()
   const { user, loading: authLoading } = useAuthUser()
-  const { path }                 = useRouter('/employee')
+  const { path, navigate }       = useRouter('/employee')
   const [notifItems, setNotifItems] = useState([])
 
   if (authLoading) return null
@@ -47,6 +48,7 @@ export default function Employee() {
   return (
     <div className="emp">
       <AppTopbar
+        brand={<img src={LogoImg} alt="NanoXplore" />}
         nav={<AppTopbarNav items={navItems} />}
         locale={locale} setLocale={setLocale}
         theme={theme} cycleTheme={cycleTheme}
@@ -54,15 +56,22 @@ export default function Employee() {
         user={user} onLogout={handleLogout}
       />
 
-      {path === '' && (
+      <div style={{ display: path === '' ? 'block' : 'none' }}>
         <EmployeeOverview
           t={t} locale={locale} user={user}
           onNotifItemsChange={setNotifItems}
+          navigate={navigate}
+          isActive={path === ''}
         />
-      )}
+      </div>
 
-      {path === 'evaluation' && <Evaluation embedded />}
-      {path === 'settings'   && <Settings   embedded />}
+      <div style={{ display: path === 'evaluation' ? 'block' : 'none' }}>
+        <Evaluation embedded />
+      </div>
+
+      <div style={{ display: path === 'settings' ? 'block' : 'none' }}>
+        <Settings embedded />
+      </div>
     </div>
   )
 }

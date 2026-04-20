@@ -50,9 +50,9 @@ export default function Evaluation({ embedded = false }) {
   const { theme, cycleTheme }    = useTheme()
   const { user, loading: authLoading } = useAuthUser()
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const evaluationId = new URLSearchParams(window.location.search).get('id')
+  const [evaluationId, setEvaluationId] = useState(() => new URLSearchParams(window.location.search).get('id'))
 
-  const [view,        setView]       = useState(() => evaluationId ? 'form' : 'home')   // 'home' | 'form'
+  const [view,        setView]       = useState(() => new URLSearchParams(window.location.search).get('id') ? 'form' : 'home')   // 'home' | 'form'
   const [evaluation,  setEvaluation] = useState(null)
   const [answers,     setAnswers]    = useState({})
   const [status,      setStatus]     = useState('assigned')
@@ -361,7 +361,7 @@ export default function Evaluation({ embedded = false }) {
                      <button
                           type="button"
                           className={`ev-fcard__cta${isDone ? ' ev-fcard__cta--ghost' : ''}`}
-                          onClick={() => { window.location.href = `/evaluation?id=${ev._id}` }}
+                          onClick={() => { if (embedded) { setEvaluationId(ev._id); setView('form') } else { window.location.href = `/evaluation?id=${ev._id}` } }}
                         >
                           {ev.status === 'in_progress' ? t('ev.form.continue') : isDone ? t('ev.form.view') : t('ev.form.start')}
                           {!isDone && <ArrowUpRight size={13} strokeWidth={2} aria-hidden="true" />}
@@ -402,12 +402,16 @@ export default function Evaluation({ embedded = false }) {
                           </div>
                         </div>
                         <div className="ev-history__actions">
-                          <a
-                            href={`/evaluation?id=${h._id}`}
-                            className="ev-fcard__cta ev-fcard__cta--ghost"
-                          >
-                            {t('ev.form.view')}
-                          </a>
+                          {embedded ? (
+                            <button type="button" className="ev-fcard__cta ev-fcard__cta--ghost"
+                              onClick={() => { setEvaluationId(h._id); setView('form') }}>
+                              {t('ev.form.view')}
+                            </button>
+                          ) : (
+                            <a href={`/evaluation?id=${h._id}`} className="ev-fcard__cta ev-fcard__cta--ghost">
+                              {t('ev.form.view')}
+                            </a>
+                          )}
                           <a
                             href={`/api/evaluations/${h._id}/pdf`}
                             className="ev-fcard__cta ev-fcard__cta--ghost"
@@ -523,7 +527,7 @@ export default function Evaluation({ embedded = false }) {
                       </div>
                     )}
                     <div className="ev-submitted__actions">
-                      <button type="button" className="ev-banner__cta" onClick={() => { window.history.pushState({}, '', '/evaluation'); setView('home') }}>
+                      <button type="button" className="ev-banner__cta" onClick={() => { if (!embedded) window.history.pushState({}, '', '/evaluation'); setEvaluationId(null); setView('home') }}>
                         {t('ev.submitted.back')}
                       </button>
                       <a

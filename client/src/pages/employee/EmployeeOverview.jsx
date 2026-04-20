@@ -5,9 +5,14 @@
 //
 // Pas de sidebar, pas de topbar, pas de wrapper de page. Le shell parent
 // (Employee.jsx) fournit ces éléments.
+// Les données sont chargées via useQuery (@tanstack/react-query) :
+//   - staleTime 5min → pas de refetch en naviguant entre vues
+//   - retour instantané depuis le cache lors du retour sur cette vue
 // =============================================================================
 
-import React, { useState, useEffect } from 'react'
+import React, { useEffect } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { useNavigate } from 'react-router-dom'
 import CampaignBanner   from './CampaignBanner'
 import CalendarWidget   from '../../components/ui/CalendarWidget'
 import {
@@ -32,102 +37,48 @@ const NOTIF_COLORS = [
 const SPOTLIGHT_IMG = '/assets/spotlight.jpg'
 
 
-export default function EmployeeOverview({ t, locale, user, onNotifItemsChange, navigate, isActive }) {
-  const [events, setEvents]               = useState([])
-  const [eventsLoading, setEventsLoading] = useState(true)
-  const [eventsError, setEventsError]     = useState(null)
+export default function EmployeeOverview({ t, locale, user, onNotifItemsChange }) {
+  const navigate = useNavigate()
 
-  const [evaluations, setEvaluations]   = useState([])
-  const [evalsLoading, setEvalsLoading] = useState(true)
-  const [evalsError, setEvalsError]     = useState(null)
+  // ── Fetches via React Query — données cachées 5min, pas de refetch en nav ──
 
-  const [campaign, setCampaign]               = useState(null)
-  const [campaignLoading, setCampaignLoading] = useState(true)
-  const [campaignError, setCampaignError]     = useState(null)
+  const { data: events = [], isLoading: eventsLoading, isError: eventsError } = useQuery({
+    queryKey: ['events'],
+    queryFn:  () => fetch('/api/events', { credentials: 'include' })
+      .then(r => { if (!r.ok) throw new Error(r.statusText); return r.json() })
+      .then(j => j.data || j),
+    enabled: !!user,
+  })
 
-  const [stats, setStats] = useState({ total: 0, pending: 0, completed: 0 })
-  const [resources, setResources] = useState([])
+  const { data: evaluations = [], isLoading: evalsLoading, isError: evalsError } = useQuery({
+    queryKey: ['evaluations-assigned', user?._id],
+    queryFn:  () => fetch(`/api/evaluations?evaluateeId=${user._id}&status=assigned`, { credentials: 'include' })
+      .then(r => { if (!r.ok) throw new Error(r.statusText); return r.json() })
+      .then(j => j.data || j),
+    enabled: !!user,
+  })
 
-  useEffect(() => {
-    if (!user) return
-    let cancelled = false
-    async function load() {
-      try {
-        const res = await fetch('/api/events', { credentials: 'include' })
-        if (!res.ok) throw new Error(res.statusText)
-        const json = await res.json()
-        if (!cancelled) setEvents(json.data || json)
-      } catch (err) {
-        if (!cancelled) setEventsError(err.message)
-      } finally {
-        if (!cancelled) setEventsLoading(false)
-      }
-    }
-    load()
-    return () => { cancelled = true }
-  }, [user])
+  const { data: campaign = null, isLoading: campaignLoading, isError: campaignError } = useQuery({
+    queryKey: ['campaign-active'],
+    queryFn:  () => fetch('/api/campaigns?status=active', { credentials: 'include' })
+      .then(r => { if (!r.ok) throw new Error(r.statusText); return r.json() })
+      .then(j => { const l = j.data || j; return (Array.isArray(l) ? l[0] : l) || null }),
+    enabled: !!user,
+  })
 
-  useEffect(() => {
-    if (!user) return
-    let cancelled = false
-    async function load() {
-      try {
-        const res = await fetch(
-          `/api/evaluations?evaluateeId=${user._id}&status=assigned`,
-          { credentials: 'include' },
-        )
-        if (!res.ok) throw new Error(res.statusText)
-        const json = await res.json()
-        if (!cancelled) setEvaluations(json.data || json)
-      } catch (err) {
-        if (!cancelled) setEvalsError(err.message)
-      } finally {
-        if (!cancelled) setEvalsLoading(false)
-      }
-    }
-    load()
-    return () => { cancelled = true }
-  }, [user])
-
-  useEffect(() => {
-    if (!evaluations.length) return
-    const pending   = evaluations.filter(e => ['assigned', 'in_progress'].includes(e.status)).length
-    const completed = evaluations.filter(e => !['assigned', 'in_progress'].includes(e.status)).length
-    setStats({ total: evaluations.length, pending, completed })
-  }, [evaluations])
-
-  useEffect(() => {
-    if (!user) return
-    let cancelled = false
-    fetch('/api/resources', { credentials: 'include' })
+  const { data: resources = [] } = useQuery({
+    queryKey: ['resources-published'],
+    queryFn:  () => fetch('/api/resources', { credentials: 'include' })
       .then(r => r.ok ? r.json() : [])
-      .then(data => {
-        const list = Array.isArray(data) ? data : (data.data || [])
-        if (!cancelled) setResources(list.filter(r => r.status === 'published').slice(0, 3))
-      })
-      .catch(() => {})
-    return () => { cancelled = true }
-  }, [user])
+      .then(d => (Array.isArray(d) ? d : (d.data || []))
+        .filter(r => r.status === 'published').slice(0, 3)),
+    enabled: !!user,
+  })
 
-  useEffect(() => {
-    if (!user) return
-    let cancelled = false
-    async function load() {
-      try {
-        const res = await fetch('/api/campaigns?status=active', { credentials: 'include' })
-        if (!res.ok) throw new Error(res.statusText)
-        const json = await res.json()
-        const list = json.data || json
-        if (!cancelled) setCampaign(Array.isArray(list) ? list[0] || null : list)
-      } catch (err) {
-        if (!cancelled) setCampaignError(err.message)
-      } finally {
-        if (!cancelled) setCampaignLoading(false)
-      }
-    }
-    load()
-    return () => { cancelled = true }
-  }, [user])
+  // ── Stats dérivées ────────────────────────────────────────────────────────
+  const pending   = evaluations.filter(e => ['assigned', 'in_progress'].includes(e.status)).length
+  const completed = evaluations.filter(e => !['assigned', 'in_progress'].includes(e.status)).length
+  const stats = { total: evaluations.length, pending, completed }
 
   // ── Map evaluations → notification items ─────────────────────────────────
   const notifItems = evaluations.map((ev, i) => ({
@@ -164,8 +115,7 @@ export default function EmployeeOverview({ t, locale, user, onNotifItemsChange, 
           loading={campaignLoading}
           error={campaignError}
           userName={first || 'vous'}
-          onNavigate={() => navigate('evaluation')}
-          isActive={isActive}
+          onNavigate={() => navigate('/employee/evaluation')}
         />
       </div>
 
@@ -218,7 +168,7 @@ export default function EmployeeOverview({ t, locale, user, onNotifItemsChange, 
           </div>
           <a
             href="/employee/evaluation"
-            onClick={(e) => { e.preventDefault(); navigate('evaluation'); }}
+            onClick={(e) => { e.preventDefault(); navigate('/employee/evaluation'); }}
             className="db-stats__cta"
             style={stats.pending === 0 ? { visibility: 'hidden' } : undefined}
           >

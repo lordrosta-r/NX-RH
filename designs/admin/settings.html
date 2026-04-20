@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-fixed": "#410001",
+                        "tertiary-fixed-dim": "#ffb3b5",
+                        "secondary-container": "#7531ff",
+                        "on-secondary-fixed-variant": "#5300cd",
+                        "on-error": "#ffffff",
+                        "on-surface": "#1c1b1b",
+                        "outline-variant": "#e9bcb6",
+                        "inverse-surface": "#313030",
+                        "tertiary": "#983b43",
+                        "on-error-container": "#93000a",
+                        "error": "#ba1a1a",
+                        "on-primary-container": "#fff7f6",
+                        "inverse-primary": "#ffb4aa",
+                        "inverse-on-surface": "#f3f0ef",
+                        "primary-fixed": "#ffdad5",
+                        "secondary": "#5b00df",
+                        "on-tertiary-fixed-variant": "#7f2831",
+                        "on-background": "#1c1b1b",
+                        "primary-container": "#e50914",
+                        "tertiary-fixed": "#ffdada",
+                        "surface-tint": "#c0000c",
+                        "error-container": "#ffdad6",
+                        "secondary-fixed": "#e8ddff",
+                        "surface-dim": "#dcd9d9",
+                        "on-primary-fixed-variant": "#930007",
+                        "background": "#fcf9f8",
+                        "primary-fixed-dim": "#ffb4aa",
+                        "surface": "#fcf9f8",
+                        "on-tertiary-container": "#fff8f7",
+                        "surface-container-low": "#f6f3f2",
+                        "secondary-fixed-dim": "#cfbdff",
+                        "on-tertiary": "#ffffff",
+                        "on-surface-variant": "#5e3f3b",
+                        "tertiary-container": "#b7535a",
+                        "surface-container": "#f0eded",
+                        "surface-bright": "#fcf9f8",
+                        "on-primary": "#ffffff",
+                        "surface-container-high": "#eae7e7",
+                        "surface-container-highest": "#e5e2e1",
+                        "outline": "#936e69",
+                        "surface-variant": "#e5e2e1",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary-fixed": "#40000b",
+                        "on-secondary-fixed": "#22005d",
+                        "on-secondary": "#ffffff",
+                        "primary": "#b8000b",
+                        "on-secondary-container": "#eadfff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface flex overflow-hidden">
+<!-- SideNavBar Component -->
+<aside class="bg-violet-950 dark:bg-slate-950 h-full w-64 fixed left-0 top-0 flex flex-col h-screen py-8 font-inter tracking-tight z-50">
+<div class="px-6 mb-10">
+<h1 class="text-xl font-bold tracking-tighter text-white">NanoXplore RH</h1>
+<p class="text-violet-300/50 text-[10px] uppercase tracking-[0.2em] mt-1 font-semibold">Editorial Enterprise</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="text-violet-200/70 hover:text-white pl-5 py-3 transition-colors flex items-center gap-3 hover:bg-white/10 transition-all duration-200" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="person_check">person_check</span>
+<span class="text-sm">Mon Entretien</span>
+</a>
+<a class="text-violet-200/70 hover:text-white pl-5 py-3 transition-colors flex items-center gap-3 hover:bg-white/10 transition-all duration-200" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="group">group</span>
+<span class="text-sm">Mon Équipe</span>
+</a>
+<a class="text-violet-200/70 hover:text-white pl-5 py-3 transition-colors flex items-center gap-3 hover:bg-white/10 transition-all duration-200" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="analytics">analytics</span>
+<span class="text-sm">Vue Direction</span>
+</a>
+<a class="text-violet-200/70 hover:text-white pl-5 py-3 transition-colors flex items-center gap-3 hover:bg-white/10 transition-all duration-200" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="campaign">campaign</span>
+<span class="text-sm">Campagnes</span>
+</a>
+<a class="text-white font-bold border-l-4 border-red-600 pl-4 py-3 bg-white/5 flex items-center gap-3 transition-all duration-200" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="settings">settings</span>
+<span class="text-sm">Paramètres</span>
+</a>
+</nav>
+<div class="px-4 mt-auto">
+<button class="w-full py-3 bg-primary-container text-white text-xs font-bold uppercase tracking-widest rounded-lg flex items-center justify-center gap-2 scale-95 active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-sm" data-icon="add">add</span>
+                Nouvelle Évaluation
+            </button>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 ml-64 min-h-screen relative overflow-y-auto no-scrollbar pb-20">
+<!-- TopAppBar Component -->
+<header class="fixed top-0 right-0 w-[calc(100%-16rem)] h-16 flex items-center justify-between px-8 z-40 bg-[#fcf9f8] dark:bg-slate-900 no-border bg-[#f6f3f2] dark:bg-slate-800">
+<div class="flex items-center gap-4">
+<span class="text-xs font-bold uppercase tracking-widest text-on-surface-variant/60">System &amp; Roles</span>
+</div>
+<div class="flex items-center gap-6">
+<div class="relative group">
+<div class="flex items-center gap-2 bg-surface-container-low px-4 py-2 rounded-full focus-within:ring-1 ring-red-600/20 transition-all">
+<span class="material-symbols-outlined text-on-surface-variant text-sm" data-icon="search">search</span>
+<input class="bg-transparent border-none text-xs focus:ring-0 w-48 text-on-surface font-medium" placeholder="Search systems..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4 border-l border-surface-container-highest pl-6">
+<button class="text-slate-600 hover:text-red-600 transition-colors"><span class="material-symbols-outlined" data-icon="notifications">notifications</span></button>
+<button class="text-slate-600 hover:text-red-600 transition-colors"><span class="material-symbols-outlined" data-icon="help_outline">help_outline</span></button>
+<div class="w-8 h-8 rounded-full overflow-hidden border-2 border-primary-fixed">
+<img class="w-full h-full object-cover" data-alt="Close-up portrait of a professional IT Administrator in a modern server room, soft cyan lighting, cinematic tech atmosphere" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAfh4r8olK2m6DM__6UCmfGk_B-vMOwQD22_68XOM0a1LKo8q6g0cjkJOBilfcb_tmzAbCVcXyQwhypaZvE5XKXpHMC5l_wwR3t-3gqifzItcNLCJNp7X0QBY4FhL5KqSb7O0wCMA5ZgaIT6kSRa_hK9Sx1gccoWUHSoz25mkHDXfyw7Nn7-3JvOyU0lrbAi6KKiVGC4TTF3gQq0opYdu2TLvyL6eLu589vMBuNFW-LceR_q8YjKYuen3Lr0gjyPp95bxo-YxAdEtLn"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Content Area -->
+<div class="mt-24 px-12 max-w-7xl mx-auto space-y-12">
+<!-- Page Header Section -->
+<section class="flex justify-between items-end">
+<div>
+<h2 class="text-4xl font-extrabold tracking-tight text-on-surface mb-2">Technical Core</h2>
+<p class="text-on-surface-variant/70 font-medium">Configure enterprise protocols, identity mapping, and global access hierarchies.</p>
+</div>
+<div class="flex gap-4">
+<button class="px-6 py-2.5 text-xs font-bold text-on-surface-variant hover:bg-surface-container-high rounded transition-all">Reset Changes</button>
+<button class="px-8 py-2.5 text-xs font-bold text-white bg-gradient-to-br from-primary to-primary-container rounded shadow-lg shadow-primary/20 scale-100 hover:scale-[1.02] active:scale-95 transition-all">Deploy Configuration</button>
+</div>
+</section>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-12 gap-8">
+<!-- Authentication Panel -->
+<div class="col-span-12 lg:col-span-4 bg-surface-container-lowest p-8 rounded-xl space-y-8">
+<div class="flex items-center gap-3">
+<div class="p-2 bg-secondary/10 rounded-lg">
+<span class="material-symbols-outlined text-secondary" data-icon="admin_panel_settings">admin_panel_settings</span>
+</div>
+<h3 class="font-bold text-lg tracking-tight">Identity Mapping</h3>
+</div>
+<div class="space-y-6">
+<div class="space-y-2">
+<label class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 block">LDAP Provider</label>
+<div class="bg-surface-container-low p-4 rounded group hover:bg-surface-container transition-colors cursor-pointer flex justify-between items-center">
+<span class="text-sm font-semibold">Active Directory (Azure)</span>
+<span class="material-symbols-outlined text-sm text-on-surface-variant" data-icon="expand_more">expand_more</span>
+</div>
+</div>
+<div class="space-y-4 pt-4 border-t border-surface-container">
+<div class="flex items-center justify-between">
+<span class="text-sm font-medium">Automatic Provisioning</span>
+<div class="w-10 h-5 bg-primary rounded-full relative cursor-pointer">
+<div class="absolute right-1 top-1 w-3 h-3 bg-white rounded-full"></div>
+</div>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-sm font-medium">SSO Enforcement</span>
+<div class="w-10 h-5 bg-surface-container-highest rounded-full relative cursor-pointer">
+<div class="absolute left-1 top-1 w-3 h-3 bg-white rounded-full"></div>
+</div>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-sm font-medium">Force MFA Reset</span>
+<span class="material-symbols-outlined text-secondary text-lg cursor-pointer" data-icon="sync">sync</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Access Rights Matrix -->
+<div class="col-span-12 lg:col-span-8 bg-surface-container-lowest p-8 rounded-xl overflow-hidden">
+<div class="flex justify-between items-center mb-10">
+<div class="flex items-center gap-3">
+<div class="p-2 bg-primary/10 rounded-lg">
+<span class="material-symbols-outlined text-primary" data-icon="security">security</span>
+</div>
+<h3 class="font-bold text-lg tracking-tight">Global Access Rights</h3>
+</div>
+<div class="flex items-center gap-2 px-3 py-1 bg-surface-container-low rounded-full">
+<span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+<span class="text-[10px] font-bold uppercase text-on-surface-variant">Live Validation</span>
+</div>
+</div>
+<table class="w-full text-left">
+<thead>
+<tr class="border-b border-surface-container-highest">
+<th class="pb-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/50">Feature Set</th>
+<th class="pb-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/50 text-center">Employees</th>
+<th class="pb-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/50 text-center">Managers</th>
+<th class="pb-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/50 text-center">Directors</th>
+<th class="pb-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/50 text-center">HR Admin</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container/30">
+<tr class="group hover:bg-surface-container-low/50 transition-colors">
+<td class="py-5 font-semibold text-sm">Self-Performance View</td>
+<td class="py-5 text-center"><span class="material-symbols-outlined text-primary text-xl" data-icon="check_circle" data-weight="fill" style="font-variation-settings: 'FILL' 1;">check_circle</span></td>
+<td class="py-5 text-center"><span class="material-symbols-outlined text-primary text-xl" data-icon="check_circle" data-weight="fill" style="font-variation-settings: 'FILL' 1;">check_circle</span></td>
+<td class="py-5 text-center"><span class="material-symbols-outlined text-primary text-xl" data-icon="check_circle" data-weight="fill" style="font-variation-settings: 'FILL' 1;">check_circle</span></td>
+<td class="py-5 text-center"><span class="material-symbols-outlined text-primary text-xl" data-icon="check_circle" data-weight="fill" style="font-variation-settings: 'FILL' 1;">check_circle</span></td>
+</tr>
+<tr class="group hover:bg-surface-container-low/50 transition-colors">
+<td class="py-5 font-semibold text-sm">Team Salary Access</td>
+<td class="py-5 text-center"><span class="material-symbols-outlined text-surface-container-highest text-xl" data-icon="block">block</span></td>
+<td class="py-5 text-center"><span class="material-symbols-outlined text-surface-container-highest text-xl" data-icon="block">block</span></td>
+<td class="py-5 text-center"><span class="material-symbols-outlined text-primary text-xl" data-icon="check_circle" data-weight="fill" style="font-variation-settings: 'FILL' 1;">check_circle</span></td>
+<td class="py-5 text-center"><span class="material-symbols-outlined text-primary text-xl" data-icon="check_circle" data-weight="fill" style="font-variation-settings: 'FILL' 1;">check_circle</span></td>
+</tr>
+<tr class="group hover:bg-surface-container-low/50 transition-colors">
+<td class="py-5 font-semibold text-sm">Campaign Architect</td>
+<td class="py-5 text-center"><span class="material-symbols-outlined text-surface-container-highest text-xl" data-icon="block">block</span></td>
+<td class="py-5 text-center"><span class="material-symbols-outlined text-surface-container-highest text-xl" data-icon="block">block</span></td>
+<td class="py-5 text-center"><span class="material-symbols-outlined text-surface-container-highest text-xl" data-icon="block">block</span></td>
+<td class="py-5 text-center"><span class="material-symbols-outlined text-primary text-xl" data-icon="check_circle" data-weight="fill" style="font-variation-settings: 'FILL' 1;">check_circle</span></td>
+</tr>
+<tr class="group hover:bg-surface-container-low/50 transition-colors">
+<td class="py-5 font-semibold text-sm">Cross-Dept Analytics</td>
+<td class="py-5 text-center"><span class="material-symbols-outlined text-surface-container-highest text-xl" data-icon="block">block</span></td>
+<td class="py-5 text-center"><span class="material-symbols-outlined text-surface-container-highest text-xl" data-icon="block">block</span></td>
+<td class="py-5 text-center"><span class="material-symbols-outlined text-primary text-xl" data-icon="check_circle" data-weight="fill" style="font-variation-settings: 'FILL' 1;">check_circle</span></td>
+<td class="py-5 text-center"><span class="material-symbols-outlined text-primary text-xl" data-icon="check_circle" data-weight="fill" style="font-variation-settings: 'FILL' 1;">check_circle</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- System Logs / Real-time Terminal Style -->
+<div class="col-span-12 lg:col-span-12 bg-slate-900 p-8 rounded-xl">
+<div class="flex justify-between items-center mb-6">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-secondary-fixed" data-icon="terminal">terminal</span>
+<h3 class="font-bold text-white tracking-tight">System Events Ledger</h3>
+</div>
+<button class="text-[10px] font-bold text-violet-300 uppercase tracking-widest border border-violet-800 px-3 py-1 rounded">View Full Audit Trail</button>
+</div>
+<div class="font-mono text-[11px] space-y-2 text-slate-400">
+<p><span class="text-slate-600">[2023-11-24 14:02:11]</span> <span class="text-emerald-400">SUCCESS:</span> LDAP Synchronization completed (4822 objects updated).</p>
+<p><span class="text-slate-600">[2023-11-24 14:15:33]</span> <span class="text-violet-400">INFO:</span> Access token refreshed for Global Service Account.</p>
+<p><span class="text-slate-600">[2023-11-24 15:00:01]</span> <span class="text-primary-fixed-dim">WARN:</span> Late handshake detected on AWS-US-EAST-1 connector.</p>
+<p><span class="text-slate-600">[2023-11-24 15:12:45]</span> <span class="text-emerald-400">SUCCESS:</span> New Role "Regional Director" provisioned to Security Group.</p>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>

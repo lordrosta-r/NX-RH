@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary": "#5b00df",
+                        "surface-container": "#f0eded",
+                        "inverse-surface": "#313030",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-container": "#eadfff",
+                        "tertiary": "#983b43",
+                        "surface-bright": "#fcf9f8",
+                        "surface-dim": "#dcd9d9",
+                        "error": "#ba1a1a",
+                        "primary-container": "#e50914",
+                        "outline": "#936e69",
+                        "background": "#fcf9f8",
+                        "tertiary-fixed": "#ffdada",
+                        "on-surface": "#1c1b1b",
+                        "tertiary-container": "#b7535a",
+                        "primary-fixed-dim": "#ffb4aa",
+                        "error-container": "#ffdad6",
+                        "secondary-fixed-dim": "#cfbdff",
+                        "on-primary-fixed": "#410001",
+                        "surface-tint": "#c0000c",
+                        "on-background": "#1c1b1b",
+                        "outline-variant": "#e9bcb6",
+                        "primary": "#b8000b",
+                        "secondary-fixed": "#e8ddff",
+                        "secondary-container": "#7531ff",
+                        "surface-container-high": "#eae7e7",
+                        "on-tertiary-fixed-variant": "#7f2831",
+                        "surface-container-low": "#f6f3f2",
+                        "surface": "#fcf9f8",
+                        "on-secondary-fixed": "#22005d",
+                        "tertiary-fixed-dim": "#ffb3b5",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container-highest": "#e5e2e1",
+                        "on-tertiary-fixed": "#40000b",
+                        "on-error-container": "#93000a",
+                        "on-secondary": "#ffffff",
+                        "surface-variant": "#e5e2e1",
+                        "on-secondary-fixed-variant": "#5300cd",
+                        "inverse-primary": "#ffb4aa",
+                        "primary-fixed": "#ffdad5",
+                        "on-surface-variant": "#5e3f3b",
+                        "on-primary": "#ffffff",
+                        "on-primary-fixed-variant": "#930007",
+                        "on-tertiary-container": "#fff8f7",
+                        "on-primary-container": "#fff7f6",
+                        "on-error": "#ffffff",
+                        "inverse-on-surface": "#f3f0ef"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface selection:bg-primary/20">
+<!-- SideNavBar Component -->
+<aside class="flex flex-col h-screen fixed left-0 top-0 overflow-y-auto bg-[#5b00df] dark:bg-[#2a0066] docked left-0 h-full w-72 shadow-xl shadow-black/5 z-50">
+<div class="px-8 py-10">
+<h1 class="text-white font-bold text-lg">Director Portal</h1>
+<p class="font-['Inter'] font-semibold tracking-wide uppercase text-[0.6875rem] text-white/60 mt-1">Enterprise Control</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="bg-white/10 border-l-4 border-[#b8000b] text-white flex items-center px-6 py-4 font-['Inter'] font-semibold tracking-wide uppercase text-[0.6875rem] transition-all translate-x-1 duration-300" href="#">
+<span class="material-symbols-outlined mr-4" data-icon="dashboard">dashboard</span>
+                Executive Dashboard
+            </a>
+<a class="text-white/70 flex items-center px-6 py-4 font-['Inter'] font-semibold tracking-wide uppercase text-[0.6875rem] hover:bg-white/5 hover:text-white transition-all" href="#">
+<span class="material-symbols-outlined mr-4" data-icon="analytics">analytics</span>
+                Global Analytics
+            </a>
+<a class="text-white/70 flex items-center px-6 py-4 font-['Inter'] font-semibold tracking-wide uppercase text-[0.6875rem] hover:bg-white/5 hover:text-white transition-all" href="#">
+<span class="material-symbols-outlined mr-4" data-icon="group_work">group_work</span>
+                Department Overview
+            </a>
+<a class="text-white/70 flex items-center px-6 py-4 font-['Inter'] font-semibold tracking-wide uppercase text-[0.6875rem] hover:bg-white/5 hover:text-white transition-all" href="#">
+<span class="material-symbols-outlined mr-4" data-icon="settings">settings</span>
+                Settings
+            </a>
+</nav>
+<div class="p-6">
+<button class="w-full py-4 px-4 bg-white/10 hover:bg-white/20 text-white font-['Inter'] font-semibold tracking-wide uppercase text-[0.6875rem] rounded transition-all mb-8">
+                Generate Strategic Audit
+            </button>
+<div class="space-y-1 pt-6 border-t border-white/10">
+<a class="text-white/70 flex items-center px-6 py-3 font-['Inter'] font-semibold tracking-wide uppercase text-[0.6875rem] hover:text-white transition-all" href="#">
+<span class="material-symbols-outlined mr-4" data-icon="help_center">help_center</span>
+                    Support
+                </a>
+<a class="text-white/70 flex items-center px-6 py-3 font-['Inter'] font-semibold tracking-wide uppercase text-[0.6875rem] hover:text-white transition-all" href="#">
+<span class="material-symbols-outlined mr-4" data-icon="logout">logout</span>
+                    Sign Out
+                </a>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-72 min-h-screen">
+<!-- TopNavBar Component -->
+<header class="flex justify-between items-center w-full px-8 py-4 h-16 bg-[#ffffff] dark:bg-zinc-950 docked full-width top-0 z-40 sticky">
+<div class="flex items-center gap-8">
+<span class="text-xl font-black tracking-tighter text-[#1c1b1b] dark:text-zinc-100">NanoXplore RH</span>
+<nav class="hidden lg:flex items-center gap-6 font-['Inter'] tracking-tight text-sm font-medium">
+<a class="text-[#1c1b1b]/60 dark:text-zinc-400 hover:text-[#b8000b] transition-colors duration-200" href="#">Q3 Report</a>
+<a class="text-[#1c1b1b]/60 dark:text-zinc-400 hover:text-[#b8000b] transition-colors duration-200" href="#">Talent Pipeline</a>
+<a class="text-[#1c1b1b]/60 dark:text-zinc-400 hover:text-[#b8000b] transition-colors duration-200" href="#">Budget Summary</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="bg-gradient-to-br from-primary to-primary-container text-white px-5 py-2 rounded font-medium text-sm transition-transform active:scale-95">
+                    Export Data
+                </button>
+<div class="flex items-center gap-2 text-on-surface-variant">
+<button class="p-2 hover:bg-surface-container-low rounded-full transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="p-2 hover:bg-surface-container-low rounded-full transition-colors">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</div>
+</header>
+<section class="p-12 max-w-[1600px] mx-auto">
+<!-- Momentum Moment -->
+<div class="mb-16">
+<p class="font-['Inter'] font-semibold tracking-wide uppercase text-[0.6875rem] text-primary mb-2">Quarterly Overview</p>
+<h2 class="text-6xl font-black tracking-tighter text-on-surface mb-4">94.2% Performance Velocity</h2>
+<div class="h-1 w-24 bg-primary"></div>
+</div>
+<!-- Bento Grid Dashboard -->
+<div class="grid grid-cols-12 gap-8">
+<!-- Main Completion Chart Card -->
+<div class="col-span-12 lg:col-span-8 bg-surface-container-lowest p-8 relative overflow-hidden group">
+<div class="flex justify-between items-start mb-12">
+<div>
+<h3 class="text-2xl font-bold tracking-tight text-on-surface">Organization Completion Rates</h3>
+<p class="text-on-surface-variant text-sm mt-1">Real-time aggregate of mandatory compliance and training cycles.</p>
+</div>
+<div class="flex items-center gap-2">
+<span class="flex items-center gap-1 px-3 py-1 bg-primary/10 text-primary text-xs font-bold rounded-full">
+<span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+                                LIVE DATA
+                            </span>
+</div>
+</div>
+<!-- Asymmetric Chart Visualization Placeholder -->
+<div class="flex items-end gap-3 h-64 mt-8">
+<div class="flex-1 bg-surface-container-low group-hover:bg-primary/5 transition-colors relative" style="height: 60%;">
+<div class="absolute bottom-0 w-full bg-primary/20 h-1/2"></div>
+<span class="absolute -top-6 left-0 text-[10px] font-bold text-on-surface-variant">JAN</span>
+</div>
+<div class="flex-1 bg-surface-container-low group-hover:bg-primary/5 transition-colors relative" style="height: 85%;">
+<div class="absolute bottom-0 w-full bg-primary/40 h-2/3"></div>
+<span class="absolute -top-6 left-0 text-[10px] font-bold text-on-surface-variant">FEB</span>
+</div>
+<div class="flex-1 bg-surface-container-low group-hover:bg-primary/5 transition-colors relative" style="height: 70%;">
+<div class="absolute bottom-0 w-full bg-primary/30 h-1/2"></div>
+<span class="absolute -top-6 left-0 text-[10px] font-bold text-on-surface-variant">MAR</span>
+</div>
+<div class="flex-1 bg-primary relative" style="height: 94.2%;">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-on-surface text-white px-2 py-1 text-xs font-bold rounded">94.2%</div>
+<span class="absolute -top-6 left-0 text-[10px] font-bold text-on-surface-variant">APR</span>
+</div>
+</div>
+</div>
+<!-- Strategic Stats Sidebar -->
+<div class="col-span-12 lg:col-span-4 flex flex-col gap-8">
+<!-- Global Talent Index -->
+<div class="bg-secondary p-8 text-white flex-1 flex flex-col justify-between">
+<span class="material-symbols-outlined text-4xl mb-4" data-icon="auto_awesome">auto_awesome</span>
+<div>
+<p class="text-xs font-bold tracking-widest uppercase opacity-70 mb-2">Talent Health Index</p>
+<h4 class="text-4xl font-bold tracking-tight">8.4<span class="text-xl opacity-60">/10</span></h4>
+</div>
+<div class="mt-6 pt-6 border-t border-white/20 flex justify-between items-center">
+<span class="text-sm font-medium">Growth Target Met</span>
+<span class="material-symbols-outlined text-sm" data-icon="trending_up">trending_up</span>
+</div>
+</div>
+<!-- Risk Profile -->
+<div class="bg-surface-container-low p-8 flex-1">
+<p class="text-xs font-bold tracking-widest uppercase text-on-surface-variant mb-6">Departmental Lag</p>
+<div class="space-y-4">
+<div class="flex justify-between items-center">
+<span class="text-sm font-medium">Logistics &amp; Supply</span>
+<span class="text-sm font-bold text-primary">62%</span>
+</div>
+<div class="w-full h-1 bg-surface-container-highest">
+<div class="bg-primary h-full w-[62%]"></div>
+</div>
+<div class="flex justify-between items-center pt-2">
+<span class="text-sm font-medium">Infrastructure</span>
+<span class="text-sm font-bold text-primary">78%</span>
+</div>
+<div class="w-full h-1 bg-surface-container-highest">
+<div class="bg-primary h-full w-[78%]"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Secondary Row - Editorial Cards -->
+<div class="col-span-12 md:col-span-6 lg:col-span-4 bg-surface-container-lowest p-8 flex items-start gap-6">
+<div class="w-16 h-16 rounded-full bg-secondary/10 flex items-center justify-center text-secondary shrink-0">
+<span class="material-symbols-outlined text-3xl" data-icon="diversity_3">diversity_3</span>
+</div>
+<div>
+<h4 class="font-bold text-xl mb-1">Cultural Pulse</h4>
+<p class="text-sm text-on-surface-variant leading-relaxed">Engagement scores have stabilized across the EMEA region with 12% growth in leadership trust metrics.</p>
+</div>
+</div>
+<div class="col-span-12 md:col-span-6 lg:col-span-4 bg-surface-container-lowest p-8 flex items-start gap-6">
+<div class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
+<span class="material-symbols-outlined text-3xl" data-icon="verified">verified</span>
+</div>
+<div>
+<h4 class="font-bold text-xl mb-1">Compliance Audit</h4>
+<p class="text-sm text-on-surface-variant leading-relaxed">ISO-9001 Recertification training is currently at 98% completion ahead of the Q3 deadline.</p>
+</div>
+</div>
+<div class="col-span-12 lg:col-span-4 bg-surface-container-lowest p-8 flex items-start gap-6 relative overflow-hidden">
+<div class="absolute right-0 top-0 h-full w-1/3 opacity-5">
+<img alt="Enterprise Data" class="h-full object-cover" data-alt="Monochrome close-up of high-speed server racks with blue and red light reflections, tech enterprise aesthetic" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCLTWSNIs8yivTiEWY4jf6wB2ZGHd9bOW7jTqq7L3LDNNrDv7d_n_MOrCVKCM3UDLZcOVGudcxOGqWy9bbvTvhL3LCqmMQVcTADClxd8pP1sxvzqTYXAJwYkQWWqRdAuiM5LecU8oRoORuCuHTer3tbNkcjp4ilFvu4--cr429aUaFotfndbqDY5cSCsW8ZWUDheGxRJ_Prj1s8OTrk_Eb7q4VPb5gF85RsSSMqHzl4wb_qY_viuDZFMglGUoEcsjT2Qgu492evVYxf"/>
+</div>
+<div class="w-16 h-16 rounded-full bg-on-surface/10 flex items-center justify-center text-on-surface shrink-0">
+<span class="material-symbols-outlined text-3xl" data-icon="monitoring">monitoring</span>
+</div>
+<div class="relative z-10">
+<h4 class="font-bold text-xl mb-1">Audit Trail</h4>
+<p class="text-sm text-on-surface-variant leading-relaxed">Access the full granular log of executive interventions and policy overrides from the last 24h.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Dynamic Departmental Section (Asymmetric) -->
+<section class="bg-surface-container-low px-12 py-20 mt-12">
+<div class="max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+<div>
+<h3 class="text-4xl font-bold tracking-tight mb-6">Global Talent Pipeline Heatmap</h3>
+<p class="text-on-surface-variant text-lg leading-relaxed mb-8">Visualization of our talent density across emerging markets. We are currently seeing a 40% uptick in senior engineering applications from the Southeast Asian cluster.</p>
+<div class="space-y-6">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 bg-white flex items-center justify-center shadow-sm">
+<span class="text-primary font-bold">A</span>
+</div>
+<div>
+<p class="text-sm font-bold uppercase tracking-wider text-on-surface">EMEA Region</p>
+<p class="text-xs text-on-surface-variant">Saturated / Optimized</p>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 bg-white flex items-center justify-center shadow-sm">
+<span class="text-secondary font-bold">B</span>
+</div>
+<div>
+<p class="text-sm font-bold uppercase tracking-wider text-on-surface">APAC Growth</p>
+<p class="text-xs text-on-surface-variant text-secondary">High Velocity Opportunity</p>
+</div>
+</div>
+</div>
+</div>
+<div class="relative h-[400px] bg-white shadow-2xl p-4 overflow-hidden">
+<img alt="Global Map Heatmap" class="w-full h-full object-cover grayscale opacity-20" data-alt="World map showing network connections and data nodes with glowing red points on a clean white background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAH_BphPtOXDC_sys0dSnMjQpaik1BX0NbH77Um6ErqPH6UFHEt4fhFi8ZtfHcA--nl1Z6l4Muv1hXwEIdgPj6XwJKxUwcwghmaNGEg5QIj9Ca1WjWQJ8wra3LG8liLCf-LvDzGVXNXNqLb-eSln7n7mM3QyRFhztbQSlksk1Krw_RtgEjjc_N2y4g3nRGDgolqTpALAnpoG7QlgT4O9cHbpWn7qmnxmAMPP7xVm9QkPC3uOQQdOGMH2qHJk6PBtEniwa3h-jEKJfk5"/>
+<div class="absolute inset-0 flex items-center justify-center">
+<div class="relative">
+<div class="w-32 h-32 bg-primary/20 rounded-full animate-ping absolute -inset-4"></div>
+<div class="w-24 h-24 bg-primary/30 rounded-full flex items-center justify-center relative z-10 border border-primary/50">
+<span class="text-primary font-black text-xl">FOCUS</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+</body></html>

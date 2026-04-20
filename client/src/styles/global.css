@@ -1,7 +1,24 @@
 /* =============================================================================
    NanoXplore RH — Global Styles
-   Minimal, utility-first foundation. No framework dependency.
    ============================================================================= */
+
+/* Tailwind v4 — doit être en premier pour que les utilities soient disponibles */
+@import "tailwindcss";
+
+/* @theme : mappe les tokens brand sur les utilities Tailwind (bg-primary, text-secondary…)
+   Les valeurs brutes sont définies ici ; tokens.css les réexpose en tant que CSS vars.
+   Les overrides dark/light de theme.css propagent automatiquement aux utilities
+   car Tailwind v4 compile `bg-primary` → `background-color: var(--color-primary)`. */
+@theme {
+  --font-sans: 'Inter', sans-serif;
+
+  --color-primary:      #b8000b;
+  --color-primary-dark: #8f0008;
+  --color-secondary:    #5b00df;
+  --color-sidebar:      #2e1065;
+  --color-surface:      #fcf9f8;
+  --color-on-surface:   #1c1b1b;
+}
 
 /* Google Fonts — Inter (chargé une seule fois ici) */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');

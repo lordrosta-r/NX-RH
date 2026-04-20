@@ -7,137 +7,219 @@
 
 ---
 
-## 1. Structure des pages — Co-location absolue
+## 1. Architecture — SPA (Single-Page Application)
 
-Chaque page est un **dossier autonome**. Tout ce qui appartient à une page vit dedans.
-
-```
-client/src/pages/<page>/
-├── main.jsx              ← Entry point Vite (NE PAS MODIFIER)
-├── <Page>.jsx            ← Composant racine de la page
-├── <page>.css            ← Tous les styles de cette page
-├── <Composant>.jsx       ← Composant UI spécifique à cette page
-├── <Composant>.css       ← Styles du composant (même dossier)
-└── i18n/
-    ├── fr.js             ← Chaînes françaises de cette page
-    ├── en.js             ← Chaînes anglaises de cette page
-    └── index.js          ← export const t = makeT({ fr, en })
-```
-
-**Règle :** un composant utilisé sur UNE SEULE page → il vit dans le dossier de cette page.
-**Règle :** un composant utilisé sur PLUSIEURS pages → il va dans `components/ui/`.
-
----
-
-## 2. Composants partagés — `components/ui/`
-
-Réservé aux composants **100% réutilisables, sans logique métier** :
+L'application est une **SPA** avec un seul point d'entrée Vite/React :
 
 ```
-client/src/components/ui/
-├── AppSidebar.jsx + AppSidebar.css  ← Sidebar partagée toutes pages internes
-├── CalendarWidget.jsx + CalendarWidget.css  ← Calendrier partagé
-├── Button.jsx + Button.css
-├── InputField.jsx + InputField.css
-├── Checkbox.jsx + Checkbox.css
-├── ThemeToggle.jsx + ThemeToggle.css
-└── icons/
-    ├── SunIcon.jsx          ← Login — thème
-    ├── MoonIcon.jsx         ← Login — thème
-    ├── GlobeIcon.jsx        ← Login — langue
-    ├── HomeIcon.jsx         ← Inner app nav — Dashboard
-    ├── ClipboardIcon.jsx    ← Inner app nav — Évaluation
-    ├── TrendIcon.jsx        ← Inner app nav — Progression / Rapports
-    ├── GearIcon.jsx         ← Inner app nav — Paramètres
-    ├── BellIcon.jsx         ← Inner app — Notifications
-    ├── SearchIcon.jsx       ← Inner app — Recherche
-    ├── ArrowNEIcon.jsx      ← Inner app — Cartes interactives
-    ├── ChevronRightIcon.jsx ← Inner app — Liens inline
-    ├── HelpIcon.jsx         ← Inner app — Aide topbar
-    ├── PaletteIcon.jsx      ← Inner app — Cycle thème topbar
-    ├── DocumentIcon.jsx     ← Inner app — Form Editor
-    ├── FolderIcon.jsx       ← Inner app — Ressources HR
-    ├── PlusIcon.jsx         ← Inner app — Form Editor (ajouter un champ)
-    ├── TrashIcon.jsx        ← Inner app — Form Editor (supprimer un champ)
-    └── index.js             ← barrel export
+client/index.html  →  client/src/main.jsx  →  <App />  →  React Router v7
 ```
 
-**Ne jamais** mettre de logique métier, d'appels API ou d'état applicatif ici.
+Express ne sert plus qu'une seule réponse HTML :
+```
+GET /login         → login.html  (page séparée, pas de sidebar/topbar)
+GET /*             → index.html  (SPA — React Router gère toutes les routes)
+GET /api/*         → handlers Express (inchangés)
+```
 
----
-
-## 3. Infrastructure partagée
+### Arbre de routes (React Router v7)
 
 ```
-client/src/
-├── hooks/
-│   ├── useTheme.js       ← dark/light, écrit data-theme sur <html>
-│   └── useLocale.js      ← locale + t() réactif, prend un pageT en paramètre
-├── i18n/
-│   └── index.js          ← makeT() factory UNIQUEMENT — pas de données locale ici
-└── styles/
-    ├── tokens.css         ← Variables de design (couleurs, radius, typo, sidebar)
-    ├── theme.css          ← Variables --th-* pour dark/light (login page)
-    └── global.css         ← Reset + imports tokens + theme
+/login                        ← public, LoginPage
+/                             ← ProtectedRoute → AuthedLayout
+  /employee                   ← rôles : employee | manager | director | hr | admin
+  /manager                    ← rôles : manager | director | admin
+  /director                   ← rôles : director | admin
+  /hr                         ← rôles : hr | admin
+    /hr/campaigns
+    /hr/formeditor
+    /hr/resources
+    /hr/users
+  /admin                      ← rôle : admin uniquement
+  /settings                   ← tous les rôles authentifiés
+  /evaluation                 ← tous les rôles authentifiés
 ```
 
 ---
 
-## 4. Deux familles de pages — design distinct
+## 2. Structure des fichiers
 
-### 4a. Page login (`/`)
-- Fond noir cinématique avec mosaic photos
-- Variables `--th-*` pour dark/light toggle
-- Anti-flash : script inline dans `login.html` qui applique `data-theme` avant React
-- Scroll désactivé (`height: 100dvh; overflow: hidden`)
-- Design ref : `docs/design/login/DESIGN.md`
+```
+client/
+├── index.html                ← entrée unique SPA (anti-flash theme inline script)
+├── src/
+│   ├── main.jsx              ← QueryClientProvider + BrowserRouter + providers
+│   ├── App.jsx               ← arbre de routes React Router v7
+│   ├── contexts/
+│   │   ├── AuthContext.jsx   ← { user, loading, logout } — fetch /api/auth/me
+│   │   ├── ThemeContext.jsx  ← { theme, cycleTheme } — data-theme sur <html>
+│   │   └── LocaleContext.jsx ← { locale, setLocale, t } — i18n global
+│   ├── layouts/
+│   │   ├── AuthedLayout.jsx  ← AppTopbar + <Outlet /> (shell authentifié)
+│   │   └── ProtectedRoute.jsx ← vérifie user.role, redirige si non autorisé
+│   ├── pages/
+│   │   ├── login/            ← LoginPage (page autonome, hors SPA shell)
+│   │   ├── employee/         ← EmployeePage
+│   │   ├── hr/               ← HRPage + sous-routes
+│   │   ├── admin/            ← AdminPage
+│   │   └── …/
+│   ├── components/ui/        ← composants 100% réutilisables, sans logique métier
+│   ├── hooks/                ← hooks utilitaires (useTheme, useLocale)
+│   ├── i18n/                 ← makeT() factory uniquement
+│   └── styles/
+│       ├── global.css        ← @import "tailwindcss" + @theme + reset + layout
+│       ├── tokens.css        ← CSS custom properties (source de vérité design)
+│       └── theme.css         ← overrides dark/light par data-theme
+└── vite.config.js            ← entrée unique, plugin Tailwind, proxy /api
+```
 
-### 4b. Pages internes (`/dashboard`, `/hr`, `/manager`, `/formeditor`…)
-- **Sidebar** : couleur via `--color-sidebar` (dark violet par défaut, overridé par `data-theme`)
-- Partagée via `components/ui/AppSidebar.jsx` — chaque page fournit ses `navItems`
-- **Contenu "Editorial Enterprise"** : fond `--color-surface` (#fcf9f8), typographie Inter 900
-- **3 thèmes** : `dark` · `light` · `light-sidebar` (cycle via `useTheme().cycleTheme`)
-- **Scroll normal** — le contenu doit pouvoir s'étendre
-- Design ref : `docs/design/dashboard/DESIGN.md`
+### Co-location : règle de base
+
+| Situation | Où mettre le fichier |
+|-----------|----------------------|
+| Composant utilisé sur **une seule page** | `pages/<page>/` |
+| Composant utilisé sur **plusieurs pages** | `components/ui/` |
+| Hook utilitaire (pas de logique métier) | `hooks/` |
+| Contexte global (auth, thème, locale) | `contexts/` |
 
 ---
 
-## 5. Ajouter une nouvelle page
+## 3. Contextes globaux
 
-```bash
-# 1. Créer le dossier
-mkdir -p client/src/pages/<page>/i18n
+Trois contextes montés dans `main.jsx`, disponibles partout via leur hook :
 
-# 2. Fichiers minimaux
-touch client/src/pages/<page>/main.jsx
-touch client/src/pages/<page>/<Page>.jsx
-touch client/src/pages/<page>/<page>.css
-touch client/src/pages/<page>/i18n/fr.js
-touch client/src/pages/<page>/i18n/en.js
-touch client/src/pages/<page>/i18n/index.js
+### `AuthContext`
+```jsx
+const { user, loading, logout } = useAuth()
+// user : { _id, name, role, … } | null
+// loading : true pendant le fetch /api/auth/me initial
+// logout : appelle DELETE /api/auth/logout + redirect /login
+```
 
-# 3. Enregistrer dans Vite (client/vite.config.js → rollupOptions.input)
-# 4. Enregistrer dans Express (server/index.js → app.get('/route', ...))
-# 5. Créer le HTML entry (client/<page>.html)
+### `ThemeContext`
+```jsx
+const { theme, cycleTheme } = useThemeCtx()
+// theme : 'dark' | 'light' | 'light-sidebar'
+// cycleTheme() : passe au thème suivant + persiste en localStorage
+```
+
+### `LocaleContext`
+```jsx
+const { locale, setLocale } = useLocale()
+// Usage avec traductions de page :
+// import { t as pageT } from './i18n'
+// const translate = useTranslate(pageT)
 ```
 
 ---
 
-## 6. CSS — Règles strictes
+## 4. Layout authentifié
+
+### `AuthedLayout`
+
+Shell partagé pour toutes les pages internes. Choisir **une seule** variante :
+
+**Topbar-only** (recommandé pour ≤ 5 items de navigation)
+```
+┌─────────────────────────────────────────────┐
+│ NX  [Nav items…]              🔔 [avatar]   │  ← AppTopbar (56px, sticky)
+├─────────────────────────────────────────────┤
+│                                             │
+│               <Outlet />                   │  ← contenu de la page
+│                                             │
+└─────────────────────────────────────────────┘
+```
+
+**Sidebar + Topbar** (recommandé pour > 5 items ou navigation hiérarchique)
+```
+┌────────┬────────────────────────────────────┐
+│        │ NX  [search]           🔔 [avatar] │  ← AppTopbar (sticky)
+│  Side  ├────────────────────────────────────┤
+│  bar   │                                    │
+│(256px) │           <Outlet />               │
+│        │                                    │
+└────────┴────────────────────────────────────┘
+```
+
+### `ProtectedRoute`
+```jsx
+// Redirige vers /login si non authentifié
+// Redirige vers /unauthorized si le rôle ne correspond pas
+<ProtectedRoute allowedRoles={['hr', 'admin']}>
+  <HRPage />
+</ProtectedRoute>
+```
+
+---
+
+## 5. CSS — Tailwind v4 + CSS custom properties
+
+### Règles de style
 
 | ✅ Faire | ❌ Ne pas faire |
 |----------|----------------|
-| Utiliser `var(--th-*)` pour les couleurs de la page login | Hardcoder `#ffffff`, `rgba(...)` dans les composants |
-| Utiliser `var(--color-*)` pour les tokens de brand et pages internes | Utiliser Tailwind ou un framework CSS |
-| Un `.css` par `.jsx` dans le même dossier | Mettre les styles d'une page dans `global.css` |
-| Sections commentées dans le CSS | Écrire du CSS sans commentaires de contexte |
-| Pages internes : `var(--color-sidebar-*)` pour la sidebar | Hardcoder la couleur `#2e1065` directement |
+| Tailwind utilities pour le layout, l'espacement, la typo | Frameworks alternatifs (Bootstrap, MUI…) |
+| `var(--color-primary)` pour les couleurs brand dans les CSS-in-class | Hardcoder `#b8000b` dans les composants |
+| `@apply` ou classes Tailwind pour les nouveaux composants | Modifier `tokens.css` directement pour des one-offs |
+| `var(--th-*)` pour les couleurs de la page login uniquement | Mélanger les namespaces `--th-*` et `--color-*` |
+
+### Couleurs disponibles en Tailwind
+
+Les tokens définis dans `@theme` de `global.css` → disponibles en utilities :
+
+```html
+<div class="bg-primary text-white">         <!-- #b8000b -->
+<div class="bg-secondary text-white">       <!-- #5b00df -->
+<div class="bg-sidebar text-white">         <!-- #2e1065 -->
+<div class="bg-surface text-on-surface">    <!-- #fcf9f8 / #1c1b1b -->
+```
+
+### Thèmes
+
+- 3 thèmes via `data-theme` sur `<html>` : `dark` · `light` · `light-sidebar`
+- Les utilities Tailwind compilent vers `var(--color-*)`, donc les overrides de `theme.css` propagent automatiquement
+- **Anti-flash** : script inline dans `index.html` qui lit `localStorage` et applique `data-theme` avant React
 
 ---
 
-## 7. Traductions — i18n page par page
+## 6. Data fetching — TanStack Query v5
 
-Chaque page gère ses propres chaînes. L'engine `makeT` est partagé, les données ne le sont pas.
+```jsx
+// Fetch standard
+const { data, isLoading, error } = useQuery({
+  queryKey: ['employees'],
+  queryFn: () => fetch('/api/employees').then(r => r.json()),
+})
+
+// Mutation
+const mutation = useMutation({
+  mutationFn: (data) => fetch('/api/employees', { method: 'POST', body: JSON.stringify(data) }),
+  onSuccess: () => queryClient.invalidateQueries({ queryKey: ['employees'] }),
+})
+```
+
+- `QueryClient` monté une seule fois dans `main.jsx` (staleTime: 30s par défaut)
+- Pas de refetch sur window focus pour les données RH (données stables)
+- Erreur 401 → intercepter dans le `QueryClient` global et rediriger vers `/login`
+
+---
+
+## 7. Icônes
+
+**Bibliothèque unique : `lucide-react`**
+
+```jsx
+import { Home, Bell, Settings } from 'lucide-react'
+<Home size={18} strokeWidth={1.5} aria-hidden="true" />
+```
+
+- Toujours SVG stroke, jamais emoji ni font-icon
+- Props : `size` (défaut 18), `color` (défaut `currentColor`), `strokeWidth` (défaut 1.5)
+- Les anciens composants custom dans `components/ui/icons/` sont conservés pour compatibilité, ne pas les utiliser pour le nouveau code
+
+---
+
+## 8. i18n — traductions page par page
 
 ```js
 // pages/<page>/i18n/index.js
@@ -146,96 +228,48 @@ import en from './en'
 import { makeT } from '../../../i18n'
 export const t = makeT({ fr, en })
 
-// pages/<page>/<Page>.jsx
+// Dans un composant de page :
 import { t as pageT } from './i18n'
-const { t, locale, setLocale } = useLocale(pageT)
+const translate = useTranslate(pageT)  // via LocaleContext
 ```
 
-**Clés de traduction** : format `<page>.<section>.<élément>` (ex: `dashboard.campaign.badge`).
+Clés : format `<page>.<section>.<élément>` (ex: `hr.campaign.badge`).
 
 ---
 
-## 8. Icônes
+## 9. Ajouter une nouvelle page
 
-**Bibliothèque principale : `lucide-react`** (installée dans `client/`)
+```bash
+# 1. Créer le dossier de page
+mkdir client/src/pages/<page>/i18n
 
-- Toujours des **SVG stroke** (jamais emoji, jamais font-icon Material Symbols)
-- Props standards Lucide : `size` (défaut 18), `color` (défaut `currentColor`), `strokeWidth` (défaut 2), `aria-hidden="true"`
-- Importer directement depuis lucide-react : `import { Home, ClipboardList, Settings } from 'lucide-react'`
-- Les composants Lucide sont compatibles avec le pattern `AppSidebar` : `{ id, Icon, label }` → `<Icon size={18} strokeWidth={...} />`
-- Les icônes custom SVG dans `components/ui/icons/` sont conservées pour la compatibilité (pages non encore migrées), mais les **nouvelles pages utilisent lucide-react**.
+# 2. Fichiers minimaux
+# client/src/pages/<page>/<Page>.jsx  ← composant racine
+# client/src/pages/<page>/i18n/fr.js + en.js + index.js
 
-```jsx
-// ✅ Nouveau standard
-import { Home, Bell, Settings, Lock, Save } from 'lucide-react'
-<Home size={18} strokeWidth={1.5} aria-hidden="true" />
-
-// 🔴 Jamais ça
-<span>🔒</span>   // emoji
-import { HomeIcon } from '../../components/ui/icons'  // legacy, ne pas utiliser pour les nouvelles pages
+# 3. Enregistrer la route dans App.jsx
+# 4. Ajouter ProtectedRoute avec les rôles autorisés
 ```
+
+Pas de HTML supplémentaire, pas d'entrée Vite, pas de route Express.
 
 ---
 
-## 9. Thème dark/light
-
-- Le thème est écrit sur `<html data-theme="dark|light">` par `useTheme()`
-- **Anti-flash** : `login.html` contient un script inline qui lit `localStorage` et applique `data-theme` AVANT que React ne monte
-- En mode clair : les images de fond restent visibles mais atténuées (`--th-mosaic-opacity: 0.12`)
-- **Pages internes** : pas de toggle pour l'instant — toujours Editorial Enterprise light
-
----
-
-## 10. Sidebar des pages internes
-
-```jsx
-// Pattern — sidebar partagée via AppSidebar (components/ui/)
-// Chaque page crée un thin wrapper (ex: DashboardSidebar, HRSidebar)
-// qui passe ses navItems + brandSub à AppSidebar.
-
-import AppSidebar from '../../components/ui/AppSidebar'
-
-// Thin wrapper (co-localisé dans la page) :
-export default function HRSidebar({ t, activeItem }) {
-  const navItems = [ /* items spécifiques à la page */ ]
-  return <AppSidebar brandSub="HR Portal" navItems={navItems} />
-}
-
-import DashboardSidebar from './DashboardSidebar'
-
-// Dans le JSX :
-<div className="db">
-  <DashboardSidebar t={t} user={user} />
-  <div className="db-main">
-    <header className="db-topbar">…</header>
-    <main className="db-content">…</main>
-  </div>
-</div>
-```
-
-Layout CSS clé :
-```css
-.db          { display: flex; min-height: 100vh; }
-.db-main     { margin-left: 256px; flex: 1; }
-.db-topbar   { position: sticky; top: 0; z-index: 40; }
-```
-
----
-
-## 11. Docker & déploiement
+## 10. Docker & déploiement
 
 - Un seul `Dockerfile` multi-stage à la racine
-- Le build client sort dans `mongo/server/public/` (copié depuis l'étape builder)
+- Le build client sort dans `mongo/server/public/`
+- Express sert `index.html` pour toutes les routes non-API (`GET *` → SPA fallback)
 - `docker compose up -d --scale app=3` pour le mode HA
 - Certificats TLS dans `nginx/certs/` (jamais committés)
 
 ---
 
-## 12. Ce qu'on ne fait PAS (encore)
+## 11. Ce qu'on ne fait PAS
 
-- Pas de logique métier dans les composants UI
-- Pas de state management global (Redux, Zustand…) — useState suffit pour l'instant
-- Pas de React Router — Express gère la navigation entre pages
-- Pas de SSR — MPA classique avec Express servant du HTML statique compilé
-- ~~Pas de dark mode sur les pages internes~~ — 3 thèmes implémentés : `dark` · `light` · `light-sidebar`
+- Pas de Redux / Zustand / Jotai — TanStack Query + contextes suffisent
+- Pas de SSR — SPA classique avec React Router
 - Pas de Material Symbols (font-icons) — SVG stroke uniquement
+- Pas de styles inline (`style={{}}`) pour les layouts — Tailwind utilities
+- Pas de logique métier dans les composants UI (`components/ui/`)
+

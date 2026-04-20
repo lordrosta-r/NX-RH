@@ -8,6 +8,9 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import App from './App'
+import { AuthProvider }  from './contexts/AuthContext'
+import { ThemeProvider } from './contexts/ThemeContext'
+import { LocaleProvider } from './contexts/LocaleContext'
 import './styles/global.css'
 
 // ── React-Query client ──────────────────────────────────────
@@ -28,10 +31,15 @@ const container = document.getElementById('root')
 createRoot(container).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
-      {/* TODO: Phase 2 — wrap with AuthProvider, ThemeProvider, LocaleProvider */}
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
+      <AuthProvider>
+        <ThemeProvider>
+          <LocaleProvider>
+            <BrowserRouter>
+              <App />
+            </BrowserRouter>
+          </LocaleProvider>
+        </ThemeProvider>
+      </AuthProvider>
     </QueryClientProvider>
   </React.StrictMode>,
 )

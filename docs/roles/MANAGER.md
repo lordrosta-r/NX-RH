@@ -1,5 +1,7 @@
 # Rôle — Manager
 
+> **Design complet :** voir [`designs/roles/designmanager.txt`](../../designs/roles/designmanager.txt)
+
 ## Qui est-il ?
 
 Le manager est responsable d'une équipe directe. Il conduit les entretiens annuels de ses collaborateurs, valide leurs évaluations et finalise leurs objectifs. Sa visibilité est **strictement limitée à son équipe directe** — il ne voit jamais les données des équipes d'autres managers.
@@ -10,12 +12,16 @@ Le manager est responsable d'une équipe directe. Il conduit les entretiens annu
 
 ## Son tableau de bord (`/manager`)
 
-Le manager arrive sur un panel qui liste son équipe directe. Pour chaque membre, il voit :
+Le manager arrive sur un **Dashboard visuel** listant son équipe directe avec des cartes visuelles. Pour chaque membre, il voit :
 
-- Nom, poste
-- Statut de l'évaluation en cours (pending / in_progress / submitted / reviewed / validated)
+- Photo, nom, poste
+- Statut de l'évaluation en cours (badge couleur : ⚪ pas commencé / 🔵 en cours / 🟢 soumis / 🟣 validé)
+- **Sparkline d'objectifs** : mini-graphique montrant la progression des goals annuels
 - Alertes si une phase est en retard
 - Accès direct à la fiche d'évaluation complète de chaque collaborateur
+
+**En campagne active**, un **Compteur d'Urgence** apparaît en haut du Dashboard :
+*"X entretiens sur Y restent à valider. Deadline : JJ/MM."*
 
 ---
 
@@ -37,21 +43,35 @@ Cette règle s'applique aussi aux rapports, aux exports et aux recherches — to
 2. Lire l'auto-évaluation et les aspirations en amont
 3. Préparer ses propres observations sur le bilan N-1 et les objectifs
 
-### Pendant l'entretien (dans l'interface)
+### Pendant l'entretien — **Split-View** (`/manager/review/:evalId`)
 
-1. Ouvrir la fiche de l'employé → onglet "Entretien en cours"
-2. Parcourir chaque section dans l'ordre :
-   - Auto-évaluation (lecture seule — ce que l'employé a écrit)
-   - Bilan N-1 : ajouter ses appréciations par objectif
-   - Objectifs futurs : valider, modifier ou ajouter des objectifs
-   - Aspirations (lecture seule — respect du ressenti de l'employé)
-3. Saisir une **note globale** (échelle définie dans le template)
-4. Rédiger un **commentaire de synthèse** (obligatoire avant validation)
+L'écran clé du Manager est un **écran divisé** :
 
-### Après l'entretien
+1. **Panneau Gauche (Lecture Seule — 60%)** : Le formulaire complet de l'employé.
+   - Auto-évaluation (texte + notation Soft Skills)
+   - Bilan N-1 avec les jauges d'objectifs figées et le commentaire de l'employé
+   - Aspirations (lecture seule — le manager ne peut pas modifier cette section)
 
-5. Cliquer "Valider l'entretien" → statut passe à `validated`
-6. L'employé reçoit une notification de validation
+2. **Panneau Droit (Rédaction Manager — 40%)** : Le "Carnet du Manager"
+   - Par objectif N-1 : Appréciation Manager (Atteint / Partiellement / Non Atteint + Commentaire)
+   - Note Globale (si le template l'exige)
+   - Commentaire de Synthèse Libre
+   - Validation/Modification des Objectifs N+1 proposés par l'employé
+
+### Après l'entretien — Signature & Contestation
+
+5. Cliquer **"Valider & Signer"** → statut passe à `signed_manager`
+6. L'employé reçoit une notification et doit **Contresigner** (accepter) ou **Contester** (refuser avec commentaire)
+7. Si contresigné : document scellé (PDF archivé), objectifs N+1 descendent dans `/employee/goals`
+8. Si contesté : le document est scellé avec mention "Contesté par l'employé", le RH est alerté dans `/hr/requests`
+
+---
+
+## Double casquette : Manager est aussi évalué
+
+Le Manager est un employé de son propre N+1. Sa navigation propose deux espaces :
+- **"Mon Équipe"** → Dashboard Manager (ses N-1)
+- **"Mon Évaluation"** → Son propre formulaire d'employé (évalué par son N+1)
 
 ---
 

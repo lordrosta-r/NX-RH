@@ -1,10 +1,30 @@
 # Rôle — Admin (Administrateur système)
 
+> **Design complet :** voir [`designs/roles/designadmin_campagne.txt`](../../designs/designadmin_campagne.txt)
+
 ## Qui est-il ?
 
 L'Admin est le **gardien technique** de la plateforme. Il ne pilote pas le processus RH — c'est le rôle de HR. Il s'assure que la plateforme fonctionne, que les utilisateurs existent avec le bon rôle, et que les intégrations (LDAP, SMTP) sont correctement configurées.
 
-**Redirection après connexion :** `/manager` (accès total)
+**Redirection après connexion :** `/admin`
+
+---
+
+## Navigation — Routes Admin (SPA)
+
+| Item | Route | Description |
+|---|---|---|
+| Dashboard | `/admin` | Vue d'ensemble système |
+| Utilisateurs | `/admin/users` | CRUD utilisateurs, rôles, rattachements |
+| Organigramme | `/admin/org-chart` | Smart Org-Chart (4 modes : All, Ligne Managériale, Hub Équipe, Diagnostic) |
+| Rôles | `/admin/roles` | RBAC personnalisable |
+| Import Templates | `/admin/templates-import` | Import CSV/JSON de formulaires (AI-ready) |
+| Communications | `/admin/communications` | Email templating avec variables |
+| Conformité RGPD | `/admin/compliance` | Rétention, anonymisation, exports |
+| Sécurité | `/admin/security` | Audit logs, impersonation mode |
+| Intégrations | `/admin/integrations` | LDAP/AD, SMTP |
+| Sandbox | `/admin/sandbox` | Mode test pour valider les campagnes |
+| Paramètres | `/admin/settings` | White-labeling, branding |
 
 ---
 

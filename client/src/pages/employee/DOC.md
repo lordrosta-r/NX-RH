@@ -2,7 +2,7 @@
 
 ## Objectif
 
-Tableau de bord du collaborateur, accessible à l'URL `/employee`.
+Tableau de bord du collaborateur et ses sous-pages, accessibles à l'URL `/employee`.
 Visible par tous les rôles authentifiés (`employee`, `manager`, `hr`, `admin`).
 
 ---
@@ -15,6 +15,10 @@ Visible par tous les rôles authentifiés (`employee`, `manager`, `hr`, `admin`)
 | `CampaignBanner.jsx` | Section hero : salutation, badge campagne active, anneau de progression SVG, bouton CTA. |
 | `CampaignBanner.css` | Styles du hero — fond `surface-container-lowest`, gradient CTA, anneau SVG. |
 | `employee.css` | Styles du bento grid, cartes, centre de notifications, spotlight, responsive. |
+| `EmployeeGoals.jsx` | Objectifs de l'employé — route `/employee/goals`. |
+| `employee-goals.css` | Styles des objectifs (barre de progression, modal, grille de cartes). |
+| `EmployeeHistory.jsx` | Historique des évaluations — route `/employee/history`. |
+| `employee-history.css` | Styles de l'historique (timeline, filtres, badges de statut). |
 | `i18n/fr.js` | Traductions françaises (clés `dashboard.*`, `employee.*`). |
 | `i18n/en.js` | Traductions anglaises. |
 | `i18n/index.js` | Factory `makeT({ fr, en })` — exporte `t`. |
@@ -30,6 +34,8 @@ Visible par tous les rôles authentifiés (`employee`, `manager`, `hr`, `admin`)
 | `['evaluations-me', userId]` | `GET /api/evaluations?evaluateeId=&status=assigned` | Évaluations assignées à l'utilisateur. |
 | `['events']` | `GET /api/events` | Événements pour le widget calendrier. |
 | `['resources-published']` | `GET /api/resources` | Ressources filtrées `status=published`, 3 premières. |
+| `['my-evaluations-validated', userId]` | `GET /api/evaluations?evaluateeId=&status=validated` | Objectifs depuis évaluations validées. |
+| `['my-evaluations-history', userId]` | `GET /api/evaluations?evaluateeId=` | Toutes les évaluations pour l'historique. |
 
 Tous les appels ont `staleTime: 5min` et `enabled: !!user`.
 
@@ -45,21 +51,31 @@ Tous les appels ont `staleTime: 5min` et `enabled: !!user`.
 
 ---
 
-## Notes de migration (Phase 4 — MPA → SPA)
+## EmployeeGoals — Mes objectifs (/employee/goals)
 
-### Avant (MPA)
-- `main.jsx` : point d'entrée Vite séparé avec son propre `QueryClientProvider` + `BrowserRouter`
-- `Employee.jsx` : shell mini-SPA avec `<Routes>`, `AppTopbar` et navigation intégrée
-- `EmployeeOverview.jsx` : contenu du dashboard extrait dans un composant séparé
-- `EmployeeSidebar.jsx` : wrapper autour de `AppSidebar` (inutile, le shell global s'en charge)
+- Extrait `objectives` et `draftObjectives` de l'évaluation validée la plus récente
+- Barre de progression CSS (`eg-progress-track` + `eg-progress-fill`)
+- Modal inline avec slider 0-100 + commentaire (état local uniquement — pas de PATCH)
+- Grille auto-fill minmax(300px, 1fr)
+- État vide avec illustration `Target` si aucune évaluation validée
 
-### Après (SPA)
-- `Employee.jsx` est maintenant un composant de page simple, sans sous-routage
-- `AuthedLayout` fournit la sidebar et le topbar via `<Outlet />`
-- `QueryClientProvider` est monté une seule fois dans `src/main.jsx`
-- Les fichiers `main.jsx`, `EmployeeSidebar.jsx`, `EmployeeOverview.jsx` ont été supprimés
+## EmployeeHistory — Historique (/employee/history)
 
-### Points d'attention
-- La classe `.emp` (shell mini-SPA) a été retirée de `employee.css` — le conteneur est désormais `.db-content` fourni par `AuthedLayout`
-- `useAuthUser` (hook deprecated) remplacé par `useAuth()` depuis `AuthContext`
-- L'affichage conditionnel `loading / !user` est géré par `ProtectedRoute` en amont
+- Filtre par année et par campagne (dérivés des données)
+- Timeline verticale (dot + line) triée par date décroissante
+- Badge de statut mappé (`STATUS_MAP`)
+- Bouton "Consulter" → `navigate('/evaluation/' + ev._id)`
+
+---
+
+## Notes de migration
+
+### Phase 4 — MPA → SPA (Employee.jsx)
+- `main.jsx` : point d'entrée Vite séparé → supprimé
+- `EmployeeSidebar.jsx`, `EmployeeOverview.jsx` → supprimés
+- `AuthedLayout` fournit la sidebar et le topbar
+
+### Phase 5 — Ajout EmployeeGoals + EmployeeHistory
+- Routes `/employee/goals` et `/employee/history` précédemment `<PagePlaceholder>` → composants complets
+- `/employee/settings` → pointe maintenant vers `pages/settings/Settings.jsx` (refactorisé SPA)
+

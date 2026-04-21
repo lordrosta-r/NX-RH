@@ -1,13 +1,12 @@
 'use strict'
 
 // =============================================================================
-// NanoXplore RH — Express Server (MPA Router + API Gateway) — MongoDB
+// NanoXplore RH — Express Server (SPA Gateway + API) — MongoDB
 //
 // Responsibilities:
-//   1. Serve compiled React pages (static assets from /public)
-//   2. Handle MPA page routes — each route returns a specific HTML file
+//   1. Serve compiled React SPA (static assets from /public)
+//   2. SPA fallback: all non-API GET routes → index.html (React Router handles routing)
 //   3. Mount API route modules under /api/*
-//   4. Protect page routes with the auth guard middleware
 // =============================================================================
 
 require('dotenv').config()
@@ -37,10 +36,6 @@ app.set('trust proxy', 1)
 const PORT = process.env.PORT || 3000
 
 const PUBLIC_DIR = path.join(__dirname, 'public')
-
-const sendPage = (pageName) => (_req, res) => {
-  res.sendFile(path.join(PUBLIC_DIR, `${pageName}.html`))
-}
 
 // ─── Global middleware ───────────────────────────────────────────────────────
 
@@ -105,24 +100,16 @@ app.get('/api/health', async (_req, res) => {
   }
 })
 
-// ─── MPA Page Routes ─────────────────────────────────────────────────────────
+// ─── SPA Page Routes ─────────────────────────────────────────────────────────
+// All non-API GET requests are served index.html.
+// React Router (client-side) handles routing + auth redirects via ProtectedRoute.
 
-app.get('/',           sendPage('login'))
-app.get('/login',      sendPage('login'))
-app.get(/^\/employee(\/.*)?$/, authGuard(['employee', 'manager', 'director', 'hr', 'admin']), sendPage('employee'))
-app.get('/manager',    authGuard(['manager', 'director', 'admin']),                   sendPage('manager'))
-app.get('/director',   authGuard(['director', 'admin']),                              (req, res) => res.redirect(302, '/manager'))
-app.get('/hr',         authGuard(['hr', 'admin']),                                    sendPage('hr'))
-app.get('/admin',      authGuard(['admin']),                                          sendPage('admin'))
-app.get('/formeditor', authGuard(['hr', 'admin']),                                    sendPage('formeditor'))
-app.get('/campaigns',  authGuard(['hr', 'admin']),                                    sendPage('campaigns'))
-app.get('/evaluation', authGuard(['manager', 'director', 'hr', 'admin']), sendPage('evaluation'))
-app.get('/settings',   authGuard(['manager', 'director', 'hr', 'admin']), sendPage('settings'))
-app.get('/resources',  authGuard(['hr', 'admin']),                                    sendPage('resources'))
-app.get('/users',      authGuard(['hr', 'admin']),                                    sendPage('users'))
+app.get('/dashboard', (_req, res) => res.redirect(301, '/employee'))
 
-// Backward-compat redirect (old /dashboard → new /employee)
-app.get('/dashboard',  (req, res) => res.redirect(301, '/employee'))
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api')) return next()
+  res.sendFile(path.join(PUBLIC_DIR, 'index.html'))
+})
 
 // ─── API Routes ──────────────────────────────────────────────────────────────
 
@@ -149,7 +136,7 @@ app.use((req, res) => {
   if (req.path.startsWith('/api')) {
     return res.status(404).json({ error: 'API endpoint not found' })
   }
-  res.redirect('/')
+  res.sendFile(path.join(PUBLIC_DIR, 'index.html'))
 })
 
 // ─── Global error handler ────────────────────────────────────────────────────

@@ -1,19 +1,9 @@
 /* =============================================================================
    Dashboard — Employee home page
-   Layout: fixed sidebar (256px) + scrollable main content
+   Contenu de la route /employee (pas de sidebar/topbar — fournis par AuthedLayout).
    Design: Editorial Enterprise — docs/design/dashboard/DESIGN.md
-   Shell (.db / .db-main / .db-content) is defined in styles/global.css.
+   Shell (.db / .db-main / .db-content) est défini dans styles/global.css.
    ============================================================================= */
-
-/* ── Mini-SPA shell (pas de sidebar — nav dans le topbar) ───────────────────── */
-.emp {
-  min-height: 100vh;
-  background: var(--color-surface);
-  font-family: var(--font-family);
-  color: var(--color-on-surface);
-  display: flex;
-  flex-direction: column;
-}
 
 /* ── Campaign banner wrapper ───────────────────────────────────────────────── */
 .db-banner-wrap {

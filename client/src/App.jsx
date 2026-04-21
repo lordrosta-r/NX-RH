@@ -1,7 +1,7 @@
 // ============================================================
 // App.jsx — SPA route tree (38 routes — full target cartography)
-// Pages not yet migrated render <PagePlaceholder>. See:
-//   ~/.copilot/session-state/.../files/target-cartography.md
+// Pages migrees : /login (Phase 4), /employee (Phase 4), /hr (Phase 4)
+// Pages non migrees : renvoient <PagePlaceholder>.
 // ============================================================
 
 import { Routes, Route, Navigate } from 'react-router-dom'

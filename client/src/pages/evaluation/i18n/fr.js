@@ -100,4 +100,11 @@ export default {
   'ev.comment.evaluatee':            'Mon commentaire',
   'ev.comment.evaluatee_placeholder':'Ajoutez votre commentaire personnel avant de signer…',
   'ev.comment.score':                'Score attribué',
+
+  // EvaluationSummary
+  'ev.summary.tagline': 'Gestion de la performance',
+  'ev.summary.headline': 'Mon évaluation',
+
+  // EvaluationSign
+  'ev.sign.already_signed': 'Cette évaluation a déjà été signée.',
 }

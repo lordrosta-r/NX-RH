@@ -10,6 +10,9 @@ import ProtectedRoute from './layouts/ProtectedRoute'
 import PagePlaceholder from './pages/_placeholders/PagePlaceholder'
 import Unauthorized from './pages/_placeholders/Unauthorized'
 import NotFound from './pages/_placeholders/NotFound'
+import EvaluationSummary from './pages/evaluation/EvaluationSummary'
+import EvaluationForm    from './pages/evaluation/EvaluationForm'
+import EvaluationSign    from './pages/evaluation/EvaluationSign'
 import HR from './pages/hr/HR'
 import Employee from './pages/employee/Employee'
 import Login from './pages/login/Login'
@@ -39,12 +42,12 @@ export default function App() {
 
         {/* Évaluation — accessible à tous (manager via /manager/review) */}
         <Route element={<ProtectedRoute allowedRoles={ANY_AUTHED} />}>
-          <Route path="/evaluation/:evalId"             element={<PagePlaceholder title="Évaluation — récapitulatif" />} />
-          <Route path="/evaluation/:evalId/self"        element={<PagePlaceholder title="Auto-évaluation" />} />
-          <Route path="/evaluation/:evalId/n-1"         element={<PagePlaceholder title="Bilan année N-1" />} />
-          <Route path="/evaluation/:evalId/objectives"  element={<PagePlaceholder title="Objectifs futurs" />} />
-          <Route path="/evaluation/:evalId/aspirations" element={<PagePlaceholder title="Aspirations carrière" />} />
-          <Route path="/evaluation/:evalId/sign"        element={<PagePlaceholder title="Signature & contestation" />} />
+          <Route path="/evaluation/:evalId"             element={<EvaluationSummary />} />
+          <Route path="/evaluation/:evalId/self"        element={<EvaluationForm phase="self" />} />
+          <Route path="/evaluation/:evalId/n-1"         element={<EvaluationForm phase="n-1" />} />
+          <Route path="/evaluation/:evalId/objectives"  element={<EvaluationForm phase="objectives" />} />
+          <Route path="/evaluation/:evalId/aspirations" element={<EvaluationForm phase="aspirations" />} />
+          <Route path="/evaluation/:evalId/sign"        element={<EvaluationSign />} />
         </Route>
 
         {/* Manager */}

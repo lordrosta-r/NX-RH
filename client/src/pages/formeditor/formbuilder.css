@@ -1,0 +1,483 @@
+/* =============================================================================
+   Form Builder CSS — /hr/templates/:id/builder
+   BEM prefix: fb-
+   Tokens only — no hardcoded colors.
+   ============================================================================= */
+
+/* ── Page container ─────────────────────────────────────────────────────────── */
+.fb-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  height: 100%;
+}
+
+/* ── Header ─────────────────────────────────────────────────────────────────── */
+.fb-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.fb-header__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-on-surface-variant);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.fb-header__back:hover {
+  color: var(--color-primary);
+}
+
+.fb-header__title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.fb-title-input {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-on-surface);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  outline: none;
+  font-family: var(--font-family);
+  padding: 0.25rem 0;
+  width: 100%;
+  transition: border-color 0.15s ease;
+}
+
+.fb-title-input:focus {
+  border-bottom-color: var(--color-primary);
+}
+
+.fb-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.fb-save-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  padding: 0.5rem 1.25rem;
+  border-radius: var(--radius-md);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-family);
+  transition: opacity 0.15s ease;
+}
+
+.fb-save-btn:hover {
+  opacity: 0.85;
+}
+
+.fb-save-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.fb-save-status {
+  font-size: 0.8125rem;
+  color: var(--color-on-surface-variant);
+  opacity: 0.65;
+}
+
+/* ── Locked banner ──────────────────────────────────────────────────────────── */
+.fb-locked-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--color-error-tint-06);
+  border-radius: var(--radius-md);
+  padding: 0.875rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-error);
+}
+
+/* ── Builder layout ─────────────────────────────────────────────────────────── */
+.fb-layout {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 1.5rem;
+  align-items: start;
+  flex: 1;
+}
+
+/* ── Question list panel ────────────────────────────────────────────────────── */
+.fb-list-panel {
+  background: var(--color-surface-container-lowest);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-ambient);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.fb-list-panel__title {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--color-on-surface);
+  margin: 0;
+}
+
+.fb-empty-msg {
+  font-size: 0.875rem;
+  color: var(--color-on-surface-variant);
+  opacity: 0.6;
+  text-align: center;
+  padding: 2rem 0;
+}
+
+/* ── Question block item ────────────────────────────────────────────────────── */
+.fb-block {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-outline-variant);
+  background: var(--color-surface-container-low);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.fb-block:hover {
+  border-color: var(--color-primary);
+}
+
+.fb-block--selected {
+  border-color: var(--color-primary);
+  background: var(--color-primary-tint-07);
+}
+
+.fb-block--dragging {
+  opacity: 0.5;
+}
+
+.fb-block__drag {
+  cursor: grab;
+  color: var(--color-on-surface-variant);
+  opacity: 0.4;
+  flex-shrink: 0;
+}
+
+.fb-block__drag:active {
+  cursor: grabbing;
+}
+
+.fb-block__icon {
+  flex-shrink: 0;
+  color: var(--color-on-surface-variant);
+}
+
+.fb-block__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.fb-block__label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-on-surface);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fb-block__type {
+  font-size: 0.6875rem;
+  color: var(--color-on-surface-variant);
+  opacity: 0.65;
+  margin: 0;
+}
+
+.fb-block__delete {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-on-surface-variant);
+  opacity: 0.4;
+  padding: 0.25rem;
+  border-radius: var(--radius-md);
+  transition: opacity 0.15s ease, color 0.15s ease;
+  flex-shrink: 0;
+}
+
+.fb-block__delete:hover {
+  opacity: 1;
+  color: var(--color-error);
+}
+
+/* ── Block type palette ─────────────────────────────────────────────────────── */
+.fb-palette {
+  border-top: 1px solid var(--color-divider);
+  padding-top: 1rem;
+}
+
+.fb-palette__title {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--color-on-surface-variant);
+  opacity: 0.65;
+  margin: 0 0 0.75rem 0;
+}
+
+.fb-palette__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+.fb-palette__btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.625rem 0.25rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-outline-variant);
+  background: none;
+  color: var(--color-on-surface-variant);
+  cursor: pointer;
+  font-family: var(--font-family);
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-align: center;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.fb-palette__btn:hover {
+  background: var(--color-surface-container-low);
+  color: var(--color-on-surface);
+}
+
+/* ── Config panel ───────────────────────────────────────────────────────────── */
+.fb-config-panel {
+  background: var(--color-surface-container-lowest);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-ambient);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  position: sticky;
+  top: 1rem;
+}
+
+.fb-config-panel__title {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--color-on-surface);
+  margin: 0;
+}
+
+.fb-config-panel__idle {
+  font-size: 0.875rem;
+  color: var(--color-on-surface-variant);
+  opacity: 0.55;
+  text-align: center;
+  padding: 2rem 0;
+}
+
+.fb-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.fb-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-on-surface);
+}
+
+.fb-input,
+.fb-textarea {
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-outline-variant);
+  background: var(--color-surface-container-low);
+  color: var(--color-on-surface);
+  font-size: 0.9375rem;
+  font-family: var(--font-family);
+  outline: none;
+  transition: border-color 0.15s ease;
+  box-sizing: border-box;
+}
+
+.fb-input:focus,
+.fb-textarea:focus {
+  border-color: var(--color-primary);
+}
+
+.fb-textarea {
+  resize: vertical;
+  min-height: 4rem;
+}
+
+/* ── Required toggle ────────────────────────────────────────────────────────── */
+.fb-required-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.fb-required-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-on-surface);
+}
+
+.fb-toggle {
+  position: relative;
+  width: 2.5rem;
+  height: 1.375rem;
+  flex-shrink: 0;
+}
+
+.fb-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+.fb-toggle__track {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-full);
+  background: var(--color-surface-container-high);
+  transition: background 0.2s ease;
+  cursor: pointer;
+}
+
+.fb-toggle input:checked + .fb-toggle__track {
+  background: var(--color-primary);
+}
+
+.fb-toggle__thumb {
+  position: absolute;
+  top: 0.1875rem;
+  left: 0.1875rem;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  background: white;
+  transition: transform 0.2s ease;
+  pointer-events: none;
+}
+
+.fb-toggle input:checked ~ .fb-toggle__thumb {
+  transform: translateX(1.125rem);
+}
+
+/* ── Options list (choice type) ─────────────────────────────────────────────── */
+.fb-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.fb-option-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.fb-option-input {
+  flex: 1;
+  padding: 0.4375rem 0.75rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-outline-variant);
+  background: var(--color-surface-container-low);
+  color: var(--color-on-surface);
+  font-size: 0.875rem;
+  font-family: var(--font-family);
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.fb-option-input:focus {
+  border-color: var(--color-primary);
+}
+
+.fb-option-del {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-on-surface-variant);
+  opacity: 0.45;
+  padding: 0.25rem;
+  transition: opacity 0.15s ease, color 0.15s ease;
+}
+
+.fb-option-del:hover {
+  opacity: 1;
+  color: var(--color-error);
+}
+
+.fb-add-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-family);
+  padding: 0;
+  transition: opacity 0.15s ease;
+}
+
+.fb-add-option:hover {
+  opacity: 0.75;
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────────── */
+@media (max-width: 1100px) {
+  .fb-layout {
+    grid-template-columns: 1fr 300px;
+  }
+}
+
+@media (max-width: 767px) {
+  .fb-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .fb-config-panel {
+    position: static;
+  }
+
+  .fb-palette__grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}

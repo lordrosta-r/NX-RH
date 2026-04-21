@@ -14,7 +14,12 @@ import NotFound from './pages/_placeholders/NotFound'
 import EvaluationSummary from './pages/evaluation/EvaluationSummary'
 import EvaluationForm    from './pages/evaluation/EvaluationForm'
 import EvaluationSign    from './pages/evaluation/EvaluationSign'
-import HR from './pages/hr/HR'
+import HR              from './pages/hr/HR'
+import HRCampaigns      from './pages/hr/HRCampaigns'
+import HRCampaignNew    from './pages/hr/HRCampaignNew'
+import HRCampaignDetail from './pages/hr/HRCampaignDetail'
+import HRTemplates      from './pages/hr/HRTemplates'
+import FormBuilder      from './pages/formeditor/FormBuilder'
 import Employee from './pages/employee/Employee'
 import Login from './pages/login/Login'
 import HRDirectory     from './pages/hr/HRDirectory'
@@ -91,11 +96,11 @@ export default function App() {
         {/* HR */}
         <Route element={<ProtectedRoute allowedRoles={HR_UP} />}>
           <Route path="/hr"                              element={<HR />} />
-          <Route path="/hr/campaigns"                    element={<PagePlaceholder role="RH" title="Campagnes" />} />
-          <Route path="/hr/campaigns/new"                element={<PagePlaceholder role="RH" title="Nouvelle campagne" />} />
-          <Route path="/hr/campaigns/:id"                element={<PagePlaceholder role="RH" title="Détail de la campagne" />} />
-          <Route path="/hr/templates"                    element={<PagePlaceholder role="RH" title="Modèles de formulaires" />} />
-          <Route path="/hr/templates/:id/builder"        element={<PagePlaceholder role="RH" title="Éditeur de formulaire" />} />
+          <Route path="/hr/campaigns"                    element={<HRCampaigns />} />
+          <Route path="/hr/campaigns/new"                element={<HRCampaignNew />} />
+          <Route path="/hr/campaigns/:id"                element={<HRCampaignDetail />} />
+          <Route path="/hr/templates"                    element={<HRTemplates />} />
+          <Route path="/hr/templates/:id/builder"        element={<FormBuilder />} />
           <Route path="/hr/directory"                    element={<HRDirectory />} />
           <Route path="/hr/requests"                     element={<HRRequests />} />
           <Route path="/hr/analytics"                    element={<HRAnalytics />} />

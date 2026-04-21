@@ -1,11 +1,12 @@
-import { useState }       from 'react'
-import MosaicBackground   from './MosaicBackground'
-import LoginControls      from './LoginControls'
-import InputField         from '../../components/ui/InputField'
-import Checkbox           from '../../components/ui/Checkbox'
-import { t as pageT }     from './i18n'
-import { useLocale }      from '../../hooks/useLocale'
-import { useTheme }       from '../../hooks/useTheme'
+import { useState }                          from 'react'
+import { useNavigate }                       from 'react-router-dom'
+import MosaicBackground                      from './MosaicBackground'
+import LoginControls                         from './LoginControls'
+import InputField                            from '../../components/ui/InputField'
+import Checkbox                              from '../../components/ui/Checkbox'
+import { t as pageT }                        from './i18n'
+import { useLocaleCtx, useTranslate }        from '../../contexts/LocaleContext'
+import { useAuth }                           from '../../contexts/AuthContext'
 import './login.css'
 
 // =============================================================================
@@ -14,12 +15,23 @@ import './login.css'
 // Les composants partagés (InputField, Checkbox…) viennent de components/ui/.
 // =============================================================================
 
-// Basic email check — server does full validation
+// Vérification basique d'email — le serveur fait la validation complète
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
+// Table de correspondance rôle → route d'accueil
+const ROLE_HOME = {
+  admin:    '/admin',
+  hr:       '/hr',
+  director: '/manager',
+  manager:  '/manager',
+  employee: '/employee',
+}
+
 export default function Login() {
-  const { t, locale, setLocale } = useLocale(pageT)
-  useTheme()
+  const { locale, setLocale }  = useLocaleCtx()
+  const t                      = useTranslate(pageT)
+  const { refreshUser }        = useAuth()
+  const navigate               = useNavigate()
 
   const [email,    setEmail]    = useState('')
   const [password, setPassword] = useState('')
@@ -55,16 +67,10 @@ export default function Login() {
         setLoading(false)
         return
       }
-      // Auth is handled by the HttpOnly cookie set by the server.
-      // No token or user data stored client-side (sessionStorage is XSS-vulnerable).
-      const ROLE_HOME = {
-        admin:    '/admin',
-        hr:       '/hr',
-        director: '/manager',
-        manager:  '/manager',
-        employee: '/employee',
-      }
-      window.location.href = ROLE_HOME[data.user.role] ?? '/employee'
+      // Le cookie HttpOnly est posé par le serveur.
+      // On rafraîchit le contexte Auth puis on navigue via React Router.
+      await refreshUser()
+      navigate(ROLE_HOME[data.user.role] ?? '/employee', { replace: true })
     } catch {
       setError(t('login.error.network'))
     } finally {
@@ -75,7 +81,7 @@ export default function Login() {
   return (
     <div className="login-page">
 
-      {/* Skip link — keyboard a11y */}
+      {/* Skip link — accessibilité clavier */}
       <a href="#main-content" className="skip-link">
         {t('login.a11y.skip')}
       </a>
@@ -149,6 +155,7 @@ export default function Login() {
               <span className="login-legal-link">{t('login.legal.link')}</span>
               {' '}{t('login.legal.suffix')}
             </p>
+            {/* Lien externe (mailto) — reste en <a href> */}
             <a href="mailto:admin@nanoxplore.com" className="login-contact">
               {t('login.contact.admin')}
             </a>
@@ -156,8 +163,6 @@ export default function Login() {
         </div>
 
         <footer className="login-page-footer">{t('login.copyright')}</footer>
-
-
 
       </main>
 
@@ -175,3 +180,4 @@ export default function Login() {
     </div>
   )
 }
+

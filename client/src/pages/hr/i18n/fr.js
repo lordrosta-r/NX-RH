@@ -134,4 +134,21 @@ export default {
   'hr.event.type':        'Type',
   'hr.event.cancel':      'Annuler',
   'hr.event.save':        'Enregistrer',
+  // Score culture (SPA)
+  'hr.kpi.culture.label': 'Score culture',
+  'hr.kpi.culture.sub':   'eNPS de l\'organisation',
+
+  // Activité récente (SPA)
+  'hr.activity.title':           'Dernières actions',
+  'hr.activity.viewall':         'Voir toutes',
+  'hr.activity.empty':           'Aucune activité récente',
+  'hr.activity.col.employee':    'Collaborateur',
+  'hr.activity.col.campaign':    'Campagne',
+  'hr.activity.col.status':      'Statut',
+  'hr.activity.col.date':        'Date',
+
+  // Hero (SPA)
+  'hr.hero.eyebrow': 'Tableau de bord',
+  'hr.hero.sub':     'Campagnes, complétion et suivi des entretiens en temps réel.',
 }
+

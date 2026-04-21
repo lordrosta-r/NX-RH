@@ -134,4 +134,21 @@ export default {
   'hr.event.type':        'Type',
   'hr.event.cancel':      'Cancel',
   'hr.event.save':        'Save',
+  // Culture score (SPA)
+  'hr.kpi.culture.label': 'Culture Score',
+  'hr.kpi.culture.sub':   'org eNPS',
+
+  // Recent activity (SPA)
+  'hr.activity.title':           'Recent Activity',
+  'hr.activity.viewall':         'View all',
+  'hr.activity.empty':           'No recent activity',
+  'hr.activity.col.employee':    'Employee',
+  'hr.activity.col.campaign':    'Campaign',
+  'hr.activity.col.status':      'Status',
+  'hr.activity.col.date':        'Date',
+
+  // Hero (SPA)
+  'hr.hero.eyebrow': 'Dashboard',
+  'hr.hero.sub':     'Campaigns, completion rate and interview tracking in real time.',
 }
+

@@ -26,6 +26,7 @@
 | `loading` | `boolean` | `true` pendant le fetch initial |
 | `error` | `string \| null` | Message d'erreur éventuel |
 | `logout()` | `() => void` | POST `/api/auth/logout`, vide sessionStorage, redirige vers `/login` |
+| `refreshUser()` | `() => Promise<void>` | Re-fetch `/api/auth/me` et met à jour `user` (utilisé après login) |
 
 ### `useThemeCtx()` — depuis `ThemeContext.jsx`
 

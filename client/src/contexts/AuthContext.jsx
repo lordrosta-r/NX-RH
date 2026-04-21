@@ -46,6 +46,21 @@ export function AuthProvider({ children }) {
     }
   }, [])
 
+  // Rafraîchit l'état user en re-fetchant /api/auth/me (utilisé après login)
+  const refreshUser = useCallback(async () => {
+    try {
+      const res = await fetch('/api/auth/me', { credentials: 'include' })
+      if (res.ok) {
+        const data = await res.json()
+        setUser(data)
+      } else {
+        setUser(null)
+      }
+    } catch {
+      // Silencieux — l'état reste inchangé
+    }
+  }, [])
+
   // Logout: POST then hard-redirect (will switch to navigate later)
   const logout = useCallback(async () => {
     try {
@@ -61,7 +76,7 @@ export function AuthProvider({ children }) {
   }, [])
 
   return (
-    <AuthContext.Provider value={{ user, loading, error, logout }}>
+    <AuthContext.Provider value={{ user, loading, error, logout, refreshUser }}>
       {children}
     </AuthContext.Provider>
   )

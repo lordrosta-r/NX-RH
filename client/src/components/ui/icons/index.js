@@ -29,6 +29,8 @@ export { default as PaletteIcon      } from './PaletteIcon'
 // ── Inner app — HR / shared ───────────────────────────────────────────────────
 export { default as DocumentIcon     } from './DocumentIcon'
 export { default as FolderIcon       } from './FolderIcon'
+export { default as UsersIcon        } from './UsersIcon'
+export { default as CheckCircleIcon  } from './CheckCircleIcon'
 
 // ── Inner app — Form Editor ───────────────────────────────────────────────────
 export { default as PlusIcon         } from './PlusIcon'

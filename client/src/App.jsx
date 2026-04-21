@@ -81,11 +81,11 @@ export default function App() {
 
         {/* Manager */}
         <Route element={<ProtectedRoute allowedRoles={MANAGER_UP} />}>
-          <Route path="/manager"                  element={<PagePlaceholder role="manager" title="Tableau de bord équipe" />} />
-          <Route path="/manager/team"             element={<PagePlaceholder role="manager" title="Mon équipe" />} />
-          <Route path="/manager/team/:userId"     element={<PagePlaceholder role="manager" title="Fiche collaborateur" />} />
-          <Route path="/manager/review/:evalId"   element={<PagePlaceholder role="manager" title="Conduite d’évaluation" />} />
-          <Route path="/manager/history"          element={<PagePlaceholder role="manager" title="Historique des évaluations" />} />
+          <Route path="/manager"                  element={<Manager />} />
+          <Route path="/manager/team"             element={<ManagerTeam />} />
+          <Route path="/manager/team/:userId"     element={<ManagerTeamMember />} />
+          <Route path="/manager/review/:evalId"   element={<ManagerReview />} />
+          <Route path="/manager/history"          element={<ManagerHistory />} />
           <Route path="/manager/analytics"        element={<PagePlaceholder role="manager" title="Analyses d’équipe" />} />
         </Route>
 

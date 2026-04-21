@@ -6,6 +6,7 @@
 // =============================================================================
 
 import React, { useState, useEffect } from 'react'
+import { NavLink } from 'react-router-dom'
 import './AppSidebar.css'
 
 export default function AppSidebar({
@@ -58,34 +59,58 @@ export default function AppSidebar({
 
         {/* Navigation */}
         <nav className="app-sidebar__nav" aria-label={labelNavigation}>
-          {navItems.map(({ id, Icon, label, active, href = `#${id}`, disabled = false }) => {
-            const content = (
-              <>
-                <Icon size={18} strokeWidth={active ? 2 : 1.5} />
-                <span>{label}</span>
-              </>
-            )
-            const cls = `app-sidebar__item${active ? ' app-sidebar__item--active' : ''}${disabled ? ' app-sidebar__item--disabled' : ''}`
-            return disabled ? (
-              <span
-                key={id}
-                className={cls}
-                aria-disabled="true"
-                role="link"
-                tabIndex={0}
-                title={labelComingSoon}
-              >
-                {content}
-              </span>
-            ) : (
+          {navItems.map(({ id, Icon, label, active, to, href, disabled = false, end = false }) => {
+            // Disabled: render a span (no navigation)
+            if (disabled) {
+              return (
+                <span
+                  key={id}
+                  className="app-sidebar__item app-sidebar__item--disabled"
+                  aria-disabled="true"
+                  role="link"
+                  tabIndex={0}
+                  title={labelComingSoon}
+                >
+                  <Icon size={18} strokeWidth={1.5} />
+                  <span>{label}</span>
+                </span>
+              )
+            }
+
+            // Router NavLink (preferred) — `to` prop
+            if (to) {
+              return (
+                <NavLink
+                  key={id}
+                  to={to}
+                  end={end}
+                  onClick={() => setOpen(false)}
+                  className={({ isActive }) =>
+                    `app-sidebar__item${isActive ? ' app-sidebar__item--active' : ''}`
+                  }
+                >
+                  {({ isActive }) => (
+                    <>
+                      <Icon size={18} strokeWidth={isActive ? 2 : 1.5} />
+                      <span>{label}</span>
+                    </>
+                  )}
+                </NavLink>
+              )
+            }
+
+            // Legacy: raw href + manual `active` flag
+            const cls = `app-sidebar__item${active ? ' app-sidebar__item--active' : ''}`
+            return (
               <a
                 key={id}
-                href={href}
+                href={href ?? `#${id}`}
                 className={cls}
                 aria-current={active ? 'page' : undefined}
                 onClick={() => setOpen(false)}
               >
-                {content}
+                <Icon size={18} strokeWidth={active ? 2 : 1.5} />
+                <span>{label}</span>
               </a>
             )
           })}

@@ -27,9 +27,8 @@ GET /api/*         → handlers Express (inchangés)
 ```
 /login                        ← public, LoginPage
 /                             ← ProtectedRoute → AuthedLayout
-  /employee                   ← rôles : employee | manager | director | hr | admin
-  /manager                    ← rôles : manager | director | admin
-  /director                   ← rôles : director | admin
+  /employee                   ← rôles : employee | manager | hr | admin
+  /manager                    ← rôles : manager | admin
   /hr                         ← rôles : hr | admin
     /hr/campaigns
     /hr/formeditor
@@ -39,6 +38,13 @@ GET /api/*         → handlers Express (inchangés)
   /settings                   ← tous les rôles authentifiés
   /evaluation                 ← tous les rôles authentifiés
 ```
+
+### Simplification des rôles
+
+- Le rôle produit `director` n'existe plus.
+- Un manager peut superviser d'autres managers via la hiérarchie sans portail ni UX dédiés.
+- Toute supervision multi-équipes doit être absorbée par `/manager`, pas par une route ou une page séparée.
+- Si des comptes legacy `director` existent encore côté backend, ils doivent être traités comme des managers pendant la transition, mais ils ne doivent plus influencer l'architecture cible ni les nouveaux designs.
 
 ---
 

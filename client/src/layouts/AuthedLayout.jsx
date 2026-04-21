@@ -9,27 +9,35 @@ import { useAuth } from '../contexts/AuthContext'
 import { useThemeCtx } from '../contexts/ThemeContext'
 import { useLocaleCtx } from '../contexts/LocaleContext'
 import AppTopbar from '../components/ui/AppTopbar'
-import LogoImg from '../components/ui/icons/images.png'
+import AppSidebar from '../components/ui/AppSidebar'
+import { getNavItemsForRole, getBrandSubForRole } from '../components/layout/navConfig'
 
 export default function AuthedLayout() {
   const { user, logout } = useAuth()
   const { theme, cycleTheme } = useThemeCtx()
   const { locale, setLocale } = useLocaleCtx()
 
+  const role = user?.role
+  const navItems = getNavItemsForRole(role)
+  const brandSub = getBrandSubForRole(role)
+
   return (
-    <div className="page">
-      <AppTopbar
-        brand={<img src={LogoImg} alt="NanoXplore" style={{ height: 28 }} />}
-        locale={locale}
-        setLocale={setLocale}
-        theme={theme}
-        cycleTheme={cycleTheme}
-        user={user}
-        onLogout={logout}
-      />
-      <main className="content">
-        <Outlet />
-      </main>
+    <div className="db">
+      <AppSidebar brandSub={brandSub} navItems={navItems} />
+
+      <div className="db-main">
+        <AppTopbar
+          locale={locale}
+          setLocale={setLocale}
+          theme={theme}
+          cycleTheme={cycleTheme}
+          user={user}
+          onLogout={logout}
+        />
+        <main className="db-content">
+          <Outlet />
+        </main>
+      </div>
     </div>
   )
 }

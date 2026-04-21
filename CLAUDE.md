@@ -22,21 +22,56 @@ GET /*             → index.html  (SPA — React Router gère toutes les routes
 GET /api/*         → handlers Express (inchangés)
 ```
 
-### Arbre de routes (React Router v7)
+### Arbre de routes (React Router v7) — 38 routes
 
 ```
-/login                        ← public, LoginPage
-/                             ← ProtectedRoute → AuthedLayout
-  /employee                   ← rôles : employee | manager | hr | admin
-  /manager                    ← rôles : manager | admin
-  /hr                         ← rôles : hr | admin
-    /hr/campaigns
-    /hr/formeditor
-    /hr/resources
-    /hr/users
-  /admin                      ← rôle : admin uniquement
-  /settings                   ← tous les rôles authentifiés
-  /evaluation                 ← tous les rôles authentifiés
+/login                             ← public, LoginPage
+/                                  ← redirect → /employee
+/unauthorized                      ← public, page d'accès refusé
+
+/employee                          ← rôles : employee | manager | hr | admin
+/employee/goals
+/employee/history
+/employee/settings
+
+/evaluation/:evalId                ← tous les rôles authentifiés
+/evaluation/:evalId/self
+/evaluation/:evalId/n-1
+/evaluation/:evalId/objectives
+/evaluation/:evalId/aspirations
+/evaluation/:evalId/sign
+
+/manager                           ← rôles : manager | hr | admin
+/manager/team
+/manager/team/:userId
+/manager/review/:evalId
+/manager/history
+/manager/analytics
+
+/director  →  redirect /manager   ← rôle supprimé, compat legacy
+
+/hr                                ← rôles : hr | admin
+/hr/campaigns
+/hr/campaigns/new
+/hr/campaigns/:id
+/hr/templates
+/hr/templates/:id/builder
+/hr/directory
+/hr/requests
+/hr/analytics
+/hr/resources
+/hr/settings
+
+/admin                             ← rôle : admin uniquement
+/admin/users
+/admin/org-chart
+/admin/roles
+/admin/integrations
+/admin/communications
+/admin/compliance
+/admin/security
+/admin/sandbox
+/admin/settings
 ```
 
 ### Simplification des rôles

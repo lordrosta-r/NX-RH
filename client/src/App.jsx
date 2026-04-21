@@ -1,6 +1,7 @@
 // ============================================================
 // App.jsx — SPA route tree (38 routes — full target cartography)
 // Pages migrees : /login (Phase 4), /employee (Phase 4), /hr (Phase 4)
+//                 /admin/* (Phase 5 — 10 pages)
 // Pages non migrees : renvoient <PagePlaceholder>.
 // ============================================================
 
@@ -16,6 +17,29 @@ import EvaluationSign    from './pages/evaluation/EvaluationSign'
 import HR from './pages/hr/HR'
 import Employee from './pages/employee/Employee'
 import Login from './pages/login/Login'
+import HRDirectory     from './pages/hr/HRDirectory'
+import HRRequests      from './pages/hr/HRRequests'
+import HRAnalytics     from './pages/hr/HRAnalytics'
+import HRResources     from './pages/hr/HRResources'
+import HRSettings      from './pages/hr/HRSettings'
+import EmployeeGoals   from './pages/employee/EmployeeGoals'
+import EmployeeHistory from './pages/employee/EmployeeHistory'
+import Settings        from './pages/settings/Settings'
+import Manager           from './pages/manager/Manager'
+import ManagerTeam       from './pages/manager/ManagerTeam'
+import ManagerTeamMember from './pages/manager/ManagerTeamMember'
+import ManagerReview     from './pages/manager/ManagerReview'
+import ManagerHistory    from './pages/manager/ManagerHistory'
+import Admin               from './pages/admin/Admin'
+import AdminUsers          from './pages/admin/AdminUsers'
+import AdminOrgChart       from './pages/admin/AdminOrgChart'
+import AdminRoles          from './pages/admin/AdminRoles'
+import AdminIntegrations   from './pages/admin/AdminIntegrations'
+import AdminCommunications from './pages/admin/AdminCommunications'
+import AdminCompliance     from './pages/admin/AdminCompliance'
+import AdminSecurity       from './pages/admin/AdminSecurity'
+import AdminSandbox        from './pages/admin/AdminSandbox'
+import AdminSettings       from './pages/admin/AdminSettings'
 
 const ANY_AUTHED = ['employee', 'manager', 'director', 'hr', 'admin']
 const MANAGER_UP = ['manager', 'director', 'hr', 'admin']
@@ -35,9 +59,9 @@ export default function App() {
         {/* Employee — accessible à tous les rôles authentifiés */}
         <Route element={<ProtectedRoute allowedRoles={ANY_AUTHED} />}>
           <Route path="/employee"          element={<Employee />} />
-          <Route path="/employee/goals"    element={<PagePlaceholder role="collaborateur" title="Mes objectifs" />} />
-          <Route path="/employee/history"  element={<PagePlaceholder role="collaborateur" title="Historique des évaluations" />} />
-          <Route path="/employee/settings" element={<PagePlaceholder role="collaborateur" title="Préférences" />} />
+          <Route path="/employee/goals"    element={<EmployeeGoals />} />
+          <Route path="/employee/history"  element={<EmployeeHistory />} />
+          <Route path="/employee/settings" element={<Settings />} />
         </Route>
 
         {/* Évaluation — accessible à tous (manager via /manager/review) */}
@@ -72,26 +96,26 @@ export default function App() {
           <Route path="/hr/campaigns/:id"                element={<PagePlaceholder role="RH" title="Détail de la campagne" />} />
           <Route path="/hr/templates"                    element={<PagePlaceholder role="RH" title="Modèles de formulaires" />} />
           <Route path="/hr/templates/:id/builder"        element={<PagePlaceholder role="RH" title="Éditeur de formulaire" />} />
-          <Route path="/hr/directory"                    element={<PagePlaceholder role="RH" title="Annuaire" />} />
-          <Route path="/hr/requests"                     element={<PagePlaceholder role="RH" title="Demandes & contestations" />} />
-          <Route path="/hr/analytics"                    element={<PagePlaceholder role="RH" title="Analyses RH" />} />
-          <Route path="/hr/resources"                    element={<PagePlaceholder role="RH" title="Ressources" />} />
-          <Route path="/hr/settings"                     element={<PagePlaceholder role="RH" title="Préférences RH" />} />
+          <Route path="/hr/directory"                    element={<HRDirectory />} />
+          <Route path="/hr/requests"                     element={<HRRequests />} />
+          <Route path="/hr/analytics"                    element={<HRAnalytics />} />
+          <Route path="/hr/resources"                    element={<HRResources />} />
+          <Route path="/hr/settings"                     element={<HRSettings />} />
         </Route>
 
         {/* Admin */}
         <Route element={<ProtectedRoute allowedRoles={ADMIN_ONLY} />}>
-          <Route path="/admin"                element={<PagePlaceholder role="admin" title="Tableau de bord administrateur" />} />
-          <Route path="/admin/users"          element={<PagePlaceholder role="admin" title="Utilisateurs" />} />
-          <Route path="/admin/org-chart"      element={<PagePlaceholder role="admin" title="Organigramme" />} />
-          <Route path="/admin/roles"          element={<PagePlaceholder role="admin" title="Rôles & permissions" />} />
-          <Route path="/admin/integrations"   element={<PagePlaceholder role="admin" title="Intégrations (LDAP, SMTP, SSO)" />} />
-          <Route path="/admin/communications" element={<PagePlaceholder role="admin" title="Modèles de communication" />} />
-          <Route path="/admin/compliance"     element={<PagePlaceholder role="admin" title="Conformité & RGPD" />} />
-          <Route path="/admin/security"       element={<PagePlaceholder role="admin" title="Sécurité & audit" />} />
-          <Route path="/admin/sandbox"        element={<PagePlaceholder role="admin" title="Bac à sable" />} />
+          <Route path="/admin"                element={<Admin />} />
+          <Route path="/admin/users"          element={<AdminUsers />} />
+          <Route path="/admin/org-chart"      element={<AdminOrgChart />} />
+          <Route path="/admin/roles"          element={<AdminRoles />} />
+          <Route path="/admin/integrations"   element={<AdminIntegrations />} />
+          <Route path="/admin/communications" element={<AdminCommunications />} />
+          <Route path="/admin/compliance"     element={<AdminCompliance />} />
+          <Route path="/admin/security"       element={<AdminSecurity />} />
+          <Route path="/admin/sandbox"        element={<AdminSandbox />} />
           <Route path="/admin/templates-import" element={<PagePlaceholder role="admin" title="Import de modèles" />} />
-          <Route path="/admin/settings"       element={<PagePlaceholder role="admin" title="Paramètres globaux" />} />
+          <Route path="/admin/settings"       element={<AdminSettings />} />
         </Route>
 
       </Route>

@@ -4,8 +4,8 @@ export default {
   'manager.nav.team': 'My Team',
   'manager.nav.settings': 'Settings',
   // Topbar
-  'manager.search.placeholder': 'Search…',
-  // Welcome
+  'manager.search.placeholder': 'Search...',
+  // Welcome (legacy)
   'manager.welcome.title':       'Manager Dashboard',
   'manager.hero.eyebrow':        'MANAGER WORKSPACE',
   'manager.hero.title_accent':   'My team',
@@ -22,7 +22,7 @@ export default {
   // Actions
   'manager.action.review': 'Mark Reviewed',
   'manager.action.cosign': 'Co-sign',
-  // Status labels
+  // Status labels (legacy)
   'manager.status.assigned': 'Assigned',
   'manager.status.in_progress': 'In Progress',
   'manager.status.submitted': 'Submitted',
@@ -31,9 +31,8 @@ export default {
   'manager.status.signed_manager': 'Signed (Manager)',
   'manager.status.signed_hr': 'Signed (HR)',
   'manager.status.validated': 'Validated',
-  // Loading
-  'manager.loading': 'Loading…',
-  // Error
+  // Loading / Error
+  'manager.loading': 'Loading...',
   'manager.error.load': 'Error loading evaluations',
   'manager.error.update_failed': 'Failed to update evaluation',
   // KPIs
@@ -46,13 +45,76 @@ export default {
   // Sidebar accessibility
   'manager.nav.label':       'Main navigation',
   'manager.nav.coming_soon': 'Coming soon',
-  // Review modal
+  // Review modal (legacy)
   'manager.review.title':              'Review evaluation',
   'manager.review.cosign_title':       'Co-sign evaluation',
   'manager.review.answers':            'Employee answers',
   'manager.review.score':              'Score (0-100)',
   'manager.review.comment':            'Reviewer comment',
-  'manager.review.comment_placeholder':'Add a comment about this evaluation…',
+  'manager.review.comment_placeholder':'Add a comment about this evaluation...',
   'manager.review.cancel':             'Cancel',
   'manager.review.submit':             'Submit review',
+  // Dashboard (new)
+  'manager.hero.title': 'Hello,',
+  'manager.hero.subtitle': 'here is the status of your team',
+  'manager.urgency.title': 'Campaign urgency',
+  'manager.urgency.desc': 'interviews remain to validate before',
+  'manager.team.viewall': 'View full team',
+  // Team
+  'manager.team.title': 'My Team',
+  'manager.team.subtitle': 'Evaluation status of your team',
+  'manager.team.member': 'Team member',
+  'manager.team.role': 'Position',
+  'manager.team.status': 'Eval. status',
+  'manager.team.actions': 'Actions',
+  'manager.team.view': 'View profile',
+  'manager.team.empty': 'No team members found',
+  // Team member
+  'manager.member.back': 'Back to team',
+  'manager.member.objectives': 'Current objectives',
+  'manager.member.history': 'Evaluation history',
+  'manager.member.view_eval': 'View current evaluation',
+  'manager.member.no_eval': 'No current evaluation',
+  'manager.member.no_history': 'No history available',
+  // Review (new)
+  'manager.review.back': 'Back',
+  'manager.review.employee_panel': 'Self-evaluation',
+  'manager.review.manager_panel': 'Manager Notes',
+  'manager.review.n1_section': 'N-1 Review',
+  'manager.review.aspirations': 'Aspirations',
+  'manager.review.objectives': 'Objectives evaluation',
+  'manager.review.objective_rating': 'Rating',
+  'manager.review.objective_comment': 'Comment',
+  'manager.review.global_score': 'Global score (0-100)',
+  'manager.review.synthesis': 'Summary comment',
+  'manager.review.next_objectives': 'N+1 objectives validation',
+  'manager.review.save_draft': 'Save draft',
+  'manager.review.validate_sign': 'Validate & Sign',
+  'manager.review.cosign': 'Co-sign',
+  'manager.review.no_answers': 'No answers available',
+  'manager.review.rating.achieved': 'Achieved',
+  'manager.review.rating.partial': 'Partially achieved',
+  'manager.review.rating.not_achieved': 'Not achieved',
+  // History
+  'manager.history.title': 'History',
+  'manager.history.subtitle': 'Closed evaluations',
+  'manager.history.filter.campaign': 'Campaign',
+  'manager.history.filter.year': 'Year',
+  'manager.history.filter.all': 'All',
+  'manager.history.col.member': 'Team member',
+  'manager.history.col.campaign': 'Campaign',
+  'manager.history.col.date': 'Date',
+  'manager.history.col.score': 'Score',
+  'manager.history.col.status': 'Status',
+  'manager.history.empty': 'No closed evaluations',
+  // Status display
+  'manager.eval_status.not_started': 'Not started',
+  'manager.eval_status.assigned': 'Assigned',
+  'manager.eval_status.in_progress': 'In progress',
+  'manager.eval_status.submitted': 'Submitted — awaiting your action',
+  'manager.eval_status.reviewed': 'Reviewed',
+  'manager.eval_status.signed_evaluatee': 'Signed by evaluatee',
+  'manager.eval_status.signed_manager': 'Validated & Co-signed',
+  'manager.eval_status.signed_hr': 'Signed by HR',
+  'manager.eval_status.validated': 'Validated',
 }

@@ -1,5 +1,5 @@
-import fr from './fr.js'
-import en from './en.js'
-import { makeT } from '../../../i18n/index.js'
+import { makeT } from '../../../i18n'
+import fr from './fr'
+import en from './en'
 
 export const t = makeT({ fr, en })

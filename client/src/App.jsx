@@ -10,6 +10,9 @@ import ProtectedRoute from './layouts/ProtectedRoute'
 import PagePlaceholder from './pages/_placeholders/PagePlaceholder'
 import Unauthorized from './pages/_placeholders/Unauthorized'
 import NotFound from './pages/_placeholders/NotFound'
+import HR from './pages/hr/HR'
+import Employee from './pages/employee/Employee'
+import Login from './pages/login/Login'
 
 const ANY_AUTHED = ['employee', 'manager', 'director', 'hr', 'admin']
 const MANAGER_UP = ['manager', 'director', 'hr', 'admin']
@@ -20,7 +23,7 @@ export default function App() {
   return (
     <Routes>
       {/* ── Public ───────────────────────────────────────── */}
-      <Route path="/login" element={<PagePlaceholder title="Connexion" hint="Migration SPA en cours." />} />
+      <Route path="/login" element={<Login />} />
       <Route path="/unauthorized" element={<Unauthorized />} />
 
       {/* ── Authenticated shell (sidebar + topbar) ──────── */}
@@ -28,7 +31,7 @@ export default function App() {
 
         {/* Employee — accessible à tous les rôles authentifiés */}
         <Route element={<ProtectedRoute allowedRoles={ANY_AUTHED} />}>
-          <Route path="/employee"          element={<PagePlaceholder role="collaborateur" title="Tableau de bord" />} />
+          <Route path="/employee"          element={<Employee />} />
           <Route path="/employee/goals"    element={<PagePlaceholder role="collaborateur" title="Mes objectifs" />} />
           <Route path="/employee/history"  element={<PagePlaceholder role="collaborateur" title="Historique des évaluations" />} />
           <Route path="/employee/settings" element={<PagePlaceholder role="collaborateur" title="Préférences" />} />
@@ -60,7 +63,7 @@ export default function App() {
 
         {/* HR */}
         <Route element={<ProtectedRoute allowedRoles={HR_UP} />}>
-          <Route path="/hr"                              element={<PagePlaceholder role="RH" title="Tableau de bord RH" />} />
+          <Route path="/hr"                              element={<HR />} />
           <Route path="/hr/campaigns"                    element={<PagePlaceholder role="RH" title="Campagnes" />} />
           <Route path="/hr/campaigns/new"                element={<PagePlaceholder role="RH" title="Nouvelle campagne" />} />
           <Route path="/hr/campaigns/:id"                element={<PagePlaceholder role="RH" title="Détail de la campagne" />} />

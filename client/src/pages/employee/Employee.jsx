@@ -1,73 +1,325 @@
 // =============================================================================
-// Employee — Shell mini-SPA du portail Employee
-// Routes (React Router, basename implicite /employee via BrowserRouter) :
-//   /employee              → EmployeeOverview
-//   /employee/evaluation   → Evaluation (embedded)
-//   /employee/settings     → Settings (embedded)
+// Employee — Page tableau de bord collaborateur (/employee)
 //
-// Pas de sidebar : la navigation est intégrée dans le topbar (AppTopbarNav).
+// Composant racine de la route /employee.
+// Le topbar et la sidebar proviennent de <AuthedLayout> (App.jsx).
+// Ce composant ne gère que le contenu de la page.
+//
+// Données chargées :
+//   - /api/campaigns?status=active   → campagne active
+//   - /api/evaluations?evaluateeId=  → évaluations assignées
+//   - /api/events                    → événements calendrier
+//   - /api/resources                 → ressources publiées
 // =============================================================================
 
-import React, { useState } from 'react'
-import { Routes, Route, useLocation } from 'react-router-dom'
+import React, { useEffect } from 'react'
+import { useNavigate }          from 'react-router-dom'
+import { useQuery }             from '@tanstack/react-query'
+import { useAuth }              from '../../contexts/AuthContext'
+import { useTranslate, useLocaleCtx } from '../../contexts/LocaleContext'
+import { t as pageT }           from './i18n'
+import CampaignBanner           from './CampaignBanner'
+import CalendarWidget           from '../../components/ui/CalendarWidget'
+import {
+  ArrowNEIcon,
+  SparklesIcon,
+  HeartIcon,
+  ChevronRightIcon,
+} from '../../components/ui/icons'
 import './employee.css'
-import LogoImg          from '../../components/ui/icons/images.png'
-import EmployeeOverview from './EmployeeOverview'
-import Evaluation       from '../evaluation/Evaluation'
-import Settings         from '../settings/Settings'
-import AppTopbar        from '../../components/ui/AppTopbar'
-import AppTopbarNav     from '../../components/ui/AppTopbarNav'
-import { t as pageT }   from './i18n'
-import { useLocale }    from '../../hooks/useLocale'
-import { useTheme }     from '../../hooks/useTheme'
-import { useAuthUser }  from '../../hooks/useAuthUser'
 
+// ── Correspondance type d'événement → token couleur ─────────────────────────
+const EVENT_COLORS = {
+  deadline:  'var(--color-error)',
+  interview: 'var(--color-secondary)',
+  campaign:  'var(--color-primary)',
+  feedback:  'var(--color-tertiary)',
+}
 
+// ── Couleurs de rotation pour les puces de notification ─────────────────────
+const NOTIF_COLORS = [
+  'var(--color-primary)',
+  'var(--color-secondary)',
+  'var(--color-tertiary)',
+  'var(--color-secondary-container)',
+]
+
+// URL de la photo spotlight (fallback vers le dégradé CSS si absente)
+const SPOTLIGHT_IMG = '/assets/spotlight.jpg'
+
+// =============================================================================
 export default function Employee() {
-  const { t, locale, setLocale } = useLocale(pageT)
-  const { theme, cycleTheme }    = useTheme()
-  const { user, loading: authLoading } = useAuthUser()
-  const { pathname }             = useLocation()
-  const [notifItems, setNotifItems] = useState([])
+  const { user }        = useAuth()
+  const { locale }      = useLocaleCtx()
+  const t               = useTranslate(pageT)
+  const navigate        = useNavigate()
 
-  if (authLoading) return null
-  if (!user)       return null
+  // ── Campagne active ────────────────────────────────────────────────────────
+  const { data: campaign = null, isLoading: campaignLoading, isError: campaignError } = useQuery({
+    queryKey: ['campaign-active'],
+    queryFn:  () =>
+      fetch('/api/campaigns?status=active', { credentials: 'include' })
+        .then(r => { if (!r.ok) throw new Error(r.statusText); return r.json() })
+        .then(j => { const l = j.data ?? j; return (Array.isArray(l) ? l[0] : l) ?? null }),
+    staleTime: 5 * 60 * 1000,
+    enabled: !!user,
+  })
 
-  async function handleLogout() {
-    try { await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }) } catch { /* ignore */ }
-    sessionStorage.clear()
-    window.location.href = '/'
-  }
+  // ── Évaluations de l'utilisateur courant ──────────────────────────────────
+  const { data: evaluations = [], isLoading: evalsLoading, isError: evalsError } = useQuery({
+    queryKey: ['evaluations-me', user?._id],
+    queryFn:  () =>
+      fetch(`/api/evaluations?evaluateeId=${user._id}&status=assigned`, { credentials: 'include' })
+        .then(r => { if (!r.ok) throw new Error(r.statusText); return r.json() })
+        .then(j => j.data ?? j),
+    staleTime: 5 * 60 * 1000,
+    enabled: !!user,
+  })
 
-  // pathname est l'URL complète (/employee, /employee/evaluation…)
-  const navItems = [
-    { id: 'overview',   href: '/employee',            label: t('employee.nav.overview'),   active: pathname === '/employee' },
-    { id: 'evaluation', href: '/employee/evaluation', label: t('employee.nav.evaluation'), active: pathname.startsWith('/employee/evaluation') },
-    { id: 'settings',   href: '/employee/settings',   label: t('employee.nav.settings'),   active: pathname.startsWith('/employee/settings') },
-  ]
+  // ── Événements calendrier ─────────────────────────────────────────────────
+  const { data: events = [], isLoading: eventsLoading, isError: eventsError } = useQuery({
+    queryKey: ['events'],
+    queryFn:  () =>
+      fetch('/api/events', { credentials: 'include' })
+        .then(r => { if (!r.ok) throw new Error(r.statusText); return r.json() })
+        .then(j => j.data ?? j),
+    staleTime: 5 * 60 * 1000,
+    enabled: !!user,
+  })
+
+  // ── Ressources publiées (3 premières) ─────────────────────────────────────
+  const { data: resources = [] } = useQuery({
+    queryKey: ['resources-published'],
+    queryFn:  () =>
+      fetch('/api/resources', { credentials: 'include' })
+        .then(r => r.ok ? r.json() : [])
+        .then(d => (Array.isArray(d) ? d : (d.data ?? []))
+          .filter(r => r.status === 'published').slice(0, 3)),
+    staleTime: 5 * 60 * 1000,
+    enabled: !!user,
+  })
+
+  // ── Statistiques dérivées ─────────────────────────────────────────────────
+  const pending   = evaluations.filter(e => ['assigned', 'in_progress'].includes(e.status)).length
+  const completed = evaluations.filter(e => !['assigned', 'in_progress'].includes(e.status)).length
+  const stats = { total: evaluations.length, pending, completed }
+
+  // ── Notifications dérivées des évaluations ────────────────────────────────
+  const notifItems = evaluations.map((ev, i) => ({
+    id:    ev._id ?? i,
+    color: NOTIF_COLORS[i % NOTIF_COLORS.length],
+    text:  ev.title ?? ev.campaignName ?? t('dashboard.notif.pending_eval'),
+    meta:  ev.createdAt
+      ? new Date(ev.createdAt).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US')
+      : '',
+  }))
+
+  // ── Événements pour le calendrier ─────────────────────────────────────────
+  const calendarEvents = events.map(ev => ({
+    date:      ev.date,
+    type:      ev.type ?? 'campaign',
+    label:     ev.title ?? ev.label ?? '',
+    typeLabel: t(`dashboard.calendar.type.${ev.type}`) ?? ev.type ?? '',
+    color:     EVENT_COLORS[ev.type] ?? 'var(--color-primary)',
+  }))
+
+  const firstName = user?.firstName ?? ''
 
   return (
-    <div className="emp">
-      <AppTopbar
-        brand={<img src={LogoImg} alt="NanoXplore" />}
-        nav={<AppTopbarNav items={navItems} />}
-        locale={locale} setLocale={setLocale}
-        theme={theme} cycleTheme={cycleTheme}
-        notifItems={pathname === '/employee' ? notifItems : []}
-        user={user} onLogout={handleLogout}
-      />
+    <>
+      {/* ── Bannière hero ─────────────────────────────────────────────────── */}
+      <div className="db-banner-wrap">
+        <CampaignBanner
+          t={t}
+          campaign={campaign}
+          loading={campaignLoading}
+          error={campaignError}
+          userName={firstName || 'vous'}
+          onNavigate={() => navigate('/employee/evaluation')}
+        />
+      </div>
 
-      <Routes>
-        <Route path="/employee" element={
-          <EmployeeOverview
-            t={t} locale={locale} user={user}
-            onNotifItemsChange={setNotifItems}
+      {/* ── Bento grid ────────────────────────────────────────────────────── */}
+      <div className="db-bento">
+
+        {/* Carte : parcours de croissance */}
+        <article
+          className="db-card"
+          role="button"
+          tabIndex={0}
+          onClick={() => navigate('/employee/goals')}
+          onKeyDown={e => e.key === 'Enter' && navigate('/employee/goals')}
+          aria-label={t('dashboard.card.growth.title')}
+        >
+          <div className="db-card__top">
+            <div className="db-card__icon db-card__icon--violet">
+              <SparklesIcon size={18} color="var(--color-secondary)" strokeWidth={1.5} />
+            </div>
+            <span className="db-card__arrow">
+              <ArrowNEIcon size={14} color="var(--color-outline-variant)" />
+            </span>
+          </div>
+          <div>
+            <h3 className="db-card__title">{t('dashboard.card.growth.title')}</h3>
+            <p  className="db-card__text">{t('dashboard.card.growth.body')}</p>
+          </div>
+        </article>
+
+        {/* Carte : retour par les pairs */}
+        <article
+          className="db-card"
+          role="button"
+          tabIndex={0}
+          onClick={() => navigate('/employee/history')}
+          onKeyDown={e => e.key === 'Enter' && navigate('/employee/history')}
+          aria-label={t('dashboard.card.feedback.title')}
+        >
+          <div className="db-card__top">
+            <div className="db-card__icon db-card__icon--red">
+              <HeartIcon size={18} color="var(--color-primary)" strokeWidth={1.5} />
+            </div>
+            <span className="db-card__arrow">
+              <ArrowNEIcon size={14} color="var(--color-outline-variant)" />
+            </span>
+          </div>
+          <div>
+            <h3 className="db-card__title">{t('dashboard.card.feedback.title')}</h3>
+            <p  className="db-card__text">{t('dashboard.card.feedback.body')}</p>
+          </div>
+        </article>
+
+        {/* Centre de notifications (col 3, couvre les 2 lignes) */}
+        <aside className="db-notifs">
+          <div className="db-notifs__header">
+            <h3 className="db-notifs__title">
+              {t('dashboard.notifications.title').toUpperCase()}
+            </h3>
+            {notifItems.length > 0 && (
+              <span className="db-notifs__badge">{notifItems.length}</span>
+            )}
+          </div>
+
+          {evalsLoading ? (
+            <p className="db-status-msg">{t('dashboard.loading')}</p>
+          ) : evalsError ? (
+            <p className="db-status-msg db-status-msg--error">{t('dashboard.error')}</p>
+          ) : notifItems.length === 0 ? (
+            <p className="db-status-msg">{t('dashboard.notif.empty')}</p>
+          ) : (
+            <ul className="db-notifs__list">
+              {notifItems.slice(0, 4).map(({ id, color, text, meta }, idx) => (
+                <li
+                  key={id}
+                  className={`db-notif${idx < notifItems.length - 1 ? ' db-notif--sep' : ''}`}
+                >
+                  <span
+                    className="db-notif__dot"
+                    style={{ background: color }}
+                    aria-hidden="true"
+                  />
+                  <div>
+                    <p className="db-notif__text">{text}</p>
+                    <p className="db-notif__meta">{meta}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {notifItems.length > 0 && (
+            <button
+              type="button"
+              className="db-notifs__viewall"
+              onClick={() => navigate('/employee/history')}
+            >
+              {t('dashboard.notifications.viewall')}
+            </button>
+          )}
+        </aside>
+
+        {/* Statistiques d'évaluations */}
+        <article className="db-stats">
+          <h3 className="db-stats__title">{t('dashboard.stats.title')}</h3>
+          <div className="db-stats__grid">
+            <div className="db-stats__item">
+              <span className="db-stats__value">{stats.total}</span>
+              <span className="db-stats__label">{t('dashboard.stats.total')}</span>
+            </div>
+            <div className="db-stats__item db-stats__item--warning">
+              <span className="db-stats__value">{stats.pending}</span>
+              <span className="db-stats__label">{t('dashboard.stats.pending')}</span>
+            </div>
+            <div className="db-stats__item db-stats__item--success">
+              <span className="db-stats__value">{stats.completed}</span>
+              <span className="db-stats__label">{t('dashboard.stats.completed')}</span>
+            </div>
+          </div>
+          <a
+            href="/employee/evaluation"
+            onClick={e => { e.preventDefault(); navigate('/employee/evaluation') }}
+            className="db-stats__cta"
+            style={stats.pending === 0 ? { visibility: 'hidden' } : undefined}
+          >
+            {t('dashboard.stats.cta')} <ChevronRightIcon size={14} />
+          </a>
+        </article>
+
+        {/* Ressources récentes (masquées si vides) */}
+        {resources.length > 0 && (
+          <aside className="db-resources">
+            <h3 className="db-resources__title">{t('dashboard.resources.title')}</h3>
+            <ul className="db-resources__list">
+              {resources.map(r => (
+                <li key={r._id} className="db-resources__item">
+                  <span className="db-resources__name">{r.title}</span>
+                  <span className="db-resources__type">{r.type.toUpperCase()}</span>
+                </li>
+              ))}
+            </ul>
+          </aside>
+        )}
+
+        {/* Calendrier des échéances */}
+        <div className="db-calendar-wrap">
+          {eventsLoading ? (
+            <p className="db-status-msg">{t('dashboard.loading')}</p>
+          ) : eventsError ? (
+            <p className="db-status-msg db-status-msg--error">{t('dashboard.error')}</p>
+          ) : (
+            <CalendarWidget
+              title={t('dashboard.calendar.title')}
+              events={calendarEvents}
+              locale={locale}
+              labelPrevMonth={t('dashboard.calendar.prev_month')}
+              labelNextMonth={t('dashboard.calendar.next_month')}
+            />
+          )}
+        </div>
+
+        {/* Spotlight équipe — photo avec dégradé en fallback */}
+        <article className="db-spotlight">
+          <img
+            src={SPOTLIGHT_IMG}
+            alt=""
+            loading="lazy"
+            className="db-spotlight__img"
+            aria-hidden="true"
+            onError={e => { e.target.style.display = 'none' }}
           />
-        } />
-        <Route path="/employee/evaluation" element={<Evaluation embedded />} />
-        <Route path="/employee/evaluation/:id" element={<Evaluation embedded />} />
-        <Route path="/employee/settings"   element={<Settings   embedded />} />
-      </Routes>
-    </div>
+          <div className="db-spotlight__bg" aria-hidden="true" />
+          <div className="db-spotlight__overlay">
+            <div className="db-spotlight__kicker">
+              <span className="db-spotlight__line" aria-hidden="true" />
+              <span className="db-spotlight__label">
+                {t('dashboard.spotlight.label').toUpperCase()}
+              </span>
+            </div>
+            <h3 className="db-spotlight__title">{t('dashboard.spotlight.title')}</h3>
+            <p  className="db-spotlight__body">{t('dashboard.spotlight.body')}</p>
+          </div>
+        </article>
+
+      </div>
+    </>
   )
 }

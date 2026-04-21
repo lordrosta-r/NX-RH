@@ -2,66 +2,106 @@
 
 ## Contenu
 
-Ce dossier contient la page principale de l'espace RH (`/hr`) et ses dépendances co-localisées.
+Ce dossier contient la page principale de l'espace RH (`/hr`) et ses sous-pages co-localisées.
 
 | Fichier | Rôle |
 |---|---|
-| `HR.jsx` | Composant route SPA pour `/hr` — tableau de bord RH |
-| `hr.css` | Styles de la page `/hr` (tokens CSS uniquement, jamais de valeurs en dur) |
-| `i18n/` | Traductions fr/en pour la page HR (clés `hr.*`) |
+| `HR.jsx` | Tableau de bord RH — route `/hr` |
+| `hr.css` | Styles de la page `/hr` |
+| `HRDirectory.jsx` | Annuaire de l'entreprise — route `/hr/directory` |
+| `hr-directory.css` | Styles de l'annuaire |
+| `HRRequests.jsx` | Demandes & contestations — route `/hr/requests` |
+| `hr-requests.css` | Styles des demandes |
+| `HRAnalytics.jsx` | Analyses RH (5 dashboards) — route `/hr/analytics` |
+| `hr-analytics.css` | Styles des analyses |
+| `HRResources.jsx` | Bibliothèque ressources RH — route `/hr/resources` |
+| `hr-resources.css` | Styles des ressources |
+| `HRSettings.jsx` | Préférences RH — route `/hr/settings` |
+| `hr-settings.css` | Styles des préférences |
+| `i18n/` | Traductions fr/en (clés `hr.*`, `hrd.*`, `hrr.*`, `hra.*`, `hrres.*`, `hrst.*`) |
 
 ## Architecture
 
-`HR.jsx` est monté via `App.jsx` dans l'arbre React Router :
+Toutes les pages sont montées via `App.jsx` dans l'arbre React Router :
 
 ```
 <ProtectedRoute allowedRoles={['hr', 'admin']}>
-  <Route path="/hr" element={<HR />} />
+  <Route path="/hr"            element={<HR />} />
+  <Route path="/hr/directory"  element={<HRDirectory />} />
+  <Route path="/hr/requests"   element={<HRRequests />} />
+  <Route path="/hr/analytics"  element={<HRAnalytics />} />
+  <Route path="/hr/resources"  element={<HRResources />} />
+  <Route path="/hr/settings"   element={<HRSettings />} />
 </ProtectedRoute>
 ```
 
-Le shell (sidebar + topbar) est fourni par `AuthedLayout` — `HR.jsx` ne contient que le contenu de la page.
+Le shell (sidebar + topbar) est fourni par `AuthedLayout` — aucun de ces fichiers ne contient de shell propre.
 
-## Sections de la page
+## Pages et fonctionnalités
 
-1. **Hero** — eyebrow + titre "Pilotage RH" + sous-titre
-2. **KPI bento** — 6 tuiles (campagnes actives, taux de complétion, alertes, collaborateurs, évaluations, score culture)
-3. **Panneau alertes** — retards, contestations, campagnes sur le point de clore
-4. **Complétion par service** — barres de progression CSS dérivées des évaluations
-5. **Dernières actions** — tableau des évaluations triées par date de mise à jour
+### HR.jsx — Tableau de bord
+KPI bento, alertes, complétion par service, dernières actions.
+
+### HRDirectory.jsx — Annuaire
+- Recherche + filtres locaux (rôle, département) sur données `/api/users`
+- Table avec avatar initiales, nom, email, poste, département, manager, rôle
+- Pagination 50 par page
+- Drawer latéral : profil complet + 3 dernières évaluations (`/api/evaluations?evaluateeId=`)
+
+### HRRequests.jsx — Demandes & Contestations
+- 3 onglets avec badge de comptage
+- Contestations : évaluations `status=contested`, actions optimistes (Traiter/Ignorer/Escalader)
+- Mobilité : filtre sur `answers` contenant "mobili"
+- Augmentations : filtre sur `answers` contenant "augment"
+- Drawer détail par évaluation
+
+### HRAnalytics.jsx — Analyses RH
+5 dashboards avec données de démonstration (mock) :
+1. **Flight Risk Radar** — scatter plot SVG (satisfaction × performance)
+2. **Goal Gap Analysis** — barres CSS empilées par département
+3. **Skills Gap Map** — radar SVG à 6 axes
+4. **Sentiment Heatmap** — grille 52 semaines colorée par score
+5. **Succession Pipeline (9-Box)** — grille CSS 3×3
+
+Filtres désactivés (Period/Dept) et boutons export "À venir".
+TODO: remplacer les mocks par `/api/evaluations` et `/api/users`.
+
+### HRResources.jsx — Bibliothèque ressources
+- Grille de cartes (auto-fill, min 280px)
+- Filtre `status=published` côté client
+- Modal d'ajout (POST `/api/resources`)
+- Bouton "Ouvrir" → lien externe
+
+### HRSettings.jsx — Préférences RH
+- Langue (radio fr/en via `useLocaleCtx`)
+- Notifications (toggles email/push)
+- Densité d'interface (radio compact/normal)
+- PATCH `/api/users/{id}` avec feedback visuel
 
 ## Données (react-query)
 
-| Query key | Endpoint | Usage |
+| Query key | Endpoint | Utilisé dans |
 |---|---|---|
-| `hr-campaigns` | `GET /api/campaigns` | Nombre de campagnes actives, alertes de clôture |
-| `hr-evaluations` | `GET /api/evaluations` | Taux de complétion, stats par service, activité |
-| `hr-employees` | `GET /api/employees` | Nombre total de collaborateurs |
-
-Toutes les queries ont `staleTime: 5min` — pas de refetch automatique sur focus.
-
-## Icônes utilisées
-
-Toutes depuis `components/ui/icons/` :
-- `ClipboardIcon` — campagnes
-- `CheckCircleIcon` — taux de complétion (ajouté lors de la migration SPA)
-- `BellIcon` — alertes
-- `UsersIcon` — collaborateurs (ajouté lors de la migration SPA)
-- `TrendIcon` — évaluations
-- `SparklesIcon` — score culture
+| `hr-campaigns` | `GET /api/campaigns` | HR.jsx |
+| `hr-evaluations` | `GET /api/evaluations` | HR.jsx |
+| `hr-employees` | `GET /api/employees` | HR.jsx |
+| `hr-directory-users` | `GET /api/users` | HRDirectory.jsx |
+| `user-evals-drawer` | `GET /api/evaluations?evaluateeId=` | HRDirectory.jsx drawer |
+| `hr-evaluations-all` | `GET /api/evaluations` | HRRequests.jsx |
+| `hr-resources` | `GET /api/resources` | HRResources.jsx |
 
 ## Historique des décisions
 
-### Phase 4 — Migration SPA (feat/spa-tailwind)
+### Phase 5 — Migration pages HR secondaires
 
-- **Avant** : `HRDashboard.jsx` était une MPA complète avec sidebar propre (`HRSidebar.jsx`), topbar, et son propre shell.
-- **Après** : `HR.jsx` est un composant de contenu pur — le shell est délégué à `AuthedLayout`.
-- Fichiers supprimés : `HRDashboard.jsx`, `HRSidebar.jsx`, `HRWelcomeBanner.jsx`, `HRWelcomeBanner.css`, `main.jsx`.
-- Les icônes `UsersIcon` et `CheckCircleIcon` ont été créées dans `components/ui/icons/`.
+- **Avant** : `/hr/directory`, `/hr/requests`, `/hr/analytics`, `/hr/resources`, `/hr/settings` renvoyaient `<PagePlaceholder>`.
+- **Après** : Chaque route a son composant complet co-localisé dans ce dossier.
+- `HRResources.jsx` remplace `pages/resources/Resources.jsx` (supprimé) — adapté SPA sans shell.
+- Les fichiers `pages/resources/Resources.jsx` et `pages/resources/main.jsx` ont été supprimés.
 
 ## Points d'attention
 
-- Ne pas ajouter de sidebar ou topbar dans `HR.jsx` — `AuthedLayout` les fournit.
-- Le chart de complétion par service est CSS-only (pas de bibliothèque de graphiques).
-- Si l'API `/api/evaluations` ne retourne pas de champ `department`, les barres de complétion seront vides.
-- Le score culture ("eNPS") est un placeholder `—` en attendant l'intégration de l'API analytics.
+- Ne pas ajouter de sidebar ou topbar dans ces composants — `AuthedLayout` les fournit.
+- HRAnalytics : toutes les données sont des mocks, clairement commentés `// TODO: remplacer`.
+- HRDirectory drawer : le fetch évaluations n'est déclenché que quand un utilisateur est sélectionné (`enabled: !!selectedUser`).
+

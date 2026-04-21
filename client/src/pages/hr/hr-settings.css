@@ -1,0 +1,190 @@
+/* =============================================================================
+   HRSettings — Préférences RH
+   Préfixe : .hrst-*
+   ============================================================================= */
+
+.hrst-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 600px;
+}
+
+/* ── Hero ──────────────────────────────────────────────────────────────────── */
+.hrst-hero {
+  padding-bottom: 0.5rem;
+}
+
+.hrst-hero__eyebrow {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--color-on-surface-variant);
+  opacity: 0.6;
+  margin: 0 0 0.5rem 0;
+}
+
+.hrst-hero__headline {
+  font-size: clamp(1.5rem, 2.5vw, 2.25rem);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  color: var(--color-on-surface);
+  margin: 0 0 0.625rem 0;
+}
+
+.hrst-hero__sub {
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: var(--color-on-surface-variant);
+  margin: 0;
+}
+
+/* ── Sections ───────────────────────────────────────────────────────────────── */
+.hrst-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.hrst-section {
+  padding: 1.25rem;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface-container-lowest, var(--color-surface));
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+.hrst-section__head {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  color: var(--color-on-surface-variant);
+}
+
+.hrst-section__title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--color-on-surface);
+  margin: 0;
+}
+
+.hrst-section__label {
+  font-size: 0.875rem;
+  color: var(--color-on-surface-variant);
+  margin: 0;
+}
+
+/* ── Radios ────────────────────────────────────────────────────────────────── */
+.hrst-radios {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.hrst-radio {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9375rem;
+  color: var(--color-on-surface);
+  cursor: pointer;
+}
+
+.hrst-radio input[type="radio"] {
+  accent-color: var(--color-primary);
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+/* ── Toggles ────────────────────────────────────────────────────────────────── */
+.hrst-toggles {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.hrst-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.9375rem;
+  color: var(--color-on-surface);
+  cursor: pointer;
+}
+
+/* ── Switch toggle ──────────────────────────────────────────────────────────── */
+.hrst-switch {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  border-radius: var(--radius-full);
+  background: var(--color-divider);
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.hrst-switch--on {
+  background: var(--color-primary);
+}
+
+.hrst-switch__thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  transition: left 0.2s;
+  display: block;
+}
+
+.hrst-switch--on .hrst-switch__thumb {
+  left: 23px;
+}
+
+/* ── Footer / bouton save ───────────────────────────────────────────────────── */
+.hrst-footer {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+.hrst-feedback {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.hrst-feedback--ok  { color: var(--color-success); }
+.hrst-feedback--err { color: var(--color-error); }
+
+.hrst-save-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.5rem;
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.hrst-save-btn:hover {
+  opacity: 0.9;
+}
+
+.hrst-save-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

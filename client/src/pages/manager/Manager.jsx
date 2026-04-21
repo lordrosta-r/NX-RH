@@ -1,308 +1,180 @@
 // =============================================================================
-// Manager — Team overview + review/validate evaluations
-// Layout: fixed sidebar (256px) + scrollable main content
-// Design: Editorial Enterprise — docs/design/dashboard/DESIGN.md
+// Manager — Tableau de bord équipe (/manager)
+// Rendu dans <AuthedLayout> (topbar/sidebar viennent du layout parent).
 // =============================================================================
 
-import React, { useState, useEffect } from 'react'
+import React from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
+import { useAuth } from '../../contexts/AuthContext'
+import { useTranslate, useLocaleCtx } from '../../contexts/LocaleContext'
+import { t as pageT } from './i18n'
+import {
+  UsersIcon,
+  ClipboardIcon,
+  CheckCircleIcon,
+  ArrowNEIcon,
+  ChevronRightIcon,
+} from '../../components/ui/icons'
 import './manager.css'
-import ManagerSidebar from './ManagerSidebar.jsx'
-import AppTopbar      from '../../components/ui/AppTopbar'
-import { t as pageT } from './i18n/index.js'
-import { useLocale } from '../../hooks/useLocale.js'
-import { useTheme }  from '../../hooks/useTheme.js'
-import { useAuthUser } from '../../hooks/useAuthUser.js'
 
-const PAGE_SIZE = 25
+function avatarInitial(member) {
+  return (member?.firstName?.[0] ?? member?.name?.[0] ?? '?').toUpperCase()
+}
 
 export default function Manager() {
-  const { t, locale, setLocale } = useLocale(pageT)
-  const { theme, cycleTheme }    = useTheme()
-  const { user, loading: authLoading } = useAuthUser()
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [evaluations, setEvaluations] = useState([])
-  const [evLoading, setEvLoading]     = useState(true)
-  const [error, setError]             = useState(null)
-  const [page, setPage]               = useState(1)
+  const { user } = useAuth()
+  const { locale } = useLocaleCtx()
+  const t = useTranslate(pageT)
+  const navigate = useNavigate()
 
-  // Review modal state
-  const [reviewTarget, setReviewTarget] = useState(null)   // full evaluation object
-  const [reviewScore, setReviewScore]   = useState('')
-  const [reviewComment, setReviewComment] = useState('')
-  const [reviewLoading, setReviewLoading] = useState(false)
-  const [reviewSaving, setReviewSaving]   = useState(false)
+  // ── Active campaign ────────────────────────────────────────────────────────
+  const { data: campaign = null } = useQuery({
+    queryKey: ['campaign-active'],
+    queryFn: () =>
+      fetch('/api/campaigns?status=active', { credentials: 'include' })
+        .then(r => { if (!r.ok) throw new Error(r.statusText); return r.json() })
+        .then(j => { const l = j.data ?? j; return (Array.isArray(l) ? l[0] : l) ?? null }),
+    staleTime: 5 * 60 * 1000,
+    enabled: !!user,
+  })
 
-  useEffect(() => {
-    let cancelled = false
-    fetch('/api/evaluations', { credentials: 'include' })
-      .then(r => {
-        if (!r.ok) {
-          if (r.status === 401 || r.status === 403) { window.location.href = '/'; return null }
-          throw new Error(`HTTP ${r.status}`)
-        }
-        return r.json()
-      })
-      .then(data => { if (!cancelled && data) setEvaluations(data) })
-      .catch(() => { if (!cancelled) setError(t('manager.error.load')) })
-      .finally(() => { if (!cancelled) setEvLoading(false) })
-    return () => { cancelled = true }
-  }, [t])
+  // ── Team evaluations ───────────────────────────────────────────────────────
+  const { data: evals = [], isLoading: evalsLoading, isError: evalsError } = useQuery({
+    queryKey: ['manager-evals'],
+    queryFn: () =>
+      fetch('/api/evaluations', { credentials: 'include' })
+        .then(r => { if (!r.ok) throw new Error(r.statusText); return r.json() })
+        .then(j => j.data ?? j),
+    staleTime: 2 * 60 * 1000,
+    enabled: !!user,
+  })
 
-  useEffect(() => {
-    if (!authLoading && user && !['admin', 'director', 'manager'].includes(user.role)) {
-      window.location.href = '/employee'
-    }
-  }, [authLoading, user])
+  // ── Team members ───────────────────────────────────────────────────────────
+  const { data: members = [], isLoading: membersLoading } = useQuery({
+    queryKey: ['team-members'],
+    queryFn: () =>
+      fetch('/api/users', { credentials: 'include' })
+        .then(r => { if (!r.ok) throw new Error(r.statusText); return r.json() })
+        .then(j => j.data ?? j),
+    staleTime: 5 * 60 * 1000,
+    enabled: !!user,
+  })
 
-  if (authLoading) return null
-  if (!user)       return null
-  if (!['admin', 'director', 'manager'].includes(user.role)) return null
-
-  // ── Review modal ──────────────────────────────────────────────────────────
-  async function openReview(ev) {
-    setReviewTarget(ev)
-    setReviewScore(ev.score ?? '')
-    setReviewComment(ev.reviewerComment ?? '')
-    setReviewLoading(true)
-    try {
-      const r = await fetch(`/api/evaluations/${ev._id}`, { credentials: 'include' })
-      if (r.ok) {
-        const full = await r.json()
-        setReviewTarget(full)
-        setReviewScore(full.score ?? '')
-        setReviewComment(full.reviewerComment ?? '')
-      }
-    } catch { /* keep partial data */ }
-    finally { setReviewLoading(false) }
-  }
-
-  async function submitReview(e) {
-    e.preventDefault()
-    if (!reviewTarget) return
-    setReviewSaving(true)
-    const isCosign = reviewTarget.status === 'signed_evaluatee'
-    const newStatus = isCosign ? 'signed_manager' : 'reviewed'
-    try {
-      const body = { status: newStatus }
-      if (reviewScore !== '' && reviewScore !== null) body.score = Number(reviewScore)
-      if (reviewComment) body.reviewerComment = reviewComment
-      const r = await fetch(`/api/evaluations/${reviewTarget._id}`, {
-        method: 'PATCH', credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      })
-      if (!r.ok) throw new Error(`HTTP ${r.status}`)
-      setEvaluations(prev => prev.map(e => e._id === reviewTarget._id
-        ? { ...e, status: newStatus, score: body.score ?? e.score, reviewerComment: body.reviewerComment ?? e.reviewerComment }
-        : e
-      ))
-      setReviewTarget(null)
-    } catch (err) { setError(err.message || t('manager.error.update_failed')) }
-    finally { setReviewSaving(false) }
-  }
-
-  async function handleLogout() {
-    try { await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }) } catch { /* ignore logout network errors */ }
-    sessionStorage.clear()
-    window.location.href = '/'
-  }
-
-  // KPI counts
+  // ── Derived KPIs ───────────────────────────────────────────────────────────
   const kpis = {
-    pending:   evaluations.filter(e => ['assigned', 'in_progress'].includes(e.status)).length,
-    submitted: evaluations.filter(e => e.status === 'submitted').length,
-    signed:    evaluations.filter(e => e.status === 'signed_manager').length,
+    pending:   evals.filter(e => ['assigned', 'in_progress'].includes(e.status)).length,
+    submitted: evals.filter(e => e.status === 'submitted').length,
+    signed:    evals.filter(e => e.status === 'signed_manager').length,
   }
+
+  // ── Urgency: evals awaiting manager action ─────────────────────────────────
+  const urgencyCount = evals.filter(e =>
+    ['submitted', 'signed_evaluatee'].includes(e.status)
+  ).length
+
+  function getMemberEvalStatus(memberId) {
+    const ev = evals.find(
+      e => e.evaluateeId?._id === memberId || e.evaluateeId === memberId
+    )
+    return ev?.status ?? 'not_started'
+  }
+
+  const firstName = user?.firstName ?? user?.name?.split(' ')[0] ?? ''
 
   return (
-    <div className="db">
+    <div className="mgr">
+      {/* ── Hero ────────────────────────────────────────────────────────── */}
+      <section className="mgr-hero">
+        <p className="mgr-hero__eyebrow">{t('manager.hero.eyebrow')}</p>
+        <h1 className="mgr-hero__title">
+          {t('manager.hero.title')}{' '}
+          <span className="mgr-hero__accent">{firstName}</span>
+        </h1>
+        <p className="mgr-hero__sub">{t('manager.hero.subtitle')}</p>
+      </section>
 
-      {/* ── Sidebar ─────────────────────────────────────────────────────── */}
-      <ManagerSidebar t={t} activeItem="evaluations" sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+      {/* ── Urgency banner ──────────────────────────────────────────────── */}
+      {campaign && urgencyCount > 0 && (
+        <div className="mgr-urgency" role="status">
+          <ClipboardIcon size={18} />
+          <span>
+            <strong>{urgencyCount}</strong>{' '}
+            {t('manager.urgency.desc')}{' '}
+            {campaign.endDate
+              ? new Date(campaign.endDate).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US')
+              : ''}
+          </span>
+        </div>
+      )}
 
-      {/* ── Main area ───────────────────────────────────────────────────── */}
-      <div className="db-main">
-
-        <AppTopbar
-          searchPlaceholder={t('manager.search.placeholder')}
-          locale={locale} setLocale={setLocale}
-          theme={theme} cycleTheme={cycleTheme}
-          user={user} onLogout={handleLogout}
-          onMenuToggle={() => setSidebarOpen(o => !o)}
-        />
-
-        {/* ── Page content ────────────────────────────────────────────── */}
-        <main className="db-content mgr" id="main-content">
-
-          {/* Hero */}
-          <section className="mgr-hero">
-            <p className="mgr-hero__eyebrow">{t('manager.hero.eyebrow')}</p>
-            <h1 className="mgr-hero__title">
-              <span className="mgr-hero__accent">{t('manager.hero.title_accent')}</span> {t('manager.hero.title_rest')}
-            </h1>
-            <p className="mgr-hero__sub">{t('manager.welcome.subtitle')}</p>
-          </section>
-
-          {/* ── KPI strip ───────────────────────────────────────────── */}
-          <div className="mgr-kpis">
-            {(['pending', 'submitted', 'signed']).map(k => (
-              <div key={k} className={`mgr-kpi mgr-kpi--${k}`}>
-                <span className="mgr-kpi__value">{kpis[k]}</span>
-                <span className="mgr-kpi__label">{t(`manager.kpi.${k}`)}</span>
-              </div>
-            ))}
+      {/* ── KPI strip ───────────────────────────────────────────────────── */}
+      <div className="mgr-kpis">
+        {['pending', 'submitted', 'signed'].map(k => (
+          <div key={k} className={`mgr-kpi mgr-kpi--${k}`}>
+            <span className="mgr-kpi__value">{kpis[k]}</span>
+            <span className="mgr-kpi__label">{t(`manager.kpi.${k}`)}</span>
           </div>
-
-          {/* ── Evaluations table ───────────────────────────────────── */}
-          {evLoading && <p className="mgr-loading">{t('manager.loading')}</p>}
-          {error     && <p className="mgr-error" role="alert">{error}</p>}
-
-          {!evLoading && !error && (
-            <div className="mgr-table-wrap">
-              <table className="mgr-table">
-                <thead>
-                  <tr>
-                    <th scope="col">{t('manager.table.evaluatee')}</th>
-                    <th scope="col">{t('manager.table.evaluator')}</th>
-                    <th scope="col">{t('manager.table.status')}</th>
-                    <th scope="col">{t('manager.table.score')}</th>
-                    <th scope="col">{t('manager.table.actions')}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {evaluations.length === 0 ? (
-                    <tr>
-                      <td colSpan={5} className="mgr-table__empty">
-                        {t('manager.table.empty')}
-                      </td>
-                    </tr>
-                  ) : evaluations.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map(ev => (
-                    <tr key={ev._id}>
-                      <td>{ev.evaluateeId?.firstName} {ev.evaluateeId?.lastName}</td>
-                      <td>
-                        {ev.formId?.isAnonymous
-                          ? t('manager.table.anonymous')
-                          : `${ev.evaluatorId?.firstName ?? ''} ${ev.evaluatorId?.lastName ?? ''}`.trim() || '—'}
-                      </td>
-                      <td>
-                        <span className={`mgr-badge mgr-badge--${ev.status}`}>
-                          {t(`manager.status.${ev.status}`) || ev.status}
-                        </span>
-                      </td>
-                      <td>{ev.score !== null ? `${ev.score}/100` : '—'}</td>
-                      <td className="mgr-table__actions">
-                        {ev.status === 'submitted' && (
-                          <button
-                            type="button"
-                            className="mgr-btn mgr-btn--sm"
-                            onClick={() => openReview(ev)}
-                          >
-                            {t('manager.action.review')}
-                          </button>
-                        )}
-                        {ev.status === 'signed_evaluatee' && (
-                          <button
-                            type="button"
-                            className="mgr-btn mgr-btn--sm mgr-btn--primary"
-                            onClick={() => openReview(ev)}
-                          >
-                            {t('manager.action.cosign')}
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              {evaluations.length > PAGE_SIZE && (
-                <div className="mgr-pagination">
-                  <button
-                    type="button"
-                    className="mgr-btn mgr-btn--sm"
-                    onClick={() => setPage(p => Math.max(1, p - 1))}
-                    disabled={page === 1}
-                  >
-                    {t('manager.pagination.prev')}
-                  </button>
-                  <span className="mgr-pagination__info">
-                    {page} / {Math.ceil(evaluations.length / PAGE_SIZE)}
-                  </span>
-                  <button
-                    type="button"
-                    className="mgr-btn mgr-btn--sm"
-                    onClick={() => setPage(p => Math.min(Math.ceil(evaluations.length / PAGE_SIZE), p + 1))}
-                    disabled={page === Math.ceil(evaluations.length / PAGE_SIZE)}
-                  >
-                    {t('manager.pagination.next')}
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* ── Review modal ────────────────────────────────────────── */}
-          {reviewTarget && (
-            <div className="mgr-modal-backdrop" onClick={() => setReviewTarget(null)}>
-              <div className="mgr-modal" role="dialog" aria-labelledby="mgr-review-title" onClick={e => e.stopPropagation()}>
-                <h3 id="mgr-review-title" className="mgr-modal__title">
-                  {reviewTarget.status === 'signed_evaluatee' ? t('manager.review.cosign_title') : t('manager.review.title')}
-                </h3>
-                <p className="mgr-modal__sub">
-                  {reviewTarget.evaluateeId?.firstName} {reviewTarget.evaluateeId?.lastName}
-                  {reviewTarget.formId?.title ? ` — ${reviewTarget.formId.title}` : ''}
-                </p>
-
-                {reviewLoading ? (
-                  <p className="mgr-loading">{t('manager.loading')}</p>
-                ) : (
-                  <>
-                    {/* Read-only answers */}
-                    {reviewTarget.answers?.length > 0 && (
-                      <div className="mgr-review-answers">
-                        <h4 className="mgr-review-answers__title">{t('manager.review.answers')}</h4>
-                        {reviewTarget.answers.map((a, i) => {
-                          const q = reviewTarget.formId?.questions?.find(qq => qq.id === a.questionId)
-                          return (
-                            <div key={a.questionId || i} className="mgr-review-answer">
-                              <p className="mgr-review-answer__q">{q?.label || `Q${i + 1}`}</p>
-                              <p className="mgr-review-answer__v">{String(a.value)}</p>
-                            </div>
-                          )
-                        })}
-                      </div>
-                    )}
-
-                    {/* Score + comment form */}
-                    <form onSubmit={submitReview} className="mgr-review-form">
-                      <label className="mgr-field">
-                        <span>{t('manager.review.score')}</span>
-                        <input type="number" min={0} max={100} value={reviewScore}
-                          onChange={e => setReviewScore(e.target.value)}
-                          placeholder="0 – 100" />
-                      </label>
-                      <label className="mgr-field">
-                        <span>{t('manager.review.comment')}</span>
-                        <textarea rows={4} maxLength={5000} value={reviewComment}
-                          onChange={e => setReviewComment(e.target.value)}
-                          placeholder={t('manager.review.comment_placeholder')} />
-                      </label>
-                      <div className="mgr-modal__actions">
-                        <button type="button" className="mgr-btn" onClick={() => setReviewTarget(null)}>
-                          {t('manager.review.cancel')}
-                        </button>
-                        <button type="submit" className="mgr-btn mgr-btn--primary" disabled={reviewSaving}>
-                          {reviewTarget.status === 'signed_evaluatee' ? t('manager.action.cosign') : t('manager.review.submit')}
-                        </button>
-                      </div>
-                    </form>
-                  </>
-                )}
-              </div>
-            </div>
-          )}
-
-        </main>
+        ))}
       </div>
+
+      {/* ── Team member cards ───────────────────────────────────────────── */}
+      {evalsLoading || membersLoading ? (
+        <p className="mgr-loading">{t('manager.loading')}</p>
+      ) : evalsError ? (
+        <p className="mgr-error">{t('manager.error.load')}</p>
+      ) : (
+        <>
+          {members.length > 0 && (
+            <div className="mgr-cards">
+              {members.slice(0, 8).map(member => {
+                const status = getMemberEvalStatus(member._id)
+                return (
+                  <div
+                    key={member._id}
+                    className="mgr-card"
+                    onClick={() => navigate(`/manager/team/${member._id}`)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={e => e.key === 'Enter' && navigate(`/manager/team/${member._id}`)}
+                    aria-label={`${member.firstName ?? ''} ${member.lastName ?? ''}`.trim()}
+                  >
+                    <div className="mgr-card__header">
+                      <div className="mgr-card__avatar">{avatarInitial(member)}</div>
+                      <div>
+                        <p className="mgr-card__name">
+                          {member.firstName ?? ''} {member.lastName ?? ''}
+                        </p>
+                        <p className="mgr-card__role">
+                          {member.position ?? member.role ?? ''}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mgr-card__status">
+                      <span className={`mgr-status mgr-status--${status}`}>
+                        {t(`manager.eval_status.${status}`) || status}
+                      </span>
+                      <ChevronRightIcon size={16} />
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+
+          <div>
+            <button
+              type="button"
+              className="mgr-btn mgr-btn--primary"
+              onClick={() => navigate('/manager/team')}
+            >
+              <UsersIcon size={16} />
+              {t('manager.team.viewall')}
+              <ArrowNEIcon size={14} />
+            </button>
+          </div>
+        </>
+      )}
     </div>
   )
 }

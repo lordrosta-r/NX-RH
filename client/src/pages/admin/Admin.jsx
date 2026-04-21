@@ -1,216 +1,183 @@
 // =============================================================================
-// Admin — System governance portal
-// Sections: Users overview · System health · Quick links to other portals.
-// Only accessible to role=admin.
+// Admin.jsx — Dashboard administrateur, route /admin
+//
+// Sections :
+//   1. Hero — eyebrow + titre + sous-titre
+//   2. KPI bento (6 tuiles) — utilisateurs + santé système
+//   3. Répartition par rôle
+//   4. Accès rapides aux 9 sous-pages admin
+//   5. Santé du système (si /api/health répond)
+//
+// Données : react-query → /api/users, /api/health
+// Pas de sidebar/topbar : pris en charge par AuthedLayout.
 // =============================================================================
 
-import React, { useState, useEffect } from 'react'
+import React, { useEffect } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
+import { useAuth } from '../../contexts/AuthContext'
+import { useLocale } from '../../hooks/useLocale'
+import { t as pageT } from './i18n'
+import {
+  Users, Activity, Shield, Database, Link2,
+  Mail, FileText, Settings, GitBranch, Lock, Box,
+} from 'lucide-react'
 import './admin.css'
-import AdminSidebar    from './AdminSidebar'
-import AppTopbar       from '../../components/ui/AppTopbar'
-import { t as pageT }  from './i18n'
-import { useLocale }   from '../../hooks/useLocale'
-import { useTheme }    from '../../hooks/useTheme'
-import { useAuthUser } from '../../hooks/useAuthUser'
+
+const QUICK_LINKS = [
+  { to: '/admin/users',          Icon: Users,     lk: 'admin.quicklink.users.label',          dk: 'admin.quicklink.users.desc' },
+  { to: '/admin/org-chart',      Icon: GitBranch, lk: 'admin.quicklink.orgchart.label',       dk: 'admin.quicklink.orgchart.desc' },
+  { to: '/admin/roles',          Icon: Shield,    lk: 'admin.quicklink.roles.label',          dk: 'admin.quicklink.roles.desc' },
+  { to: '/admin/integrations',   Icon: Link2,     lk: 'admin.quicklink.integrations.label',   dk: 'admin.quicklink.integrations.desc' },
+  { to: '/admin/communications', Icon: Mail,      lk: 'admin.quicklink.communications.label', dk: 'admin.quicklink.communications.desc' },
+  { to: '/admin/compliance',     Icon: FileText,  lk: 'admin.quicklink.compliance.label',     dk: 'admin.quicklink.compliance.desc' },
+  { to: '/admin/security',       Icon: Lock,      lk: 'admin.quicklink.security.label',       dk: 'admin.quicklink.security.desc' },
+  { to: '/admin/sandbox',        Icon: Box,       lk: 'admin.quicklink.sandbox.label',        dk: 'admin.quicklink.sandbox.desc' },
+  { to: '/admin/settings',       Icon: Settings,  lk: 'admin.quicklink.settings.label',       dk: 'admin.quicklink.settings.desc' },
+]
 
 export default function Admin() {
-  const { t, locale, setLocale } = useLocale(pageT)
-  const { theme, cycleTheme } = useTheme()
-  const { user, loading: authLoading } = useAuthUser()
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [users, setUsers]       = useState([])
-  const [usersLoad, setUsersLoad] = useState(true)
-  const [health, setHealth]     = useState(null)
-  const [error, setError]       = useState(null)
+  const { user, loading } = useAuth()
+  const { t } = useLocale(pageT)
+  const navigate = useNavigate()
 
   useEffect(() => {
-    let cancelled = false
-    fetch('/api/users?limit=200', { credentials: 'include' })
-      .then(r => r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`)))
-      .then(data => { if (!cancelled) setUsers(Array.isArray(data) ? data : (data.users || [])) })
-      .catch(() => { if (!cancelled) setError(t('admin.error.users')) })
-      .finally(() => { if (!cancelled) setUsersLoad(false) })
+    if (!loading && user && user.role !== 'admin') navigate('/employee', { replace: true })
+  }, [loading, user, navigate])
 
-    fetch('/api/health', { credentials: 'include' })
-      .then(r => r.json())
-      .then(data => { if (!cancelled) setHealth(data) })
-      .catch(() => { /* tolérant */ })
+  const { data: users = [] } = useQuery({
+    queryKey: ['admin-users'],
+    queryFn: () =>
+      fetch('/api/users?limit=200', { credentials: 'include' })
+        .then(r => r.ok ? r.json() : [])
+        .then(d => Array.isArray(d) ? d : (d.users || [])),
+    enabled: !!user && user.role === 'admin',
+    staleTime: 2 * 60 * 1000,
+  })
 
-    return () => { cancelled = true }
-  }, [t])
+  const { data: health = null } = useQuery({
+    queryKey: ['admin-health'],
+    queryFn: () =>
+      fetch('/api/health', { credentials: 'include' })
+        .then(r => r.json())
+        .catch(() => null),
+    enabled: !!user && user.role === 'admin',
+    staleTime: 60 * 1000,
+  })
 
-  useEffect(() => {
-    if (!authLoading && user && user.role !== 'admin') {
-      window.location.href = '/employee'
-    }
-  }, [authLoading, user])
-
-  if (authLoading) return null
-  if (!user) return null
+  if (loading || !user) return null
   if (user.role !== 'admin') return null
 
-  async function handleLogout() {
-    try { await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }) } catch { /* ignore */ }
-    sessionStorage.clear()
-    window.location.href = '/'
+  const stats = {
+    total:    users.length,
+    active:   users.filter(u => u.isActive).length,
+    inactive: users.filter(u => !u.isActive).length,
+    ldap:     users.filter(u => u.authSource === 'ldap').length,
+    local:    users.filter(u => u.authSource !== 'ldap').length,
+    byRole:   users.reduce((acc, u) => { acc[u.role] = (acc[u.role] || 0) + 1; return acc }, {}),
   }
 
-  // Statistiques utilisateurs
-  const stats = {
-    total:     users.length,
-    active:    users.filter(u => u.isActive).length,
-    inactive:  users.filter(u => !u.isActive).length,
-    byRole:    users.reduce((acc, u) => { acc[u.role] = (acc[u.role] || 0) + 1; return acc }, {}),
-    ldap:      users.filter(u => u.authSource === 'ldap').length,
-    local:     users.filter(u => u.authSource === 'local').length,
-  }
+  const systemOk = health?.status === 'ok' || health?.db === 'connected'
 
   return (
-    <div className="db">
-      <AdminSidebar t={t} activeItem="overview" sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+    <div className="adm">
 
-      <div className="db-main">
-        <AppTopbar
-          t={t}
-          theme={theme}
-          cycleTheme={cycleTheme}
-          locale={locale}
-          setLocale={setLocale}
-          user={user}
-          onLogout={handleLogout}
-          searchPlaceholder={t('admin.search.placeholder')}
-          onMenuToggle={() => setSidebarOpen(o => !o)}
-          tKeys={{
-            help:   { aria: 'admin.help.aria',   title: 'admin.help.title' },
-            theme:  { to_light: 'admin.theme.to_light', to_sidebar: 'admin.theme.to_sidebar', to_dark: 'admin.theme.to_dark' },
-            logout: { aria: 'admin.logout.aria', title: 'admin.logout.title' },
-            bell:   'admin.notifications.aria_bell',
-          }}
-        />
+      <header className="adm-hero">
+        <p className="adm-hero__eyebrow">{t('admin.hero.eyebrow')}</p>
+        <h1 className="adm-hero__title">
+          <span className="adm-hero__accent">{t('admin.hero.title_accent')}</span>
+          {' '}{t('admin.hero.title_rest')}
+        </h1>
+        <p className="adm-hero__sub">{t('admin.hero.sub')}</p>
+      </header>
 
-        <main id="main-content" className="db-content adm">
-          {/* Hero */}
-          <section className="adm-hero">
-            <p className="adm-hero__eyebrow">{t('admin.hero.eyebrow')}</p>
-            <h1 className="adm-hero__title">
-              <span className="adm-hero__accent">{t('admin.hero.title_accent')}</span> {t('admin.hero.title_rest')}
-            </h1>
-            <p className="adm-hero__sub">{t('admin.hero.sub')}</p>
-          </section>
+      <section className="adm-kpis" aria-label={t('admin.kpis.label')}>
+        <div className="adm-kpi">
+          <span className="adm-kpi__value">{stats.total}</span>
+          <span className="adm-kpi__label">{t('admin.kpi.users_total')}</span>
+        </div>
+        <div className="adm-kpi">
+          <span className="adm-kpi__value">{stats.active}</span>
+          <span className="adm-kpi__label">{t('admin.kpi.users_active')}</span>
+        </div>
+        <div className="adm-kpi">
+          <span className="adm-kpi__value">{stats.inactive}</span>
+          <span className="adm-kpi__label">{t('admin.kpi.users_inactive')}</span>
+        </div>
+        <div className="adm-kpi">
+          <span className="adm-kpi__value">{stats.ldap}</span>
+          <span className="adm-kpi__label">{t('admin.kpi.users_ldap')}</span>
+        </div>
+        <div className="adm-kpi">
+          <span className="adm-kpi__value">{stats.local}</span>
+          <span className="adm-kpi__label">{t('admin.kpi.users_local')}</span>
+        </div>
+        <div className="adm-kpi">
+          <span className={`adm-kpi__value adm-kpi__value--${systemOk ? 'ok' : 'warn'}`}>
+            <Activity size={22} strokeWidth={2} aria-hidden="true" />
+          </span>
+          <span className="adm-kpi__label">{t('admin.kpi.system')}</span>
+        </div>
+      </section>
 
-          {/* KPIs */}
-          <section className="adm-kpis" aria-label={t('admin.kpis.label')}>
-            <div className="adm-kpi">
-              <span className="adm-kpi__value">{stats.total}</span>
-              <span className="adm-kpi__label">{t('admin.kpi.users_total')}</span>
+      <section className="adm-card" aria-labelledby="adm-roles-hd">
+        <h2 id="adm-roles-hd" className="adm-card__title">{t('admin.roles.heading')}</h2>
+        <div className="adm-roles">
+          {['admin', 'hr', 'manager', 'employee'].map(r => (
+            <div key={r} className="adm-role">
+              <span className={`adm-role__badge adm-role__badge--${r}`}>{r}</span>
+              <span className="adm-role__count">{stats.byRole[r] || 0}</span>
             </div>
-            <div className="adm-kpi">
-              <span className="adm-kpi__value">{stats.active}</span>
-              <span className="adm-kpi__label">{t('admin.kpi.users_active')}</span>
-            </div>
-            <div className="adm-kpi">
-              <span className="adm-kpi__value">{stats.inactive}</span>
-              <span className="adm-kpi__label">{t('admin.kpi.users_inactive')}</span>
-            </div>
-            <div className="adm-kpi">
-              <span className="adm-kpi__value">{stats.ldap}</span>
-              <span className="adm-kpi__label">{t('admin.kpi.users_ldap')}</span>
-            </div>
-            <div className="adm-kpi">
-              <span className="adm-kpi__value">{stats.local}</span>
-              <span className="adm-kpi__label">{t('admin.kpi.users_local')}</span>
-            </div>
-            <div className="adm-kpi">
-              <span className={`adm-kpi__value adm-kpi__value--${health?.status === 'ok' ? 'ok' : 'warn'}`}>
-                {health?.status === 'ok' ? '✓' : '!'}
+          ))}
+        </div>
+      </section>
+
+      <section className="adm-card" aria-labelledby="adm-links-hd">
+        <h2 id="adm-links-hd" className="adm-card__title">{t('admin.actions.heading')}</h2>
+        <nav className="adm-quicklinks" aria-label={t('admin.actions.heading')}>
+          {QUICK_LINKS.map(({ to, Icon, lk, dk }) => (
+            <Link key={to} to={to} className="adm-quicklink">
+              <span className="adm-quicklink__icon" aria-hidden="true">
+                <Icon size={16} strokeWidth={1.75} />
               </span>
-              <span className="adm-kpi__label">{t('admin.kpi.system')}</span>
-            </div>
-          </section>
+              <span className="adm-quicklink__body">
+                <span className="adm-quicklink__name">{t(lk)}</span>
+                <span className="adm-quicklink__desc">{t(dk)}</span>
+              </span>
+            </Link>
+          ))}
+        </nav>
+      </section>
 
-          {/* Distribution par rôle */}
-          <section className="adm-card" aria-labelledby="adm-roles">
-            <h2 id="adm-roles" className="adm-card__title">{t('admin.roles.heading')}</h2>
-            <div className="adm-roles">
-              {['admin', 'hr', 'manager', 'employee'].map(r => (
-                <div key={r} className="adm-role">
-                  <span className={`adm-role__badge adm-role__badge--${r}`}>{r}</span>
-                  <span className="adm-role__count">{stats.byRole[r] || 0}</span>
-                </div>
-              ))}
+      {health && (
+        <section className="adm-card" aria-labelledby="adm-health-hd">
+          <h2 id="adm-health-hd" className="adm-card__title">{t('admin.health.heading')}</h2>
+          <div className="adm-roles">
+            <div className="adm-role">
+              <span className="adm-role__badge adm-role__badge--employee">
+                <Database size={12} strokeWidth={2} aria-hidden="true" />
+                {' '}{t('admin.health.db')}
+              </span>
+              <span className="adm-role__count">
+                <span className={`adm-status adm-status--${systemOk ? 'on' : 'off'}`}>
+                  {systemOk ? t('admin.health.ok') : t('admin.health.warn')}
+                </span>
+              </span>
             </div>
-          </section>
-
-          {/* Quick actions */}
-          <section className="adm-card" aria-labelledby="adm-actions">
-            <h2 id="adm-actions" className="adm-card__title">{t('admin.actions.heading')}</h2>
-            <div className="adm-actions">
-              <a className="adm-action" href="/users">
-                <span className="adm-action__name">{t('admin.actions.users')}</span>
-                <span className="adm-action__desc">{t('admin.actions.users.desc')}</span>
-              </a>
-              <a className="adm-action" href="/campaigns">
-                <span className="adm-action__name">{t('admin.actions.campaigns')}</span>
-                <span className="adm-action__desc">{t('admin.actions.campaigns.desc')}</span>
-              </a>
-              <a className="adm-action" href="/formeditor">
-                <span className="adm-action__name">{t('admin.actions.formeditor')}</span>
-                <span className="adm-action__desc">{t('admin.actions.formeditor.desc')}</span>
-              </a>
-              <a className="adm-action" href="/resources">
-                <span className="adm-action__name">{t('admin.actions.resources')}</span>
-                <span className="adm-action__desc">{t('admin.actions.resources.desc')}</span>
-              </a>
-              <a className="adm-action" href="/settings">
-                <span className="adm-action__name">{t('admin.actions.settings')}</span>
-                <span className="adm-action__desc">{t('admin.actions.settings.desc')}</span>
-              </a>
-            </div>
-          </section>
-
-          {/* Liste utilisateurs (compacte) */}
-          <section className="adm-card" aria-labelledby="adm-users">
-            <h2 id="adm-users" className="adm-card__title">{t('admin.users.heading')}</h2>
-            {usersLoad && <p className="adm-loading">{t('admin.loading')}</p>}
-            {error && <p className="adm-error" role="alert">{error}</p>}
-            {!usersLoad && !error && (
-              <div className="adm-table-wrap">
-                <table className="adm-table">
-                  <thead>
-                    <tr>
-                      <th>{t('admin.users.col.name')}</th>
-                      <th>{t('admin.users.col.email')}</th>
-                      <th>{t('admin.users.col.role')}</th>
-                      <th>{t('admin.users.col.dept')}</th>
-                      <th>{t('admin.users.col.source')}</th>
-                      <th>{t('admin.users.col.status')}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {users.slice(0, 50).map(u => (
-                      <tr key={u._id || u.id}>
-                        <td>{u.firstName} {u.lastName}</td>
-                        <td>{u.email}</td>
-                        <td><span className={`adm-role__badge adm-role__badge--${u.role}`}>{u.role}</span></td>
-                        <td>{u.department || '—'}</td>
-                        <td>{u.authSource || 'local'}</td>
-                        <td>
-                          <span className={`adm-status adm-status--${u.isActive ? 'on' : 'off'}`}>
-                            {u.isActive ? t('admin.users.active') : t('admin.users.inactive')}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                {users.length > 50 && (
-                  <p className="adm-table__hint">{t('admin.users.hint').replace('{n}', users.length - 50)}</p>
-                )}
+            {health.uptime != null && (
+              <div className="adm-role">
+                <span className="adm-role__badge adm-role__badge--employee">
+                  {t('admin.health.uptime')}
+                </span>
+                <span className="adm-role__count">
+                  {Math.round(health.uptime / 3600)}h
+                </span>
               </div>
             )}
-          </section>
-        </main>
-      </div>
+          </div>
+        </section>
+      )}
+
     </div>
   )
 }

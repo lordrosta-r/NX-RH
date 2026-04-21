@@ -1,47 +1,38 @@
 // =============================================================================
-// Settings — User personal settings page
-// Layout: dynamic sidebar (role-aware) + Editorial Enterprise main content.
+// Settings — Page paramètres utilisateur (/employee/settings, /settings)
+//
+// Refactorisé SPA : plus de SettingsSidebar ni AppTopbar propres.
+// Le shell (sidebar + topbar) est fourni par AuthedLayout.
 // =============================================================================
 
-import React, { useState, useEffect, useRef } from 'react'
+import React from 'react'
+import { useNavigate } from 'react-router-dom'
 import './settings.css'
 
-import SettingsSidebar      from './SettingsSidebar'
-import AppTopbar            from '../../components/ui/AppTopbar'
 import ProfileSection       from './sections/ProfileSection'
 import PreferencesSection   from './sections/PreferencesSection'
 import NotificationsSection from './sections/NotificationsSection'
 import RoleSpaceSection     from './sections/RoleSpaceSection'
 import DangerSection        from './sections/DangerSection'
 
-import { t as pageT }   from './i18n'
-import { useLocale }    from '../../hooks/useLocale'
-import { useTheme }     from '../../hooks/useTheme'
-import { useAuthUser }  from '../../hooks/useAuthUser'
+import { useAuth }                      from '../../contexts/AuthContext'
+import { useLocaleCtx, useTranslate }   from '../../contexts/LocaleContext'
+import { useThemeCtx }                  from '../../contexts/ThemeContext'
+import { t as pageT }                   from './i18n'
 
-export default function Settings({ embedded = false }) {
-  const { t, locale, setLocale }       = useLocale(pageT)
-  const { theme, setTheme, cycleTheme } = useTheme()
-  const { user, loading: authLoading } = useAuthUser()
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+export default function Settings() {
+  const { user, loading } = useAuth()
+  const { locale, setLocale } = useLocaleCtx()
+  const t = useTranslate(pageT)
+  const { theme, setTheme, cycleTheme } = useThemeCtx()
+  const navigate = useNavigate()
 
-  // Sync locale + theme from server prefs when /me arrives.
-  // Runs only once when user becomes available (subsequent local changes
-  // are persisted via savePreferences below — no loop).
-  const syncedRef = useRef(false)
-  useEffect(() => {
-    if (!user || syncedRef.current) return
-    syncedRef.current = true
-    if (user.locale && user.locale !== locale) setLocale(user.locale)
-  }, [user, locale, setLocale])
-
-  if (authLoading) return null
-  if (!user)       return null
+  if (loading || !user) return null
 
   async function handleLogout() {
     try { await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }) } catch { /* ignore */ }
     sessionStorage.clear()
-    window.location.href = '/'
+    navigate('/login')
   }
 
   async function savePreferences(patch) {
@@ -55,8 +46,8 @@ export default function Settings({ embedded = false }) {
     return res.json()
   }
 
-  const stContent = (
-    <main className="db-content st" id="main-content">
+  return (
+    <div className="st">
       <section className="st-hero">
         <p className="st-hero__eyebrow">{t('settings.hero.eyebrow')}</p>
         <h1 className="st-hero__title">
@@ -66,42 +57,18 @@ export default function Settings({ embedded = false }) {
       </section>
 
       <div className="st-stack">
-        <ProfileSection       t={t} locale={locale} user={user} />
+        <ProfileSection t={t} locale={locale} user={user} />
         <PreferencesSection
           t={t}
-          locale={locale} setLocale={setLocale}
-          theme={theme}   setTheme={setTheme}
+          locale={locale}
+          setLocale={(l) => { setLocale(l); savePreferences({ locale: l }).catch(() => {}) }}
+          theme={theme}
+          setTheme={setTheme}
           savePreferences={savePreferences}
         />
-        <NotificationsSection
-          t={t}
-          prefs={user.notificationPrefs}
-          savePreferences={savePreferences}
-        />
+        <NotificationsSection t={t} prefs={user.notificationPrefs} savePreferences={savePreferences} />
         <RoleSpaceSection t={t} role={user.role} />
-        <DangerSection    t={t} onLogout={handleLogout} />
-      </div>
-    </main>
-  )
-
-  // Mode embedded : juste le main, le shell parent fournit sidebar+topbar+wrapper
-  if (embedded) return stContent
-
-  return (
-    <div className="db">
-      <SettingsSidebar t={t} role={user.role} sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
-
-      <div className="db-main">
-        <AppTopbar
-          searchPlaceholder={t('settings.search.placeholder')}
-          locale={locale} setLocale={(l) => { setLocale(l); savePreferences({ locale: l }).catch(() => {}) }}
-          theme={theme} cycleTheme={cycleTheme}
-          notifItems={[]}
-          user={user} onLogout={handleLogout}
-          onMenuToggle={() => setSidebarOpen(o => !o)}
-        />
-
-        {stContent}
+        <DangerSection t={t} onLogout={handleLogout} />
       </div>
     </div>
   )

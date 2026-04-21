@@ -100,4 +100,11 @@ export default {
   'ev.comment.evaluatee':            'My comment',
   'ev.comment.evaluatee_placeholder':'Add your personal comment before signing…',
   'ev.comment.score':                'Score',
+
+  // EvaluationSummary
+  'ev.summary.tagline': 'Performance Management',
+  'ev.summary.headline': 'My Evaluation',
+
+  // EvaluationSign
+  'ev.sign.already_signed': 'This evaluation has already been signed.',
 }

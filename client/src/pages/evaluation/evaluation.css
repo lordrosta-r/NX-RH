@@ -998,3 +998,599 @@
   gap: 0.5rem;
   flex-shrink: 0;
 }
+
+/* =============================================================================
+   EVALUATION SPA — EvaluationLayout · EvaluationSummary · EvaluationForm
+   EvaluationSign  (Phase 4 migration MPA → SPA)
+   ============================================================================= */
+
+/* ── EvaluationLayout — conteneur et en-tête partagé ──────────────────────── */
+.ev-layout {
+  max-width: 900px;
+  width: 100%;
+}
+
+.ev-layout__header {
+  margin-bottom: 2.5rem;
+}
+
+.ev-layout__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-on-surface-variant);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 1.25rem;
+  transition: color 0.15s;
+  font-family: var(--font-family);
+}
+.ev-layout__back:hover { color: var(--color-on-surface); }
+
+.ev-layout__campaign {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.625rem;
+  background: color-mix(in srgb, var(--color-secondary) 10%, transparent);
+  color: var(--color-secondary);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  border-radius: var(--radius-full);
+  margin-bottom: 0.5rem;
+}
+
+.ev-layout__title {
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  color: var(--color-on-surface);
+  margin: 0 0 1.5rem;
+}
+
+/* ── Indicateur d'étapes ──────────────────────────────────────────────────── */
+.ev-stepper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  align-items: center;
+}
+
+.ev-stepper__step {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: var(--radius-full);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-on-surface-variant);
+  font-family: var(--font-family);
+  transition: background 0.15s, color 0.15s;
+}
+.ev-stepper__step:hover {
+  background: var(--color-surface-container);
+  color: var(--color-on-surface);
+}
+.ev-stepper__step--active {
+  background: color-mix(in srgb, var(--color-secondary) 10%, transparent);
+  color: var(--color-secondary);
+}
+.ev-stepper__step--done { color: var(--color-success); }
+
+.ev-stepper__num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: var(--radius-full);
+  background: var(--color-surface-container-high);
+  font-size: 0.6875rem;
+  font-weight: 700;
+}
+.ev-stepper__step--active .ev-stepper__num {
+  background: var(--color-secondary);
+  color: var(--color-on-secondary);
+}
+.ev-stepper__step--done .ev-stepper__num {
+  background: color-mix(in srgb, var(--color-secondary) 15%, transparent);
+  color: var(--color-secondary);
+}
+
+.ev-stepper__label { white-space: nowrap; }
+
+/* ── EvaluationSummary — récapitulatif ──────────────────────────────────────── */
+.ev-summary__tagline {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--color-secondary);
+  margin: 0 0 0.5rem;
+}
+
+.ev-summary__headline {
+  font-size: clamp(2rem, 4vw, 2.75rem);
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  color: var(--color-on-surface);
+  margin: 0 0 2rem;
+}
+
+/* Carte de progression */
+.ev-progress-card {
+  background: var(--color-surface-container-lowest);
+  border-radius: var(--radius-xl);
+  padding: 2.5rem;
+  box-shadow: var(--shadow-ambient);
+  margin-bottom: 1.5rem;
+  border-left: 3px solid var(--color-secondary);
+}
+
+.ev-progress-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 1.5rem;
+}
+
+.ev-progress-card__title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-on-surface);
+  margin: 0 0 0.25rem;
+}
+
+.ev-progress-card__meta {
+  font-size: 0.8125rem;
+  color: var(--color-on-surface-variant);
+  margin: 0;
+}
+
+.ev-progress-card__pct {
+  font-size: 2.25rem;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  color: var(--color-secondary);
+  line-height: 1;
+}
+
+.ev-progress-bar {
+  height: 0.375rem;
+  background: var(--color-surface-container);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.ev-progress-bar__fill {
+  height: 100%;
+  background: var(--color-secondary);
+  border-radius: var(--radius-full);
+  transition: width 0.4s ease;
+}
+
+.ev-progress-legend {
+  display: flex;
+  gap: 1.25rem;
+  margin-top: 1rem;
+}
+
+.ev-progress-legend__item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-on-surface-variant);
+}
+
+.ev-progress-legend__dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: var(--radius-full);
+  background: var(--color-surface-container-highest);
+}
+.ev-progress-legend__dot--done { background: var(--color-secondary); }
+
+/* Cartes de phase */
+.ev-phase-card {
+  background: var(--color-surface-container-lowest);
+  border-radius: var(--radius-xl);
+  padding: 2rem 2.5rem;
+  box-shadow: var(--shadow-ambient);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  transition: box-shadow 0.15s;
+}
+.ev-phase-card:hover { box-shadow: var(--shadow-card-soft); }
+
+.ev-phase-card__label {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-secondary);
+  margin: 0 0 0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+.ev-phase-card__label--done { color: var(--color-success); }
+
+.ev-phase-card__label-icon { display: inline-flex; align-items: center; }
+
+.ev-phase-card__title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-on-surface);
+  margin: 0 0 0.125rem;
+}
+
+.ev-phase-card__desc {
+  font-size: 0.8125rem;
+  color: var(--color-on-surface-variant);
+  margin: 0;
+}
+
+.ev-phase-card__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.ev-phase-card__status {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.25rem 0.625rem;
+  border-radius: var(--radius-full);
+  background: var(--color-surface-container);
+  color: var(--color-on-surface-variant);
+}
+.ev-phase-card__status--done {
+  background: color-mix(in srgb, var(--color-secondary) 12%, transparent);
+  color: var(--color-secondary);
+}
+
+.ev-continue-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 1.125rem;
+  background: var(--color-secondary);
+  color: var(--color-on-secondary);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  font-family: var(--font-family);
+  cursor: pointer;
+  transition: opacity 0.15s;
+  text-decoration: none;
+}
+.ev-continue-btn:hover { opacity: 0.85; }
+
+/* ── EvaluationForm — en-tête de phase ─────────────────────────────────────── */
+.ev-form-hero {
+  margin-bottom: 2rem;
+}
+
+.ev-form-hero__badges {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.ev-form-hero__title {
+  margin-bottom: 0.5rem !important;
+}
+
+.ev-form-hero__desc {
+  font-size: 0.9rem;
+  color: var(--color-on-surface-variant);
+  max-width: 600px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ── EvaluationForm — formulaire ────────────────────────────────────────────── */
+.ev-form-card {
+  background: var(--color-surface-container-lowest);
+  border-radius: var(--radius-xl);
+  padding: 3rem;
+  box-shadow: var(--shadow-ambient);
+  margin-bottom: 1.5rem;
+}
+
+.ev-form-section { margin-bottom: 3.5rem; }
+.ev-form-section + .ev-form-section {
+  border-top: 1px solid var(--color-surface-container);
+  padding-top: 3rem;
+}
+
+.ev-form-section__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 2.5rem;
+}
+
+.ev-form-section__label {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+  color: var(--color-on-surface-variant);
+  opacity: 0.65;
+}
+
+.ev-form-section__required {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-secondary);
+}
+
+/* Question row — 2 colonnes par défaut, 1 colonne pour text/choice */
+.ev-qrow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  align-items: start;
+  margin-bottom: 2.5rem;
+}
+.ev-qrow--full { grid-template-columns: 1fr; }
+
+.ev-qrow__label {
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--color-on-surface);
+  margin: 0 0 0.375rem;
+}
+
+.ev-qrow__desc {
+  font-size: 0.875rem;
+  color: var(--color-on-surface-variant);
+  line-height: 1.55;
+  margin: 0;
+}
+
+/* Textarea pleine largeur dans les qrow--full */
+.ev-textarea--form { margin-top: 0.75rem; }
+
+/* Rating 1-5 */
+.ev-rating {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--color-surface-container-low);
+  padding: 1rem;
+  border-radius: var(--radius-xl);
+  gap: 0.5rem;
+}
+
+.ev-rating__btn {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--radius-full);
+  border: 1.5px solid var(--color-outline-variant);
+  background: none;
+  font-weight: 700;
+  font-size: 0.9375rem;
+  color: var(--color-on-surface);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-family);
+}
+.ev-rating__btn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-secondary) 12%, transparent);
+  border-color: var(--color-secondary);
+}
+.ev-rating__btn--active {
+  background: var(--color-secondary);
+  border-color: var(--color-secondary);
+  color: var(--color-on-secondary);
+}
+.ev-rating__btn:disabled { opacity: 0.45; cursor: default; }
+
+/* Choice radio group — réutilise ev-choice__option / ev-choice__radio */
+.ev-choice { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.75rem; }
+
+.ev-choice__option {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.625rem 0.875rem;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--color-outline-variant);
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--color-on-surface);
+  transition: background 0.15s, border-color 0.15s;
+  user-select: none;
+}
+.ev-choice__option:hover { background: var(--color-surface-container); }
+.ev-choice__option--selected {
+  background: color-mix(in srgb, var(--color-secondary) 10%, transparent);
+  border-color: var(--color-secondary);
+  color: var(--color-secondary);
+  font-weight: 600;
+}
+
+.ev-choice__radio {
+  width: 0.875rem;
+  height: 0.875rem;
+  border-radius: var(--radius-full);
+  border: 2px solid var(--color-outline-variant);
+  flex-shrink: 0;
+}
+.ev-choice__option--selected .ev-choice__radio {
+  border-color: var(--color-secondary);
+  background: var(--color-secondary);
+}
+
+/* Erreur de sauvegarde */
+.ev-save-error { margin-top: 0.75rem; }
+
+/* ── EvaluationSign — signature / contestation ──────────────────────────────── */
+.ev-sign__summary-card {
+  background: var(--color-surface-container-lowest);
+  border-radius: var(--radius-xl);
+  padding: 2.5rem;
+  box-shadow: var(--shadow-ambient);
+  margin-bottom: 1.5rem;
+}
+
+.ev-sign__summary-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-on-surface);
+  margin: 0 0 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--color-surface-container-high);
+}
+
+.ev-sign__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 0.625rem 0;
+  border-bottom: 1px solid var(--color-surface-container);
+}
+.ev-sign__row:last-child { border-bottom: none; }
+
+.ev-sign__row-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-on-surface-variant);
+}
+
+.ev-sign__row-value {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--color-on-surface);
+}
+
+.ev-sign__reviewer-comment {
+  margin-top: 1.25rem;
+}
+.ev-sign__reviewer-comment__text {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  margin: 0.375rem 0 0;
+  color: var(--color-on-surface);
+}
+
+/* Grille 2 colonnes pour les actions */
+.ev-sign__actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.ev-sign__action-card {
+  background: var(--color-surface-container-lowest);
+  border-radius: var(--radius-xl);
+  padding: 2rem;
+  box-shadow: var(--shadow-ambient);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.ev-sign__action-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-on-surface);
+  margin: 0;
+}
+
+.ev-sign__action-desc {
+  font-size: 0.8125rem;
+  color: var(--color-on-surface-variant);
+  line-height: 1.55;
+  margin: 0;
+  flex: 1;
+}
+
+/* Bouton en bas de la card d'action — poussé vers le bas via flex */
+.ev-sign__action-btn { margin-top: auto; }
+
+.ev-sign__contest-area {
+  background: var(--color-surface-container-lowest);
+  border-radius: var(--radius-xl);
+  padding: 2rem 2.5rem;
+  box-shadow: var(--shadow-ambient);
+  margin-bottom: 1.5rem;
+}
+
+.ev-sign__contest-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--color-on-surface);
+  margin: 0 0 0.75rem;
+}
+
+.ev-sign__contest-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.ev-sign__error {
+  font-size: 0.8125rem;
+  color: var(--color-error);
+  margin: 0.5rem 0 0;
+  font-weight: 600;
+}
+
+.ev-sign__success {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  background: color-mix(in srgb, var(--color-secondary) 8%, transparent);
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-secondary);
+  margin-bottom: 1.5rem;
+}
+
+.ev-sign__back { margin-top: 2rem; }
+
+/* ── Responsive SPA ─────────────────────────────────────────────────────────── */
+@media (max-width: 767px) {
+  .ev-qrow             { grid-template-columns: 1fr; gap: 1.25rem; }
+  .ev-sign__actions    { grid-template-columns: 1fr; }
+  .ev-form-card        { padding: 1.5rem; }
+  .ev-progress-card    { padding: 1.5rem; }
+  .ev-phase-card       { flex-direction: column; align-items: flex-start; gap: 1rem; }
+  .ev-phase-card__actions { width: 100%; justify-content: flex-end; }
+  .ev-stepper          { gap: 0; }
+  .ev-stepper__label   { display: none; }
+}

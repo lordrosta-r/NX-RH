@@ -38,6 +38,9 @@ export default {
   'dashboard.campaign.body':              'Set your professional milestones and reflect on your growth over the past twelve months. Your feedback shapes our culture.',
   'dashboard.campaign.cta':               'Get Started',
   'dashboard.campaign.progress.label':    'Complete',
+  'dashboard.campaign.progress.hint_zero': 'Start your self-assessment to complete your annual review.',
+  'dashboard.campaign.progress.hint_mid':  'of your evaluation complete — keep going!',
+  'dashboard.campaign.progress.hint_done': 'Well done — all steps of your evaluation are complete!',
   'dashboard.campaign.phase':             'Phase: Self-Assessment',
   'dashboard.campaign.empty':             'No active campaign at the moment.',
 

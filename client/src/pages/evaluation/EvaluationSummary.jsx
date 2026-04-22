@@ -120,7 +120,6 @@ export default function EvaluationSummary() {
       evalId={evalId}
       evaluation={evaluation}
       currentPhase={null}
-      donePhases={donePhases}
     >
       {/* ── Hero banner ── */}
       <div className="ev-hero">

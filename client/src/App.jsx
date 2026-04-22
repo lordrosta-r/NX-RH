@@ -46,7 +46,7 @@ import AdminCompliance     from './pages/admin/AdminCompliance'
 import AdminSecurity       from './pages/admin/AdminSecurity'
 import AdminSandbox        from './pages/admin/AdminSandbox'
 import AdminSettings       from './pages/admin/AdminSettings'
-import DevColorPicker from './components/ui/DevColorPicker'
+import DevDesignLab from './components/ui/DevDesignLab'
 
 const ANY_AUTHED = ['employee', 'manager', 'director', 'hr', 'admin']
 const MANAGER_UP = ['manager', 'director', 'hr', 'admin']
@@ -134,7 +134,7 @@ export default function App() {
       <Route path="*" element={<NotFound />} />
     </Routes>
 
-    <DevColorPicker />
+    <DevDesignLab />
   </>
   )
 }

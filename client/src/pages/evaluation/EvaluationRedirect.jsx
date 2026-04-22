@@ -24,7 +24,11 @@ export default function EvaluationRedirect() {
 
   useEffect(() => {
     if (isLoading) return
-    const active = evaluations.find(e => ['assigned', 'in_progress'].includes(e.status))
+    const inProgress = evaluations.filter(e => ['assigned', 'in_progress'].includes(e.status))
+    // Préférer les auto-évaluations aux upward feedback
+    const active =
+      inProgress.find(e => e.formId?.formType === 'self_evaluation') ??
+      inProgress[0]
     if (active) navigate(`/evaluation/${active._id}`, { replace: true })
   }, [isLoading, evaluations, navigate])
 

@@ -304,7 +304,7 @@ export default function EvaluationForm({ phase }) {
         method:  'PATCH',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ answers: payload, status: 'in_progress' }),
+        body: JSON.stringify({ answers: payload }),
       }).then(r => { if (!r.ok) throw new Error('Sauvegarde échouée'); return r.json() }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['eval', evalId] })
@@ -317,12 +317,13 @@ export default function EvaluationForm({ phase }) {
     setLocalAnswers(prev => ({ ...(prev ?? answers), [questionId]: value }))
   }
 
-  // Construit le tableau de réponses pour le PATCH (uniquement les questions de cette phase)
+  // Construit le tableau de réponses pour le PATCH.
+  // Envoie TOUTES les réponses (toutes phases) pour ne pas écraser les autres
+  // phases : le backend fait un remplacement complet de evaluation.answers.
   function buildAnswersPayload() {
-    const allQuestions = phaseData?.sections.flatMap(s => s.questions) ?? []
-    return allQuestions
-      .filter(q => answers[q.id] !== undefined)
-      .map(q => ({ questionId: q.id, questionLabel: q.label, value: answers[q.id] }))
+    return Object.entries(answers)
+      .filter(([, v]) => v !== undefined)
+      .map(([questionId, value]) => ({ questionId, value }))
   }
 
   function handleSaveDraft() {
@@ -384,13 +385,11 @@ export default function EvaluationForm({ phase }) {
     <EvaluationLayout evalId={evalId} evaluation={evaluation} currentPhase={phase}>
       {/* En-tête de phase */}
       <div className="ev-form-hero">
-        <div className="ev-form-hero__badges">
-          <span className="ev-layout__campaign">
-            {evaluation?.campaignId?.name ?? phaseData.tagline}
-          </span>
-          {isLocked && <span className="ev-phase-card__status">Verrouillé</span>}
-        </div>
-        <h2 className="ev-summary__headline ev-form-hero__title">{phaseData.title}</h2>
+        <p className="ev-form-hero__phase-tag">
+          {evaluation?.campaignId?.name ?? phaseData.tagline}
+          {isLocked && ' · Verrouillé'}
+        </p>
+        <h2 className="ev-form-hero__title">{phaseData.title}</h2>
         <p className="ev-form-hero__desc">{phaseData.desc}</p>
       </div>
 

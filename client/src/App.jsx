@@ -134,7 +134,7 @@ export default function App() {
       <Route path="*" element={<NotFound />} />
     </Routes>
 
-    {import.meta.env.DEV && <DevColorPicker />}
+    <DevColorPicker />
   </>
   )
 }

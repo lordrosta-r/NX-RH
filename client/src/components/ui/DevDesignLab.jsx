@@ -36,6 +36,7 @@ const DEFAULT = {
     sidebarWidth: 256,
     borderRadius: 8,
     maxWidth:     0,         // 0 = pas de limite
+    cardCols:     0,         // 0 = défaut CSS (auto)
   },
   spacing: {
     contentPadding: 40,
@@ -146,47 +147,96 @@ function injectCSS(cfg) {
     document.head.appendChild(el)
   }
 
-  const r  = []
-  const sw = cfg.layout.sidebarWidth
-  const cp = cfg.spacing.contentPadding
+  const r      = []
+  const sw     = cfg.layout.sidebarWidth
+  const cp     = cfg.spacing.contentPadding
+  const isTop  = cfg.layout.mode === 'topbar'
+  const tbBg   = cfg.colors.topbarBg
 
-  // Page background
+  // ── Background page
   if (cfg.bg.pageUrl) {
     r.push(`.db-content { background-color: ${cfg.colors.pageBg} !important; background-image: url('${cfg.bg.pageUrl}') !important; background-size: cover !important; background-position: center !important; background-blend-mode: overlay !important; }`)
   } else {
     r.push(`.db-content { background: ${cfg.colors.pageBg} !important; }`)
   }
 
-  // Topbar background image
+  // ── Topbar background image
   if (cfg.bg.topbarUrl) {
     r.push(`.apptb { background-image: url('${cfg.bg.topbarUrl}') !important; background-size: cover !important; }`)
   }
 
-  // Sidebar background image
-  if (cfg.bg.sidebarUrl) {
-    r.push(`.app-sidebar { background-image: url('${cfg.bg.sidebarUrl}') !important; background-size: cover !important; background-position: center !important; background-blend-mode: overlay !important; }`)
+  // ── Layout sidebar vs topbar
+  if (isTop) {
+    // Transformer la sidebar en barre de nav horizontale
+    r.push(`
+.app-sidebar {
+  position: fixed !important; top: 56px !important; left: 0 !important;
+  width: 100vw !important; min-width: 100vw !important; height: 44px !important;
+  flex-direction: row !important; padding: 0 1.5rem !important;
+  background: ${tbBg} !important;
+  border-bottom: 1px solid var(--color-surface-container-high, #e0dddd) !important;
+  border-right: none !important; box-shadow: none !important;
+  overflow: hidden !important; z-index: 89 !important;
+  gap: 0.5rem !important; align-items: center !important;
+}
+.app-sidebar__brand {
+  display: flex !important; flex-direction: row !important;
+  align-items: center !important; gap: 0.5rem !important;
+  padding: 0 1rem 0 0 !important; margin: 0 !important;
+  border-bottom: none !important; flex-shrink: 0 !important;
+  border-right: 1px solid var(--color-surface-container-high, #e0dddd) !important;
+}
+.app-sidebar__brand-name {
+  font-size: 0.875rem !important; font-weight: 700 !important;
+  color: var(--color-on-surface) !important; white-space: nowrap !important;
+}
+.app-sidebar__brand-sub { display: none !important; }
+.app-sidebar__nav {
+  flex-direction: row !important; gap: 0.25rem !important;
+  padding: 0 !important; flex: 1 !important;
+  overflow: hidden !important; align-items: center !important;
+}
+.app-sidebar__item, .app-sidebar__item--disabled {
+  flex-direction: row !important; padding: 0.3rem 0.625rem !important;
+  border-radius: 6px !important; height: 30px !important; min-height: 30px !important;
+  gap: 0.375rem !important; font-size: 0.8125rem !important;
+  white-space: nowrap !important; color: var(--color-on-surface-variant) !important;
+  background: none !important;
+}
+.app-sidebar__item--active {
+  color: var(--color-primary) !important;
+  background: var(--color-primary-tint-07, rgba(184,0,11,0.07)) !important;
+}
+.app-sidebar__overlay { display: none !important; }
+.db-main { margin-left: 0 !important; }
+.db-content { padding-top: calc(44px + ${cp}px) !important; }
+`.trim())
+  } else {
+    // Sidebar classique
+    if (cfg.bg.sidebarUrl) {
+      r.push(`.app-sidebar { background-image: url('${cfg.bg.sidebarUrl}') !important; background-size: cover !important; background-position: center !important; background-blend-mode: overlay !important; }`)
+    }
+    r.push(`.app-sidebar { width: ${sw}px !important; min-width: ${sw}px !important; }`)
+    r.push(`.db-main { margin-left: ${sw}px !important; }`)
   }
 
-  // Sidebar width + hide
-  r.push(`.app-sidebar { width: ${sw}px !important; min-width: ${sw}px !important; }`)
-  r.push(`.db-main { margin-left: ${cfg.layout.mode === 'topbar' ? 0 : sw}px !important; }`)
-
-  // Layout mode topbar
-  if (cfg.layout.mode === 'topbar') {
-    r.push(`.app-sidebar { display: none !important; }`)
-  }
-
-  // Max-width
+  // ── Max-width
   if (cfg.layout.maxWidth > 0) {
     r.push(`.db-content > * { max-width: ${cfg.layout.maxWidth}px; margin-left: auto; margin-right: auto; }`)
   }
 
-  // Spacing
+  // ── Espacement
   r.push(`.db-content { padding: ${cp}px !important; }`)
   r.push(`.db-bento { gap: ${cfg.spacing.gap}px !important; }`)
   r.push(`.db-card { padding: ${cfg.spacing.cardPadding}px !important; }`)
 
-  // Typography
+  // ── Colonnes cards
+  if (cfg.layout.cardCols > 0) {
+    r.push(`.db-bento { grid-template-columns: repeat(${cfg.layout.cardCols}, 1fr) !important; }`)
+    r.push(`.db-bento > * { grid-column: auto !important; grid-row: auto !important; }`)
+  }
+
+  // ── Typographie
   r.push(`body { line-height: ${cfg.typo.lineHeight}; letter-spacing: ${cfg.typo.letterSpacing}em; }`)
 
   el.textContent = r.join('\n')
@@ -472,6 +522,18 @@ export default function DevDesignLab() {
                 <Slider label="Border radius"     section="layout" field="borderRadius"  min={0}   max={28}  unit="px" {...p} />
                 <Slider label="Max-width contenu" section="layout" field="maxWidth"      min={0}   max={1800} step={50} unit="px" {...p} />
                 <p className="ddl-hint">Max-width = 0 → pas de limite</p>
+                <SectionTitle>Colonnes cards</SectionTitle>
+                <ToggleGroup
+                  section="layout" field="cardCols"
+                  options={[
+                    { value: 0, display: 'Auto' },
+                    { value: 1, display: '1'    },
+                    { value: 2, display: '2'    },
+                    { value: 3, display: '3'    },
+                    { value: 4, display: '4'    },
+                  ]}
+                  {...p}
+                />
               </>
             )}
 

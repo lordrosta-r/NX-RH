@@ -9,7 +9,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '../../contexts/AuthContext'
 import { useTranslate } from '../../contexts/LocaleContext'
 import { t as pageT } from './i18n'
-import { ChevronRightIcon } from '../../components/ui/icons'
+import { ChevronRight } from 'lucide-react'
 import './manager.css'
 
 function avatarInitial(member) {
@@ -120,7 +120,7 @@ export default function ManagerTeam() {
                           onClick={() => navigate(`/manager/team/${member._id}`)}
                         >
                           {t('manager.team.view')}
-                          <ChevronRightIcon size={14} />
+                          <ChevronRight size={14} />
                         </button>
                         {currentEval && ['submitted', 'signed_evaluatee'].includes(currentEval.status) && (
                           <button
@@ -145,3 +145,4 @@ export default function ManagerTeam() {
     </div>
   )
 }
+

@@ -3,39 +3,37 @@
 // =============================================================================
 
 import React from 'react'
-import {
-  HomeIcon, ClipboardIcon, FolderIcon, DocumentIcon,
-} from '../../../components/ui/icons'
+import { Home, Clipboard, Folder, FileText } from 'lucide-react'
 
 function spacesFor(role) {
   const effectiveRole = role === 'director' ? 'manager' : role
   if (effectiveRole === 'admin') {
     return [
-      { id: 'admin',      href: '/admin',      Icon: HomeIcon },
-      { id: 'hr',         href: '/hr',         Icon: FolderIcon },
-      { id: 'manager',    href: '/manager',    Icon: ClipboardIcon },
-      { id: 'formeditor', href: '/formeditor', Icon: DocumentIcon },
-      { id: 'employee',   href: '/employee',   Icon: HomeIcon },
+      { id: 'admin',      href: '/admin',      Icon: Home },
+      { id: 'hr',         href: '/hr',         Icon: Folder },
+      { id: 'manager',    href: '/manager',    Icon: Clipboard },
+      { id: 'formeditor', href: '/formeditor', Icon: FileText },
+      { id: 'employee',   href: '/employee',   Icon: Home },
     ]
   }
   if (effectiveRole === 'hr') {
     return [
-      { id: 'hr',         href: '/hr',         Icon: FolderIcon },
-      { id: 'campaigns',  href: '/campaigns',  Icon: ClipboardIcon },
-      { id: 'formeditor', href: '/formeditor', Icon: DocumentIcon },
-      { id: 'employee',   href: '/employee',   Icon: HomeIcon },
+      { id: 'hr',         href: '/hr',         Icon: Folder },
+      { id: 'campaigns',  href: '/campaigns',  Icon: Clipboard },
+      { id: 'formeditor', href: '/formeditor', Icon: FileText },
+      { id: 'employee',   href: '/employee',   Icon: Home },
     ]
   }
   if (effectiveRole === 'manager') {
     return [
-      { id: 'manager',  href: '/manager',  Icon: ClipboardIcon },
-      { id: 'employee', href: '/employee', Icon: HomeIcon },
+      { id: 'manager',  href: '/manager',  Icon: Clipboard },
+      { id: 'employee', href: '/employee', Icon: Home },
     ]
   }
   // employee
   return [
-    { id: 'employee',   href: '/employee',   Icon: HomeIcon },
-    { id: 'evaluation', href: '/evaluation', Icon: ClipboardIcon },
+    { id: 'employee',   href: '/employee',   Icon: Home },
+    { id: 'evaluation', href: '/evaluation', Icon: Clipboard },
   ]
 }
 
@@ -62,3 +60,4 @@ export default function RoleSpaceSection({ t, role }) {
     </section>
   )
 }
+

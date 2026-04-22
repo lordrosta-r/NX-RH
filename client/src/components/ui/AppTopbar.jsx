@@ -7,10 +7,7 @@
 
 import React, { useState, useRef, useEffect } from 'react'
 import './AppTopbar.css'
-import {
-  BellIcon, SearchIcon,
-  SunIcon, MoonIcon, PaletteIcon, GlobeIcon,
-} from './icons'
+import { Bell, Search, Sun, Moon, Palette, Globe } from 'lucide-react'
 
 // ── Internal labels (no external i18n dependency) ─────────────────────────────
 const L = {
@@ -40,9 +37,9 @@ const L = {
 
 function ThemeIcon({ theme }) {
   const p = { size: 17, color: 'var(--color-on-surface-variant)' }
-  if (theme === 'dark')  return <SunIcon     {...p} />
-  if (theme === 'light') return <PaletteIcon {...p} />
-  return                        <MoonIcon    {...p} />
+  if (theme === 'dark')  return <Sun     {...p} />
+  if (theme === 'light') return <Palette {...p} />
+  return                        <Moon    {...p} />
 }
 
 /**
@@ -126,7 +123,7 @@ export default function AppTopbar({
       {/* Search — masquée si un nav est fourni */}
       {!nav && (
         <div className="apptb__search" role="search">
-          <SearchIcon size={15} color="var(--color-outline)" />
+          <Search size={15} color="var(--color-outline)" />
           <input
             type="text"
             className="apptb__search-input"
@@ -155,7 +152,7 @@ export default function AppTopbar({
             aria-label={lbl.notif}
             aria-expanded={notifOpen}
           >
-            <BellIcon size={17} color="var(--color-on-surface-variant)" />
+            <Bell size={17} color="var(--color-on-surface-variant)" />
             {notifItems.length > 0 && <span className="apptb__bell-dot" aria-hidden="true" />}
           </button>
 
@@ -192,7 +189,7 @@ export default function AppTopbar({
             aria-label={lbl.lang}
             title={lbl.lang}
           >
-            <GlobeIcon size={16} color="var(--color-on-surface-variant)" />
+            <Globe size={16} color="var(--color-on-surface-variant)" />
           </button>
         )}
 
@@ -221,3 +218,4 @@ export default function AppTopbar({
     </header>
   )
 }
+

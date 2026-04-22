@@ -6,7 +6,7 @@
 
 import React from 'react'
 import './CampaignBanner.css'
-import { BellIcon } from '../../components/ui/icons'
+import { Bell } from 'lucide-react'
 
 // ── Circular SVG progress ring ──────────────────────────────────────────────
 function ProgressRing({ value = 0, size = 192, trackWidth = 10 }) {
@@ -88,7 +88,7 @@ export default function CampaignBanner({ t, campaign, loading, error, userName =
 
         {/* Active Campaign badge */}
         <div className="cb__badge" style={!isReady ? { visibility: 'hidden' } : undefined}>
-          <BellIcon size={11} color="var(--color-error)" strokeWidth={2} />
+          <Bell size={11} color="var(--color-error)" strokeWidth={2} />
           {t('dashboard.campaign.badge')}
         </div>
 
@@ -141,3 +141,4 @@ export default function CampaignBanner({ t, campaign, loading, error, userName =
     </section>
   )
 }
+

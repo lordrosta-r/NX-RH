@@ -21,9 +21,9 @@ import { useAuth }        from '../../contexts/AuthContext'
 import { t as pageT }     from './i18n'
 import { useLocale }      from '../../hooks/useLocale'
 import {
-  ClipboardIcon, TrendIcon, BellIcon, SparklesIcon,
-  ChevronRightIcon, DocumentIcon, UsersIcon, CheckCircleIcon,
-} from '../../components/ui/icons'
+  Clipboard, TrendingUp, Bell, Sparkles,
+  ChevronRight, FileText, Users, CheckCircle2,
+} from 'lucide-react'
 import './hr.css'
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -61,7 +61,7 @@ function KpiTile({ icon, iconBg, value, label, sub, onClick, highlight }) {
         </span>
         {onClick && (
           <span className="hr-kpi__arrow" aria-hidden="true">
-            <ChevronRightIcon size={14} color="var(--color-outline-variant)" />
+            <ChevronRight size={14} color="var(--color-outline-variant)" />
           </span>
         )}
       </div>
@@ -245,7 +245,7 @@ export default function HR() {
         {/* Grille de tuiles KPI */}
         <div className="hr-kpis">
           <KpiTile
-            icon={<ClipboardIcon size={18} strokeWidth={1.5} color="var(--color-primary)" />}
+            icon={<Clipboard size={18} strokeWidth={1.5} color="var(--color-primary)" />}
             iconBg="var(--color-primary-tint-07)"
             value={loadingCamp ? '…' : activeCampaigns.length}
             label={t('hr.kpi.campaigns.label')}
@@ -253,14 +253,14 @@ export default function HR() {
             onClick={() => navigate('/hr/campaigns')}
           />
           <KpiTile
-            icon={<CheckCircleIcon size={18} strokeWidth={1.5} color="var(--color-success)" />}
+            icon={<CheckCircle2 size={18} strokeWidth={1.5} color="var(--color-success)" />}
             iconBg="var(--color-success-tint)"
             value={loadingEvals ? '…' : `${completionRate}%`}
             label={t('hr.kpi.completion.label')}
             sub={t('hr.kpi.completion.sub')}
           />
           <KpiTile
-            icon={<BellIcon size={18} strokeWidth={1.5} color="var(--color-error)" />}
+            icon={<Bell size={18} strokeWidth={1.5} color="var(--color-error)" />}
             iconBg="var(--color-error-tint-06)"
             value={alerts.length}
             label={t('hr.alerts.title')}
@@ -268,7 +268,7 @@ export default function HR() {
             highlight={alerts.length > 0}
           />
           <KpiTile
-            icon={<UsersIcon size={18} strokeWidth={1.5} color="var(--color-secondary)" />}
+            icon={<Users size={18} strokeWidth={1.5} color="var(--color-secondary)" />}
             iconBg="var(--color-secondary-tint-08)"
             value={employees.length || '—'}
             label={t('hr.welcome.stat.employees')}
@@ -276,14 +276,14 @@ export default function HR() {
             onClick={() => navigate('/hr/directory')}
           />
           <KpiTile
-            icon={<TrendIcon size={18} strokeWidth={1.5} color="var(--color-primary)" />}
+            icon={<TrendingUp size={18} strokeWidth={1.5} color="var(--color-primary)" />}
             iconBg="var(--color-primary-tint-07)"
             value={loadingEvals ? '…' : evaluations.length}
             label={t('hr.kpi.evaluations.label')}
             sub={t('hr.kpi.evaluations.sub')}
           />
           <KpiTile
-            icon={<SparklesIcon size={18} strokeWidth={1.5} color="var(--color-secondary)" />}
+            icon={<Sparkles size={18} strokeWidth={1.5} color="var(--color-secondary)" />}
             iconBg="var(--color-secondary-tint-08)"
             value="—"
             label="Score culture"
@@ -318,7 +318,7 @@ export default function HR() {
             onClick={() => navigate('/hr/requests')}
           >
             Voir toutes les demandes
-            <ChevronRightIcon size={13} />
+            <ChevronRight size={13} />
           </button>
         </aside>
       </div>
@@ -333,7 +333,7 @@ export default function HR() {
             onClick={() => navigate('/hr/analytics')}
           >
             {t('hr.depts.viewall')}
-            <ChevronRightIcon size={13} />
+            <ChevronRight size={13} />
           </button>
         </div>
 
@@ -360,7 +360,7 @@ export default function HR() {
             onClick={() => navigate('/hr/campaigns')}
           >
             Voir toutes
-            <ChevronRightIcon size={13} />
+            <ChevronRight size={13} />
           </button>
         </div>
 
@@ -405,3 +405,4 @@ export default function HR() {
     </div>
   )
 }
+

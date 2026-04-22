@@ -1,5 +1,5 @@
 import { useTheme }          from '../../hooks/useTheme'
-import { SunIcon, MoonIcon } from './icons'
+import { Sun, Moon } from 'lucide-react'
 import './ThemeToggle.css'
 
 // =============================================================================
@@ -29,9 +29,10 @@ export default function ThemeToggle({
       type="button"
     >
       {isDark
-        ? <SunIcon  size={size} />
-        : <MoonIcon size={size} />
+        ? <Sun  size={size} />
+        : <Moon size={size} />
       }
     </button>
   )
 }
+

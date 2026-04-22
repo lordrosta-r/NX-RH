@@ -164,16 +164,16 @@ function injectCSS(cfg) {
 
   // Sidebar background image
   if (cfg.bg.sidebarUrl) {
-    r.push(`.db-sidebar, .appsb { background-image: url('${cfg.bg.sidebarUrl}') !important; background-size: cover !important; background-position: center !important; background-blend-mode: overlay !important; }`)
+    r.push(`.app-sidebar { background-image: url('${cfg.bg.sidebarUrl}') !important; background-size: cover !important; background-position: center !important; background-blend-mode: overlay !important; }`)
   }
 
-  // Sidebar width
-  r.push(`.db-sidebar, .appsb { width: ${sw}px !important; min-width: ${sw}px !important; }`)
+  // Sidebar width + hide
+  r.push(`.app-sidebar { width: ${sw}px !important; min-width: ${sw}px !important; }`)
   r.push(`.db-main { margin-left: ${cfg.layout.mode === 'topbar' ? 0 : sw}px !important; }`)
 
   // Layout mode topbar
   if (cfg.layout.mode === 'topbar') {
-    r.push(`.db-sidebar, .appsb { display: none !important; }`)
+    r.push(`.app-sidebar { display: none !important; }`)
   }
 
   // Max-width
@@ -277,23 +277,23 @@ function SectionTitle({ children }) {
   return <p className="ddl-section">{children}</p>
 }
 
-function ColorRow({ label, section, key, cfg, onChange }) {
+function ColorRow({ label, section, field, cfg, onChange }) {
   return (
     <div className="ddl-row">
       <Label>{label}</Label>
       <input
         type="color"
         className="ddl-swatch"
-        value={cfg[section][key]}
-        onChange={e => onChange(section, key, e.target.value)}
+        value={cfg[section][field]}
+        onChange={e => onChange(section, field, e.target.value)}
       />
-      <span className="ddl-hex">{cfg[section][key]}</span>
+      <span className="ddl-hex">{cfg[section][field]}</span>
     </div>
   )
 }
 
-function Slider({ label, section, key, min, max, step = 1, unit = '', cfg, onChange }) {
-  const val = cfg[section][key]
+function Slider({ label, section, field, min, max, step = 1, unit = '', cfg, onChange }) {
+  const val = cfg[section][field]
   return (
     <div className="ddl-slider">
       <div className="ddl-slider__head">
@@ -305,20 +305,20 @@ function Slider({ label, section, key, min, max, step = 1, unit = '', cfg, onCha
         className="ddl-range"
         min={min} max={max} step={step}
         value={val}
-        onChange={e => onChange(section, key, Number(e.target.value))}
+        onChange={e => onChange(section, field, Number(e.target.value))}
       />
     </div>
   )
 }
 
-function Select({ label, section, key, options, cfg, onChange }) {
+function Select({ label, section, field, options, cfg, onChange }) {
   return (
     <div className="ddl-row">
       <Label>{label}</Label>
       <select
         className="ddl-select"
-        value={cfg[section][key]}
-        onChange={e => onChange(section, key, e.target.value)}
+        value={cfg[section][field]}
+        onChange={e => onChange(section, field, e.target.value)}
       >
         {options.map(o => <option key={o} value={o}>{o}</option>)}
       </select>
@@ -326,7 +326,7 @@ function Select({ label, section, key, options, cfg, onChange }) {
   )
 }
 
-function TextInput({ label, section, key, placeholder, cfg, onChange }) {
+function TextInput({ label, section, field, placeholder, cfg, onChange }) {
   return (
     <div className="ddl-text-wrap">
       <Label>{label}</Label>
@@ -334,14 +334,14 @@ function TextInput({ label, section, key, placeholder, cfg, onChange }) {
         type="text"
         className="ddl-text"
         placeholder={placeholder}
-        value={cfg[section][key]}
-        onChange={e => onChange(section, key, e.target.value)}
+        value={cfg[section][field]}
+        onChange={e => onChange(section, field, e.target.value)}
       />
     </div>
   )
 }
 
-function ToggleGroup({ label, section, key, options, cfg, onChange }) {
+function ToggleGroup({ label, section, field, options, cfg, onChange }) {
   return (
     <div className="ddl-toggle-wrap">
       {label && <SectionTitle>{label}</SectionTitle>}
@@ -349,8 +349,8 @@ function ToggleGroup({ label, section, key, options, cfg, onChange }) {
         {options.map(({ value, display }) => (
           <button
             key={value}
-            className={`ddl-toggle-btn${cfg[section][key] === value ? ' ddl-toggle-btn--on' : ''}`}
-            onClick={() => onChange(section, key, value)}
+            className={`ddl-toggle-btn${cfg[section][field] === value ? ' ddl-toggle-btn--on' : ''}`}
+            onClick={() => onChange(section, field, value)}
           >
             {display}
           </button>
@@ -433,15 +433,15 @@ export default function DevDesignLab() {
             {tab === 'colors' && (
               <>
                 <SectionTitle>Fond & structure</SectionTitle>
-                <ColorRow label="Fond page"  section="colors" key="pageBg"    {...p} />
-                <ColorRow label="Topbar"     section="colors" key="topbarBg"  {...p} />
-                <ColorRow label="Sidebar"    section="colors" key="sidebarBg" {...p} />
-                <ColorRow label="Cards"      section="colors" key="cardBg"    {...p} />
+                <ColorRow label="Fond page"  section="colors" field="pageBg"    {...p} />
+                <ColorRow label="Topbar"     section="colors" field="topbarBg"  {...p} />
+                <ColorRow label="Sidebar"    section="colors" field="sidebarBg" {...p} />
+                <ColorRow label="Cards"      section="colors" field="cardBg"    {...p} />
                 <SectionTitle>Brand</SectionTitle>
-                <ColorRow label="Primary"    section="colors" key="primary"   {...p} />
-                <ColorRow label="Secondary"  section="colors" key="secondary" {...p} />
+                <ColorRow label="Primary"    section="colors" field="primary"   {...p} />
+                <ColorRow label="Secondary"  section="colors" field="secondary" {...p} />
                 <SectionTitle>Texte</SectionTitle>
-                <ColorRow label="Corps texte" section="colors" key="text"     {...p} />
+                <ColorRow label="Corps texte" section="colors" field="text"     {...p} />
               </>
             )}
 
@@ -449,10 +449,10 @@ export default function DevDesignLab() {
             {tab === 'typo' && (
               <>
                 <SectionTitle>Police</SectionTitle>
-                <Select label="Famille" section="typo" key="family" options={FONTS} {...p} />
-                <Slider label="Taille base"   section="typo" key="sizeBase"      min={12} max={20} unit="px"  {...p} />
-                <Slider label="Interligne"    section="typo" key="lineHeight"    min={1.2} max={2.2} step={0.05} unit="×" {...p} />
-                <Slider label="Letter-spacing" section="typo" key="letterSpacing" min={-0.03} max={0.12} step={0.005} unit="em" {...p} />
+                <Select label="Famille" section="typo" field="family" options={FONTS} {...p} />
+                <Slider label="Taille base"    section="typo" field="sizeBase"      min={12} max={20} unit="px"  {...p} />
+                <Slider label="Interligne"     section="typo" field="lineHeight"    min={1.2} max={2.2} step={0.05} unit="×" {...p} />
+                <Slider label="Letter-spacing" section="typo" field="letterSpacing" min={-0.03} max={0.12} step={0.005} unit="em" {...p} />
               </>
             )}
 
@@ -461,16 +461,16 @@ export default function DevDesignLab() {
               <>
                 <ToggleGroup
                   label="Navigation"
-                  section="layout" key="mode"
+                  section="layout" field="mode"
                   options={[
                     { value: 'sidebar', display: 'Sidebar' },
                     { value: 'topbar',  display: 'Topbar'  },
                   ]}
                   {...p}
                 />
-                <Slider label="Largeur sidebar"  section="layout" key="sidebarWidth" min={180} max={360} unit="px" {...p} />
-                <Slider label="Border radius"    section="layout" key="borderRadius"  min={0}   max={28}  unit="px" {...p} />
-                <Slider label="Max-width contenu" section="layout" key="maxWidth"    min={0}   max={1800} step={50} unit="px" {...p} />
+                <Slider label="Largeur sidebar"   section="layout" field="sidebarWidth" min={180} max={360} unit="px" {...p} />
+                <Slider label="Border radius"     section="layout" field="borderRadius"  min={0}   max={28}  unit="px" {...p} />
+                <Slider label="Max-width contenu" section="layout" field="maxWidth"      min={0}   max={1800} step={50} unit="px" {...p} />
                 <p className="ddl-hint">Max-width = 0 → pas de limite</p>
               </>
             )}
@@ -479,9 +479,9 @@ export default function DevDesignLab() {
             {tab === 'spacing' && (
               <>
                 <SectionTitle>Espacement</SectionTitle>
-                <Slider label="Padding page"  section="spacing" key="contentPadding" min={8}  max={80} unit="px" {...p} />
-                <Slider label="Padding card"  section="spacing" key="cardPadding"    min={8}  max={56} unit="px" {...p} />
-                <Slider label="Gap grille"    section="spacing" key="gap"            min={4}  max={56} unit="px" {...p} />
+                <Slider label="Padding page"  section="spacing" field="contentPadding" min={8}  max={80} unit="px" {...p} />
+                <Slider label="Padding card"  section="spacing" field="cardPadding"    min={8}  max={56} unit="px" {...p} />
+                <Slider label="Gap grille"    section="spacing" field="gap"            min={4}  max={56} unit="px" {...p} />
               </>
             )}
 
@@ -489,12 +489,12 @@ export default function DevDesignLab() {
             {tab === 'bg' && (
               <>
                 <SectionTitle>Image de fond — page</SectionTitle>
-                <TextInput label="URL image" section="bg" key="pageUrl" placeholder="https://…" {...p} />
-                <Slider    label="Opacité overlay" section="bg" key="pageOverlay" min={0} max={1} step={0.01} unit="" {...p} />
+                <TextInput label="URL image" section="bg" field="pageUrl"    placeholder="https://…" {...p} />
+                <Slider    label="Opacité overlay" section="bg" field="pageOverlay" min={0} max={1} step={0.01} unit="" {...p} />
                 <SectionTitle>Image de fond — sidebar</SectionTitle>
-                <TextInput label="URL image" section="bg" key="sidebarUrl" placeholder="https://…" {...p} />
+                <TextInput label="URL image" section="bg" field="sidebarUrl" placeholder="https://…" {...p} />
                 <SectionTitle>Image de fond — topbar</SectionTitle>
-                <TextInput label="URL image" section="bg" key="topbarUrl" placeholder="https://…" {...p} />
+                <TextInput label="URL image" section="bg" field="topbarUrl"  placeholder="https://…" {...p} />
               </>
             )}
 

@@ -1,19 +1,17 @@
 // =============================================================================
 // EvaluationSummary — Récapitulatif /evaluation/:evalId
-// Affiche la progression globale + les cartes de phase avec CTA "Continuer".
-// Design ref : designs/employee/evalsummaryscreen.html
+// Layout : colonne gauche (KPI + métadonnées) + colonne droite (liste des phases)
 // =============================================================================
 
 import React from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { CheckCircle, ChevronRight } from 'lucide-react'
+import { Check, ChevronRight, Lock } from 'lucide-react'
 import EvaluationLayout from './EvaluationLayout'
 import { t as pageT } from './i18n'
 import { useLocale } from '../../hooks/useLocale'
 import './evaluation.css'
 
-// Définition des phases du parcours avec leur description
 const PHASES = [
   {
     id:   'self',
@@ -24,7 +22,7 @@ const PHASES = [
   {
     id:   'n-1',
     path: 'n-1',
-    label: 'Bilan année N-1',
+    label: 'Bilan N-1',
     desc:  'Analysez l\'atteinte de vos objectifs de l\'an passé.',
   },
   {
@@ -36,7 +34,7 @@ const PHASES = [
   {
     id:   'aspirations',
     path: 'aspirations',
-    label: 'Aspirations carrière',
+    label: 'Aspirations',
     desc:  'Partagez votre vision d\'évolution professionnelle.',
   },
   {
@@ -44,16 +42,14 @@ const PHASES = [
     path: 'sign',
     label: 'Signature',
     desc:  'Contresignez ou contestez l\'évaluation finalisée.',
+    locked: true,
   },
 ]
 
-// Statuts où les réponses sont encore modifiables
 const EDITABLE_STATUSES = ['assigned', 'in_progress']
 
-// Détermine les phases ayant au moins une réponse enregistrée.
-// Heuristique : le questionId commence par le préfixe de la phase (ex. "self_q1").
 function computeDonePhases(answers = []) {
-  const phaseIds = ['self', 'n-1', 'objectives', 'aspirations']
+  const phaseIds  = ['self', 'n-1', 'objectives', 'aspirations']
   const prefixMap = { 'self': 'self_', 'n-1': 'n1_', 'objectives': 'obj_', 'aspirations': 'asp_' }
   const answeredPhases = new Set(
     answers
@@ -66,10 +62,20 @@ function computeDonePhases(answers = []) {
   return [...answeredPhases]
 }
 
-// Calcule le pourcentage de complétion (4 phases hors signature)
 function computeProgress(answers = []) {
-  const done = computeDonePhases(answers)
-  return Math.round((done.length / 4) * 100)
+  return Math.round((computeDonePhases(answers).length / 4) * 100)
+}
+
+// Étiquettes statut lisibles
+const STATUS_LABELS = {
+  assigned:          'Assignée',
+  in_progress:       'En cours',
+  submitted:         'Soumise',
+  reviewed:          'Révisée',
+  signed_evaluatee:  'Signée (vous)',
+  signed_manager:    'Signée (manager)',
+  signed_hr:         'Signée (RH)',
+  validated:         'Validée',
 }
 
 export default function EvaluationSummary() {
@@ -91,11 +97,12 @@ export default function EvaluationSummary() {
   const progress   = computeProgress(answers)
   const status     = evaluation?.status ?? 'assigned'
   const canEdit    = EDITABLE_STATUSES.includes(status)
+  const statusLabel = STATUS_LABELS[status] ?? status
 
   if (isLoading) {
     return (
       <div className="ev-layout">
-        <p className="empty-state">{t('ev.form.loading')}</p>
+        <p className="empty-state">Chargement…</p>
       </div>
     )
   }
@@ -103,7 +110,7 @@ export default function EvaluationSummary() {
   if (error) {
     return (
       <div className="ev-layout">
-        <p className="error-msg">{t('ev.error.not_found')}</p>
+        <p className="error-msg">Évaluation introuvable.</p>
       </div>
     )
   }
@@ -115,90 +122,118 @@ export default function EvaluationSummary() {
       currentPhase={null}
       donePhases={donePhases}
     >
-      {/* En-tête éditorial */}
-      <div>
-        <p className="ev-summary__tagline">Gestion de la performance</p>
-        <h2 className="ev-summary__headline">Mon évaluation</h2>
+      {/* En-tête */}
+      <div className="ev-sum-hd">
+        <div className="ev-sum-hd__left">
+          <p className="ev-sum-hd__eyebrow">Gestion de la performance</p>
+          <h2 className="ev-sum-hd__title">Mon évaluation</h2>
+        </div>
+        <span className={`ev-sum-hd__chip ev-sum-hd__chip--${status}`}>
+          {statusLabel}
+        </span>
       </div>
 
-      {/* Carte de progression globale */}
-      <div className="ev-progress-card">
-        <div className="ev-progress-card__header">
-          <div>
-            <p className="ev-progress-card__title">Progression globale</p>
-            <p className="ev-progress-card__meta">
-              {evaluation?.campaignId?.name ?? 'Cycle Annuel 2026'}
-              {' · '}Statut :{' '}
-              <span className={`badge badge--${status}`}>
-                {t(`ev.status.${status}`) || status}
-              </span>
-            </p>
-          </div>
-          <span className="ev-progress-card__pct">{progress}%</span>
-        </div>
+      {/* Grid 2 colonnes */}
+      <div className="ev-sum-grid">
 
-        {/* Barre de progression — width dynamique : seul cas justifiant un inline style */}
-        <div
-          className="ev-progress-bar"
-          role="progressbar"
-          aria-valuenow={progress}
-          aria-valuemin={0}
-          aria-valuemax={100}
-        >
-          <div className="ev-progress-bar__fill" style={{ width: `${progress}%` }} />
-        </div>
+        {/* ── Colonne gauche : KPI + métadonnées ─── */}
+        <aside className="ev-sum-aside">
 
-        <div className="ev-progress-legend">
-          <span className="ev-progress-legend__item">
-            <span className="ev-progress-legend__dot ev-progress-legend__dot--done" />
-            Phases complétées
-          </span>
-          <span className="ev-progress-legend__item">
-            <span className="ev-progress-legend__dot" />
-            En attente
-          </span>
-        </div>
-      </div>
-
-      {/* Cartes de phase */}
-      <div>
-        {PHASES.map(phase => {
-          const isDone = donePhases.includes(phase.id) || (phase.id === 'sign' && !canEdit)
-
-          return (
-            <div key={phase.id} className="ev-phase-card">
-              <div className="ev-phase-card__info">
-                <p className={`ev-phase-card__label${isDone ? ' ev-phase-card__label--done' : ''}`}>
-                  {isDone && (
-                    <CheckCircle
-                      size={12}
-                      strokeWidth={2.5}
-                      aria-hidden="true"
-                      className="ev-phase-card__label-icon"
-                    />
-                  )}
-                  {phase.label}
-                </p>
-                <p className="ev-phase-card__title">{phase.label}</p>
-                <p className="ev-phase-card__desc">{phase.desc}</p>
-              </div>
-
-              <div className="ev-phase-card__actions">
-                <span className={`ev-phase-card__status${isDone ? ' ev-phase-card__status--done' : ''}`}>
-                  {isDone ? 'Complété' : 'En attente'}
-                </span>
-                <button
-                  className="ev-continue-btn"
-                  onClick={() => navigate(`/evaluation/${evalId}/${phase.path}`)}
-                >
-                  {isDone ? 'Consulter' : 'Continuer'}
-                  <ChevronRight size={14} strokeWidth={2} aria-hidden="true" />
-                </button>
-              </div>
+          {/* Score */}
+          <div className="ev-sum-kpi">
+            <div className="ev-sum-kpi__top">
+              <span className="ev-sum-kpi__pct">{progress}%</span>
+              <span className="ev-sum-kpi__sub">{donePhases.length} / 4 phases</span>
             </div>
-          )
-        })}
+            <div
+              className="ev-sum-kpi__bar"
+              role="progressbar"
+              aria-valuenow={progress}
+              aria-valuemin={0}
+              aria-valuemax={100}
+            >
+              <div className="ev-sum-kpi__fill" style={{ width: `${progress}%` }} />
+            </div>
+            <div className="ev-sum-kpi__dots">
+              {PHASES.filter(p => p.id !== 'sign').map(p => (
+                <span
+                  key={p.id}
+                  className={`ev-sum-kpi__dot${donePhases.includes(p.id) ? ' ev-sum-kpi__dot--done' : ''}`}
+                  title={p.label}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Métadonnées */}
+          <dl className="ev-sum-meta">
+            <div className="ev-sum-meta__row">
+              <dt>Campagne</dt>
+              <dd>{evaluation?.campaignId?.name ?? 'Cycle Annuel 2026'}</dd>
+            </div>
+            <div className="ev-sum-meta__row">
+              <dt>Statut</dt>
+              <dd>
+                <span className={`ev-sum-hd__chip ev-sum-hd__chip--${status} ev-sum-hd__chip--sm`}>
+                  {statusLabel}
+                </span>
+              </dd>
+            </div>
+            <div className="ev-sum-meta__row">
+              <dt>Complété</dt>
+              <dd>{donePhases.length} phase{donePhases.length > 1 ? 's' : ''} sur 4</dd>
+            </div>
+          </dl>
+        </aside>
+
+        {/* ── Colonne droite : liste des phases ─────── */}
+        <main className="ev-sum-main">
+          <p className="ev-sum-main__label">Phases de l'évaluation</p>
+
+          <div className="ev-phase-list">
+            {PHASES.map((phase, idx) => {
+              const isDone       = donePhases.includes(phase.id) || (phase.id === 'sign' && !canEdit)
+              const isSignLocked = phase.id === 'sign' && canEdit
+
+              return (
+                <div
+                  key={phase.id}
+                  className={[
+                    'ev-phase-row',
+                    isDone        ? 'ev-phase-row--done'   : '',
+                    isSignLocked  ? 'ev-phase-row--locked' : '',
+                  ].filter(Boolean).join(' ')}
+                >
+                  <div className="ev-phase-row__num" aria-hidden="true">
+                    {isDone
+                      ? <Check size={10} strokeWidth={3} />
+                      : isSignLocked
+                        ? <Lock size={10} strokeWidth={2} />
+                        : idx + 1}
+                  </div>
+
+                  <div className="ev-phase-row__body">
+                    <p className="ev-phase-row__name">{phase.label}</p>
+                    <p className="ev-phase-row__desc">{phase.desc}</p>
+                  </div>
+
+                  {!isSignLocked && (
+                    <button
+                      className={`ev-phase-row__cta${isDone ? ' ev-phase-row__cta--ghost' : ''}`}
+                      onClick={() => navigate(`/evaluation/${evalId}/${phase.path}`)}
+                    >
+                      {isDone ? 'Consulter' : 'Commencer'}
+                      <ChevronRight size={12} strokeWidth={2.5} aria-hidden="true" />
+                    </button>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </main>
+
       </div>
     </EvaluationLayout>
   )
 }
+

@@ -56,12 +56,11 @@ export default function EvaluationLayout({
                   onClick={() => navigate(`/evaluation/${evalId}/${phase.path}`)}
                   aria-current={isCurrent ? 'step' : undefined}
                 >
-                  <span className="ev-stepper__num">
+                  <span className="ev-stepper__num" title={phase.label}>
                     {isCompleted
                       ? <Check size={9} strokeWidth={3} aria-hidden="true" />
                       : idx + 1}
                   </span>
-                  <span className="ev-stepper__label">{phase.label}</span>
                 </button>
               </React.Fragment>
             )

@@ -102,11 +102,23 @@ export default function EmployeeHistory() {
 
       {/* ── Hero ──────────────────────────────────────── */}
       <header className="eh-hero">
-        <p className="eh-hero__eyebrow">HISTORIQUE</p>
-        <h1 className="eh-hero__headline">
-          Historique des <span className="eh-hero__accent">évaluations</span>
-        </h1>
-        <p className="eh-hero__sub">Vos bilans passés</p>
+        <div className="eh-hero__body">
+          <p className="eh-hero__eyebrow">HISTORIQUE</p>
+          <h1 className="eh-hero__headline">
+            Historique des <span className="eh-hero__accent">évaluations</span>
+          </h1>
+          <p className="eh-hero__sub">
+            Consultez vos bilans passés, suivez votre progression d'une année à l'autre et retrouvez tous vos entretiens archivés.
+          </p>
+        </div>
+        <img
+          src="/assets/spotlight.jpg"
+          alt=""
+          aria-hidden="true"
+          className="eh-hero__img"
+          onError={e => { e.target.style.display = 'none' }}
+        />
+        <div className="eh-hero__glow" aria-hidden="true" />
       </header>
 
       {/* ── Filtres ───────────────────────────────────── */}

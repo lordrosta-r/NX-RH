@@ -194,11 +194,23 @@ export default function EmployeeGoals() {
 
       {/* ── Hero ──────────────────────────────────────── */}
       <header className="eg-hero">
-        <p className="eg-hero__eyebrow">OBJECTIFS</p>
-        <h1 className="eg-hero__headline">
-          Mes <span className="eg-hero__accent">objectifs</span>
-        </h1>
-        <p className="eg-hero__sub">Suivi de progression</p>
+        <div className="eg-hero__body">
+          <p className="eg-hero__eyebrow">OBJECTIFS</p>
+          <h1 className="eg-hero__headline">
+            Mes <span className="eg-hero__accent">objectifs</span>
+          </h1>
+          <p className="eg-hero__sub">
+            Fixez vos ambitions, mesurez votre avancement et suivez l'atteinte de vos objectifs tout au long de l'année.
+          </p>
+        </div>
+        <img
+          src="/assets/spotlight.jpg"
+          alt=""
+          aria-hidden="true"
+          className="eg-hero__img"
+          onError={e => { e.target.style.display = 'none' }}
+        />
+        <div className="eg-hero__glow" aria-hidden="true" />
       </header>
 
       {/* ── Statistiques rapides ──────────────────────── */}

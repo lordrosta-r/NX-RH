@@ -46,9 +46,9 @@ function ProgressRing({ value = 0, size = 192, trackWidth = 10 }) {
 }
 
 // ── Banner component ────────────────────────────────────────────────────────
-export default function CampaignBanner({ t, campaign, loading, error, userName = '', onNavigate, isActive = true }) {
+export default function CampaignBanner({ t, campaign, loading, error, userName = '', onNavigate, isActive = true, userProgress = 0 }) {
   const [animatedProgress, setAnimatedProgress] = React.useState(0)
-  const actualProgress = !loading && !error && campaign ? (campaign.progress ?? 0) : 0
+  const actualProgress = userProgress
 
   // Trigger animation only when becoming active again
   React.useEffect(() => {

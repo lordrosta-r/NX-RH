@@ -122,15 +122,28 @@ export default function EvaluationSummary() {
       currentPhase={null}
       donePhases={donePhases}
     >
-      {/* En-tête */}
-      <div className="ev-sum-hd">
-        <div className="ev-sum-hd__left">
-          <p className="ev-sum-hd__eyebrow">Gestion de la performance</p>
-          <h2 className="ev-sum-hd__title">Mon évaluation</h2>
+      {/* ── Hero banner ── */}
+      <div className="ev-hero">
+        <div className="ev-hero__body">
+          <p className="ev-hero__eyebrow">Gestion de la performance</p>
+          <h2 className="ev-hero__title">
+            Mon <span className="ev-hero__accent">évaluation</span>
+          </h2>
+          <p className="ev-hero__sub">
+            Complétez chaque phase à votre rythme. Vos réponses sont sauvegardées automatiquement à chaque étape.
+          </p>
+          <span className={`ev-sum-hd__chip ev-sum-hd__chip--${status}`}>
+            {statusLabel}
+          </span>
         </div>
-        <span className={`ev-sum-hd__chip ev-sum-hd__chip--${status}`}>
-          {statusLabel}
-        </span>
+        <img
+          src="/assets/spotlight.jpg"
+          alt=""
+          aria-hidden="true"
+          className="ev-hero__img"
+          onError={e => { e.target.style.display = 'none' }}
+        />
+        <div className="ev-hero__glow" aria-hidden="true" />
       </div>
 
       {/* Grid 2 colonnes */}

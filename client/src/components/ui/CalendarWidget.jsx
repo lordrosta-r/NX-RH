@@ -47,17 +47,20 @@ export default function CalendarWidget({
   labelNextMonth = 'Next month',
 }) {
   const today = new Date()
-  const [viewYear,  setViewYear]  = useState(today.getFullYear())
-  const [viewMonth, setViewMonth] = useState(today.getMonth())
+  const [viewYear,    setViewYear]    = useState(today.getFullYear())
+  const [viewMonth,   setViewMonth]   = useState(today.getMonth())
+  const [selectedDay, setSelectedDay] = useState(null)
 
   const daysInMonth    = getDaysInMonth(viewYear, viewMonth)
   const firstDayOfWeek = getFirstDayOfWeek(viewYear, viewMonth)
 
   const prevMonth = () => {
+    setSelectedDay(null)
     if (viewMonth === 0) { setViewYear(y => y - 1); setViewMonth(11) }
     else setViewMonth(m => m - 1)
   }
   const nextMonth = () => {
+    setSelectedDay(null)
     if (viewMonth === 11) { setViewYear(y => y + 1); setViewMonth(0) }
     else setViewMonth(m => m + 1)
   }
@@ -126,8 +129,14 @@ export default function CalendarWidget({
             <button
               key={day}
               type="button"
-              className={['cal__cell', isToday(day) ? 'cal__cell--today' : '', evts.length ? 'cal__cell--has-event' : ''].join(' ')}
+              className={['cal__cell',
+                isToday(day)       ? 'cal__cell--today'     : '',
+                evts.length        ? 'cal__cell--has-event' : '',
+                selectedDay === day ? 'cal__cell--selected'  : '',
+              ].filter(Boolean).join(' ')}
+              onClick={() => evts.length && setSelectedDay(selectedDay === day ? null : day)}
               aria-label={`${day}${evts.length ? ': ' + evts.map(e => e.label).join(', ') : ''}`}
+              aria-expanded={evts.length ? selectedDay === day : undefined}
             >
               <span className="cal__day-num">{day}</span>
               {evts.length > 0 && (
@@ -150,6 +159,23 @@ export default function CalendarWidget({
           </span>
         ))}
       </div>
+
+      {selectedDay && eventsByDay[selectedDay] && (
+        <div className="cal__detail" role="region" aria-live="polite">
+          <p className="cal__detail__date">
+            {new Date(viewYear, viewMonth, selectedDay).toLocaleDateString(
+              locale === 'fr' ? 'fr-FR' : 'en-US',
+              { day: 'numeric', month: 'long' }
+            )}
+          </p>
+          {eventsByDay[selectedDay].map((evt, i) => (
+            <div key={i} className="cal__detail__evt">
+              <span className="cal__detail__dot" style={{ background: evt.color }} />
+              <span className="cal__detail__label">{evt.label}</span>
+            </div>
+          ))}
+        </div>
+      )}
 
     </div>
   )

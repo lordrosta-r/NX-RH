@@ -64,9 +64,19 @@ export default function Employee() {
   const { data: evaluations = [], isLoading: evalsLoading, isError: evalsError } = useQuery({
     queryKey: ['evaluations-me', user?._id],
     queryFn:  () =>
-      fetch(`/api/evaluations?evaluateeId=${user._id}&status=assigned`, { credentials: 'include' })
+      fetch(`/api/evaluations?evaluateeId=${user._id}`, { credentials: 'include' })
         .then(r => { if (!r.ok) throw new Error(r.statusText); return r.json() })
-        .then(j => j.data ?? j),
+        .then(j => {
+          const list = j.data ?? j
+          // Garder uniquement les auto-évals (evaluator = evaluatee)
+          return Array.isArray(list)
+            ? list.filter(e => {
+                const evtor = e.evaluatorId?._id ?? e.evaluatorId
+                const evtee = e.evaluateeId?._id ?? e.evaluateeId
+                return evtor?.toString() === evtee?.toString()
+              })
+            : []
+        }),
     staleTime: 5 * 60 * 1000,
     enabled: !!user,
   })

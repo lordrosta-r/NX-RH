@@ -11,7 +11,7 @@
 // =============================================================================
 
 import { useState, useEffect } from 'react'
-import { X, RotateCcw, Copy, Check } from 'lucide-react'
+import { X, RotateCcw, Copy, Check, Palette, Type, LayoutDashboard, Ruler, Image, Download, SlidersHorizontal } from 'lucide-react'
 import './DevDesignLab.css'
 
 // ── Config par défaut ────────────────────────────────────────────────────────
@@ -56,21 +56,60 @@ const FONTS = [
 ]
 
 const TABS = [
-  { id: 'colors',  icon: '🎨', label: 'Couleurs' },
-  { id: 'typo',    icon: '✏️', label: 'Typo'     },
-  { id: 'layout',  icon: '📐', label: 'Layout'   },
-  { id: 'spacing', icon: '📏', label: 'Espaces'  },
-  { id: 'bg',      icon: '🖼️', label: 'Fond'     },
-  { id: 'export',  icon: '📤', label: 'Export'   },
+  { id: 'colors',  Icon: Palette,         label: 'Couleurs' },
+  { id: 'typo',    Icon: Type,            label: 'Typo'     },
+  { id: 'layout',  Icon: LayoutDashboard, label: 'Layout'   },
+  { id: 'spacing', Icon: Ruler,           label: 'Espaces'  },
+  { id: 'bg',      Icon: Image,           label: 'Fond'     },
+  { id: 'export',  Icon: Download,        label: 'Export'   },
 ]
 
 const LS_KEY = 'nx-design-lab-v2'
+
+// ── Lire les valeurs réelles depuis le DOM ────────────────────────────────────
+function readFromDOM() {
+  const cs  = getComputedStyle(document.documentElement)
+  const bcs = getComputedStyle(document.body)
+  const get = (v) => cs.getPropertyValue(v).trim()
+
+  const rootFontSize = parseFloat(cs.fontSize) || DEFAULT.typo.sizeBase
+  let lineHeight = DEFAULT.typo.lineHeight
+  const lhRaw = bcs.lineHeight
+  if (lhRaw && lhRaw !== 'normal') {
+    const lhPx = parseFloat(lhRaw)
+    const fsPx = parseFloat(bcs.fontSize)
+    if (!isNaN(lhPx) && !isNaN(fsPx) && fsPx > 0) {
+      lineHeight = Math.round((lhPx / fsPx) * 100) / 100
+    }
+  }
+
+  return {
+    colors: {
+      pageBg:    get('--color-surface-container')         || DEFAULT.colors.pageBg,
+      topbarBg:  get('--color-topbar-bg')                 || DEFAULT.colors.topbarBg,
+      sidebarBg: get('--color-sidebar')                   || DEFAULT.colors.sidebarBg,
+      cardBg:    get('--color-surface-container-lowest')  || DEFAULT.colors.cardBg,
+      primary:   get('--color-primary')                   || DEFAULT.colors.primary,
+      secondary: get('--color-secondary')                 || DEFAULT.colors.secondary,
+      text:      get('--color-on-surface')                || DEFAULT.colors.text,
+    },
+    typo: {
+      family:        DEFAULT.typo.family,
+      sizeBase:      rootFontSize,
+      lineHeight,
+      letterSpacing: 0,
+    },
+    layout:  structuredClone(DEFAULT.layout),
+    spacing: structuredClone(DEFAULT.spacing),
+    bg:      structuredClone(DEFAULT.bg),
+  }
+}
 
 // ── Persistence ──────────────────────────────────────────────────────────────
 function load() {
   try {
     const s = localStorage.getItem(LS_KEY)
-    if (!s) return structuredClone(DEFAULT)
+    if (!s) return readFromDOM()
     const saved = JSON.parse(s)
     return {
       colors:  { ...DEFAULT.colors,  ...saved.colors  },
@@ -79,7 +118,7 @@ function load() {
       spacing: { ...DEFAULT.spacing, ...saved.spacing },
       bg:      { ...DEFAULT.bg,      ...saved.bg      },
     }
-  } catch { return structuredClone(DEFAULT) }
+  } catch { return readFromDOM() }
 }
 
 function persist(cfg) {
@@ -339,7 +378,7 @@ export default function DevDesignLab() {
   }
 
   function handleReset() {
-    const fresh = structuredClone(DEFAULT)
+    const fresh = readFromDOM()
     setCfg(fresh)
     persist(fresh)
     applyConfig(fresh)
@@ -362,7 +401,7 @@ export default function DevDesignLab() {
 
           {/* ── Header ─────────────────────────────────────────────────── */}
           <div className="ddl__header">
-            <span className="ddl__title">⚗️ Design Lab</span>
+            <span className="ddl__title">Design Lab</span>
             <div className="ddl__hright">
               <button className="ddl__hbtn" onClick={handleReset} title="Réinitialiser tout">
                 <RotateCcw size={12} />
@@ -382,7 +421,7 @@ export default function DevDesignLab() {
                 onClick={() => setTab(t.id)}
                 title={t.label}
               >
-                {t.icon}
+                <t.Icon size={13} />
               </button>
             ))}
           </div>
@@ -424,8 +463,8 @@ export default function DevDesignLab() {
                   label="Navigation"
                   section="layout" key="mode"
                   options={[
-                    { value: 'sidebar', display: '⬛ Sidebar' },
-                    { value: 'topbar',  display: '↔ Topbar'  },
+                    { value: 'sidebar', display: 'Sidebar' },
+                    { value: 'topbar',  display: 'Topbar'  },
                   ]}
                   {...p}
                 />
@@ -485,7 +524,7 @@ export default function DevDesignLab() {
         onClick={() => setOpen(o => !o)}
         title="Design Lab"
       >
-        ⚗️
+        <SlidersHorizontal size={16} />
       </button>
     </div>
   )

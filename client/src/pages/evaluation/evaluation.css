@@ -1007,14 +1007,11 @@
 /* ── EvaluationLayout — conteneur et en-tête partagé ──────────────────────── */
 /* ── Shared layout shell ─────────────────────────────────────────────────────── */
 .ev-layout {
-  max-width: 860px;
   width: 100%;
 }
 
 .ev-layout__header {
-  margin-bottom: 2.5rem;
-  padding-bottom: 1.25rem;
-  border-bottom: 1px solid #e5e5e5;
+  margin-bottom: 1.5rem;
 }
 
 .ev-layout__back {
@@ -1034,65 +1031,6 @@
   letter-spacing: -0.01em;
 }
 .ev-layout__back:hover { color: #0a0a0a; }
-
-/* ── Stepper horizontal avec connecteurs ────────────────────────────────────── */
-.ev-stepper {
-  display: flex;
-  align-items: center;
-}
-
-.ev-stepper__connector {
-  flex: 1;
-  height: 1px;
-  background: #e5e5e5;
-  min-width: 0.75rem;
-}
-
-.ev-stepper__step {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.25rem 0;
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: #a3a3a3;
-  font-family: var(--font-family);
-  transition: color 0.12s;
-  white-space: nowrap;
-}
-.ev-stepper__step:hover { color: #0a0a0a; }
-.ev-stepper__step--active { color: #0a0a0a; font-weight: 700; }
-.ev-stepper__step--done   { color: #0a0a0a; }
-
-.ev-stepper__num {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.5rem;
-  height: 1.5rem;
-  border-radius: 50%;
-  border: 1.5px solid #d4d4d4;
-  background: #fff;
-  font-size: 0.625rem;
-  font-weight: 700;
-  color: #a3a3a3;
-  flex-shrink: 0;
-  transition: background 0.12s, border-color 0.12s, color 0.12s;
-}
-.ev-stepper__step--active .ev-stepper__num {
-  background: #b8000b;
-  border-color: #b8000b;
-  color: #fff;
-}
-.ev-stepper__step--done .ev-stepper__num {
-  background: #b8000b;
-  border-color: #b8000b;
-  color: #fff;
-}
-.ev-stepper__label { white-space: nowrap; }
 
 /* ── EvaluationSummary — Hero banner ────────────────────────────────────────── */
 .ev-hero {

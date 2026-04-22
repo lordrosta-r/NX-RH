@@ -308,6 +308,7 @@ export default function EvaluationForm({ phase }) {
       }).then(r => { if (!r.ok) throw new Error('Sauvegarde échouée'); return r.json() }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['eval', evalId] })
+      queryClient.invalidateQueries({ queryKey: ['evaluations-me'] })
       setSaveError(null)
     },
     onError: () => setSaveError(t('ev.error.save_failed') || 'Sauvegarde échouée'),

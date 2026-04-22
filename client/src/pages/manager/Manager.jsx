@@ -9,13 +9,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '../../contexts/AuthContext'
 import { useTranslate, useLocaleCtx } from '../../contexts/LocaleContext'
 import { t as pageT } from './i18n'
-import {
-  UsersIcon,
-  ClipboardIcon,
-  CheckCircleIcon,
-  ArrowNEIcon,
-  ChevronRightIcon,
-} from '../../components/ui/icons'
+import { Users, Clipboard, CheckCircle2, ArrowUpRight, ChevronRight } from 'lucide-react'
 import './manager.css'
 
 function avatarInitial(member) {
@@ -97,7 +91,7 @@ export default function Manager() {
       {/* ── Urgency banner ──────────────────────────────────────────────── */}
       {campaign && urgencyCount > 0 && (
         <div className="mgr-urgency" role="status">
-          <ClipboardIcon size={18} />
+          <Clipboard size={18} />
           <span>
             <strong>{urgencyCount}</strong>{' '}
             {t('manager.urgency.desc')}{' '}
@@ -154,7 +148,7 @@ export default function Manager() {
                       <span className={`mgr-status mgr-status--${status}`}>
                         {t(`manager.eval_status.${status}`) || status}
                       </span>
-                      <ChevronRightIcon size={16} />
+                      <ChevronRight size={16} />
                     </div>
                   </div>
                 )
@@ -168,9 +162,9 @@ export default function Manager() {
               className="mgr-btn mgr-btn--primary"
               onClick={() => navigate('/manager/team')}
             >
-              <UsersIcon size={16} />
+              <Users size={16} />
               {t('manager.team.viewall')}
-              <ArrowNEIcon size={14} />
+              <ArrowUpRight size={14} />
             </button>
           </div>
         </>

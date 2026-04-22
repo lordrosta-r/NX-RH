@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { GlobeIcon } from '../../components/ui/icons'
+import { Globe } from 'lucide-react'
 import './LanguageSelector.css'
 
 // Composant spécifique à la page Login — vit dans son dossier.
@@ -35,7 +35,7 @@ export default function LanguageSelector({ locale = 'fr', onChange, labelFr, lab
         aria-expanded={open}
         aria-label={labelSelectLanguage}
       >
-        <GlobeIcon size={14} color="var(--th-controls-icon)" />
+        <Globe size={14} color="var(--th-controls-icon)" />
         <span className="lang-selector__current">{current.label}</span>
       </button>
       {open && (
@@ -56,3 +56,4 @@ export default function LanguageSelector({ locale = 'fr', onChange, labelFr, lab
     </div>
   )
 }
+

@@ -20,12 +20,7 @@ import { useTranslate, useLocaleCtx } from '../../contexts/LocaleContext'
 import { t as pageT }           from './i18n'
 import CampaignBanner           from './CampaignBanner'
 import CalendarWidget           from '../../components/ui/CalendarWidget'
-import {
-  ArrowNEIcon,
-  SparklesIcon,
-  HeartIcon,
-  ChevronRightIcon,
-} from '../../components/ui/icons'
+import { ArrowUpRight, Sparkles, Heart, ChevronRight } from 'lucide-react'
 import './employee.css'
 
 // ── Correspondance type d'événement → token couleur ─────────────────────────
@@ -153,10 +148,10 @@ export default function Employee() {
         >
           <div className="db-card__top">
             <div className="db-card__icon db-card__icon--violet">
-              <SparklesIcon size={18} color="var(--color-secondary)" strokeWidth={1.5} />
+              <Sparkles size={18} color="var(--color-secondary)" strokeWidth={1.5} />
             </div>
             <span className="db-card__arrow">
-              <ArrowNEIcon size={14} color="var(--color-outline-variant)" />
+              <ArrowUpRight size={14} color="var(--color-outline-variant)" />
             </span>
           </div>
           <div>
@@ -176,10 +171,10 @@ export default function Employee() {
         >
           <div className="db-card__top">
             <div className="db-card__icon db-card__icon--red">
-              <HeartIcon size={18} color="var(--color-primary)" strokeWidth={1.5} />
+              <Heart size={18} color="var(--color-primary)" strokeWidth={1.5} />
             </div>
             <span className="db-card__arrow">
-              <ArrowNEIcon size={14} color="var(--color-outline-variant)" />
+              <ArrowUpRight size={14} color="var(--color-outline-variant)" />
             </span>
           </div>
           <div>
@@ -260,7 +255,7 @@ export default function Employee() {
             className="db-stats__cta"
             style={stats.pending === 0 ? { visibility: 'hidden' } : undefined}
           >
-            {t('dashboard.stats.cta')} <ChevronRightIcon size={14} />
+            {t('dashboard.stats.cta')} <ChevronRight size={14} />
           </a>
         </article>
 
@@ -323,3 +318,4 @@ export default function Employee() {
     </>
   )
 }
+

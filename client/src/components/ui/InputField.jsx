@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { EyeIcon, EyeOffIcon } from './icons'
+import { Eye, EyeOff } from 'lucide-react'
 import './InputField.css'
 
 // =============================================================================
@@ -72,8 +72,8 @@ export default function InputField({
           >
             <span aria-hidden="true">
               {showPassword
-                ? <EyeOffIcon size={16} color="currentColor" />
-                : <EyeIcon    size={16} color="currentColor" />
+                ? <EyeOff size={16} color="currentColor" />
+                : <Eye    size={16} color="currentColor" />
               }
             </span>
           </button>
@@ -87,3 +87,4 @@ export default function InputField({
     </div>
   )
 }
+

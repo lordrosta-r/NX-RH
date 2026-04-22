@@ -37,6 +37,7 @@ const DEFAULT = {
     borderRadius: 8,
     maxWidth:     0,         // 0 = pas de limite
     cardCols:     0,         // 0 = défaut CSS (auto)
+    cardStyle:    'default', // 'default' | 'flat' | 'elevated' | 'glass' | 'bordered'
   },
   spacing: {
     contentPadding: 40,
@@ -151,7 +152,6 @@ function injectCSS(cfg) {
   const sw     = cfg.layout.sidebarWidth
   const cp     = cfg.spacing.contentPadding
   const isTop  = cfg.layout.mode === 'topbar'
-  const tbBg   = cfg.colors.topbarBg
 
   // ── Background page
   if (cfg.bg.pageUrl) {
@@ -167,49 +167,30 @@ function injectCSS(cfg) {
 
   // ── Layout sidebar vs topbar
   if (isTop) {
-    // Transformer la sidebar en barre de nav horizontale
+    // Cacher la sidebar — les liens sont injectés dans le DOM de la topbar
+    r.push(`.app-sidebar { display: none !important; }`)
+    r.push(`.db-main { margin-left: 0 !important; }`)
+    // Styles pour les éléments injectés .ddl-tnav
     r.push(`
-.app-sidebar {
-  position: fixed !important; top: 56px !important; left: 0 !important;
-  width: 100vw !important; min-width: 100vw !important; height: 44px !important;
-  flex-direction: row !important; padding: 0 1.5rem !important;
-  background: ${tbBg} !important;
-  border-bottom: 1px solid var(--color-surface-container-high, #e0dddd) !important;
-  border-right: none !important; box-shadow: none !important;
-  overflow: hidden !important; z-index: 89 !important;
-  gap: 0.5rem !important; align-items: center !important;
+.ddl-tnav { display: flex; align-items: center; gap: 0; flex-shrink: 0; padding: 0 0.75rem; }
+.ddl-tnav__brand {
+  font-size: 0.9375rem; font-weight: 700;
+  color: var(--color-on-surface); white-space: nowrap;
+  padding-right: 1rem; margin-right: 0.75rem;
+  border-right: 1px solid var(--color-surface-container-high, #e0dddd);
 }
-.app-sidebar__brand {
-  display: flex !important; flex-direction: row !important;
-  align-items: center !important; gap: 0.5rem !important;
-  padding: 0 1rem 0 0 !important; margin: 0 !important;
-  border-bottom: none !important; flex-shrink: 0 !important;
-  border-right: 1px solid var(--color-surface-container-high, #e0dddd) !important;
+.ddl-tnav__nav { display: flex; align-items: center; gap: 0.125rem; }
+.ddl-tnav__item {
+  display: flex; align-items: center; gap: 0.375rem;
+  height: 32px; padding: 0 0.625rem; border-radius: 6px;
+  font-size: 0.8125rem; font-weight: 500; white-space: nowrap;
+  color: var(--color-on-surface-variant); text-decoration: none; cursor: pointer;
+  transition: background 0.12s, color 0.12s;
 }
-.app-sidebar__brand-name {
-  font-size: 0.875rem !important; font-weight: 700 !important;
-  color: var(--color-on-surface) !important; white-space: nowrap !important;
-}
-.app-sidebar__brand-sub { display: none !important; }
-.app-sidebar__nav {
-  flex-direction: row !important; gap: 0.25rem !important;
-  padding: 0 !important; flex: 1 !important;
-  overflow: hidden !important; align-items: center !important;
-}
-.app-sidebar__item, .app-sidebar__item--disabled {
-  flex-direction: row !important; padding: 0.3rem 0.625rem !important;
-  border-radius: 6px !important; height: 30px !important; min-height: 30px !important;
-  gap: 0.375rem !important; font-size: 0.8125rem !important;
-  white-space: nowrap !important; color: var(--color-on-surface-variant) !important;
-  background: none !important;
-}
-.app-sidebar__item--active {
-  color: var(--color-primary) !important;
-  background: var(--color-primary-tint-07, rgba(184,0,11,0.07)) !important;
-}
-.app-sidebar__overlay { display: none !important; }
-.db-main { margin-left: 0 !important; }
-.db-content { padding-top: calc(44px + ${cp}px) !important; }
+.ddl-tnav__item:hover { background: var(--color-surface-container); color: var(--color-on-surface); }
+.ddl-tnav__item--active { background: var(--color-primary-tint-07, rgba(184,0,11,0.07)); color: var(--color-primary, #b8000b); }
+.ddl-tnav__item--disabled { opacity: 0.4; cursor: default; }
+.ddl-tnav__item svg { flex-shrink: 0; }
 `.trim())
   } else {
     // Sidebar classique
@@ -234,6 +215,18 @@ function injectCSS(cfg) {
   if (cfg.layout.cardCols > 0) {
     r.push(`.db-bento { grid-template-columns: repeat(${cfg.layout.cardCols}, 1fr) !important; }`)
     r.push(`.db-bento > * { grid-column: auto !important; grid-row: auto !important; }`)
+  }
+
+  // ── Card style preset
+  const cardStyleMap = {
+    flat:     `.db-card { box-shadow: none !important; border-radius: 4px !important; border: 1px solid var(--color-surface-container-high, #ddd) !important; }`,
+    elevated: `.db-card { border-radius: 16px !important; box-shadow: 0 8px 32px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.05) !important; }`,
+    glass:    `.db-card { background: rgba(255,255,255,0.55) !important; backdrop-filter: blur(14px) !important; -webkit-backdrop-filter: blur(14px) !important; border: 1px solid rgba(255,255,255,0.6) !important; border-radius: 16px !important; }`,
+    bordered: `.db-card { box-shadow: none !important; border: 2px solid var(--color-surface-container-high, #ddd) !important; }`,
+    primary:  `.db-card { box-shadow: none !important; border-left: 4px solid var(--color-primary, #b8000b) !important; border-radius: 0 8px 8px 0 !important; background: var(--color-primary-tint, rgba(184,0,11,0.04)) !important; }`,
+  }
+  if (cfg.layout.cardStyle && cardStyleMap[cfg.layout.cardStyle]) {
+    r.push(cardStyleMap[cfg.layout.cardStyle])
   }
 
   // ── Typographie
@@ -266,8 +259,48 @@ function applyConfig(cfg) {
   root.style.setProperty('--radius-md', `${cfg.layout.borderRadius}px`)
   root.style.setProperty('--radius-xl', `${cfg.layout.borderRadius * 2}px`)
 
-  // Dynamic CSS rules
+  // Dynamic CSS rules + topbar nav injection
   injectCSS(cfg)
+  syncTopbarNav(cfg)
+}
+
+// ── Injection des liens de nav dans la topbar (mode topbar uniquement) ─────────
+function syncTopbarNav(cfg) {
+  document.getElementById('ddl-topbar-nav')?.remove()
+  if (cfg.layout.mode !== 'topbar') return
+
+  const topbar = document.querySelector('.apptb')
+  if (!topbar) return
+
+  // Les items sidebar sont dans le DOM même si display:none
+  const items = document.querySelectorAll('.app-sidebar .app-sidebar__item, .app-sidebar .app-sidebar__item--disabled')
+
+  const wrap = document.createElement('div')
+  wrap.id = 'ddl-topbar-nav'
+  wrap.className = 'ddl-tnav'
+
+  // Brand
+  const brand = document.createElement('div')
+  brand.className = 'ddl-tnav__brand'
+  brand.textContent = 'NanoXplore RH'
+  wrap.appendChild(brand)
+
+  // Nav
+  const nav = document.createElement('nav')
+  nav.className = 'ddl-tnav__nav'
+  items.forEach(item => {
+    const isActive   = item.classList.contains('app-sidebar__item--active')
+    const isDisabled = item.classList.contains('app-sidebar__item--disabled')
+    const tag = (item.tagName === 'A' && !isDisabled) ? 'a' : 'span'
+    const el  = document.createElement(tag)
+    if (tag === 'a') el.href = item.href
+    el.className = `ddl-tnav__item${isActive ? ' ddl-tnav__item--active' : ''}${isDisabled ? ' ddl-tnav__item--disabled' : ''}`
+    el.innerHTML  = item.innerHTML
+    nav.appendChild(el)
+  })
+  wrap.appendChild(nav)
+
+  topbar.insertBefore(wrap, topbar.firstChild)
 }
 
 // ── Export CSS ────────────────────────────────────────────────────────────────
@@ -531,6 +564,19 @@ export default function DevDesignLab() {
                     { value: 2, display: '2'    },
                     { value: 3, display: '3'    },
                     { value: 4, display: '4'    },
+                  ]}
+                  {...p}
+                />
+                <SectionTitle>Style cards</SectionTitle>
+                <ToggleGroup
+                  section="layout" field="cardStyle"
+                  options={[
+                    { value: 'default',  display: 'Défaut'   },
+                    { value: 'flat',     display: 'Flat'     },
+                    { value: 'elevated', display: 'Élevé'    },
+                    { value: 'glass',    display: 'Glass'    },
+                    { value: 'bordered', display: 'Bordure'  },
+                    { value: 'primary',  display: 'Primary'  },
                   ]}
                   {...p}
                 />

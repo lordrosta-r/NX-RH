@@ -93,6 +93,17 @@ export default function Employee() {
     enabled: !!user,
   })
 
+  // ── Détail de l'évaluation active (la liste n'inclut pas les answers) ────────
+  const myEvalId = (evaluations.find(e => ['assigned', 'in_progress'].includes(e.status))?._id) ?? null
+  const { data: activeEvalDetail } = useQuery({
+    queryKey: ['eval', myEvalId],
+    queryFn:  () =>
+      fetch(`/api/evaluations/${myEvalId}`, { credentials: 'include' })
+        .then(r => r.ok ? r.json() : null),
+    enabled:   !!myEvalId,
+    staleTime: 30 * 1000,
+  })
+
   // ── Événements calendrier ─────────────────────────────────────────────────
   const { data: events = [], isLoading: eventsLoading, isError: eventsError } = useQuery({
     queryKey: ['events'],
@@ -123,7 +134,7 @@ export default function Employee() {
 
   // ── Progression individuelle de l'évaluation en cours ─────────────────────
   const myEval = evaluations.find(e => ['assigned', 'in_progress'].includes(e.status))
-  const userProgress = myEval ? computeEvalProgress(myEval?.answers ?? []) : 0
+  const userProgress = computeEvalProgress((activeEvalDetail ?? myEval)?.answers ?? [])
 
   // ── Notifications dérivées des évaluations ────────────────────────────────
   const notifItems = evaluations.map((ev, i) => ({

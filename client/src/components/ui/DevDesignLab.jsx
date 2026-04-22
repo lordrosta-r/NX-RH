@@ -11,19 +11,21 @@
 // =============================================================================
 
 import { useState, useEffect } from 'react'
-import { X, RotateCcw, Copy, Check, Palette, Type, LayoutDashboard, Ruler, Image, Download, SlidersHorizontal } from 'lucide-react'
+import { useLocation } from 'react-router-dom'
+import { X, RotateCcw, Copy, Check, Palette, Type, LayoutDashboard, Ruler, Image, Download, Power } from 'lucide-react'
 import './DevDesignLab.css'
 
 // ── Config par défaut ────────────────────────────────────────────────────────
 const DEFAULT = {
   colors: {
-    pageBg:    '#f0eded',  // fond .db-content
-    topbarBg:  '#ffffff',  // --color-topbar-bg
-    sidebarBg: '#2e1065',  // --color-sidebar
-    cardBg:    '#ffffff',  // --color-surface-container-lowest
-    primary:   '#b8000b',  // --color-primary
-    secondary: '#5b00df',  // --color-secondary
-    text:      '#1c1b1b',  // --color-on-surface
+    pageBg:      '#f0eded',  // fond .db-content
+    topbarBg:    '#ffffff',  // --color-topbar-bg
+    sidebarBg:   '#2e1065',  // --color-sidebar
+    cardBg:      '#ffffff',  // --color-surface-container-lowest
+    primary:     '#b8000b',  // --color-primary
+    secondary:   '#5b00df',  // --color-secondary
+    text:        '#1c1b1b',  // --color-on-surface
+    variantText: '#5e3f3b',  // --color-on-surface-variant (sous-titres, icônes)
   },
   typo: {
     family:        'Inter',
@@ -37,7 +39,8 @@ const DEFAULT = {
     borderRadius: 8,
     maxWidth:     0,         // 0 = pas de limite
     cardCols:     0,         // 0 = défaut CSS (auto)
-    cardStyle:    'default', // 'default' | 'flat' | 'elevated' | 'glass' | 'bordered'
+    cardStyle:    'default', // 'default' | 'flat' | 'elevated' | 'glass' | 'bordered' | 'primary' | 'minimal' | 'inset'
+    gridPreset:   'auto',    // 'auto' | 'magazine' | 'split' | 'hero-r' | 'stacked' | 'dense'
   },
   spacing: {
     contentPadding: 40,
@@ -87,13 +90,14 @@ function readFromDOM() {
 
   return {
     colors: {
-      pageBg:    get('--color-surface-container')         || DEFAULT.colors.pageBg,
-      topbarBg:  get('--color-topbar-bg')                 || DEFAULT.colors.topbarBg,
-      sidebarBg: get('--color-sidebar')                   || DEFAULT.colors.sidebarBg,
-      cardBg:    get('--color-surface-container-lowest')  || DEFAULT.colors.cardBg,
-      primary:   get('--color-primary')                   || DEFAULT.colors.primary,
-      secondary: get('--color-secondary')                 || DEFAULT.colors.secondary,
-      text:      get('--color-on-surface')                || DEFAULT.colors.text,
+      pageBg:      get('--color-surface-container')         || DEFAULT.colors.pageBg,
+      topbarBg:    get('--color-topbar-bg')                 || DEFAULT.colors.topbarBg,
+      sidebarBg:   get('--color-sidebar')                   || DEFAULT.colors.sidebarBg,
+      cardBg:      get('--color-surface-container-lowest')  || DEFAULT.colors.cardBg,
+      primary:     get('--color-primary')                   || DEFAULT.colors.primary,
+      secondary:   get('--color-secondary')                 || DEFAULT.colors.secondary,
+      text:        get('--color-on-surface')                || DEFAULT.colors.text,
+      variantText: get('--color-on-surface-variant')        || DEFAULT.colors.variantText,
     },
     typo: {
       family:        DEFAULT.typo.family,
@@ -170,15 +174,19 @@ function injectCSS(cfg) {
     // Cacher la sidebar — les liens sont injectés dans le DOM de la topbar
     r.push(`.app-sidebar { display: none !important; }`)
     r.push(`.db-main { margin-left: 0 !important; }`)
+    // Repositionner la search à droite (plus proche du cluster right)
+    r.push(`.apptb__search { width: auto !important; min-width: 160px !important; flex: 0 0 auto !important; margin-left: auto !important; }`)
     // Styles pour les éléments injectés .ddl-tnav
     r.push(`
-.ddl-tnav { display: flex; align-items: center; gap: 0; flex-shrink: 0; padding: 0 0.75rem; }
+.ddl-tnav { display: flex; align-items: center; gap: 0; flex-shrink: 0; }
 .ddl-tnav__brand {
+  display: flex; align-items: center; gap: 0.375rem;
   font-size: 0.9375rem; font-weight: 700;
   color: var(--color-on-surface); white-space: nowrap;
   padding-right: 1rem; margin-right: 0.75rem;
   border-right: 1px solid var(--color-surface-container-high, #e0dddd);
 }
+.ddl-tnav__brand-sub { font-size: 0.65rem; font-weight: 400; opacity: 0.55; margin-left: 0.25rem; }
 .ddl-tnav__nav { display: flex; align-items: center; gap: 0.125rem; }
 .ddl-tnav__item {
   display: flex; align-items: center; gap: 0.375rem;
@@ -188,8 +196,8 @@ function injectCSS(cfg) {
   transition: background 0.12s, color 0.12s;
 }
 .ddl-tnav__item:hover { background: var(--color-surface-container); color: var(--color-on-surface); }
-.ddl-tnav__item--active { background: var(--color-primary-tint-07, rgba(184,0,11,0.07)); color: var(--color-primary, #b8000b); }
-.ddl-tnav__item--disabled { opacity: 0.4; cursor: default; }
+.ddl-tnav__item--active { background: var(--color-primary-tint-07, rgba(184,0,11,0.07)); color: var(--color-primary, #b8000b); font-weight: 600; }
+.ddl-tnav__item--disabled { opacity: 0.4; cursor: default; pointer-events: none; }
 .ddl-tnav__item svg { flex-shrink: 0; }
 `.trim())
   } else {
@@ -217,16 +225,31 @@ function injectCSS(cfg) {
     r.push(`.db-bento > * { grid-column: auto !important; grid-row: auto !important; }`)
   }
 
-  // ── Card style preset
+  // ── Card style preset — couvre toutes les classes *-card de l'app
+  const C = '.db-card, .adm-card, .st-card, .mgr-card, .cmp-card, .tpl-card, .hrres-card, .ev-form-card, .obj-card, .goal-card'
   const cardStyleMap = {
-    flat:     `.db-card { box-shadow: none !important; border-radius: 4px !important; border: 1px solid var(--color-surface-container-high, #ddd) !important; }`,
-    elevated: `.db-card { border-radius: 16px !important; box-shadow: 0 8px 32px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.05) !important; }`,
-    glass:    `.db-card { background: rgba(255,255,255,0.55) !important; backdrop-filter: blur(14px) !important; -webkit-backdrop-filter: blur(14px) !important; border: 1px solid rgba(255,255,255,0.6) !important; border-radius: 16px !important; }`,
-    bordered: `.db-card { box-shadow: none !important; border: 2px solid var(--color-surface-container-high, #ddd) !important; }`,
-    primary:  `.db-card { box-shadow: none !important; border-left: 4px solid var(--color-primary, #b8000b) !important; border-radius: 0 8px 8px 0 !important; background: var(--color-primary-tint, rgba(184,0,11,0.04)) !important; }`,
+    flat:     `${C} { box-shadow: none !important; border-radius: 4px !important; border: 1px solid var(--color-surface-container-high, #ddd) !important; }`,
+    elevated: `${C} { border-radius: 16px !important; box-shadow: 0 8px 32px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.05) !important; }`,
+    glass:    `${C} { background: rgba(255,255,255,0.55) !important; backdrop-filter: blur(14px) !important; -webkit-backdrop-filter: blur(14px) !important; border: 1px solid rgba(255,255,255,0.6) !important; border-radius: 16px !important; }`,
+    bordered: `${C} { box-shadow: none !important; border: 2px solid var(--color-surface-container-high, #ddd) !important; }`,
+    primary:  `${C} { box-shadow: none !important; border-left: 4px solid var(--color-primary, #b8000b) !important; border-radius: 0 8px 8px 0 !important; background: var(--color-primary-tint, rgba(184,0,11,0.04)) !important; }`,
+    minimal:  `${C} { box-shadow: none !important; border-radius: 2px !important; background: transparent !important; border-bottom: 1px solid var(--color-surface-container-high, #e0dddd) !important; }`,
+    inset:    `${C} { box-shadow: inset 0 2px 6px rgba(0,0,0,0.07) !important; border-radius: 10px !important; border: 1px solid var(--color-surface-container, #f0eded) !important; }`,
   }
   if (cfg.layout.cardStyle && cardStyleMap[cfg.layout.cardStyle]) {
     r.push(cardStyleMap[cfg.layout.cardStyle])
+  }
+
+  // ── Grid preset (schémas de disposition)
+  const gridPresetMap = {
+    magazine: `.db-bento { grid-template-columns: 1fr 1fr 1fr !important; } .db-bento > *:first-child { grid-column: 1 / -1 !important; }`,
+    split:    `.db-bento { grid-template-columns: 3fr 2fr !important; } .db-bento > * { grid-column: auto !important; grid-row: auto !important; }`,
+    'hero-r': `.db-bento { grid-template-columns: 2fr 1fr !important; } .db-bento > *:first-child { grid-row: 1 / 3 !important; }`,
+    stacked:  `.db-bento { grid-template-columns: 1fr !important; max-width: 720px !important; margin-inline: auto !important; } .db-bento > * { grid-column: auto !important; grid-row: auto !important; }`,
+    dense:    `.db-bento { grid-template-columns: repeat(4, 1fr) !important; } .db-bento > * { grid-column: auto !important; grid-row: auto !important; }`,
+  }
+  if (cfg.layout.gridPreset && gridPresetMap[cfg.layout.gridPreset]) {
+    r.push(gridPresetMap[cfg.layout.gridPreset])
   }
 
   // ── Typographie
@@ -248,6 +271,7 @@ function applyConfig(cfg) {
   root.style.setProperty('--color-secondary',               cfg.colors.secondary)
   root.style.setProperty('--color-on-surface',               cfg.colors.text)
   root.style.setProperty('--color-on-background',            cfg.colors.text)
+  root.style.setProperty('--color-on-surface-variant',       cfg.colors.variantText)
 
   // Typography
   ensureFont(cfg.typo.family)
@@ -269,38 +293,61 @@ function syncTopbarNav(cfg) {
   document.getElementById('ddl-topbar-nav')?.remove()
   if (cfg.layout.mode !== 'topbar') return
 
-  const topbar = document.querySelector('.apptb')
-  if (!topbar) return
+  // Délai RAF pour s'assurer que React a rendu la sidebar (après navigation)
+  requestAnimationFrame(() => {
+    const topbar = document.querySelector('.apptb')
+    if (!topbar) return
 
-  // Les items sidebar sont dans le DOM même si display:none
-  const items = document.querySelectorAll('.app-sidebar .app-sidebar__item, .app-sidebar .app-sidebar__item--disabled')
+    const items = document.querySelectorAll(
+      '.app-sidebar .app-sidebar__item, .app-sidebar .app-sidebar__item--disabled'
+    )
 
-  const wrap = document.createElement('div')
-  wrap.id = 'ddl-topbar-nav'
-  wrap.className = 'ddl-tnav'
+    const wrap = document.createElement('div')
+    wrap.id = 'ddl-topbar-nav'
+    wrap.className = 'ddl-tnav'
 
-  // Brand
-  const brand = document.createElement('div')
-  brand.className = 'ddl-tnav__brand'
-  brand.textContent = 'NanoXplore RH'
-  wrap.appendChild(brand)
+    // Brand — cloner le HTML de la sidebar pour préserver l'éventuel SVG/logo
+    const sidebarBrand = document.querySelector('.app-sidebar__brand')
+    const brand = document.createElement('div')
+    brand.className = 'ddl-tnav__brand'
+    brand.innerHTML = sidebarBrand ? sidebarBrand.innerHTML : '<span>NanoXplore RH</span>'
+    wrap.appendChild(brand)
 
-  // Nav
-  const nav = document.createElement('nav')
-  nav.className = 'ddl-tnav__nav'
-  items.forEach(item => {
-    const isActive   = item.classList.contains('app-sidebar__item--active')
-    const isDisabled = item.classList.contains('app-sidebar__item--disabled')
-    const tag = (item.tagName === 'A' && !isDisabled) ? 'a' : 'span'
-    const el  = document.createElement(tag)
-    if (tag === 'a') el.href = item.href
-    el.className = `ddl-tnav__item${isActive ? ' ddl-tnav__item--active' : ''}${isDisabled ? ' ddl-tnav__item--disabled' : ''}`
-    el.innerHTML  = item.innerHTML
-    nav.appendChild(el)
+    // Nav
+    const nav = document.createElement('nav')
+    nav.className = 'ddl-tnav__nav'
+    items.forEach(item => {
+      const isActive   = item.classList.contains('app-sidebar__item--active')
+      const isDisabled = item.classList.contains('app-sidebar__item--disabled')
+      const el = document.createElement(isDisabled ? 'span' : 'a')
+      if (!isDisabled) {
+        // data-nav-href pour intercepter le click sans full reload
+        const raw = item.href || item.getAttribute('href') || ''
+        el.dataset.navHref = raw
+        el.href = raw
+      }
+      el.className = [
+        'ddl-tnav__item',
+        isActive   ? 'ddl-tnav__item--active'   : '',
+        isDisabled ? 'ddl-tnav__item--disabled'  : '',
+      ].filter(Boolean).join(' ')
+      el.innerHTML = item.innerHTML
+      nav.appendChild(el)
+    })
+    wrap.appendChild(nav)
+
+    // Intercepter les clicks → React Router (popstate) au lieu d'un full reload
+    nav.addEventListener('click', e => {
+      const a = e.target.closest('a[data-nav-href]')
+      if (!a || !a.dataset.navHref) return
+      e.preventDefault()
+      const url = new URL(a.dataset.navHref, window.location.href)
+      window.history.pushState({}, '', url.pathname + url.search)
+      window.dispatchEvent(new PopStateEvent('popstate', { state: {} }))
+    })
+
+    topbar.insertBefore(wrap, topbar.firstChild)
   })
-  wrap.appendChild(nav)
-
-  topbar.insertBefore(wrap, topbar.firstChild)
 }
 
 // ── Export CSS ────────────────────────────────────────────────────────────────
@@ -449,9 +496,15 @@ export default function DevDesignLab() {
   const [tab,    setTab]    = useState('colors')
   const [cfg,    setCfg]    = useState(load)
   const [copied, setCopied] = useState(false)
+  const location = useLocation()
 
   // Appliquer la config sauvegardée au montage
   useEffect(() => { applyConfig(cfg) }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Re-sync topbar nav à chaque changement de route (met à jour l'item actif)
+  useEffect(() => {
+    if (cfg.layout.mode === 'topbar') syncTopbarNav(cfg)
+  }, [location.pathname]) // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleChange(section, key, value) {
     const next = { ...cfg, [section]: { ...cfg[section], [key]: value } }
@@ -524,7 +577,8 @@ export default function DevDesignLab() {
                 <ColorRow label="Primary"    section="colors" field="primary"   {...p} />
                 <ColorRow label="Secondary"  section="colors" field="secondary" {...p} />
                 <SectionTitle>Texte</SectionTitle>
-                <ColorRow label="Corps texte" section="colors" field="text"     {...p} />
+                <ColorRow label="Corps texte"    section="colors" field="text"        {...p} />
+                <ColorRow label="Texte secondaire" section="colors" field="variantText" {...p} />
               </>
             )}
 
@@ -577,6 +631,21 @@ export default function DevDesignLab() {
                     { value: 'glass',    display: 'Glass'    },
                     { value: 'bordered', display: 'Bordure'  },
                     { value: 'primary',  display: 'Primary'  },
+                    { value: 'minimal',  display: 'Minimal'  },
+                    { value: 'inset',    display: 'Inset'    },
+                  ]}
+                  {...p}
+                />
+                <SectionTitle>Schéma grille</SectionTitle>
+                <ToggleGroup
+                  section="layout" field="gridPreset"
+                  options={[
+                    { value: 'auto',     display: 'Auto'     },
+                    { value: 'magazine', display: 'Magazine' },
+                    { value: 'split',    display: '3/2'      },
+                    { value: 'hero-r',   display: 'Hero →'   },
+                    { value: 'stacked',  display: 'Stack'    },
+                    { value: 'dense',    display: 'Dense'    },
                   ]}
                   {...p}
                 />
@@ -630,9 +699,9 @@ export default function DevDesignLab() {
       <button
         className={`ddl__toggle${open ? ' ddl__toggle--on' : ''}`}
         onClick={() => setOpen(o => !o)}
-        title="Design Lab"
+        title={open ? 'Fermer Design Lab' : 'Ouvrir Design Lab'}
       >
-        <SlidersHorizontal size={16} />
+        <Power size={15} />
       </button>
     </div>
   )

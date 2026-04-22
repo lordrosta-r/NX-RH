@@ -81,7 +81,7 @@
 .ddl__hbtn {
   background: none;
   border: none;
-  color: #444;
+  color: #fff;
   cursor: pointer;
   padding: 0.2rem;
   border-radius: 4px;
@@ -90,7 +90,7 @@
   transition: color 0.12s;
 }
 
-.ddl__hbtn:hover { color: #ccc; }
+.ddl__hbtn:hover { color: #aaa; }
 
 /* ── Tabs ────────────────────────────────────────────────────────────────────── */
 .ddl__tabs {
@@ -104,12 +104,16 @@
 .ddl__tab {
   background: none;
   border: none;
+  color: #fff;
   cursor: pointer;
   padding: 0.3rem 0.5rem;
   border-radius: 6px;
   font-size: 0.875rem;
   line-height: 1;
   transition: background 0.12s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .ddl__tab:hover  { background: #1e1e1e; }

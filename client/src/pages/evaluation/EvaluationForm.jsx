@@ -5,7 +5,7 @@
 // Design ref : designs/employee/activeevalform.html
 // =============================================================================
 
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Save, ArrowRight } from 'lucide-react'
@@ -179,6 +179,9 @@ const MOCK_PHASES = {
   },
 }
 
+// Préfixe d'ID par phase — convention partagée entre le formulaire DB et le front
+const PHASE_PREFIX = { 'self': 'self_', 'n-1': 'n1_', 'objectives': 'obj_', 'aspirations': 'asp_' }
+
 // Séquence pour naviguer vers la phase suivante
 const PHASE_ORDER = ['self', 'n-1', 'objectives', 'aspirations', 'sign']
 
@@ -316,7 +319,6 @@ export default function EvaluationForm({ phase }) {
 
   // Construit le tableau de réponses pour le PATCH (uniquement les questions de cette phase)
   function buildAnswersPayload() {
-    const phaseData    = MOCK_PHASES[phase]
     const allQuestions = phaseData?.sections.flatMap(s => s.questions) ?? []
     return allQuestions
       .filter(q => answers[q.id] !== undefined)
@@ -338,7 +340,28 @@ export default function EvaluationForm({ phase }) {
     })
   }
 
-  const phaseData    = MOCK_PHASES[phase]
+  // Calcule les données de la phase : utilise les vraies questions du form si disponibles
+  // (evaluation.formId.questions est populé par GET /api/evaluations/:id),
+  // sinon se rabat sur MOCK_PHASES pour garantir que le formulaire fonctionne toujours.
+  const phaseData = useMemo(() => {
+    const mockData = MOCK_PHASES[phase]
+    if (!mockData) return null
+    const formQuestions = evaluation?.formId?.questions
+    if (!formQuestions?.length) return mockData
+    const prefix = PHASE_PREFIX[phase]
+    const filtered = prefix ? formQuestions.filter(q => q.id.startsWith(prefix)) : []
+    if (filtered.length === 0) return mockData
+    return {
+      ...mockData,
+      sections: [{
+        id:       's1',
+        label:    mockData.sections[0]?.label ?? '01 / Questions',
+        required: true,
+        questions: filtered,
+      }],
+    }
+  }, [evaluation?.formId?.questions, phase])
+
   const isLastPhase  = PHASE_ORDER.indexOf(phase) === PHASE_ORDER.length - 2
 
   if (isLoading) {

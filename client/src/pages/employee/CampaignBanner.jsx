@@ -123,7 +123,7 @@ export default function CampaignBanner({ t, campaign, loading, error, userName =
 
         <a
           className="cb__btn"
-          href="/employee/evaluation"
+          href="#"
           onClick={(e) => {
             if (onNavigate) {
               e.preventDefault();

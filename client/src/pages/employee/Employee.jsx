@@ -130,7 +130,10 @@ export default function Employee() {
           loading={campaignLoading}
           error={campaignError}
           userName={firstName || 'vous'}
-          onNavigate={() => navigate('/employee/evaluation')}
+          onNavigate={() => {
+            const first = evaluations.find(e => ['assigned', 'in_progress'].includes(e.status))
+            if (first) navigate(`/evaluation/${first._id}`)
+          }}
         />
       </div>
 
@@ -250,8 +253,12 @@ export default function Employee() {
             </div>
           </div>
           <a
-            href="/employee/evaluation"
-            onClick={e => { e.preventDefault(); navigate('/employee/evaluation') }}
+            href="#"
+            onClick={e => {
+              e.preventDefault()
+              const first = evaluations.find(ev => ['assigned', 'in_progress'].includes(ev.status))
+              if (first) navigate(`/evaluation/${first._id}`)
+            }}
             className="db-stats__cta"
             style={stats.pending === 0 ? { visibility: 'hidden' } : undefined}
           >

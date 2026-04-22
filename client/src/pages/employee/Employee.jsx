@@ -42,6 +42,18 @@ const NOTIF_COLORS = [
 // URL de la photo spotlight (fallback vers le dégradé CSS si absente)
 const SPOTLIGHT_IMG = '/assets/spotlight.jpg'
 
+// ── Calcule la progression individuelle d'une évaluation ─────────────────────
+function computeEvalProgress(answers = []) {
+  const prefixMap = { self_: 'self', n1_: 'n-1', obj_: 'objectives', asp_: 'aspirations' }
+  const done = new Set()
+  for (const { questionId = '' } of answers) {
+    for (const [prefix, phase] of Object.entries(prefixMap)) {
+      if (questionId.startsWith(prefix)) { done.add(phase); break }
+    }
+  }
+  return Math.round((done.size / 4) * 100)
+}
+
 // =============================================================================
 export default function Employee() {
   const { user }        = useAuth()
@@ -109,11 +121,15 @@ export default function Employee() {
   const completed = evaluations.filter(e => !['assigned', 'in_progress'].includes(e.status)).length
   const stats = { total: evaluations.length, pending, completed }
 
+  // ── Progression individuelle de l'évaluation en cours ─────────────────────
+  const myEval = evaluations.find(e => ['assigned', 'in_progress'].includes(e.status)) || evaluations[0]
+  const userProgress = myEval ? computeEvalProgress(myEval?.answers ?? []) : 0
+
   // ── Notifications dérivées des évaluations ────────────────────────────────
   const notifItems = evaluations.map((ev, i) => ({
     id:    ev._id ?? i,
     color: NOTIF_COLORS[i % NOTIF_COLORS.length],
-    text:  ev.title ?? ev.campaignName ?? t('dashboard.notif.pending_eval'),
+    text:  ev.campaignId?.name ?? t('dashboard.notif.pending_eval'),
     meta:  ev.createdAt
       ? new Date(ev.createdAt).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US')
       : '',
@@ -140,6 +156,7 @@ export default function Employee() {
           loading={campaignLoading}
           error={campaignError}
           userName={firstName || 'vous'}
+          userProgress={userProgress}
           onNavigate={() => {
             const first = evaluations.find(e => ['assigned', 'in_progress'].includes(e.status))
             if (first) navigate(`/evaluation/${first._id}`)

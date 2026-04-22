@@ -199,3 +199,68 @@
   opacity: 0.7;
   white-space: nowrap;
 }
+
+/* ── Selected day ──────────────────────────────────────────────────────────── */
+.cal__cell--selected .cal__day-num {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  border-radius: 50%;
+  width: 1.625rem;
+  height: 1.625rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+.cal__cell--selected.cal__cell--today .cal__day-num {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* ── Event detail panel ─────────────────────────────────────────────────────── */
+.cal__detail {
+  background: var(--color-surface-container-low);
+  border: 1px solid var(--color-surface-container-high);
+  border-radius: var(--radius-md);
+  padding: 0.875rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  animation: calDetailIn 0.15s ease;
+}
+
+@keyframes calDetailIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.cal__detail__date {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-on-surface-variant);
+  margin: 0 0 0.25rem;
+  opacity: 0.7;
+}
+
+.cal__detail__evt {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.cal__detail__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.cal__detail__label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--color-on-surface);
+  line-height: 1.4;
+}

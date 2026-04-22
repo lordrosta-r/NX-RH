@@ -1094,6 +1094,82 @@
 }
 .ev-stepper__label { white-space: nowrap; }
 
+/* ── EvaluationSummary — Hero banner ────────────────────────────────────────── */
+.ev-hero {
+  position: relative;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid #f0f0f0;
+  border-radius: var(--radius-md);
+  padding: 2.5rem 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.ev-hero__body {
+  flex: 1;
+  z-index: 1;
+  position: relative;
+}
+
+.ev-hero__eyebrow {
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: #a3a3a3;
+  margin: 0 0 0.5rem;
+}
+
+.ev-hero__title {
+  font-size: clamp(2rem, 3.5vw, 3rem);
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  color: #0a0a0a;
+  line-height: 1.05;
+  margin: 0 0 0.75rem;
+}
+
+.ev-hero__accent { color: #b8000b; }
+
+.ev-hero__sub {
+  font-size: 0.9375rem;
+  color: #737373;
+  max-width: 440px;
+  line-height: 1.6;
+  margin: 0 0 1.25rem;
+}
+
+.ev-hero__img {
+  width: 180px;
+  height: 130px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+  z-index: 1;
+  position: relative;
+}
+
+.ev-hero__glow {
+  position: absolute;
+  top: -4rem;
+  right: -4rem;
+  width: 16rem;
+  height: 16rem;
+  border-radius: 50%;
+  background: #fff1f1;
+  filter: blur(40px);
+  pointer-events: none;
+}
+
+@media (max-width: 640px) {
+  .ev-hero { flex-direction: column; padding: 1.75rem; }
+  .ev-hero__img { width: 100%; height: 120px; }
+}
+
 /* ── EvaluationSummary — nouvelle structure 2 colonnes ─────────────────────── */
 
 /* En-tête de page */

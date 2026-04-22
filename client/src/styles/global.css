@@ -143,6 +143,7 @@ h2           { font-size: 1.25rem; font-weight: 700; margin-bottom: 1.25rem; }
   padding: 2.5rem 2.5rem 4rem;
   flex: 1;
   min-width: 0;
+  background: var(--color-surface-container-low);
 }
 
 /* Mode embedded (mini-SPA shell) — pas de sidebar offset */

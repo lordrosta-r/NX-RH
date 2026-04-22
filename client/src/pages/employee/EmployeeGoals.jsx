@@ -10,42 +10,49 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../../contexts/AuthContext'
 import { useTranslate } from '../../contexts/LocaleContext'
 import { t as pageT } from './i18n'
-import { Target, TrendingUp, CheckCircle2, Circle, Edit2 } from 'lucide-react'
+import { Target, Edit2, X } from 'lucide-react'
 import './employee-goals.css'
 
 const LOCKED_STATUSES = ['submitted', 'reviewed', 'signed_evaluatee', 'signed_manager', 'signed_hr', 'validated']
 
 // ── Modal de mise à jour ──────────────────────────────────────────────────────
-function UpdateModal({ goal, onClose, onSave }) {
-  const [progress, setProgress] = useState(goal.progressPct ?? 0)
-  const [comment, setComment] = useState('')
+function UpdateModal({ goal, currentPct, onClose, onSave }) {
+  const [progress, setProgress] = useState(currentPct ?? 0)
+  const [comment, setComment]   = useState('')
 
   function handleSave() {
-    onSave(goal._id || goal.title, progress, comment)
+    onSave(goal.id, progress, comment)
     onClose()
   }
 
   return (
     <div className="eg-modal-backdrop" onClick={onClose}>
-      <div className="eg-modal" role="dialog" onClick={e => e.stopPropagation()}>
-        <h3 className="eg-modal__title">{goal.title}</h3>
+      <div className="eg-modal" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
+        <div className="eg-modal__head">
+          <h3 className="eg-modal__title">Mettre à jour la progression</h3>
+          <button type="button" className="eg-modal__close" onClick={onClose} aria-label="Fermer">
+            <X size={16} />
+          </button>
+        </div>
 
-        <label className="eg-modal__label">
-          Progression : <strong>{progress}%</strong>
-        </label>
+        <p className="eg-modal__goal-name">{goal.title}</p>
+
+        <div className="eg-modal__pct-row">
+          <span className="eg-modal__pct-label">Progression</span>
+          <span className="eg-modal__pct-value">{progress}%</span>
+        </div>
         <input
           type="range"
           className="eg-slider"
-          min={0}
-          max={100}
-          step={5}
+          min={0} max={100} step={5}
           value={progress}
           onChange={e => setProgress(Number(e.target.value))}
         />
+        <div className="eg-slider__track-labels">
+          <span>0%</span><span>50%</span><span>100%</span>
+        </div>
 
-        <label className="eg-modal__label">
-          Commentaire (optionnel)
-        </label>
+        <label className="eg-modal__label">Commentaire <span className="eg-modal__optional">(optionnel)</span></label>
         <textarea
           className="eg-modal__textarea"
           rows={3}
@@ -55,93 +62,90 @@ function UpdateModal({ goal, onClose, onSave }) {
         />
 
         <div className="eg-modal__actions">
-          <button type="button" className="eg-btn" onClick={onClose}>
-            Annuler
-          </button>
-          <button type="button" className="eg-btn eg-btn--primary" onClick={handleSave}>
-            Enregistrer
-          </button>
+          <button type="button" className="eg-btn" onClick={onClose}>Annuler</button>
+          <button type="button" className="eg-btn eg-btn--primary" onClick={handleSave}>Enregistrer</button>
         </div>
       </div>
     </div>
   )
 }
 
-// ── Carte objectif ────────────────────────────────────────────────────────────
-function GoalCard({ goal, localPct, onEdit }) {
-  const pct = localPct !== undefined ? localPct : (goal.progressPct ?? 0)
-  const done = pct >= 100
+// ── Ligne objectif ────────────────────────────────────────────────────────────
+function GoalRow({ goal, index, pct, onEdit }) {
+  const done    = pct >= 100
+  const started = pct > 0 && pct < 100
+  const status  = done ? 'done' : started ? 'progress' : 'idle'
+  const statusLabel = done ? 'Atteint' : started ? 'En cours' : 'Non démarré'
 
   return (
-    <article className={`eg-goal${done ? ' eg-goal--done' : ''}`}>
-      <div className="eg-goal__head">
-        <span className="eg-goal__icon" aria-hidden="true">
-          {done ? <CheckCircle2 size={18} color="var(--color-success)" /> : <Circle size={18} color="var(--color-on-surface-variant)" />}
-        </span>
-        <h3 className="eg-goal__title">{goal.title}</h3>
-        {onEdit && (
-          <button
-            type="button"
-            className="eg-goal__edit"
-            onClick={() => onEdit(goal)}
-            aria-label="Mettre à jour"
-          >
-            <Edit2 size={15} />
-          </button>
-        )}
+    <div className={`eg-row eg-row--${status}`}>
+      <span className="eg-row__index">{String(index + 1).padStart(2, '0')}</span>
+
+      <div className="eg-row__body">
+        <p className="eg-row__title">{goal.title}</p>
       </div>
 
-      {goal.description && (
-        <p className="eg-goal__kpi">{goal.description}</p>
-      )}
-
-      {goal.targetDate && (
-        <p className="eg-goal__date">
-          Échéance : {new Date(goal.targetDate).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })}
-        </p>
-      )}
-
-      <div className="eg-progress-track" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
-        <div className="eg-progress-fill" style={{ width: `${pct}%` }} />
+      <div className="eg-row__meter">
+        <div
+          className="eg-row__bar"
+          role="progressbar"
+          aria-valuenow={pct}
+          aria-valuemin={0}
+          aria-valuemax={100}
+        >
+          <div className="eg-row__fill" style={{ width: `${pct}%` }} />
+        </div>
+        <span className="eg-row__pct">{pct}%</span>
       </div>
-      <span className="eg-goal__pct">{pct}%</span>
-    </article>
+
+      <span className={`eg-row__chip eg-row__chip--${status}`}>
+        <span className="eg-row__chip-dot" />
+        {statusLabel}
+      </span>
+
+      {onEdit && (
+        <button
+          type="button"
+          className="eg-row__edit"
+          onClick={() => onEdit(goal, pct)}
+          aria-label="Mettre à jour"
+        >
+          <Edit2 size={13} strokeWidth={2} />
+        </button>
+      )}
+    </div>
   )
 }
 
 // ── Composant principal ───────────────────────────────────────────────────────
 export default function EmployeeGoals() {
-  const { user } = useAuth()
-  const t = useTranslate(pageT)
-  const queryClient = useQueryClient()
-
-  const [editingGoal, setEditingGoal] = useState(null)
+  const { user }        = useAuth()
+  const t               = useTranslate(pageT)
+  const queryClient     = useQueryClient()
+  const [editing, setEditing]         = useState(null) // { goal, pct }
   const [localProgress, setLocalProgress] = useState({})
 
-  // Toutes les évaluations de l'utilisateur (en tant qu'évalué)
   const { data: myEvals = [], isLoading } = useQuery({
     queryKey: ['my-evals-goals', user?._id],
-    queryFn: () =>
+    queryFn:  () =>
       fetch(`/api/evaluations?evaluateeId=${user._id}`, { credentials: 'include' })
         .then(r => r.ok ? r.json() : [])
         .then(d => Array.isArray(d) ? d : (d.data || [])),
-    enabled: !!user,
+    enabled:   !!user,
     staleTime: 30_000,
   })
 
-  // Auto-évaluation active la plus récente (évaluatee = évaluateur = user)
   const activeEval = useMemo(() => {
     return myEvals
       .filter(e => {
-        const evaluatorId = e.evaluatorId?._id || e.evaluatorId
-        return evaluatorId?.toString() === user?._id?.toString()
+        const eid = e.evaluatorId?._id || e.evaluatorId
+        return eid?.toString() === user?._id?.toString()
       })
       .sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt))[0] || null
   }, [myEvals, user])
 
   const isLocked = LOCKED_STATUSES.includes(activeEval?.status)
 
-  // Dériver les objectifs depuis les réponses obj_q* (texte non vide)
   const objectives = useMemo(() => {
     if (!activeEval?.answers) return []
     return activeEval.answers
@@ -149,29 +153,24 @@ export default function EmployeeGoals() {
       .map(a => ({ id: a.questionId, title: a.value }))
   }, [activeEval])
 
-  // Progression sauvegardée côté serveur (réponses obj_progress_*)
   const serverProgress = useMemo(() => {
     const map = {}
     if (activeEval?.answers) {
       activeEval.answers
         .filter(a => a.questionId.startsWith('obj_progress_'))
         .forEach(a => {
-          const goalId = a.questionId.replace('obj_progress_', '')
-          map[goalId] = typeof a.value === 'number' ? a.value : Number(a.value)
+          const gid = a.questionId.replace('obj_progress_', '')
+          map[gid] = typeof a.value === 'number' ? a.value : Number(a.value)
         })
     }
     return map
   }, [activeEval])
 
-  // PATCH — sauvegarde la progression dans les réponses de l'évaluation
   const { mutate: patchProgress } = useMutation({
     mutationFn: ({ goalId, pct }) => {
-      const progressQid = `obj_progress_${goalId}`
+      const qid      = `obj_progress_${goalId}`
       const existing = activeEval?.answers || []
-      const updated = [
-        ...existing.filter(a => a.questionId !== progressQid),
-        { questionId: progressQid, value: pct },
-      ]
+      const updated  = [...existing.filter(a => a.questionId !== qid), { questionId: qid, value: pct }]
       return fetch(`/api/evaluations/${activeEval._id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -182,17 +181,22 @@ export default function EmployeeGoals() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['my-evals-goals', user?._id] }),
   })
 
-  function handleSaveProgress(id, pct) {
-    setLocalProgress(prev => ({ ...prev, [id]: pct }))
-    if (!isLocked && activeEval?._id) {
-      patchProgress({ goalId: id, pct })
-    }
+  function handleSaveProgress(goalId, pct) {
+    setLocalProgress(prev => ({ ...prev, [goalId]: pct }))
+    if (!isLocked && activeEval?._id) patchProgress({ goalId, pct })
   }
+
+  // KPIs globaux
+  const getPct = g => localProgress[g.id] ?? serverProgress[g.id] ?? 0
+  const doneCount  = objectives.filter(g => getPct(g) >= 100).length
+  const avgPct     = objectives.length
+    ? Math.round(objectives.reduce((s, g) => s + getPct(g), 0) / objectives.length)
+    : 0
 
   return (
     <div className="eg-page">
 
-      {/* ── Hero ──────────────────────────────────────── */}
+      {/* ── Hero ─────────────────────────────────────────── */}
       <header className="eg-hero">
         <div className="eg-hero__body">
           <p className="eg-hero__eyebrow">OBJECTIFS</p>
@@ -200,76 +204,80 @@ export default function EmployeeGoals() {
             Mes <span className="eg-hero__accent">objectifs</span>
           </h1>
           <p className="eg-hero__sub">
-            Fixez vos ambitions, mesurez votre avancement et suivez l'atteinte de vos objectifs tout au long de l'année.
+            Suivez vos ambitions et mesurez votre avancement tout au long de l'année.
           </p>
         </div>
-        <img
-          src="/assets/spotlight.jpg"
-          alt=""
-          aria-hidden="true"
-          className="eg-hero__img"
-          onError={e => { e.target.style.display = 'none' }}
-        />
+
+        {objectives.length > 0 && (
+          <div className="eg-hero__kpis">
+            <div className="eg-hero__kpi">
+              <span className="eg-hero__kpi-val">{objectives.length}</span>
+              <span className="eg-hero__kpi-lbl">Total</span>
+            </div>
+            <div className="eg-hero__kpi-sep" />
+            <div className="eg-hero__kpi">
+              <span className="eg-hero__kpi-val eg-hero__kpi-val--red">{doneCount}</span>
+              <span className="eg-hero__kpi-lbl">Atteints</span>
+            </div>
+            <div className="eg-hero__kpi-sep" />
+            <div className="eg-hero__kpi">
+              <span className="eg-hero__kpi-val">{avgPct}%</span>
+              <span className="eg-hero__kpi-lbl">Progression moy.</span>
+            </div>
+          </div>
+        )}
+
         <div className="eg-hero__glow" aria-hidden="true" />
       </header>
 
-      {/* ── Statistiques rapides ──────────────────────── */}
-      {objectives.length > 0 && (
-        <div className="eg-stats">
-          <div className="eg-stat">
-            <span className="eg-stat__value">{objectives.length}</span>
-            <span className="eg-stat__label">Objectifs</span>
-          </div>
-          <div className="eg-stat eg-stat--success">
-            <span className="eg-stat__value">
-              {objectives.filter(g => (localProgress[g.id] ?? serverProgress[g.id] ?? 0) >= 100).length}
-            </span>
-            <span className="eg-stat__label">Atteints</span>
-          </div>
-          <div className="eg-stat">
-            <span className="eg-stat__value">
-              {Math.round(objectives.reduce((acc, g) => acc + (localProgress[g.id] ?? serverProgress[g.id] ?? 0), 0) / objectives.length)}%
-            </span>
-            <span className="eg-stat__label">Progression moy.</span>
-          </div>
-        </div>
-      )}
-
-      {/* ── Objectifs actifs ──────────────────────────── */}
+      {/* ── Contenu ──────────────────────────────────────── */}
       {isLoading ? (
         <p className="eg-status">Chargement de vos objectifs…</p>
       ) : objectives.length === 0 ? (
         <div className="eg-empty">
-          <Target size={40} color="var(--color-on-surface-variant)" />
-          <p>Aucun objectif actif. Remplissez la section « Objectifs » de votre évaluation pour les voir apparaître ici.</p>
+          <div className="eg-empty__icon"><Target size={32} strokeWidth={1.5} /></div>
+          <p className="eg-empty__title">Aucun objectif défini</p>
+          <p className="eg-empty__sub">Remplissez la section <strong>Objectifs</strong> de votre évaluation pour les voir apparaître ici.</p>
         </div>
       ) : (
         <section className="eg-section">
-          <h2 className="eg-section__title">
-            <TrendingUp size={16} aria-hidden="true" />
-            Objectifs en cours {isLocked && <span className="eg-locked-badge">Verrouillé</span>}
-          </h2>
-          <div className="eg-goals-list">
-            {objectives.map(goal => (
-              <GoalCard
+          <div className="eg-section__head">
+            <h2 className="eg-section__title">Objectifs en cours</h2>
+            {isLocked && <span className="eg-locked-badge">Verrouillé</span>}
+            <span className="eg-section__count">{objectives.length}</span>
+          </div>
+
+          <div className="eg-table">
+            <div className="eg-table__header">
+              <span className="eg-th eg-th--num">#</span>
+              <span className="eg-th eg-th--name">Objectif</span>
+              <span className="eg-th eg-th--bar">Progression</span>
+              <span className="eg-th eg-th--status">Statut</span>
+              <span className="eg-th eg-th--action" />
+            </div>
+            {objectives.map((goal, i) => (
+              <GoalRow
                 key={goal.id}
                 goal={goal}
-                localPct={localProgress[goal.id] ?? serverProgress[goal.id]}
-                onEdit={isLocked ? undefined : setEditingGoal}
+                index={i}
+                pct={getPct(goal)}
+                onEdit={isLocked ? undefined : (g, p) => setEditing({ goal: g, pct: p })}
               />
             ))}
           </div>
         </section>
       )}
 
-      {/* ── Modal mise à jour ─────────────────────────── */}
-      {editingGoal && (
+      {editing && (
         <UpdateModal
-          goal={editingGoal}
-          onClose={() => setEditingGoal(null)}
+          goal={editing.goal}
+          currentPct={editing.pct}
+          onClose={() => setEditing(null)}
           onSave={handleSaveProgress}
         />
       )}
     </div>
   )
 }
+
+

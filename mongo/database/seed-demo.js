@@ -129,17 +129,37 @@ async function seedDemo() {
   console.log('[seed-demo] Campagne "Entretiens annuels 2026" créée (active)')
 
   // ── Formulaires ───────────────────────────────────────────────────────────
-  const formSelf = await Form.create({
+  // Formulaire annuel complet — les IDs des questions sont préfixés par phase
+  // (self_, n1_, obj_, asp_) pour permettre le découpage phase par phase côté front.
+  const formAnnuel = await Form.create({
     campaignId: campaign._id,
-    title:      'Auto-évaluation 2026',
+    title:      'Entretien annuel 2026',
     formType:   'self_evaluation',
     isAnonymous: false,
     createdBy:  admin._id,
     questions: [
-      { id: 'q1', type: 'rating', scale: 5, label: 'Comment évaluez-vous votre performance globale ?', required: true },
-      { id: 'q2', type: 'text',              label: 'Quels sont vos points forts cette année ?',        required: true },
-      { id: 'q3', type: 'text',              label: 'Quels axes d\'amélioration identifiez-vous ?',     required: true },
-      { id: 'q4', type: 'yes_no',            label: 'Avez-vous atteint vos objectifs fixés ?',          required: true },
+      // Phase auto-évaluation
+      { id: 'self_q1', type: 'rating',  scale: 5, label: 'Maîtrise technique',                                         required: true },
+      { id: 'self_q2', type: 'rating',  scale: 5, label: 'Collaboration',                                              required: true },
+      { id: 'self_q3', type: 'yes_no',            label: 'Avez-vous atteint vos objectifs de l\'année ?',              required: true },
+      { id: 'self_q4', type: 'text',              label: 'Réalisations clés',                                          required: true },
+      { id: 'self_q5', type: 'text',              label: 'Axes d\'amélioration',                                       required: false },
+      // Phase bilan N-1
+      { id: 'n1_q1',   type: 'rating',  scale: 5, label: 'Atteinte des objectifs fixés',                              required: true },
+      { id: 'n1_q2',   type: 'text',              label: 'Bilan qualitatif',                                           required: true },
+      { id: 'n1_q3',   type: 'choice',            label: 'Niveau de satisfaction globale',
+        options: ['Très satisfait(e)', 'Satisfait(e)', 'Neutre', 'Insatisfait(e)', 'Très insatisfait(e)'],               required: false },
+      // Phase objectifs
+      { id: 'obj_q1',  type: 'text',              label: 'Objectif prioritaire',                                       required: true },
+      { id: 'obj_q2',  type: 'text',              label: 'Deuxième objectif',                                          required: false },
+      { id: 'obj_q3',  type: 'yes_no',            label: 'Souhaitez-vous une formation pour atteindre ces objectifs ?', required: false },
+      { id: 'obj_q4',  type: 'text',              label: 'Compétences à développer',                                   required: false },
+      // Phase aspirations
+      { id: 'asp_q1',  type: 'choice',            label: 'Horizon d\'évolution envisagé',
+        options: ['Moins d\'un an', '1 à 2 ans', '3 à 5 ans', '5 ans et plus'],                                         required: false },
+      { id: 'asp_q2',  type: 'text',              label: 'Aspirations à court terme',                                  required: false },
+      { id: 'asp_q3',  type: 'text',              label: 'Vision à long terme',                                        required: false },
+      { id: 'asp_q4',  type: 'yes_no',            label: 'Seriez-vous intéressé(e) par une mobilité interne ?',        required: false },
     ],
   })
 
@@ -164,7 +184,7 @@ async function seedDemo() {
   for (const emp of allEmployees) {
     evaluations.push({
       campaignId:  campaign._id,
-      formId:      formSelf._id,
+      formId:      formAnnuel._id,
       evaluatorId: emp._id,
       evaluateeId: emp._id,
       status:      'assigned',
@@ -194,17 +214,42 @@ async function seedDemo() {
     })
   }
 
-  // Une évaluation déjà remplie (emp1 a soumis son auto-évaluation)
+  // emp1 : auto-évaluation soumise (toutes les phases remplies)
   evaluations[0].status = 'submitted'
   evaluations[0].answers = [
-    { questionId: 'q1', value: 4 },
-    { questionId: 'q2', value: 'Bonne maîtrise technique, esprit d\'équipe' },
-    { questionId: 'q3', value: 'Gestion du temps, communication écrite' },
-    { questionId: 'q4', value: true },
+    { questionId: 'self_q1', value: 4 },
+    { questionId: 'self_q2', value: 5 },
+    { questionId: 'self_q3', value: 'yes' },
+    { questionId: 'self_q4', value: 'Bonne maîtrise technique, esprit d\'équipe, livraison du module auth en avance.' },
+    { questionId: 'self_q5', value: 'Gestion du temps sur les projets longs, communication écrite.' },
+    { questionId: 'n1_q1',   value: 4 },
+    { questionId: 'n1_q2',   value: 'Objectifs globalement atteints malgré un contexte tendu Q3.' },
+    { questionId: 'n1_q3',   value: 'Satisfait(e)' },
+    { questionId: 'obj_q1',  value: 'Prise en charge d\'un module critique (microservice paiement)' },
+    { questionId: 'obj_q2',  value: 'Certification AWS Cloud Practitioner avant juin 2026' },
+    { questionId: 'obj_q3',  value: 'yes' },
+    { questionId: 'obj_q4',  value: 'Architecture cloud, tests d\'intégration.' },
+    { questionId: 'asp_q1',  value: '3 à 5 ans' },
+    { questionId: 'asp_q2',  value: 'Approfondissement DevOps et CI/CD.' },
+    { questionId: 'asp_q3',  value: 'Lead technique ou architecte sur un projet stratégique.' },
+    { questionId: 'asp_q4',  value: 'no' },
+  ]
+
+  // emp2 : auto-évaluation en cours (phase objectives remplie — pour tester EmployeeGoals)
+  evaluations[1].status = 'in_progress'
+  evaluations[1].answers = [
+    { questionId: 'self_q1', value: 3 },
+    { questionId: 'self_q2', value: 4 },
+    { questionId: 'self_q3', value: 'yes' },
+    { questionId: 'self_q4', value: 'Refonte complète du design system, 12 composants livrés.' },
+    { questionId: 'obj_q1',  value: 'Améliorer la couverture de tests front (objectif : 80%)' },
+    { questionId: 'obj_q2',  value: 'Migrer 3 pages legacy vers la nouvelle stack React' },
+    { questionId: 'obj_progress_obj_q1', value: 35 },
+    { questionId: 'obj_progress_obj_q2', value: 67 },
   ]
 
   await Evaluation.insertMany(evaluations)
-  console.log(`[seed-demo] ${evaluations.length} évaluations créées (dont 1 soumise)`)
+  console.log(`[seed-demo] ${evaluations.length} évaluations créées (1 soumise, 1 en cours)`)
 
   // ── Événements calendrier ─────────────────────────────────────────────────
   await Event.insertMany([

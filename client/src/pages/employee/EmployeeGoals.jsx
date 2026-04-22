@@ -6,12 +6,14 @@
 // =============================================================================
 
 import React, { useState, useMemo } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../../contexts/AuthContext'
-import { useTranslate, useLocaleCtx } from '../../contexts/LocaleContext'
+import { useTranslate } from '../../contexts/LocaleContext'
 import { t as pageT } from './i18n'
 import { Target, TrendingUp, CheckCircle2, Circle, Edit2 } from 'lucide-react'
 import './employee-goals.css'
+
+const LOCKED_STATUSES = ['submitted', 'reviewed', 'signed_evaluatee', 'signed_manager', 'signed_hr', 'validated']
 
 // ── Modal de mise à jour ──────────────────────────────────────────────────────
 function UpdateModal({ goal, onClose, onSave }) {
@@ -77,14 +79,16 @@ function GoalCard({ goal, localPct, onEdit }) {
           {done ? <CheckCircle2 size={18} color="var(--color-success)" /> : <Circle size={18} color="var(--color-on-surface-variant)" />}
         </span>
         <h3 className="eg-goal__title">{goal.title}</h3>
-        <button
-          type="button"
-          className="eg-goal__edit"
-          onClick={() => onEdit(goal)}
-          aria-label="Mettre à jour"
-        >
-          <Edit2 size={15} />
-        </button>
+        {onEdit && (
+          <button
+            type="button"
+            className="eg-goal__edit"
+            onClick={() => onEdit(goal)}
+            aria-label="Mettre à jour"
+          >
+            <Edit2 size={15} />
+          </button>
+        )}
       </div>
 
       {goal.description && (
@@ -109,40 +113,80 @@ function GoalCard({ goal, localPct, onEdit }) {
 export default function EmployeeGoals() {
   const { user } = useAuth()
   const t = useTranslate(pageT)
+  const queryClient = useQueryClient()
 
   const [editingGoal, setEditingGoal] = useState(null)
   const [localProgress, setLocalProgress] = useState({})
 
-  const { data: evaluations = [], isLoading } = useQuery({
-    queryKey: ['my-evaluations-validated', user?._id],
+  // Toutes les évaluations de l'utilisateur (en tant qu'évalué)
+  const { data: myEvals = [], isLoading } = useQuery({
+    queryKey: ['my-evals-goals', user?._id],
     queryFn: () =>
-      fetch(`/api/evaluations?evaluateeId=${user._id}&status=validated`, { credentials: 'include' })
+      fetch(`/api/evaluations?evaluateeId=${user._id}`, { credentials: 'include' })
         .then(r => r.ok ? r.json() : [])
         .then(d => Array.isArray(d) ? d : (d.data || [])),
     enabled: !!user,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 30_000,
   })
 
-  // Évaluation validée la plus récente
-  const latestEval = useMemo(() =>
-    [...evaluations]
-      .sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt))[0],
-    [evaluations]
-  )
+  // Auto-évaluation active la plus récente (évaluatee = évaluateur = user)
+  const activeEval = useMemo(() => {
+    return myEvals
+      .filter(e => {
+        const evaluatorId = e.evaluatorId?._id || e.evaluatorId
+        return evaluatorId?.toString() === user?._id?.toString()
+      })
+      .sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt))[0] || null
+  }, [myEvals, user])
 
+  const isLocked = LOCKED_STATUSES.includes(activeEval?.status)
+
+  // Dériver les objectifs depuis les réponses obj_q* (texte non vide)
   const objectives = useMemo(() => {
-    if (!latestEval?.objectives) return []
-    return Array.isArray(latestEval.objectives) ? latestEval.objectives : []
-  }, [latestEval])
+    if (!activeEval?.answers) return []
+    return activeEval.answers
+      .filter(a => a.questionId.startsWith('obj_q') && typeof a.value === 'string' && a.value.trim())
+      .map(a => ({ id: a.questionId, title: a.value }))
+  }, [activeEval])
 
-  // Objectifs proposés (sans ID validé = status draft)
-  const draftObjectives = useMemo(() => {
-    if (!latestEval?.draftObjectives) return []
-    return Array.isArray(latestEval.draftObjectives) ? latestEval.draftObjectives : []
-  }, [latestEval])
+  // Progression sauvegardée côté serveur (réponses obj_progress_*)
+  const serverProgress = useMemo(() => {
+    const map = {}
+    if (activeEval?.answers) {
+      activeEval.answers
+        .filter(a => a.questionId.startsWith('obj_progress_'))
+        .forEach(a => {
+          const goalId = a.questionId.replace('obj_progress_', '')
+          map[goalId] = typeof a.value === 'number' ? a.value : Number(a.value)
+        })
+    }
+    return map
+  }, [activeEval])
+
+  // PATCH — sauvegarde la progression dans les réponses de l'évaluation
+  const { mutate: patchProgress } = useMutation({
+    mutationFn: ({ goalId, pct }) => {
+      const progressQid = `obj_progress_${goalId}`
+      const existing = activeEval?.answers || []
+      const updated = [
+        ...existing.filter(a => a.questionId !== progressQid),
+        { questionId: progressQid, value: pct },
+      ]
+      return fetch(`/api/evaluations/${activeEval._id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ answers: updated }),
+      }).then(r => { if (!r.ok) throw new Error('Sauvegarde échouée'); return r.json() })
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['my-evals-goals', user?._id] }),
+  })
 
   function handleSaveProgress(id, pct) {
     setLocalProgress(prev => ({ ...prev, [id]: pct }))
+    if (!isLocked && activeEval?._id) {
+      patchProgress({ goalId: id, pct })
+    }
   }
 
   return (
@@ -166,13 +210,13 @@ export default function EmployeeGoals() {
           </div>
           <div className="eg-stat eg-stat--success">
             <span className="eg-stat__value">
-              {objectives.filter((g, i) => (localProgress[g._id || g.title] ?? g.progressPct ?? 0) >= 100).length}
+              {objectives.filter(g => (localProgress[g.id] ?? serverProgress[g.id] ?? 0) >= 100).length}
             </span>
             <span className="eg-stat__label">Atteints</span>
           </div>
           <div className="eg-stat">
             <span className="eg-stat__value">
-              {Math.round(objectives.reduce((acc, g) => acc + (localProgress[g._id || g.title] ?? g.progressPct ?? 0), 0) / objectives.length)}%
+              {Math.round(objectives.reduce((acc, g) => acc + (localProgress[g.id] ?? serverProgress[g.id] ?? 0), 0) / objectives.length)}%
             </span>
             <span className="eg-stat__label">Progression moy.</span>
           </div>
@@ -185,41 +229,21 @@ export default function EmployeeGoals() {
       ) : objectives.length === 0 ? (
         <div className="eg-empty">
           <Target size={40} color="var(--color-on-surface-variant)" />
-          <p>Aucun objectif actif. Vos objectifs apparaîtront après votre première évaluation.</p>
+          <p>Aucun objectif actif. Remplissez la section « Objectifs » de votre évaluation pour les voir apparaître ici.</p>
         </div>
       ) : (
         <section className="eg-section">
           <h2 className="eg-section__title">
             <TrendingUp size={16} aria-hidden="true" />
-            Objectifs en cours
+            Objectifs en cours {isLocked && <span className="eg-locked-badge">Verrouillé</span>}
           </h2>
           <div className="eg-goals-list">
-            {objectives.map((goal, i) => (
+            {objectives.map(goal => (
               <GoalCard
-                key={goal._id || i}
+                key={goal.id}
                 goal={goal}
-                localPct={localProgress[goal._id || goal.title]}
-                onEdit={setEditingGoal}
-              />
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* ── Objectifs proposés ────────────────────────── */}
-      {draftObjectives.length > 0 && (
-        <section className="eg-section">
-          <h2 className="eg-section__title eg-section__title--draft">
-            <Circle size={16} aria-hidden="true" />
-            Objectifs proposés
-          </h2>
-          <div className="eg-goals-list">
-            {draftObjectives.map((goal, i) => (
-              <GoalCard
-                key={goal._id || i}
-                goal={goal}
-                localPct={localProgress[goal._id || goal.title]}
-                onEdit={setEditingGoal}
+                localPct={localProgress[goal.id] ?? serverProgress[goal.id]}
+                onEdit={isLocked ? undefined : setEditingGoal}
               />
             ))}
           </div>

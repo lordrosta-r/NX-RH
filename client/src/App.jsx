@@ -14,6 +14,7 @@ import NotFound from './pages/_placeholders/NotFound'
 import EvaluationSummary from './pages/evaluation/EvaluationSummary'
 import EvaluationForm    from './pages/evaluation/EvaluationForm'
 import EvaluationSign    from './pages/evaluation/EvaluationSign'
+import EvaluationRedirect  from './pages/evaluation/EvaluationRedirect'
 import HR              from './pages/hr/HR'
 import HRCampaigns      from './pages/hr/HRCampaigns'
 import HRCampaignNew    from './pages/hr/HRCampaignNew'
@@ -63,8 +64,9 @@ export default function App() {
 
         {/* Employee — accessible à tous les rôles authentifiés */}
         <Route element={<ProtectedRoute allowedRoles={ANY_AUTHED} />}>
-          <Route path="/employee"          element={<Employee />} />
-          <Route path="/employee/goals"    element={<EmployeeGoals />} />
+          <Route path="/employee"             element={<Employee />} />
+          <Route path="/employee/evaluation"  element={<EvaluationRedirect />} />
+          <Route path="/employee/goals"       element={<EmployeeGoals />} />
           <Route path="/employee/history"  element={<EmployeeHistory />} />
           <Route path="/employee/settings" element={<Settings />} />
         </Route>

@@ -12,6 +12,7 @@
 import {
   Home,
   Clipboard,
+  ClipboardCheck,
   FileText,
   Folder,
   Settings,
@@ -31,10 +32,11 @@ import {
 // ── Per-role nav items ──────────────────────────────────────────────────────
 const NAV = {
   employee: [
-    { id: 'home',     to: '/employee',          label: 'Tableau de bord', Icon: Home,       end: true },
-    { id: 'goals',    to: '/employee/goals',    label: 'Mes objectifs',   Icon: Sparkles    },
-    { id: 'history',  to: '/employee/history',  label: 'Historique',      Icon: Folder      },
-    { id: 'settings', to: '/employee/settings', label: 'Préférences',     Icon: Settings    },
+    { id: 'home',       to: '/employee',            label: 'Tableau de bord',  Icon: Home,           end: true },
+    { id: 'evaluation', to: '/employee/evaluation', label: 'Mon évaluation',   Icon: ClipboardCheck  },
+    { id: 'goals',      to: '/employee/goals',      label: 'Mes objectifs',    Icon: Sparkles        },
+    { id: 'history',    to: '/employee/history',    label: 'Historique',       Icon: Folder          },
+    { id: 'settings',   to: '/employee/settings',   label: 'Préférences',      Icon: Settings        },
   ],
 
   manager: [

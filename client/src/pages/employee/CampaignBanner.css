@@ -82,6 +82,15 @@
   margin: 0;
 }
 
+/* Progress hint phrase */
+.cb__progress-phrase {
+  font-size: 0.8125rem;
+  color: var(--color-on-surface-variant);
+  margin: 0.75rem 0 0;
+  line-height: 1.4;
+  font-weight: 500;
+}
+
 /* ── Right — ring + CTA ────────────────────────────────────────────────────── */
 .cb__cta-area {
   position: relative;

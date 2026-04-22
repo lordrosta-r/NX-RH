@@ -46,6 +46,7 @@ import AdminCompliance     from './pages/admin/AdminCompliance'
 import AdminSecurity       from './pages/admin/AdminSecurity'
 import AdminSandbox        from './pages/admin/AdminSandbox'
 import AdminSettings       from './pages/admin/AdminSettings'
+import DevColorPicker from './components/ui/DevColorPicker'
 
 const ANY_AUTHED = ['employee', 'manager', 'director', 'hr', 'admin']
 const MANAGER_UP = ['manager', 'director', 'hr', 'admin']
@@ -54,6 +55,7 @@ const ADMIN_ONLY = ['admin']
 
 export default function App() {
   return (
+    <>
     <Routes>
       {/* ── Public ───────────────────────────────────────── */}
       <Route path="/login" element={<Login />} />
@@ -131,5 +133,8 @@ export default function App() {
       <Route path="/" element={<Navigate to="/employee" replace />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
+
+    {import.meta.env.DEV && <DevColorPicker />}
+  </>
   )
 }

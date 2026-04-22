@@ -38,6 +38,9 @@ export default {
   'dashboard.campaign.body':              'Fixez vos jalons professionnels et faites le bilan de votre progression au cours des douze derniers mois. Votre retour façonne notre culture.',
   'dashboard.campaign.cta':               'Démarrer',
   'dashboard.campaign.progress.label':    'Complété',
+  'dashboard.campaign.progress.hint_zero': 'Démarrez votre auto-évaluation pour compléter votre bilan annuel.',
+  'dashboard.campaign.progress.hint_mid':  'de votre évaluation complétée — continuez sur votre lancée.',
+  'dashboard.campaign.progress.hint_done': 'Bravo — toutes les étapes de votre évaluation sont terminées !',
   'dashboard.campaign.phase':             'Phase : Auto-évaluation',
   'dashboard.campaign.empty':             'Aucune campagne active pour le moment.',
 

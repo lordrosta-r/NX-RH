@@ -122,7 +122,7 @@ export default function Employee() {
   const stats = { total: evaluations.length, pending, completed }
 
   // ── Progression individuelle de l'évaluation en cours ─────────────────────
-  const myEval = evaluations.find(e => ['assigned', 'in_progress'].includes(e.status)) || evaluations[0]
+  const myEval = evaluations.find(e => ['assigned', 'in_progress'].includes(e.status))
   const userProgress = myEval ? computeEvalProgress(myEval?.answers ?? []) : 0
 
   // ── Notifications dérivées des évaluations ────────────────────────────────

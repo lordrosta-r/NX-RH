@@ -114,9 +114,12 @@
   --color-overlay-heavy:       rgba(0, 0, 0, 0.82);
   --color-overlay-mid:         rgba(0, 0, 0, 0.35);
 
+  /* ── Topbar background (overridable by DevColorPicker) ───────────────────── */
+  --color-topbar-bg:          #ffffff;
+
   /* ── Inner App Sidebar (dark violet — always dark regardless of theme) ──────
      Référence : docs/design/dashboard/DESIGN.md                                */
-  --color-sidebar:            #2e1065;                      /* violet-950        */
+  --color-sidebar:            #2e1065;/* violet-950        */
   --color-sidebar-brand-text: #ffffff;                      /* brand name        */
   --color-sidebar-nav-text:   rgba(221, 214, 254, 0.65);   /* violet-200 muted  */
   --color-sidebar-nav-active: #ffffff;

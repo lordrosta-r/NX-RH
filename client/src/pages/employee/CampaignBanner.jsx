@@ -99,6 +99,16 @@ export default function CampaignBanner({ t, campaign, loading, error, userName =
         </h2>
 
         <p className="cb__body">{statusText}</p>
+
+        {isReady && (
+          <p className="cb__progress-phrase">
+            {progress === 0
+              ? t('dashboard.campaign.progress.hint_zero')
+              : progress === 100
+                ? t('dashboard.campaign.progress.hint_done')
+                : `${progress}\u00a0% ${t('dashboard.campaign.progress.hint_mid')}`}
+          </p>
+        )}
       </div>
 
       {/* Right — ring + CTA — always in DOM to stabilise banner height */}

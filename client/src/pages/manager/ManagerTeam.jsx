@@ -10,6 +10,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useTranslate } from '../../contexts/LocaleContext'
 import { t as pageT } from './i18n'
 import { ChevronRight } from 'lucide-react'
+import { SkeletonTable } from '../../components/ui/Skeleton'
 import './manager.css'
 
 function avatarInitial(member) {
@@ -65,7 +66,7 @@ export default function ManagerTeam() {
         <p className="mgr-hero__sub">{t('manager.team.subtitle')}</p>
       </section>
 
-      {isLoading && <p className="mgr-loading">{t('manager.loading')}</p>}
+      {isLoading && <SkeletonTable rows={6} cols={4} />}
       {membersError && <p className="mgr-error">{t('manager.error.load')}</p>}
 
       {!isLoading && !membersError && (

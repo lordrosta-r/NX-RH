@@ -25,6 +25,7 @@ import {
   ChevronRight, FileText, Users, CheckCircle2,
 } from 'lucide-react'
 import { apiFetch } from '../../lib/apiFetch'
+import { SkeletonStat, SkeletonTable } from '../../components/ui/Skeleton'
 import './hr.css'
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -245,6 +246,9 @@ export default function HR() {
 
         {/* Grille de tuiles KPI */}
         <div className="hr-kpis">
+          {(loadingCamp || loadingEvals) ? (
+            Array.from({ length: 6 }, (_, i) => <SkeletonStat key={i} />)
+          ) : <>
           <KpiTile
             icon={<Clipboard size={18} strokeWidth={1.5} color="var(--color-primary)" />}
             iconBg="var(--color-primary-tint-07)"
@@ -291,6 +295,7 @@ export default function HR() {
             sub="eNPS de l'organisation"
             onClick={() => navigate('/hr/analytics')}
           />
+          </>}
         </div>
 
         {/* Panneau alertes */}
@@ -339,7 +344,7 @@ export default function HR() {
         </div>
 
         {loadingEvals ? (
-          <p className="hr-section__msg">{t('hr.loading')}</p>
+          <SkeletonTable rows={4} cols={2} />
         ) : deptStats.length === 0 ? (
           <p className="hr-section__msg">{t('hr.depts.empty')}</p>
         ) : (
@@ -366,7 +371,7 @@ export default function HR() {
         </div>
 
         {loadingEvals ? (
-          <p className="hr-section__msg">{t('hr.loading')}</p>
+          <SkeletonTable rows={5} cols={4} />
         ) : recentActivity.length === 0 ? (
           <p className="hr-section__msg">Aucune activité récente.</p>
         ) : (

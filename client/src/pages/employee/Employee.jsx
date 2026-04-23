@@ -21,6 +21,7 @@ import { t as pageT }           from './i18n'
 import CampaignBanner           from './CampaignBanner'
 import CalendarWidget           from '../../components/ui/CalendarWidget'
 import { ArrowUpRight, Sparkles, Heart, ChevronRight } from 'lucide-react'
+import { Skeleton } from '../../components/ui/Skeleton'
 import './employee.css'
 
 // ── Correspondance type d'événement → token couleur ─────────────────────────
@@ -236,7 +237,9 @@ export default function Employee() {
           </div>
 
           {evalsLoading ? (
-            <p className="db-status-msg">{t('dashboard.loading')}</p>
+            <div className="sk-list" aria-hidden="true">
+              {Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="sk-list__item" />)}
+            </div>
           ) : evalsError ? (
             <p className="db-status-msg db-status-msg--error">{t('dashboard.error')}</p>
           ) : notifItems.length === 0 ? (
@@ -322,7 +325,7 @@ export default function Employee() {
         {/* Calendrier des échéances */}
         <div className="db-calendar-wrap">
           {eventsLoading ? (
-            <p className="db-status-msg">{t('dashboard.loading')}</p>
+            <Skeleton height="280px" style={{ borderRadius: 'var(--radius-md)' }} />
           ) : eventsError ? (
             <p className="db-status-msg db-status-msg--error">{t('dashboard.error')}</p>
           ) : (

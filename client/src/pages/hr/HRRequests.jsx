@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 import { apiFetch } from '../../lib/apiFetch'
 import { showToast } from '../../components/ui/Toast'
+import { SkeletonTable } from '../../components/ui/Skeleton'
 import './hr-requests.css'
 
 const TABS = ['contested', 'mobility', 'salary', 'all_evals']
@@ -545,7 +546,7 @@ export default function HRRequests() {
 
       {/* ── Contenu ─────────────────────────────────────── */}
       {isLoading ? (
-        <p className="hrr-loading">{t('hrr.loading')}</p>
+        <SkeletonTable rows={5} cols={6} />
       ) : error ? (
         <p className="hrr-loading" role="alert" style={{ color: 'var(--color-error)' }}>{error.message}</p>
       ) : activeTab === 'contested' ? (

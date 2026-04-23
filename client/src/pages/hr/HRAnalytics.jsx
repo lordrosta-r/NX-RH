@@ -13,6 +13,7 @@ import { useTranslate } from '../../contexts/LocaleContext'
 import { t as pageT }  from './i18n'
 import { BarChart2, Download } from 'lucide-react'
 import { apiFetch } from '../../lib/apiFetch'
+import { Skeleton, SkeletonStat } from '../../components/ui/Skeleton'
 import './hr-analytics.css'
 
 // ── Constantes ────────────────────────────────────────────────────────────────
@@ -519,7 +520,14 @@ export default function HRAnalytics() {
       {/* ── Contenu ──────────────────────────────────── */}
       <div className="hra-chart-area">
         {isLoading ? (
-          <EmptyState message={t('hra.loading')} />
+          <div className="sk-analytics">
+            <div className="sk-analytics__stats">
+              <SkeletonStat />
+              <SkeletonStat />
+              <SkeletonStat />
+            </div>
+            <Skeleton className="sk-chart-placeholder" height="300px" />
+          </div>
         ) : (
           <>
             {activeTab === 'flightrisk' && (

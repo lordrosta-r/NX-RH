@@ -3,21 +3,31 @@
 //
 // Pas de sidebar ni topbar : pris en charge par AuthedLayout.
 // Sections :
-//   1. Hero (nom + badge statut + actions)
+//   1. Hero (nom + badge statut + actions : modifier, supprimer, transitions)
 //   2. KPI strip (total, complétion, en attente, soumis, validés)
 //   3. Barre de progression globale
 //   4. Tableau des évaluations
 //   5. Modal "Assigner des évaluations"
+//   6. Modal "Modifier la campagne"
+//   7. Modal "Confirmer la suppression"
 // =============================================================================
 
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useParams, Link }  from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useAuth }          from '../../contexts/AuthContext'
 import { useTranslate }     from '../../contexts/LocaleContext'
 import { t as pageT }       from './i18n'
-import { ChevronLeft, UserPlus } from 'lucide-react'
+import { ChevronLeft, UserPlus, Edit2, Trash2 } from 'lucide-react'
 import './hr-campaigns.css'
+
+// ── Constants ─────────────────────────────────────────────────────────────────
+
+const DEPARTMENTS = [
+  'Engineering', 'Product', 'Design', 'Data', 'Security', 'Infrastructure',
+  'Finance', 'Legal', 'HR', 'Sales', 'Marketing', 'Customer Success',
+  'Operations', 'Executive',
+]
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -34,6 +44,225 @@ const EVAL_STATUS_CLS = {
   submitted:   'cmp-badge--closed',
   reviewed:    'cmp-badge--closed',
   validated:   'cmp-badge--active',
+}
+
+function toInputDate(d) {
+  if (!d) return ''
+  return new Date(d).toISOString().slice(0, 10)
+}
+
+// ── EditModal ─────────────────────────────────────────────────────────────────
+
+function EditModal({ campaignId, initialData, t, onClose }) {
+  const qc = useQueryClient()
+  const [form, setForm] = useState({
+    name:              initialData.name || '',
+    description:       initialData.description || '',
+    startDate:         toInputDate(initialData.startDate),
+    endDate:           toInputDate(initialData.endDate),
+    targetDepartments: initialData.targetDepartments || [],
+    deadlineEmployee:  toInputDate(initialData.deadlineEmployee),
+    deadlineManager:   toInputDate(initialData.deadlineManager),
+  })
+  const [error, setError] = useState(null)
+
+  const updateMutation = useMutation({
+    mutationFn: (data) =>
+      fetch(`/api/campaigns/${campaignId}`, {
+        method:      'PATCH',
+        headers:     { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body:        JSON.stringify(data),
+      }).then(r => r.ok ? r.json() : r.json().then(e => Promise.reject(e))),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['hr-campaign', campaignId] })
+      qc.invalidateQueries({ queryKey: ['hr-campaigns-list'] })
+      onClose()
+    },
+    onError: (e) => setError(e.error || t('cmp.detail.edit.error')),
+  })
+
+  function toggleDept(dept) {
+    setForm(f => ({
+      ...f,
+      targetDepartments: f.targetDepartments.includes(dept)
+        ? f.targetDepartments.filter(d => d !== dept)
+        : [...f.targetDepartments, dept],
+    }))
+  }
+
+  function handleSubmit() {
+    if (form.endDate && form.startDate && new Date(form.endDate) < new Date(form.startDate)) {
+      setError(t('cmp.detail.edit.date_error'))
+      return
+    }
+    setError(null)
+    updateMutation.mutate({
+      name:              form.name.trim(),
+      description:       form.description,
+      startDate:         form.startDate,
+      endDate:           form.endDate,
+      targetDepartments: form.targetDepartments,
+      deadlineEmployee:  form.deadlineEmployee || null,
+      deadlineManager:   form.deadlineManager  || null,
+    })
+  }
+
+  return (
+    <div className="cmp-modal-backdrop" role="dialog" aria-modal="true">
+      <div className="cmp-modal cmp-modal--wide">
+        <h2 className="cmp-modal__title">{t('cmp.detail.edit.title')}</h2>
+
+        {error && <p className="cmp-error-msg">{error}</p>}
+
+        <div className="cmp-field">
+          <label className="cmp-label">{t('cmp.detail.edit.name')} *</label>
+          <input
+            className="cmp-input"
+            type="text"
+            value={form.name}
+            onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+          />
+        </div>
+
+        <div className="cmp-field">
+          <label className="cmp-label">{t('cmp.detail.edit.desc')}</label>
+          <textarea
+            className="cmp-textarea"
+            value={form.description}
+            rows={3}
+            onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+          />
+        </div>
+
+        <div className="cmp-field-row">
+          <div className="cmp-field">
+            <label className="cmp-label">{t('cmp.detail.edit.startDate')}</label>
+            <input
+              className="cmp-input"
+              type="date"
+              value={form.startDate}
+              onChange={e => setForm(f => ({ ...f, startDate: e.target.value }))}
+            />
+          </div>
+          <div className="cmp-field">
+            <label className="cmp-label">{t('cmp.detail.edit.endDate')}</label>
+            <input
+              className="cmp-input"
+              type="date"
+              value={form.endDate}
+              onChange={e => setForm(f => ({ ...f, endDate: e.target.value }))}
+            />
+          </div>
+        </div>
+
+        <div className="cmp-field">
+          <label className="cmp-label">{t('cmp.detail.edit.depts')}</label>
+          <div className="cmp-dept-list">
+            {DEPARTMENTS.map(dept => (
+              <button
+                key={dept}
+                type="button"
+                className={`cmp-dept-chip${form.targetDepartments.includes(dept) ? ' cmp-dept-chip--selected' : ''}`}
+                onClick={() => toggleDept(dept)}
+              >
+                {dept}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="cmp-field-row">
+          <div className="cmp-field">
+            <label className="cmp-label">{t('cmp.detail.edit.deadline_emp')}</label>
+            <input
+              className="cmp-input"
+              type="date"
+              value={form.deadlineEmployee}
+              onChange={e => setForm(f => ({ ...f, deadlineEmployee: e.target.value }))}
+            />
+          </div>
+          <div className="cmp-field">
+            <label className="cmp-label">{t('cmp.detail.edit.deadline_mgr')}</label>
+            <input
+              className="cmp-input"
+              type="date"
+              value={form.deadlineManager}
+              onChange={e => setForm(f => ({ ...f, deadlineManager: e.target.value }))}
+            />
+          </div>
+        </div>
+
+        <div className="cmp-modal__actions">
+          <button
+            type="button"
+            className="cmp-btn"
+            onClick={onClose}
+            disabled={updateMutation.isPending}
+          >
+            {t('cmp.detail.edit.cancel')}
+          </button>
+          <button
+            type="button"
+            className="cmp-btn cmp-btn--primary"
+            onClick={handleSubmit}
+            disabled={!form.name.trim() || updateMutation.isPending}
+          >
+            {t('cmp.detail.edit.save')}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── DeleteConfirmModal ────────────────────────────────────────────────────────
+
+function DeleteConfirmModal({ campaignId, t, onClose }) {
+  const navigate = useNavigate()
+  const qc       = useQueryClient()
+  const [error, setError] = useState(null)
+
+  const deleteMutation = useMutation({
+    mutationFn: () =>
+      fetch(`/api/campaigns/${campaignId}`, {
+        method:      'DELETE',
+        credentials: 'include',
+      }).then(r => r.ok ? r.json() : r.json().then(e => Promise.reject(e))),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['hr-campaigns-list'] })
+      navigate('/hr/campaigns')
+    },
+    onError: (e) => setError(e.error || t('cmp.detail.delete.error')),
+  })
+
+  return (
+    <div className="cmp-modal-backdrop" role="dialog" aria-modal="true">
+      <div className="cmp-modal">
+        <h2 className="cmp-modal__title">{t('cmp.detail.delete.title')}</h2>
+        <p className="cmp-modal__body">{t('cmp.confirm.delete')}</p>
+        {error && <p className="cmp-error-msg">{error}</p>}
+        <div className="cmp-modal__actions">
+          <button
+            type="button"
+            className="cmp-btn"
+            onClick={onClose}
+            disabled={deleteMutation.isPending}
+          >
+            {t('cmp.detail.edit.cancel')}
+          </button>
+          <button
+            type="button"
+            className="cmp-btn cmp-btn--danger"
+            onClick={() => deleteMutation.mutate()}
+            disabled={deleteMutation.isPending}
+          >
+            <Trash2 size={13} /> {t('cmp.detail.delete.confirm_btn')}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 // ── Sub-components ────────────────────────────────────────────────────────────
@@ -157,7 +386,9 @@ export default function HRCampaignDetail() {
   const { user } = useAuth()
   const t        = useTranslate(pageT)
   const qc       = useQueryClient()
-  const [showAssign, setShowAssign] = useState(false)
+  const [showAssign, setShowAssign]               = useState(false)
+  const [showEdit, setShowEdit]                   = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   const { data: campaign, isLoading, isError } = useQuery({
     queryKey: ['hr-campaign', id],
@@ -195,6 +426,8 @@ export default function HRCampaignDetail() {
   const { name, status, stats = {}, evaluations = [] } = campaign
   const { completionRate = 0, total = 0, pending = 0, submitted = 0, validated = 0 } = stats
 
+  const canDelete = status === 'draft' || status === 'archived'
+
   return (
     <div className="cmp-det">
 
@@ -224,6 +457,14 @@ export default function HRCampaignDetail() {
           {status === 'closed' && (
             <button type="button" className="cmp-btn" onClick={() => handleStatusChange('archive')}>
               {t('cmp.card.archive')}
+            </button>
+          )}
+          <button type="button" className="cmp-btn cmp-btn--ghost" onClick={() => setShowEdit(true)}>
+            <Edit2 size={13} /> {t('cmp.detail.edit')}
+          </button>
+          {canDelete && (
+            <button type="button" className="cmp-btn cmp-btn--danger" onClick={() => setShowDeleteConfirm(true)}>
+              <Trash2 size={13} /> {t('cmp.detail.delete')}
             </button>
           )}
         </div>
@@ -308,6 +549,25 @@ export default function HRCampaignDetail() {
           </div>
         )}
       </section>
+
+      {/* ── Edit modal ────────────────────────────────────── */}
+      {showEdit && (
+        <EditModal
+          campaignId={id}
+          initialData={campaign}
+          t={t}
+          onClose={() => setShowEdit(false)}
+        />
+      )}
+
+      {/* ── Delete confirm modal ───────────────────────────── */}
+      {showDeleteConfirm && (
+        <DeleteConfirmModal
+          campaignId={id}
+          t={t}
+          onClose={() => setShowDeleteConfirm(false)}
+        />
+      )}
 
       {/* ── Assign modal ──────────────────────────────────── */}
       {showAssign && (

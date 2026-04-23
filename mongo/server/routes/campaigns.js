@@ -7,6 +7,7 @@
 // GET    /api/campaigns/:id      → détail + stats
 // POST   /api/campaigns          → créer (admin/hr)
 // PATCH  /api/campaigns/:id      → modifier / changer statut (admin/hr)
+// DELETE /api/campaigns/:id      → supprimer (admin/hr — draft/archived seulement)
 // =============================================================================
 
 const router     = require('express').Router()
@@ -173,6 +174,39 @@ router.patch('/:id', async (req, res, next) => {
     }
 
     res.json(campaign.toObject())
+  } catch (err) {
+    next(err)
+  }
+})
+
+// ─── DELETE /api/campaigns/:id ───────────────────────────────────────────────
+
+router.delete('/:id', async (req, res, next) => {
+  try {
+    if (!ADMIN_ROLES.includes(req.user.role)) {
+      return res.status(403).json({ error: 'Réservé aux admins et RH' })
+    }
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({ error: 'ID invalide' })
+    }
+
+    const campaign = await Campaign.findById(req.params.id)
+    if (!campaign) return res.status(404).json({ error: 'Campagne introuvable' })
+
+    if (campaign.status === 'active') {
+      return res.status(400).json({ error: "Impossible de supprimer une campagne active. Clôturez-la d'abord." })
+    }
+    if (!['draft', 'archived'].includes(campaign.status)) {
+      return res.status(400).json({ error: 'Seules les campagnes en brouillon ou archivées peuvent être supprimées.' })
+    }
+
+    await Promise.all([
+      Evaluation.deleteMany({ campaignId: campaign._id }),
+      Form.deleteMany({ campaignId: campaign._id }),
+    ])
+    await campaign.deleteOne()
+
+    res.json({ deleted: true })
   } catch (err) {
     next(err)
   }

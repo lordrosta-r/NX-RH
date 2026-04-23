@@ -306,6 +306,103 @@ router.post('/bulk', async (req, res, next) => {
   }
 })
 
+// ─── PATCH /api/evaluations/bulk ─────────────────────────────────────────────
+// Actions en masse sur des évaluations existantes.
+// Doit être défini AVANT /:id pour éviter le conflit de routing.
+//
+// Body: { ids: string[], action: 'archive'|'sign_hr'|'assign_reviewer', reviewerId?: string }
+// Renvoie: { success: N, skipped: M, errors: [{id, reason}] }
+
+router.patch('/bulk', async (req, res, next) => {
+  try {
+    if (!ADMIN_ROLES.includes(req.user.role)) {
+      return res.status(403).json({ error: 'Réservé aux admins et RH' })
+    }
+
+    const { ids, action, reviewerId } = req.body
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ error: 'ids doit être un tableau non vide' })
+    }
+    if (ids.length > 200) {
+      return res.status(400).json({ error: 'Maximum 200 évaluations par opération bulk' })
+    }
+
+    const VALID_BULK_ACTIONS = ['archive', 'sign_hr', 'assign_reviewer']
+    if (!VALID_BULK_ACTIONS.includes(action)) {
+      return res.status(400).json({ error: `action invalide — valeurs acceptées: ${VALID_BULK_ACTIONS.join(', ')}` })
+    }
+
+    for (const id of ids) {
+      if (!mongoose.isValidObjectId(id)) {
+        return res.status(400).json({ error: `ID invalide: ${id}` })
+      }
+    }
+
+    if (action === 'assign_reviewer') {
+      if (!reviewerId || !mongoose.isValidObjectId(reviewerId)) {
+        return res.status(400).json({ error: 'reviewerId valide requis pour assign_reviewer' })
+      }
+    }
+
+    const evaluations = await Evaluation.find({ _id: { $in: ids } })
+    const role = req.user.role
+    let success = 0
+    let skipped = 0
+    const errors = []
+
+    for (const ev of evaluations) {
+      try {
+        if (action === 'sign_hr') {
+          const HR_CAN_SIGN = ['reviewed', 'signed_evaluatee', 'signed_manager']
+          if (!HR_CAN_SIGN.includes(ev.status)) {
+            skipped++
+            continue
+          }
+          ev.status = 'signed_hr'
+          ev.signedByHrAt = new Date()
+          await ev.save()
+          success++
+
+        } else if (action === 'archive') {
+          // Admin uses full VALID_TRANSITIONS, HR uses their limited ROLE_TRANSITIONS
+          const roleTransitions = role === 'admin' ? VALID_TRANSITIONS : (ROLE_TRANSITIONS[role] || {})
+          const allowed = roleTransitions[ev.status] || []
+          if (allowed.length > 0) {
+            ev.status = allowed[0]
+            if (ev.status === 'signed_hr') ev.signedByHrAt = new Date()
+          }
+          ev.reviewerComment = 'Archivé en masse par RH'
+          await ev.save()
+          success++
+
+        } else if (action === 'assign_reviewer') {
+          const ASSIGNABLE = ['assigned', 'in_progress']
+          if (!ASSIGNABLE.includes(ev.status)) {
+            skipped++
+            continue
+          }
+          ev.evaluatorId = reviewerId
+          await ev.save()
+          success++
+        }
+      } catch (err) {
+        errors.push({ id: ev._id.toString(), reason: err.message })
+      }
+    }
+
+    // IDs non trouvés en base comptent comme skipped
+    const foundIds = new Set(evaluations.map(e => e._id.toString()))
+    for (const id of ids) {
+      if (!foundIds.has(id)) skipped++
+    }
+
+    res.json({ success, skipped, errors })
+  } catch (err) {
+    next(err)
+  }
+})
+
 // ─── PATCH /api/evaluations/:id ──────────────────────────────────────────────
 
 router.patch('/:id', async (req, res, next) => {
@@ -530,7 +627,7 @@ router.get('/:id/pdf', async (req, res, next) => {
       doc.fontSize(11).font('Helvetica')
       answers.forEach((a, i) => {
         const label = a.questionLabel || a.questionId || `Question ${i + 1}`
-        const value = a.value != null ? String(a.value) : '—'
+        const value = a.value !== null && a.value !== undefined ? String(a.value) : '—'
         doc.font('Helvetica-Bold').text(`${i + 1}. ${label}`, { continued: false })
         doc.font('Helvetica').text(`   ${value}`)
         doc.moveDown(0.3)

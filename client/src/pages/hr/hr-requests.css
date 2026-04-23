@@ -301,3 +301,94 @@
   font-size: 0.875rem;
   color: var(--color-on-surface);
 }
+
+/* ── Onglet Toutes les évaluations ─────────────────────────────────────────── */
+.hrr-allevs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.hrr-allevs__toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.hrr-allevs__count {
+  font-size: 0.8125rem;
+  color: var(--color-on-surface-variant);
+}
+
+.hrr-filter-status {
+  padding: 0.375rem 0.625rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-divider);
+  background: var(--color-surface);
+  color: var(--color-on-surface);
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+
+/* ── Checkbox ────────────────────────────────────────────────────────────────  */
+.hrr-th-check,
+.hrr-td-check {
+  width: 40px;
+  text-align: center;
+  padding-left: 0.75rem;
+  padding-right: 0.25rem;
+}
+
+.hrr-checkbox {
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+  accent-color: var(--color-primary);
+}
+
+.hrr-table__row--selected {
+  background: var(--color-primary-tint-07, rgba(184,0,11,0.07));
+}
+
+/* ── Barre d'actions en masse ────────────────────────────────────────────────  */
+.hrr-bulk-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.625rem 1rem;
+  background: var(--color-surface-container-low);
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-md);
+  flex-wrap: wrap;
+}
+
+.hrr-bulk-bar__info {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-on-surface);
+  margin-right: auto;
+}
+
+/* ── Résultat opération bulk ─────────────────────────────────────────────────  */
+.hrr-bulk-result {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.875rem;
+  border-radius: var(--radius-md);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.hrr-bulk-result--ok {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.hrr-bulk-result--err {
+  background: #fee2e2;
+  color: #991b1b;
+}

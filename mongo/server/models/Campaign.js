@@ -37,6 +37,11 @@ const campaignSchema = new Schema({
     required: true,
   },
 
+  // Échéances par phase (optionnelles)
+  // Stockées comme Date UTC — affichées en local côté client.
+  deadlineEmployee: { type: Date, default: null },
+  deadlineManager:  { type: Date, default: null },
+
   // Départements concernés par cette campagne.
   // Vide = toute l'entreprise.
   // Exemple : ['RH', 'IT', 'Finance']

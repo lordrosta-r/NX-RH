@@ -98,7 +98,8 @@ router.post('/', async (req, res, next) => {
       return res.status(403).json({ error: 'Réservé aux admins et RH' })
     }
 
-    const { name, description, startDate, endDate, targetDepartments, extendedVisibility } = req.body
+    const { name, description, startDate, endDate, targetDepartments, extendedVisibility,
+      deadlineEmployee, deadlineManager } = req.body
 
     if (!name || !startDate || !endDate) {
       return res.status(400).json({ error: 'name, startDate et endDate sont requis' })
@@ -114,6 +115,8 @@ router.post('/', async (req, res, next) => {
       endDate,
       targetDepartments:  targetDepartments || [],
       extendedVisibility: extendedVisibility || [],
+      deadlineEmployee:   deadlineEmployee || null,
+      deadlineManager:    deadlineManager  || null,
       createdBy:          req.user.id,
     })
 
@@ -147,7 +150,8 @@ router.patch('/:id', async (req, res, next) => {
       }
     }
 
-    const EDITABLE = ['name', 'description', 'status', 'startDate', 'endDate', 'targetDepartments', 'extendedVisibility']
+    const EDITABLE = ['name', 'description', 'status', 'startDate', 'endDate',
+      'targetDepartments', 'extendedVisibility', 'deadlineEmployee', 'deadlineManager']
     EDITABLE.forEach(key => {
       if (req.body[key] !== undefined) campaign[key] = req.body[key]
     })

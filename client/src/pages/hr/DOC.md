@@ -80,10 +80,14 @@ KPI bento, alertes, complétion par service, dernières actions.
 - Drawer latéral : profil complet + 3 dernières évaluations (`/api/evaluations?evaluateeId=`)
 
 ### HRRequests.jsx — Demandes & Contestations
-- 3 onglets avec badge de comptage
-- Contestations : évaluations `status=contested`, actions optimistes (Traiter/Ignorer/Escalader)
+- 4 onglets avec badge de comptage
+- Contestations : évaluations `disagreementFlag=true`, actions optimistes (Traiter/Ignorer/Escalader)
 - Mobilité : filtre sur `answers` contenant "mobili"
 - Augmentations : filtre sur `answers` contenant "augment"
+- **Toutes les évaluations** : liste complète avec filtrage par statut, checkboxes et actions en masse
+  - Checkbox "Sélectionner tout" dans le header, checkboxes par ligne
+  - Barre bulk actions (`PATCH /api/evaluations/bulk`) : sign_hr, archive, désélectionner
+  - Feedback inline : nombre de succès / ignorées ou message d'erreur
 - Drawer détail par évaluation
 
 ### HRAnalytics.jsx — Analyses RH
@@ -142,7 +146,15 @@ TODO: remplacer les mocks par `/api/evaluations` et `/api/users`.
 - Suppression des legacy files : `campaigns/main.jsx`, `formeditor/main.jsx`, `FormEditorSidebar.jsx`, `FormEditorBanner.jsx`
 - Le `FormBuilder` est dans `pages/formeditor/FormBuilder.jsx` mais sa route est montée sous `/hr/templates/:id/builder`
 
-## Points d'attention
+### Phase 7 — Bulk actions (feat/spa-tailwind)
+
+- Ajout de `PATCH /api/evaluations/bulk` dans `mongo/server/routes/evaluations.js`
+  - Actions : `sign_hr`, `archive`, `assign_reviewer` — rôle requis admin ou hr, max 200 ids
+  - Renvoie `{ success, skipped, errors[] }`
+- Ajout de l'onglet "Toutes les évaluations" dans `HRRequests.jsx` avec checkboxes et barre d'actions bulk
+- Styles `.hrr-bulk-bar`, `.hrr-checkbox`, `.hrr-bulk-result` dans `hr-requests.css`
+- Nouvelles clés i18n `hrr.bulk.*` et `hrr.allevs.*`
+
 
 - Ne pas ajouter de sidebar ou topbar dans ces composants — `AuthedLayout` les fournit.
 - HRAnalytics : toutes les données sont des mocks, clairement commentés `// TODO: remplacer`.

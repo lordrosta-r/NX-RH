@@ -18,8 +18,10 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useAuth }          from '../../contexts/AuthContext'
 import { useTranslate }     from '../../contexts/LocaleContext'
 import { t as pageT }       from './i18n'
-import { ChevronLeft, UserPlus, Edit2, Trash2 } from 'lucide-react'
+import { ChevronLeft, UserPlus, Edit2, Trash2, UserCheck, X } from 'lucide-react'
 import { Skeleton, SkeletonStat, SkeletonTable } from '../../components/ui/Skeleton'
+import { apiFetch }         from '../../lib/apiFetch'
+import { showToast }        from '../../components/ui/Toast'
 import './hr-campaigns.css'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -266,6 +268,126 @@ function DeleteConfirmModal({ campaignId, t, onClose }) {
   )
 }
 
+// ── CmpReassignModal ──────────────────────────────────────────────────────────
+
+function CmpReassignModal({ evaluation, campaignId, onClose }) {
+  const qc = useQueryClient()
+  const [newEvaluatorId, setNewEvaluatorId] = useState('')
+
+  const TERMINAL = ['signed_hr', 'validated']
+  const isTerminal = TERMINAL.includes(evaluation.status)
+
+  const currentEvaluatorId =
+    evaluation.evaluatorId?._id?.toString() ||
+    evaluation.evaluatorId?.toString() || ''
+
+  const currentEvaluatorName =
+    evaluation.evaluatorId?.firstName
+      ? `${evaluation.evaluatorId.firstName} ${evaluation.evaluatorId.lastName}`
+      : '—'
+
+  const { data: managers = [] } = useQuery({
+    queryKey: ['managers-list'],
+    queryFn: () =>
+      apiFetch('/api/users?role=manager&isActive=true')
+        .then(d => Array.isArray(d) ? d : (d.data || [])),
+    enabled: !isTerminal,
+    staleTime: 60 * 1000,
+  })
+
+  const reassignMutation = useMutation({
+    mutationFn: () =>
+      apiFetch(`/api/evaluations/${evaluation._id}/reassign`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ newEvaluatorId }),
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['hr-campaign-evals', campaignId] })
+      showToast({ message: 'Évaluateur réaffecté avec succès', type: 'success' })
+      onClose()
+    },
+    onError: (err) => showToast({ message: err.message, type: 'error' }),
+  })
+
+  return (
+    <div className="cmp-modal-backdrop" role="dialog" aria-modal="true">
+      <div className="cmp-modal">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+          <h2 className="cmp-modal__title" style={{ margin: 0 }}>Réaffecter l'évaluateur</h2>
+          <button type="button" className="cmp-btn cmp-btn--ghost" onClick={onClose} aria-label="Fermer" style={{ padding: '0.25rem' }}>
+            <X size={16} />
+          </button>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem', marginBottom: '1rem' }}>
+          <div style={{ display: 'flex', gap: '0.5rem', fontSize: '0.875rem' }}>
+            <span className="cmp-label" style={{ minWidth: '120px' }}>Évalué</span>
+            <span>
+              {evaluation.evaluateeId?.firstName
+                ? `${evaluation.evaluateeId.firstName} ${evaluation.evaluateeId.lastName}`
+                : '—'}
+            </span>
+          </div>
+          <div style={{ display: 'flex', gap: '0.5rem', fontSize: '0.875rem' }}>
+            <span className="cmp-label" style={{ minWidth: '120px' }}>Évaluateur actuel</span>
+            <span>{currentEvaluatorName}</span>
+          </div>
+          <div style={{ display: 'flex', gap: '0.5rem', fontSize: '0.875rem' }}>
+            <span className="cmp-label" style={{ minWidth: '120px' }}>Statut</span>
+            <span className={`cmp-badge ${EVAL_STATUS_CLS[evaluation.status] ?? 'cmp-badge--draft'}`}>
+              {evaluation.status}
+            </span>
+          </div>
+        </div>
+
+        {isTerminal ? (
+          <p style={{ padding: '0.625rem', background: '#fee2e2', color: '#991b1b', borderRadius: '6px', fontSize: '0.875rem', margin: '0 0 1rem' }}>
+            Non autorisé — statut terminal ({evaluation.status})
+          </p>
+        ) : (
+          <div className="cmp-field" style={{ marginBottom: '1rem' }}>
+            <label className="cmp-label">Nouveau manager</label>
+            <select
+              className="cmp-input"
+              value={newEvaluatorId}
+              onChange={e => setNewEvaluatorId(e.target.value)}
+              style={{ width: '100%' }}
+            >
+              <option value="">— Sélectionner un manager —</option>
+              {managers.map(m => (
+                <option key={m._id} value={m._id}>
+                  {m.firstName} {m.lastName}{m.department ? ` (${m.department})` : ''}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        <div className="cmp-modal__actions">
+          <button type="button" className="cmp-btn" onClick={onClose}>
+            Annuler
+          </button>
+          {!isTerminal && (
+            <button
+              type="button"
+              className="cmp-btn cmp-btn--primary"
+              disabled={
+                !newEvaluatorId ||
+                newEvaluatorId === currentEvaluatorId ||
+                reassignMutation.isPending
+              }
+              onClick={() => reassignMutation.mutate()}
+            >
+              {reassignMutation.isPending ? 'En cours…' : 'Confirmer'}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Sub-components ────────────────────────────────────────────────────────────
 
 function AssignModal({ campaignId, t, onClose }) {
@@ -390,12 +512,22 @@ export default function HRCampaignDetail() {
   const [showAssign, setShowAssign]               = useState(false)
   const [showEdit, setShowEdit]                   = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [reassignTarget, setReassignTarget]       = useState(null)
 
   const { data: campaign, isLoading, isError } = useQuery({
     queryKey: ['hr-campaign', id],
     queryFn:  () =>
       fetch(`/api/campaigns/${id}`, { credentials: 'include' }).then(r => r.json()),
     enabled:   !!user && !!id,
+    staleTime: 30 * 1000,
+  })
+
+  const { data: campaignEvals = [] } = useQuery({
+    queryKey: ['hr-campaign-evals', id],
+    queryFn:  () =>
+      apiFetch(`/api/evaluations?campaignId=${id}`)
+        .then(d => Array.isArray(d) ? d : (d.data || [])),
+    enabled: !!user && !!id,
     staleTime: 30 * 1000,
   })
 
@@ -435,7 +567,7 @@ export default function HRCampaignDetail() {
   )
   if (isError || !campaign) return <p className="cmp-state-msg">{t('cmp.error.load')}</p>
 
-  const { name, status, stats = {}, evaluations = [] } = campaign
+  const { name, status, stats = {} } = campaign
   const { completionRate = 0, total = 0, pending = 0, submitted = 0, validated = 0 } = stats
 
   const canDelete = status === 'draft' || status === 'archived'
@@ -530,7 +662,7 @@ export default function HRCampaignDetail() {
           </button>
         </div>
 
-        {evaluations.length === 0 ? (
+        {campaignEvals.length === 0 ? (
           <p className="cmp-state-msg">{t('cmp.detail.empty')}</p>
         ) : (
           <div className="cmp-det__table-wrap">
@@ -541,21 +673,41 @@ export default function HRCampaignDetail() {
                   <th>{t('cmp.detail.table.evaluator')}</th>
                   <th>{t('cmp.detail.table.status')}</th>
                   <th>{t('cmp.detail.table.score')}</th>
+                  <th></th>
                 </tr>
               </thead>
               <tbody>
-                {evaluations.map((ev, i) => (
-                  <tr key={ev._id ?? i}>
-                    <td>{ev.evaluateeName ?? ev.evaluatee?.name ?? '—'}</td>
-                    <td>{ev.evaluatorName ?? ev.evaluator?.name ?? '—'}</td>
-                    <td>
-                      <span className={`cmp-badge ${EVAL_STATUS_CLS[ev.status] ?? 'cmp-badge--draft'}`}>
-                        {ev.status}
-                      </span>
-                    </td>
-                    <td>{ev.score != null ? ev.score : '—'}</td>
-                  </tr>
-                ))}
+                {campaignEvals.map((ev, i) => {
+                  const evaluatorName = ev.evaluatorId?.firstName
+                    ? `${ev.evaluatorId.firstName} ${ev.evaluatorId.lastName}`
+                    : (ev.evaluatorName ?? '—')
+                  const evaluateeName = ev.evaluateeId?.firstName
+                    ? `${ev.evaluateeId.firstName} ${ev.evaluateeId.lastName}`
+                    : (ev.evaluateeName ?? '—')
+                  return (
+                    <tr key={ev._id ?? i}>
+                      <td>{evaluateeName}</td>
+                      <td>{evaluatorName}</td>
+                      <td>
+                        <span className={`cmp-badge ${EVAL_STATUS_CLS[ev.status] ?? 'cmp-badge--draft'}`}>
+                          {ev.status}
+                        </span>
+                      </td>
+                      <td>{ev.score != null ? ev.score : '—'}</td>
+                      <td>
+                        <button
+                          type="button"
+                          className="cmp-reassign-btn"
+                          onClick={() => setReassignTarget(ev)}
+                          title="Réaffecter l'évaluateur"
+                          aria-label="Réaffecter l'évaluateur"
+                        >
+                          <UserCheck size={14} strokeWidth={1.5} />
+                        </button>
+                      </td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>
@@ -587,6 +739,15 @@ export default function HRCampaignDetail() {
           campaignId={id}
           t={t}
           onClose={() => setShowAssign(false)}
+        />
+      )}
+
+      {/* ── Reassign evaluator modal ───────────────────────── */}
+      {reassignTarget && (
+        <CmpReassignModal
+          evaluation={reassignTarget}
+          campaignId={id}
+          onClose={() => setReassignTarget(null)}
         />
       )}
 

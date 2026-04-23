@@ -9,9 +9,10 @@ const Form       = require('./Form')
 const { Evaluation, VALID_TRANSITIONS: EVAL_TRANSITIONS, ROLE_TRANSITIONS, LOCKED_STATUSES }      = require('./Evaluation')
 const Resource   = require('./Resource')
 const Event      = require('./Event')
+const AuditLog   = require('./AuditLog')
 
 module.exports = {
-  User, Config, Campaign, Form, Evaluation, Resource, Event,
+  User, Config, Campaign, Form, Evaluation, Resource, Event, AuditLog,
   CAMPAIGN_TRANSITIONS, EVAL_TRANSITIONS, ROLE_TRANSITIONS, LOCKED_STATUSES,
   VALID_TRANSITIONS: EVAL_TRANSITIONS,
 }

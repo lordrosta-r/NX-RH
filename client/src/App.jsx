@@ -46,6 +46,7 @@ import AdminCompliance     from './pages/admin/AdminCompliance'
 import AdminSecurity       from './pages/admin/AdminSecurity'
 import AdminSandbox        from './pages/admin/AdminSandbox'
 import AdminSettings       from './pages/admin/AdminSettings'
+import AdminAudit          from './pages/admin/AdminAudit'
 import DevDesignLab from './components/ui/DevDesignLab'
 
 const ANY_AUTHED = ['employee', 'manager', 'director', 'hr', 'admin']
@@ -125,6 +126,11 @@ export default function App() {
           <Route path="/admin/sandbox"        element={<AdminSandbox />} />
           <Route path="/admin/templates-import" element={<PagePlaceholder role="admin" title="Import de modèles" />} />
           <Route path="/admin/settings"       element={<AdminSettings />} />
+        </Route>
+
+        {/* Audit — accessible aux rôles hr + admin */}
+        <Route element={<ProtectedRoute allowedRoles={HR_UP} />}>
+          <Route path="/admin/audit" element={<AdminAudit />} />
         </Route>
 
       </Route>

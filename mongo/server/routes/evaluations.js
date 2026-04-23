@@ -12,7 +12,7 @@
 
 const router     = require('express').Router()
 const mongoose   = require('mongoose')
-const { Evaluation, Form, Campaign, User, VALID_TRANSITIONS, ROLE_TRANSITIONS, LOCKED_STATUSES } = require('../models')
+const { Evaluation, Form, Campaign, User, AuditLog, VALID_TRANSITIONS, ROLE_TRANSITIONS, LOCKED_STATUSES } = require('../models')
 const { getVisibleUserIds } = require('../services/managerVisibility')
 const { ADMIN_ROLES }       = require('../config/constants')
 const { EVALUATION_STATUSES } = require('../config/constants')
@@ -398,7 +398,76 @@ router.patch('/bulk', async (req, res, next) => {
     }
 
     res.json({ success, skipped, errors })
+
+    // Fire-and-forget audit log (après la réponse)
+    if (success > 0) {
+      AuditLog.create({
+        userId:     req.user.id,
+        userRole:   req.user.role,
+        action:     'bulk_action',
+        targetType: 'Evaluation',
+        targetId:   ids[0],
+        meta:       { action, count: ids.length, success, skipped },
+      }).catch(() => {})
+    }
   } catch (err) {
+    next(err)
+  }
+})
+
+// ─── PATCH /api/evaluations/:id/reassign ─────────────────────────────────────
+// Réaffecte l'évaluateur d'une évaluation en cours.
+// Rôles requis : admin ou hr. Body : { newEvaluatorId }
+// Statuts bloquants (terminaux) : signed_hr, validated.
+
+router.patch('/:id/reassign', async (req, res, next) => {
+  try {
+    if (!ADMIN_ROLES.includes(req.user.role)) {
+      return res.status(403).json({ error: 'Réservé aux admins et RH' })
+    }
+
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({ error: 'ID invalide' })
+    }
+
+    const { newEvaluatorId } = req.body
+    if (!newEvaluatorId || !mongoose.isValidObjectId(newEvaluatorId)) {
+      return res.status(400).json({ error: 'newEvaluatorId valide requis' })
+    }
+
+    const evaluation = await Evaluation.findById(req.params.id)
+    if (!evaluation) return res.status(404).json({ error: 'Évaluation introuvable' })
+
+    const TERMINAL = ['signed_hr', 'validated']
+    if (TERMINAL.includes(evaluation.status)) {
+      return res.status(409).json({
+        error: `Réaffectation impossible — statut terminal (${evaluation.status})`,
+      })
+    }
+
+    const newEvaluator = await User.findById(newEvaluatorId, 'firstName lastName role isActive').lean()
+    if (!newEvaluator) return res.status(404).json({ error: 'Utilisateur introuvable' })
+    if (!newEvaluator.isActive) {
+      return res.status(400).json({ error: "L'évaluateur sélectionné n'est pas actif" })
+    }
+    if (!['manager', 'director'].includes(newEvaluator.role)) {
+      return res.status(400).json({ error: "L'évaluateur doit avoir le rôle manager ou director" })
+    }
+
+    evaluation.evaluatorId = newEvaluatorId
+    await evaluation.save()
+
+    res.json({
+      id:            evaluation._id,
+      evaluatorId:   evaluation.evaluatorId,
+      evaluatorName: `${newEvaluator.firstName} ${newEvaluator.lastName}`,
+    })
+  } catch (err) {
+    if (err.code === 11000) {
+      return res.status(409).json({
+        error: 'Cet évaluateur a déjà une évaluation pour ce formulaire et cet évalué dans cette campagne',
+      })
+    }
     next(err)
   }
 })
@@ -413,6 +482,8 @@ router.patch('/:id', async (req, res, next) => {
 
     const evaluation = await Evaluation.findById(req.params.id)
     if (!evaluation) return res.status(404).json({ error: 'Évaluation introuvable' })
+
+    const originalStatus = evaluation.status
 
     const uid  = req.user.id.toString()
     const role = req.user.role
@@ -500,6 +571,22 @@ router.patch('/:id', async (req, res, next) => {
     }
 
     await evaluation.save()
+
+    // Fire-and-forget audit log
+    AuditLog.create({
+      userId:     req.user.id,
+      userRole:   req.user.role,
+      action:     req.body.status ? 'status_change' : 'evaluation_update',
+      targetType: 'Evaluation',
+      targetId:   evaluation._id,
+      meta: {
+        from:        originalStatus,
+        to:          evaluation.status,
+        fields:      Object.keys(req.body).filter(k => k !== 'status'),
+        evaluateeId: evaluation.evaluateeId,
+        campaignId:  evaluation.campaignId,
+      },
+    }).catch(() => {})
 
     // ── Fire-and-forget notifications on status change ───────────────────────
     if (req.body.status) {

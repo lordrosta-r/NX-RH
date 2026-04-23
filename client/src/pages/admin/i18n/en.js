@@ -92,6 +92,19 @@ export default {
   'admin.users.toggle.deactivate':  'Deactivate',
   'admin.users.error.save':         'Error saving user.',
 
+  // ── Offboarding ───────────────────────────────────────────────────────────────
+  'admin.offboard.title':           'Employee offboarding',
+  'admin.offboard.preview':         'Offboarding preview',
+  'admin.offboard.confirm':         'Confirm departure',
+  'admin.offboard.reason':          'Reason for departure',
+  'admin.offboard.effectiveDate':   'Effective date',
+  'admin.offboard.pendingEvals':    'Pending evaluation(s) that will be archived',
+  'admin.offboard.activeCampaigns': 'Affected campaigns',
+  'admin.offboard.success':         'Departure recorded.',
+  'admin.offboard.cancel':          'Cancel',
+  'admin.offboard.continue':        'Continue',
+  'admin.offboard.badge':           'Offboard',
+
   // ── OrgChart page ─────────────────────────────────────────────────────────────
   'admin.orgchart.hero.eyebrow':    'ADMINISTRATION',
   'admin.orgchart.hero.title':      'Org Chart',

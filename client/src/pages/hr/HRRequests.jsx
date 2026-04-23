@@ -12,7 +12,7 @@ import { useTranslate, useLocaleCtx } from '../../contexts/LocaleContext'
 import { t as pageT } from './i18n'
 import {
   Inbox, AlertTriangle, ArrowRight, Check, X,
-  AlertCircle, ChevronRight, CheckSquare,
+  AlertCircle, ChevronRight, CheckSquare, UserCheck,
 } from 'lucide-react'
 import { apiFetch } from '../../lib/apiFetch'
 import { showToast } from '../../components/ui/Toast'
@@ -84,6 +84,121 @@ function ActionButton({ label, variant, onClick, done }) {
     <button type="button" className={`hrr-btn hrr-btn--${variant}`} onClick={onClick}>
       {label}
     </button>
+  )
+}
+
+// ── Modal de réaffectation d'évaluateur ───────────────────────────────────────
+function ReassignModal({ evaluation, onClose }) {
+  const queryClient = useQueryClient()
+  const [newEvaluatorId, setNewEvaluatorId] = useState('')
+
+  const TERMINAL = ['signed_hr', 'validated']
+  const isTerminal = TERMINAL.includes(evaluation.status)
+
+  const currentEvaluatorId =
+    evaluation.evaluatorId?._id?.toString() ||
+    evaluation.evaluatorId?.toString() || ''
+
+  const currentEvaluatorName =
+    evaluation.evaluatorId?.firstName
+      ? `${evaluation.evaluatorId.firstName} ${evaluation.evaluatorId.lastName}`
+      : evaluation.evaluatorName || '—'
+
+  const { data: managers = [] } = useQuery({
+    queryKey: ['managers-list'],
+    queryFn: () =>
+      apiFetch('/api/users?role=manager&isActive=true')
+        .then(d => Array.isArray(d) ? d : (d.data || [])),
+    enabled: !isTerminal,
+    staleTime: 60 * 1000,
+  })
+
+  const reassignMutation = useMutation({
+    mutationFn: () =>
+      apiFetch(`/api/evaluations/${evaluation._id}/reassign`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ newEvaluatorId }),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['hr-evaluations-all'] })
+      showToast({ message: 'Évaluateur réaffecté avec succès', type: 'success' })
+      onClose()
+    },
+    onError: (err) => showToast({ message: err.message, type: 'error' }),
+  })
+
+  return (
+    <>
+      <div className="hrr-drawer-backdrop" onClick={onClose} aria-hidden="true" />
+      <div className="hrr-reassign-modal" role="dialog" aria-modal="true" aria-labelledby="hrr-reassign-title">
+        <div className="hrr-reassign-modal__header">
+          <h2 id="hrr-reassign-title" className="hrr-reassign-modal__title">Réaffecter l'évaluateur</h2>
+          <button type="button" className="hrr-drawer__close" onClick={onClose} aria-label="Fermer">
+            <X size={18} />
+          </button>
+        </div>
+        <div className="hrr-reassign-modal__body">
+          <div className="hrr-drawer__row">
+            <span className="hrr-drawer__label">Évalué</span>
+            <span>
+              {evaluation.evaluateeId?.firstName
+                ? `${evaluation.evaluateeId.firstName} ${evaluation.evaluateeId.lastName}`
+                : evaluation.evaluateeName || '—'}
+            </span>
+          </div>
+          <div className="hrr-drawer__row">
+            <span className="hrr-drawer__label">Évaluateur actuel</span>
+            <span>{currentEvaluatorName}</span>
+          </div>
+          <div className="hrr-drawer__row">
+            <span className="hrr-drawer__label">Statut</span>
+            <span className="hr-badge">{evaluation.status}</span>
+          </div>
+
+          {isTerminal ? (
+            <p className="hrr-reassign-modal__blocked">
+              Non autorisé — statut terminal ({evaluation.status})
+            </p>
+          ) : (
+            <>
+              <label className="hrr-drawer__label" style={{ display: 'block', marginTop: '1rem' }}>
+                Nouveau manager
+              </label>
+              <select
+                className="hrr-manager-select"
+                value={newEvaluatorId}
+                onChange={e => setNewEvaluatorId(e.target.value)}
+              >
+                <option value="">— Sélectionner un manager —</option>
+                {managers.map(m => (
+                  <option key={m._id} value={m._id}>
+                    {m.firstName} {m.lastName}{m.department ? ` (${m.department})` : ''}
+                  </option>
+                ))}
+              </select>
+              <div className="hrr-reassign-modal__actions">
+                <button type="button" className="hrr-btn hrr-btn--ignore" onClick={onClose}>
+                  Annuler
+                </button>
+                <button
+                  type="button"
+                  className="hrr-btn hrr-btn--process"
+                  disabled={
+                    !newEvaluatorId ||
+                    newEvaluatorId === currentEvaluatorId ||
+                    reassignMutation.isPending
+                  }
+                  onClick={() => reassignMutation.mutate()}
+                >
+                  {reassignMutation.isPending ? 'En cours…' : 'Confirmer'}
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </>
   )
 }
 
@@ -308,6 +423,7 @@ function AllEvalsTab({ evals, t, locale }) {
   const [selected, setSelected] = useState(new Set())
   const [statusFilter, setStatusFilter] = useState('all')
   const [bulkResult, setBulkResult] = useState(null)
+  const [reassignTarget, setReassignTarget] = useState(null)
 
   const bulkMutation = useMutation({
     mutationFn: ({ ids, action }) =>
@@ -442,6 +558,7 @@ function AllEvalsTab({ evals, t, locale }) {
                 <th>{t('hrr.contested.campaign')}</th>
                 <th>{t('hrr.allevs.col.status')}</th>
                 <th>{t('hrr.contested.date')}</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
@@ -469,11 +586,29 @@ function AllEvalsTab({ evals, t, locale }) {
                     </span>
                   </td>
                   <td>{fmtDate(ev.updatedAt || ev.createdAt, locale)}</td>
+                  <td onClick={e => e.stopPropagation()}>
+                    <button
+                      type="button"
+                      className="hrr-reassign-btn"
+                      onClick={() => setReassignTarget(ev)}
+                      title="Réaffecter l'évaluateur"
+                      aria-label="Réaffecter l'évaluateur"
+                    >
+                      <UserCheck size={15} strokeWidth={1.5} />
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+      )}
+
+      {reassignTarget && (
+        <ReassignModal
+          evaluation={reassignTarget}
+          onClose={() => setReassignTarget(null)}
+        />
       )}
     </div>
   )

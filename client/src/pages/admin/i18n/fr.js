@@ -92,6 +92,19 @@ export default {
   'admin.users.toggle.deactivate':  'Désactiver',
   'admin.users.error.save':         'Erreur lors de l\'enregistrement.',
 
+  // ── Offboarding ───────────────────────────────────────────────────────────────
+  'admin.offboard.title':           'Départ collaborateur',
+  'admin.offboard.preview':         'Aperçu du départ',
+  'admin.offboard.confirm':         'Confirmer le départ',
+  'admin.offboard.reason':          'Motif du départ',
+  'admin.offboard.effectiveDate':   'Date d\'effet',
+  'admin.offboard.pendingEvals':    'Évaluation(s) en cours qui seront archivées',
+  'admin.offboard.activeCampaigns': 'Campagnes concernées',
+  'admin.offboard.success':         'Départ enregistré.',
+  'admin.offboard.cancel':          'Annuler',
+  'admin.offboard.continue':        'Continuer',
+  'admin.offboard.badge':           'Départ',
+
   // ── OrgChart page ─────────────────────────────────────────────────────────────
   'admin.orgchart.hero.eyebrow':    'ADMINISTRATION',
   'admin.orgchart.hero.title':      'Organigramme',

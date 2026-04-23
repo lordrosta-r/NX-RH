@@ -12,7 +12,7 @@
 
 const router     = require('express').Router()
 const mongoose   = require('mongoose')
-const { Campaign, Evaluation, Form, User, CAMPAIGN_TRANSITIONS: VALID_TRANSITIONS } = require('../models')
+const { Campaign, Evaluation, Form, User, AuditLog, CAMPAIGN_TRANSITIONS: VALID_TRANSITIONS } = require('../models')
 const { ADMIN_ROLES } = require('../config/constants')
 const { notifyMany }  = require('../services/notificationService')
 
@@ -121,6 +121,16 @@ router.post('/', async (req, res, next) => {
       createdBy:          req.user.id,
     })
 
+    // Fire-and-forget audit log
+    AuditLog.create({
+      userId:     req.user.id,
+      userRole:   req.user.role,
+      action:     'campaign_create',
+      targetType: 'Campaign',
+      targetId:   campaign._id,
+      meta:       { name: campaign.name },
+    }).catch(() => {})
+
     res.status(201).json({ id: campaign._id })
   } catch (err) {
     next(err)
@@ -141,6 +151,8 @@ router.patch('/:id', async (req, res, next) => {
     const campaign = await Campaign.findById(req.params.id)
     if (!campaign) return res.status(404).json({ error: 'Campagne introuvable' })
 
+    const originalStatus = campaign.status
+
     // Validation de la transition de statut
     if (req.body.status) {
       const allowed = VALID_TRANSITIONS[campaign.status] || []
@@ -158,6 +170,23 @@ router.patch('/:id', async (req, res, next) => {
     })
 
     await campaign.save()
+
+    // Fire-and-forget audit log
+    AuditLog.create({
+      userId:     req.user.id,
+      userRole:   req.user.role,
+      action:     req.body.status === 'active' ? 'campaign_activate'
+                : req.body.status              ? 'campaign_update'
+                :                               'campaign_update',
+      targetType: 'Campaign',
+      targetId:   campaign._id,
+      meta: {
+        from:   originalStatus,
+        to:     campaign.status,
+        name:   campaign.name,
+        fields: Object.keys(req.body).filter(k => k !== 'status'),
+      },
+    }).catch(() => {})
 
     // ── Fire-and-forget: notify users when campaign goes active ──────────────
     if (req.body.status === 'active') {
@@ -205,6 +234,16 @@ router.delete('/:id', async (req, res, next) => {
       Form.deleteMany({ campaignId: campaign._id }),
     ])
     await campaign.deleteOne()
+
+    // Fire-and-forget audit log
+    AuditLog.create({
+      userId:     req.user.id,
+      userRole:   req.user.role,
+      action:     'campaign_delete',
+      targetType: 'Campaign',
+      targetId:   campaign._id,
+      meta:       { name: campaign.name, status: campaign.status },
+    }).catch(() => {})
 
     res.json({ deleted: true })
   } catch (err) {

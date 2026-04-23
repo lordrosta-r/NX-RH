@@ -58,10 +58,10 @@ function EvalDrawer({ ev, onClose, locale }) {
             <span className="hrr-drawer__label">Date</span>
             <span>{fmtDate(ev.updatedAt || ev.createdAt, locale)}</span>
           </div>
-          {ev.contestReason && (
+          {(ev.evaluateeComment || ev.contestReason) && (
             <div className="hrr-drawer__comment">
               <p className="hrr-drawer__label">Motif de contestation</p>
-              <p>{ev.contestReason}</p>
+              <p>{ev.evaluateeComment || ev.contestReason}</p>
             </div>
           )}
         </div>
@@ -86,10 +86,41 @@ function ActionButton({ label, variant, onClick, done }) {
 
 // ── Onglet Contestations ──────────────────────────────────────────────────────
 function ContestationsTab({ evals, t, locale, onSelectEval }) {
+  const queryClient = useQueryClient()
   const [actions, setActions] = useState({})
 
-  function doAction(id, action) {
-    setActions(prev => ({ ...prev, [id]: action }))
+  // Statuts depuis lesquels HR peut transitionner vers signed_hr (bypass intentionnel)
+  const HR_CAN_SIGN = ['reviewed', 'signed_evaluatee', 'signed_manager']
+
+  const actionMutation = useMutation({
+    mutationFn: ({ id, body }) =>
+      fetch(`/api/evaluations/${id}`, {
+        method:      'PATCH',
+        headers:     { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body:        JSON.stringify(body),
+      }).then(r => {
+        if (!r.ok) return r.json().then(e => Promise.reject(e))
+        return r.json()
+      }),
+    onSuccess: (_, { id, action }) => {
+      setActions(prev => ({ ...prev, [id]: action }))
+      queryClient.invalidateQueries({ queryKey: ['hr-evaluations-all'] })
+    },
+  })
+
+  function doAction(ev, action) {
+    let body = {}
+    if (action === 'process') {
+      body = HR_CAN_SIGN.includes(ev.status)
+        ? { status: 'signed_hr', reviewerComment: 'Contestation traitée par RH' }
+        : { reviewerComment: 'Contestation traitée par RH — signature en attente des étapes précédentes' }
+    } else if (action === 'ignore') {
+      body = { reviewerComment: 'Contestation archivée sans suite' }
+    } else if (action === 'escalate') {
+      body = { reviewerComment: 'Contestation escaladée à la direction' }
+    }
+    actionMutation.mutate({ id: ev._id, body, action })
   }
 
   if (evals.length === 0) return <p className="hrr-empty">{t('hrr.empty')}</p>
@@ -114,24 +145,24 @@ function ContestationsTab({ evals, t, locale, onSelectEval }) {
               <td>{ev.evaluatorName || ev.evaluator?.name || '—'}</td>
               <td>{ev.campaignName || ev.campaign?.name || '—'}</td>
               <td>{fmtDate(ev.updatedAt || ev.createdAt, locale)}</td>
-              <td className="hrr-comment">{ev.contestReason || '—'}</td>
+              <td className="hrr-comment">{ev.evaluateeComment || ev.contestReason || '—'}</td>
               <td className="hrr-actions" onClick={e => e.stopPropagation()}>
                 <ActionButton
                   label={t('hrr.action.process')}
                   variant="process"
-                  onClick={() => doAction(ev._id, 'process')}
+                  onClick={() => doAction(ev, 'process')}
                   done={actions[ev._id] === 'process'}
                 />
                 <ActionButton
                   label={t('hrr.action.ignore')}
                   variant="ignore"
-                  onClick={() => doAction(ev._id, 'ignore')}
+                  onClick={() => doAction(ev, 'ignore')}
                   done={actions[ev._id] === 'ignore'}
                 />
                 <ActionButton
                   label={t('hrr.action.escalate')}
                   variant="escalate"
-                  onClick={() => doAction(ev._id, 'escalate')}
+                  onClick={() => doAction(ev, 'escalate')}
                   done={actions[ev._id] === 'escalate'}
                 />
               </td>
@@ -145,10 +176,28 @@ function ContestationsTab({ evals, t, locale, onSelectEval }) {
 
 // ── Onglet Mobilité ───────────────────────────────────────────────────────────
 function MobilityTab({ evals, t, locale, onSelectEval }) {
+  const queryClient = useQueryClient()
   const [done, setDone] = useState({})
 
+  const interviewMutation = useMutation({
+    mutationFn: (id) =>
+      fetch(`/api/evaluations/${id}`, {
+        method:      'PATCH',
+        headers:     { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body:        JSON.stringify({ reviewerComment: 'Demande de mobilité prise en compte par RH' }),
+      }).then(r => {
+        if (!r.ok) return r.json().then(e => Promise.reject(e))
+        return r.json()
+      }),
+    onSuccess: (_, id) => {
+      setDone(p => ({ ...p, [id]: true }))
+      queryClient.invalidateQueries({ queryKey: ['hr-evaluations-all'] })
+    },
+  })
+
   const mobilityEvals = evals.filter(ev =>
-    ev.answers && JSON.stringify(ev.answers).toLowerCase().includes('mobili')
+    ev.answers && JSON.stringify(ev.answers).toLowerCase().match(/mobil|mutation|transfert|détach/)
   )
 
   if (mobilityEvals.length === 0) return <p className="hrr-empty">{t('hrr.empty')}</p>
@@ -176,7 +225,7 @@ function MobilityTab({ evals, t, locale, onSelectEval }) {
                 <ActionButton
                   label={t('hrr.action.interview')}
                   variant="process"
-                  onClick={() => setDone(p => ({ ...p, [ev._id]: true }))}
+                  onClick={() => interviewMutation.mutate(ev._id)}
                   done={!!done[ev._id]}
                 />
               </td>
@@ -190,10 +239,28 @@ function MobilityTab({ evals, t, locale, onSelectEval }) {
 
 // ── Onglet Augmentations ──────────────────────────────────────────────────────
 function SalaryTab({ evals, t, locale, onSelectEval }) {
+  const queryClient = useQueryClient()
   const [done, setDone] = useState({})
 
+  const salaryMutation = useMutation({
+    mutationFn: (id) =>
+      fetch(`/api/evaluations/${id}`, {
+        method:      'PATCH',
+        headers:     { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body:        JSON.stringify({ reviewerComment: 'Demande de revalorisation prise en compte par RH' }),
+      }).then(r => {
+        if (!r.ok) return r.json().then(e => Promise.reject(e))
+        return r.json()
+      }),
+    onSuccess: (_, id) => {
+      setDone(p => ({ ...p, [id]: true }))
+      queryClient.invalidateQueries({ queryKey: ['hr-evaluations-all'] })
+    },
+  })
+
   const salaryEvals = evals.filter(ev =>
-    ev.answers && JSON.stringify(ev.answers).toLowerCase().includes('augment')
+    ev.answers && JSON.stringify(ev.answers).toLowerCase().match(/augment|salaire|remuner|revaloris|salary/)
   )
 
   if (salaryEvals.length === 0) return <p className="hrr-empty">{t('hrr.empty')}</p>
@@ -221,7 +288,7 @@ function SalaryTab({ evals, t, locale, onSelectEval }) {
                 <ActionButton
                   label={t('hrr.action.process')}
                   variant="process"
-                  onClick={() => setDone(p => ({ ...p, [ev._id]: true }))}
+                  onClick={() => salaryMutation.mutate(ev._id)}
                   done={!!done[ev._id]}
                 />
               </td>
@@ -252,8 +319,10 @@ export default function HRRequests() {
     staleTime: 5 * 60 * 1000,
   })
 
+  // disagreementFlag === true est le seul indicateur de contestation dans le backend.
+  // Il n'existe pas de status 'contested' dans EVALUATION_STATUSES.
   const contested = useMemo(() =>
-    evaluations.filter(ev => ev.status === 'contested'),
+    evaluations.filter(ev => ev.disagreementFlag === true),
     [evaluations]
   )
   const mobilityEvals = useMemo(() =>

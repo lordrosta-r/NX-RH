@@ -23,9 +23,11 @@ import './hr-campaigns.css'
 
 const STEPS = ['step1', 'step2', 'step3', 'step4', 'step5']
 
+// Doit correspondre EXACTEMENT à la liste backend (config/constants.js DEPARTMENTS)
 const DEPARTMENTS = [
-  'Direction', 'R&D', 'Marketing', 'Opérations',
-  'Finance', 'RH', 'Commercial', 'IT',
+  'Engineering', 'Product', 'Design', 'Data', 'Security', 'Infrastructure',
+  'Finance', 'Legal', 'HR', 'Sales', 'Marketing', 'Customer Success',
+  'Operations', 'Executive',
 ]
 
 // ── Step components ───────────────────────────────────────────────────────────
@@ -89,8 +91,8 @@ function Step2({ form, setForm, t }) {
 
   function applyPreset(preset) {
     if (preset === 'all')      setForm(f => ({ ...f, targetDepartments: [...DEPARTMENTS] }))
-    if (preset === 'cdi')      setForm(f => ({ ...f, targetDepartments: DEPARTMENTS.slice(0, 5) }))
-    if (preset === 'managers') setForm(f => ({ ...f, targetDepartments: ['Direction', 'R&D'] }))
+    if (preset === 'cdi')      setForm(f => ({ ...f, targetDepartments: ['Engineering', 'Product', 'Design', 'Data', 'Security'] }))
+    if (preset === 'managers') setForm(f => ({ ...f, targetDepartments: ['Executive', 'Engineering', 'Product'] }))
   }
 
   const count = form.targetDepartments.length * 10
@@ -297,6 +299,8 @@ export default function HRCampaignNew() {
       startDate:         form.startDate,
       endDate:           form.endDate,
       targetDepartments: form.targetDepartments,
+      deadlineEmployee:  form.deadlineEmployee  || null,
+      deadlineManager:   form.deadlineManager   || null,
       status:            'active',
     })
   }

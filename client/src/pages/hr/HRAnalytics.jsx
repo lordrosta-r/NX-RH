@@ -12,6 +12,7 @@ import { useAuth }     from '../../contexts/AuthContext'
 import { useTranslate } from '../../contexts/LocaleContext'
 import { t as pageT }  from './i18n'
 import { BarChart2, Download } from 'lucide-react'
+import { apiFetch } from '../../lib/apiFetch'
 import './hr-analytics.css'
 
 // ── Constantes ────────────────────────────────────────────────────────────────
@@ -30,16 +31,12 @@ const TABS = ['flightrisk', 'goalgap', 'skillsgap', 'sentiment', 'ninebox']
 // ── Fetch helpers ─────────────────────────────────────────────────────────────
 
 async function fetchEvals() {
-  const r = await fetch('/api/evaluations', { credentials: 'include' })
-  if (!r.ok) throw new Error('evaluations')
-  const json = await r.json()
+  const json = await apiFetch('/api/evaluations')
   return Array.isArray(json) ? json : (json.data ?? [])
 }
 
 async function fetchCampaigns() {
-  const r = await fetch('/api/campaigns', { credentials: 'include' })
-  if (!r.ok) throw new Error('campaigns')
-  const json = await r.json()
+  const json = await apiFetch('/api/campaigns')
   return Array.isArray(json) ? json : (json.data ?? [])
 }
 

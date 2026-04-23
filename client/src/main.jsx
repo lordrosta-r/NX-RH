@@ -11,6 +11,7 @@ import App from './App'
 import { AuthProvider }  from './contexts/AuthContext'
 import { ThemeProvider } from './contexts/ThemeContext'
 import { LocaleProvider } from './contexts/LocaleContext'
+import { Toaster } from './components/ui/Toast'
 import './styles/global.css'
 
 // ── React-Query client ──────────────────────────────────────
@@ -36,6 +37,7 @@ createRoot(container).render(
           <LocaleProvider>
             <BrowserRouter>
               <App />
+              <Toaster />
             </BrowserRouter>
           </LocaleProvider>
         </ThemeProvider>

@@ -24,6 +24,7 @@ import {
   Clipboard, TrendingUp, Bell, Sparkles,
   ChevronRight, FileText, Users, CheckCircle2,
 } from 'lucide-react'
+import { apiFetch } from '../../lib/apiFetch'
 import './hr.css'
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -114,21 +115,17 @@ export default function HR() {
   const navigate          = useNavigate()
 
   // ── Campagnes ─────────────────────────────────────────────
-  const { data: campaigns = [], isLoading: loadingCamp } = useQuery({
+  const { data: campaigns = [], isLoading: loadingCamp, error: errorCamp } = useQuery({
     queryKey: ['hr-campaigns'],
-    queryFn:  () => fetch('/api/campaigns', { credentials: 'include' })
-      .then(r => r.ok ? r.json() : [])
-      .then(d => Array.isArray(d) ? d : (d.data || [])),
+    queryFn:  () => apiFetch('/api/campaigns').then(d => Array.isArray(d) ? d : (d.data || [])),
     enabled:   !!user,
     staleTime: 5 * 60 * 1000,
   })
 
   // ── Évaluations ───────────────────────────────────────────
-  const { data: evaluations = [], isLoading: loadingEvals } = useQuery({
+  const { data: evaluations = [], isLoading: loadingEvals, error: errorEvals } = useQuery({
     queryKey: ['hr-evaluations'],
-    queryFn:  () => fetch('/api/evaluations', { credentials: 'include' })
-      .then(r => r.ok ? r.json() : [])
-      .then(d => Array.isArray(d) ? d : (d.data || [])),
+    queryFn:  () => apiFetch('/api/evaluations').then(d => Array.isArray(d) ? d : (d.data || [])),
     enabled:   !!user,
     staleTime: 5 * 60 * 1000,
   })
@@ -136,9 +133,7 @@ export default function HR() {
   // ── Employés (nombre total) ───────────────────────────────
   const { data: employees = [] } = useQuery({
     queryKey: ['hr-employees'],
-    queryFn:  () => fetch('/api/employees', { credentials: 'include' })
-      .then(r => r.ok ? r.json() : [])
-      .then(d => Array.isArray(d) ? d : (d.data || [])),
+    queryFn:  () => apiFetch('/api/employees').then(d => Array.isArray(d) ? d : (d.data || [])),
     enabled:   !!user,
     staleTime: 10 * 60 * 1000,
   })
@@ -240,6 +235,12 @@ export default function HR() {
       </header>
 
       {/* ── 2. KPI bento + alertes ─────────────────────────── */}
+      {(errorCamp || errorEvals) && (
+        <div className="hr-error-banner" role="alert">
+          {errorCamp && <span>{errorCamp.message}</span>}
+          {errorEvals && <span>{errorEvals.message}</span>}
+        </div>
+      )}
       <div className="hr-layout">
 
         {/* Grille de tuiles KPI */}

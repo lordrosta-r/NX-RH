@@ -14,6 +14,8 @@ import { useAuth }     from '../../contexts/AuthContext'
 import { useTranslate } from '../../contexts/LocaleContext'
 import { t as pageT }  from './i18n'
 import { PlusCircle, Play, X, Archive, Copy, Eye } from 'lucide-react'
+import { apiFetch } from '../../lib/apiFetch'
+import { showToast } from '../../components/ui/Toast'
 import './hr-campaigns.css'
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -74,11 +76,9 @@ function CampaignCard({ campaign, t, onAction }) {
       <p className="cmp-card__participants">{total} {t('cmp.card.participants')}</p>
 
       <div className="cmp-card__actions">
-        {(status === 'active' || status === 'closed' || status === 'archived') && (
-          <button type="button" className="cmp-btn" onClick={() => onAction('detail', _id)}>
-            <Eye size={13} /> {t('cmp.card.detail')}
-          </button>
-        )}
+        <button type="button" className="cmp-btn cmp-btn--ghost" onClick={() => onAction('detail', _id)}>
+          <Eye size={13} /> {t('cmp.card.detail')}
+        </button>
         {status === 'draft' && (
           <button type="button" className="cmp-btn cmp-btn--primary" onClick={() => onAction('activate', _id)}>
             <Play size={13} /> {t('cmp.card.activate')}
@@ -111,31 +111,36 @@ export default function HRCampaigns() {
   const qc          = useQueryClient()
   const [activeFilter, setActiveFilter] = useState('all')
 
-  const { data: rawData, isLoading, isError } = useQuery({
+  const { data: rawData, isLoading, isError, error } = useQuery({
     queryKey: ['hr-campaigns-list'],
     queryFn:  () =>
-      fetch('/api/campaigns', { credentials: 'include' })
-        .then(r => r.ok ? r.json() : { data: [] })
-        .then(d => Array.isArray(d) ? d : (d.data || [])),
+      apiFetch('/api/campaigns').then(d => Array.isArray(d) ? d : (d.data || [])),
     enabled:   !!user,
     staleTime: 30 * 1000,
   })
 
   const patchMutation = useMutation({
     mutationFn: ({ id, status }) =>
-      fetch(`/api/campaigns/${id}`, {
-        method:      'PATCH',
-        headers:     { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body:        JSON.stringify({ status }),
+      apiFetch(`/api/campaigns/${id}`, {
+        method:  'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ status }),
       }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['hr-campaigns-list'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['hr-campaigns-list'] })
+      showToast({ message: 'Campagne mise à jour', type: 'success' })
+    },
+    onError: (err) => showToast({ message: err.message, type: 'error' }),
   })
 
   const cloneMutation = useMutation({
     mutationFn: (id) =>
-      fetch(`/api/campaigns/${id}/clone`, { method: 'POST', credentials: 'include' }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['hr-campaigns-list'] }),
+      apiFetch(`/api/campaigns/${id}/clone`, { method: 'POST' }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['hr-campaigns-list'] })
+      showToast({ message: 'Campagne dupliquée', type: 'success' })
+    },
+    onError: (err) => showToast({ message: err.message, type: 'error' }),
   })
 
   function handleAction(action, id) {
@@ -205,7 +210,9 @@ export default function HRCampaigns() {
       {isLoading ? (
         <p className="cmp-state-msg">{t('cmp.loading')}</p>
       ) : isError ? (
-        <p className="cmp-state-msg">{t('cmp.error.load')}</p>
+        <p className="cmp-state-msg" role="alert" style={{ color: 'var(--color-error)' }}>
+          {error?.message || t('cmp.error.load')}
+        </p>
       ) : sorted.length === 0 ? (
         <div className="cmp-empty">
           <p className="cmp-empty__title">{t('cmp.empty.title')}</p>

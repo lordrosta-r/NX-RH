@@ -14,6 +14,8 @@ import { useAuth }     from '../../contexts/AuthContext'
 import { useTranslate } from '../../contexts/LocaleContext'
 import { t as pageT }  from './i18n'
 import { PlusCircle, Pencil, Trash2, Copy, Lock, Unlock } from 'lucide-react'
+import { apiFetch } from '../../lib/apiFetch'
+import { showToast } from '../../components/ui/Toast'
 import './hr-campaigns.css'
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -73,21 +75,17 @@ function NewTemplateModal({ t, onClose, onCreated }) {
 
   const createMutation = useMutation({
     mutationFn: (payload) =>
-      fetch('/api/forms', {
-        method:      'POST',
-        headers:     { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body:        JSON.stringify(payload),
-      }).then(async r => {
-        if (!r.ok) throw new Error(await r.text())
-        return r.json()
+      apiFetch('/api/forms', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(payload),
       }),
     onSuccess: (data) => {
       const id = data._id ?? data.id
       if (id) navigate(`/hr/templates/${id}/builder`)
       else onCreated()
     },
-    onError: () => setError(t('tpl.error.create')),
+    onError: (err) => setError(err.message || t('tpl.error.create')),
   })
 
   return (
@@ -145,36 +143,40 @@ export default function HRTemplates() {
   const qc          = useQueryClient()
   const [showModal, setShowModal] = useState(false)
 
-  const { data: rawData, isLoading, isError } = useQuery({
+  const { data: rawData, isLoading, isError, error } = useQuery({
     queryKey: ['hr-forms'],
     queryFn:  () =>
-      fetch('/api/forms', { credentials: 'include' })
-        .then(r => r.ok ? r.json() : { data: [] })
-        .then(d => Array.isArray(d) ? d : (d.data || [])),
+      apiFetch('/api/forms').then(d => Array.isArray(d) ? d : (d.data || [])),
     enabled:   !!user,
     staleTime: 30 * 1000,
   })
 
   const deleteMutation = useMutation({
     mutationFn: (id) =>
-      fetch(`/api/forms/${id}`, { method: 'DELETE', credentials: 'include' }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['hr-forms'] }),
-    onError:   () => alert(t('tpl.error.delete')),
+      apiFetch(`/api/forms/${id}`, { method: 'DELETE' }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['hr-forms'] })
+      showToast({ message: 'Modèle supprimé', type: 'success' })
+    },
+    onError: (err) => showToast({ message: err.message || t('tpl.error.delete'), type: 'error' }),
   })
 
   const duplicateMutation = useMutation({
     mutationFn: (tpl) =>
-      fetch('/api/forms', {
-        method:      'POST',
-        headers:     { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body:        JSON.stringify({
+      apiFetch('/api/forms', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({
           title:       `${tpl.title} (copie)`,
           description: tpl.description,
           questions:   tpl.questions ?? [],
         }),
       }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['hr-forms'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['hr-forms'] })
+      showToast({ message: 'Modèle dupliqué', type: 'success' })
+    },
+    onError: (err) => showToast({ message: err.message, type: 'error' }),
   })
 
   function handleDelete(id) {
@@ -211,7 +213,9 @@ export default function HRTemplates() {
       {isLoading ? (
         <p className="tpl-state-msg">{t('tpl.loading')}</p>
       ) : isError ? (
-        <p className="tpl-state-msg">{t('tpl.error.create')}</p>
+        <p className="tpl-state-msg" role="alert" style={{ color: 'var(--color-error)' }}>
+          {error?.message || t('tpl.error.create')}
+        </p>
       ) : templates.length === 0 ? (
         <div className="tpl-empty">
           <p className="tpl-empty__title">{t('tpl.empty.title')}</p>

@@ -17,6 +17,8 @@ import { useAuth }        from '../../contexts/AuthContext'
 import { useTranslate }   from '../../contexts/LocaleContext'
 import { t as pageT }     from './i18n'
 import { ChevronLeft, ChevronRight, Check, AlertTriangle } from 'lucide-react'
+import { apiFetch } from '../../lib/apiFetch'
+import { showToast } from '../../components/ui/Toast'
 import './hr-campaigns.css'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -274,22 +276,23 @@ export default function HRCampaignNew() {
   const { data: campaigns } = useQuery({
     queryKey: ['hr-campaigns-list'],
     queryFn:  () =>
-      fetch('/api/campaigns', { credentials: 'include' })
-        .then(r => r.ok ? r.json() : { data: [] })
-        .then(d => Array.isArray(d) ? d : (d.data || [])),
+      apiFetch('/api/campaigns').then(d => Array.isArray(d) ? d : (d.data || [])),
     enabled: !!user,
     staleTime: 60 * 1000,
   })
 
   const createMutation = useMutation({
     mutationFn: (payload) =>
-      fetch('/api/campaigns', {
-        method:      'POST',
-        headers:     { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body:        JSON.stringify(payload),
-      }).then(r => r.json()),
-    onSuccess: () => navigate('/hr/campaigns'),
+      apiFetch('/api/campaigns', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(payload),
+      }),
+    onSuccess: () => {
+      showToast({ message: 'Campagne créée avec succès', type: 'success' })
+      navigate('/hr/campaigns')
+    },
+    onError: (err) => showToast({ message: err.message, type: 'error' }),
   })
 
   function handleActivate() {

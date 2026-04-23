@@ -15,6 +15,7 @@ import {
   Search, X, ChevronLeft, ChevronRight, User, Mail,
   Briefcase, Building2, UserCheck, Shield, Filter,
 } from 'lucide-react'
+import { apiFetch } from '../../lib/apiFetch'
 import './hr-directory.css'
 
 const PAGE_SIZE = 50
@@ -58,8 +59,7 @@ function UserDrawer({ user: selectedUser, onClose, t, locale }) {
   const { data: userEvals = [], isLoading: evalsLoading } = useQuery({
     queryKey: ['user-evals-drawer', selectedUser?._id],
     queryFn: () =>
-      fetch(`/api/evaluations?evaluateeId=${selectedUser._id}`, { credentials: 'include' })
-        .then(r => r.ok ? r.json() : [])
+      apiFetch(`/api/evaluations?evaluateeId=${selectedUser._id}`)
         .then(d => Array.isArray(d) ? d : (d.data || [])),
     enabled: !!selectedUser,
   })
@@ -157,12 +157,10 @@ export default function HRDirectory() {
   const [page, setPage] = useState(0)
   const [selectedUser, setSelectedUser] = useState(null)
 
-  const { data: users = [], isLoading } = useQuery({
+  const { data: users = [], isLoading, error } = useQuery({
     queryKey: ['hr-directory-users'],
     queryFn: () =>
-      fetch('/api/users', { credentials: 'include' })
-        .then(r => r.ok ? r.json() : [])
-        .then(d => Array.isArray(d) ? d : (d.data || [])),
+      apiFetch('/api/users').then(d => Array.isArray(d) ? d : (d.data || [])),
     enabled: !!user,
     staleTime: 5 * 60 * 1000,
   })
@@ -269,6 +267,8 @@ export default function HRDirectory() {
       {/* ── Table ───────────────────────────────────────── */}
       {isLoading ? (
         <p className="hrd-status">{t('hrd.loading')}</p>
+      ) : error ? (
+        <p className="hrd-status hrd-status--error">{error.message}</p>
       ) : filtered.length === 0 ? (
         <p className="hrd-status">{t('hrd.empty')}</p>
       ) : (

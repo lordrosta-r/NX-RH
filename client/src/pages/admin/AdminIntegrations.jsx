@@ -43,6 +43,8 @@ export default function AdminIntegrations() {
   const [previewData,  setPreviewData]  = useState(null)
   const [syncReport,   setSyncReport]   = useState(null)
   const [smtp, setSmtp] = useState({ host: '', port: '587', user: '', from: '' })
+  const [emailTestTo,     setEmailTestTo]     = useState('')
+  const [emailTestResult, setEmailTestResult] = useState(null)
   const [webhookModal, setWebhookModal] = useState(false)
   const [webhookForm,  setWebhookForm]  = useState({ url: '', event: '' })
 
@@ -124,6 +126,17 @@ export default function AdminIntegrations() {
     }).then(r => r.json()),
     onSuccess: (data) => { setSyncReport(data); setPreviewData(null) },
     onError:   ()     => setSyncReport({ created: 0, updated: 0, skipped: 0, errors: ['Erreur serveur'] }),
+  })
+
+  const emailTestMutation = useMutation({
+    mutationFn: (to) => fetch('/api/admin/email/test', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ to }),
+    }).then(r => r.json()),
+    onSuccess: (data) => setEmailTestResult(data),
+    onError:   ()     => setEmailTestResult({ sent: false, error: 'Erreur serveur' }),
   })
 
   if (loading || !user) return null
@@ -394,12 +407,45 @@ export default function AdminIntegrations() {
               value={smtp.from} onChange={e => setSmtpField('from', e.target.value)} />
           </div>
         </div>
+        <div className="adm-form-row" style={{ marginTop: '0.5rem' }}>
+          <div className="adm-form-group">
+            <label className="adm-label" htmlFor="smtp-test-to">{t('admin.integrations.smtp.test_to')}</label>
+            <input id="smtp-test-to" type="email" className="adm-input" placeholder="test@example.com"
+              value={emailTestTo}
+              onChange={e => { setEmailTestTo(e.target.value); setEmailTestResult(null) }} />
+          </div>
+        </div>
         <div className="adm-card__actions">
-          <button type="button" className="adm-btn adm-btn--ghost">
-            {t('admin.integrations.smtp.test')}
+          <button type="button" className="adm-btn adm-btn--ghost"
+            onClick={() => { setEmailTestResult(null); emailTestMutation.mutate(emailTestTo) }}
+            disabled={emailTestMutation.isPending || !emailTestTo.includes('@')}>
+            {emailTestMutation.isPending
+              ? t('admin.integrations.smtp.sending')
+              : t('admin.integrations.smtp.test')}
           </button>
           <button type="button" className="adm-btn adm-btn--primary">{t('admin.integrations.save')}</button>
         </div>
+        {emailTestResult && (
+          <div style={{ marginTop: '0.75rem' }}>
+            {emailTestResult.sent ? (
+              <span className="adm-pill adm-pill--on" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+                <CheckCircle size={12} strokeWidth={2} aria-hidden="true" />
+                {t('admin.integrations.smtp.sent')}
+                {emailTestResult.previewUrl && (
+                  <a href={emailTestResult.previewUrl} target="_blank" rel="noopener noreferrer"
+                    style={{ color: 'inherit', textDecoration: 'underline', marginLeft: '0.25rem' }}>
+                    {t('admin.integrations.smtp.preview')}
+                  </a>
+                )}
+              </span>
+            ) : (
+              <span className="adm-pill adm-pill--off" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+                <XCircle size={12} strokeWidth={2} aria-hidden="true" />
+                {emailTestResult.error || t('admin.integrations.smtp.error')}
+              </span>
+            )}
+          </div>
+        )}
       </section>
 
       {/* ── Webhooks ─────────────────────────────────────────────────────────── */}

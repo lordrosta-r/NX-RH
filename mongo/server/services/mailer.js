@@ -4,47 +4,69 @@
 // services/mailer.js — SMTP transport via Nodemailer
 //
 // Configuration via environment variables:
-//   SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM
+//   MAIL_HOST, MAIL_PORT, MAIL_USER, MAIL_PASSWORD, MAIL_FROM, MAIL_SECURE
 //
-// Falls back to a no-op transport when SMTP_HOST is not configured,
-// so the app works without a mail server in dev.
+// Falls back to an Ethereal (ethereal.email) test account when MAIL_HOST is
+// not configured — emails are intercepted and viewable without a real SMTP
+// server. Preview URL is logged per message.
 // =============================================================================
 
 const nodemailer = require('nodemailer')
 
-const SMTP_HOST = process.env.SMTP_HOST || ''
-const SMTP_PORT = parseInt(process.env.SMTP_PORT, 10) || 587
-const SMTP_USER = process.env.SMTP_USER || ''
-const SMTP_PASS = process.env.SMTP_PASS || ''
-const SMTP_FROM = process.env.SMTP_FROM || 'noreply@nanoxplore.com'
+const MAIL_FROM = process.env.MAIL_FROM || 'noreply@nanoxplore.com'
 
-let transporter = null
+let _transporter = null
+let _initPromise  = null
 
-if (SMTP_HOST) {
-  transporter = nodemailer.createTransport({
-    host: SMTP_HOST,
-    port: SMTP_PORT,
-    secure: SMTP_PORT === 465,
-    auth: SMTP_USER ? { user: SMTP_USER, pass: SMTP_PASS } : undefined,
-  })
-  console.log(`[Mailer] SMTP configured → ${SMTP_HOST}:${SMTP_PORT}`)
-} else {
-  console.log('[Mailer] No SMTP_HOST configured — emails will be logged to console')
+async function _initTransporter() {
+  const host     = process.env.MAIL_HOST     || ''
+  const port     = parseInt(process.env.MAIL_PORT, 10) || 587
+  const user     = process.env.MAIL_USER     || ''
+  const password = process.env.MAIL_PASSWORD || ''
+  const secure   = process.env.MAIL_SECURE === 'true' || port === 465
+
+  if (host) {
+    _transporter = nodemailer.createTransport({
+      host,
+      port,
+      secure,
+      auth: user ? { user, pass: password } : undefined,
+    })
+    console.log(`[Mailer] SMTP configured → ${host}:${port}`)
+  } else {
+    const testAccount = await nodemailer.createTestAccount()
+    _transporter = nodemailer.createTransport({
+      host: 'smtp.ethereal.email',
+      port: 587,
+      auth: { user: testAccount.user, pass: testAccount.pass },
+    })
+    console.log('[Mailer] Dev mode — Ethereal test account ready. Preview URLs logged per message.')
+  }
+
+  return _transporter
+}
+
+function getTransporter() {
+  if (_transporter) return Promise.resolve(_transporter)
+  if (!_initPromise) _initPromise = _initTransporter()
+  return _initPromise
 }
 
 /**
- * Send an email. Falls back to console.log when no SMTP is configured.
+ * Send an email.
  * @param {{ to: string, subject: string, text?: string, html?: string }} opts
- * @returns {Promise<void>}
+ * @returns {Promise<object|null>} nodemailer info object, or null if skipped
  */
 async function sendMail({ to, subject, text, html }) {
-  if (!to || !subject) return
+  if (!to || !subject) return null
 
-  if (transporter) {
-    await transporter.sendMail({ from: SMTP_FROM, to, subject, text, html })
-  } else {
-    console.log(`[Mailer] (no-op) To: ${to} | Subject: ${subject}`)
-  }
+  const transport = await getTransporter()
+  const info = await transport.sendMail({ from: MAIL_FROM, to, subject, text, html })
+
+  const previewUrl = nodemailer.getTestMessageUrl(info)
+  if (previewUrl) console.log(`[Mailer] Preview: ${previewUrl}`)
+
+  return info
 }
 
 module.exports = { sendMail }

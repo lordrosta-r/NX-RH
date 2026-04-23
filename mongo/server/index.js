@@ -28,6 +28,7 @@ const userRoutes        = require('./routes/users')
 const campaignRoutes    = require('./routes/campaigns')
 const formRoutes        = require('./routes/forms')
 const evaluationRoutes  = require('./routes/evaluations')
+const ldapRoutes        = require('./routes/ldap')
 
 // ─── App setup ───────────────────────────────────────────────────────────────
 
@@ -129,6 +130,7 @@ app.use('/api/evaluations/bulk', mutationLimiter)
 app.use('/api/evaluations', authenticated, evaluationRoutes)
 app.use('/api/events',      mutationLimiter, authenticated, eventRoutes)
 app.use('/api/resources',   mutationLimiter, authenticated, resourceRoutes)
+app.use('/api/admin/ldap',  mutationLimiter, authGuard(['admin']), ldapRoutes)
 
 // ─── 404 Fallback ────────────────────────────────────────────────────────────
 

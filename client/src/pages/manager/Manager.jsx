@@ -10,6 +10,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useTranslate, useLocaleCtx } from '../../contexts/LocaleContext'
 import { t as pageT } from './i18n'
 import { Users, Clipboard, CheckCircle2, ArrowUpRight, ChevronRight } from 'lucide-react'
+import { SkeletonCard } from '../../components/ui/Skeleton'
 import './manager.css'
 
 function avatarInitial(member) {
@@ -114,7 +115,9 @@ export default function Manager() {
 
       {/* ── Team member cards ───────────────────────────────────────────── */}
       {evalsLoading || membersLoading ? (
-        <p className="mgr-loading">{t('manager.loading')}</p>
+        <div className="mgr-cards">
+          {Array.from({ length: 6 }, (_, i) => <SkeletonCard key={i} />)}
+        </div>
       ) : evalsError ? (
         <p className="mgr-error">{t('manager.error.load')}</p>
       ) : (

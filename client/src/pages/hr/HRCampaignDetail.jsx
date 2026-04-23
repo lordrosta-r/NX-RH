@@ -19,6 +19,7 @@ import { useAuth }          from '../../contexts/AuthContext'
 import { useTranslate }     from '../../contexts/LocaleContext'
 import { t as pageT }       from './i18n'
 import { ChevronLeft, UserPlus, Edit2, Trash2 } from 'lucide-react'
+import { Skeleton, SkeletonStat, SkeletonTable } from '../../components/ui/Skeleton'
 import './hr-campaigns.css'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -420,7 +421,18 @@ export default function HRCampaignDetail() {
     patchMutation.mutate(statusMap[action])
   }
 
-  if (isLoading) return <p className="cmp-state-msg">{t('cmp.loading')}</p>
+  if (isLoading) return (
+    <div className="cmp-det">
+      <div className="sk-hero">
+        <Skeleton className="sk-hero__eyebrow" />
+        <Skeleton className="sk-hero__title" />
+      </div>
+      <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+        {Array.from({ length: 5 }, (_, i) => <SkeletonStat key={i} />)}
+      </div>
+      <SkeletonTable rows={5} cols={5} />
+    </div>
+  )
   if (isError || !campaign) return <p className="cmp-state-msg">{t('cmp.error.load')}</p>
 
   const { name, status, stats = {}, evaluations = [] } = campaign

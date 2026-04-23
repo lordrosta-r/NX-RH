@@ -16,6 +16,7 @@ import { t as pageT }  from './i18n'
 import { PlusCircle, Play, X, Archive, Copy, Eye } from 'lucide-react'
 import { apiFetch } from '../../lib/apiFetch'
 import { showToast } from '../../components/ui/Toast'
+import { SkeletonCard } from '../../components/ui/Skeleton'
 import './hr-campaigns.css'
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -208,7 +209,9 @@ export default function HRCampaigns() {
 
       {/* ── Content ───────────────────────────────────────── */}
       {isLoading ? (
-        <p className="cmp-state-msg">{t('cmp.loading')}</p>
+        <div className="cmp-grid">
+          {Array.from({ length: 4 }, (_, i) => <SkeletonCard key={i} />)}
+        </div>
       ) : isError ? (
         <p className="cmp-state-msg" role="alert" style={{ color: 'var(--color-error)' }}>
           {error?.message || t('cmp.error.load')}

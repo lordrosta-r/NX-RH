@@ -16,6 +16,7 @@ import {
   Briefcase, Building2, UserCheck, Shield, Filter,
 } from 'lucide-react'
 import { apiFetch } from '../../lib/apiFetch'
+import { SkeletonTable } from '../../components/ui/Skeleton'
 import './hr-directory.css'
 
 const PAGE_SIZE = 50
@@ -266,7 +267,7 @@ export default function HRDirectory() {
 
       {/* ── Table ───────────────────────────────────────── */}
       {isLoading ? (
-        <p className="hrd-status">{t('hrd.loading')}</p>
+        <SkeletonTable rows={8} cols={6} />
       ) : error ? (
         <p className="hrd-status hrd-status--error">{error.message}</p>
       ) : filtered.length === 0 ? (

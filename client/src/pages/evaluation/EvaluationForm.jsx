@@ -190,6 +190,58 @@ const LOCKED_STATUSES = ['submitted', 'reviewed', 'signed_evaluatee', 'signed_ma
 
 // ── Champ de question ─────────────────────────────────────────────────────────
 function QuestionField({ question, value, onChange, locked }) {
+  if (question.type === 'weather') {
+    return (
+      <div className="ev-rating">
+        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
+          <button
+            key={n}
+            type="button"
+            className={`ev-rating__btn${value === n ? ' ev-rating__btn--active' : ''}`}
+            onClick={() => !locked && onChange(n)}
+            disabled={locked}
+            aria-label={`Météo ${n}`}
+            aria-pressed={value === n}
+          >
+            {n}
+          </button>
+        ))}
+      </div>
+    )
+  }
+
+  if (question.type === 'mobility') {
+    return (
+      <div className="ev-yesno">
+        {['yes', 'no'].map(opt => (
+          <button
+            key={opt}
+            type="button"
+            className={`ev-yesno__btn${value === opt ? ' ev-yesno__btn--active' : ''}`}
+            onClick={() => !locked && onChange(opt)}
+            disabled={locked}
+            aria-pressed={value === opt}
+          >
+            {opt === 'yes' ? 'Oui' : 'Non'}
+          </button>
+        ))}
+      </div>
+    )
+  }
+
+  if (question.type === 'n1_import') {
+    return (
+      <textarea
+        className="ev-textarea ev-textarea--form"
+        rows={5}
+        value={value ?? ''}
+        onChange={e => onChange(e.target.value)}
+        placeholder="Objectifs N-1…"
+        disabled={locked}
+      />
+    )
+  }
+
   if (question.type === 'rating') {
     return (
       <div className="ev-rating">
@@ -342,27 +394,38 @@ export default function EvaluationForm({ phase }) {
     })
   }
 
-  // Calcule les données de la phase : utilise les vraies questions du form si disponibles
-  // (evaluation.formId.questions est populé par GET /api/evaluations/:id),
-  // sinon se rabat sur MOCK_PHASES pour garantir que le formulaire fonctionne toujours.
+  // Calcule les données de la phase :
+  //   • si aucun formulaire n'est lié à l'évaluation → affiche MOCK_PHASES
+  //     (placeholder de dev, ne devrait pas arriver en production)
+  //   • si un formulaire est lié → utilise TOUJOURS ses vraies questions,
+  //     même si une phase n'a pas de questions (on affiche un état vide plutôt
+  //     que des mocks trompeurs)
   const phaseData = useMemo(() => {
     const mockData = MOCK_PHASES[phase]
     if (!mockData) return null
-    const formQuestions = evaluation?.formId?.questions
-    if (!formQuestions?.length) return mockData
-    const prefix = PHASE_PREFIX[phase]
-    const filtered = prefix ? formQuestions.filter(q => q.id.startsWith(prefix)) : []
-    if (filtered.length === 0) return mockData
+
+    const formId        = evaluation?.formId
+    const formQuestions = formId?.questions
+
+    // Pas de formulaire lié → placeholder mock
+    if (!formId) return mockData
+
+    // Formulaire lié → filtrer par phase (champ `phase` prioritaire, fallback préfixe legacy)
+    const filtered = (formQuestions ?? []).filter(q => {
+      if (q.phase) return q.phase === phase || q.phase === 'all'
+      const prefix = PHASE_PREFIX[phase]
+      return prefix ? (q.id ?? '').startsWith(prefix) : false
+    })
+
     return {
-      ...mockData,
-      sections: [{
-        id:       's1',
-        label:    mockData.sections[0]?.label ?? '01 / Questions',
-        required: true,
-        questions: filtered,
-      }],
+      title:    mockData.title,
+      tagline:  mockData.tagline,
+      desc:     formId.title ?? mockData.desc,
+      sections: filtered.length > 0
+        ? [{ id: 's1', label: '01 / Questions', required: true, questions: filtered }]
+        : [],
     }
-  }, [evaluation?.formId?.questions, phase])
+  }, [evaluation?.formId, phase])
 
   const isLastPhase  = PHASE_ORDER.indexOf(phase) === PHASE_ORDER.length - 2
 
@@ -396,7 +459,11 @@ export default function EvaluationForm({ phase }) {
 
       {/* Carte du formulaire */}
       <div className="ev-form-card">
-        {phaseData.sections.map(section => (
+        {phaseData.sections.length === 0 ? (
+          <p className="ev-empty-phase">
+            Aucune question n'a été configurée pour cette phase dans le formulaire associé.
+          </p>
+        ) : phaseData.sections.map(section => (
           <div key={section.id} className="ev-form-section">
             <div className="ev-form-section__header">
               <span className="ev-form-section__label">{section.label}</span>
@@ -408,7 +475,7 @@ export default function EvaluationForm({ phase }) {
             </div>
 
             {section.questions.map(question => {
-              const isFullWidth = question.type === 'text' || question.type === 'choice'
+              const isFullWidth = question.type === 'text' || question.type === 'choice' || question.type === 'n1_import'
               return (
                 <div
                   key={question.id}

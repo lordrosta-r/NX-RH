@@ -12,7 +12,7 @@ import { useTranslate, useLocaleCtx } from '../../contexts/LocaleContext'
 import { t as pageT } from './i18n'
 import {
   Inbox, AlertTriangle, ArrowRight, Check, X,
-  AlertCircle, ChevronRight, CheckSquare, UserCheck,
+  AlertCircle, ChevronRight, CheckSquare, UserCheck, Download,
 } from 'lucide-react'
 import { apiFetch } from '../../lib/apiFetch'
 import { showToast } from '../../components/ui/Toast'
@@ -490,6 +490,19 @@ function AllEvalsTab({ evals, t, locale }) {
         <span className="hrr-allevs__count">
           {filtered.length} {t('hrr.allevs.count')}
         </span>
+        <button
+          type="button"
+          className="hrr-btn hrr-btn--ignore"
+          onClick={() => {
+            const params = new URLSearchParams()
+            if (statusFilter !== 'all') params.set('status', statusFilter)
+            const qs = params.toString()
+            window.open(`/api/evaluations/export${qs ? `?${qs}` : ''}`)
+          }}
+        >
+          <Download size={14} strokeWidth={1.5} aria-hidden="true" />
+          Exporter CSV
+        </button>
       </div>
 
       {selected.size > 0 && (

@@ -32,13 +32,23 @@ const questionSchema = new Schema({
 
   // Uniquement utilisé si type === 'choice'. Au moins 2 options requises.
   options: { type: [String], default: undefined },
+
+  // Phase de l'évaluation dans laquelle cette question apparaît.
+  // 'all' = présente dans toutes les phases.
+  phase: {
+    type: String,
+    enum: ['self', 'n-1', 'objectives', 'aspirations', 'all'],
+    default: 'all',
+  },
 }, { _id: false })  // pas d'ObjectId sur les sous-documents, l'id suffit
 
 const formSchema = new Schema({
+  // Optionnel — null = template autonome (bibliothèque), défini = lié à une campagne
   campaignId: {
     type: Schema.Types.ObjectId,
     ref: 'Campaign',
-    required: true,
+    required: false,
+    default: null,
     index: true,
   },
 
@@ -53,13 +63,10 @@ const formSchema = new Schema({
   // upward_feedback → forcé true par pre-save, non modifiable ensuite.
   isAnonymous: { type: Boolean, default: false },
 
-  // Au moins une question obligatoire
+  // Questions — peuvent être vides à la création (ajoutées via FormBuilder)
   questions: {
     type: [questionSchema],
-    validate: {
-      validator: (qs) => qs.length > 0,
-      message: 'Un formulaire doit avoir au moins une question',
-    },
+    default: [],
   },
 
   // Renseigné dès qu'une première évaluation est créée sur ce form.

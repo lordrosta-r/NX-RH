@@ -330,4 +330,11 @@ export default {
   'admin.audit.action.campaign_update':  'Campaign updated',
   'admin.audit.action.campaign_delete':  'Campaign deleted',
   'admin.audit.action.bulk_action':      'Bulk action',
+
+  // ── GDPR (user actions) ───────────────────────────────────────────────────────
+  'admin.gdpr.exportBtn':        'GDPR Export',
+  'admin.gdpr.anonymizeBtn':     'Anonymize',
+  'admin.gdpr.confirmAnonymize': 'Confirm anonymization of this user? This action is irreversible.',
+  'admin.gdpr.success':          'User successfully anonymized.',
+  'admin.gdpr.errorActive':      'Cannot anonymize: evaluations are in progress.',
 }

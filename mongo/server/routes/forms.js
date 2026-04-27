@@ -86,23 +86,23 @@ router.post('/', async (req, res, next) => {
 
     const { campaignId, title, description, formType, isAnonymous, questions } = req.body
 
-    if (!campaignId || !title || !formType || !questions) {
-      return res.status(400).json({ error: 'campaignId, title, formType et questions sont requis' })
+    if (!title || !formType) {
+      return res.status(400).json({ error: 'title et formType sont requis' })
     }
-    if (!mongoose.isValidObjectId(campaignId)) {
+    if (campaignId && !mongoose.isValidObjectId(campaignId)) {
       return res.status(400).json({ error: 'campaignId invalide' })
     }
-    if (!Array.isArray(questions) || questions.length === 0) {
-      return res.status(400).json({ error: 'questions doit être un tableau non vide' })
+    if (questions !== undefined && !Array.isArray(questions)) {
+      return res.status(400).json({ error: 'questions doit être un tableau' })
     }
 
     const form = await Form.create({
-      campaignId,
+      campaignId:   campaignId || null,
       title,
       description:  description || '',
       formType,
       isAnonymous:  formType === 'upward_feedback' ? true : (isAnonymous || false),
-      questions,
+      questions:    Array.isArray(questions) ? questions : [],
       createdBy:    req.user.id,
     })
 

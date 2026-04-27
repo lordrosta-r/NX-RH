@@ -67,11 +67,19 @@ function TemplateCard({ tpl, t, onEdit, onDelete, onDuplicate }) {
   )
 }
 
+const FORM_TYPE_OPTIONS = [
+  { value: 'self_evaluation',    label: 'Auto-évaluation' },
+  { value: 'manager_evaluation', label: 'Évaluation manager' },
+  { value: 'upward_feedback',    label: 'Feedback ascendant (anonyme)' },
+  { value: 'peer_review',        label: 'Revue par les pairs' },
+]
+
 function NewTemplateModal({ t, onClose, onCreated }) {
-  const [title, setTitle]   = useState('')
-  const [desc, setDesc]     = useState('')
-  const [error, setError]   = useState('')
-  const navigate            = useNavigate()
+  const [title,    setTitle]    = useState('')
+  const [desc,     setDesc]     = useState('')
+  const [formType, setFormType] = useState('self_evaluation')
+  const [error,    setError]    = useState('')
+  const navigate                = useNavigate()
 
   const createMutation = useMutation({
     mutationFn: (payload) =>
@@ -104,6 +112,18 @@ function NewTemplateModal({ t, onClose, onCreated }) {
           />
         </div>
         <div className="cmp-field">
+          <label className="cmp-label">Type de formulaire *</label>
+          <select
+            className="cmp-input"
+            value={formType}
+            onChange={e => setFormType(e.target.value)}
+          >
+            {FORM_TYPE_OPTIONS.map(o => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
+          </select>
+        </div>
+        <div className="cmp-field">
           <label className="cmp-label">{t('tpl.modal.desc')}</label>
           <textarea
             className="cmp-textarea"
@@ -123,7 +143,7 @@ function NewTemplateModal({ t, onClose, onCreated }) {
           <button
             type="button"
             className="tpl-btn tpl-btn--primary"
-            onClick={() => createMutation.mutate({ title, description: desc, questions: [] })}
+            onClick={() => createMutation.mutate({ title, description: desc, formType, questions: [] })}
             disabled={!title || createMutation.isPending}
           >
             {t('tpl.modal.create')}
@@ -169,6 +189,7 @@ export default function HRTemplates() {
         body:    JSON.stringify({
           title:       `${tpl.title} (copie)`,
           description: tpl.description,
+          formType:    tpl.formType ?? 'self_evaluation',
           questions:   tpl.questions ?? [],
         }),
       }),

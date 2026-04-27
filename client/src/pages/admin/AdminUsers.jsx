@@ -8,7 +8,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../../contexts/AuthContext'
 import { useLocale } from '../../hooks/useLocale'
 import { t as pageT } from './i18n'
-import { Search, Plus, X, Pencil } from 'lucide-react'
+import { Search, Plus, X, Pencil, Download } from 'lucide-react'
+import { showToast } from '../../components/ui/Toast'
+import OffboardModal from '../../components/ui/OffboardModal'
 import './admin.css'
 
 const ROLES = ['employee', 'manager', 'hr', 'admin']
@@ -136,6 +138,7 @@ export default function AdminUsers() {
   const qc = useQueryClient()
   const [search, setSearch] = useState('')
   const [modal, setModal] = useState(null) // null | 'create' | {user}
+  const [offboardUser, setOffboardUser] = useState(null)
 
   useEffect(() => {
     if (!loading && user && user.role !== 'admin') navigate('/employee', { replace: true })
@@ -159,6 +162,22 @@ export default function AdminUsers() {
         body: JSON.stringify({ isActive }),
       }).then(r => r.ok ? r.json() : Promise.reject()),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-users'] }),
+  })
+
+  const anonymizeMutation = useMutation({
+    mutationFn: (id) =>
+      fetch(`/api/users/${id}/gdpr-anonymize`, {
+        method: 'DELETE',
+        credentials: 'include',
+      }).then(r => {
+        if (!r.ok) return r.json().then(d => Promise.reject(new Error(d.error || 'error')))
+        return r.json()
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-users'] })
+      showToast({ message: t('admin.gdpr.success'), type: 'success' })
+    },
+    onError: (err) => showToast({ message: err.message || t('admin.gdpr.errorActive'), type: 'error' }),
   })
 
   const filtered = useMemo(() => {
@@ -262,6 +281,38 @@ export default function AdminUsers() {
                         >
                           {u.isActive ? t('admin.users.toggle.deactivate') : t('admin.users.toggle.activate')}
                         </button>
+                        {u.offboardingStatus !== 'offboarded' && (
+                          <button
+                            type="button"
+                            className="adm-btn adm-btn--ghost"
+                            onClick={() => setOffboardUser(u)}
+                          >
+                            {t('admin.offboard.badge')}
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          className="adm-btn adm-btn--ghost"
+                          onClick={() => window.open(`/api/users/${u._id || u.id}/gdpr-export`)}
+                          title={t('admin.gdpr.exportBtn')}
+                        >
+                          <Download size={14} strokeWidth={2} aria-hidden="true" />
+                          {t('admin.gdpr.exportBtn')}
+                        </button>
+                        {u.offboardingStatus === 'offboarded' && (
+                          <button
+                            type="button"
+                            className="adm-btn adm-btn--danger"
+                            disabled={anonymizeMutation.isPending}
+                            onClick={() => {
+                              if (window.confirm(t('admin.gdpr.confirmAnonymize'))) {
+                                anonymizeMutation.mutate(u._id || u.id)
+                              }
+                            }}
+                          >
+                            {t('admin.gdpr.anonymizeBtn')}
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -284,6 +335,17 @@ export default function AdminUsers() {
           t={t}
         />
       )}
+
+      <OffboardModal
+        userId={offboardUser?._id}
+        userName={offboardUser ? `${offboardUser.firstName} ${offboardUser.lastName}` : ''}
+        isOpen={!!offboardUser}
+        onClose={() => setOffboardUser(null)}
+        onSuccess={() => {
+          qc.invalidateQueries({ queryKey: ['admin-users'] })
+          setOffboardUser(null)
+        }}
+      />
     </div>
   )
 }

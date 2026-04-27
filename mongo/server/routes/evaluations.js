@@ -137,6 +137,82 @@ router.get('/', async (req, res, next) => {
   }
 })
 
+// ─── GET /api/evaluations/export ─────────────────────────────────────────────
+// Export CSV des évaluations (admin/hr uniquement)
+// Query params : campaignId (optionnel), status (optionnel), dept (optionnel)
+
+router.get('/export', async (req, res, next) => {
+  try {
+    if (!ADMIN_ROLES.includes(req.user.role)) {
+      return res.status(403).json({ error: 'Réservé aux admins et RH' })
+    }
+
+    const filter = {}
+
+    if (req.query.campaignId) {
+      if (!mongoose.isValidObjectId(req.query.campaignId)) {
+        return res.status(400).json({ error: 'campaignId invalide' })
+      }
+      filter.campaignId = req.query.campaignId
+    }
+
+    if (req.query.status) {
+      if (!EVALUATION_STATUSES.includes(req.query.status)) {
+        return res.status(400).json({ error: 'status invalide' })
+      }
+      filter.status = req.query.status
+    }
+
+    const evals = await Evaluation.find(filter)
+      .populate('evaluateeId', 'firstName lastName department')
+      .populate('evaluatorId', 'firstName lastName')
+      .populate('campaignId', 'name')
+      .sort({ createdAt: -1 })
+      .limit(5000)
+      .lean()
+
+    function csvEscape(val) {
+      const str = (val === null || val === undefined) ? '' : String(val)
+      if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
+        return '"' + str.replace(/"/g, '""') + '"'
+      }
+      return str
+    }
+
+    const deptFilter = req.query.dept && typeof req.query.dept === 'string' ? req.query.dept : null
+    const rows = [['Évalué', 'Manager', 'Campagne', 'Statut', 'Score', 'Département', 'Date']]
+
+    for (const ev of evals) {
+      const evaluateeDept = ev.evaluateeId?.department || ''
+      if (deptFilter && evaluateeDept !== deptFilter) continue
+      const evaluateeName = ev.evaluateeId
+        ? `${ev.evaluateeId.firstName || ''} ${ev.evaluateeId.lastName || ''}`.trim()
+        : ''
+      const evaluatorName = ev.evaluatorId
+        ? `${ev.evaluatorId.firstName || ''} ${ev.evaluatorId.lastName || ''}`.trim()
+        : ''
+      const campaignName = ev.campaignId?.name || ''
+      const date = ev.createdAt ? new Date(ev.createdAt).toISOString().slice(0, 10) : ''
+      rows.push([
+        evaluateeName,
+        evaluatorName,
+        campaignName,
+        ev.status || '',
+        ev.score !== null && ev.score !== undefined ? ev.score : '',
+        evaluateeDept,
+        date,
+      ])
+    }
+
+    const csv = rows.map(r => r.map(csvEscape).join(',')).join('\r\n')
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8')
+    res.setHeader('Content-Disposition', 'attachment; filename="evaluations.csv"')
+    res.send('\uFEFF' + csv)
+  } catch (err) {
+    next(err)
+  }
+})
+
 // ─── GET /api/evaluations/:id ────────────────────────────────────────────────
 
 router.get('/:id', async (req, res, next) => {

@@ -31,7 +31,7 @@ const DEPARTMENTS = [
   'Executive',
 ]
 
-const QUESTION_TYPES = ['rating', 'text', 'yes_no', 'choice']
+const QUESTION_TYPES = ['rating', 'text', 'yes_no', 'choice', 'weather', 'mobility', 'n1_import']
 
 const FORM_TYPES = [
   'self_evaluation',

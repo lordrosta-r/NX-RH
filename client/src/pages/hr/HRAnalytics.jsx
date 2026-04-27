@@ -484,13 +484,16 @@ export default function HRAnalytics() {
         <button
           type="button"
           className="hra-export-btn"
-          onClick={() => exportCSV(activeTab, activeData)}
-          disabled={!activeData?.length}
-          style={{ cursor: activeData?.length ? 'pointer' : 'not-allowed', opacity: activeData?.length ? 1 : 0.5 }}
-          title={activeData?.length ? `Exporter ${activeTab} en CSV` : t('hra.export.soon')}
+          onClick={() => {
+            const params = new URLSearchParams()
+            if (campaignId !== 'all') params.set('campaignId', campaignId)
+            if (dept !== 'all') params.set('dept', dept)
+            const qs = params.toString()
+            window.open(`/api/evaluations/export${qs ? `?${qs}` : ''}`)
+          }}
         >
-          <Download size={14} />
-          {t('hra.export.csv')}
+          <Download size={14} strokeWidth={1.5} aria-hidden="true" />
+          Exporter CSV
         </button>
       </div>
 

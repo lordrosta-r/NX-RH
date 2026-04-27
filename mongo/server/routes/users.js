@@ -2,7 +2,7 @@
 
 const mongoose = require('mongoose')
 const router = require('express').Router()
-const { User } = require('../models')
+const { User, Evaluation, AuditLog } = require('../models')
 const { ROLES, ADMIN_ROLES } = require('../config/constants')
 
 // GET /api/users — liste des utilisateurs (scope par rôle)
@@ -175,6 +175,183 @@ router.patch('/:id', async (req, res, next) => {
     delete result.passwordHash
     delete result.ldapDn
     res.json(result)
+  } catch (err) {
+    next(err)
+  }
+})
+
+// GET /api/users/:id/offboard-preview — prévisualisation avant départ (admin/hr)
+router.get('/:id/offboard-preview', async (req, res, next) => {
+  try {
+    if (!ADMIN_ROLES.includes(req.user.role)) {
+      return res.status(403).json({ error: 'Insufficient permissions' })
+    }
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({ error: 'ID invalide' })
+    }
+    const userId = req.params.id
+
+    const user = await User.findById(userId).select('-passwordHash -ldapDn').lean()
+    if (!user) return res.status(404).json({ error: 'User not found' })
+
+    const pendingFilter = {
+      $or: [{ evaluateeId: userId }, { evaluatorId: userId }],
+      status: { $nin: ['validated', 'archived'] },
+    }
+
+    const [pendingEvaluations, evals] = await Promise.all([
+      Evaluation.countDocuments(pendingFilter),
+      Evaluation.find(pendingFilter).populate('campaignId', 'name').lean(),
+    ])
+
+    const seen = new Set()
+    const activeCampaigns = []
+    for (const ev of evals) {
+      const name = ev.campaignId?.name
+      if (name && !seen.has(name)) {
+        seen.add(name)
+        activeCampaigns.push(name)
+      }
+    }
+
+    res.json({ user, pendingEvaluations, activeCampaigns })
+  } catch (err) {
+    next(err)
+  }
+})
+
+// PATCH /api/users/:id/offboard — déclencher le départ (admin/hr)
+router.patch('/:id/offboard', async (req, res, next) => {
+  try {
+    if (!ADMIN_ROLES.includes(req.user.role)) {
+      return res.status(403).json({ error: 'Insufficient permissions' })
+    }
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({ error: 'ID invalide' })
+    }
+
+    const { reason, effectiveDate } = req.body
+    if (!reason || typeof reason !== 'string' || !reason.trim()) {
+      return res.status(400).json({ error: 'Le champ reason est requis' })
+    }
+    if (!effectiveDate) {
+      return res.status(400).json({ error: 'Le champ effectiveDate est requis' })
+    }
+
+    const userId = req.params.id
+    const user = await User.findById(userId)
+    if (!user) return res.status(404).json({ error: 'User not found' })
+
+    user.offboardingStatus = 'offboarding'
+    user.offboardingReason = reason.trim()
+    user.offboardingDate   = new Date(effectiveDate)
+    await user.save()
+
+    await Evaluation.updateMany(
+      {
+        $or: [{ evaluateeId: userId }, { evaluatorId: userId }],
+        status: { $nin: ['validated', 'archived'] },
+      },
+      { $set: { status: 'archived' } }
+    )
+
+    AuditLog.create({
+      userId:     req.user.id,
+      userRole:   req.user.role,
+      action:     'offboard',
+      targetType: 'User',
+      targetId:   userId,
+      meta:       { reason: reason.trim(), effectiveDate },
+    }).catch(() => {})
+
+    const result = user.toObject()
+    delete result.passwordHash
+    delete result.ldapDn
+    res.json(result)
+  } catch (err) {
+    next(err)
+  }
+})
+
+// ─── GET /api/users/:id/gdpr-export ──────────────────────────────────────────
+// Export RGPD des données personnelles d'un utilisateur (admin | hr | soi-même)
+
+router.get('/:id/gdpr-export', async (req, res, next) => {
+  try {
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({ error: 'ID invalide' })
+    }
+
+    const userId = req.params.id
+    const isSelf = req.user.id === userId
+    if (!ADMIN_ROLES.includes(req.user.role) && !isSelf) {
+      return res.status(403).json({ error: 'Insufficient permissions' })
+    }
+
+    const [user, evaluations] = await Promise.all([
+      User.findById(userId).select('-passwordHash -ldapDn').lean(),
+      Evaluation.find({ evaluateeId: userId })
+        .populate('campaignId', 'name')
+        .populate('formId', 'title formType')
+        .lean(),
+    ])
+
+    if (!user) return res.status(404).json({ error: 'User not found' })
+
+    res.setHeader('Content-Type', 'application/json; charset=utf-8')
+    res.setHeader('Content-Disposition', `attachment; filename="gdpr-export-${userId}.json"`)
+    res.json({ user, evaluations, exportedAt: new Date() })
+  } catch (err) {
+    next(err)
+  }
+})
+
+// ─── DELETE /api/users/:id/gdpr-anonymize ────────────────────────────────────
+// Anonymisation RGPD — droit à l'effacement (admin uniquement)
+
+router.delete('/:id/gdpr-anonymize', async (req, res, next) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Réservé à l\'administrateur' })
+    }
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({ error: 'ID invalide' })
+    }
+
+    const userId = req.params.id
+    const user = await User.findById(userId)
+    if (!user) return res.status(404).json({ error: 'User not found' })
+
+    const ACTIVE_STATUSES = ['assigned', 'in_progress', 'submitted']
+    const activeCount = await Evaluation.countDocuments({
+      evaluateeId: userId,
+      status: { $in: ACTIVE_STATUSES },
+    })
+    if (activeCount > 0) {
+      return res.status(409).json({
+        error: `Impossible d'anonymiser : ${activeCount} évaluation(s) en cours`,
+      })
+    }
+
+    user.firstName       = 'Anonyme'
+    user.lastName        = 'Anonyme'
+    user.email           = `anonyme-${userId}@deleted.local`
+    user.phone           = null
+    user.avatar          = null
+    user.isActive        = false
+    user.offboardingStatus = 'offboarded'
+    await user.save()
+
+    AuditLog.create({
+      userId:     req.user.id,
+      userRole:   req.user.role,
+      action:     'gdpr_anonymize',
+      targetType: 'User',
+      targetId:   userId,
+      meta:       { anonymizedAt: new Date() },
+    }).catch(() => {})
+
+    res.json({ success: true, anonymizedId: userId })
   } catch (err) {
     next(err)
   }

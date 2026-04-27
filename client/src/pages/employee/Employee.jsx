@@ -40,9 +40,6 @@ const NOTIF_COLORS = [
   'var(--color-secondary-container)',
 ]
 
-// URL de la photo spotlight (fallback vers le dégradé CSS si absente)
-const SPOTLIGHT_IMG = '/assets/spotlight.jpg'
-
 // ── Calcule la progression individuelle d'une évaluation ─────────────────────
 function computeEvalProgress(answers = []) {
   const prefixMap = { self_: 'self', n1_: 'n-1', obj_: 'objectives', asp_: 'aspirations' }
@@ -293,18 +290,19 @@ export default function Employee() {
               <span className="db-stats__label">{t('dashboard.stats.completed')}</span>
             </div>
           </div>
-          <a
-            href="#"
-            onClick={e => {
-              e.preventDefault()
-              const first = evaluations.find(ev => ['assigned', 'in_progress'].includes(ev.status))
-              if (first) navigate(`/evaluation/${first._id}`)
-            }}
-            className="db-stats__cta"
-            style={stats.pending === 0 ? { visibility: 'hidden' } : undefined}
-          >
-            {t('dashboard.stats.cta')} <ChevronRight size={14} />
-          </a>
+          {stats.pending > 0 && (
+            <a
+              href="#"
+              onClick={e => {
+                e.preventDefault()
+                const first = evaluations.find(ev => ['assigned', 'in_progress'].includes(ev.status))
+                if (first) navigate(`/evaluation/${first._id}`)
+              }}
+              className="db-stats__cta"
+            >
+              {t('dashboard.stats.cta')} <ChevronRight size={14} />
+            </a>
+          )}
         </article>
 
         {/* Ressources récentes (masquées si vides) */}
@@ -339,28 +337,7 @@ export default function Employee() {
           )}
         </div>
 
-        {/* Spotlight équipe — photo avec dégradé en fallback */}
-        <article className="db-spotlight">
-          <img
-            src={SPOTLIGHT_IMG}
-            alt=""
-            loading="lazy"
-            className="db-spotlight__img"
-            aria-hidden="true"
-            onError={e => { e.target.style.display = 'none' }}
-          />
-          <div className="db-spotlight__bg" aria-hidden="true" />
-          <div className="db-spotlight__overlay">
-            <div className="db-spotlight__kicker">
-              <span className="db-spotlight__line" aria-hidden="true" />
-              <span className="db-spotlight__label">
-                {t('dashboard.spotlight.label').toUpperCase()}
-              </span>
-            </div>
-            <h3 className="db-spotlight__title">{t('dashboard.spotlight.title')}</h3>
-            <p  className="db-spotlight__body">{t('dashboard.spotlight.body')}</p>
-          </div>
-        </article>
+
 
       </div>
     </>

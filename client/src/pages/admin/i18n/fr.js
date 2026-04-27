@@ -330,4 +330,11 @@ export default {
   'admin.audit.action.campaign_update':  'Mise à jour campagne',
   'admin.audit.action.campaign_delete':  'Suppression campagne',
   'admin.audit.action.bulk_action':      'Action en masse',
+
+  // ── RGPD (actions sur utilisateur) ───────────────────────────────────────────
+  'admin.gdpr.exportBtn':        'Export RGPD',
+  'admin.gdpr.anonymizeBtn':     'Anonymiser',
+  'admin.gdpr.confirmAnonymize': 'Confirmer l\'anonymisation de cet utilisateur ? Cette action est irréversible.',
+  'admin.gdpr.success':          'Utilisateur anonymisé avec succès.',
+  'admin.gdpr.errorActive':      'Impossible d\'anonymiser : des évaluations sont en cours.',
 }

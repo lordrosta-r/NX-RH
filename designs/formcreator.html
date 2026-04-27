@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-tertiary-container": "#fff8f7",
+                    "tertiary-container": "#b7535a",
+                    "surface-container-high": "#eae7e7",
+                    "surface-bright": "#fcf9f8",
+                    "primary-fixed-dim": "#ffb4aa",
+                    "surface-container-highest": "#e5e2e1",
+                    "secondary-fixed-dim": "#cfbdff",
+                    "on-secondary-fixed-variant": "#5300cd",
+                    "secondary-fixed": "#e8ddff",
+                    "surface-tint": "#c0000c",
+                    "on-surface-variant": "#5e3f3b",
+                    "error": "#ba1a1a",
+                    "outline-variant": "#e9bcb6",
+                    "outline": "#936e69",
+                    "inverse-surface": "#313030",
+                    "inverse-on-surface": "#f3f0ef",
+                    "on-surface": "#1c1b1b",
+                    "on-tertiary-fixed-variant": "#7f2831",
+                    "tertiary-fixed-dim": "#ffb3b5",
+                    "surface-container-lowest": "#ffffff",
+                    "on-primary": "#ffffff",
+                    "tertiary-fixed": "#ffdada",
+                    "background": "#fcf9f8",
+                    "surface-container": "#f0eded",
+                    "on-tertiary": "#ffffff",
+                    "surface": "#fcf9f8",
+                    "inverse-primary": "#ffb4aa",
+                    "surface-container-low": "#f6f3f2",
+                    "secondary": "#5b00df",
+                    "tertiary": "#983b43",
+                    "primary-fixed": "#ffdad5",
+                    "on-primary-fixed-variant": "#930007",
+                    "secondary-container": "#7531ff",
+                    "primary-container": "#e50914",
+                    "on-secondary": "#ffffff",
+                    "on-background": "#1c1b1b",
+                    "surface-dim": "#dcd9d9",
+                    "on-error": "#ffffff",
+                    "surface-variant": "#e5e2e1",
+                    "on-secondary-container": "#eadfff",
+                    "error-container": "#ffdad6",
+                    "on-primary-container": "#fff7f6",
+                    "on-secondary-fixed": "#22005d",
+                    "on-primary-fixed": "#410001",
+                    "on-error-container": "#93000a",
+                    "primary": "#b8000b",
+                    "on-tertiary-fixed": "#40000b"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Inter"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #e5e2e1; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-background font-body text-on-surface antialiased overflow-hidden">
+<!-- SideNavBar -->
+<aside class="h-screen w-64 flex-col fixed left-0 top-0 bg-[#f6f3f2] flex flex-col py-8 px-4 z-50">
+<div class="mb-10 px-2">
+<h1 class="text-xl font-black tracking-tighter text-[#1c1b1b]">NanoXplore RH</h1>
+<p class="text-[10px] uppercase tracking-[0.2em] opacity-50 font-bold">Enterprise HR</p>
+</div>
+<nav class="flex-1 space-y-1">
+<div class="group flex items-center px-3 py-3 text-[#1c1b1b] opacity-70 hover:opacity-100 hover:bg-[#e5e2e1] transition-colors duration-200 cursor-pointer rounded-lg">
+<span class="material-symbols-outlined mr-3" data-icon="dashboard">dashboard</span>
+<span class="font-inter body-md tracking-normal">Dashboard</span>
+</div>
+<div class="group flex items-center px-3 py-3 text-[#1c1b1b] opacity-70 hover:opacity-100 hover:bg-[#e5e2e1] transition-colors duration-200 cursor-pointer rounded-lg">
+<span class="material-symbols-outlined mr-3" data-icon="groups">groups</span>
+<span class="font-inter body-md tracking-normal">Team Hub</span>
+</div>
+<div class="group flex items-center px-3 py-3 text-[#5b00df] font-bold border-r-4 border-[#5b00df] bg-white/50 transition-colors duration-200 cursor-pointer">
+<span class="material-symbols-outlined mr-3" data-icon="route">route</span>
+<span class="font-inter body-md tracking-normal">Talent Journey</span>
+</div>
+<div class="group flex items-center px-3 py-3 text-[#1c1b1b] opacity-70 hover:opacity-100 hover:bg-[#e5e2e1] transition-colors duration-200 cursor-pointer rounded-lg">
+<span class="material-symbols-outlined mr-3" data-icon="query_stats">query_stats</span>
+<span class="font-inter body-md tracking-normal">Performance</span>
+</div>
+<div class="group flex items-center px-3 py-3 text-[#1c1b1b] opacity-70 hover:opacity-100 hover:bg-[#e5e2e1] transition-colors duration-200 cursor-pointer rounded-lg">
+<span class="material-symbols-outlined mr-3" data-icon="analytics">analytics</span>
+<span class="font-inter body-md tracking-normal">Insights</span>
+</div>
+<div class="group flex items-center px-3 py-3 text-[#1c1b1b] opacity-70 hover:opacity-100 hover:bg-[#e5e2e1] transition-colors duration-200 cursor-pointer rounded-lg">
+<span class="material-symbols-outlined mr-3" data-icon="settings">settings</span>
+<span class="font-inter body-md tracking-normal">Settings</span>
+</div>
+</nav>
+<div class="mt-auto px-2">
+<button class="w-full py-4 bg-gradient-to-br from-primary to-primary-container text-white font-bold rounded-xl scale-95 active:scale-90 transition-transform shadow-lg shadow-primary/20">
+                Launch Review
+            </button>
+</div>
+</aside>
+<!-- TopNavBar -->
+<header class="flex justify-between items-center px-12 py-4 w-[calc(100%-16rem)] sticky top-0 bg-[#fcf9f8] z-40 ml-64">
+<div class="flex items-center flex-1">
+<div class="relative w-96 group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm" data-icon="search">search</span>
+<input class="w-full bg-surface-container-low border-none rounded-full py-2 pl-10 pr-4 text-xs focus:ring-2 focus:ring-primary/20 transition-all font-inter" placeholder="Search forms or employees..." type="text"/>
+</div>
+<nav class="ml-12 flex gap-8">
+<a class="font-inter label-sm uppercase tracking-widest text-[#1c1b1b] opacity-60 hover:text-[#b8000b] transition-all" href="#">Directory</a>
+<a class="font-inter label-sm uppercase tracking-widest text-[#1c1b1b] opacity-60 hover:text-[#b8000b] transition-all" href="#">Resources</a>
+<a class="font-inter label-sm uppercase tracking-widest text-[#b8000b] border-b-2 border-[#b8000b] pb-1" href="#">Support</a>
+</nav>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex gap-4">
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-colors" data-icon="notifications">notifications</span>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-colors" data-icon="help_outline">help_outline</span>
+</div>
+<div class="h-8 w-[1px] bg-surface-container-highest"></div>
+<div class="flex items-center gap-3">
+<button class="px-4 py-2 text-[#b8000b] font-inter label-sm uppercase tracking-widest font-bold hover:bg-primary/5 transition-colors">Export</button>
+<button class="px-6 py-2 bg-primary text-white font-inter label-sm uppercase tracking-widest font-bold rounded shadow-sm hover:bg-primary-container transition-colors">New Review</button>
+<img alt="User Profile" class="w-10 h-10 rounded-full border-2 border-surface-container-highest" data-alt="professional corporate headshot of a female hr executive with a friendly expression and neutral background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCICxMmY2R4I6CGL55iyZaoXPJU-WOzvRCKlIx5RwiCOwJM7OIIX9XqByrsROmLsxxPq25im8MQpbqUGAWIc5DIvj7VdYLwNumj0I-DJRxNGWdlZ_RddptUEYkdnedfI1-hf2FPKRyAQvRmFaa4Rtv6C5jugh8dWuC7iGSSDtZH9lwg017QSCajhyfYF7LJikK1EOkninvDm3zObZxB5zq2YJgvYLhjfu90ktV18k_lzgqgDqkxs_CX6MQ30yG0-pul7nY88_LuRWvd"/>
+</div>
+</div>
+</header>
+<!-- Main Canvas -->
+<main class="ml-64 flex h-[calc(100vh-72px)] bg-surface overflow-hidden">
+<!-- Left Column: Form Editor Canvas -->
+<section class="flex-1 overflow-y-auto p-12 bg-surface-container-low">
+<div class="max-w-3xl mx-auto space-y-8">
+<header class="mb-12">
+<span class="text-[10px] uppercase tracking-[0.3em] font-bold text-secondary mb-2 block">Performance Architecture</span>
+<h2 class="text-5xl font-black tracking-tighter text-on-surface">HR Admin (Form Editor)</h2>
+<p class="mt-4 text-on-surface-variant max-w-xl font-light leading-relaxed">Design sovereign workspaces for employee growth. Use the editor to structure evaluation frameworks and feedback loops.</p>
+</header>
+<!-- Draggable Question Cards -->
+<div class="space-y-4">
+<!-- Active Card -->
+<div class="bg-surface-container-lowest p-8 rounded-xl border-l-8 border-secondary shadow-sm relative group cursor-move">
+<div class="absolute -left-12 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="drag_indicator">drag_indicator</span>
+</div>
+<div class="flex justify-between items-start mb-6">
+<div class="flex items-center gap-3">
+<span class="bg-secondary/10 text-secondary text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">Question 01</span>
+<span class="text-primary font-bold text-lg leading-none">*</span>
+</div>
+<div class="flex gap-2">
+<span class="material-symbols-outlined text-on-surface-variant text-sm cursor-pointer hover:text-secondary" data-icon="content_copy">content_copy</span>
+<span class="material-symbols-outlined text-on-surface-variant text-sm cursor-pointer hover:text-error" data-icon="delete">delete</span>
+</div>
+</div>
+<h3 class="text-xl font-bold mb-4 tracking-tight">Technical Proficiency Assessment</h3>
+<p class="text-on-surface-variant text-sm mb-6">Rate the employee's ability to execute complex workflows within their primary tech stack.</p>
+<div class="grid grid-cols-5 gap-3">
+<div class="h-12 border-b-2 border-secondary/20 bg-surface-container-low flex items-center justify-center font-bold text-on-surface-variant">1</div>
+<div class="h-12 border-b-2 border-secondary/20 bg-surface-container-low flex items-center justify-center font-bold text-on-surface-variant">2</div>
+<div class="h-12 border-b-2 border-secondary/20 bg-surface-container-low flex items-center justify-center font-bold text-on-surface-variant">3</div>
+<div class="h-12 border-b-2 border-secondary/60 bg-white shadow-md flex items-center justify-center font-bold text-secondary scale-105">4</div>
+<div class="h-12 border-b-2 border-secondary/20 bg-surface-container-low flex items-center justify-center font-bold text-on-surface-variant">5</div>
+</div>
+</div>
+<!-- Inactive Card 1 -->
+<div class="bg-surface-container-lowest p-8 rounded-xl border border-secondary/10 hover:border-secondary/30 transition-all relative group cursor-move">
+<div class="absolute -left-12 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="drag_indicator">drag_indicator</span>
+</div>
+<div class="flex items-center gap-3 mb-4">
+<span class="bg-surface-container-high text-on-surface-variant text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">Question 02</span>
+</div>
+<h3 class="text-xl font-bold tracking-tight text-on-surface/80">Leadership &amp; Mentorship Contribution</h3>
+<div class="mt-4 flex gap-4">
+<div class="flex-1 h-2 bg-surface-container-low rounded-full"></div>
+<div class="flex-1 h-2 bg-surface-container-low rounded-full"></div>
+<div class="flex-1 h-2 bg-surface-container-low rounded-full"></div>
+</div>
+</div>
+<!-- Inactive Card 2 -->
+<div class="bg-surface-container-lowest p-8 rounded-xl border border-secondary/10 hover:border-secondary/30 transition-all relative group cursor-move">
+<div class="absolute -left-12 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="drag_indicator">drag_indicator</span>
+</div>
+<div class="flex items-center gap-3 mb-4">
+<span class="bg-surface-container-high text-on-surface-variant text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">Question 03</span>
+<span class="text-primary font-bold text-lg leading-none">*</span>
+</div>
+<h3 class="text-xl font-bold tracking-tight text-on-surface/80">Open-ended Strategic Feedback</h3>
+<div class="mt-4 h-24 bg-surface-container-low rounded-lg border-2 border-dashed border-outline-variant/30"></div>
+</div>
+<button class="w-full py-8 border-2 border-dashed border-secondary/20 rounded-xl text-secondary font-bold flex flex-col items-center justify-center hover:bg-secondary/5 transition-all group">
+<span class="material-symbols-outlined text-3xl mb-2 group-hover:scale-110 transition-transform" data-icon="add_circle">add_circle</span>
+<span class="label-sm uppercase tracking-widest">Add New Section</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Right Column: Properties Panel -->
+<aside class="w-[400px] bg-surface-container-highest flex flex-col border-l border-surface-container-highest shadow-[-20px_0_40px_-20px_rgba(0,0,0,0.05)]">
+<div class="p-8 flex-1 overflow-y-auto space-y-10">
+<div>
+<h4 class="label-sm uppercase tracking-widest font-black text-on-surface-variant mb-6">Component Configuration</h4>
+<div class="space-y-6">
+<div class="space-y-2">
+<label class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Question Title</label>
+<input class="w-full bg-white border-none rounded-lg p-4 text-sm font-medium focus:ring-2 focus:ring-secondary/20 shadow-sm" type="text" value="Technical Proficiency Assessment"/>
+</div>
+<div class="space-y-2">
+<label class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Question Description</label>
+<textarea class="w-full bg-white border-none rounded-lg p-4 text-sm font-medium focus:ring-2 focus:ring-secondary/20 shadow-sm h-24 resize-none leading-relaxed">Rate the employee's ability to execute complex workflows within their primary tech stack.</textarea>
+</div>
+</div>
+</div>
+<div>
+<h4 class="label-sm uppercase tracking-widest font-black text-on-surface-variant mb-6">Validation Logic</h4>
+<div class="space-y-4 bg-white/50 p-6 rounded-xl">
+<div class="flex items-center justify-between">
+<span class="text-sm font-semibold text-on-surface">Required Field</span>
+<div class="w-10 h-6 bg-primary rounded-full relative flex items-center px-1 cursor-pointer">
+<div class="absolute right-1 w-4 h-4 bg-white rounded-full shadow-sm"></div>
+</div>
+</div>
+<div class="flex items-center justify-between opacity-50">
+<span class="text-sm font-semibold text-on-surface">Weightage Multiplier</span>
+<div class="w-10 h-6 bg-surface-container-high rounded-full relative flex items-center px-1">
+<div class="absolute left-1 w-4 h-4 bg-white rounded-full shadow-sm"></div>
+</div>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-sm font-semibold text-on-surface">Anonymous Submission</span>
+<div class="w-10 h-6 bg-surface-container-high rounded-full relative flex items-center px-1 cursor-pointer">
+<div class="absolute left-1 w-4 h-4 bg-white rounded-full shadow-sm"></div>
+</div>
+</div>
+</div>
+</div>
+<div>
+<h4 class="label-sm uppercase tracking-widest font-black text-on-surface-variant mb-6">Interface Options</h4>
+<div class="grid grid-cols-2 gap-3">
+<div class="bg-white p-4 rounded-lg border-2 border-secondary flex flex-col items-center gap-2 cursor-pointer shadow-sm">
+<span class="material-symbols-outlined text-secondary" data-icon="linear_scale">linear_scale</span>
+<span class="text-[10px] font-bold uppercase tracking-tight">Scale</span>
+</div>
+<div class="bg-white/40 p-4 rounded-lg border-2 border-transparent hover:border-secondary/20 flex flex-col items-center gap-2 cursor-pointer transition-all">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="list">list</span>
+<span class="text-[10px] font-bold uppercase tracking-tight">Dropdown</span>
+</div>
+<div class="bg-white/40 p-4 rounded-lg border-2 border-transparent hover:border-secondary/20 flex flex-col items-center gap-2 cursor-pointer transition-all">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="edit_note">edit_note</span>
+<span class="text-[10px] font-bold uppercase tracking-tight">Text Area</span>
+</div>
+<div class="bg-white/40 p-4 rounded-lg border-2 border-transparent hover:border-secondary/20 flex flex-col items-center gap-2 cursor-pointer transition-all">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="check_box">check_box</span>
+<span class="text-[10px] font-bold uppercase tracking-tight">Multiple</span>
+</div>
+</div>
+</div>
+</div>
+<div class="p-8 bg-surface-container-highest border-t border-surface-container-high flex gap-4">
+<button class="flex-1 py-4 border-2 border-secondary text-secondary font-bold rounded hover:bg-secondary/5 transition-colors">Discard</button>
+<button class="flex-1 py-4 bg-secondary text-white font-bold rounded shadow-lg shadow-secondary/10 hover:bg-secondary-container transition-colors">Save Changes</button>
+</div>
+</aside>
+</main>
+</body></html>

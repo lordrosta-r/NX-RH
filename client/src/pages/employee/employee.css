@@ -74,10 +74,10 @@
   margin: 0;
 }
 
-/* ── Calendar wrapper — col 3, sous activity ───────────────────────────────── */
+/* ── Calendar wrapper — col 3, spans rows 1-2 ─────────────────────────────── */
 .db-calendar-wrap {
   grid-column: 3;
-  grid-row: 2;
+  grid-row: 1 / 3;
 }
 
 /* ── Notification center (bento) ───────────────────────────────────────────── */
@@ -179,98 +179,6 @@
   background: var(--color-primary-tint);
 }
 
-/* ── Team spotlight ────────────────────────────────────────────────────────── */
-.db-spotlight {
-  grid-column: 1 / 3;
-  grid-row: 2;
-  position: relative;
-  min-height: 360px;
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  cursor: pointer;
-}
-
-/* CSS gradient fallback — always rendered below the photo */
-.db-spotlight__bg {
-  position: absolute;
-  inset: 0;
-  background: var(--th-hero-gradient, linear-gradient(135deg, #1a1035 0%, #2d1b69 40%, #0f0a1e 100%));
-  z-index: 0;
-}
-
-/* Real photo — covers the gradient when loaded */
-.db-spotlight__img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  filter: brightness(0.5);
-  z-index: 1;
-  transition: transform 0.8s ease, filter 0.4s ease;
-}
-
-.db-spotlight:hover .db-spotlight__img {
-  transform: scale(1.04);
-  filter: brightness(0.55);
-}
-
-/* Bottom gradient overlay + text */
-.db-spotlight__overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    to top,
-    var(--color-overlay-heavy) 0%,
-    var(--color-overlay-mid) 55%,
-    transparent 100%
-  );
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  padding: 2.5rem;
-  z-index: 2;
-}
-
-.db-spotlight__kicker {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 0.875rem;
-}
-
-.db-spotlight__line {
-  display: block;
-  width: 2rem;
-  height: 2px;
-  background: var(--color-secondary);
-}
-
-.db-spotlight__label {
-  font-size: 0.5625rem;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  color: var(--color-on-secondary-muted);
-}
-
-.db-spotlight__title {
-  font-size: 1.625rem;
-  font-weight: 900;
-  letter-spacing: -0.02em;
-  line-height: 1.15;
-  color: var(--color-on-primary);
-  max-width: 28rem;
-  margin: 0 0 0.75rem 0;
-}
-
-.db-spotlight__body {
-  font-size: 0.875rem;
-  line-height: 1.5;
-  color: var(--color-on-secondary-faint);
-  max-width: 26rem;
-  margin: 0;
-}
-
 /* ── Status messages (loading / error / empty) ─────────────────────────────── */
 .db-status-msg {
   font-size: 0.8125rem;
@@ -291,8 +199,7 @@
   }
 
   .db-notifs,
-  .db-calendar-wrap,
-  .db-spotlight {
+  .db-calendar-wrap {
     grid-column: 1 / 3;
     grid-row: auto;
   }
@@ -303,8 +210,7 @@
   .db-content       { padding: 1.5rem; }
   .db-bento         { grid-template-columns: 1fr; }
   .db-notifs,
-  .db-calendar-wrap,
-  .db-spotlight     { grid-column: 1; grid-row: auto; }
+  .db-calendar-wrap { grid-column: 1; grid-row: auto; }
 }
 
 /* ── Evaluation stats ── */
@@ -326,8 +232,8 @@
   padding: 10px 8px; border-radius: 10px;
   background: var(--color-surface-container);
 }
-.db-stats__item--warning { background: #fff7ed; }
-.db-stats__item--success { background: #ecfdf5; }
+.db-stats__item--warning { background: var(--color-warning-tint, #fff7ed); }
+.db-stats__item--success { background: var(--color-success-tint, #ecfdf5); }
 .db-stats__value {
   display: block; font-weight: 900; font-size: 24px;
   color: var(--color-on-surface);

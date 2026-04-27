@@ -107,6 +107,14 @@ const userSchema = new Schema({
 
   isActive: { type: Boolean, default: true },
 
+  offboardingStatus: {
+    type: String,
+    enum: ['active', 'offboarding', 'offboarded'],
+    default: 'active',
+  },
+  offboardingDate:   { type: Date,   default: null },
+  offboardingReason: { type: String, default: null, maxlength: 2000 },
+
 }, { timestamps: true })
 
 // Index partiel unique sur ldapDn : seuls les vrais DN LDAP (strings) sont indexés.

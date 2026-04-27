@@ -15,7 +15,7 @@ describe('Evaluation model — VALID_TRANSITIONS', () => {
     expect(VALID_TRANSITIONS).not.toBeNull()
   })
 
-  it('covers all 8 evaluation statuses as keys', () => {
+  it('covers all evaluation statuses as keys', () => {
     EVALUATION_STATUSES.forEach(status => {
       expect(VALID_TRANSITIONS).toHaveProperty(status)
     })
@@ -23,6 +23,10 @@ describe('Evaluation model — VALID_TRANSITIONS', () => {
 
   it('"validated" has no valid transitions (terminal state)', () => {
     expect(VALID_TRANSITIONS.validated).toEqual([])
+  })
+
+  it('"expired" has no valid transitions (terminal state)', () => {
+    expect(VALID_TRANSITIONS.expired).toEqual([])
   })
 
   it('"assigned" can only transition to "in_progress"', () => {

@@ -146,6 +146,20 @@ h2           { font-size: 1.25rem; font-weight: 700; margin-bottom: 1.25rem; }
   background: var(--color-surface-container);
 }
 
+/* ── Topbar-only shell (no sidebar) ────────────────────────────────────────── */
+/* Used by AuthedLayout after sidebar removal.                                  */
+.db-toponly {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--color-surface);
+  font-family: var(--font-family);
+  color: var(--color-on-surface);
+}
+.db-toponly > .db-content {
+  flex: 1;
+}
+
 /* Mode embedded (mini-SPA shell) — pas de sidebar offset */
 .db--embedded { display: block; min-height: auto; }
 .db--embedded > .db-main { margin-left: 0; min-height: auto; }

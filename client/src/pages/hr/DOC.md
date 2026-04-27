@@ -304,14 +304,13 @@ Export : non implémenté.
 - Extension de `i18n/fr.js` et `i18n/en.js` avec les clés `cmp.*` et `tpl.*`
 - Le `FormBuilder` est dans `pages/formeditor/FormBuilder.jsx` mais sa route est montée sous `/hr/templates/:id/builder`
 
-### Phase 7 — Bulk actions, edit/delete campagne, piste d'audit, réaffectation, offboarding, skeleton (feat/spa-tailwind)
+### Phase 8 — PDF export, expiry logic, analytics route
 
-- `PATCH /api/evaluations/bulk` : sign_hr / archive / assign_reviewer — max 200
-- Onglet "Toutes les évaluations" dans HRRequests avec checkboxes + barre bulk + ReassignModal
-- `DELETE /api/campaigns/:id` : bloque les campagnes actives, cascade Evaluation + Form
-- `HRCampaignDetail.jsx` : EditModal + DeleteConfirmModal + CmpReassignModal
-- Analytics migrés vers données réelles (plus aucun mock dans HRAnalytics)
-- Skeleton loading sur toutes les pages HR/Employee/Manager
-- Offboarding dans `/admin/users` (OffboardModal 2 étapes)
-- Piste d'audit dans `/admin/audit` (AuditLog model + route + page)
+- `GET /api/evaluations/:id/pdf` : amélioré avec sections par phase, ratings X/5, signatures, footer "Document confidentiel"
+- `GET /api/analytics/export/pdf` : nouveau rapport PDF analytique RH (stats globales, top performers, répartition par département)
+- `POST /api/evaluations/:id/expire` : expiration manuelle d'une évaluation (admin/hr)
+- `expiresAt` et `nearExpiry` ajoutés au modèle Evaluation — expiresAt = campaign.endDate + 30j à la création
+- Scheduler étendu : `runExpiryCheck()` expire les évaluations périmées et pose le flag `nearExpiry` à J-7
+- Status `expired` ajouté à `EVALUATION_STATUSES` et `VALID_TRANSITIONS`
+- HRRequests.jsx : badge ⚠ J-{n} pour les évaluations proches de l'expiration, badge "Expiré" rouge et ligne grisée pour les expirées
 

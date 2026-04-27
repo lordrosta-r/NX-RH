@@ -301,7 +301,13 @@ router.post('/', async (req, res, next) => {
     await Form.findByIdAndUpdate(formId, { $set: { frozenAt: new Date() } }, { timestamps: false })
       .where({ frozenAt: null })
 
-    const evaluation = await Evaluation.create({ campaignId, formId, evaluatorId, evaluateeId })
+    // expiresAt = campaign.endDate + 30 jours
+    const campaign = await Campaign.findById(campaignId, 'endDate').lean()
+    const expiresAt = campaign?.endDate
+      ? new Date(new Date(campaign.endDate).getTime() + 30 * 24 * 60 * 60 * 1000)
+      : null
+
+    const evaluation = await Evaluation.create({ campaignId, formId, evaluatorId, evaluateeId, expiresAt })
     res.status(201).json({ id: evaluation._id })
   } catch (err) {
     if (err.code === 11000) {
@@ -355,7 +361,22 @@ router.post('/bulk', async (req, res, next) => {
       status: 'assigned',
       lastSavedAt: null,
     }))
-    const result = await Evaluation.insertMany(sanitized, { ordered: false })
+
+    // expiresAt = campaign.endDate + 30 jours — récupère les campagnes uniques
+    const uniqueCampaignIds = [...new Set(sanitized.map(e => e.campaignId?.toString()).filter(Boolean))]
+    const campaigns = await Campaign.find({ _id: { $in: uniqueCampaignIds } }, 'endDate').lean()
+    const campaignEndDates = new Map(campaigns.map(c => [c._id.toString(), c.endDate]))
+    const sanitizedWithExpiry = sanitized.map(e => {
+      const endDate = campaignEndDates.get(e.campaignId?.toString())
+      return {
+        ...e,
+        expiresAt: endDate
+          ? new Date(new Date(endDate).getTime() + 30 * 24 * 60 * 60 * 1000)
+          : null,
+      }
+    })
+
+    const result = await Evaluation.insertMany(sanitizedWithExpiry, { ordered: false })
 
     // ── Fire-and-forget: notify assigned evaluatees ──────────────────────────
     ;(async () => {
@@ -721,7 +742,47 @@ router.patch('/:id', async (req, res, next) => {
   }
 })
 
-// ─── GET /api/evaluations/:id/pdf — Export evaluation as PDF ─────────────────
+// ─── POST /api/evaluations/:id/expire — Expiration manuelle ──────────────────
+// Passe le statut à 'expired'. Rôles requis : admin ou hr.
+// Endpoint de test — le scheduler le fait automatiquement chaque heure.
+
+router.post('/:id/expire', async (req, res, next) => {
+  try {
+    if (!ADMIN_ROLES.includes(req.user.role)) {
+      return res.status(403).json({ error: 'Réservé aux admins et RH' })
+    }
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({ error: 'ID invalide' })
+    }
+    const evaluation = await Evaluation.findById(req.params.id)
+    if (!evaluation) return res.status(404).json({ error: 'Évaluation introuvable' })
+    if (['validated', 'expired'].includes(evaluation.status)) {
+      return res.status(409).json({ error: `Impossible d'expirer — statut actuel: ${evaluation.status}` })
+    }
+    evaluation.status    = 'expired'
+    evaluation.nearExpiry = false
+    await evaluation.save()
+    res.json({ id: evaluation._id, status: evaluation.status })
+  } catch (err) {
+    next(err)
+  }
+})
+
+// ─── GET /api/evaluations/:id/pdf — Export PDF d'une évaluation ──────────────
+
+// Formate une valeur de réponse en fonction du type de question
+function formatAnswer(value, question) {
+  if (value === null || value === undefined) return '—'
+  if (question.type === 'rating') {
+    const scale = question.scale || 5
+    return `${value}/${scale}`
+  }
+  if (question.type === 'yes_no') {
+    return (value === true || value === 'true' || value === 1) ? 'Oui' : 'Non'
+  }
+  if (Array.isArray(value)) return value.join(', ')
+  return String(value)
+}
 
 router.get('/:id/pdf', async (req, res, next) => {
   try {
@@ -730,15 +791,14 @@ router.get('/:id/pdf', async (req, res, next) => {
     }
 
     const evaluation = await Evaluation.findById(req.params.id)
-      .populate('formId', 'title formType sections')
+      .populate('formId', 'title formType questions isAnonymous')
       .populate('evaluatorId', 'firstName lastName')
       .populate('evaluateeId', 'firstName lastName department')
-      .populate('campaignId', 'name')
+      .populate('campaignId', 'name endDate')
       .lean()
 
     if (!evaluation) return res.status(404).json({ error: 'Évaluation introuvable' })
 
-    // Access check: admin/hr can export any, others can only export their own
     const uid = req.user.id
     if (!ADMIN_ROLES.includes(req.user.role)) {
       const isOwn = [
@@ -748,66 +808,137 @@ router.get('/:id/pdf', async (req, res, next) => {
       if (!isOwn) return res.status(403).json({ error: 'Accès interdit' })
     }
 
-    // Build PDF
     const doc = new PDFDocument({ size: 'A4', margin: 50 })
-
     res.setHeader('Content-Type', 'application/pdf')
-    res.setHeader(
-      'Content-Disposition',
-      `attachment; filename="evaluation-${req.params.id}.pdf"`,
-    )
+    res.setHeader('Content-Disposition', `attachment; filename="evaluation-${req.params.id}.pdf"`)
     doc.pipe(res)
 
-    // Title
-    doc.fontSize(20).font('Helvetica-Bold')
-       .text('NanoXplore RH — Évaluation', { align: 'center' })
+    const PRIMARY   = '#b8000b'
+    const SECONDARY = '#5b00df'
+    const DARK      = '#1a1a1a'
+    const MUTED     = '#666666'
+
+    const evaluatee = evaluation.evaluateeId
+    const evaluator = evaluation.evaluatorId
+    const campaign  = evaluation.campaignId
+    const form      = evaluation.formId
+
+    // ── En-tête ──────────────────────────────────────────────────────────────
+    doc.fillColor(PRIMARY).fontSize(22).font('Helvetica-Bold')
+       .text('NanoXplore RH', { align: 'center' })
+    doc.fillColor(DARK).fontSize(14).font('Helvetica')
+       .text('Compte rendu d\'entretien', { align: 'center' })
+    doc.moveDown(0.5)
+    doc.moveTo(50, doc.y).lineTo(545, doc.y).strokeColor('#dddddd').stroke()
     doc.moveDown()
 
-    // Meta
-    doc.fontSize(12).font('Helvetica')
-    if (evaluation.campaignId?.name) {
-      doc.text(`Campagne : ${evaluation.campaignId.name}`)
-    }
-    if (evaluation.formId?.title) {
-      doc.text(`Formulaire : ${evaluation.formId.title}`)
-    }
-    const evaluatee = evaluation.evaluateeId
+    // ── Informations ─────────────────────────────────────────────────────────
+    doc.fillColor(SECONDARY).fontSize(13).font('Helvetica-Bold').text('Informations')
+    doc.moveDown(0.4)
+    doc.fillColor(DARK).fontSize(11).font('Helvetica')
     if (evaluatee?.firstName) {
-      doc.text(`Évalué : ${evaluatee.firstName} ${evaluatee.lastName}${evaluatee.department ? ` (${evaluatee.department})` : ''}`)
+      doc.text(`Employé : ${evaluatee.firstName} ${evaluatee.lastName}${evaluatee.department ? ` — ${evaluatee.department}` : ''}`)
     }
-    const evaluator = evaluation.evaluatorId
     if (evaluator?.firstName) {
-      doc.text(`Évaluateur : ${evaluator.firstName} ${evaluator.lastName}`)
+      doc.text(`Manager : ${evaluator.firstName} ${evaluator.lastName}`)
     }
+    if (campaign?.name)    doc.text(`Campagne : ${campaign.name}`)
+    if (campaign?.endDate) doc.text(`Date de clôture : ${new Date(campaign.endDate).toLocaleDateString('fr-FR')}`)
+    if (form?.title)       doc.text(`Formulaire : ${form.title}`)
     doc.text(`Statut : ${evaluation.status}`)
     doc.moveDown()
 
-    // Answers
-    const answers = evaluation.answers || []
-    if (answers.length > 0) {
-      doc.fontSize(14).font('Helvetica-Bold').text('Réponses')
+    // ── Sections par phase ───────────────────────────────────────────────────
+    const questions = form?.questions || []
+    const answers   = evaluation.answers || []
+    const answerMap = new Map(answers.map(a => [a.questionId, a.value]))
+
+    const PHASES = [
+      { key: 'self',        label: 'Auto-évaluation' },
+      { key: 'n-1',         label: 'Évaluation N-1' },
+      { key: 'objectives',  label: 'Objectifs' },
+      { key: 'aspirations', label: 'Aspirations' },
+    ]
+
+    // Questions sans phase spécifique ('all') — section générale
+    const generalQuestions = questions.filter(q => q.phase === 'all')
+    if (generalQuestions.length > 0) {
+      doc.fillColor(SECONDARY).fontSize(13).font('Helvetica-Bold').text('Questions générales')
+      doc.moveDown(0.4)
+      for (const q of generalQuestions) {
+        const displayVal = formatAnswer(answerMap.get(q.id), q)
+        doc.fillColor(DARK).fontSize(10).font('Helvetica-Bold').text(q.label)
+        doc.fillColor(MUTED).font('Helvetica').text(`  → ${displayVal}`)
+        doc.moveDown(0.25)
+      }
       doc.moveDown(0.5)
-      doc.fontSize(11).font('Helvetica')
-      answers.forEach((a, i) => {
-        const label = a.questionLabel || a.questionId || `Question ${i + 1}`
-        const value = a.value !== null && a.value !== undefined ? String(a.value) : '—'
-        doc.font('Helvetica-Bold').text(`${i + 1}. ${label}`, { continued: false })
-        doc.font('Helvetica').text(`   ${value}`)
-        doc.moveDown(0.3)
-      })
     }
 
-    // Comments
-    if (evaluation.reviewerComment) {
+    // Sections par phase
+    for (const phase of PHASES) {
+      const phaseQuestions = questions.filter(q => q.phase === phase.key)
+      if (phaseQuestions.length === 0) continue
+      doc.fillColor(SECONDARY).fontSize(13).font('Helvetica-Bold').text(phase.label)
+      doc.moveDown(0.4)
+      for (const q of phaseQuestions) {
+        const displayVal = formatAnswer(answerMap.get(q.id), q)
+        doc.fillColor(DARK).fontSize(10).font('Helvetica-Bold').text(q.label)
+        doc.fillColor(MUTED).font('Helvetica').text(`  → ${displayVal}`)
+        doc.moveDown(0.25)
+      }
+      doc.moveDown(0.5)
+    }
+
+    if (questions.length === 0) {
+      doc.fillColor(MUTED).fontSize(11).font('Helvetica')
+         .text('(Formulaire non disponible ou aucune question définie)')
       doc.moveDown()
-      doc.fontSize(12).font('Helvetica-Bold').text('Commentaire du manager')
-      doc.font('Helvetica').text(evaluation.reviewerComment)
+    }
+
+    // ── Commentaires ─────────────────────────────────────────────────────────
+    if (evaluation.reviewerComment) {
+      doc.fillColor(SECONDARY).fontSize(12).font('Helvetica-Bold').text('Commentaire du manager')
+      doc.fillColor(DARK).font('Helvetica').text(evaluation.reviewerComment)
+      doc.moveDown()
     }
     if (evaluation.evaluateeComment) {
+      doc.fillColor(SECONDARY).fontSize(12).font('Helvetica-Bold').text('Commentaire de l\'évalué')
+      doc.fillColor(DARK).font('Helvetica').text(evaluation.evaluateeComment)
       doc.moveDown()
-      doc.fontSize(12).font('Helvetica-Bold').text('Commentaire de l\'évalué')
-      doc.font('Helvetica').text(evaluation.evaluateeComment)
     }
+
+    // ── Signatures ───────────────────────────────────────────────────────────
+    doc.fillColor(SECONDARY).fontSize(12).font('Helvetica-Bold').text('Signatures')
+    doc.moveDown(0.4)
+    doc.fontSize(10)
+    if (evaluation.signedByEvaluateeAt) {
+      const name = evaluatee?.firstName ? `${evaluatee.firstName} ${evaluatee.lastName}` : 'Évalué'
+      doc.fillColor('#1a7a1a').font('Helvetica-Bold')
+         .text(`✓ ${name} (évalué) — ${new Date(evaluation.signedByEvaluateeAt).toLocaleString('fr-FR')}`)
+    } else {
+      doc.fillColor(MUTED).font('Helvetica').text('○ Évalué — pas encore signé')
+    }
+    if (evaluation.signedByManagerAt) {
+      const name = evaluator?.firstName ? `${evaluator.firstName} ${evaluator.lastName}` : 'Manager'
+      doc.fillColor('#1a7a1a').font('Helvetica-Bold')
+         .text(`✓ ${name} (manager) — ${new Date(evaluation.signedByManagerAt).toLocaleString('fr-FR')}`)
+    } else {
+      doc.fillColor(MUTED).font('Helvetica').text('○ Manager — pas encore signé')
+    }
+    if (evaluation.signedByHrAt) {
+      doc.fillColor('#1a7a1a').font('Helvetica-Bold')
+         .text(`✓ RH — ${new Date(evaluation.signedByHrAt).toLocaleString('fr-FR')}`)
+    } else {
+      doc.fillColor(MUTED).font('Helvetica').text('○ RH — pas encore signé')
+    }
+    doc.moveDown(2)
+
+    // ── Pied de page ─────────────────────────────────────────────────────────
+    doc.fillColor(MUTED).fontSize(9).font('Helvetica')
+       .text(
+         `Généré le ${new Date().toLocaleString('fr-FR')} — Document confidentiel`,
+         { align: 'center' }
+       )
 
     doc.end()
   } catch (err) {

@@ -29,6 +29,30 @@ function fmtDate(d, locale) {
   )
 }
 
+// Retourne le nombre de jours jusqu'à expiration (peut être négatif)
+function getDaysUntilExpiry(expiresAt) {
+  if (!expiresAt) return null
+  return Math.ceil((new Date(expiresAt) - new Date()) / (1000 * 60 * 60 * 24))
+}
+
+// Badge d'avertissement d'expiration prochaine
+function ExpiryBadge({ ev }) {
+  if (ev.status === 'expired') {
+    return <span className="hrr-expiry-badge hrr-expiry-badge--expired">Expiré</span>
+  }
+  if (ev.nearExpiry) {
+    const days = getDaysUntilExpiry(ev.expiresAt)
+    if (days !== null && days >= 0) {
+      return (
+        <span className="hrr-expiry-badge hrr-expiry-badge--warning">
+          ⚠ J-{days}
+        </span>
+      )
+    }
+  }
+  return null
+}
+
 // ── Drawer évaluation ─────────────────────────────────────────────────────────
 function EvalDrawer({ ev, onClose, locale }) {
   if (!ev) return null
@@ -256,11 +280,14 @@ function ContestationsTab({ evals, t, locale, onSelectEval }) {
         </thead>
         <tbody>
           {evals.map((ev, i) => (
-            <tr key={ev._id || i} className="hrr-table__row" onClick={() => onSelectEval(ev)}>
+            <tr key={ev._id || i} className={`hrr-table__row${ev.status === 'expired' ? ' hrr-table__row--expired' : ''}`} onClick={() => onSelectEval(ev)}>
               <td>{ev.evaluateeName || ev.evaluatee?.name || '—'}</td>
               <td>{ev.evaluatorName || ev.evaluator?.name || '—'}</td>
               <td>{ev.campaignName || ev.campaign?.name || '—'}</td>
-              <td>{fmtDate(ev.updatedAt || ev.createdAt, locale)}</td>
+              <td>
+                {fmtDate(ev.updatedAt || ev.createdAt, locale)}
+                <ExpiryBadge ev={ev} />
+              </td>
               <td className="hrr-comment">{ev.evaluateeComment || ev.contestReason || '—'}</td>
               <td className="hrr-actions" onClick={e => e.stopPropagation()}>
                 <ActionButton
@@ -415,7 +442,7 @@ function SalaryTab({ evals, t, locale, onSelectEval }) {
 // ── Onglet Toutes les évaluations (avec actions en masse) ─────────────────────
 const EVAL_STATUSES = [
   'assigned', 'in_progress', 'submitted', 'reviewed',
-  'signed_evaluatee', 'signed_manager', 'signed_hr', 'validated',
+  'signed_evaluatee', 'signed_manager', 'signed_hr', 'validated', 'expired',
 ]
 
 function AllEvalsTab({ evals, t, locale }) {
@@ -578,7 +605,11 @@ function AllEvalsTab({ evals, t, locale }) {
               {filtered.map((ev, i) => (
                 <tr
                   key={ev._id || i}
-                  className={`hrr-table__row${selected.has(ev._id) ? ' hrr-table__row--selected' : ''}`}
+                  className={[
+                    'hrr-table__row',
+                    selected.has(ev._id) ? 'hrr-table__row--selected' : '',
+                    ev.status === 'expired' ? 'hrr-table__row--expired' : '',
+                  ].filter(Boolean).join(' ')}
                   onClick={() => toggleOne(ev._id)}
                 >
                   <td className="hrr-td-check" onClick={e => e.stopPropagation()}>
@@ -594,9 +625,17 @@ function AllEvalsTab({ evals, t, locale }) {
                   <td>{ev.evaluatorName || ev.evaluator?.name || '—'}</td>
                   <td>{ev.campaignName || ev.campaign?.name || '—'}</td>
                   <td>
-                    <span className={`hr-badge hr-badge--${ev.status === 'validated' ? 'validated' : ev.status === 'in_progress' ? 'progress' : 'assigned'}`}>
-                      {ev.status}
-                    </span>
+                    <div className="hrr-status-cell">
+                      <span className={`hr-badge hr-badge--${
+                        ev.status === 'validated' ? 'validated' :
+                        ev.status === 'expired'   ? 'error' :
+                        ev.status === 'in_progress' ? 'progress' :
+                        'assigned'
+                      }`}>
+                        {ev.status === 'expired' ? 'Expiré' : ev.status}
+                      </span>
+                      <ExpiryBadge ev={ev} />
+                    </div>
                   </td>
                   <td>{fmtDate(ev.updatedAt || ev.createdAt, locale)}</td>
                   <td onClick={e => e.stopPropagation()}>

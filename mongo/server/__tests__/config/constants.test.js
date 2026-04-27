@@ -44,14 +44,14 @@ describe('constants', () => {
   describe('EVALUATION_STATUSES', () => {
     const expected = [
       'assigned', 'in_progress', 'submitted', 'reviewed',
-      'signed_evaluatee', 'signed_manager', 'signed_hr', 'validated',
+      'signed_evaluatee', 'signed_manager', 'signed_hr', 'validated', 'expired',
     ]
-    it('has all 8 statuses', () => expect(EVALUATION_STATUSES).toHaveLength(8))
+    it('has all 9 statuses', () => expect(EVALUATION_STATUSES).toHaveLength(9))
     it('contains all expected status values', () => {
       expect(EVALUATION_STATUSES).toEqual(expect.arrayContaining(expected))
     })
     it('first status is "assigned"', () => expect(EVALUATION_STATUSES[0]).toBe('assigned'))
-    it('last status is "validated"', () => expect(EVALUATION_STATUSES[EVALUATION_STATUSES.length - 1]).toBe('validated'))
+    it('contains terminal status "expired"', () => expect(EVALUATION_STATUSES).toContain('expired'))
   })
 
   describe('CAMPAIGN_STATUSES', () => {

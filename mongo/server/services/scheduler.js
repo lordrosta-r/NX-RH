@@ -3,12 +3,14 @@
 // =============================================================================
 // services/scheduler.js — Periodic background tasks
 //
-// Currently runs:
-//   • deadlineReminder — every hour, sends an email to evaluatees whose campaign
-//     is closing within REMINDER_WINDOW_DAYS days and whose evaluation is still
-//     in 'assigned' or 'in_progress'. Idempotent: an evaluation receives at
-//     most one reminder per REMINDER_COOLDOWN_HOURS window (tracked via
-//     Evaluation.lastReminderAt).
+// Currently runs (every hour):
+//   • deadlineReminder — sends an email to evaluatees whose campaign is closing
+//     within REMINDER_WINDOW_DAYS days and whose evaluation is still in
+//     'assigned' or 'in_progress'. Idempotent: one reminder per
+//     REMINDER_COOLDOWN_HOURS window (tracked via Evaluation.lastReminderAt).
+//
+//   • expiryCheck — expires evaluations past their expiresAt date (→ 'expired'),
+//     and flags evaluations within 7 days of expiry with nearExpiry=true.
 //
 // Disabled in tests (NODE_ENV=test) and when SCHEDULER_DISABLED=true.
 // =============================================================================
@@ -19,9 +21,10 @@ const { notify } = require('./notificationService')
 const HOUR_MS = 60 * 60 * 1000
 const DAY_MS  = 24 * HOUR_MS
 
-const TICK_INTERVAL_MS       = 60 * 60 * 1000  // 1h
-const REMINDER_WINDOW_DAYS   = 3
+const TICK_INTERVAL_MS        = 60 * 60 * 1000  // 1h
+const REMINDER_WINDOW_DAYS    = 3
 const REMINDER_COOLDOWN_HOURS = 20
+const EXPIRY_WARNING_DAYS     = 7
 
 let timer = null
 
@@ -76,9 +79,56 @@ async function runDeadlineReminders() {
   return sentCount
 }
 
+// Expire les évaluations dont expiresAt est dépassé, et marque celles proches
+// de l'expiration (< EXPIRY_WARNING_DAYS jours) avec nearExpiry=true.
+async function runExpiryCheck() {
+  const now     = new Date()
+  const in7Days = new Date(now.getTime() + EXPIRY_WARNING_DAYS * DAY_MS)
+
+  // Évaluations expirées → statut 'expired'
+  const expired = await Evaluation.updateMany(
+    {
+      expiresAt: { $ne: null, $lt: now },
+      status:    { $nin: ['validated', 'expired'] },
+    },
+    { $set: { status: 'expired', nearExpiry: false } },
+  )
+
+  // Évaluations dans les 7 prochains jours → nearExpiry=true
+  const warned = await Evaluation.updateMany(
+    {
+      expiresAt: { $ne: null, $gte: now, $lte: in7Days },
+      status:    { $nin: ['validated', 'expired'] },
+      nearExpiry: false,
+    },
+    { $set: { nearExpiry: true } },
+  )
+
+  // Nettoie les nearExpiry qui ne sont plus dans la fenêtre
+  await Evaluation.updateMany(
+    {
+      nearExpiry: true,
+      $or: [
+        { expiresAt: null },
+        { expiresAt: { $gt: in7Days } },
+        { status: { $in: ['validated', 'expired'] } },
+      ],
+    },
+    { $set: { nearExpiry: false } },
+  )
+
+  if (expired.modifiedCount > 0 || warned.modifiedCount > 0) {
+    console.log(
+      `[Scheduler] Expiry check — expired: ${expired.modifiedCount}, nearExpiry flagged: ${warned.modifiedCount}`,
+    )
+  }
+  return { expired: expired.modifiedCount, warned: warned.modifiedCount }
+}
+
 async function tick() {
   try {
     await runDeadlineReminders()
+    await runExpiryCheck()
   } catch (err) {
     console.error('[Scheduler] tick error:', err.message)
   }
@@ -92,11 +142,12 @@ function start() {
   // Defer the first run by 1 minute to avoid bombarding right after restart
   timer = setInterval(tick, TICK_INTERVAL_MS)
   setTimeout(tick, 60 * 1000)
-  console.log(`[Scheduler] Started — deadline reminders every ${TICK_INTERVAL_MS / HOUR_MS}h`)
+  console.log(`[Scheduler] Started — deadline reminders + expiry check every ${TICK_INTERVAL_MS / HOUR_MS}h`)
 }
 
 function stop() {
   if (timer) { clearInterval(timer); timer = null }
 }
 
-module.exports = { start, stop, runDeadlineReminders }
+module.exports = { start, stop, runDeadlineReminders, runExpiryCheck }
+

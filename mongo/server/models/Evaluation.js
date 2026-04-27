@@ -25,6 +25,7 @@ const VALID_TRANSITIONS = {
   signed_manager:  ['signed_hr'],       // RH signe avant la validation finale
   signed_hr:       ['validated'],
   validated:       [],  // terminal
+  expired:         [],  // terminal — positionné par le scheduler
 }
 
 // Transitions autorisées par rôle spécifique (hors admin)
@@ -110,6 +111,14 @@ const evaluationSchema = new Schema({
   // doublons d'emails — on ne renvoie pas si un rappel a déjà été envoyé dans
   // les dernières 20h pour la même évaluation).
   lastReminderAt: { type: Date, default: null },
+
+  // Date d'expiration automatique = campaign.endDate + 30 jours (définie à la création).
+  // Passé cette date, le scheduler passe le statut à 'expired'.
+  expiresAt: { type: Date, default: null },
+
+  // Mis à true par le scheduler quand expiresAt est dans moins de 7 jours.
+  // Utilisé par l'UI RH pour afficher un badge d'avertissement.
+  nearExpiry: { type: Boolean, default: false },
 
 }, { timestamps: true })
 

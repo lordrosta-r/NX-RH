@@ -15,8 +15,9 @@ garde d'authentification) afin d'éviter la duplication dans chaque page.
 Shell partagé pour **toutes les pages authentifiées**.
 
 - Lit les 3 contextes : `AuthContext`, `ThemeContext`, `LocaleContext`
-- Affiche `AppTopbar` (logo, sélecteur de langue, thème, menu utilisateur)
+- Affiche `AppTopbar` avec la **nav dropdown groupée** (via `navGroups`) et les **badges de notification** (via `useNotifBadges`)
 - Rend le contenu de la page enfant via `<Outlet />`
+- **Pas de sidebar** — topbar-only depuis la migration Phase 6
 
 ### `ProtectedRoute`
 
@@ -36,23 +37,46 @@ Prop : `allowedRoles` — tableau de rôles (`['employee', 'manager', …]`).
 ## Structure du layout
 
 ```
-┌─────────────────────────────────────────────┐
-│  AppTopbar  (logo · langue · thème · user)  │
-├─────────────────────────────────────────────┤
-│                                             │
-│   <main className="content">                │
-│       <Outlet />  ← page courante           │
-│   </main>                                   │
-│                                             │
-└─────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│  NX NanoXplore  [Mon espace ▾] [Préférences]     🌙 🔔 fr  👤  │  ← AppTopbar (56px, sticky)
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│   <main className="db-content">                                 │
+│       <Outlet />  ← page courante                               │
+│   </main>                                                       │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 CSS global utilisé :
 
 ```css
-.page    { display: flex; flex-direction: column; min-height: 100vh; }
-.content { flex: 1; padding: 2rem; max-width: 1100px; width: 100%; margin: 0 auto; }
+.db-toponly { display: flex; flex-direction: column; min-height: 100vh; }
+.db-content { flex: 1; padding: 2.5rem; background: var(--color-surface-container); }
 ```
+
+---
+
+## Navigation par rôle
+
+La config vient de `components/ui/navMenuConfig.js` via `getNavMenuForRole(role)`.
+
+| Rôle     | Groupes dropdown                        | Liens directs  |
+| -------- | --------------------------------------- | -------------- |
+| employee | Mon espace                              | Préférences    |
+| manager  | Mon équipe, Pilotage                    | —              |
+| hr       | Campagnes, Collaborateurs *, Analytique, Ressources | Paramètres |
+| admin    | Utilisateurs, Configuration, Communications, Système | — |
+
+\* Le groupe **Collaborateurs** affiche un red dot si `badges.requests > 0`.
+
+---
+
+## Badges de notification
+
+Hook `hooks/useNotifBadges.js` → appelle `/api/notifications/badges`.
+Retourne des comptes mock si l'endpoint est indisponible (`{ requests: 3 }`).
+Passé en prop `badges` à `AppTopbar` → propagé aux boutons et liens du nav.
 
 ---
 
@@ -96,3 +120,6 @@ de rendre son propre `<Outlet />`.
 
 Note produit : le portail `director` a été retiré. Les comptes legacy `director`
 restent autorisés sur les vues manager le temps d'assainir les données.
+
+Note : `AppSidebar` est conservé dans `components/ui/` pour référence mais
+n'est plus monté dans `AuthedLayout`.

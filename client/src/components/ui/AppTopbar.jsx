@@ -2,12 +2,14 @@
 // AppTopbar — shared topbar for all inner pages
 // Identical across HR, Dashboard, Manager, FormEditor, Evaluation.
 // Props: searchPlaceholder, locale, setLocale, theme, cycleTheme,
-//        notifItems [{id, color, text, meta}], user, onLogout
+//        notifItems [{id, color, text, meta}], user, onLogout,
+//        navGroups { groups, direct }, badges { [key]: count }
 // =============================================================================
 
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useCallback } from 'react'
+import { NavLink, useLocation } from 'react-router-dom'
 import './AppTopbar.css'
-import { Bell, Search, Sun, Moon, Palette, Globe } from 'lucide-react'
+import { Bell, Search, Sun, Moon, Palette, Globe, ChevronDown } from 'lucide-react'
 
 // ── Internal labels (no external i18n dependency) ─────────────────────────────
 const L = {
@@ -66,10 +68,16 @@ export default function AppTopbar({
   onMenuToggle,
   nav,
   brand,
+  navGroups,
+  badges = {},
 }) {
   const lbl = L[locale] ?? L.fr
-  const [notifOpen, setNotifOpen] = useState(false)
-  const notifRef = useRef(null)
+  const [notifOpen,  setNotifOpen]  = useState(false)
+  const [openGroup,  setOpenGroup]  = useState(null)
+  const notifRef  = useRef(null)
+  const navRef    = useRef(null)
+  const closeTimer = useRef(null)
+  const location  = useLocation()
 
   const first    = user?.firstName ?? ''
   const last     = user?.lastName  ?? ''
@@ -81,7 +89,7 @@ export default function AppTopbar({
     : theme === 'light' ? lbl.theme_sidebar
     : lbl.theme_dark
 
-  // Close dropdown on outside click
+  // ── Notif dropdown: close on outside click / Escape ──────────────────────
   useEffect(() => {
     if (!notifOpen) return
     const handler = e => {
@@ -91,7 +99,6 @@ export default function AppTopbar({
     return () => document.removeEventListener('mousedown', handler)
   }, [notifOpen])
 
-  // Close on Escape
   useEffect(() => {
     if (!notifOpen) return
     const handler = e => { if (e.key === 'Escape') setNotifOpen(false) }
@@ -99,11 +106,59 @@ export default function AppTopbar({
     return () => document.removeEventListener('keydown', handler)
   }, [notifOpen])
 
+  // ── Nav dropdown: close on outside click / Escape ────────────────────────
+  useEffect(() => {
+    if (!openGroup) return
+    const handler = e => {
+      if (navRef.current && !navRef.current.contains(e.target)) setOpenGroup(null)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [openGroup])
+
+  useEffect(() => {
+    if (!openGroup) return
+    const handler = e => { if (e.key === 'Escape') setOpenGroup(null) }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [openGroup])
+
+  // ── Nav dropdown: hover helpers ───────────────────────────────────────────
+  const handleGroupEnter = useCallback(id => {
+    clearTimeout(closeTimer.current)
+    setOpenGroup(id)
+  }, [])
+
+  const handleGroupLeave = useCallback(() => {
+    closeTimer.current = setTimeout(() => setOpenGroup(null), 150)
+  }, [])
+
+  const toggleGroup = useCallback(id => {
+    setOpenGroup(prev => (prev === id ? null : id))
+  }, [])
+
+  // ── Active/badge helpers ──────────────────────────────────────────────────
+  function isGroupActive(group) {
+    return group.children.some(child =>
+      child.end
+        ? location.pathname === child.to
+        : location.pathname.startsWith(child.to)
+    )
+  }
+
+  function groupHasBadge(group) {
+    if (group.notifKey && (badges[group.notifKey] ?? 0) > 0) return true
+    return group.children.some(child => child.notifKey && (badges[child.notifKey] ?? 0) > 0)
+  }
+
   return (
     <header className="apptb">
 
-      {/* Brand logo — optionnel, affiché avant la nav (mini-SPA sans sidebar) */}
-      {brand && <div className="apptb__brand">{brand}</div>}
+      {/* Brand logo */}
+      <div className="apptb__brand">
+        <span className="apptb__brand-icon">NX</span>
+        <span className="apptb__brand-wordmark">NanoXplore</span>
+      </div>
 
       {/* Hamburger — mobile only */}
       {onMenuToggle && (
@@ -117,11 +172,83 @@ export default function AppTopbar({
         </button>
       )}
 
-      {/* Nav (mini-SPA) — affiché à la place de la search */}
-      {nav}
+      {/* Grouped dropdown nav */}
+      {navGroups && (
+        <nav className="apptb__nav" ref={navRef} aria-label="Navigation principale">
+          {navGroups.groups.map(group => (
+            <div
+              key={group.id}
+              className="apptb__nav-group"
+              onMouseEnter={() => handleGroupEnter(group.id)}
+              onMouseLeave={handleGroupLeave}
+            >
+              <button
+                type="button"
+                className={[
+                  'apptb__nav-btn',
+                  isGroupActive(group)       ? 'apptb__nav-btn--active' : '',
+                  openGroup === group.id     ? 'apptb__nav-btn--open'   : '',
+                ].filter(Boolean).join(' ')}
+                onClick={() => toggleGroup(group.id)}
+                aria-expanded={openGroup === group.id}
+                aria-haspopup="menu"
+              >
+                <span>{group.label}</span>
+                <ChevronDown
+                  size={11}
+                  strokeWidth={2.5}
+                  className={`apptb__nav-chevron${openGroup === group.id ? ' apptb__nav-chevron--open' : ''}`}
+                  aria-hidden="true"
+                />
+                {groupHasBadge(group) && (
+                  <span className="apptb__nav-dot" aria-hidden="true" />
+                )}
+              </button>
 
-      {/* Search — masquée si un nav est fourni */}
-      {!nav && (
+              {openGroup === group.id && (
+                <div className="apptb__nav-dropdown" role="menu">
+                  {group.children.map(item => (
+                    <NavLink
+                      key={item.id}
+                      to={item.to}
+                      end={item.end}
+                      role="menuitem"
+                      className={({ isActive }) =>
+                        `apptb__nav-link${isActive ? ' apptb__nav-link--active' : ''}`
+                      }
+                      onClick={() => setOpenGroup(null)}
+                    >
+                      {item.label}
+                      {item.notifKey && (badges[item.notifKey] ?? 0) > 0 && (
+                        <span className="apptb__nav-link-dot" aria-hidden="true" />
+                      )}
+                    </NavLink>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+
+          {navGroups.direct?.map(item => (
+            <NavLink
+              key={item.id}
+              to={item.to}
+              end={item.end}
+              className={({ isActive }) =>
+                `apptb__nav-btn apptb__nav-direct${isActive ? ' apptb__nav-btn--active' : ''}`
+              }
+            >
+              {item.label}
+            </NavLink>
+          ))}
+        </nav>
+      )}
+
+      {/* Legacy nav slot (backward compat) */}
+      {!navGroups && nav}
+
+      {/* Search — shown only when no nav is present */}
+      {!navGroups && !nav && (
         <div className="apptb__search" role="search">
           <Search size={15} color="var(--color-outline)" />
           <input

@@ -18,7 +18,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useAuth }          from '../../contexts/AuthContext'
 import { useTranslate }     from '../../contexts/LocaleContext'
 import { t as pageT }       from './i18n'
-import { ChevronLeft, UserPlus, Edit2, Trash2, UserCheck, X } from 'lucide-react'
+import { ChevronLeft, UserPlus, Edit2, Trash2, ArrowLeftRight, X } from 'lucide-react'
 import { Skeleton, SkeletonStat, SkeletonTable } from '../../components/ui/Skeleton'
 import { apiFetch }         from '../../lib/apiFetch'
 import { showToast }        from '../../components/ui/Toast'
@@ -273,6 +273,7 @@ function DeleteConfirmModal({ campaignId, t, onClose }) {
 function CmpReassignModal({ evaluation, campaignId, onClose }) {
   const qc = useQueryClient()
   const [newEvaluatorId, setNewEvaluatorId] = useState('')
+  const [reason, setReason]                 = useState('')
 
   const TERMINAL = ['signed_hr', 'validated']
   const isTerminal = TERMINAL.includes(evaluation.status)
@@ -286,6 +287,10 @@ function CmpReassignModal({ evaluation, campaignId, onClose }) {
       ? `${evaluation.evaluatorId.firstName} ${evaluation.evaluatorId.lastName}`
       : '—'
 
+  const employeeName = evaluation.evaluateeId?.firstName
+    ? `${evaluation.evaluateeId.firstName} ${evaluation.evaluateeId.lastName}`
+    : '—'
+
   const { data: managers = [] } = useQuery({
     queryKey: ['managers-list'],
     queryFn: () =>
@@ -298,13 +303,16 @@ function CmpReassignModal({ evaluation, campaignId, onClose }) {
   const reassignMutation = useMutation({
     mutationFn: () =>
       apiFetch(`/api/evaluations/${evaluation._id}/reassign`, {
-        method: 'PATCH',
+        method:  'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ newEvaluatorId }),
+        body:    JSON.stringify({
+          newEvaluatorId,
+          reason: reason.trim() || undefined,
+        }),
       }),
-    onSuccess: () => {
+    onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ['hr-campaign-evals', campaignId] })
-      showToast({ message: 'Évaluateur réaffecté avec succès', type: 'success' })
+      showToast({ message: `Évaluation réaffectée à ${data.evaluatorName}`, type: 'success' })
       onClose()
     },
     onError: (err) => showToast({ message: err.message, type: 'error' }),
@@ -313,28 +321,26 @@ function CmpReassignModal({ evaluation, campaignId, onClose }) {
   return (
     <div className="cmp-modal-backdrop" role="dialog" aria-modal="true">
       <div className="cmp-modal">
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-          <h2 className="cmp-modal__title" style={{ margin: 0 }}>Réaffecter l'évaluateur</h2>
-          <button type="button" className="cmp-btn cmp-btn--ghost" onClick={onClose} aria-label="Fermer" style={{ padding: '0.25rem' }}>
+
+        <div className="cmp-reassign-modal__header">
+          <h2 className="cmp-modal__title">Réaffecter l'évaluation de {employeeName}</h2>
+          <button
+            type="button"
+            className="cmp-btn cmp-btn--ghost cmp-reassign-modal__close"
+            onClick={onClose}
+            aria-label="Fermer"
+          >
             <X size={16} />
           </button>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem', marginBottom: '1rem' }}>
-          <div style={{ display: 'flex', gap: '0.5rem', fontSize: '0.875rem' }}>
-            <span className="cmp-label" style={{ minWidth: '120px' }}>Évalué</span>
-            <span>
-              {evaluation.evaluateeId?.firstName
-                ? `${evaluation.evaluateeId.firstName} ${evaluation.evaluateeId.lastName}`
-                : '—'}
-            </span>
-          </div>
-          <div style={{ display: 'flex', gap: '0.5rem', fontSize: '0.875rem' }}>
-            <span className="cmp-label" style={{ minWidth: '120px' }}>Évaluateur actuel</span>
+        <div className="cmp-reassign-modal__info">
+          <div className="cmp-reassign-modal__info-row">
+            <span className="cmp-label cmp-reassign-modal__info-label">Évaluateur actuel</span>
             <span>{currentEvaluatorName}</span>
           </div>
-          <div style={{ display: 'flex', gap: '0.5rem', fontSize: '0.875rem' }}>
-            <span className="cmp-label" style={{ minWidth: '120px' }}>Statut</span>
+          <div className="cmp-reassign-modal__info-row">
+            <span className="cmp-label cmp-reassign-modal__info-label">Statut</span>
             <span className={`cmp-badge ${EVAL_STATUS_CLS[evaluation.status] ?? 'cmp-badge--draft'}`}>
               {evaluation.status}
             </span>
@@ -342,26 +348,39 @@ function CmpReassignModal({ evaluation, campaignId, onClose }) {
         </div>
 
         {isTerminal ? (
-          <p style={{ padding: '0.625rem', background: '#fee2e2', color: '#991b1b', borderRadius: '6px', fontSize: '0.875rem', margin: '0 0 1rem' }}>
+          <p className="cmp-reassign-modal__blocked">
             Non autorisé — statut terminal ({evaluation.status})
           </p>
         ) : (
-          <div className="cmp-field" style={{ marginBottom: '1rem' }}>
-            <label className="cmp-label">Nouveau manager</label>
-            <select
-              className="cmp-input"
-              value={newEvaluatorId}
-              onChange={e => setNewEvaluatorId(e.target.value)}
-              style={{ width: '100%' }}
-            >
-              <option value="">— Sélectionner un manager —</option>
-              {managers.map(m => (
-                <option key={m._id} value={m._id}>
-                  {m.firstName} {m.lastName}{m.department ? ` (${m.department})` : ''}
-                </option>
-              ))}
-            </select>
-          </div>
+          <>
+            <div className="cmp-field">
+              <label className="cmp-label">Nouveau manager</label>
+              <select
+                className="cmp-input cmp-reassign-modal__select"
+                value={newEvaluatorId}
+                onChange={e => setNewEvaluatorId(e.target.value)}
+              >
+                <option value="">— Sélectionner un manager —</option>
+                {managers.map(m => (
+                  <option key={m._id} value={m._id}>
+                    {m.firstName} {m.lastName}{m.department ? ` (${m.department})` : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="cmp-field">
+              <label className="cmp-label">Raison (optionnelle)</label>
+              <textarea
+                className="cmp-textarea"
+                value={reason}
+                rows={3}
+                placeholder="Ex : départ du manager, erreur d'affectation…"
+                onChange={e => setReason(e.target.value)}
+                maxLength={500}
+              />
+            </div>
+          </>
         )}
 
         <div className="cmp-modal__actions">
@@ -379,10 +398,11 @@ function CmpReassignModal({ evaluation, campaignId, onClose }) {
               }
               onClick={() => reassignMutation.mutate()}
             >
-              {reassignMutation.isPending ? 'En cours…' : 'Confirmer'}
+              {reassignMutation.isPending ? 'En cours…' : 'Réaffecter'}
             </button>
           )}
         </div>
+
       </div>
     </div>
   )
@@ -702,7 +722,7 @@ export default function HRCampaignDetail() {
                           title="Réaffecter l'évaluateur"
                           aria-label="Réaffecter l'évaluateur"
                         >
-                          <UserCheck size={14} strokeWidth={1.5} />
+                          <ArrowLeftRight size={16} strokeWidth={1.5} />
                         </button>
                       </td>
                     </tr>

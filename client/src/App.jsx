@@ -28,6 +28,7 @@ import HRRequests      from './pages/hr/HRRequests'
 import HRAnalytics     from './pages/hr/HRAnalytics'
 import HRResources     from './pages/hr/HRResources'
 import HRSettings      from './pages/hr/HRSettings'
+import HROffboarding   from './pages/hr/HROffboarding'
 import EmployeeGoals   from './pages/employee/EmployeeGoals'
 import EmployeeHistory from './pages/employee/EmployeeHistory'
 import Settings        from './pages/settings/Settings'
@@ -111,6 +112,7 @@ export default function App() {
           <Route path="/hr/analytics"                    element={<HRAnalytics />} />
           <Route path="/hr/resources"                    element={<HRResources />} />
           <Route path="/hr/settings"                     element={<HRSettings />} />
+          <Route path="/hr/offboarding"                  element={<HROffboarding />} />
         </Route>
 
         {/* Admin */}

@@ -13,6 +13,8 @@ Ce dossier contient la page principale de l'espace RH (`/hr`) et ses sous-pages 
 | `HRCampaignDetail.jsx` | Détail campagne (évals, edit, delete) — route `/hr/campaigns/:id` |
 | `hr-campaigns.css` | Styles campagnes (BEM : `cmp-`, `cmp-new-`, `cmp-det-`, `tpl-`) |
 | `HRTemplates.jsx` | Bibliothèque modèles de formulaires — route `/hr/templates` |
+| `HROffboarding.jsx` | Tableau de bord des départs — route `/hr/offboarding` |
+| `hr-offboarding.css` | Styles de l'offboarding (BEM : `hrob-*`) |
 | `HRDirectory.jsx` | Annuaire de l'entreprise — route `/hr/directory` |
 | `hr-directory.css` | Styles de l'annuaire |
 | `HRRequests.jsx` | Demandes, contestations, actions en masse — route `/hr/requests` |
@@ -42,6 +44,7 @@ Toutes les pages sont montées via `App.jsx` dans l'arbre React Router :
   <Route path="/hr/analytics"             element={<HRAnalytics />} />
   <Route path="/hr/resources"             element={<HRResources />} />
   <Route path="/hr/settings"              element={<HRSettings />} />
+  <Route path="/hr/offboarding"           element={<HROffboarding />} />
 </ProtectedRoute>
 ```
 
@@ -231,6 +234,14 @@ complétion par service, dernières actions. Données réelles depuis `/api/camp
 - Table avec avatar initiales, nom, email, poste, département, manager, rôle
 - Pagination 50 par page
 - Drawer latéral : profil complet + 3 dernières évaluations (`/api/evaluations?evaluateeId=`)
+- Bouton "Départ" (icône `LogOut`) visible pour hr/admin → ouvre `OffboardingModal`
+- `OffboardingModal` : motif + dernier jour + notes → `POST /api/offboarding`
+
+### HROffboarding.jsx — Gestion des départs
+- 3 KPI tiles : En attente / En cours / Complétés
+- Tableau : Employé, Motif, Dernier jour, Statut, Actions
+- Drawer checklist interactif : cocher/décocher items → `PATCH /api/offboarding/:id/checklist/:idx`
+- Bouton "Compléter le départ" (activé quand tous les items sont cochés) → `PATCH /api/offboarding/:id { status: 'completed' }` → archive l'utilisateur (`isActive=false`, `archivedAt`)
 
 ### HRRequests.jsx — Demandes & Contestations
 - **Onglet Contestations** : évaluations `disagreementFlag=true`, actions (Traiter/Ignorer/Escalader)
@@ -278,6 +289,7 @@ Export : non implémenté.
 | `hr-users-active` | `GET /api/users?isActive=true` | Modal assign, ReassignModal |
 | `hr-directory-users` | `GET /api/users` | HRDirectory.jsx |
 | `user-evals-drawer` | `GET /api/evaluations?evaluateeId=` | HRDirectory.jsx drawer |
+| `offboarding` | `GET /api/offboarding` | HROffboarding.jsx |
 | `hr-evaluations-all` | `GET /api/evaluations` | HRRequests.jsx |
 | `hr-analytics-evals` | `GET /api/evaluations` | HRAnalytics.jsx |
 | `hr-analytics-campaigns` | `GET /api/campaigns` | HRAnalytics.jsx |
@@ -302,7 +314,31 @@ Export : non implémenté.
 
 - Ajout de `HRCampaigns.jsx`, `HRCampaignNew.jsx`, `HRCampaignDetail.jsx`, `HRTemplates.jsx`
 - Extension de `i18n/fr.js` et `i18n/en.js` avec les clés `cmp.*` et `tpl.*`
+
+### Phase 10 — Onboarding & Offboarding
+
+- Ajout de `HROffboarding.jsx` + `hr-offboarding.css` — route `/hr/offboarding`
+- `HRDirectory.jsx` enrichi : bouton "Départ" dans le drawer + `OffboardingModal`
+- `navMenuConfig.js` : entrée `Départs` ajoutée dans le groupe `collaborateurs`
+- Backend : `models/OffboardingRequest.js`, `routes/offboarding.js`, `POST /api/offboarding`, routes checklist
+- `models/User.js` : champs `onboarding` (steps + completed) et `archivedAt`
+- `routes/users.js` : `PATCH /:id/onboarding/complete` (avant `/:id/onboarding/:stepIndex`)
+- `routes/auth.js` `/me` : sélectionne désormais le champ `onboarding`
+- `Employee.jsx` : bandeau `OnboardingBanner` si `user.onboarding.completed === false`
+- i18n : clés `hrob.*` et `onb.*` dans fr.js et en.js
 - Le `FormBuilder` est dans `pages/formeditor/FormBuilder.jsx` mais sa route est montée sous `/hr/templates/:id/builder`
+
+### Phase 9 — Réaffectation d'évaluateur avec audit log
+
+- `PATCH /api/evaluations/:id/reassign` étendu : accepte `reason` (optionnel, max 500 chars)
+  et trace chaque réaffectation dans `evaluation.auditLog` (append-only).
+- `auditLog` ajouté au modèle `Evaluation` : `[{ action, by, at, meta }]` — jamais supprimé.
+- `CmpReassignModal` dans `HRCampaignDetail.jsx` redessiné :
+  - Titre dynamique "Réaffecter l'évaluation de [Nom Employé]"
+  - Champ textarea optionnel pour la raison
+  - Toast de succès avec nom du nouveau manager
+  - Suppression des styles inline — classes CSS BEM dans `hr-campaigns.css`
+- Icône du bouton ⇄ dans le tableau des évaluations : `ArrowLeftRight` (lucide-react, size=16)
 
 ### Phase 8 — PDF export, expiry logic, analytics route
 

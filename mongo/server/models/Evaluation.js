@@ -120,6 +120,19 @@ const evaluationSchema = new Schema({
   // Utilisé par l'UI RH pour afficher un badge d'avertissement.
   nearExpiry: { type: Boolean, default: false },
 
+  // Journal des actions RH sur l'évaluation (réaffectations, etc.)
+  // Chaque entrée est immuable — append-only.
+  auditLog: {
+    type: [{
+      _id:    false,
+      action: { type: String, required: true },
+      by:     { type: Schema.Types.ObjectId, ref: 'User' },
+      at:     { type: Date, default: Date.now },
+      meta:   { type: Schema.Types.Mixed, default: {} },
+    }],
+    default: [],
+  },
+
 }, { timestamps: true })
 
 // Compound unique index — empêche le doublon d'assignation

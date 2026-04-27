@@ -514,8 +514,10 @@ router.patch('/bulk', async (req, res, next) => {
 
 // ─── PATCH /api/evaluations/:id/reassign ─────────────────────────────────────
 // Réaffecte l'évaluateur d'une évaluation en cours.
-// Rôles requis : admin ou hr. Body : { newEvaluatorId }
+// Rôles requis : admin ou hr.
+// Body : { newEvaluatorId: string, reason?: string }
 // Statuts bloquants (terminaux) : signed_hr, validated.
+// L'ancien évaluatorId et la raison sont tracés dans evaluation.auditLog.
 
 router.patch('/:id/reassign', async (req, res, next) => {
   try {
@@ -527,7 +529,7 @@ router.patch('/:id/reassign', async (req, res, next) => {
       return res.status(400).json({ error: 'ID invalide' })
     }
 
-    const { newEvaluatorId } = req.body
+    const { newEvaluatorId, reason } = req.body
     if (!newEvaluatorId || !mongoose.isValidObjectId(newEvaluatorId)) {
       return res.status(400).json({ error: 'newEvaluatorId valide requis' })
     }
@@ -551,7 +553,20 @@ router.patch('/:id/reassign', async (req, res, next) => {
       return res.status(400).json({ error: "L'évaluateur doit avoir le rôle manager ou director" })
     }
 
+    const previousEvaluatorId = evaluation.evaluatorId
+
     evaluation.evaluatorId = newEvaluatorId
+    evaluation.auditLog.push({
+      action: 'reassigned',
+      by:     req.user._id,
+      at:     new Date(),
+      meta:   {
+        previousEvaluatorId,
+        newEvaluatorId,
+        reason: reason ? String(reason).slice(0, 500) : null,
+      },
+    })
+
     await evaluation.save()
 
     res.json({

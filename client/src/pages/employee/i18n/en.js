@@ -88,4 +88,11 @@ export default {
 
   // Resources
   'dashboard.resources.title': 'Recent resources',
+
+  // Onboarding banner
+  'onb.title':         '🎉 Welcome to the team!',
+  'onb.subtitle':      'Complete the onboarding steps to get started.',
+  'onb.complete_btn':  'Mark onboarding as complete',
+  'onb.completing':    'Saving…',
+  'onb.done':          'Onboarding complete 🎉',
 }

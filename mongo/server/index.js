@@ -32,6 +32,7 @@ const analyticsRoutes   = require('./routes/analytics')
 const ldapRoutes        = require('./routes/ldap')
 const adminRoutes       = require('./routes/admin')
 const auditRoutes       = require('./routes/audit')
+const offboardingRoutes = require('./routes/offboarding')
 
 // ─── App setup ───────────────────────────────────────────────────────────────
 
@@ -137,6 +138,7 @@ app.use('/api/resources',   mutationLimiter, authenticated, resourceRoutes)
 app.use('/api/admin/ldap',  mutationLimiter, authGuard(['admin']), ldapRoutes)
 app.use('/api/admin',      mutationLimiter, authGuard(['admin']), adminRoutes)
 app.use('/api/admin/audit', apiLimiter, authGuard(['admin', 'hr']), auditRoutes)
+app.use('/api/offboarding', mutationLimiter, authenticated, offboardingRoutes)
 
 // ─── 404 Fallback ────────────────────────────────────────────────────────────
 

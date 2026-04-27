@@ -272,3 +272,98 @@
   border-radius: 6px; background: var(--color-secondary-container);
   color: var(--color-on-surface);
 }
+
+/* ── Bandeau onboarding ─────────────────────────────────────────────────────── */
+.db-onboarding {
+  background: var(--color-surface-container-lowest);
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+  margin-bottom: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.db-onboarding__header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.db-onboarding__title {
+  font-size: 1.0625rem;
+  font-weight: 800;
+  color: var(--color-on-surface);
+  margin: 0;
+}
+
+.db-onboarding__sub {
+  font-size: 0.875rem;
+  color: var(--color-on-surface-variant);
+  margin: 0;
+}
+
+.db-onboarding__steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.db-onboarding__step {
+  display: flex;
+}
+
+.db-onboarding__check {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-container-low);
+  color: var(--color-on-surface-variant);
+  font-size: 0.875rem;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.12s, background 0.12s;
+}
+
+.db-onboarding__check:hover:not(:disabled) {
+  border-color: var(--color-secondary);
+  background: var(--color-surface-container);
+}
+
+.db-onboarding__check--done {
+  color: #15803d;
+  background: #f0fdf4;
+  border-color: #86efac;
+  text-decoration: line-through;
+}
+
+.db-onboarding__check:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+.db-onboarding__complete-btn {
+  padding: 0.625rem 1.25rem;
+  background: var(--color-secondary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  cursor: pointer;
+  align-self: flex-start;
+  transition: opacity 0.15s;
+}
+
+.db-onboarding__complete-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}

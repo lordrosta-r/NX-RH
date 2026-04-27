@@ -14,13 +14,13 @@
 
 import React, { useEffect } from 'react'
 import { useNavigate }          from 'react-router-dom'
-import { useQuery }             from '@tanstack/react-query'
+import { useQuery, useMutation } from '@tanstack/react-query'
 import { useAuth }              from '../../contexts/AuthContext'
 import { useTranslate, useLocaleCtx } from '../../contexts/LocaleContext'
 import { t as pageT }           from './i18n'
 import CampaignBanner           from './CampaignBanner'
 import CalendarWidget           from '../../components/ui/CalendarWidget'
-import { ArrowUpRight, Sparkles, Heart, ChevronRight } from 'lucide-react'
+import { ArrowUpRight, Sparkles, Heart, ChevronRight, CheckSquare, Square } from 'lucide-react'
 import { Skeleton } from '../../components/ui/Skeleton'
 import './employee.css'
 
@@ -50,6 +50,78 @@ function computeEvalProgress(answers = []) {
     }
   }
   return Math.round((done.size / 4) * 100)
+}
+
+// ── Bandeau onboarding ────────────────────────────────────────────────────────
+function OnboardingBanner({ userId, onboarding, t }) {
+  const { refreshUser } = useAuth()
+
+  const toggleStep = useMutation({
+    mutationFn: ({ idx, done }) =>
+      fetch(`/api/users/${userId}/onboarding/${idx}`, {
+        method:      'PATCH',
+        credentials: 'include',
+        headers:     { 'Content-Type': 'application/json' },
+        body:        JSON.stringify({ done }),
+      }).then(r => r.ok ? r.json() : Promise.reject(new Error(r.statusText))),
+    onSuccess: () => refreshUser(),
+  })
+
+  const completeMutation = useMutation({
+    mutationFn: () =>
+      fetch(`/api/users/${userId}/onboarding/complete`, {
+        method:      'PATCH',
+        credentials: 'include',
+        headers:     { 'Content-Type': 'application/json' },
+        body:        '{}',
+      }).then(r => r.ok ? r.json() : Promise.reject(new Error(r.statusText))),
+    onSuccess: () => refreshUser(),
+  })
+
+  if (!onboarding || onboarding.completed) return null
+  const steps = onboarding.steps ?? []
+  const hasIncomplete = steps.some(s => !s.done)
+  if (!hasIncomplete && !onboarding.completed) return null
+
+  const allDone = steps.every(s => s.done)
+
+  return (
+    <div className="db-onboarding">
+      <div className="db-onboarding__header">
+        <h3 className="db-onboarding__title">{t('onb.title')}</h3>
+        <p className="db-onboarding__sub">{t('onb.subtitle')}</p>
+      </div>
+      <ul className="db-onboarding__steps">
+        {steps.map((s, idx) => (
+          <li key={idx} className="db-onboarding__step">
+            <button
+              type="button"
+              className={`db-onboarding__check${s.done ? ' db-onboarding__check--done' : ''}`}
+              onClick={() => toggleStep.mutate({ idx, done: !s.done })}
+              disabled={toggleStep.isPending}
+              aria-pressed={s.done}
+            >
+              {s.done
+                ? <CheckSquare size={16} strokeWidth={1.5} />
+                : <Square size={16} strokeWidth={1.5} />
+              }
+              <span>{s.step}</span>
+            </button>
+          </li>
+        ))}
+      </ul>
+      {allDone && (
+        <button
+          type="button"
+          className="db-onboarding__complete-btn"
+          onClick={() => completeMutation.mutate()}
+          disabled={completeMutation.isPending}
+        >
+          {completeMutation.isPending ? t('onb.completing') : t('onb.complete_btn')}
+        </button>
+      )}
+    </div>
+  )
 }
 
 // =============================================================================
@@ -157,6 +229,11 @@ export default function Employee() {
 
   return (
     <>
+      {/* ── Bandeau onboarding ─────────────────────────────────────────────── */}
+      {user && !user.onboarding?.completed && (
+        <OnboardingBanner userId={user._id} onboarding={user.onboarding} t={t} />
+      )}
+
       {/* ── Bannière hero ─────────────────────────────────────────────────── */}
       <div className="db-banner-wrap">
         <CampaignBanner

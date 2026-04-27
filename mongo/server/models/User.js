@@ -107,6 +107,29 @@ const userSchema = new Schema({
 
   isActive: { type: Boolean, default: true },
 
+  // Onboarding — suivi de l'intégration des nouveaux arrivants
+  onboarding: {
+    completed:   { type: Boolean, default: false },
+    completedAt: { type: Date, default: null },
+    steps: {
+      type: [{
+        step:   { type: String, required: true },
+        done:   { type: Boolean, default: false },
+        doneAt: { type: Date, default: null },
+      }],
+      default: () => [
+        { step: 'Profil complété',             done: false },
+        { step: 'Photo ajoutée',               done: false },
+        { step: 'Présentation à l\'équipe',    done: false },
+        { step: 'Accès systèmes vérifiés',     done: false },
+        { step: 'Premier entretien planifié',  done: false },
+      ],
+    },
+  },
+
+  // Mis à jour lors de la completion d'un offboarding
+  archivedAt: { type: Date, default: null },
+
   offboardingStatus: {
     type: String,
     enum: ['active', 'offboarding', 'offboarded'],

@@ -141,7 +141,7 @@ router.post('/logout', (_req, res) => {
 router.get('/me', authGuard(), async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id)
-      .select('firstName lastName email role department position isActive locale theme notificationPrefs lastLoginAt authSource managerId createdAt')
+      .select('firstName lastName email role department position isActive locale theme notificationPrefs lastLoginAt authSource managerId onboarding createdAt')
       .lean()
 
     if (!user || !user.isActive) {

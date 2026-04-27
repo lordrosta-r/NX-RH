@@ -407,3 +407,137 @@
     width: 100vw;
   }
 }
+
+/* ── Bouton Départ (dans le drawer) ─────────────────────────────────────────── */
+.hrd-drawer__depart-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--color-error, #b8000b);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-error, #b8000b);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.12s;
+  width: 100%;
+  justify-content: center;
+}
+
+.hrd-drawer__depart-btn:hover {
+  background: rgba(184, 0, 11, 0.06);
+}
+
+/* ── Modal offboarding ─────────────────────────────────────────────────────── */
+.hrd-ob-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 480px;
+  max-width: calc(100vw - 2rem);
+  background: var(--color-surface-container-lowest, var(--color-surface));
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 40px rgba(0,0,0,0.22);
+  z-index: 202;
+  display: flex;
+  flex-direction: column;
+}
+
+.hrd-ob-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.25rem 0.875rem;
+  border-bottom: 1px solid var(--color-divider);
+  gap: 1rem;
+}
+
+.hrd-ob-modal__title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-on-surface);
+  margin: 0;
+}
+
+.hrd-ob-modal__form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.25rem;
+}
+
+.hrd-ob-modal__label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-on-surface-variant);
+}
+
+.hrd-ob-modal__select {
+  width: 100%;
+  min-width: unset;
+}
+
+.hrd-ob-modal__textarea {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-container-low);
+  color: var(--color-on-surface);
+  font-size: 0.875rem;
+  font-family: var(--font-family);
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.15s;
+  box-sizing: border-box;
+}
+
+.hrd-ob-modal__textarea:focus {
+  border-color: var(--color-primary);
+}
+
+.hrd-ob-modal__error {
+  font-size: 0.8125rem;
+  color: var(--color-error, #b8000b);
+  margin: 0;
+}
+
+.hrd-ob-modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding-top: 0.25rem;
+}
+
+.hrd-ob-modal__btn {
+  padding: 0.5625rem 1.25rem;
+  border-radius: var(--radius-md);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  border: none;
+}
+
+.hrd-ob-modal__btn--cancel {
+  background: var(--color-surface-container-low);
+  color: var(--color-on-surface-variant);
+  border: 1px solid var(--color-divider);
+}
+
+.hrd-ob-modal__btn--submit {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.hrd-ob-modal__btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+

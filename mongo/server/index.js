@@ -13,6 +13,8 @@ require('dotenv').config()
 
 const express      = require('express')
 const path         = require('path')
+const crypto       = require('crypto')
+const fs           = require('fs')
 const cookieParser = require('cookie-parser')
 const cors         = require('cors')
 const helmet       = require('helmet')
@@ -42,6 +44,32 @@ const PORT = process.env.PORT || 3000
 
 const PUBLIC_DIR = path.join(__dirname, 'public')
 
+// ─── Compute CSP hash for inline scripts in index.html ──────────────────────
+// Vite normalises HTML whitespace on every build, changing the hash.
+// We read the built index.html at startup and extract all <script> tags
+// without a src attribute, then compute their SHA-256 hashes dynamically.
+function computeInlineScriptHashes(htmlPath) {
+  try {
+    const html = fs.readFileSync(htmlPath, 'utf8')
+    const hashes = []
+    const re = /<script(?![^>]*\bsrc\b)[^>]*>([\s\S]*?)<\/script>/gi
+    let m
+    while ((m = re.exec(html)) !== null) {
+      const content = m[1]
+      if (content.trim()) {
+        const hash = crypto.createHash('sha256').update(content).digest('base64')
+        hashes.push(`'sha256-${hash}'`)
+      }
+    }
+    return hashes
+  } catch {
+    // Fallback when public/index.html doesn't exist yet (dev without build)
+    return []
+  }
+}
+
+const inlineScriptHashes = computeInlineScriptHashes(path.join(PUBLIC_DIR, 'index.html'))
+
 // ─── Global middleware ───────────────────────────────────────────────────────
 
 const rawOrigin = process.env.CLIENT_ORIGIN || 'http://localhost:5173'
@@ -58,8 +86,8 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc:              ["'self'"],
-      // Hash covers the anti-flash inline <script> present in every .html entry point
-      scriptSrc:               ["'self'", "'sha256-uB2fGBNjJqj03XemKOQzxo4jGZQj8buFmmu22ZvTFzY='"],
+      // Hashes are computed dynamically at startup from the built index.html
+      scriptSrc:               ["'self'", ...inlineScriptHashes],
       styleSrc:                ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
       fontSrc:                 ["'self'", 'https://fonts.gstatic.com'],
       imgSrc:                  ["'self'", 'data:', 'https://images.unsplash.com', 'https://lh3.googleusercontent.com'],
@@ -108,11 +136,13 @@ app.get('/api/health', async (_req, res) => {
 // ─── SPA Page Routes ─────────────────────────────────────────────────────────
 // All non-API GET requests are served index.html.
 // React Router (client-side) handles routing + auth redirects via ProtectedRoute.
+// index.html must never be cached — its asset filenames change on every build.
 
 app.get('/dashboard', (_req, res) => res.redirect(301, '/employee'))
 
 app.get('*', (req, res, next) => {
   if (req.path.startsWith('/api')) return next()
+  res.set('Cache-Control', 'no-store')
   res.sendFile(path.join(PUBLIC_DIR, 'index.html'))
 })
 

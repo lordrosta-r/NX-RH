@@ -51,7 +51,7 @@ const allowedOrigins = rawOrigin.split(',').map(o => o.trim())
 app.use(cors({
   origin: (origin, cb) => {
     if (!origin || allowedOrigins.includes(origin)) return cb(null, true)
-    cb(new Error('CORS: origin non autorisé'))
+    cb(null, false) // origine inconnue : pas de headers CORS, mais pas de 500
   },
   credentials: true,
 }))

@@ -63,8 +63,9 @@ const NAV_MENU = {
         label: 'Collaborateurs',
         notifKey: 'requests',
         children: [
-          { id: 'directory', to: '/hr/directory', label: 'Annuaire' },
-          { id: 'requests',  to: '/hr/requests',  label: 'Demandes', notifKey: 'requests' },
+          { id: 'directory',   to: '/hr/directory',   label: 'Annuaire' },
+          { id: 'requests',    to: '/hr/requests',    label: 'Demandes', notifKey: 'requests' },
+          { id: 'offboarding', to: '/hr/offboarding', label: 'Départs' },
         ],
       },
       {

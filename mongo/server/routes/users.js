@@ -273,8 +273,85 @@ router.patch('/:id/offboard', async (req, res, next) => {
   }
 })
 
+// ─── PATCH /api/users/:id/onboarding/complete — marquer l'onboarding terminé ─
+// Accessible : self ou hr/admin
+// ⚠️ Doit être déclaré AVANT /:id/onboarding/:stepIndex pour éviter que
+//    "complete" soit capturé comme stepIndex par Express.
+
+router.patch('/:id/onboarding/complete', async (req, res, next) => {
+  try {
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({ error: 'ID invalide' })
+    }
+
+    const userId = req.params.id
+    const isSelf = req.user.id === userId
+    const isAdmin = ADMIN_ROLES.includes(req.user.role)
+
+    if (!isSelf && !isAdmin) {
+      return res.status(403).json({ error: 'Insufficient permissions' })
+    }
+
+    const user = await User.findById(userId)
+    if (!user) return res.status(404).json({ error: 'User not found' })
+
+    user.onboarding.completed   = true
+    user.onboarding.completedAt = new Date()
+    await user.save()
+
+    const result = user.toObject()
+    delete result.passwordHash
+    delete result.ldapDn
+    res.json(result)
+  } catch (err) {
+    next(err)
+  }
+})
+
+// ─── PATCH /api/users/:id/onboarding/:stepIndex — cocher une étape ───────────
+// Accessible : self (employee) ou hr/admin
+
+router.patch('/:id/onboarding/:stepIndex', async (req, res, next) => {
+  try {
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({ error: 'ID invalide' })
+    }
+
+    const userId = req.params.id
+    const isSelf = req.user.id === userId
+    const isAdmin = ADMIN_ROLES.includes(req.user.role)
+
+    if (!isSelf && !isAdmin) {
+      return res.status(403).json({ error: 'Insufficient permissions' })
+    }
+
+    const idx = parseInt(req.params.stepIndex, 10)
+    if (isNaN(idx) || idx < 0) {
+      return res.status(400).json({ error: 'stepIndex invalide' })
+    }
+
+    const user = await User.findById(userId)
+    if (!user) return res.status(404).json({ error: 'User not found' })
+    if (idx >= (user.onboarding?.steps?.length ?? 0)) {
+      return res.status(400).json({ error: 'stepIndex hors limites' })
+    }
+
+    const done = req.body.done !== false
+    user.onboarding.steps[idx].done   = done
+    user.onboarding.steps[idx].doneAt = done ? new Date() : null
+
+    await user.save()
+
+    const result = user.toObject()
+    delete result.passwordHash
+    delete result.ldapDn
+    res.json(result)
+  } catch (err) {
+    next(err)
+  }
+})
+
 // ─── GET /api/users/:id/gdpr-export ──────────────────────────────────────────
-// Export RGPD des données personnelles d'un utilisateur (admin | hr | soi-même)
 
 router.get('/:id/gdpr-export', async (req, res, next) => {
   try {

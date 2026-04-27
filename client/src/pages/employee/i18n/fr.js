@@ -88,4 +88,11 @@ export default {
 
   // Resources
   'dashboard.resources.title': 'Ressources récentes',
+
+  // Bandeau onboarding
+  'onb.title':         '🎉 Bienvenue dans l\'équipe !',
+  'onb.subtitle':      'Complétez les étapes d\'intégration pour bien démarrer.',
+  'onb.complete_btn':  'Marquer l\'onboarding comme terminé',
+  'onb.completing':    'Enregistrement…',
+  'onb.done':          'Onboarding terminé 🎉',
 }

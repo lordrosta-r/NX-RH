@@ -79,3 +79,11 @@ Tous les appels ont `staleTime: 5min` et `enabled: !!user`.
 - Routes `/employee/goals` et `/employee/history` précédemment `<PagePlaceholder>` → composants complets
 - `/employee/settings` → pointe maintenant vers `pages/settings/Settings.jsx` (refactorisé SPA)
 
+### Phase 10 — Bandeau onboarding
+- `OnboardingBanner` ajouté dans `Employee.jsx` : affiché si `user.onboarding.completed === false`
+- Checklist interactive (`PATCH /api/users/:id/onboarding/:stepIndex`)
+- Bouton "Marquer comme terminé" activé quand toutes les étapes sont cochées (`PATCH /api/users/:id/onboarding/complete`)
+- Après chaque mutation : `refreshUser()` depuis `AuthContext` pour mettre à jour l'état global
+- Styles dans `employee.css` (préfixe `.db-onboarding__*`)
+- Traductions : clés `onb.*` dans `i18n/fr.js` et `i18n/en.js`
+

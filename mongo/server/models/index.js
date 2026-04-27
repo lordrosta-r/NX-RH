@@ -10,9 +10,10 @@ const { Evaluation, VALID_TRANSITIONS: EVAL_TRANSITIONS, ROLE_TRANSITIONS, LOCKE
 const Resource   = require('./Resource')
 const Event      = require('./Event')
 const AuditLog   = require('./AuditLog')
+const { model: OffboardingRequest }                                                               = require('./OffboardingRequest')
 
 module.exports = {
-  User, Config, Campaign, Form, Evaluation, Resource, Event, AuditLog,
+  User, Config, Campaign, Form, Evaluation, Resource, Event, AuditLog, OffboardingRequest,
   CAMPAIGN_TRANSITIONS, EVAL_TRANSITIONS, ROLE_TRANSITIONS, LOCKED_STATUSES,
   VALID_TRANSITIONS: EVAL_TRANSITIONS,
 }

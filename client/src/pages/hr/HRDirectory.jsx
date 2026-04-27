@@ -7,13 +7,13 @@
 // =============================================================================
 
 import React, { useState, useMemo } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../../contexts/AuthContext'
 import { useTranslate, useLocaleCtx } from '../../contexts/LocaleContext'
 import { t as pageT } from './i18n'
 import {
   Search, X, ChevronLeft, ChevronRight, User, Mail,
-  Briefcase, Building2, UserCheck, Shield, Filter,
+  Briefcase, Building2, UserCheck, Shield, Filter, LogOut,
 } from 'lucide-react'
 import { apiFetch } from '../../lib/apiFetch'
 import { SkeletonTable } from '../../components/ui/Skeleton'
@@ -56,7 +56,7 @@ function RoleBadge({ role }) {
 }
 
 // ── Drawer latéral ────────────────────────────────────────────────────────────
-function UserDrawer({ user: selectedUser, onClose, t, locale }) {
+function UserDrawer({ user: selectedUser, onClose, onOffboard, t, locale, isHrAdmin }) {
   const { data: userEvals = [], isLoading: evalsLoading } = useQuery({
     queryKey: ['user-evals-drawer', selectedUser?._id],
     queryFn: () =>
@@ -140,8 +140,119 @@ function UserDrawer({ user: selectedUser, onClose, t, locale }) {
               </ul>
             )}
           </div>
+
+          {isHrAdmin && (
+            <div className="hrd-drawer__section">
+              <button
+                type="button"
+                className="hrd-drawer__depart-btn"
+                onClick={() => { onClose(); onOffboard(selectedUser) }}
+              >
+                <LogOut size={16} />
+                {t('hrob.btn.new')}
+              </button>
+            </div>
+          )}
         </div>
       </aside>
+    </>
+  )
+}
+
+// ── Modal offboarding ─────────────────────────────────────────────────────────
+function OffboardingModal({ targetUser, onClose, t }) {
+  const qc = useQueryClient()
+  const [reason, setReason] = useState('')
+  const [lastDay, setLastDay] = useState('')
+  const [notes, setNotes] = useState('')
+  const [error, setError] = useState(null)
+
+  const mutation = useMutation({
+    mutationFn: (body) =>
+      apiFetch('/api/offboarding', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(body),
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['offboarding'] })
+      onClose()
+    },
+    onError: (err) => setError(err.message),
+  })
+
+  function handleSubmit(e) {
+    e.preventDefault()
+    setError(null)
+    mutation.mutate({ userId: targetUser._id, reason, lastDay, notes: notes || undefined })
+  }
+
+  return (
+    <>
+      <div className="hrd-drawer-backdrop" onClick={onClose} aria-hidden="true" />
+      <div className="hrd-ob-modal" role="dialog" aria-modal="true">
+        <div className="hrd-ob-modal__header">
+          <h2 className="hrd-ob-modal__title">
+            {t('hrob.modal.title')} {targetUser.name || `${targetUser.firstName} ${targetUser.lastName}`}
+          </h2>
+          <button type="button" className="hrd-drawer__close" onClick={onClose} aria-label={t('hrd.drawer.close')}>
+            <X size={18} />
+          </button>
+        </div>
+        <form className="hrd-ob-modal__form" onSubmit={handleSubmit}>
+          <label className="hrd-ob-modal__label">
+            {t('hrob.modal.reason')}
+            <select
+              className="hrd-filter hrd-ob-modal__select"
+              value={reason}
+              onChange={e => setReason(e.target.value)}
+              required
+            >
+              <option value="">{t('hrob.modal.reason.placeholder')}</option>
+              <option value="resignation">{t('hrob.reason.resignation')}</option>
+              <option value="termination">{t('hrob.reason.termination')}</option>
+              <option value="retirement">{t('hrob.reason.retirement')}</option>
+              <option value="other">{t('hrob.reason.other')}</option>
+            </select>
+          </label>
+
+          <label className="hrd-ob-modal__label">
+            {t('hrob.modal.lastday')}
+            <input
+              type="date"
+              className="hrd-search__input"
+              value={lastDay}
+              onChange={e => setLastDay(e.target.value)}
+              required
+            />
+          </label>
+
+          <label className="hrd-ob-modal__label">
+            {t('hrob.modal.notes')}
+            <textarea
+              className="hrd-ob-modal__textarea"
+              value={notes}
+              onChange={e => setNotes(e.target.value)}
+              rows={3}
+            />
+          </label>
+
+          {error && <p className="hrd-ob-modal__error">{error}</p>}
+
+          <div className="hrd-ob-modal__actions">
+            <button type="button" className="hrd-ob-modal__btn hrd-ob-modal__btn--cancel" onClick={onClose}>
+              {t('hrob.modal.cancel')}
+            </button>
+            <button
+              type="submit"
+              className="hrd-ob-modal__btn hrd-ob-modal__btn--submit"
+              disabled={mutation.isPending}
+            >
+              {mutation.isPending ? '…' : t('hrob.modal.submit')}
+            </button>
+          </div>
+        </form>
+      </div>
     </>
   )
 }
@@ -157,6 +268,9 @@ export default function HRDirectory() {
   const [deptFilter, setDeptFilter] = useState('all')
   const [page, setPage] = useState(0)
   const [selectedUser, setSelectedUser] = useState(null)
+  const [obTarget, setObTarget] = useState(null)
+
+  const isHrAdmin = ['hr', 'admin'].includes(user?.role)
 
   const { data: users = [], isLoading, error } = useQuery({
     queryKey: ['hr-directory-users'],
@@ -345,8 +459,19 @@ export default function HRDirectory() {
         <UserDrawer
           user={selectedUser}
           onClose={() => setSelectedUser(null)}
+          onOffboard={(u) => setObTarget(u)}
           t={t}
           locale={locale}
+          isHrAdmin={isHrAdmin}
+        />
+      )}
+
+      {/* ── Modal offboarding ───────────────────────────── */}
+      {obTarget && (
+        <OffboardingModal
+          targetUser={obTarget}
+          onClose={() => setObTarget(null)}
+          t={t}
         />
       )}
     </div>

@@ -7,7 +7,7 @@
 /* ── Dark (défaut — cinématique) ─────────────────────────────────────────── */
 :root,
 html[data-theme="dark"] {
-  --th-page-bg:           #000000;
+  --th-page-bg:           #04040a;
   --th-mosaic-opacity:    0.6;
   --th-overlay-gradient:  linear-gradient(to top, #000 0%, rgba(0,0,0,0.80) 40%, rgba(0,0,0,0.55) 100%);
 
@@ -152,8 +152,8 @@ html[data-theme="light-sidebar"] {
 }
 
 /* ── Inner app dark mode — overrides --color-* surface tokens ───────────────
-   La sidebar reste toujours sombre (--color-sidebar hardcodé à #2e1065).
-   Seul le contenu principal (fond, cartes, texte) bascule en sombre.       */
+   Light mode = tokens.css defaults (no override needed).
+   Only dark mode needs to override. KISS.                                   */
 html[data-theme="dark"] {
   --color-surface:                   #111010;
   --color-surface-bright:            #161515;
@@ -163,8 +163,9 @@ html[data-theme="dark"] {
   --color-surface-container-high:    #2d2c2c;
   --color-surface-container-highest: #323131;
   --color-on-surface:                #eae7e7;
-  --color-on-surface-variant:        #b5a9a5;
+  --color-on-surface-variant:        #9ca3af;
   --color-background:                #111010;
   --color-on-background:             #eae7e7;
   --color-outline-variant:           rgba(233,188,182,0.15);
+  --color-topbar-bg:                 #1c1b1b;
 }

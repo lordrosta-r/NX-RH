@@ -63,20 +63,20 @@
   --color-surface-variant:           #e5e2e1;
 
   /* ── On-colors ────────────────────────────────────────────────────────────── */
-  --color-on-surface:         #1c1b1b;   /* Never pure black */
-  --color-on-surface-variant: #5e3f3b;
+  --color-on-surface:         #111111;   /* Near-black body text */
+  --color-on-surface-variant: #6b7280;
   --color-on-primary:         #ffffff;
   --color-on-secondary:       #ffffff;
   --color-on-tertiary:        #ffffff;
   --color-on-error:           #ffffff;
   --color-background:         #fcf9f8;
-  --color-on-background:      #1c1b1b;
+  --color-on-background:      #111111;   /* Near-black body text */
   --color-on-secondary-muted: rgba(207, 189, 255, 0.85); /* Spotlight label on secondary bg */
   --color-on-secondary-faint: rgba(255, 255, 255, 0.65); /* Spotlight body on secondary bg */
 
   /* ── Outline (Ghost Border rule — barely perceptible) ─────────────────────── */
-  --color-outline:            #936e69;
-  --color-outline-variant:    #e9bcb6;   /* Used at 20% opacity max */
+  --color-outline:            #9ca3af;
+  --color-outline-variant:    #e5e7eb;   /* Used at 20% opacity max */
 
   /* ── Gradients ────────────────────────────────────────────────────────────── */
   --gradient-primary: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-container) 100%);

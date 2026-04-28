@@ -56,7 +56,6 @@ export default function AppTopbar({
   const notifRef    = useRef(null)
   const userRef     = useRef(null)
   const navRef      = useRef(null)
-  const closeTimer  = useRef(null)
   const location    = useLocation()
 
   const first    = user?.firstName ?? ''
@@ -95,10 +94,8 @@ export default function AppTopbar({
     return () => { document.removeEventListener('mousedown', h); document.removeEventListener('keydown', k) }
   }, [openGroup])
 
-  // ── Nav group hover ────────────────────────────────────────────────────────
-  const handleGroupEnter = useCallback(id => { clearTimeout(closeTimer.current); setOpenGroup(id) }, [])
-  const handleGroupLeave = useCallback(() => { closeTimer.current = setTimeout(() => setOpenGroup(null), 150) }, [])
-  const toggleGroup      = useCallback(id => setOpenGroup(prev => (prev === id ? null : id)), [])
+  // ── Nav group — click-only, no hover auto-open ────────────────────────────
+  const toggleGroup = useCallback(id => setOpenGroup(prev => (prev === id ? null : id)), [])
 
   function isGroupActive(group) {
     return group.children.some(child =>
@@ -130,10 +127,7 @@ export default function AppTopbar({
       {navGroups && (
         <nav className="apptb__nav" ref={navRef} aria-label="Navigation principale">
           {navGroups.groups.map(group => (
-            <div key={group.id} className="apptb__nav-group"
-              onMouseEnter={() => handleGroupEnter(group.id)}
-              onMouseLeave={handleGroupLeave}
-            >
+            <div key={group.id} className="apptb__nav-group">
               <button
                 type="button"
                 className={[
@@ -158,7 +152,6 @@ export default function AppTopbar({
                   {group.children.map(item => (
                     <NavLink key={item.id} to={item.to} end={item.end} role="menuitem"
                       className={({ isActive }) => `apptb__nav-link${isActive ? ' apptb__nav-link--active' : ''}`}
-                      onClick={() => setOpenGroup(null)}
                     >
                       {item.label}
                       {item.notifKey && (badges[item.notifKey] ?? 0) > 0 && (

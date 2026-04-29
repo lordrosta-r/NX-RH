@@ -127,6 +127,11 @@ const userSchema = new Schema({
     },
   },
 
+  // Mis à true par le scheduler quand expiresAt est dans moins de 7 jours.
+  // Coordonnées optionnelles — présentes pour l'annuaire interne et l'anonymisation RGPD.
+  phone:  { type: String, trim: true, default: null, maxlength: 30 },
+  avatar: { type: String, default: null },  // chemin relatif vers UPLOADS_DIR
+
   // Mis à jour lors de la completion d'un offboarding
   archivedAt: { type: Date, default: null },
 
@@ -138,7 +143,7 @@ const userSchema = new Schema({
   offboardingDate:   { type: Date,   default: null },
   offboardingReason: { type: String, default: null, maxlength: 2000 },
 
-}, { timestamps: true })
+}, { timestamps: true, versionKey: false })
 
 // Index partiel unique sur ldapDn : seuls les vrais DN LDAP (strings) sont indexés.
 // partialFilterExpression est préférable à sparse:true car default:null cause

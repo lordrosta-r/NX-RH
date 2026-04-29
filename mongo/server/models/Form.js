@@ -75,7 +75,7 @@ const formSchema = new Schema({
 
   createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
 
-}, { timestamps: true })
+}, { timestamps: true, versionKey: false })
 
 // upward_feedback est toujours anonyme — pas d'exception possible
 formSchema.pre('save', function (next) {

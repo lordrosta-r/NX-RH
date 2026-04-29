@@ -1,0 +1,93 @@
+# =============================================================================
+# NanoXplore RH — Docker Compose (Preview mode)
+#
+# Lance MongoDB + Express API + Vite preview server (build statique) sur
+# le port 5252, exposable via VSCode port forwarding / dev tunnels.
+#
+# Usage:
+#   docker compose -f docker-compose.preview.yml up -d --build
+#   docker compose -f docker-compose.preview.yml logs -f
+#   docker compose -f docker-compose.preview.yml down
+# =============================================================================
+
+services:
+
+  # ── MongoDB ───────────────────────────────────────────────────────────────
+  mongo:
+    image: mongo:7
+    container_name: nx_mongo_preview
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:-root}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-changeme}
+      MONGO_INITDB_DATABASE: ${MONGO_DB:-nanoxplore_rh}
+    volumes:
+      - mongo_preview_data:/data/db
+    expose:
+      - "27017"
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # ── Express API ───────────────────────────────────────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: server
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      NODE_ENV: development
+    depends_on:
+      mongo:
+        condition: service_healthy
+    volumes:
+      - ./mongo/server:/app:delegated
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    networks:
+      - frontend
+      - backend
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  # ── Vite Preview server ───────────────────────────────────────────────────
+  # Build le client puis le sert en mode preview sur le port 5252.
+  # Proxy /api → app:3000 (configuré dans vite.config.js preview.proxy).
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: nx_client_preview
+    command: >
+      sh -c "npx vite build --outDir /app/dist --emptyOutDir &&
+             npx vite preview --outDir /app/dist"
+    environment:
+      VITE_API_TARGET: http://app:3000
+    ports:
+      - "5252:5252"
+    depends_on:
+      app:
+        condition: service_healthy
+    networks:
+      - frontend
+
+# ── Networks ────────────────────────────────────────────────────────────────
+networks:
+  frontend:   # client ↔ app
+  backend:    # app ↔ mongo (isolé)
+
+# ── Volumes ─────────────────────────────────────────────────────────────────
+volumes:
+  mongo_preview_data:

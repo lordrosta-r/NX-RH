@@ -87,25 +87,37 @@ html[data-theme="light"] .login-header__logo {
   margin-top:  -0.25rem;
 }
 
+/* Override du label "Se souvenir de moi" — même police que le reste du login */
+.login-utility .checkbox__label {
+  font-family: var(--font-family, 'Inter', sans-serif);
+  font-size:   0.8125rem;
+  font-weight: 400;
+  color:       var(--th-label-color, #a1a1aa);
+}
+
 /* ── Bouton connexion ── */
 .btn--login {
   width:          100%;
   padding:        0.8rem;
-  background:     #5b00df;
+  background:     var(--color-primary-container, #e50914);
   color:          #fff;
-  font-family:    inherit;
+  font-family:    var(--font-family, 'Inter', sans-serif);
   font-size:      0.875rem;
   font-weight:    700;
   letter-spacing: 0.02em;
   border:         none;
   border-radius:  4px;
   cursor:         pointer;
-  transition:     background 0.15s, transform 0.1s;
+  transition:     background 0.15s, transform 0.1s, box-shadow 0.15s;
   margin-top:     0.25rem;
+  box-shadow:     var(--shadow-cta);
 }
-.btn--login:hover:not(:disabled) { background: #4a00b8; }
+.btn--login:hover:not(:disabled) {
+  background: var(--color-primary, #b8000b);
+  box-shadow: var(--shadow-cta-hover);
+}
 .btn--login:active:not(:disabled) { transform: scale(0.98); }
-.btn--login:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn--login:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
 
 /* ── Footer de la card ── */
 .login-card__footer {

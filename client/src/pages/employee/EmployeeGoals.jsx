@@ -11,6 +11,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useTranslate } from '../../contexts/LocaleContext'
 import { t as pageT } from './i18n'
 import { Target, Edit2, X } from 'lucide-react'
+import { showToast } from '../../components/ui/Toast'
 import './employee-goals.css'
 
 const LOCKED_STATUSES = ['submitted', 'reviewed', 'signed_evaluatee', 'signed_manager', 'signed_hr', 'validated']
@@ -179,6 +180,7 @@ export default function EmployeeGoals() {
       }).then(r => { if (!r.ok) throw new Error('Sauvegarde échouée'); return r.json() })
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['my-evals-goals', user?._id] }),
+    onError: () => showToast({ message: 'Sauvegarde échouée', type: 'error' }),
   })
 
   function handleSaveProgress(goalId, pct) {

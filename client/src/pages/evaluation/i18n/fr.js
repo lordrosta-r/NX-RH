@@ -35,7 +35,7 @@ export default {
 
   // Form status (MongoDB statuses)
   'ev.status.assigned':         'Assigné',
-  'ev.status.inprogress':       'En cours',
+  'ev.status.in_progress':      'En cours',
   'ev.status.submitted':        'Soumis',
   'ev.status.reviewed':         'Examiné',
   'ev.status.signed_evaluatee': 'Signé (évaluataire)',

@@ -26,6 +26,7 @@ const VALID_TRANSITIONS = {
   signed_hr:       ['validated'],
   validated:       [],  // terminal
   expired:         [],  // terminal — positionné par le scheduler
+  archived:        [],  // terminal — évaluation annulée suite à un offboarding
 }
 
 // Transitions autorisées par rôle spécifique (hors admin)
@@ -55,7 +56,7 @@ const ROLE_TRANSITIONS = {
   },
 }
 
-const LOCKED_STATUSES = ['submitted', 'reviewed', 'signed_evaluatee', 'signed_manager', 'signed_hr', 'validated']
+const LOCKED_STATUSES = ['submitted', 'reviewed', 'signed_evaluatee', 'signed_manager', 'signed_hr', 'validated', 'archived']
 
 // Sous-schema d'une réponse — simple {questionId, value}
 const answerSchema = new Schema({
@@ -133,9 +134,7 @@ const evaluationSchema = new Schema({
     default: [],
   },
 
-}, { timestamps: true })
-
-// Compound unique index — empêche le doublon d'assignation
+}, { timestamps: true, versionKey: false })
 evaluationSchema.index(
   { campaignId: 1, formId: 1, evaluatorId: 1, evaluateeId: 1 },
   { unique: true }
@@ -159,8 +158,7 @@ evaluationSchema.post('init', function() {
 //     1. lastSavedAt est mis à jour (affiché côté client : "Dernière sauvegarde à 14h32")
 //     2. Si status est encore 'assigned', il passe automatiquement à 'in_progress'
 evaluationSchema.pre('save', function (next) {
-  const LOCKED = ['submitted', 'reviewed', 'signed_evaluatee', 'signed_manager', 'signed_hr', 'validated']
-  if (this._originalStatus && LOCKED.includes(this._originalStatus) && this.isModified('answers')) {
+  if (this._originalStatus && LOCKED_STATUSES.includes(this._originalStatus) && this.isModified('answers')) {
     return next(new Error('Answers locked after submission'))
   }
 

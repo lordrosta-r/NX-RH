@@ -13,6 +13,6 @@ const { Schema, model } = require('mongoose')
 const configSchema = new Schema({
   key:   { type: String, required: true, unique: true, trim: true },
   value: { type: Schema.Types.Mixed, default: null },
-}, { timestamps: true })
+}, { timestamps: true, versionKey: false })
 
 module.exports = model('Config', configSchema)

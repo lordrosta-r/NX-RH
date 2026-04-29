@@ -11,6 +11,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useTranslate } from '../../contexts/LocaleContext'
 import { t as pageT } from './i18n'
 import { Plus, ExternalLink, FileText, Book, Video, File, X } from 'lucide-react'
+import { showToast } from '../../components/ui/Toast'
 import './hr-resources.css'
 
 const RESOURCE_TYPES = ['guide', 'faq', 'template', 'video', 'pdf', 'xlsx', 'docx', 'pptx']
@@ -56,6 +57,7 @@ export default function HRResources() {
       setModalOpen(false)
       setForm({ ...emptyForm })
     },
+    onError: (err) => showToast({ message: err.message || 'Erreur lors de la création', type: 'error' }),
   })
 
   function handleSave(e) {

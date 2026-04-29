@@ -43,7 +43,7 @@ const resourceSchema = new Schema({
 
   createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
 
-}, { timestamps: true })
+}, { timestamps: true, versionKey: false })
 
 // Horodate la publication automatiquement
 resourceSchema.pre('save', function (next) {

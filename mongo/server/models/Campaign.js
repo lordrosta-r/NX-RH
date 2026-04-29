@@ -96,7 +96,7 @@ const campaignSchema = new Schema({
     _id: false,
   },
 
-}, { timestamps: true })
+}, { timestamps: true, versionKey: false })
 
 // Validation : la date de fin doit être après ou égale à la date de début
 campaignSchema.pre('save', function (next) {
@@ -107,5 +107,9 @@ campaignSchema.pre('save', function (next) {
 })
 
 campaignSchema.statics.VALID_TRANSITIONS = VALID_TRANSITIONS
+
+// Index sur createdBy (dashboard RH "mes campagnes") et sur les dates (scheduler)
+campaignSchema.index({ createdBy: 1 })
+campaignSchema.index({ startDate: 1, endDate: 1 })
 
 module.exports = { Campaign: model('Campaign', campaignSchema), VALID_TRANSITIONS }

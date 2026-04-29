@@ -9,7 +9,7 @@
 
 const mongoose = require('mongoose')
 const router   = require('express').Router()
-const { model: OffboardingRequest } = require('../models/OffboardingRequest')
+const { OffboardingRequest } = require('../models/OffboardingRequest')
 const User     = require('../models/User')
 const AuditLog = require('../models/AuditLog')
 

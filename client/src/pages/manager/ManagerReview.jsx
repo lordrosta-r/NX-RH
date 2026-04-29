@@ -9,6 +9,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../../contexts/AuthContext'
 import { useTranslate } from '../../contexts/LocaleContext'
 import { t as pageT } from './i18n'
+import { showToast } from '../../components/ui/Toast'
 import './manager.css'
 
 const RATINGS = ['achieved', 'partial', 'not_achieved']
@@ -22,6 +23,7 @@ export default function ManagerReview() {
 
   const [score, setScore] = useState('')
   const [reviewerComment, setReviewerComment] = useState('')
+  const [nextObjectives, setNextObjectives] = useState('')
   const [objectiveRatings, setObjectiveRatings] = useState({})
   const [successMsg, setSuccessMsg] = useState('')
 
@@ -39,6 +41,7 @@ export default function ManagerReview() {
     if (!evaluation) return
     setScore(evaluation.score ?? '')
     setReviewerComment(evaluation.reviewerComment ?? '')
+    setNextObjectives(evaluation.nextObjectives ?? '')
     if (evaluation.objectiveRatings) {
       setObjectiveRatings(evaluation.objectiveRatings)
     }
@@ -58,6 +61,7 @@ export default function ManagerReview() {
       setSuccessMsg('Enregistré avec succès')
       setTimeout(() => setSuccessMsg(''), 3000)
     },
+    onError: () => showToast({ message: t('manager.error.update_failed'), type: 'error' }),
   })
 
   if (isLoading) return <div className="mgr"><p className="mgr-loading">{t('manager.loading')}</p></div>
@@ -79,6 +83,7 @@ export default function ManagerReview() {
     const body = { status: actionStatus }
     if (score !== '' && score !== null) body.score = Number(score)
     if (reviewerComment) body.reviewerComment = reviewerComment
+    if (nextObjectives) body.nextObjectives = nextObjectives
     if (Object.keys(objectiveRatings).length > 0) body.objectiveRatings = objectiveRatings
     mutation.mutate(body)
   }
@@ -265,6 +270,8 @@ export default function ManagerReview() {
                 <textarea
                   id="mgr-next-obj"
                   rows={3}
+                  value={nextObjectives}
+                  onChange={e => setNextObjectives(e.target.value)}
                   placeholder="Objectifs à valider pour N+1…"
                 />
               </div>

@@ -20,6 +20,7 @@ export default function EvaluationLayout({
       {currentPhase !== null && (
         <div className="ev-layout__header">
           <button
+            type="button"
             className="ev-layout__back"
             onClick={() => navigate(`/evaluation/${evalId}`)}
           >

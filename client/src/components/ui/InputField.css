@@ -26,9 +26,19 @@
   color:            var(--th-input-color);
   padding:          1rem;
   font-size:        0.875rem;
-  font-family:      inherit;
+  font-family:      var(--font-family, 'Inter', sans-serif);
+  font-weight:      500;
   outline:          none;
   transition:       border-color 0.2s ease, color 0.2s;
+}
+
+/* Fix autofill WebKit — empêche Chrome de réécrire couleurs et fond */
+.input-field__input:-webkit-autofill,
+.input-field__input:-webkit-autofill:hover,
+.input-field__input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--th-input-color);
+  -webkit-box-shadow:      0 0 0 1000px var(--th-input-tray-focus) inset;
+  transition:              background-color 5000s ease-in-out 0s;
 }
 
 .input-field__input::placeholder {

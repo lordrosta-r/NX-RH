@@ -48,6 +48,20 @@ html[data-theme="dark"] {
   --th-on-surface:              var(--color-on-surface);
   --th-surface-container-low:   var(--color-surface-container-low);
   --th-surface-container:       var(--color-surface-container);
+
+  /* Topbar — dark (default) */
+  --apptb-bg:              #0d0f1a;
+  --apptb-border:          rgba(255, 255, 255, 0.06);
+  --apptb-text:            rgba(255, 255, 255, 0.55);
+  --apptb-text-active:     #ffffff;
+  --apptb-text-hover:      rgba(255, 255, 255, 0.90);
+  --apptb-hover-bg:        rgba(255, 255, 255, 0.06);
+  --apptb-active-bg:       rgba(255, 255, 255, 0.08);
+  --apptb-icon:            rgba(255, 255, 255, 0.60);
+  --apptb-icon-hover-bg:   rgba(255, 255, 255, 0.08);
+  --apptb-sep:             rgba(255, 255, 255, 0.12);
+  --apptb-notif-border:    rgba(255, 255, 255, 0.06);
+  --apptb-hamburger:       rgba(255, 255, 255, 0.75);
 }
 
 /* ── Light (sovereign white — "layers of fine paper") ───────────────────── */
@@ -94,9 +108,24 @@ html[data-theme="light"] {
   --th-controls-divider:  rgba(28, 27, 27, 0.10);
 
   --th-hero-gradient: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary, var(--color-primary)) 100%);
+
+  /* Topbar — light */
+  --color-topbar-bg:       #ffffff;
+  --apptb-bg:              #ffffff;
+  --apptb-border:          rgba(28, 27, 27, 0.08);
+  --apptb-text:            rgba(28, 27, 27, 0.55);
+  --apptb-text-active:     #1c1b1b;
+  --apptb-text-hover:      rgba(28, 27, 27, 0.90);
+  --apptb-hover-bg:        rgba(28, 27, 27, 0.05);
+  --apptb-active-bg:       rgba(28, 27, 27, 0.07);
+  --apptb-icon:            rgba(28, 27, 27, 0.50);
+  --apptb-icon-hover-bg:   rgba(28, 27, 27, 0.07);
+  --apptb-sep:             rgba(28, 27, 27, 0.12);
+  --apptb-notif-border:    rgba(28, 27, 27, 0.10);
+  --apptb-hamburger:       rgba(28, 27, 27, 0.75);
 }
 
-/* ── Light-sidebar theme — white content area + light `#f6f3f2` sidebar ─────
+/* ── Light-sidebar theme— white content area + light `#f6f3f2` sidebar ─────
    Third theme: fond blanc, sidebar claire. Sidebar tokens overridden here.  */
 html[data-theme="light-sidebar"] {
   --color-sidebar:            #f6f3f2;
@@ -149,6 +178,20 @@ html[data-theme="light-sidebar"] {
   --th-controls-divider:  rgba(28, 27, 27, 0.10);
 
   --th-hero-gradient: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary, var(--color-primary)) 100%);
+
+  /* Topbar — même que light */
+  --apptb-bg:              #ffffff;
+  --apptb-border:          rgba(28, 27, 27, 0.08);
+  --apptb-text:            rgba(28, 27, 27, 0.55);
+  --apptb-text-active:     #1c1b1b;
+  --apptb-text-hover:      rgba(28, 27, 27, 0.90);
+  --apptb-hover-bg:        rgba(28, 27, 27, 0.05);
+  --apptb-active-bg:       rgba(28, 27, 27, 0.07);
+  --apptb-icon:            rgba(28, 27, 27, 0.50);
+  --apptb-icon-hover-bg:   rgba(28, 27, 27, 0.07);
+  --apptb-sep:             rgba(28, 27, 27, 0.12);
+  --apptb-notif-border:    rgba(28, 27, 27, 0.10);
+  --apptb-hamburger:       rgba(28, 27, 27, 0.75);
 }
 
 /* ── Inner app dark mode — overrides --color-* surface tokens ───────────────

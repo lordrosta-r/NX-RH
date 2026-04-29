@@ -6,7 +6,7 @@
 import React from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClient, QueryClientProvider, QueryCache } from '@tanstack/react-query'
 import App from './App'
 import { AuthProvider }  from './contexts/AuthContext'
 import { ThemeProvider } from './contexts/ThemeContext'
@@ -16,11 +16,19 @@ import './styles/global.css'
 
 // ── React-Query client ──────────────────────────────────────
 const queryClient = new QueryClient({
+  queryCache: new QueryCache({
+    onError: (error) => {
+      if (error?.status === 401) window.location.href = '/login'
+    },
+  }),
   defaultOptions: {
     queries: {
       staleTime:            5 * 60 * 1000, // 5 min
       gcTime:              10 * 60 * 1000, // 10 min
-      retry:                1,
+      retry: (failureCount, error) => {
+        if (error?.status === 401) return false
+        return failureCount < 1
+      },
       refetchOnWindowFocus: false,
     },
   },

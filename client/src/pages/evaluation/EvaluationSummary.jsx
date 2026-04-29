@@ -9,7 +9,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Check, ChevronRight, Lock } from 'lucide-react'
 import EvaluationLayout from './EvaluationLayout'
 import { t as pageT } from './i18n'
-import { useLocale } from '../../hooks/useLocale'
+import { useTranslate } from '../../contexts/LocaleContext'
 import './evaluation.css'
 
 const PHASES = [
@@ -81,7 +81,7 @@ const STATUS_LABELS = {
 export default function EvaluationSummary() {
   const { evalId } = useParams()
   const navigate   = useNavigate()
-  const { t }      = useLocale(pageT)
+  const t          = useTranslate(pageT)
 
   const { data: evaluation, isLoading, error } = useQuery({
     queryKey: ['eval', evalId],
@@ -231,6 +231,7 @@ export default function EvaluationSummary() {
 
                   {!isSignLocked && (
                     <button
+                      type="button"
                       className={`ev-phase-row__cta${isDone ? ' ev-phase-row__cta--ghost' : ''}`}
                       onClick={() => navigate(`/evaluation/${evalId}/${phase.path}`)}
                     >

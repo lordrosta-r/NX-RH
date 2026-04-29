@@ -31,10 +31,12 @@ async function connect() {
 
 // Libère la connexion proprement à l'arrêt du process (SIGINT = Ctrl+C, SIGTERM = Docker stop)
 function gracefulShutdown(signal) {
-  mongoose.connection.close(() => {
-    console.log(`[DB] Connexion fermée (${signal})`)
-    process.exit(0)
-  })
+  mongoose.connection.close()
+    .then(() => {
+      console.log(`[DB] Connexion fermée (${signal})`)
+      process.exit(0)
+    })
+    .catch(() => process.exit(1))
 }
 
 process.on('SIGINT',  () => gracefulShutdown('SIGINT'))

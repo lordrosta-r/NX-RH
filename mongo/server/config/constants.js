@@ -55,6 +55,7 @@ const CAMPAIGN_STATUSES   = ['draft', 'active', 'closed', 'archived']
 const EVALUATION_STATUSES = [
   'assigned', 'in_progress', 'submitted', 'reviewed',
   'signed_evaluatee', 'signed_manager', 'signed_hr', 'validated', 'expired',
+  'archived',   // terminal — évaluation annulée suite à un offboarding
 ]
 
 const AUTH_SOURCES = ['local', 'ldap']

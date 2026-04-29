@@ -18,7 +18,7 @@ export default function AuthedLayout() {
   const { locale, setLocale } = useLocaleCtx()
   const badges = useNotifBadges()
 
-  const navGroups = getNavMenuForRole(user?.role)
+  const navGroups = getNavMenuForRole(user?.role, locale)
 
   return (
     <div className="db-toponly">

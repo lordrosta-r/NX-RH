@@ -291,7 +291,7 @@ export default function HRDirectory() {
     const q = search.toLowerCase()
     return users.filter(u => {
       const matchSearch = !q
-        || u.name?.toLowerCase().includes(q)
+        || [u.firstName, u.lastName].filter(Boolean).join(' ').toLowerCase().includes(q)
         || u.email?.toLowerCase().includes(q)
         || u.department?.toLowerCase().includes(q)
       const matchRole = roleFilter === 'all' || u.role === roleFilter
@@ -411,8 +411,8 @@ export default function HRDirectory() {
                     onKeyDown={e => e.key === 'Enter' && setSelectedUser(u)}
                   >
                     <td className="hrd-table__name">
-                      <Avatar name={u.name} />
-                      <span>{u.name || '—'}</span>
+                      <Avatar name={[u.firstName, u.lastName].filter(Boolean).join(' ')} />
+                      <span>{[u.firstName, u.lastName].filter(Boolean).join(' ') || '—'}</span>
                     </td>
                     <td className="hrd-table__email">{u.email || '—'}</td>
                     <td>{u.position || '—'}</td>

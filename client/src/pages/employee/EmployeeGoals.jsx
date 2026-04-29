@@ -168,10 +168,15 @@ export default function EmployeeGoals() {
   }, [activeEval])
 
   const { mutate: patchProgress } = useMutation({
-    mutationFn: ({ goalId, pct }) => {
+    mutationFn: ({ goalId, pct, comment }) => {
       const qid      = `obj_progress_${goalId}`
+      const cid      = `obj_comment_${goalId}`
       const existing = activeEval?.answers || []
-      const updated  = [...existing.filter(a => a.questionId !== qid), { questionId: qid, value: pct }]
+      const updated  = [
+        ...existing.filter(a => a.questionId !== qid && a.questionId !== cid),
+        { questionId: qid, value: pct },
+        ...(comment?.trim() ? [{ questionId: cid, value: comment.trim() }] : []),
+      ]
       return fetch(`/api/evaluations/${activeEval._id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -183,9 +188,9 @@ export default function EmployeeGoals() {
     onError: () => showToast({ message: 'Sauvegarde échouée', type: 'error' }),
   })
 
-  function handleSaveProgress(goalId, pct) {
+  function handleSaveProgress(goalId, pct, comment) {
     setLocalProgress(prev => ({ ...prev, [goalId]: pct }))
-    if (!isLocked && activeEval?._id) patchProgress({ goalId, pct })
+    if (!isLocked && activeEval?._id) patchProgress({ goalId, pct, comment })
   }
 
   // KPIs globaux

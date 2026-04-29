@@ -2,10 +2,11 @@
 // navMenuConfig — Grouped topbar nav per role.
 // Each role has `groups` (dropdown menus) and `direct` (bare links).
 //
-// Group shape:  { id, label, notifKey?, children: [{ id, to, label, end?, notifKey? }] }
-// Direct shape: { id, to, label, end? }
+// Group shape:  { id, labels, notifKey?, children: [{ id, to, labels, end?, notifKey? }] }
+// Direct shape: { id, to, labels, end? }
 //
 // `notifKey` references a key in the badges object from useNotifBadges().
+// `labels` is a { fr, en } object — resolved to a string by getNavMenuForRole(role, locale).
 // =============================================================================
 
 const NAV_MENU = {
@@ -13,16 +14,16 @@ const NAV_MENU = {
     groups: [
       {
         id: 'mon-espace',
-        label: 'Mon espace',
+        labels: { fr: 'Mon espace',  en: 'My Space' },
         children: [
-          { id: 'dashboard', to: '/employee',         label: 'Dashboard',   end: true },
-          { id: 'goals',     to: '/employee/goals',   label: 'Objectifs' },
-          { id: 'history',   to: '/employee/history', label: 'Historique' },
+          { id: 'dashboard', to: '/employee',         labels: { fr: 'Dashboard',  en: 'Dashboard' }, end: true },
+          { id: 'goals',     to: '/employee/goals',   labels: { fr: 'Objectifs',  en: 'Goals'     } },
+          { id: 'history',   to: '/employee/history', labels: { fr: 'Historique', en: 'History'   } },
         ],
       },
     ],
     direct: [
-      { id: 'settings', to: '/employee/settings', label: 'Préférences' },
+      { id: 'settings', to: '/employee/settings', labels: { fr: 'Préférences', en: 'Preferences' } },
     ],
   },
 
@@ -30,18 +31,18 @@ const NAV_MENU = {
     groups: [
       {
         id: 'mon-equipe',
-        label: 'Mon équipe',
+        labels: { fr: 'Mon équipe', en: 'My Team' },
         children: [
-          { id: 'dashboard', to: '/manager',          label: 'Tableau de bord', end: true },
-          { id: 'team',      to: '/manager/team',     label: 'Équipe' },
-          { id: 'history',   to: '/manager/history',  label: 'Historique' },
+          { id: 'dashboard', to: '/manager',          labels: { fr: 'Tableau de bord', en: 'Dashboard' }, end: true },
+          { id: 'team',      to: '/manager/team',     labels: { fr: 'Équipe',          en: 'Team'      } },
+          { id: 'history',   to: '/manager/history',  labels: { fr: 'Historique',      en: 'History'   } },
         ],
       },
       {
         id: 'pilotage',
-        label: 'Pilotage',
+        labels: { fr: 'Pilotage', en: 'Analytics' },
         children: [
-          { id: 'analytics', to: '/manager/analytics', label: 'Analytique' },
+          { id: 'analytics', to: '/manager/analytics', labels: { fr: 'Analytique', en: 'Analytics' } },
         ],
       },
     ],
@@ -52,39 +53,40 @@ const NAV_MENU = {
     groups: [
       {
         id: 'campagnes',
-        label: 'Campagnes',
+        labels: { fr: 'Campagnes', en: 'Campaigns' },
         children: [
-          { id: 'campaigns', to: '/hr/campaigns', label: 'Campagnes' },
-          { id: 'templates', to: '/hr/templates', label: 'Modèles' },
+          { id: 'campaigns', to: '/hr/campaigns', labels: { fr: 'Campagnes', en: 'Campaigns' } },
+          { id: 'templates', to: '/hr/templates', labels: { fr: 'Modèles',   en: 'Templates' } },
         ],
       },
       {
         id: 'collaborateurs',
-        label: 'Collaborateurs',
+        labels: { fr: 'Collaborateurs', en: 'People' },
         notifKey: 'requests',
         children: [
-          { id: 'directory',   to: '/hr/directory',   label: 'Annuaire' },
-          { id: 'requests',    to: '/hr/requests',    label: 'Demandes', notifKey: 'requests' },
-          { id: 'offboarding', to: '/hr/offboarding', label: 'Départs' },
+          { id: 'directory',   to: '/hr/directory',   labels: { fr: 'Annuaire', en: 'Directory'   } },
+          { id: 'requests',    to: '/hr/requests',    labels: { fr: 'Demandes', en: 'Requests'    }, notifKey: 'requests' },
+          { id: 'offboarding', to: '/hr/offboarding', labels: { fr: 'Départs',  en: 'Offboarding' } },
         ],
       },
       {
         id: 'analytique',
-        label: 'Analytique',
+        labels: { fr: 'Analytique', en: 'Analytics' },
         children: [
-          { id: 'analytics', to: '/hr/analytics', label: 'Analytique' },
+          { id: 'analytics', to: '/hr/analytics', labels: { fr: 'Analytique',    en: 'Analytics'  } },
+          { id: 'audit',     to: '/admin/audit',  labels: { fr: 'Piste d\'audit', en: 'Audit Log' } },
         ],
       },
       {
         id: 'ressources',
-        label: 'Ressources',
+        labels: { fr: 'Ressources', en: 'Resources' },
         children: [
-          { id: 'resources', to: '/hr/resources', label: 'Ressources' },
+          { id: 'resources', to: '/hr/resources', labels: { fr: 'Ressources', en: 'Resources' } },
         ],
       },
     ],
     direct: [
-      { id: 'settings', to: '/hr/settings', label: 'Paramètres' },
+      { id: 'settings', to: '/hr/settings', labels: { fr: 'Paramètres', en: 'Settings' } },
     ],
   },
 
@@ -92,35 +94,36 @@ const NAV_MENU = {
     groups: [
       {
         id: 'utilisateurs',
-        label: 'Utilisateurs',
+        labels: { fr: 'Utilisateurs', en: 'Users' },
         children: [
-          { id: 'users',     to: '/admin/users',     label: 'Utilisateurs' },
-          { id: 'org-chart', to: '/admin/org-chart', label: 'Organigramme' },
+          { id: 'users',     to: '/admin/users',     labels: { fr: 'Utilisateurs', en: 'Users'     } },
+          { id: 'org-chart', to: '/admin/org-chart', labels: { fr: 'Organigramme', en: 'Org Chart' } },
         ],
       },
       {
         id: 'configuration',
-        label: 'Configuration',
+        labels: { fr: 'Configuration', en: 'Configuration' },
         children: [
-          { id: 'roles',        to: '/admin/roles',        label: 'Rôles & accès' },
-          { id: 'integrations', to: '/admin/integrations', label: 'Intégrations' },
-          { id: 'security',     to: '/admin/security',     label: 'Sécurité' },
+          { id: 'roles',        to: '/admin/roles',        labels: { fr: 'Rôles & accès', en: 'Roles & Access' } },
+          { id: 'integrations', to: '/admin/integrations', labels: { fr: 'Intégrations',  en: 'Integrations'   } },
+          { id: 'security',     to: '/admin/security',     labels: { fr: 'Sécurité',      en: 'Security'       } },
         ],
       },
       {
         id: 'communications',
-        label: 'Communications',
+        labels: { fr: 'Communications', en: 'Communications' },
         children: [
-          { id: 'communications', to: '/admin/communications', label: 'Communications' },
-          { id: 'compliance',     to: '/admin/compliance',     label: 'Conformité' },
+          { id: 'communications', to: '/admin/communications', labels: { fr: 'Communications', en: 'Communications' } },
+          { id: 'compliance',     to: '/admin/compliance',     labels: { fr: 'Conformité',     en: 'Compliance'     } },
+          { id: 'audit',          to: '/admin/audit',          labels: { fr: 'Piste d\'audit', en: 'Audit Log'      } },
         ],
       },
       {
         id: 'systeme',
-        label: 'Système',
+        labels: { fr: 'Système', en: 'System' },
         children: [
-          { id: 'sandbox',  to: '/admin/sandbox',  label: 'Bac à sable' },
-          { id: 'settings', to: '/admin/settings', label: 'Paramètres' },
+          { id: 'sandbox',  to: '/admin/sandbox',  labels: { fr: 'Bac à sable', en: 'Sandbox'  } },
+          { id: 'settings', to: '/admin/settings', labels: { fr: 'Paramètres',  en: 'Settings' } },
         ],
       },
     ],
@@ -128,7 +131,24 @@ const NAV_MENU = {
   },
 }
 
-export function getNavMenuForRole(role) {
+function resolveLabels(menu, locale) {
+  return {
+    groups: menu.groups.map(g => ({
+      ...g,
+      label: g.labels?.[locale] ?? g.labels?.fr ?? '',
+      children: g.children.map(c => ({
+        ...c,
+        label: c.labels?.[locale] ?? c.labels?.fr ?? '',
+      })),
+    })),
+    direct: menu.direct.map(d => ({
+      ...d,
+      label: d.labels?.[locale] ?? d.labels?.fr ?? '',
+    })),
+  }
+}
+
+export function getNavMenuForRole(role, locale = 'fr') {
   const resolved = role === 'director' ? 'manager' : role
-  return NAV_MENU[resolved] ?? { groups: [], direct: [] }
+  return resolveLabels(NAV_MENU[resolved] ?? { groups: [], direct: [] }, locale)
 }

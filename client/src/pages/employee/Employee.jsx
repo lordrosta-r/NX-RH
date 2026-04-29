@@ -81,7 +81,10 @@ function OnboardingBanner({ userId, onboarding, t }) {
   if (!onboarding || onboarding.completed) return null
   const steps = onboarding.steps ?? []
   const hasIncomplete = steps.some(s => !s.done)
-  if (!hasIncomplete && !onboarding.completed) return null
+  // BUG EMP-01 fix: ne pas masquer la bannière quand toutes les étapes sont cochées
+  // mais que l'onboarding n'est pas encore marqué comme terminé — c'est précisément
+  // le moment où le bouton "Terminer l'onboarding" doit être affiché.
+  if (!steps.length && !hasIncomplete) return null
 
   const allDone = steps.every(s => s.done)
 
@@ -229,11 +232,6 @@ export default function Employee() {
 
   return (
     <>
-      {/* ── Bandeau onboarding ─────────────────────────────────────────────── */}
-      {user && !user.onboarding?.completed && (
-        <OnboardingBanner userId={user._id} onboarding={user.onboarding} t={t} />
-      )}
-
       {/* ── Bannière hero ─────────────────────────────────────────────────── */}
       <div className="db-banner-wrap">
         <CampaignBanner

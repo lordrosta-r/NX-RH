@@ -42,13 +42,17 @@ export default function ManagerTeamMember() {
     enabled: !!userId && !!authUser,
   })
 
-  const currentEval = evals.find(e =>
-    ['assigned', 'in_progress', 'submitted', 'signed_evaluatee', 'reviewed'].includes(e.status)
-  )
+  const currentEval = evals.find(e => {
+    const evId = e.evaluateeId?._id?.toString() ?? e.evaluateeId?.toString()
+    return evId === userId &&
+      ['assigned', 'in_progress', 'submitted', 'signed_evaluatee', 'reviewed'].includes(e.status)
+  })
 
-  const historyEvals = evals.filter(e =>
-    ['signed_manager', 'signed_hr', 'validated'].includes(e.status)
-  )
+  const historyEvals = evals.filter(e => {
+    const evId = e.evaluateeId?._id?.toString() ?? e.evaluateeId?.toString()
+    return evId === userId &&
+      ['signed_manager', 'signed_hr', 'validated'].includes(e.status)
+  })
 
   const isLoading = memberLoading || evalsLoading
 

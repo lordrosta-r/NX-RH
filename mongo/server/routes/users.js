@@ -83,9 +83,13 @@ router.get('/:id', async (req, res, next) => {
       }
     }
     // director, admin, hr : accès complet
-    // employee : seulement lui-même
+    // employee : seulement lui-même ou son manager direct (pour afficher le nom dans les paramètres)
     if (req.user.role === 'employee' && req.user.id !== req.params.id) {
-      return res.status(403).json({ error: 'Insufficient permissions' })
+      const self = await User.findById(req.user.id, 'managerId').lean()
+      const isDirectManager = self?.managerId?.toString() === req.params.id
+      if (!isDirectManager) {
+        return res.status(403).json({ error: 'Insufficient permissions' })
+      }
     }
 
     res.json(user)

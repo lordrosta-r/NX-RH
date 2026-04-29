@@ -27,6 +27,9 @@ export default function ManagerReview() {
   const [objectiveRatings, setObjectiveRatings] = useState({})
   const [successMsg, setSuccessMsg] = useState('')
 
+  // Statuts où le manager ne peut plus modifier ses notes
+  const LOCKED_FOR_MANAGER = ['signed_manager', 'signed_hr', 'validated', 'expired', 'archived']
+
   const { data: evaluation, isLoading, isError } = useQuery({
     queryKey: ['eval-detail', evalId],
     queryFn: () =>
@@ -70,6 +73,7 @@ export default function ManagerReview() {
   const status = evaluation.status
   const answers = evaluation.answers ?? []
   const questions = evaluation.formId?.questions ?? []
+  const isEditable = !LOCKED_FOR_MANAGER.includes(status)
 
   const answersByPhase = (phase) => answers.filter(a => a.phase === phase)
   const objectives = answers.filter(a => a.phase === 'objectives')
@@ -79,6 +83,18 @@ export default function ManagerReview() {
     setObjectiveRatings(prev => ({ ...prev, [key]: value }))
   }
 
+  // Sauvegarde des notes manager SANS changer le statut (brouillon)
+  function handleSaveDraft() {
+    const body = {}
+    if (score !== '' && score !== null) body.score = Number(score)
+    if (reviewerComment) body.reviewerComment = reviewerComment
+    if (nextObjectives) body.nextObjectives = nextObjectives
+    if (Object.keys(objectiveRatings).length > 0) body.objectiveRatings = objectiveRatings
+    if (Object.keys(body).length === 0) return
+    mutation.mutate(body)
+  }
+
+  // Transition de statut + sauvegarde des notes
   function handleSubmit(actionStatus) {
     const body = { status: actionStatus }
     if (score !== '' && score !== null) body.score = Number(score)
@@ -203,6 +219,12 @@ export default function ManagerReview() {
           <div className="mgr-panel">
             <h2 className="mgr-panel__title">{t('manager.review.manager_panel')}</h2>
 
+            {!isEditable && (
+              <p style={{ fontSize: '0.8125rem', color: 'var(--color-on-surface-variant)', marginBottom: '1rem', fontStyle: 'italic' }}>
+                {t(`manager.eval_status.${status}`) || status} — lecture seule
+              </p>
+            )}
+
             {/* Objectives evaluation */}
             {objectives.length > 0 && (
               <div className="mgr-panel__section">
@@ -220,6 +242,7 @@ export default function ManagerReview() {
                         <select
                           value={objectiveRatings[key] ?? ''}
                           onChange={e => handleRatingChange(key, e.target.value)}
+                          disabled={!isEditable}
                         >
                           <option value="">—</option>
                           {RATINGS.map(r => (
@@ -245,6 +268,7 @@ export default function ManagerReview() {
                   value={score}
                   onChange={e => setScore(e.target.value)}
                   placeholder="0 – 100"
+                  disabled={!isEditable}
                 />
               </div>
             </div>
@@ -259,6 +283,7 @@ export default function ManagerReview() {
                   maxLength={5000}
                   value={reviewerComment}
                   onChange={e => setReviewerComment(e.target.value)}
+                  disabled={!isEditable}
                 />
               </div>
             </div>
@@ -273,6 +298,7 @@ export default function ManagerReview() {
                   value={nextObjectives}
                   onChange={e => setNextObjectives(e.target.value)}
                   placeholder="Objectifs à valider pour N+1…"
+                  disabled={!isEditable}
                 />
               </div>
             </div>
@@ -287,27 +313,29 @@ export default function ManagerReview() {
               <p className="mgr-error">{t('manager.error.update_failed')}</p>
             )}
 
-            {/* Action buttons */}
-            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-              <button
-                type="button"
-                className="mgr-btn mgr-btn--ghost"
-                onClick={() => handleSubmit(evaluation.status)}
-                disabled={mutation.isPending}
-              >
-                {t('manager.review.save_draft')}
-              </button>
-              {['submitted', 'signed_evaluatee'].includes(status) && (
+            {/* Action buttons — masqués si lecture seule */}
+            {isEditable && (
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                 <button
                   type="button"
-                  className="mgr-btn mgr-btn--primary"
-                  onClick={() => handleSubmit(submitStatus)}
+                  className="mgr-btn mgr-btn--ghost"
+                  onClick={handleSaveDraft}
                   disabled={mutation.isPending}
                 >
-                  {submitLabel}
+                  {t('manager.review.save_draft')}
                 </button>
-              )}
-            </div>
+                {['submitted', 'signed_evaluatee'].includes(status) && (
+                  <button
+                    type="button"
+                    className="mgr-btn mgr-btn--primary"
+                    onClick={() => handleSubmit(submitStatus)}
+                    disabled={mutation.isPending}
+                  >
+                    {submitLabel}
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         </div>
 

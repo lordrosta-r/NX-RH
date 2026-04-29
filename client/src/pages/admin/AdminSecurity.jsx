@@ -29,9 +29,9 @@ export default function AdminSecurity() {
   const { data: logs = [] } = useQuery({
     queryKey: ['admin-audit-logs'],
     queryFn: () =>
-      fetch('/api/audit-logs', { credentials: 'include' })
-        .then(r => r.ok ? r.json() : [])
-        .then(d => Array.isArray(d) ? d : (d.logs || []))
+      fetch('/api/admin/audit?limit=100', { credentials: 'include' })
+        .then(r => r.ok ? r.json() : { data: [] })
+        .then(d => Array.isArray(d) ? d : (d.data || []))
         .catch(() => []),
     enabled: !!user && user.role === 'admin',
     staleTime: 60 * 1000,
@@ -49,14 +49,21 @@ export default function AdminSecurity() {
 
   const filtered = useMemo(() => {
     let result = logs
-    if (filterType)  result = result.filter(l => l.type === filterType)
-    if (filterUser)  result = result.filter(l => l.user?.toLowerCase().includes(filterUser.toLowerCase()))
-    if (filterFrom)  result = result.filter(l => new Date(l.date) >= new Date(filterFrom))
-    if (filterTo)    result = result.filter(l => new Date(l.date) <= new Date(filterTo))
+    if (filterType)  result = result.filter(l => l.targetType === filterType)
+    if (filterUser) {
+      const q = filterUser.toLowerCase()
+      result = result.filter(l => {
+        const u = l.userId
+        if (!u) return false
+        return `${u.firstName ?? ''} ${u.lastName ?? ''}`.toLowerCase().includes(q)
+      })
+    }
+    if (filterFrom)  result = result.filter(l => new Date(l.createdAt) >= new Date(filterFrom))
+    if (filterTo)    result = result.filter(l => new Date(l.createdAt) <= new Date(filterTo))
     return result
   }, [logs, filterType, filterUser, filterFrom, filterTo])
 
-  const actionTypes = useMemo(() => [...new Set(logs.map(l => l.type).filter(Boolean))], [logs])
+  const actionTypes = useMemo(() => [...new Set(logs.map(l => l.targetType).filter(Boolean))], [logs])
 
   const selectedUserObj = useMemo(
     () => users.find(u => (u._id || u.id) === impersonateUser),
@@ -138,7 +145,7 @@ export default function AdminSecurity() {
                 <th>{t('admin.security.audit.col.type')}</th>
                 <th>{t('admin.security.audit.col.action')}</th>
                 <th>{t('admin.security.audit.col.user')}</th>
-                <th>{t('admin.security.audit.col.ip')}</th>
+                <th>{t('admin.security.audit.col.role')}</th>
                 <th>{t('admin.security.audit.col.date')}</th>
               </tr>
             </thead>
@@ -148,15 +155,21 @@ export default function AdminSecurity() {
                   <td colSpan={5} className="adm-empty">{t('admin.security.audit.empty')}</td>
                 </tr>
               ) : (
-                filtered.map((log, i) => (
-                  <tr key={log._id || log.id || i}>
-                    <td>{log.type || t('admin.na')}</td>
-                    <td>{log.action || t('admin.na')}</td>
-                    <td>{log.user || t('admin.na')}</td>
-                    <td>{log.ip || t('admin.na')}</td>
-                    <td>{log.date ? new Date(log.date).toLocaleString() : t('admin.na')}</td>
-                  </tr>
-                ))
+                filtered.map((log, i) => {
+                  const u = log.userId
+                  const userName = u
+                    ? `${u.firstName ?? ''} ${u.lastName ?? ''}`.trim() || t('admin.na')
+                    : t('admin.na')
+                  return (
+                    <tr key={log._id || i}>
+                      <td>{log.targetType || t('admin.na')}</td>
+                      <td>{log.action || t('admin.na')}</td>
+                      <td>{userName}</td>
+                      <td>{log.userRole || u?.role || t('admin.na')}</td>
+                      <td>{log.createdAt ? new Date(log.createdAt).toLocaleString() : t('admin.na')}</td>
+                    </tr>
+                  )
+                })
               )}
             </tbody>
           </table>

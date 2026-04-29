@@ -102,7 +102,7 @@ export default function AdminAudit() {
     queryFn: () =>
       fetch(buildUrl(filters, page), { credentials: 'include' })
         .then(r => { if (!r.ok) throw new Error('fetch_failed'); return r.json() }),
-    keepPreviousData: true,
+    placeholderData: (prev) => prev,
   })
 
   const total   = data?.total ?? 0

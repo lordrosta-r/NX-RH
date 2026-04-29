@@ -596,7 +596,7 @@
 .ev-scale__lbl {
   font-size: 0.6875rem;
   font-weight: 700;
-  color: #525252;
+  color: var(--color-on-surface-variant);
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
@@ -649,7 +649,7 @@
 .ev-slider__val {
   font-size: 1.125rem;
   font-weight: 900;
-  color: #0a0a0a;
+  color: var(--color-on-surface);
   min-width: 3.5rem;
   text-align: right;
   letter-spacing: -0.03em;
@@ -1020,7 +1020,7 @@
   gap: 0.375rem;
   font-size: 0.8125rem;
   font-weight: 500;
-  color: #737373;
+  color: var(--color-on-surface-variant);
   background: none;
   border: none;
   cursor: pointer;
@@ -1036,8 +1036,8 @@
 .ev-hero {
   position: relative;
   overflow: hidden;
-  background: #fff;
-  border: 1px solid #f0f0f0;
+  background: var(--color-surface-container-lowest);
+  border: 1px solid var(--color-outline-variant);
   border-radius: var(--radius-md);
   padding: 2.5rem 3rem;
   display: flex;
@@ -1058,7 +1058,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.2em;
-  color: #a3a3a3;
+  color: var(--color-on-surface-variant);
   margin: 0 0 0.5rem;
 }
 
@@ -1066,7 +1066,7 @@
   font-size: clamp(2rem, 3.5vw, 3rem);
   font-weight: 900;
   letter-spacing: -0.04em;
-  color: #0a0a0a;
+  color: var(--color-on-surface);
   line-height: 1.05;
   margin: 0 0 0.75rem;
 }
@@ -1075,7 +1075,7 @@
 
 .ev-hero__sub {
   font-size: 0.9375rem;
-  color: #737373;
+  color: var(--color-on-surface-variant);
   max-width: 440px;
   line-height: 1.6;
   margin: 0 0 1.25rem;
@@ -1125,7 +1125,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.2em;
-  color: #a3a3a3;
+  color: var(--color-on-surface-variant);
   margin: 0 0 0.35rem;
 }
 
@@ -1133,7 +1133,7 @@
   font-size: clamp(1.75rem, 3vw, 2.25rem);
   font-weight: 900;
   letter-spacing: -0.04em;
-  color: #0a0a0a;
+  color: var(--color-on-surface);
   margin: 0;
   line-height: 1.1;
 }
@@ -1149,8 +1149,8 @@
   text-transform: uppercase;
   letter-spacing: 0.1em;
   background: #f5f5f5;
-  color: #525252;
-  border: 1px solid #e5e5e5;
+  color: var(--color-on-surface-variant);
+  border: 1px solid var(--color-outline-variant);
   white-space: nowrap;
   flex-shrink: 0;
 }
@@ -1181,8 +1181,8 @@
 
 /* KPI score */
 .ev-sum-kpi {
-  background: #fff;
-  border: 1px solid #e5e5e5;
+  background: var(--color-surface-container-lowest);
+  border: 1px solid var(--color-outline-variant);
   border-radius: var(--radius-md);
   padding: 1.5rem;
 }
@@ -1198,13 +1198,13 @@
   font-size: 2.75rem;
   font-weight: 900;
   letter-spacing: -0.06em;
-  color: #0a0a0a;
+  color: var(--color-on-surface);
   line-height: 1;
 }
 
 .ev-sum-kpi__sub {
   font-size: 0.75rem;
-  color: #737373;
+  color: var(--color-on-surface-variant);
   font-weight: 500;
 }
 
@@ -1239,8 +1239,8 @@
 
 /* Métadonnées */
 .ev-sum-meta {
-  background: #fff;
-  border: 1px solid #e5e5e5;
+  background: var(--color-surface-container-lowest);
+  border: 1px solid var(--color-outline-variant);
   border-radius: var(--radius-md);
   padding: 1rem 1.25rem;
   margin: 0;
@@ -1257,22 +1257,22 @@
 
 .ev-sum-meta__row dt {
   font-size: 0.75rem;
-  color: #a3a3a3;
+  color: var(--color-on-surface-variant);
   font-weight: 500;
 }
 
 .ev-sum-meta__row dd {
   font-size: 0.75rem;
   font-weight: 700;
-  color: #0a0a0a;
+  color: var(--color-on-surface);
   margin: 0;
   text-align: right;
 }
 
 /* ── Colonne droite ──────────────────────────────────────────────────────────── */
 .ev-sum-main {
-  background: #fff;
-  border: 1px solid #e5e5e5;
+  background: var(--color-surface-container-lowest);
+  border: 1px solid var(--color-outline-variant);
   border-radius: var(--radius-md);
   overflow: hidden;
 }
@@ -1282,7 +1282,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.2em;
-  color: #a3a3a3;
+  color: var(--color-on-surface-variant);
   margin: 0;
   padding: 1rem 1.5rem 0.75rem;
   border-bottom: 1px solid #f5f5f5;
@@ -1311,11 +1311,11 @@
   width: 1.75rem;
   height: 1.75rem;
   border-radius: 50%;
-  border: 1.5px solid #e5e5e5;
+  border: 1.5px solid var(--color-outline-variant);
   background: #fafafa;
   font-size: 0.6875rem;
   font-weight: 800;
-  color: #a3a3a3;
+  color: var(--color-on-surface-variant);
   flex-shrink: 0;
   transition: all 0.12s;
 }
@@ -1334,14 +1334,14 @@
 .ev-phase-row__name {
   font-size: 0.875rem;
   font-weight: 700;
-  color: #0a0a0a;
+  color: var(--color-on-surface);
   margin: 0 0 0.125rem;
   letter-spacing: -0.01em;
 }
 
 .ev-phase-row__desc {
   font-size: 0.75rem;
-  color: #737373;
+  color: var(--color-on-surface-variant);
   margin: 0;
   white-space: nowrap;
   overflow: hidden;
@@ -1369,13 +1369,13 @@
 
 .ev-phase-row__cta--ghost {
   background: transparent;
-  color: #737373;
-  border: 1px solid #e5e5e5;
+  color: var(--color-on-surface-variant);
+  border: 1px solid var(--color-outline-variant);
 }
 .ev-phase-row__cta--ghost:hover {
   background: #fafafa;
   border-color: #a3a3a3;
-  color: #0a0a0a;
+  color: var(--color-on-surface);
 }
 
 /* Dead code compatibility — kept for EvaluationSign compat */
@@ -1406,7 +1406,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.2em;
-  color: #737373;
+  color: var(--color-on-surface-variant);
   margin: 0 0 0.5rem;
 }
 
@@ -1414,14 +1414,14 @@
   font-size: clamp(1.75rem, 3vw, 2.25rem);
   font-weight: 900;
   letter-spacing: -0.04em;
-  color: #0a0a0a;
+  color: var(--color-on-surface);
   margin: 0 0 0.5rem;
   line-height: 1.1;
 }
 
 .ev-form-hero__desc {
   font-size: 0.875rem;
-  color: #737373;
+  color: var(--color-on-surface-variant);
   max-width: 560px;
   line-height: 1.65;
   margin: 0;
@@ -1431,8 +1431,8 @@
 
 /* ── EvaluationForm — carte formulaire ─────────────────────────────────────── */
 .ev-form-card {
-  background: #fff;
-  border: 1px solid #e5e5e5;
+  background: var(--color-surface-container-lowest);
+  border: 1px solid var(--color-outline-variant);
   border-radius: var(--radius-md);
   padding: 2.5rem;
   margin-bottom: 1.5rem;
@@ -1440,7 +1440,7 @@
 
 .ev-form-section { margin-bottom: 3rem; }
 .ev-form-section + .ev-form-section {
-  border-top: 1px solid #f5f5f5;
+  border-top: 1px solid var(--color-outline-variant);
   padding-top: 2.75rem;
 }
 
@@ -1456,7 +1456,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.25em;
-  color: #a3a3a3;
+  color: var(--color-on-surface-variant);
 }
 
 .ev-form-section__required {
@@ -1464,7 +1464,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: #0a0a0a;
+  color: var(--color-on-surface);
 }
 
 /* Question row — 2 colonnes par défaut, 1 colonne pour text/choice */
@@ -1481,14 +1481,14 @@
   font-size: 1rem;
   font-weight: 700;
   letter-spacing: -0.02em;
-  color: #0a0a0a;
+  color: var(--color-on-surface);
   margin: 0 0 0.3rem;
   line-height: 1.3;
 }
 
 .ev-qrow__desc {
   font-size: 0.8125rem;
-  color: #737373;
+  color: var(--color-on-surface-variant);
   line-height: 1.55;
   margin: 0;
 }
@@ -1504,18 +1504,18 @@
   padding: 0.875rem 1rem;
   background: #fafafa;
   border-radius: var(--radius-md);
-  border: 1px solid #e5e5e5;
+  border: 1px solid var(--color-outline-variant);
 }
 
 .ev-rating__btn {
   width: 2.5rem;
   height: 2.5rem;
   border-radius: 50%;
-  border: 1.5px solid #e5e5e5;
-  background: #fff;
+  border: 1.5px solid var(--color-outline-variant);
+  background: var(--color-surface-container-lowest);
   font-weight: 700;
   font-size: 0.875rem;
-  color: #525252;
+  color: var(--color-on-surface-variant);
   cursor: pointer;
   transition: background 0.12s, border-color 0.12s, color 0.12s, transform 0.1s;
   display: flex;
@@ -1546,13 +1546,13 @@
   gap: 0.625rem;
   padding: 0.625rem 0.875rem;
   border-radius: var(--radius-sm);
-  border: 1px solid #e5e5e5;
+  border: 1px solid var(--color-outline-variant);
   cursor: pointer;
   font-size: 0.875rem;
-  color: #0a0a0a;
+  color: var(--color-on-surface);
   transition: background 0.12s, border-color 0.12s;
   user-select: none;
-  background: #fff;
+  background: var(--color-surface-container-lowest);
 }
 .ev-choice__option:hover { background: #fff1f1; border-color: #fca5a5; }
 .ev-choice__option--selected {
@@ -1572,7 +1572,7 @@
 }
 .ev-choice__option--selected .ev-choice__radio {
   border-color: #fff;
-  background: #fff;
+  background: var(--color-surface-container-lowest);
 }
 
 /* Erreur de sauvegarde */
@@ -1580,17 +1580,17 @@
 
 /* ── EvaluationSign — signature / contestation ──────────────────────────────── */
 .ev-sign__summary-card {
-  background: #fff;
+  background: var(--color-surface-container-lowest);
   border-radius: var(--radius-md);
   padding: 2rem 2.5rem;
   margin-bottom: 1.5rem;
-  border: 1px solid #e5e5e5;
+  border: 1px solid var(--color-outline-variant);
 }
 
 .ev-sign__summary-title {
   font-size: 0.9375rem;
   font-weight: 700;
-  color: #0a0a0a;
+  color: var(--color-on-surface);
   margin: 0 0 1.25rem;
   padding-bottom: 0.75rem;
   border-bottom: 1px solid #f5f5f5;
@@ -1609,13 +1609,13 @@
 .ev-sign__row-label {
   font-size: 0.8125rem;
   font-weight: 500;
-  color: #737373;
+  color: var(--color-on-surface-variant);
 }
 
 .ev-sign__row-value {
   font-size: 0.875rem;
   font-weight: 700;
-  color: #0a0a0a;
+  color: var(--color-on-surface);
 }
 
 .ev-sign__reviewer-comment { margin-top: 1.25rem; }
@@ -1623,7 +1623,7 @@
   font-size: 0.875rem;
   line-height: 1.6;
   margin: 0.375rem 0 0;
-  color: #0a0a0a;
+  color: var(--color-on-surface);
 }
 
 .ev-sign__actions {
@@ -1634,29 +1634,29 @@
 }
 
 .ev-sign__action-card {
-  background: #fff;
+  background: var(--color-surface-container-lowest);
   border-radius: var(--radius-md);
   padding: 1.75rem;
-  border: 1px solid #e5e5e5;
+  border: 1px solid var(--color-outline-variant);
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
   align-items: flex-start;
   transition: border-color 0.12s;
 }
-.ev-sign__action-card:hover { border-color: #0a0a0a; }
+.ev-sign__action-card:hover { border-color: var(--color-on-surface); }
 
 .ev-sign__action-title {
   font-size: 0.9375rem;
   font-weight: 700;
-  color: #0a0a0a;
+  color: var(--color-on-surface);
   margin: 0;
   letter-spacing: -0.02em;
 }
 
 .ev-sign__action-desc {
   font-size: 0.8125rem;
-  color: #737373;
+  color: var(--color-on-surface-variant);
   line-height: 1.55;
   margin: 0;
   flex: 1;
@@ -1665,17 +1665,17 @@
 .ev-sign__action-btn { margin-top: auto; }
 
 .ev-sign__contest-area {
-  background: #fff;
+  background: var(--color-surface-container-lowest);
   border-radius: var(--radius-md);
   padding: 2rem 2.5rem;
   margin-bottom: 1.5rem;
-  border: 1px solid #e5e5e5;
+  border: 1px solid var(--color-outline-variant);
 }
 
 .ev-sign__contest-title {
   font-size: 0.875rem;
   font-weight: 700;
-  color: #0a0a0a;
+  color: var(--color-on-surface);
   margin: 0 0 0.75rem;
 }
 

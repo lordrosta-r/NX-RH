@@ -24,7 +24,13 @@ const STATUS_MAP = {
   signed:          { label: 'Signé',            cls: 'badge--validated' },
   signed_hr:       { label: 'Signé RH',         cls: 'badge--validated' },
   signed_manager:  { label: 'Signé Manager',    cls: 'badge--validated' },
+  signed_evaluatee:{ label: 'Signé (vous)',     cls: 'badge--validated' },
+  expired:         { label: 'Expiré',           cls: 'badge--assigned' },
+  archived:        { label: 'Archivé',          cls: 'badge--assigned' },
 }
+
+// Statuts "actifs" exclus de l'historique (traités sur le dashboard)
+const ACTIVE_STATUSES = new Set(['assigned', 'in_progress'])
 
 function StatusBadge({ status }) {
   const info = STATUS_MAP[status] ?? { label: status, cls: 'badge--assigned' }
@@ -82,6 +88,8 @@ export default function EmployeeHistory() {
   const filtered = useMemo(() => {
     return [...evaluations]
       .filter(ev => {
+        // Exclure les évaluations actives (affichées sur le dashboard)
+        if (ACTIVE_STATUSES.has(ev.status)) return false
         if (yearFilter !== 'all') {
           const d = ev.updatedAt || ev.createdAt
           if (!d || new Date(d).getFullYear().toString() !== yearFilter) return false

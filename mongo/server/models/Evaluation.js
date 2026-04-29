@@ -99,6 +99,12 @@ const evaluationSchema = new Schema({
   reviewerComment: { type: String, default: '', maxlength: 5000 },
   reviewedBy:      { type: Schema.Types.ObjectId, ref: 'User', default: null },
 
+  // Objectifs pour la période N+1, saisis par le reviewer
+  nextObjectives: { type: String, default: '', maxlength: 5000 },
+
+  // Appréciation des objectifs par le reviewer — { [questionId]: 'achieved'|'partial'|'not_achieved' }
+  objectiveRatings: { type: Schema.Types.Mixed, default: {} },
+
   // Réaction de l'évaluatee après lecture
   evaluateeComment: { type: String, default: '', maxlength: 5000 },
   disagreementFlag: { type: Boolean, default: false },

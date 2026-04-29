@@ -339,9 +339,9 @@
 }
 
 .db-onboarding__check--done {
-  color: #15803d;
-  background: #f0fdf4;
-  border-color: #86efac;
+  color: var(--color-success);
+  background: var(--color-success-light);
+  border-color: color-mix(in srgb, var(--color-success) 35%, transparent);
   text-decoration: line-through;
 }
 

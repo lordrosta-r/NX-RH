@@ -3,7 +3,7 @@
 // =============================================================================
 
 import React, { useState, useRef, useEffect, useCallback } from 'react'
-import { NavLink, useLocation } from 'react-router-dom'
+import { NavLink, Link, useLocation } from 'react-router-dom'
 import './AppTopbar.css'
 import { Bell, Sun, Moon, Globe, ChevronDown, LogOut } from 'lucide-react'
 
@@ -113,7 +113,9 @@ export default function AppTopbar({
 
       {/* Brand logo */}
       <div className="apptb__brand">
-        <img src="/nx-logo.png" alt="NanoXplore" className="apptb__brand-logo" />
+        <Link to="/" className="apptb__brand-link">
+          <img src="/nx-logo.png" alt="NanoXplore" className="apptb__brand-logo" />
+        </Link>
       </div>
 
       {/* Hamburger — mobile only */}

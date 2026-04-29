@@ -39,7 +39,7 @@
   padding: 0.875rem 1.25rem;
   margin-bottom: 1.5rem;
   display: flex; align-items: center; gap: 0.75rem;
-  font-size: 0.875rem; color: #92400e;
+  font-size: 0.875rem; color: var(--color-tertiary);
 }
 .mgr-urgency strong { font-weight: 700; }
 
@@ -63,7 +63,7 @@
   font-variant-numeric: tabular-nums;
 }
 .mgr-kpi--pending   .mgr-kpi__value { color: var(--color-error); }
-.mgr-kpi--submitted .mgr-kpi__value { color: #b47800; }
+.mgr-kpi--submitted .mgr-kpi__value { color: var(--color-badge-submitted-fg); }
 .mgr-kpi--signed    .mgr-kpi__value { color: var(--color-success); }
 .mgr-kpi__label {
   font-size: 0.6875rem; font-weight: 700; text-transform: uppercase;
@@ -115,7 +115,7 @@
 .mgr-status--not_started     { background: rgba(100,100,100,0.10); color: var(--color-on-surface-variant); }
 .mgr-status--assigned        { background: rgba(100,100,100,0.10); color: var(--color-on-surface-variant); }
 .mgr-status--in_progress     { background: rgba(0,95,184,0.10);   color: #005fb8; }
-.mgr-status--submitted       { background: rgba(180,120,0,0.10);  color: #b47800; }
+.mgr-status--submitted       { background: rgba(180,120,0,0.10);  color: var(--color-badge-submitted-fg); }
 .mgr-status--reviewed        { background: rgba(184,0,11,0.10);   color: var(--color-primary); }
 .mgr-status--signed_evaluatee { background: rgba(91,0,223,0.10);  color: var(--color-secondary); }
 .mgr-status--signed          { background: rgba(22,163,74,0.10);  color: var(--color-success); }
@@ -150,7 +150,9 @@
   cursor: pointer; transition: background 0.15s ease, transform 0.15s ease;
   font-family: var(--font-family); text-decoration: none;
 }
-.mgr-btn:hover { background: var(--color-surface-container-low); transform: translateY(-1px); }
+.mgr-btn:hover    { background: var(--color-surface-container-low); transform: translateY(-1px); }
+.mgr-btn:active:not(:disabled) { transform: translateY(0); filter: brightness(0.9); }
+.mgr-btn:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
 .mgr-btn:disabled { opacity: 0.4; cursor: default; transform: none; }
 .mgr-btn--primary {
   background: var(--gradient-primary); color: #fff;
@@ -159,7 +161,7 @@
 .mgr-btn--primary:hover { opacity: 0.92; box-shadow: var(--shadow-float); }
 .mgr-btn--sm { padding: 0.3rem 0.85rem; font-size: 0.75rem; }
 .mgr-btn--ghost { background: transparent; color: var(--color-primary); }
-.mgr-btn--ghost:hover { background: rgba(184, 0, 11, 0.06); }
+.mgr-btn--ghost:hover { background: var(--color-primary-tint); }
 
 /* ── Table ───────────────────────────────────────────────────────────────── */
 .mgr-table-wrap {

@@ -51,7 +51,7 @@ html[data-theme="dark"] {
 
   /* Topbar — dark (default) */
   --apptb-bg:              #0d0f1a;
-  --apptb-border:          rgba(255, 255, 255, 0.06);
+  --apptb-border:          rgba(255, 255, 255, 0.10);
   --apptb-text:            rgba(255, 255, 255, 0.55);
   --apptb-text-active:     #ffffff;
   --apptb-text-hover:      rgba(255, 255, 255, 0.90);
@@ -198,17 +198,31 @@ html[data-theme="light-sidebar"] {
    Light mode = tokens.css defaults (no override needed).
    Only dark mode needs to override. KISS.                                   */
 html[data-theme="dark"] {
-  --color-surface:                   #111010;
-  --color-surface-bright:            #161515;
-  --color-surface-container-lowest:  #1c1b1b;
-  --color-surface-container-low:     #201f1f;
-  --color-surface-container:         #252424;
-  --color-surface-container-high:    #2d2c2c;
-  --color-surface-container-highest: #323131;
-  --color-on-surface:                #eae7e7;
-  --color-on-surface-variant:        #9ca3af;
-  --color-background:                #111010;
-  --color-on-background:             #eae7e7;
-  --color-outline-variant:           rgba(233,188,182,0.15);
+  /* ── Primary recalibrée — rouge lumineux pour contraste AA sur fonds sombres ── */
+  --color-primary:                   #e05555;
+  --color-primary-container:         rgba(224, 85, 85, 0.15);
+
+  /* ── Surface scale — bleu-noir doux, profondeur via teinte bleue ──────────── */
+  --color-surface:                   #0f1117;
+  --color-surface-bright:            #1a1d27;
+  --color-surface-container-lowest:  #1a1d27;
+  --color-surface-container-low:     #1f2232;
+  --color-surface-container:         #22263a;
+  --color-surface-container-high:    #2a2f46;
+  --color-surface-container-highest: #323a52;
+
+  /* ── On-colors — blanc légèrement bleuté, plus doux que pur blanc ─────────── */
+  --color-on-surface:                #e8eaf0;
+  --color-on-surface-variant:        #9da3b4;
+  --color-background:                #0f1117;
+  --color-on-background:             #e8eaf0;
+
+  /* ── Contours — bleu-ardoise neutre (remplace le rose/warm qui était parasite) */
+  --color-outline:                   #3d4460;
+  --color-outline-variant:           #2a2f46;
+
+  /* ── Divider — blanc transparent (invisible en light mode, car surchargé) ─── */
+  --color-divider:                   rgba(255, 255, 255, 0.08);
+
   --color-topbar-bg:                 #0d0f1a;
 }

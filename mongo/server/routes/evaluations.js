@@ -104,6 +104,14 @@ router.get('/', async (req, res, next) => {
     }
     // admin/hr : pas de filtre → voit tout
 
+    // Filtre evaluateeId — permet de cibler un évalué précis dans le périmètre visible
+    if (req.query.evaluateeId !== undefined) {
+      if (!mongoose.isValidObjectId(req.query.evaluateeId)) {
+        return res.status(400).json({ error: 'evaluateeId invalide' })
+      }
+      filter.evaluateeId = new mongoose.Types.ObjectId(req.query.evaluateeId)
+    }
+
     const page  = Math.max(1, parseInt(req.query.page)  || 1)
     const limit = Math.min(100, parseInt(req.query.limit) || 50)
     const skip  = (page - 1) * limit
@@ -658,6 +666,28 @@ router.patch('/:id', async (req, res, next) => {
         return res.status(400).json({ error: 'reviewerComment invalide (max 5000 chars)' })
       }
       evaluation.reviewerComment = req.body.reviewerComment
+    }
+
+    // Objectifs suivants (manager/director/admin/hr)
+    if (req.body.nextObjectives !== undefined) {
+      if (!['manager', 'director', 'admin', 'hr'].includes(role)) {
+        return res.status(403).json({ error: 'Seuls les managers et admins peuvent définir les objectifs suivants' })
+      }
+      if (typeof req.body.nextObjectives !== 'string' || req.body.nextObjectives.length > 5000) {
+        return res.status(400).json({ error: 'nextObjectives invalide (max 5000 chars)' })
+      }
+      evaluation.nextObjectives = req.body.nextObjectives
+    }
+
+    // Évaluation des objectifs — objet { questionId: rating } (manager/director/admin/hr)
+    if (req.body.objectiveRatings !== undefined) {
+      if (!['manager', 'director', 'admin', 'hr'].includes(role)) {
+        return res.status(403).json({ error: 'Seuls les managers et admins peuvent noter les objectifs' })
+      }
+      if (typeof req.body.objectiveRatings !== 'object' || Array.isArray(req.body.objectiveRatings)) {
+        return res.status(400).json({ error: 'objectiveRatings doit être un objet' })
+      }
+      evaluation.objectiveRatings = req.body.objectiveRatings
     }
 
     // Commentaire de l'évalué (employee ou admin)

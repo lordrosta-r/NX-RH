@@ -69,7 +69,7 @@ export default function EvaluationSign() {
       }).then(r => { if (!r.ok) throw new Error('Contestation échouée'); return r.json() }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['eval', evalId] })
-      setSuccessMsg('Contestation enregistrée. L\'équipe RH a été notifiée.')
+      setSuccessMsg('Contestation enregistrée. Un membre de l\'équipe RH prendra contact avec vous.')
       setContestOpen(false)
       setFieldError('')
     },
@@ -78,6 +78,10 @@ export default function EvaluationSign() {
 
   function handleSign() {
     setFieldError('')
+    if (answersCount === 0) {
+      setFieldError('Vous n\'avez pas encore rempli les phases de l\'évaluation. Veuillez compléter au moins une phase avant de signer.')
+      return
+    }
     signMutation.mutate()
   }
 

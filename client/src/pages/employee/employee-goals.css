@@ -13,8 +13,8 @@
 .eg-hero {
   position: relative;
   overflow: hidden;
-  background: #fff;
-  border: 1px solid #f0f0f0;
+  background: var(--color-surface-container-lowest);
+  border: 1px solid var(--color-outline-variant);
   border-radius: var(--radius-md);
   padding: 2.25rem 2.5rem;
   display: flex;
@@ -41,7 +41,7 @@
   font-weight: 900;
   letter-spacing: -0.04em;
   line-height: 1.05;
-  color: #0a0a0a;
+  color: var(--color-on-surface);
   margin: 0 0 0.6rem;
 }
 
@@ -49,7 +49,7 @@
 
 .eg-hero__sub {
   font-size: 0.875rem;
-  color: #737373;
+  color: var(--color-on-surface-variant);
   max-width: 400px;
   line-height: 1.6;
   margin: 0;
@@ -61,7 +61,7 @@
   align-items: center;
   gap: 0;
   background: #fafafa;
-  border: 1px solid #f0f0f0;
+  border: 1px solid var(--color-outline-variant);
   border-radius: var(--radius-md);
   padding: 0.25rem 0;
   z-index: 1;
@@ -88,7 +88,7 @@
   font-size: 1.75rem;
   font-weight: 900;
   letter-spacing: -0.03em;
-  color: #0a0a0a;
+  color: var(--color-on-surface);
   line-height: 1;
 }
 
@@ -132,7 +132,7 @@
   font-size: 0.8125rem;
   font-weight: 700;
   letter-spacing: 0.06em;
-  color: #737373;
+  color: var(--color-on-surface-variant);
   text-transform: uppercase;
   margin: 0;
 }
@@ -142,7 +142,7 @@
   align-items: center;
   justify-content: center;
   background: #f5f5f5;
-  color: #525252;
+  color: var(--color-on-surface-variant);
   font-size: 0.6875rem;
   font-weight: 700;
   border-radius: 99px;
@@ -161,8 +161,8 @@
 
 /* ── Table objectifs ────────────────────────────────────────────────────────── */
 .eg-table {
-  background: #fff;
-  border: 1px solid #f0f0f0;
+  background: var(--color-surface-container-lowest);
+  border: 1px solid var(--color-outline-variant);
   border-radius: var(--radius-md);
   overflow: hidden;
 }
@@ -234,7 +234,7 @@
 .eg-row__title {
   font-size: 0.9375rem;
   font-weight: 600;
-  color: #171717;
+  color: var(--color-on-surface);
   margin: 0;
   line-height: 1.4;
   white-space: nowrap;
@@ -243,7 +243,7 @@
 }
 
 .eg-row--done .eg-row__title {
-  color: #737373;
+  color: var(--color-on-surface-variant);
   text-decoration: line-through;
   text-decoration-color: #d4d4d4;
 }
@@ -276,7 +276,7 @@
 .eg-row__pct {
   font-size: 0.8125rem;
   font-weight: 700;
-  color: #525252;
+  color: var(--color-on-surface-variant);
   font-variant-numeric: tabular-nums;
   min-width: 2.5rem;
   text-align: right;
@@ -336,8 +336,8 @@
   gap: 0.75rem;
   padding: 4rem 1rem;
   text-align: center;
-  background: #fff;
-  border: 1px dashed #e5e5e5;
+  background: var(--color-surface-container-lowest);
+  border: 1px dashed var(--color-outline-variant);
   border-radius: var(--radius-md);
 }
 
@@ -382,7 +382,7 @@
 }
 
 .eg-modal {
-  background: #fff;
+  background: var(--color-surface-container-lowest);
   border-radius: var(--radius-md);
   padding: 1.75rem;
   width: 100%;
@@ -402,7 +402,7 @@
 .eg-modal__title {
   font-size: 1rem;
   font-weight: 700;
-  color: #0a0a0a;
+  color: var(--color-on-surface);
   margin: 0;
 }
 
@@ -429,7 +429,7 @@
   margin: 0;
   padding: 0.75rem 1rem;
   background: #fafafa;
-  border: 1px solid #f0f0f0;
+  border: 1px solid var(--color-outline-variant);
   border-radius: var(--radius-md);
   line-height: 1.4;
 }
@@ -443,7 +443,7 @@
 .eg-modal__pct-label {
   font-size: 0.8125rem;
   font-weight: 600;
-  color: #525252;
+  color: var(--color-on-surface-variant);
 }
 
 .eg-modal__pct-value {
@@ -472,7 +472,7 @@
 .eg-modal__label {
   font-size: 0.8125rem;
   font-weight: 600;
-  color: #525252;
+  color: var(--color-on-surface-variant);
 }
 
 .eg-modal__optional {
@@ -483,10 +483,10 @@
 .eg-modal__textarea {
   width: 100%;
   padding: 0.625rem 0.875rem;
-  border: 1px solid #e5e5e5;
+  border: 1px solid var(--color-outline-variant);
   border-radius: var(--radius-md);
-  background: #fff;
-  color: #171717;
+  background: var(--color-surface-container-lowest);
+  color: var(--color-on-surface);
   font-size: 0.875rem;
   font-family: var(--font-family);
   resize: vertical;
@@ -502,15 +502,15 @@
   justify-content: flex-end;
   gap: 0.625rem;
   padding-top: 0.25rem;
-  border-top: 1px solid #f5f5f5;
+  border-top: 1px solid var(--color-outline-variant);
 }
 
 .eg-btn {
   padding: 0.5rem 1.125rem;
   border-radius: var(--radius-md);
-  border: 1px solid #e5e5e5;
-  background: #fff;
-  color: #525252;
+  border: 1px solid var(--color-outline-variant);
+  background: var(--color-surface-container-lowest);
+  color: var(--color-on-surface-variant);
   font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
@@ -553,7 +553,7 @@
   position: relative;
   overflow: hidden;
   background: var(--color-surface);
-  border: 1px solid #f0f0f0;
+  border: 1px solid var(--color-outline-variant);
   border-radius: var(--radius-md);
   padding: 2.5rem 3rem;
   display: flex;

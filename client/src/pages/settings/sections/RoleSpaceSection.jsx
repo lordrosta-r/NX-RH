@@ -32,8 +32,8 @@ function spacesFor(role) {
   }
   // employee
   return [
-    { id: 'employee',   href: '/employee',   Icon: Home },
-    { id: 'evaluation', href: '/evaluation', Icon: Clipboard },
+    { id: 'employee',   href: '/employee',            Icon: Home },
+    { id: 'evaluation', href: '/employee/evaluation', Icon: Clipboard },
   ]
 }
 

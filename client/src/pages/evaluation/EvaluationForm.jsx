@@ -351,12 +351,12 @@ export default function EvaluationForm({ phase }) {
 
   // Mutation PATCH pour sauvegarder les réponses
   const saveMutation = useMutation({
-    mutationFn: payload =>
+    mutationFn: body =>
       fetch(`/api/evaluations/${evalId}`, {
         method:  'PATCH',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ answers: payload }),
+        body: JSON.stringify(body),
       }).then(r => { if (!r.ok) throw new Error('Sauvegarde échouée'); return r.json() }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['eval', evalId] })
@@ -380,16 +380,29 @@ export default function EvaluationForm({ phase }) {
   }
 
   function handleSaveDraft() {
-    saveMutation.mutate(buildAnswersPayload())
+    const body = { answers: buildAnswersPayload() }
+    // Transition assigned → in_progress à la première sauvegarde
+    if (evaluation?.status === 'assigned') body.status = 'in_progress'
+    saveMutation.mutate(body)
   }
 
   function handleSubmitPhase() {
     const nextIdx   = PHASE_ORDER.indexOf(phase) + 1
     const nextPhase = PHASE_ORDER[nextIdx] ?? null
-    saveMutation.mutate(buildAnswersPayload(), {
+    const body = { answers: buildAnswersPayload() }
+    // Dernière phase de formulaire → soumettre l'évaluation (submitted)
+    // puis rediriger vers le récapitulatif (le manager doit d'abord réviser
+    // avant que l'employé puisse signer : reviewed → signed_evaluatee)
+    if (isLastPhase) body.status = 'submitted'
+    saveMutation.mutate(body, {
       onSuccess: () => {
-        if (nextPhase) navigate(`/evaluation/${evalId}/${nextPhase}`)
-        else navigate(`/evaluation/${evalId}`)
+        if (isLastPhase) {
+          navigate(`/evaluation/${evalId}`)
+        } else if (nextPhase) {
+          navigate(`/evaluation/${evalId}/${nextPhase}`)
+        } else {
+          navigate(`/evaluation/${evalId}`)
+        }
       },
     })
   }

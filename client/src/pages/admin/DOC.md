@@ -103,3 +103,16 @@ pour les redirections.
 
 4. **QueryKey partagé** : `['admin-users']` est utilisé par plusieurs pages.
    `queryClient.invalidateQueries({ queryKey: ['admin-users'] })` rafraîchit toutes les pages.
+
+## Bugs connus & limitations (non corrigés — backend manquant)
+
+| ID     | Page                   | Description |
+|--------|------------------------|-------------|
+| ADM-04 | AdminCompliance        | Boutons Anonymiser/Exporter dans le modal de confirmation ne font aucun appel API — état local uniquement. Utiliser les endpoints `/api/users/:id/gdpr-anonymize` (DELETE) et `/api/users/:id/gdpr-export` (GET) de `AdminUsers` |
+| ADM-05 | AdminCommunications    | Sauvegarde des templates d'email est locale — aucun endpoint backend existant |
+| ADM-06 | AdminSettings          | Tous les boutons "Enregistrer" (branding, langue, mot de passe, maintenance) sont locaux — aucun endpoint backend |
+| ADM-07 | AdminSecurity          | Bouton Impersonation est du code mort — nécessite `POST /api/auth/impersonate` côté serveur |
+| ADM-08 | AdminIntegrations      | Bouton "Enregistrer" SMTP sans `onClick` — aucun endpoint `/api/admin/smtp/config` existant |
+| ADM-09 | AdminIntegrations      | Modal "Ajouter webhook" ne persiste pas — aucun endpoint webhook existant |
+| ADM-10 | GET /api/users         | Sans `?page`, le paramètre `limit` est ignoré — silencieusement capé à 100 utilisateurs |
+| ADM-11 | Admin dashboard        | `/api/health` ne retourne pas `uptime` — la section "uptime" ne s'affiche jamais |

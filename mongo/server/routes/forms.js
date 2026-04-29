@@ -7,6 +7,7 @@
 // GET    /api/forms/:id          → détail
 // POST   /api/forms              → créer (admin/hr)
 // PATCH  /api/forms/:id          → modifier (admin/hr, bloqué si frozenAt)
+// DELETE /api/forms/:id          → supprimer (admin/hr, bloqué si frozenAt)
 // =============================================================================
 
 const router   = require('express').Router()
@@ -155,6 +156,34 @@ router.patch('/:id', async (req, res, next) => {
     if (err.name === 'ValidationError') {
       return res.status(400).json({ error: err.message })
     }
+    next(err)
+  }
+})
+
+// ─── DELETE /api/forms/:id ───────────────────────────────────────────────────
+
+router.delete('/:id', async (req, res, next) => {
+  try {
+    if (!ADMIN_ROLES.includes(req.user.role)) {
+      return res.status(403).json({ error: 'Réservé aux admins et RH' })
+    }
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({ error: 'ID invalide' })
+    }
+
+    const form = await Form.findById(req.params.id)
+    if (!form) return res.status(404).json({ error: 'Formulaire introuvable' })
+
+    if (form.frozenAt) {
+      return res.status(409).json({
+        error: 'Impossible de supprimer un formulaire lié à des évaluations existantes',
+        frozenAt: form.frozenAt,
+      })
+    }
+
+    await form.deleteOne()
+    res.status(204).end()
+  } catch (err) {
     next(err)
   }
 })

@@ -16,8 +16,7 @@ const { Campaign, Evaluation, Form, User, AuditLog, CAMPAIGN_TRANSITIONS: VALID_
 const { ADMIN_ROLES } = require('../config/constants')
 const { notifyMany }  = require('../services/notificationService')
 
-// ─── GET /api/campaigns ──────────────────────────────────────────────────────
-
+// GET /api/campaigns — Liste des campagnes (scopée par rôle)
 router.get('/', async (req, res, next) => {
   try {
     const filter = {}
@@ -34,31 +33,20 @@ router.get('/', async (req, res, next) => {
       filter.status = 'active'
     }
 
-    if (req.query.page) {
-      const page  = Math.max(1, parseInt(req.query.page)  || 1)
-      const limit = Math.min(100, parseInt(req.query.limit) || 50)
-      const skip  = (page - 1) * limit
-      const [campaigns, total] = await Promise.all([
-        Campaign.find(filter).populate('createdBy', 'firstName lastName email').sort({ startDate: -1 }).skip(skip).limit(limit).lean(),
-        Campaign.countDocuments(filter),
-      ])
-      return res.json({ data: campaigns, total, page, limit })
-    }
-
-    const campaigns = await Campaign.find(filter)
-      .populate('createdBy', 'firstName lastName email')
-      .sort({ startDate: -1 })
-      .limit(100)
-      .lean()
-
-    res.json(campaigns)
+    const page  = Math.max(1, parseInt(req.query.page)  || 1)
+    const limit = Math.min(100, parseInt(req.query.limit) || 50)
+    const skip  = (page - 1) * limit
+    const [campaigns, total] = await Promise.all([
+      Campaign.find(filter).populate('createdBy', 'firstName lastName email').sort({ startDate: -1 }).skip(skip).limit(limit).lean(),
+      Campaign.countDocuments(filter),
+    ])
+    res.json({ data: campaigns, total, page, limit })
   } catch (err) {
     next(err)
   }
 })
 
-// ─── GET /api/campaigns/:id ──────────────────────────────────────────────────
-
+// GET /api/campaigns/:id — Détail d'une campagne avec stats de complétion
 router.get('/:id', async (req, res, next) => {
   try {
     if (!mongoose.isValidObjectId(req.params.id)) {
@@ -91,8 +79,7 @@ router.get('/:id', async (req, res, next) => {
   }
 })
 
-// ─── POST /api/campaigns ─────────────────────────────────────────────────────
-
+// POST /api/campaigns — Créer une campagne (admin/hr)
 router.post('/', async (req, res, next) => {
   try {
     if (!ADMIN_ROLES.includes(req.user.role)) {
@@ -135,14 +122,14 @@ router.post('/', async (req, res, next) => {
       meta:       { name: campaign.name },
     }).catch(() => {})
 
-    res.status(201).json({ id: campaign._id })
+    const created = await Campaign.findById(campaign._id).populate('createdBy', 'firstName lastName email').lean()
+    res.status(201).json(created)
   } catch (err) {
     next(err)
   }
 })
 
-// ─── PATCH /api/campaigns/:id ────────────────────────────────────────────────
-
+// PATCH /api/campaigns/:id — Modifier ou changer le statut d'une campagne (admin/hr)
 router.patch('/:id', async (req, res, next) => {
   try {
     if (!ADMIN_ROLES.includes(req.user.role)) {
@@ -212,8 +199,7 @@ router.patch('/:id', async (req, res, next) => {
   }
 })
 
-// ─── DELETE /api/campaigns/:id ───────────────────────────────────────────────
-
+// DELETE /api/campaigns/:id — Supprimer une campagne draft ou archived (admin/hr)
 router.delete('/:id', async (req, res, next) => {
   try {
     if (!ADMIN_ROLES.includes(req.user.role)) {
@@ -249,17 +235,14 @@ router.delete('/:id', async (req, res, next) => {
       meta:       { name: campaign.name, status: campaign.status },
     }).catch(() => {})
 
-    res.json({ deleted: true })
+    res.status(204).end()
   } catch (err) {
     next(err)
   }
 })
 
-// ─── POST /api/campaigns/:id/clone ───────────────────────────────────────────
-// Duplique une campagne (statut → draft) ainsi que tous ses formulaires
-// (sans frozenAt). Les évaluations ne sont pas clonées : la nouvelle campagne
-// repart vierge. Les dates sont décalées d'un an par défaut, surchargeables
-// via { startDate, endDate } dans le body.
+// POST /api/campaigns/:id/clone — Dupliquer une campagne (statut → draft) avec ses formulaires
+// Les dates sont décalées d'un an par défaut, surchargeables via { startDate, endDate }.
 router.post('/:id/clone', async (req, res, next) => {
   try {
     if (!ADMIN_ROLES.includes(req.user.role)) {
@@ -319,13 +302,7 @@ router.post('/:id/clone', async (req, res, next) => {
   }
 })
 
-// ─── GET /api/campaigns/:id/analytics ────────────────────────────────────────
-// Retourne des agrégats pour les rapports analytiques RH :
-//   - statusDistribution : nb d'évaluations par statut
-//   - scoreDistribution  : histogramme par tranche de 10 (0-9, 10-19, … 90-100)
-//   - byDepartment       : { dept, total, completed, completionPct, avgScore }
-//   - completionPct      : pourcentage global de complétion
-//   - avgScore           : moyenne des scores non null
+// GET /api/campaigns/:id/analytics — Agrégats analytiques d'une campagne (admin/hr)
 router.get('/:id/analytics', async (req, res, next) => {
   try {
     if (!ADMIN_ROLES.includes(req.user.role)) {

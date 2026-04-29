@@ -7,20 +7,28 @@
 // =============================================================================
 
 const router      = require('express').Router()
+const mongoose    = require('mongoose')
 const PDFDocument = require('pdfkit')
 const { Evaluation } = require('../models')
 const { ADMIN_ROLES } = require('../config/constants')
 
-// ─── GET /api/analytics/export/pdf ───────────────────────────────────────────
-
+// GET /api/analytics/export/pdf — Rapport PDF analytique RH (admin/hr, ?campaignId optionnel)
 router.get('/export/pdf', async (req, res, next) => {
   try {
     if (!ADMIN_ROLES.includes(req.user.role)) {
       return res.status(403).json({ error: 'Réservé aux admins et RH' })
     }
 
-    // Récupère toutes les évaluations avec les infos nécessaires
-    const allEvals = await Evaluation.find({})
+    // Filtre optionnel par campagne
+    let evalFilter = {}
+    if (req.query.campaignId) {
+      if (!mongoose.isValidObjectId(req.query.campaignId)) {
+        return res.status(400).json({ error: 'campaignId invalide' })
+      }
+      evalFilter.campaignId = req.query.campaignId
+    }
+
+    const allEvals = await Evaluation.find(evalFilter)
       .populate('evaluateeId', 'firstName lastName department')
       .lean()
 
@@ -71,9 +79,10 @@ router.get('/export/pdf', async (req, res, next) => {
 
     const doc = new PDFDocument({ size: 'A4', margin: 50 })
     res.setHeader('Content-Type', 'application/pdf')
+    const campaignSuffix = req.query.campaignId ? `-${req.query.campaignId}` : ''
     res.setHeader(
       'Content-Disposition',
-      `attachment; filename="analytics-rh-${now.toISOString().slice(0, 10)}.pdf"`,
+      `attachment; filename="analytics-rh-${now.toISOString().slice(0, 10)}${campaignSuffix}.pdf"`,
     )
     doc.pipe(res)
 

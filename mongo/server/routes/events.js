@@ -8,7 +8,7 @@ const mongoose = require('mongoose')
 const { Event }      = require('../models')
 const { ADMIN_ROLES } = require('../config/constants')
 
-// GET /api/events — visible par tous les authentifiés, filtré par targetRoles
+// GET /api/events — Liste des événements calendrier (filtrée par rôle)
 router.get('/', async (req, res, next) => {
   try {
     const query = {}
@@ -19,12 +19,18 @@ router.get('/', async (req, res, next) => {
         { targetRoles: req.user.role },     // ciblé ce rôle spécifiquement
       ]
     }
-    const events = await Event.find(query).sort({ date: 1 }).limit(100).lean()
-    res.json(events)
+    const page  = Math.max(1, parseInt(req.query.page)  || 1)
+    const limit = Math.min(100, parseInt(req.query.limit) || 50)
+    const skip  = (page - 1) * limit
+    const [data, total] = await Promise.all([
+      Event.find(query).sort({ date: 1 }).skip(skip).limit(limit).lean(),
+      Event.countDocuments(query),
+    ])
+    res.json({ data, total, page, limit })
   } catch (err) { next(err) }
 })
 
-// GET /api/events/:id — détail d'un événement
+// GET /api/events/:id — Détail d'un événement
 router.get('/:id', async (req, res, next) => {
   try {
     if (!mongoose.isValidObjectId(req.params.id)) return res.status(400).json({ error: 'ID invalide' })
@@ -41,10 +47,10 @@ router.get('/:id', async (req, res, next) => {
   } catch (err) { next(err) }
 })
 
-// POST /api/events — admin/hr uniquement
+// POST /api/events — Créer un événement (admin/hr)
 router.post('/', async (req, res, next) => {
   try {
-    if (!ADMIN_ROLES.includes(req.user.role)) return res.status(403).json({ error: 'Forbidden' })
+    if (!ADMIN_ROLES.includes(req.user.role)) return res.status(403).json({ error: 'Accès refusé' })
     const { title, date, type, campaignId } = req.body
     if (!title || !date) return res.status(400).json({ error: 'title et date requis' })
     const event = await Event.create({ title, date, type, campaignId, createdBy: req.user.id })
@@ -52,28 +58,30 @@ router.post('/', async (req, res, next) => {
   } catch (err) { next(err) }
 })
 
-// DELETE /api/events/:id — admin/hr uniquement
+// DELETE /api/events/:id — Supprimer un événement (admin/hr)
 router.delete('/:id', async (req, res, next) => {
   try {
-    if (!ADMIN_ROLES.includes(req.user.role)) return res.status(403).json({ error: 'Forbidden' })
+    if (!ADMIN_ROLES.includes(req.user.role)) return res.status(403).json({ error: 'Accès refusé' })
     if (!mongoose.isValidObjectId(req.params.id)) return res.status(400).json({ error: 'ID invalide' })
     const deleted = await Event.findByIdAndDelete(req.params.id)
     if (!deleted) return res.status(404).json({ error: 'Événement introuvable' })
-    res.json({ deleted: true })
+    res.status(204).end()
   } catch (err) { next(err) }
 })
 
-// PATCH /api/events/:id — admin/hr uniquement
+// PATCH /api/events/:id — Modifier un événement (admin/hr)
 router.patch('/:id', async (req, res, next) => {
   try {
-    if (!ADMIN_ROLES.includes(req.user.role)) return res.status(403).json({ error: 'Forbidden' })
+    if (!ADMIN_ROLES.includes(req.user.role)) return res.status(403).json({ error: 'Accès refusé' })
     if (!mongoose.isValidObjectId(req.params.id)) return res.status(400).json({ error: 'ID invalide' })
     const event = await Event.findById(req.params.id)
     if (!event) return res.status(404).json({ error: 'Événement introuvable' })
-    const { title, date, type } = req.body
-    if (title !== undefined) event.title = title
-    if (date  !== undefined) event.date  = date
-    if (type  !== undefined) event.type  = type
+    const { title, date, type, targetRoles, description } = req.body
+    if (title       !== undefined) event.title       = title
+    if (date        !== undefined) event.date        = date
+    if (type        !== undefined) event.type        = type
+    if (targetRoles !== undefined) event.targetRoles = targetRoles
+    if (description !== undefined) event.description = description
     await event.save()
     res.json(event)
   } catch (err) { next(err) }

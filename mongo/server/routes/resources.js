@@ -8,18 +8,24 @@ const mongoose = require('mongoose')
 const { Resource }    = require('../models')
 const { ADMIN_ROLES } = require('../config/constants')
 
-// GET /api/resources — documents publiés visibles par tous les authentifiés
+// GET /api/resources — Documents publiés visibles par les utilisateurs authentifiés
 router.get('/', async (req, res, next) => {
   try {
     const filter = ADMIN_ROLES.includes(req.user.role)
       ? {}
       : { status: 'published', visibleTo: req.user.role }
-    const resources = await Resource.find(filter).sort({ createdAt: -1 }).limit(200).lean()
-    res.json(resources)
+    const page  = Math.max(1, parseInt(req.query.page)  || 1)
+    const limit = Math.min(100, parseInt(req.query.limit) || 50)
+    const skip  = (page - 1) * limit
+    const [data, total] = await Promise.all([
+      Resource.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+      Resource.countDocuments(filter),
+    ])
+    res.json({ data, total, page, limit })
   } catch (err) { next(err) }
 })
 
-// GET /api/resources/:id
+// GET /api/resources/:id — Détail d'une ressource
 router.get('/:id', async (req, res, next) => {
   try {
     if (!mongoose.isValidObjectId(req.params.id)) return res.status(400).json({ error: 'ID invalide' })
@@ -27,17 +33,17 @@ router.get('/:id', async (req, res, next) => {
     if (!resource) return res.status(404).json({ error: 'Ressource introuvable' })
     if (!ADMIN_ROLES.includes(req.user.role)) {
       if (resource.status !== 'published' || !resource.visibleTo.includes(req.user.role)) {
-        return res.status(403).json({ error: 'Forbidden' })
+        return res.status(403).json({ error: 'Accès refusé' })
       }
     }
     res.json(resource)
   } catch (err) { next(err) }
 })
 
-// POST /api/resources — admin/hr uniquement
+// POST /api/resources — Créer une ressource documentaire (admin/hr)
 router.post('/', async (req, res, next) => {
   try {
-    if (!ADMIN_ROLES.includes(req.user.role)) return res.status(403).json({ error: 'Forbidden' })
+    if (!ADMIN_ROLES.includes(req.user.role)) return res.status(403).json({ error: 'Accès refusé' })
     const { title, description, type, filename, status, visibleTo } = req.body
     if (!title || !type || !filename) return res.status(400).json({ error: 'title, type et filename requis' })
     if (!/^[a-zA-Z0-9_\-.]+$/.test(filename) || filename.includes('..')) {
@@ -50,11 +56,11 @@ router.post('/', async (req, res, next) => {
   } catch (err) { next(err) }
 })
 
-// PATCH /api/resources/:id — admin/hr uniquement
+// PATCH /api/resources/:id — Modifier une ressource (admin/hr)
 // Utilise save() pour déclencher le hook pre-save (publishedAt automatique)
 router.patch('/:id', async (req, res, next) => {
   try {
-    if (!ADMIN_ROLES.includes(req.user.role)) return res.status(403).json({ error: 'Forbidden' })
+    if (!ADMIN_ROLES.includes(req.user.role)) return res.status(403).json({ error: 'Accès refusé' })
     if (!mongoose.isValidObjectId(req.params.id)) return res.status(400).json({ error: 'ID invalide' })
     const resource = await Resource.findById(req.params.id)
     if (!resource) return res.status(404).json({ error: 'Ressource introuvable' })
@@ -66,14 +72,14 @@ router.patch('/:id', async (req, res, next) => {
   } catch (err) { next(err) }
 })
 
-// DELETE /api/resources/:id — admin/hr uniquement
+// DELETE /api/resources/:id — Supprimer une ressource (admin/hr)
 router.delete('/:id', async (req, res, next) => {
   try {
-    if (!ADMIN_ROLES.includes(req.user.role)) return res.status(403).json({ error: 'Forbidden' })
+    if (!ADMIN_ROLES.includes(req.user.role)) return res.status(403).json({ error: 'Accès refusé' })
     if (!mongoose.isValidObjectId(req.params.id)) return res.status(400).json({ error: 'ID invalide' })
     const deleted = await Resource.findByIdAndDelete(req.params.id)
     if (!deleted) return res.status(404).json({ error: 'Ressource introuvable' })
-    res.json({ deleted: true })
+    res.status(204).end()
   } catch (err) { next(err) }
 })
 

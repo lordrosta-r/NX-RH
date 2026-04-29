@@ -600,9 +600,13 @@ router.patch('/:id', async (req, res, next) => {
     const uid  = req.user.id.toString()
     const role = req.user.role
 
-    // Contrôle d'accès pour les employés
+    // Contrôle d'accès pour les employés.
+    // Un employé peut modifier UNE évaluation s'il en est l'évaluateur (auto-éval)
+    // OU l'évalué (commentaire + signature après review du manager).
     if (role === 'employee') {
-      if (evaluation.evaluatorId.toString() !== uid) {
+      const isEvaluator = evaluation.evaluatorId.toString() === uid
+      const isEvaluatee = evaluation.evaluateeId.toString() === uid
+      if (!isEvaluator && !isEvaluatee) {
         return res.status(403).json({ error: 'Accès refusé' })
       }
     }
@@ -670,6 +674,14 @@ router.patch('/:id', async (req, res, next) => {
 
     // Transition de statut
     if (req.body.status !== undefined) {
+      // Managers/directors peuvent uniquement changer le statut des évaluations
+      // dont ils sont l'évaluateur assigné (pas d'accès cross-équipe).
+      if (['manager', 'director'].includes(role)) {
+        if (evaluation.evaluatorId.toString() !== uid) {
+          return res.status(403).json({ error: 'Accès refusé : vous n\'êtes pas l\'évaluateur de cette évaluation' })
+        }
+      }
+
       const allowed = role === 'admin'
         ? (VALID_TRANSITIONS[evaluation.status] || [])
         : ((ROLE_TRANSITIONS[role] || {})[evaluation.status] || [])

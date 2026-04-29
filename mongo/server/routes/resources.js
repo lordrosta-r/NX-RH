@@ -1,3 +1,4 @@
+'use strict'
 // =============================================================================
 // routes/resources.js — CRUD ressources documentaires (admin/hr only pour écriture)
 // =============================================================================
@@ -70,7 +71,8 @@ router.delete('/:id', async (req, res, next) => {
   try {
     if (!ADMIN_ROLES.includes(req.user.role)) return res.status(403).json({ error: 'Forbidden' })
     if (!mongoose.isValidObjectId(req.params.id)) return res.status(400).json({ error: 'ID invalide' })
-    await Resource.findByIdAndDelete(req.params.id)
+    const deleted = await Resource.findByIdAndDelete(req.params.id)
+    if (!deleted) return res.status(404).json({ error: 'Ressource introuvable' })
     res.json({ deleted: true })
   } catch (err) { next(err) }
 })

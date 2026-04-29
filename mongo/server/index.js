@@ -65,10 +65,13 @@ app.use(helmet({
       fontSrc:                 ["'self'", 'https://fonts.gstatic.com'],
       imgSrc:                  ["'self'", 'data:', 'https://images.unsplash.com', 'https://lh3.googleusercontent.com'],
       connectSrc:              ["'self'"],
+      frameAncestors:          ["'none'"],
       // Only force HTTPS upgrades in production — breaks local HTTP dev/test otherwise
       upgradeInsecureRequests: process.env.NODE_ENV === 'production' ? [] : null,
     }
   },
+  // Nginx already sends X-Frame-Options: DENY — align helmet to avoid conflicting headers
+  frameguard: { action: 'deny' },
   hsts: process.env.NODE_ENV === 'production'
     ? { maxAge: 31536000, includeSubDomains: true }
     : false,
@@ -139,8 +142,10 @@ app.use('/api/analytics',   apiLimiter, authenticated, analyticsRoutes)
 app.use('/api/events',      mutationLimiter, authenticated, eventRoutes)
 app.use('/api/resources',   mutationLimiter, authenticated, resourceRoutes)
 app.use('/api/admin/ldap',  mutationLimiter, authGuard(['admin']), ldapRoutes)
-app.use('/api/admin',      mutationLimiter, authGuard(['admin']), adminRoutes)
+// ⚠️ /api/admin/audit MUST be declared before /api/admin to prevent
+//    authGuard(['admin']) from blocking HR users on the more-specific path.
 app.use('/api/admin/audit', apiLimiter, authGuard(['admin', 'hr']), auditRoutes)
+app.use('/api/admin',      mutationLimiter, authGuard(['admin']), adminRoutes)
 app.use('/api/offboarding', mutationLimiter, authenticated, offboardingRoutes)
 
 // ─── 404 Fallback ────────────────────────────────────────────────────────────
@@ -157,7 +162,9 @@ app.use((req, res) => {
 // eslint-disable-next-line no-unused-vars
 app.use((err, _req, res, _next) => {
   console.error('[Error]', err.message)
-  const status  = err.status || 500
+  let status = err.status || 500
+  // Mongoose validation / cast errors are client mistakes, not server faults.
+  if (err.name === 'ValidationError' || err.name === 'CastError') status = 400
   const message = (process.env.NODE_ENV === 'production' && status === 500)
     ? 'Internal server error'
     : err.message || 'Internal server error'

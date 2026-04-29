@@ -81,11 +81,13 @@ router.post('/login', loginByEmailLimiter, loginByIPLimiter, async (req, res, ne
       .lean()
 
     if (!user || user.authSource !== 'local' || !user.passwordHash) {
+      console.warn('[auth] Login failed — user not found or wrong authSource:', email.toLowerCase())
       return res.status(401).json({ error: 'Identifiants invalides' })
     }
 
     const valid = await bcrypt.compare(password, user.passwordHash)
     if (!valid) {
+      console.warn('[auth] Login failed — wrong password for:', email.toLowerCase())
       return res.status(401).json({ error: 'Identifiants invalides' })
     }
 

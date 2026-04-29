@@ -1,20 +1,14 @@
 export default {
-  'brand.tagline':           'The Sovereign Workspace',
   'login.title':             "S'identifier",
   'login.email.label':       'Email professionnel',
   'login.email.placeholder': 'nom@nanoxplore.com',
   'login.password.label':    'Mot de passe',
-  'login.submit':            'Connexion',
+  'login.submit':            'Se connecter',
   'login.submit.loading':    'Connexion…',
   'login.remember':          'Se souvenir de moi',
-  'login.help':              "Besoin d'aide ?",
-  'login.forgot':            'Mot de passe oublié ?',
-  'login.forgot.title':      'Réinitialiser mon mot de passe',
-  'login.forgot.body':       "Les comptes sont gérés par l'annuaire d'entreprise (LDAP) ou par votre administrateur. Contactez votre service RH pour réinitialiser votre mot de passe.",
-  'login.forgot.contact':    "Contacter l'administrateur",
-  'login.forgot.close':      'Fermer',
+  'login.trouble':           'Problème de connexion ?',
   'login.contact.admin':     "Contacter l'administrateur",
-  'login.legal.text':        "Plateforme d'administration sécurisée. En vous connectant, vous acceptez les",
+  'login.legal.text':        'En vous connectant, vous acceptez les',
   'login.legal.link':        'termes de confidentialité',
   'login.legal.suffix':      'de NanoXplore RH.',
   'login.copyright':         '© 2026 NanoXplore RH',
@@ -27,12 +21,8 @@ export default {
   'login.theme.to_light':    'Passer en mode clair',
   'login.input.show_password': 'Afficher le mot de passe',
   'login.input.hide_password': 'Masquer le mot de passe',
-
-  // Language selector
   'login.lang.fr': 'Français',
   'login.lang.en': 'Anglais',
   'login.lang.select': 'Sélectionner la langue',
-
-  // Accessibility
   'login.a11y.skip': 'Aller au contenu principal',
 }

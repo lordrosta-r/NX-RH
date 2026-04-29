@@ -1,6 +1,5 @@
-import { useState }                          from 'react'
+import { useState, useEffect }               from 'react'
 import { useNavigate }                       from 'react-router-dom'
-import MosaicBackground                      from './MosaicBackground'
 import LoginControls                         from './LoginControls'
 import InputField                            from '../../components/ui/InputField'
 import Checkbox                              from '../../components/ui/Checkbox'
@@ -9,16 +8,8 @@ import { useLocaleCtx, useTranslate }        from '../../contexts/LocaleContext'
 import { useAuth }                           from '../../contexts/AuthContext'
 import './login.css'
 
-// =============================================================================
-// Login — Page racine
-// Tout ce qui est spécifique à cette page vit dans ce dossier.
-// Les composants partagés (InputField, Checkbox…) viennent de components/ui/.
-// =============================================================================
-
-// Vérification basique d'email — le serveur fait la validation complète
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-// Table de correspondance rôle → route d'accueil
 const ROLE_HOME = {
   admin:    '/admin',
   hr:       '/hr',
@@ -38,6 +29,11 @@ export default function Login() {
   const [remember, setRemember] = useState(false)
   const [error,    setError]    = useState(null)
   const [loading,  setLoading]  = useState(false)
+
+  useEffect(() => {
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = '' }
+  }, [])
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -67,8 +63,6 @@ export default function Login() {
         setLoading(false)
         return
       }
-      // Le cookie HttpOnly est posé par le serveur.
-      // On rafraîchit le contexte Auth puis on navigue via React Router.
       await refreshUser()
       navigate(ROLE_HOME[data.user.role] ?? '/employee', { replace: true })
     } catch {
@@ -80,32 +74,18 @@ export default function Login() {
 
   return (
     <div className="login-page">
+      <a href="#main-content" className="skip-link">{t('login.a11y.skip')}</a>
 
-      {/* Skip link — accessibilité clavier */}
-      <a href="#main-content" className="skip-link">
-        {t('login.a11y.skip')}
-      </a>
-
-      {/* Mosaïque + overlay (z:0-1) */}
-      <MosaicBackground />
-
-      {/* Contenu (z:2) */}
       <main className="login-content" id="main-content">
 
         <header className="login-header">
-          <h1 className="login-header__title">NanoXplore RH</h1>
-          <p className="login-header__tagline">{t('brand.tagline')}</p>
+          <img src="/nx-logo.png" alt="NanoXplore" className="login-header__logo" />
         </header>
 
         <div className="login-card">
           <h2 className="login-card__title">{t('login.title')}</h2>
 
-          <form
-            onSubmit={handleSubmit}
-            className="login-form"
-            noValidate
-            aria-label={t('login.title')}
-          >
+          <form onSubmit={handleSubmit} className="login-form" noValidate aria-label={t('login.title')}>
             <InputField
               id="email"
               label={t('login.email.label')}
@@ -134,10 +114,6 @@ export default function Login() {
               labelHidePassword={t('login.input.hide_password')}
             />
 
-            <button type="submit" className="btn--login" disabled={loading}>
-              {loading ? t('login.submit.loading') : t('login.submit')}
-            </button>
-
             <div className="login-utility">
               <Checkbox
                 id="remember"
@@ -146,27 +122,30 @@ export default function Login() {
                 onChange={e => setRemember(e.target.checked)}
               />
             </div>
+
+            <button type="submit" className="btn--login" disabled={loading}>
+              {loading ? t('login.submit.loading') : t('login.submit')}
+            </button>
           </form>
 
           <div className="login-card__footer">
-            <p>
+            <p className="login-trouble">
+              {t('login.trouble')}{' '}
+              <a href="mailto:it@nanoxplore.com" className="login-trouble__link">
+                {t('login.contact.admin')}
+              </a>
+            </p>
+            <p className="login-legal">
               {t('login.legal.text')}{' '}
-              {/* TODO: future feature — link to privacy policy */}
-              <span className="login-legal-link">{t('login.legal.link')}</span>
+              <span className="login-legal__link">{t('login.legal.link')}</span>
               {' '}{t('login.legal.suffix')}
             </p>
-            {/* Lien externe (mailto) — reste en <a href> */}
-            <a href="mailto:admin@nanoxplore.com" className="login-contact">
-              {t('login.contact.admin')}
-            </a>
           </div>
         </div>
 
         <footer className="login-page-footer">{t('login.copyright')}</footer>
-
       </main>
 
-      {/* Pill flottante bas-droite (z:30) */}
       <LoginControls
         locale={locale}
         onLocaleChange={setLocale}
@@ -176,8 +155,6 @@ export default function Login() {
         labelEn={t('login.lang.en')}
         labelSelectLanguage={t('login.lang.select')}
       />
-
     </div>
   )
 }
-

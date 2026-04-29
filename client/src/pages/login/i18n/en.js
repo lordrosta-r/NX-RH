@@ -1,5 +1,4 @@
 export default {
-  'brand.tagline':           'The Sovereign Workspace',
   'login.title':             'Sign In',
   'login.email.label':       'Professional Email',
   'login.email.placeholder': 'name@nanoxplore.com',
@@ -7,14 +6,9 @@ export default {
   'login.submit':            'Sign In',
   'login.submit.loading':    'Signing in…',
   'login.remember':          'Remember me',
-  'login.help':              'Need help?',
-  'login.forgot':            'Forgot password?',
-  'login.forgot.title':      'Reset my password',
-  'login.forgot.body':       'Accounts are managed by the corporate directory (LDAP) or by your administrator. Contact your HR team to reset your password.',
-  'login.forgot.contact':    'Contact administrator',
-  'login.forgot.close':      'Close',
+  'login.trouble':           'Connection issue?',
   'login.contact.admin':     'Contact administrator',
-  'login.legal.text':        'Secure administration platform. By signing in, you agree to the',
+  'login.legal.text':        'By signing in, you agree to the',
   'login.legal.link':        'privacy terms',
   'login.legal.suffix':      'of NanoXplore RH.',
   'login.copyright':         '© 2026 NanoXplore RH',
@@ -27,12 +21,8 @@ export default {
   'login.theme.to_light':    'Switch to light mode',
   'login.input.show_password': 'Show password',
   'login.input.hide_password': 'Hide password',
-
-  // Language selector
   'login.lang.fr': 'French',
   'login.lang.en': 'English',
   'login.lang.select': 'Select language',
-
-  // Accessibility
   'login.a11y.skip': 'Skip to main content',
 }

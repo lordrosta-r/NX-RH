@@ -10,7 +10,6 @@ import { t as pageT } from './i18n'
 import { Search, Plus, X, Pencil, Download } from 'lucide-react'
 import { showToast } from '../../components/ui/Toast'
 import OffboardModal from '../../components/ui/OffboardModal'
-import './admin.css'
 
 const ROLES = ['employee', 'manager', 'hr', 'admin']
 

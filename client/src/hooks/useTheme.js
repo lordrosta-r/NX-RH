@@ -1,22 +1,25 @@
-import { useState, useEffect } from 'react'
-
 // =============================================================================
-// useTheme — React hook for 3-state theme cycle
+// useTheme — standalone hook for theme management (dark / light only)
 //
-// Writes `data-theme="dark|light|light-sidebar"` on <html>.
-// Persists choice in localStorage.
+// KISS: deux thèmes uniquement. Toggles dark ↔ light.
+// Syncs with <html data-theme> and localStorage('nx_theme').
 //
-// Cycle order: dark → light → light-sidebar → dark
+// NOTE: ThemeToggle.jsx utilise useThemeCtx() (ThemeContext) pour rester
+// synchronisé avec l'état global de l'app. Ce hook reste disponible pour
+// tout code qui ne peut pas accéder au contexte React.
 //
 // Returns:
-//   theme       {string}   — 'dark' | 'light' | 'light-sidebar'
-//   cycleTheme  {function} — advance to next theme
+//   theme       {string}   — 'dark' | 'light'
+//   toggleTheme {function} — switch dark ↔ light
+//   setTheme    {function} — set theme directly ('dark' | 'light')
 //   isDark      {boolean}  — shorthand for theme === 'dark'
 // =============================================================================
 
 const STORAGE_KEY   = 'nx_theme'
 const DEFAULT_THEME = 'dark'
-export const THEMES = ['dark', 'light', 'light-sidebar']
+export const THEMES = ['dark', 'light']
+
+import { useState, useEffect } from 'react'
 
 export function useTheme() {
   const [theme, setThemeState] = useState(() => {
@@ -34,19 +37,14 @@ export function useTheme() {
     try { localStorage.setItem(STORAGE_KEY, theme) } catch { /* private browsing */ }
   }, [theme])
 
-  const cycleTheme = () =>
-    setThemeState(current => {
-      const idx = THEMES.indexOf(current)
-      return THEMES[(idx + 1) % THEMES.length]
-    })
+  const toggleTheme = () => setThemeState(t => t === 'dark' ? 'light' : 'dark')
 
-  // Sélection directe d'un thème (utilisé par /settings).
   const setTheme = (name) => {
     if (THEMES.includes(name)) setThemeState(name)
   }
 
-  // Keep toggleTheme as alias for backward compat (login page)
-  const toggleTheme = cycleTheme
+  // cycleTheme kept as alias for backward compat
+  const cycleTheme = toggleTheme
 
   return { theme, setTheme, cycleTheme, toggleTheme, isDark: theme === 'dark' }
 }

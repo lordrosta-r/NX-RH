@@ -11,7 +11,6 @@ import { useTranslate, useLocaleCtx } from '../../contexts/LocaleContext'
 import { useThemeCtx } from '../../contexts/ThemeContext'
 import { t as pageT } from './i18n'
 import { Save, Globe, Bell, Monitor } from 'lucide-react'
-import './hr-settings.css'
 
 export default function HRSettings() {
   const { user } = useAuth()

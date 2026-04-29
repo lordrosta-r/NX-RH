@@ -9,7 +9,7 @@
 //   SkeletonStat    — tuile KPI (icône + chiffre + label + sous-label)
 // =============================================================================
 
-import './skeleton.css'
+
 
 /** Bloc skeleton de base. `width` et `height` acceptent toute valeur CSS. */
 export function Skeleton({ width, height, variant = 'rect', className = '', style = {} }) {

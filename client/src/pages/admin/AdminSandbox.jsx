@@ -8,7 +8,6 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useLocale } from '../../hooks/useLocale'
 import { t as pageT } from './i18n'
 import { Info, AlertTriangle, X } from 'lucide-react'
-import './admin.css'
 
 const TEST_USERS = [
   { id: 'test-1', name: 'Alice Martin',    role: 'employee' },

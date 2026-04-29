@@ -6,7 +6,6 @@ import Checkbox                              from '../../components/ui/Checkbox'
 import { t as pageT }                        from './i18n'
 import { useLocaleCtx, useTranslate }        from '../../contexts/LocaleContext'
 import { useAuth }                           from '../../contexts/AuthContext'
-import './login.css'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 

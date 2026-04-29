@@ -22,6 +22,9 @@ export function ThemeProvider({ children }) {
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme)
+    // Sync inline background set by theme-init.js (anti-flash).
+    // Without this, the page background keeps the old color until a hard refresh.
+    document.documentElement.style.background = theme === 'light' ? '#fcf9f8' : '#111010'
     try { localStorage.setItem(STORAGE_KEY, theme) } catch {}
   }, [theme])
 

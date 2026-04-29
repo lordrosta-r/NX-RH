@@ -14,7 +14,6 @@ import { t as pageT }  from './i18n'
 import { BarChart2, Download } from 'lucide-react'
 import { apiFetch } from '../../lib/apiFetch'
 import { Skeleton, SkeletonStat } from '../../components/ui/Skeleton'
-import './hr-analytics.css'
 
 // ── Constantes ────────────────────────────────────────────────────────────────
 

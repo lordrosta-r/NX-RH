@@ -1,15 +1,16 @@
-import { useTheme }          from '../../hooks/useTheme'
+import { useThemeCtx }         from '../../contexts/ThemeContext'
 import { Sun, Moon } from 'lucide-react'
-import './ThemeToggle.css'
+
 
 // =============================================================================
 // ThemeToggle — Sun / Moon icon button
-// Reads & writes theme via useTheme hook (sets data-theme on <html>).
+// Utilise ThemeContext (source de vérité globale) pour rester synchronisé
+// avec l'état de thème de toute l'app (topbar, pages, login).
 //
 // Props:
 //   size        {number} — icon size in px (default 16)
-//   labelLight  {string} — aria-label/title when in light mode (action = switch to dark)
-//   labelDark   {string} — aria-label/title when in dark mode (action = switch to light)
+//   labelLight  {string} — aria-label when in light mode (action = switch to dark)
+//   labelDark   {string} — aria-label when in dark mode (action = switch to light)
 // =============================================================================
 
 export default function ThemeToggle({
@@ -17,13 +18,13 @@ export default function ThemeToggle({
   labelLight = 'Switch to dark mode',
   labelDark  = 'Switch to light mode',
 }) {
-  const { isDark, setTheme } = useTheme()
+  const { isDark, toggleTheme } = useThemeCtx()
   const label = isDark ? labelDark : labelLight
 
   return (
     <button
       className="theme-toggle"
-      onClick={() => setTheme(isDark ? 'light' : 'dark')}
+      onClick={toggleTheme}
       aria-label={label}
       title={label}
       type="button"

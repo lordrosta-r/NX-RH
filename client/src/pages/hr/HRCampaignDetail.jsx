@@ -22,7 +22,6 @@ import { ChevronLeft, UserPlus, Edit2, Trash2, ArrowLeftRight, X } from 'lucide-
 import { Skeleton, SkeletonStat, SkeletonTable } from '../../components/ui/Skeleton'
 import { apiFetch }         from '../../lib/apiFetch'
 import { showToast }        from '../../components/ui/Toast'
-import './hr-campaigns.css'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 

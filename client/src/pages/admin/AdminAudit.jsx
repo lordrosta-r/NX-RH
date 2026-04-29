@@ -8,8 +8,6 @@ import { useQuery } from '@tanstack/react-query'
 import { useLocale } from '../../hooks/useLocale'
 import { t as pageT } from './i18n'
 import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react'
-import './admin.css'
-import './admin-audit.css'
 
 const ACTION_TYPES = [
   'status_change',

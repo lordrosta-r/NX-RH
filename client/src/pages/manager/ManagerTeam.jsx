@@ -11,7 +11,6 @@ import { useTranslate } from '../../contexts/LocaleContext'
 import { t as pageT } from './i18n'
 import { ChevronRight } from 'lucide-react'
 import { SkeletonTable } from '../../components/ui/Skeleton'
-import './manager.css'
 
 function avatarInitial(member) {
   return (member?.firstName?.[0] ?? member?.name?.[0] ?? '?').toUpperCase()

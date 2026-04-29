@@ -8,7 +8,6 @@ import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '../../contexts/AuthContext'
 import { useTranslate, useLocaleCtx } from '../../contexts/LocaleContext'
 import { t as pageT } from './i18n'
-import './manager.css'
 
 export default function ManagerHistory() {
   const { user } = useAuth()

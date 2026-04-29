@@ -4,7 +4,6 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react'
 import { NavLink, Link, useLocation } from 'react-router-dom'
-import './AppTopbar.css'
 import { Bell, Sun, Moon, Globe, ChevronDown, LogOut } from 'lucide-react'
 
 // ── Internal labels ───────────────────────────────────────────────────────────

@@ -13,7 +13,6 @@ import { CheckCircle, AlertTriangle, ArrowLeft } from 'lucide-react'
 import EvaluationLayout from './EvaluationLayout'
 import { t as pageT } from './i18n'
 import { useLocale } from '../../hooks/useLocale'
-import './evaluation.css'
 
 // Statuts qui indiquent que l'évaluation est déjà signée ou finalisée
 const ALREADY_SIGNED = ['signed_evaluatee', 'signed_manager', 'signed_hr', 'validated']

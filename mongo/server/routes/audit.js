@@ -21,6 +21,7 @@ const VALID_ACTIONS = [
 ]
 const VALID_TARGET_TYPES = ['Evaluation', 'Campaign', 'User', 'Form', 'OffboardingRequest']
 
+// GET /api/admin/audit — Liste les entrées de la piste d'audit (paginé)
 router.get('/', async (req, res, next) => {
   try {
     const page  = Math.max(1, parseInt(req.query.page)  || 1)

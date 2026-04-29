@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Globe } from 'lucide-react'
-import './LanguageSelector.css'
+
 
 // Composant spécifique à la page Login — vit dans son dossier.
 // Props: locale {string}, onChange {function}, labelFr {string}, labelEn {string}

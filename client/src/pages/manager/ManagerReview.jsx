@@ -10,7 +10,6 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useTranslate } from '../../contexts/LocaleContext'
 import { t as pageT } from './i18n'
 import { showToast } from '../../components/ui/Toast'
-import './manager.css'
 
 const RATINGS = ['achieved', 'partial', 'not_achieved']
 

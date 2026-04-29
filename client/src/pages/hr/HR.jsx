@@ -21,12 +21,11 @@ import { useAuth }        from '../../contexts/AuthContext'
 import { t as pageT }     from './i18n'
 import { useLocale }      from '../../hooks/useLocale'
 import {
-  Clipboard, TrendingUp, Bell, Sparkles,
+  Clipboard, TrendingUp, Bell,
   ChevronRight, FileText, Users, CheckCircle2,
 } from 'lucide-react'
 import { apiFetch } from '../../lib/apiFetch'
 import { SkeletonStat, SkeletonTable } from '../../components/ui/Skeleton'
-import './hr.css'
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -287,14 +286,6 @@ export default function HR() {
             label={t('hr.kpi.evaluations.label')}
             sub={t('hr.kpi.evaluations.sub')}
           />
-          <KpiTile
-            icon={<Sparkles size={18} strokeWidth={1.5} color="var(--color-secondary)" />}
-            iconBg="var(--color-secondary-tint-08)"
-            value="—"
-            label="Score culture"
-            sub="eNPS de l'organisation"
-            onClick={() => navigate('/hr/analytics')}
-          />
           </>}
         </div>
 
@@ -389,10 +380,16 @@ export default function HR() {
                 {recentActivity.map((ev, i) => (
                   <tr key={ev._id || i}>
                     <td className="hr-table__name">
-                      {ev.evaluateeName || ev.evaluatee?.name || '—'}
+                      {ev.evaluateeName
+                        || (ev.evaluateeId && typeof ev.evaluateeId === 'object'
+                          ? `${ev.evaluateeId.firstName || ''} ${ev.evaluateeId.lastName || ''}`.trim()
+                          : null)
+                        || '—'}
                     </td>
                     <td className="hr-table__campaign">
-                      {ev.campaignName || ev.campaign?.name || '—'}
+                      {ev.campaignName
+                        || (ev.campaignId && typeof ev.campaignId === 'object' ? ev.campaignId.name : null)
+                        || '—'}
                     </td>
                     <td>
                       <StatusBadge status={ev.status} />

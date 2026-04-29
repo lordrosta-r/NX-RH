@@ -10,7 +10,6 @@ import { Check, ChevronRight, Lock } from 'lucide-react'
 import EvaluationLayout from './EvaluationLayout'
 import { t as pageT } from './i18n'
 import { useTranslate } from '../../contexts/LocaleContext'
-import './evaluation.css'
 
 const PHASES = [
   {

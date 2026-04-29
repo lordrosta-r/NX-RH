@@ -15,11 +15,11 @@ const { sendMail } = require('../services/mailer')
 
 const router = express.Router()
 
-// POST /api/admin/email/test
+// POST /api/admin/email/test — Envoie un email de test
 router.post('/email/test', async (req, res, next) => {
   const { to } = req.body
   if (!to || typeof to !== 'string' || !to.includes('@')) {
-    return res.status(400).json({ sent: false, error: 'Adresse email invalide' })
+    return res.status(400).json({ error: 'Adresse email invalide' })
   }
 
   try {

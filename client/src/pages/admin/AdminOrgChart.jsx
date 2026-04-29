@@ -10,7 +10,6 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useLocale } from '../../hooks/useLocale'
 import { t as pageT } from './i18n'
 import { AlertTriangle } from 'lucide-react'
-import './admin.css'
 
 const MODES = ['full', 'managerial', 'hub', 'diagnostic']
 

@@ -5,7 +5,6 @@
 
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
-import './evaluation.css'
 
 export default function EvaluationLayout({
   evalId,

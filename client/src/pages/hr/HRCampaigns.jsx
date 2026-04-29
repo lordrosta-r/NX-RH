@@ -17,7 +17,6 @@ import { PlusCircle, Play, X, Archive, Copy, Eye } from 'lucide-react'
 import { apiFetch } from '../../lib/apiFetch'
 import { showToast } from '../../components/ui/Toast'
 import { SkeletonCard } from '../../components/ui/Skeleton'
-import './hr-campaigns.css'
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 

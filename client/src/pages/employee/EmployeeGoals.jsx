@@ -12,7 +12,6 @@ import { useTranslate } from '../../contexts/LocaleContext'
 import { t as pageT } from './i18n'
 import { Target, Edit2, X } from 'lucide-react'
 import { showToast } from '../../components/ui/Toast'
-import './employee-goals.css'
 
 const LOCKED_STATUSES = ['submitted', 'reviewed', 'signed_evaluatee', 'signed_manager', 'signed_hr', 'validated']
 

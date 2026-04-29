@@ -19,7 +19,6 @@ import { t as pageT }     from './i18n'
 import { ChevronLeft, ChevronRight, Check, AlertTriangle } from 'lucide-react'
 import { apiFetch } from '../../lib/apiFetch'
 import { showToast } from '../../components/ui/Toast'
-import './hr-campaigns.css'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 

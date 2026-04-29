@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import Particles, { initParticlesEngine } from '@tsparticles/react'
 import { loadSlim } from '@tsparticles/slim'
-import './LoginBackground.css'
 
 // =============================================================================
 // LoginBackground — Champ d'étoiles + réseau de nœuds style circuit FPGA

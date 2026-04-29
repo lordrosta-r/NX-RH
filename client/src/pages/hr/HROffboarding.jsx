@@ -11,7 +11,6 @@ import { useTranslate, useLocaleCtx } from '../../contexts/LocaleContext'
 import { t as pageT } from './i18n'
 import { apiFetch } from '../../lib/apiFetch'
 import { X, Eye, CheckSquare, Square } from 'lucide-react'
-import './hr-offboarding.css'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 

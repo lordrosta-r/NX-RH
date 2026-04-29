@@ -9,7 +9,6 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useLocale } from '../../hooks/useLocale'
 import { t as pageT } from './i18n'
 import { AlertTriangle, X } from 'lucide-react'
-import './admin.css'
 
 const RETENTION_OPTIONS = [3, 5, 7, 10]
 

@@ -1,6 +1,5 @@
 import ThemeToggle      from '../../components/ui/ThemeToggle'
 import LanguageSelector from './LanguageSelector'
-import './LoginControls.css'
 
 // Pill flottante bas-droite — regroupe toggle thème + sélecteur langue.
 // Spécifique à la page Login.

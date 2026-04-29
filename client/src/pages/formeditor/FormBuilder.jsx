@@ -14,36 +14,22 @@ import { useTranslate }   from '../../contexts/LocaleContext'
 import { t as pageT }     from './i18n'
 import {
   ChevronLeft, AlertTriangle, GripVertical, Trash2, Copy, Plus,
-  BarChart2, List, AlignLeft, ToggleLeft, CloudSun, MapPin, Download,
+  BarChart2, List, AlignLeft, ToggleLeft,
 } from 'lucide-react'
-import './formbuilder.css'
+import { showToast } from '../../components/ui/Toast'
+import { apiFetch }  from '../../lib/apiFetch'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const BLOCK_TYPES = [
-  { type: 'rating',    icon: BarChart2,  labelKey: 'fb.block.rating' },
-  { type: 'choice',    icon: List,       labelKey: 'fb.block.choice' },
-  { type: 'text',      icon: AlignLeft,  labelKey: 'fb.block.text' },
-  { type: 'yes_no',    icon: ToggleLeft, labelKey: 'fb.block.yes_no' },
-  { type: 'weather',   icon: CloudSun,   labelKey: 'fb.block.weather' },
-  { type: 'mobility',  icon: MapPin,     labelKey: 'fb.block.mobility' },
-  { type: 'n1_import', icon: Download,   labelKey: 'fb.block.n1_import' },
-]
-
-// Primary 2×2 grid in right panel
-const MAIN_TYPE_TILES = [
   { type: 'rating',  icon: BarChart2,  labelKey: 'fb.block.rating' },
   { type: 'choice',  icon: List,       labelKey: 'fb.block.choice' },
   { type: 'text',    icon: AlignLeft,  labelKey: 'fb.block.text' },
   { type: 'yes_no',  icon: ToggleLeft, labelKey: 'fb.block.yes_no' },
 ]
 
-// Secondary row (special types)
-const SPECIAL_TYPE_TILES = [
-  { type: 'weather',   icon: CloudSun,  labelKey: 'fb.block.weather' },
-  { type: 'mobility',  icon: MapPin,    labelKey: 'fb.block.mobility' },
-  { type: 'n1_import', icon: Download,  labelKey: 'fb.block.n1_import' },
-]
+// 2×2 grid in right panel
+const MAIN_TYPE_TILES = BLOCK_TYPES
 
 const PHASE_OPTIONS = [
   { value: 'all',         labelKey: 'fb.config.phase.all' },
@@ -94,7 +80,6 @@ function QuestionPreview({ type }) {
         </div>
       )
     case 'yes_no':
-    case 'mobility':
       return (
         <div className="fb-preview fb-preview--yesno">
           <div className="fb-preview__yn-box">Oui</div>
@@ -104,24 +89,12 @@ function QuestionPreview({ type }) {
     case 'choice':
       return (
         <div className="fb-preview fb-preview--choice">
-          {[0, 1, 2].map(i => <div key={i} className="fb-preview__choice-bar" />)}
-        </div>
-      )
-    case 'weather':
-      return (
-        <div className="fb-preview fb-preview--weather">
-          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
-            <div key={n} className={`fb-preview__box fb-preview__box--sm${n === 7 ? ' fb-preview__box--active' : ''}`}>
-              {n}
+          {['Option 1', 'Option 2', 'Option 3'].map((label, i) => (
+            <div key={i} className="fb-preview__choice-row">
+              <span className="fb-preview__radio" />
+              <span className="fb-preview__choice-txt">{label}</span>
             </div>
           ))}
-        </div>
-      )
-    case 'n1_import':
-      return (
-        <div className="fb-preview fb-preview--import">
-          <Download size={16} strokeWidth={1.5} />
-          <span>Import N-1</span>
         </div>
       )
     default:
@@ -358,22 +331,6 @@ function PropertiesPanel({ block, onChange, onSave, onDiscard, saveStatus, isLoc
                   </button>
                 ))}
               </div>
-
-              {/* Special types row */}
-              <div className="fb-type-special">
-                {SPECIAL_TYPE_TILES.map(({ type, icon: Icon, labelKey }) => (
-                  <button
-                    key={type}
-                    type="button"
-                    className={`fb-type-tile fb-type-tile--sm${block.type === type ? ' fb-type-tile--selected' : ''}`}
-                    onClick={() => !isLocked && onChange({ ...block, type })}
-                    disabled={isLocked}
-                  >
-                    <Icon size={15} strokeWidth={1.5} />
-                    <span>{t(labelKey)}</span>
-                  </button>
-                ))}
-              </div>
             </div>
           </>
         )}
@@ -415,8 +372,7 @@ export default function FormBuilder() {
 
   const { data: form, isLoading, isError } = useQuery({
     queryKey: ['hr-form', id],
-    queryFn:  () =>
-      fetch(`/api/forms/${id}`, { credentials: 'include' }).then(r => r.json()),
+    queryFn:  () => apiFetch(`/api/forms/${id}`),
     enabled:  !!user && !!id,
     staleTime: 30 * 1000,
   })
@@ -441,9 +397,9 @@ export default function FormBuilder() {
       }),
     onMutate:  () => setSaveStatus('saving'),
     onSuccess: () => {
-      setSaveStatus('saved')
-      qc.invalidateQueries({ queryKey: ['hr-form', id] })
-      setTimeout(() => setSaveStatus('idle'), 2000)
+      showToast({ message: 'Formulaire enregistré !', type: 'success' })
+      qc.invalidateQueries({ queryKey: ['hr-forms'] })
+      navigate('/hr/templates')
     },
     onError: (err) => {
       setSaveStatus('idle')
@@ -536,7 +492,13 @@ export default function FormBuilder() {
   }
 
   if (isLoading) return <p className="fb-loading">{t('fb.saving')}</p>
-  if (isError || !form) return <p className="fb-loading">{t('fb.error.load')}</p>
+  if (isError || !form) return (
+    <div className="fb-loading" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', alignItems: 'center' }}>
+      <AlertTriangle size={20} strokeWidth={1.5} />
+      <span>{t('fb.error.load')}</span>
+      <Link to="/hr/templates" style={{ fontSize: '0.8rem', opacity: 0.7 }}>← Retour aux modèles</Link>
+    </div>
+  )
 
   const isLocked      = !!form.frozenAt
   const displayBlocks = blocks ?? []

@@ -368,17 +368,16 @@ export default function Employee() {
             </div>
           </div>
           {stats.pending > 0 && (
-            <a
-              href="#"
-              onClick={e => {
-                e.preventDefault()
+            <button
+              type="button"
+              onClick={() => {
                 const first = evaluations.find(ev => ['assigned', 'in_progress'].includes(ev.status))
                 if (first) navigate(`/evaluation/${first._id}`)
               }}
               className="db-stats__cta"
             >
               {t('dashboard.stats.cta')} <ChevronRight size={14} />
-            </a>
+            </button>
           )}
         </article>
 

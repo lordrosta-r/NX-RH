@@ -60,9 +60,9 @@ const offboardingRequestSchema = new Schema({
     default: null,
     maxlength: 2000,
   },
-}, { timestamps: true })
+}, { timestamps: true, versionKey: false })
 
 offboardingRequestSchema.index({ status: 1 })
 offboardingRequestSchema.index({ lastDay: 1 })
 
-module.exports = { model: model('OffboardingRequest', offboardingRequestSchema), DEFAULT_CHECKLIST }
+module.exports = { OffboardingRequest: model('OffboardingRequest', offboardingRequestSchema), DEFAULT_CHECKLIST }

@@ -29,6 +29,10 @@ describe('Evaluation model — VALID_TRANSITIONS', () => {
     expect(VALID_TRANSITIONS.expired).toEqual([])
   })
 
+  it('"archived" has no valid transitions (terminal — offboarding cancellation)', () => {
+    expect(VALID_TRANSITIONS.archived).toEqual([])
+  })
+
   it('"assigned" can only transition to "in_progress"', () => {
     expect(VALID_TRANSITIONS.assigned).toEqual(['in_progress'])
   })
@@ -145,8 +149,8 @@ describe('Evaluation model — LOCKED_STATUSES', () => {
     expect(LOCKED_STATUSES).toContain('submitted')
   })
 
-  it('contains all post-submission statuses', () => {
-    ['submitted', 'reviewed', 'signed_evaluatee', 'signed_manager', 'signed_hr', 'validated']
+  it('contains all post-submission statuses including archived', () => {
+    ['submitted', 'reviewed', 'signed_evaluatee', 'signed_manager', 'signed_hr', 'validated', 'archived']
       .forEach(s => expect(LOCKED_STATUSES).toContain(s))
   })
 

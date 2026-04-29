@@ -24,7 +24,7 @@ const USERS = [
     firstName:  'Admin',
     lastName:   'RH',
     role:       'admin',
-    department: 'RH',
+    department: 'HR',
     password:   'Admin1234!',
   },
   {
@@ -32,7 +32,7 @@ const USERS = [
     firstName:  'Camille',
     lastName:   'Dupont',
     role:       'hr',
-    department: 'RH',
+    department: 'HR',
     password:   'Hr1234!',
   },
   {

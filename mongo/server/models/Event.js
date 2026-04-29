@@ -36,6 +36,6 @@ const eventSchema = new Schema({
 
   createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
 
-}, { timestamps: true })
+}, { timestamps: true, versionKey: false })
 
 module.exports = model('Event', eventSchema)

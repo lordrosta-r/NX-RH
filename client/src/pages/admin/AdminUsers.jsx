@@ -2,11 +2,10 @@
 // AdminUsers.jsx — Gestion des utilisateurs, route /admin/users
 // =============================================================================
 
-import React, { useState, useEffect, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
+import React, { useState, useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../../contexts/AuthContext'
-import { useLocale } from '../../hooks/useLocale'
+import { useTranslate } from '../../contexts/LocaleContext'
 import { t as pageT } from './i18n'
 import { Search, Plus, X, Pencil, Download } from 'lucide-react'
 import { showToast } from '../../components/ui/Toast'
@@ -133,16 +132,11 @@ function UserModal({ user: editUser, onClose, t }) {
 
 export default function AdminUsers() {
   const { user, loading } = useAuth()
-  const { t } = useLocale(pageT)
-  const navigate = useNavigate()
+  const t = useTranslate(pageT)
   const qc = useQueryClient()
   const [search, setSearch] = useState('')
   const [modal, setModal] = useState(null) // null | 'create' | {user}
   const [offboardUser, setOffboardUser] = useState(null)
-
-  useEffect(() => {
-    if (!loading && user && user.role !== 'admin') navigate('/employee', { replace: true })
-  }, [loading, user, navigate])
 
   const { data: users = [], isLoading } = useQuery({
     queryKey: ['admin-users'],
@@ -162,6 +156,7 @@ export default function AdminUsers() {
         body: JSON.stringify({ isActive }),
       }).then(r => r.ok ? r.json() : Promise.reject()),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-users'] }),
+    onError: () => showToast({ message: t('admin.users.error.save'), type: 'error' }),
   })
 
   const anonymizeMutation = useMutation({

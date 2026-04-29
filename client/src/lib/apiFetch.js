@@ -16,7 +16,9 @@ export async function apiFetch(url, options = {}) {
     } catch {
       msg = `Erreur ${r.status}`
     }
-    throw new Error(msg)
+    const err = new Error(msg)
+    err.status = r.status
+    throw err
   }
   return r.json()
 }

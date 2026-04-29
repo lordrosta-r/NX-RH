@@ -19,7 +19,7 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./src/__tests__/setup.js'],
-    include: ['src/__tests__/**/*.test.{js,jsx}'],
+    include: ['src/__tests__/**/*.test.{js,jsx}', 'src/tests/**/*.test.{js,jsx}'],
     coverage: {
       reporter: ['text', 'lcov'],
     },
@@ -45,6 +45,22 @@ export default defineConfig({
   // In Docker, VITE_API_TARGET points to the internal "app" service.
   server: {
     port: 5173,
+    proxy: {
+      '/api': {
+        target: process.env.VITE_API_TARGET || 'http://localhost:3000',
+        changeOrigin: true,
+      },
+    },
+  },
+
+  // ── Preview server ─────────────────────────────────────────────────────────
+  // `vite preview` serves the built static files (used in Docker preview mode).
+  // Port 5252 — exposed via VSCode port forwarding / dev tunnels.
+  // API calls are proxied the same way as in dev mode.
+  preview: {
+    port: 5252,
+    host: '0.0.0.0',
+    allowedHosts: ['mhchjzvv-5252.uks1.devtunnels.ms'],
     proxy: {
       '/api': {
         target: process.env.VITE_API_TARGET || 'http://localhost:3000',

@@ -18,14 +18,15 @@ const auditLogSchema = new Schema({
   targetType: { type: String, required: true },   // 'Evaluation', 'Campaign', 'User'
   targetId:   { type: Schema.Types.ObjectId, required: true },
   meta:       { type: Schema.Types.Mixed, default: {} },
-  createdAt:  { type: Date, default: Date.now, index: true },
+  createdAt:  { type: Date, default: Date.now },
 }, { timestamps: false })
 
 // TTL — MongoDB supprime automatiquement les documents après 2 ans
 auditLogSchema.index({ createdAt: 1 }, { expireAfterSeconds: TWO_YEARS_SECONDS })
 
 // Index composites pour les requêtes fréquentes
-auditLogSchema.index({ userId:   1, createdAt: -1 })
-auditLogSchema.index({ targetId: 1, createdAt: -1 })
+auditLogSchema.index({ userId:     1, createdAt: -1 })
+auditLogSchema.index({ targetId:   1, createdAt: -1 })
+auditLogSchema.index({ targetType: 1, createdAt: -1 })
 
 module.exports = model('AuditLog', auditLogSchema)

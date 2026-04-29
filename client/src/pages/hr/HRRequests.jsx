@@ -460,7 +460,7 @@ function AllEvalsTab({ evals, t, locale }) {
         body:    JSON.stringify({ ids, action }),
       }),
     onSuccess: (result) => {
-      queryClient.invalidateQueries()
+      queryClient.invalidateQueries({ queryKey: ['hr-evaluations-all'] })
       setSelected(new Set())
       setBulkResult(result)
       showToast({ message: 'Action groupée effectuée', type: 'success' })

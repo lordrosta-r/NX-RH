@@ -10,7 +10,6 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useLocale } from '../../hooks/useLocale'
 import { t as pageT } from './i18n'
 import { Plus, CheckCircle, XCircle, Eye, RefreshCw } from 'lucide-react'
-import './admin.css'
 
 const SSO_PROVIDERS = [
   { id: 'google',    name: 'Google Workspace',    configured: false },

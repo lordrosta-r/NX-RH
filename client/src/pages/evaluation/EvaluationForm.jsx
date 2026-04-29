@@ -12,7 +12,6 @@ import { Save, ArrowRight } from 'lucide-react'
 import EvaluationLayout from './EvaluationLayout'
 import { t as pageT } from './i18n'
 import { useLocale } from '../../hooks/useLocale'
-import './evaluation.css'
 
 // ── Données mock des phases ──────────────────────────────────────────────────
 // TODO: remplacer par un fetch /api/forms/:formId filtré par phase

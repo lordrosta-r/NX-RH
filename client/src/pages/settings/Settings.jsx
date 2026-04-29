@@ -7,7 +7,6 @@
 
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import './settings.css'
 
 import ProfileSection       from './sections/ProfileSection'
 import PreferencesSection   from './sections/PreferencesSection'

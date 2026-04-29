@@ -57,6 +57,7 @@ const loginByIPLimiter = rateLimit({
 
 // ─── POST /api/auth/login ────────────────────────────────────────────────────
 
+// POST /api/auth/login — Vérifie les identifiants et émet un cookie httpOnly JWT
 router.post('/login', loginByEmailLimiter, loginByIPLimiter, async (req, res, next) => {
   try {
     const { email, password, remember } = req.body
@@ -126,6 +127,7 @@ router.post('/login', loginByEmailLimiter, loginByIPLimiter, async (req, res, ne
 
 // ─── POST /api/auth/logout ───────────────────────────────────────────────────
 
+// POST /api/auth/logout — Supprime le cookie de session
 router.post('/logout', (_req, res) => {
   res.clearCookie('token', {
     httpOnly: true,
@@ -140,6 +142,7 @@ router.post('/logout', (_req, res) => {
 // Revalide la session et retourne l'utilisateur courant.
 // Utilisé par useAuthUser() pour vérifier que le cookie est encore valide.
 
+// GET /api/auth/me — Revalide la session et retourne l'utilisateur courant
 router.get('/me', authGuard(), async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id)
@@ -160,7 +163,8 @@ router.get('/me', authGuard(), async (req, res, next) => {
     // n'envoyer au client que les clés qu'il peut effectivement gérer.
     user.notificationPrefs = filterNotifPrefsByRole(user.notificationPrefs, user.role)
 
-    res.json({ id: user._id, ...user })
+    const { _id, ...rest } = user
+    res.json({ id: _id, ...rest })
   } catch (err) {
     next(err)
   }
@@ -170,6 +174,7 @@ router.get('/me', authGuard(), async (req, res, next) => {
 // Met à jour les préférences de l'utilisateur courant (locale / theme / notificationPrefs).
 // Whitelist stricte — tout champ inconnu est ignoré ou rejeté.
 
+// PATCH /api/auth/preferences — Met à jour les préférences de l'utilisateur courant
 router.patch('/preferences', authGuard(), async (req, res, next) => {
   try {
     const { locale, theme, notificationPrefs } = req.body || {}

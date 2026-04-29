@@ -118,7 +118,7 @@ describe('GET /api/users', () => {
       .get('/api/users')
       .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(res.status).toBe(200)
-    expect(Array.isArray(res.body)).toBe(true)
+    expect(Array.isArray(res.body.data)).toBe(true)
     const [filter] = User.find.mock.calls[0]
     expect(filter.managerId).toBeUndefined()
   })
@@ -331,7 +331,7 @@ describe('POST /api/users', () => {
       .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ firstName: 'Bob', lastName: 'Smith', email: 'existing@corp.com' })
     expect(res.status).toBe(409)
-    expect(res.body.error).toMatch(/already exists/i)
+    expect(res.body.error).toMatch(/déjà utilisé/i)
   })
 })
 

@@ -17,7 +17,6 @@ import {
 } from 'lucide-react'
 import { apiFetch } from '../../lib/apiFetch'
 import { SkeletonTable } from '../../components/ui/Skeleton'
-import './hr-directory.css'
 
 const PAGE_SIZE = 50
 

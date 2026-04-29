@@ -20,5 +20,6 @@ export async function apiFetch(url, options = {}) {
     err.status = r.status
     throw err
   }
+  if (r.status === 204 || r.headers.get('content-length') === '0') return null
   return r.json()
 }

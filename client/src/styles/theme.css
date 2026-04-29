@@ -1,12 +1,25 @@
 /* =============================================================================
    Theme Variables — NanoXplore RH
-   Appliqué via data-theme="dark|light" sur <html>.
-   Anti-flash : login.html lit localStorage et écrit data-theme AVANT React.
+   =============================================================================
+   DEUX thèmes uniquement : "dark" (défaut) et "light".
+   Aucun `light-sidebar` — supprimé car redondant avec `light`.
+
+   COMMENT ÇA MARCHE :
+     • tokens.css définit les valeurs de base (mode clair, source de vérité)
+     • Ce fichier override les variables pour le mode sombre (html[data-theme="dark"])
+     • Le mode clair = tokens.css sans override (rien à faire ici)
+     • `color-scheme` dit au navigateur d'utiliser les couleurs système adaptées
+       → corrige le texte gris des inputs sur Firefox / Safari / Edge
+
+   ANTI-FLASH :
+     • public/theme-init.js lit localStorage('nx_theme') avant React
+     • Toute valeur inconnue (y compris l'ancien 'light-sidebar') → 'dark'
    ============================================================================= */
 
 /* ── Dark (défaut — cinématique) ─────────────────────────────────────────── */
 :root,
 html[data-theme="dark"] {
+  color-scheme: dark;
   --th-page-bg:           #04040a;
   --th-mosaic-opacity:    0.6;
   --th-overlay-gradient:  linear-gradient(to top, #000 0%, rgba(0,0,0,0.80) 40%, rgba(0,0,0,0.55) 100%);
@@ -64,8 +77,9 @@ html[data-theme="dark"] {
   --apptb-hamburger:       rgba(255, 255, 255, 0.75);
 }
 
-/* ── Light (sovereign white — "layers of fine paper") ───────────────────── */
+/* ── Light ("layers of fine paper") ─────────────────────────────────────── */
 html[data-theme="light"] {
+  color-scheme: light;
   --th-page-bg:           var(--color-surface, #fcf9f8);
   /* Images visibles mais très atténuées + overlay blanc chaud */
   --th-mosaic-opacity:    0.12;
@@ -111,75 +125,6 @@ html[data-theme="light"] {
 
   /* Topbar — light */
   --color-topbar-bg:       #ffffff;
-  --apptb-bg:              #ffffff;
-  --apptb-border:          rgba(28, 27, 27, 0.08);
-  --apptb-text:            rgba(28, 27, 27, 0.55);
-  --apptb-text-active:     #1c1b1b;
-  --apptb-text-hover:      rgba(28, 27, 27, 0.90);
-  --apptb-hover-bg:        rgba(28, 27, 27, 0.05);
-  --apptb-active-bg:       rgba(28, 27, 27, 0.07);
-  --apptb-icon:            rgba(28, 27, 27, 0.50);
-  --apptb-icon-hover-bg:   rgba(28, 27, 27, 0.07);
-  --apptb-sep:             rgba(28, 27, 27, 0.12);
-  --apptb-notif-border:    rgba(28, 27, 27, 0.10);
-  --apptb-hamburger:       rgba(28, 27, 27, 0.75);
-}
-
-/* ── Light-sidebar theme— white content area + light `#f6f3f2` sidebar ─────
-   Third theme: fond blanc, sidebar claire. Sidebar tokens overridden here.  */
-html[data-theme="light-sidebar"] {
-  --color-sidebar:            #f6f3f2;
-  --color-sidebar-brand-text: var(--color-on-surface, #1c1b1b);
-  --color-sidebar-nav-text:   rgba(28, 27, 27, 0.55);
-  --color-sidebar-nav-active: var(--color-secondary, #5b00df);
-  --color-sidebar-active-bg:  rgba(91, 0, 223, 0.08);
-  --color-sidebar-hover-bg:   var(--color-surface-container, #f0eded);
-  --color-sidebar-label:      #5f6368;
-
-  /* Mêmes --th-* que light pour que les pages non-sidebar fonctionnent */
-  --th-page-bg:           var(--color-surface, #fcf9f8);
-  --th-mosaic-opacity:    0.12;
-  --th-overlay-gradient:  linear-gradient(to top, rgba(252,249,248,0.96) 0%, rgba(252,249,248,0.80) 50%, rgba(252,249,248,0.65) 100%);
-
-  --th-card-bg:           rgba(255, 255, 255, 0.96);
-  --th-card-shadow:       var(--shadow-float, 0 24px 64px rgba(28,27,27,0.10));
-  --th-card-title:        var(--color-on-surface, #1c1b1b);
-
-  --th-label-color:       #5f6368;
-  --th-input-tray:        var(--color-surface-container-low, #f6f3f2);
-  --th-input-tray-focus:  var(--color-surface-container, #f0eded);
-  --th-input-color:       var(--color-on-surface, #1c1b1b);
-  --th-input-placeholder: #80868b;
-
-  --th-divider:           #dadce0;
-  --th-footer-text:       #5f6368;
-  --th-footer-link:       var(--color-on-surface, #1c1b1b);
-  --th-footer-link-dec:   rgba(128, 134, 139, 0.40);
-  --th-copyright:         #80868b;
-
-  --th-utility-link:      #5f6368;
-  --th-utility-link-hover:var(--color-on-surface, #1c1b1b);
-  --th-tagline:           #5f6368;
-
-  --th-checkbox-bg:       var(--color-surface-container, #f0eded);
-  --th-checkbox-border:   #dadce0;
-
-  --th-text-secondary:          #5f6368;
-  --th-surface:                 var(--color-surface);
-  --th-on-surface:              var(--color-on-surface);
-  --th-surface-container-low:   var(--color-surface-container-low);
-  --th-surface-container:       var(--color-surface-container);
-
-  --th-controls-bg:       rgba(255, 255, 255, 0.85);
-  --th-controls-border:   rgba(28, 27, 27, 0.10);
-  --th-controls-icon:     rgba(28, 27, 27, 0.45);
-  --th-controls-icon-hover:rgba(28, 27, 27, 0.90);
-  --th-controls-text:     rgba(28, 27, 27, 0.75);
-  --th-controls-divider:  rgba(28, 27, 27, 0.10);
-
-  --th-hero-gradient: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary, var(--color-primary)) 100%);
-
-  /* Topbar — même que light */
   --apptb-bg:              #ffffff;
   --apptb-border:          rgba(28, 27, 27, 0.08);
   --apptb-text:            rgba(28, 27, 27, 0.55);

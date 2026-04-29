@@ -17,7 +17,6 @@ import {
 import { apiFetch } from '../../lib/apiFetch'
 import { showToast } from '../../components/ui/Toast'
 import { SkeletonTable } from '../../components/ui/Skeleton'
-import './hr-requests.css'
 
 const TABS = ['contested', 'mobility', 'salary', 'all_evals']
 

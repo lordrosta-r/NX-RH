@@ -5,7 +5,6 @@
 // =============================================================================
 
 import React from 'react'
-import './CampaignBanner.css'
 import { Bell } from 'lucide-react'
 
 // ── Circular SVG progress ring ──────────────────────────────────────────────

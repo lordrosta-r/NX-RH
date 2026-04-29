@@ -9,7 +9,6 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useLocale } from '../../hooks/useLocale'
 import { t as pageT } from './i18n'
 import { Check, Minus } from 'lucide-react'
-import './admin.css'
 
 const PERMISSIONS = [
   'view-evaluations',

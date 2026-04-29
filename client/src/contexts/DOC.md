@@ -32,10 +32,12 @@
 
 | Propriété | Type | Description |
 |---|---|---|
-| `theme` | `string` | Thème actif (`'dark'`, `'light'`, `'light-sidebar'`) |
-| `setTheme(name)` | `(string) => void` | Change le thème (ignoré si le nom est invalide) |
-| `cycleTheme()` | `() => void` | Passe au thème suivant dans le cycle |
+| `theme` | `'dark' \| 'light'` | Thème actif |
+| `toggleTheme()` | `() => void` | Bascule entre `dark` et `light` |
 | `isDark` | `boolean` | `true` si le thème courant est `'dark'` |
+
+> **Note** : `setTheme` et `cycleTheme` n'existent **pas** dans ce contexte.
+> Si tu en as besoin, utilise `toggleTheme()` directement.
 
 ### `useLocaleCtx()` — depuis `LocaleContext.jsx`
 

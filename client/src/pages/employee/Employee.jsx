@@ -22,7 +22,6 @@ import CampaignBanner           from './CampaignBanner'
 import CalendarWidget           from '../../components/ui/CalendarWidget'
 import { ArrowUpRight, Sparkles, Heart, ChevronRight, CheckSquare, Square } from 'lucide-react'
 import { Skeleton } from '../../components/ui/Skeleton'
-import './employee.css'
 
 // ── Correspondance type d'événement → token couleur ─────────────────────────
 const EVENT_COLORS = {

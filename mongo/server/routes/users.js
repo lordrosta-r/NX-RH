@@ -1,11 +1,12 @@
-'use strict'
+﻿'use strict'
 
 const mongoose = require('mongoose')
+const bcrypt = require('bcrypt')
 const router = require('express').Router()
 const { User, Evaluation, AuditLog } = require('../models')
 const { ROLES, ADMIN_ROLES } = require('../config/constants')
 
-// GET /api/users — liste des utilisateurs (scope par rôle)
+// GET /api/users — Liste les utilisateurs (scope par rôle)
 router.get('/', async (req, res, next) => {
   try {
     const { role, department, search } = req.query
@@ -16,7 +17,7 @@ router.get('/', async (req, res, next) => {
       // Un manager ne voit que ses subordonnés directs
       filter.managerId = req.user.id
     } else if (!['admin', 'hr', 'director'].includes(req.user.role)) {
-      return res.status(403).json({ error: 'Insufficient permissions' })
+      return res.status(403).json({ error: 'Permissions insuffisantes' })
     }
 
     // Filtre isActive explicite : ?isActive=true|false (sinon : pas de filtre)
@@ -38,30 +39,20 @@ router.get('/', async (req, res, next) => {
       ]
     }
 
-    if (req.query.page) {
-      const page  = Math.max(1, parseInt(req.query.page)  || 1)
-      const limit = Math.min(100, parseInt(req.query.limit) || 50)
-      const skip  = (page - 1) * limit
-      const [users, total] = await Promise.all([
-        User.find(filter).select('-passwordHash -ldapDn').sort({ lastName: 1, firstName: 1 }).skip(skip).limit(limit).lean(),
-        User.countDocuments(filter),
-      ])
-      return res.json({ data: users, total, page, limit })
-    }
-
-    const users = await User.find(filter)
-      .select('-passwordHash -ldapDn')
-      .sort({ lastName: 1, firstName: 1 })
-      .limit(100)
-      .lean()
-
-    res.json(users)
+    const page  = Math.max(1, parseInt(req.query.page)  || 1)
+    const limit = Math.min(100, parseInt(req.query.limit) || 50)
+    const skip  = (page - 1) * limit
+    const [users, total] = await Promise.all([
+      User.find(filter).select('-passwordHash -ldapDn').sort({ lastName: 1, firstName: 1 }).skip(skip).limit(limit).lean(),
+      User.countDocuments(filter),
+    ])
+    res.json({ data: users, total, page, limit })
   } catch (err) {
     next(err)
   }
 })
 
-// GET /api/users/:id
+// GET /api/users/:id — Retourne un utilisateur par son ID
 router.get('/:id', async (req, res, next) => {
   try {
     if (!mongoose.isValidObjectId(req.params.id)) {
@@ -72,14 +63,14 @@ router.get('/:id', async (req, res, next) => {
       .select('-passwordHash -ldapDn')
       .lean()
 
-    if (!user) return res.status(404).json({ error: 'User not found' })
+    if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' })
 
     // Scope RBAC : manager voit lui-même ou ses subordonnés directs
     if (req.user.role === 'manager') {
       const isSubordinate = user.managerId?.toString() === req.user.id
       const isSelf = req.user.id === req.params.id
       if (!isSubordinate && !isSelf) {
-        return res.status(403).json({ error: 'Insufficient permissions' })
+        return res.status(403).json({ error: 'Permissions insuffisantes' })
       }
     }
     // director, admin, hr : accès complet
@@ -88,7 +79,7 @@ router.get('/:id', async (req, res, next) => {
       const self = await User.findById(req.user.id, 'managerId').lean()
       const isDirectManager = self?.managerId?.toString() === req.params.id
       if (!isDirectManager) {
-        return res.status(403).json({ error: 'Insufficient permissions' })
+        return res.status(403).json({ error: 'Permissions insuffisantes' })
       }
     }
 
@@ -98,15 +89,16 @@ router.get('/:id', async (req, res, next) => {
   }
 })
 
-// POST /api/users — créer un utilisateur (admin/hr seulement)
+// POST /api/users — Crée un utilisateur (admin/hr seulement)
 router.post('/', async (req, res, next) => {
   try {
     if (!ADMIN_ROLES.includes(req.user.role)) {
-      return res.status(403).json({ error: 'Insufficient permissions' })
+      return res.status(403).json({ error: 'Permissions insuffisantes' })
     }
 
     const { firstName, lastName, email, role, department, position, managerId } = req.body
     const tempPassword = require('crypto').randomBytes(16).toString('hex')
+    const passwordHash = await bcrypt.hash(tempPassword, 12)
 
     if (!firstName || !lastName || !email) {
       return res.status(400).json({ error: 'firstName, lastName et email sont requis' })
@@ -125,7 +117,7 @@ router.post('/', async (req, res, next) => {
       managerId:    managerId   || null,
       authSource:   'local',
       isActive:     true,
-      passwordHash: tempPassword,
+      passwordHash,
     })
     await user.save()
 
@@ -136,12 +128,12 @@ router.post('/', async (req, res, next) => {
     // tempPassword exposé une seule fois à la création
     res.status(201).json({ ...result, tempPassword })
   } catch (err) {
-    if (err.code === 11000) return res.status(409).json({ error: 'Email already exists' })
+    if (err.code === 11000) return res.status(409).json({ error: 'Email déjà utilisé' })
     next(err)
   }
 })
 
-// PATCH /api/users/:id — modifier un utilisateur
+// PATCH /api/users/:id — Modifie un utilisateur
 router.patch('/:id', async (req, res, next) => {
   try {
     if (!mongoose.isValidObjectId(req.params.id)) {
@@ -152,7 +144,7 @@ router.patch('/:id', async (req, res, next) => {
     const isSelf = req.user.id === req.params.id
 
     if (!isAdmin && !isSelf) {
-      return res.status(403).json({ error: 'Insufficient permissions' })
+      return res.status(403).json({ error: 'Permissions insuffisantes' })
     }
 
     // Whitelist des champs modifiables — authSource, passwordHash, ldapDn ne peuvent jamais être modifiés ici
@@ -172,7 +164,7 @@ router.patch('/:id', async (req, res, next) => {
     }
 
     const user = await User.findById(req.params.id)
-    if (!user) return res.status(404).json({ error: 'User not found' })
+    if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' })
     Object.assign(user, updates)
     await user.save()
     const result = user.toObject()
@@ -184,11 +176,11 @@ router.patch('/:id', async (req, res, next) => {
   }
 })
 
-// GET /api/users/:id/offboard-preview — prévisualisation avant départ (admin/hr)
+// GET /api/users/:id/offboard-preview — Prévisualise les impacts avant départ (admin/hr)
 router.get('/:id/offboard-preview', async (req, res, next) => {
   try {
     if (!ADMIN_ROLES.includes(req.user.role)) {
-      return res.status(403).json({ error: 'Insufficient permissions' })
+      return res.status(403).json({ error: 'Permissions insuffisantes' })
     }
     if (!mongoose.isValidObjectId(req.params.id)) {
       return res.status(400).json({ error: 'ID invalide' })
@@ -196,7 +188,7 @@ router.get('/:id/offboard-preview', async (req, res, next) => {
     const userId = req.params.id
 
     const user = await User.findById(userId).select('-passwordHash -ldapDn').lean()
-    if (!user) return res.status(404).json({ error: 'User not found' })
+    if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' })
 
     const pendingFilter = {
       $or: [{ evaluateeId: userId }, { evaluatorId: userId }],
@@ -224,11 +216,11 @@ router.get('/:id/offboard-preview', async (req, res, next) => {
   }
 })
 
-// PATCH /api/users/:id/offboard — déclencher le départ (admin/hr)
+// PATCH /api/users/:id/offboard — Déclenche le processus de départ (admin/hr)
 router.patch('/:id/offboard', async (req, res, next) => {
   try {
     if (!ADMIN_ROLES.includes(req.user.role)) {
-      return res.status(403).json({ error: 'Insufficient permissions' })
+      return res.status(403).json({ error: 'Permissions insuffisantes' })
     }
     if (!mongoose.isValidObjectId(req.params.id)) {
       return res.status(400).json({ error: 'ID invalide' })
@@ -244,7 +236,7 @@ router.patch('/:id/offboard', async (req, res, next) => {
 
     const userId = req.params.id
     const user = await User.findById(userId)
-    if (!user) return res.status(404).json({ error: 'User not found' })
+    if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' })
 
     user.offboardingStatus = 'offboarding'
     user.offboardingReason = reason.trim()
@@ -282,6 +274,7 @@ router.patch('/:id/offboard', async (req, res, next) => {
 // ⚠️ Doit être déclaré AVANT /:id/onboarding/:stepIndex pour éviter que
 //    "complete" soit capturé comme stepIndex par Express.
 
+// PATCH /api/users/:id/onboarding/complete — Marque l'onboarding terminé
 router.patch('/:id/onboarding/complete', async (req, res, next) => {
   try {
     if (!mongoose.isValidObjectId(req.params.id)) {
@@ -293,11 +286,11 @@ router.patch('/:id/onboarding/complete', async (req, res, next) => {
     const isAdmin = ADMIN_ROLES.includes(req.user.role)
 
     if (!isSelf && !isAdmin) {
-      return res.status(403).json({ error: 'Insufficient permissions' })
+      return res.status(403).json({ error: 'Permissions insuffisantes' })
     }
 
     const user = await User.findById(userId)
-    if (!user) return res.status(404).json({ error: 'User not found' })
+    if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' })
 
     user.onboarding.completed   = true
     user.onboarding.completedAt = new Date()
@@ -315,6 +308,7 @@ router.patch('/:id/onboarding/complete', async (req, res, next) => {
 // ─── PATCH /api/users/:id/onboarding/:stepIndex — cocher une étape ───────────
 // Accessible : self (employee) ou hr/admin
 
+// PATCH /api/users/:id/onboarding/:stepIndex — Coche une étape d'onboarding
 router.patch('/:id/onboarding/:stepIndex', async (req, res, next) => {
   try {
     if (!mongoose.isValidObjectId(req.params.id)) {
@@ -326,7 +320,7 @@ router.patch('/:id/onboarding/:stepIndex', async (req, res, next) => {
     const isAdmin = ADMIN_ROLES.includes(req.user.role)
 
     if (!isSelf && !isAdmin) {
-      return res.status(403).json({ error: 'Insufficient permissions' })
+      return res.status(403).json({ error: 'Permissions insuffisantes' })
     }
 
     const idx = parseInt(req.params.stepIndex, 10)
@@ -335,7 +329,7 @@ router.patch('/:id/onboarding/:stepIndex', async (req, res, next) => {
     }
 
     const user = await User.findById(userId)
-    if (!user) return res.status(404).json({ error: 'User not found' })
+    if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' })
     if (idx >= (user.onboarding?.steps?.length ?? 0)) {
       return res.status(400).json({ error: 'stepIndex hors limites' })
     }
@@ -357,6 +351,7 @@ router.patch('/:id/onboarding/:stepIndex', async (req, res, next) => {
 
 // ─── GET /api/users/:id/gdpr-export ──────────────────────────────────────────
 
+// GET /api/users/:id/gdpr-export — Exporte les données personnelles RGPD
 router.get('/:id/gdpr-export', async (req, res, next) => {
   try {
     if (!mongoose.isValidObjectId(req.params.id)) {
@@ -366,7 +361,7 @@ router.get('/:id/gdpr-export', async (req, res, next) => {
     const userId = req.params.id
     const isSelf = req.user.id === userId
     if (!ADMIN_ROLES.includes(req.user.role) && !isSelf) {
-      return res.status(403).json({ error: 'Insufficient permissions' })
+      return res.status(403).json({ error: 'Permissions insuffisantes' })
     }
 
     const [user, evaluations] = await Promise.all([
@@ -377,7 +372,7 @@ router.get('/:id/gdpr-export', async (req, res, next) => {
         .lean(),
     ])
 
-    if (!user) return res.status(404).json({ error: 'User not found' })
+    if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' })
 
     res.setHeader('Content-Type', 'application/json; charset=utf-8')
     res.setHeader('Content-Disposition', `attachment; filename="gdpr-export-${userId}.json"`)
@@ -390,6 +385,7 @@ router.get('/:id/gdpr-export', async (req, res, next) => {
 // ─── DELETE /api/users/:id/gdpr-anonymize ────────────────────────────────────
 // Anonymisation RGPD — droit à l'effacement (admin uniquement)
 
+// DELETE /api/users/:id/gdpr-anonymize — Anonymise un utilisateur (droit à l'effacement)
 router.delete('/:id/gdpr-anonymize', async (req, res, next) => {
   try {
     if (req.user.role !== 'admin') {
@@ -401,7 +397,7 @@ router.delete('/:id/gdpr-anonymize', async (req, res, next) => {
 
     const userId = req.params.id
     const user = await User.findById(userId)
-    if (!user) return res.status(404).json({ error: 'User not found' })
+    if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' })
 
     const ACTIVE_STATUSES = ['assigned', 'in_progress', 'submitted']
     const activeCount = await Evaluation.countDocuments({
@@ -432,7 +428,7 @@ router.delete('/:id/gdpr-anonymize', async (req, res, next) => {
       meta:       { anonymizedAt: new Date() },
     }).catch(() => {})
 
-    res.json({ success: true, anonymizedId: userId })
+    res.status(204).end()
   } catch (err) {
     next(err)
   }

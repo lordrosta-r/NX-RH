@@ -22,7 +22,6 @@ import {
   Users, Activity, Shield, Database, Link2,
   Mail, FileText, Settings, GitBranch, Lock, Box,
 } from 'lucide-react'
-import './admin.css'
 
 const QUICK_LINKS = [
   { to: '/admin/users',          Icon: Users,     lk: 'admin.quicklink.users.label',          dk: 'admin.quicklink.users.desc' },

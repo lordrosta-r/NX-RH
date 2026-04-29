@@ -13,10 +13,9 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth }     from '../../contexts/AuthContext'
 import { useTranslate } from '../../contexts/LocaleContext'
 import { t as pageT }  from './i18n'
-import { PlusCircle, Pencil, Trash2, Copy, Lock, Unlock } from 'lucide-react'
+import { PlusCircle, Pencil, Trash2, Copy, Lock } from 'lucide-react'
 import { apiFetch } from '../../lib/apiFetch'
 import { showToast } from '../../components/ui/Toast'
-import './hr-campaigns.css'
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -37,9 +36,11 @@ function TemplateCard({ tpl, t, onEdit, onDelete, onDuplicate }) {
     <article className="tpl-card">
       <div className="tpl-card__head">
         <h2 className="tpl-card__title">{tpl.title}</h2>
-        <span className={`tpl-badge ${isLocked ? 'tpl-badge--locked' : 'tpl-badge--free'}`}>
-          {isLocked ? <><Lock size={10} /> {t('tpl.card.locked')}</> : <><Unlock size={10} /> {t('tpl.card.free')}</>}
-        </span>
+        {isLocked && (
+          <span className="tpl-badge tpl-badge--locked">
+            <Lock size={10} /> {t('tpl.card.locked')}
+          </span>
+        )}
       </div>
 
       {tpl.description && <p className="tpl-card__desc">{tpl.description}</p>}

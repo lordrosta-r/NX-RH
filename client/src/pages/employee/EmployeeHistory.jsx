@@ -12,7 +12,6 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useTranslate, useLocaleCtx } from '../../contexts/LocaleContext'
 import { t as pageT } from './i18n'
 import { History, Calendar, Award, ChevronRight, Filter, Eye } from 'lucide-react'
-import './employee-history.css'
 
 const STATUS_MAP = {
   assigned:        { label: 'Assigné',         cls: 'badge--assigned' },

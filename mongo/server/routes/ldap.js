@@ -25,6 +25,7 @@ async function resolveBindPassword(incoming) {
 
 // ─── Test connexion ───────────────────────────────────────────────────────────
 
+// POST /api/admin/ldap/test — Teste la connexion LDAP
 router.post('/test', async (req, res, next) => {
   try {
     const config = { ...(req.body.config || {}) }
@@ -38,6 +39,7 @@ router.post('/test', async (req, res, next) => {
 
 // ─── Prévisualisation ─────────────────────────────────────────────────────────
 
+// POST /api/admin/ldap/preview — Liste les utilisateurs LDAP (prévisualisation, max 50)
 router.post('/preview', async (req, res, next) => {
   try {
     const config = { ...(req.body.config || {}) }
@@ -51,6 +53,7 @@ router.post('/preview', async (req, res, next) => {
 
 // ─── Synchronisation ─────────────────────────────────────────────────────────
 
+// POST /api/admin/ldap/sync — Synchronise les utilisateurs LDAP vers MongoDB
 router.post('/sync', async (req, res, next) => {
   try {
     const config = { ...(req.body.config || {}) }
@@ -64,6 +67,7 @@ router.post('/sync', async (req, res, next) => {
 
 // ─── Lecture config ───────────────────────────────────────────────────────────
 
+// GET /api/admin/ldap/config — Récupère la configuration LDAP sauvegardée (sans bindPassword)
 router.get('/config', async (req, res, next) => {
   try {
     const doc = await Config.findOne({ key: 'ldap' }).lean()
@@ -78,6 +82,7 @@ router.get('/config', async (req, res, next) => {
 
 // ─── Sauvegarde config ────────────────────────────────────────────────────────
 
+// PUT /api/admin/ldap/config — Sauvegarde la configuration LDAP
 router.put('/config', async (req, res, next) => {
   try {
     const incoming = req.body.config || {}

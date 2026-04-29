@@ -11,7 +11,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { CheckCircle2, XCircle, AlertTriangle, Info, X } from 'lucide-react'
-import './toast.css'
+
 
 const TOAST_EVENT = 'nx-toast'
 const MAX_TOASTS  = 3

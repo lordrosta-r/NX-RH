@@ -1,19 +1,15 @@
 // ============================================================
-// ThemeContext.jsx — Global theme context
-// Replaces the duplicated hooks/useTheme.js pattern.
-// Persists theme in localStorage, applies data-theme attribute.
+// ThemeContext.jsx — Global theme context (KISS: dark / light)
 // ============================================================
 
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 
 const ThemeContext = createContext(null)
 
-// ── Constants ───────────────────────────────────────────────
 const STORAGE_KEY   = 'nx_theme'
 const DEFAULT_THEME = 'dark'
-export const THEMES = ['dark', 'light', 'light-sidebar']
+export const THEMES = ['dark', 'light']
 
-// ── Provider ────────────────────────────────────────────────
 export function ThemeProvider({ children }) {
   const [theme, setThemeState] = useState(() => {
     try {
@@ -24,31 +20,22 @@ export function ThemeProvider({ children }) {
     }
   })
 
-  // Sync data-theme attribute & localStorage on every change
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme)
     try { localStorage.setItem(STORAGE_KEY, theme) } catch {}
   }, [theme])
 
-  const cycleTheme = useCallback(() => {
-    setThemeState(current => {
-      const idx = THEMES.indexOf(current)
-      return THEMES[(idx + 1) % THEMES.length]
-    })
-  }, [])
-
-  const setTheme = useCallback((name) => {
-    if (THEMES.includes(name)) setThemeState(name)
+  const toggleTheme = useCallback(() => {
+    setThemeState(t => t === 'dark' ? 'light' : 'dark')
   }, [])
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, cycleTheme, isDark: theme === 'dark' }}>
+    <ThemeContext.Provider value={{ theme, toggleTheme, isDark: theme === 'dark' }}>
       {children}
     </ThemeContext.Provider>
   )
 }
 
-// ── Hook ────────────────────────────────────────────────────
 export function useThemeCtx() {
   const ctx = useContext(ThemeContext)
   if (!ctx) throw new Error('useThemeCtx() must be used inside <ThemeProvider>')

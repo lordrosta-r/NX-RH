@@ -18,14 +18,16 @@
   },
   "dependencies": {
     "@tanstack/react-query": "^5.99.2",
+    "@tsparticles/react": "^3.0.0",
+    "@tsparticles/slim": "^3.9.1",
     "lucide-react": "^1.8.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^7.14.1"
   },
   "devDependencies": {
-    "@tailwindcss/vite": "^4.1.11",
     "@eslint/js": "^9.39.4",
+    "@tailwindcss/vite": "^4.1.11",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",

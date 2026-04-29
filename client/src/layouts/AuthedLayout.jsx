@@ -14,7 +14,7 @@ import useNotifBadges from '../hooks/useNotifBadges'
 
 export default function AuthedLayout() {
   const { user, logout } = useAuth()
-  const { theme, cycleTheme } = useThemeCtx()
+  const { theme, toggleTheme } = useThemeCtx()
   const { locale, setLocale } = useLocaleCtx()
   const badges = useNotifBadges()
 
@@ -26,7 +26,7 @@ export default function AuthedLayout() {
         locale={locale}
         setLocale={setLocale}
         theme={theme}
-        cycleTheme={cycleTheme}
+        cycleTheme={toggleTheme}
         user={user}
         onLogout={logout}
         navGroups={navGroups}

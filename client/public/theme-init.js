@@ -1,14 +1,11 @@
 (function () {
   try {
     var t = localStorage.getItem('nx_theme')
-    var valid = ['dark', 'light', 'light-sidebar']
-    document.documentElement.setAttribute('data-theme', valid.indexOf(t) !== -1 ? t : 'dark')
-    if (t === 'dark') document.documentElement.style.background = '#111010'
-    else document.documentElement.style.background = '#fcf9f8'
+    document.documentElement.setAttribute('data-theme', t === 'light' ? 'light' : 'dark')
+    document.documentElement.style.background = t === 'light' ? '#fcf9f8' : '#111010'
     var l = localStorage.getItem('nx_locale')
     if (l) document.documentElement.setAttribute('lang', l === 'fr' ? 'fr' : 'en')
   } catch (e) {
     document.documentElement.setAttribute('data-theme', 'dark')
-    document.documentElement.setAttribute('lang', 'fr')
   }
 })()

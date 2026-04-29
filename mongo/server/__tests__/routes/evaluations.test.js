@@ -155,6 +155,17 @@ function buildApp() {
   return app
 }
 
+// Creates a dual-mode query stub: directly awaitable (resolves to result) AND
+// chainable (.populate().lean() also resolves to result). Mirrors Mongoose Query.
+function makeThenable(result) {
+  return {
+    populate: jest.fn().mockReturnThis(),
+    lean:     jest.fn().mockImplementation(() => makeThenable(result)),
+    then:     (resolve, reject) => Promise.resolve(result).then(resolve, reject),
+    catch:    (reject) => Promise.resolve(result).catch(reject),
+  }
+}
+
 // Return a minimal Mongoose-document-like evaluation object.
 // evaluatorId and evaluateeId are plain strings — .toString() works natively.
 function mockEvalDoc(overrides = {}) {
@@ -186,11 +197,11 @@ describe('PATCH /api/evaluations/:id — employee as evaluatee (Bug 2 regression
   beforeEach(() => jest.clearAllMocks())
 
   it('allows an evaluatee employee to add evaluateeComment', async () => {
-    Evaluation.findById = jest.fn().mockResolvedValue(mockEvalDoc({
+    Evaluation.findById = jest.fn().mockReturnValue(makeThenable(mockEvalDoc({
       evaluatorId: MANAGER_ID,   // different from the caller
       evaluateeId: EMPLOYEE_ID,  // matches the caller
       status:      'reviewed',
-    }))
+    })))
 
     const res = await request(app)
       .patch(`/api/evaluations/${EVAL_ID}`)
@@ -201,11 +212,11 @@ describe('PATCH /api/evaluations/:id — employee as evaluatee (Bug 2 regression
   })
 
   it('allows an evaluatee employee to sign (reviewed → signed_evaluatee)', async () => {
-    Evaluation.findById = jest.fn().mockResolvedValue(mockEvalDoc({
+    Evaluation.findById = jest.fn().mockReturnValue(makeThenable(mockEvalDoc({
       evaluatorId: MANAGER_ID,
       evaluateeId: EMPLOYEE_ID,
       status:      'reviewed',
-    }))
+    })))
 
     const res = await request(app)
       .patch(`/api/evaluations/${EVAL_ID}`)
@@ -217,11 +228,11 @@ describe('PATCH /api/evaluations/:id — employee as evaluatee (Bug 2 regression
   })
 
   it('blocks an employee who is neither evaluator nor evaluatee', async () => {
-    Evaluation.findById = jest.fn().mockResolvedValue(mockEvalDoc({
+    Evaluation.findById = jest.fn().mockReturnValue(makeThenable(mockEvalDoc({
       evaluatorId: MANAGER_ID,
       evaluateeId: OTHER_ID,    // unrelated to EMPLOYEE_ID
       status:      'reviewed',
-    }))
+    })))
 
     const res = await request(app)
       .patch(`/api/evaluations/${EVAL_ID}`)
@@ -233,11 +244,11 @@ describe('PATCH /api/evaluations/:id — employee as evaluatee (Bug 2 regression
 
   it('allows the evaluator employee to save answers (self-evaluation scenario)', async () => {
     // Self-evaluation: evaluatorId === evaluateeId === EMPLOYEE_ID
-    Evaluation.findById = jest.fn().mockResolvedValue(mockEvalDoc({
+    Evaluation.findById = jest.fn().mockReturnValue(makeThenable(mockEvalDoc({
       evaluatorId: EMPLOYEE_ID,
       evaluateeId: EMPLOYEE_ID,
       status:      'in_progress',
-    }))
+    })))
 
     const res = await request(app)
       .patch(`/api/evaluations/${EVAL_ID}`)
@@ -259,11 +270,11 @@ describe('PATCH /api/evaluations/:id — manager evaluatorId check (Bug 5 regres
   beforeEach(() => jest.clearAllMocks())
 
   it('blocks a manager from changing status on an evaluation they do not own', async () => {
-    Evaluation.findById = jest.fn().mockResolvedValue(mockEvalDoc({
+    Evaluation.findById = jest.fn().mockReturnValue(makeThenable(mockEvalDoc({
       evaluatorId: OTHER_MANAGER_ID,  // a different manager is the evaluator
       evaluateeId: EMPLOYEE_ID,
       status:      'submitted',
-    }))
+    })))
 
     const res = await request(app)
       .patch(`/api/evaluations/${EVAL_ID}`)
@@ -275,11 +286,11 @@ describe('PATCH /api/evaluations/:id — manager evaluatorId check (Bug 5 regres
   })
 
   it('allows a manager to advance status on their own evaluation (submitted → reviewed)', async () => {
-    Evaluation.findById = jest.fn().mockResolvedValue(mockEvalDoc({
+    Evaluation.findById = jest.fn().mockReturnValue(makeThenable(mockEvalDoc({
       evaluatorId: MANAGER_ID,
       evaluateeId: EMPLOYEE_ID,
       status:      'submitted',
-    }))
+    })))
 
     const res = await request(app)
       .patch(`/api/evaluations/${EVAL_ID}`)
@@ -291,11 +302,11 @@ describe('PATCH /api/evaluations/:id — manager evaluatorId check (Bug 5 regres
   })
 
   it('allows a manager to co-sign their own evaluation (signed_evaluatee → signed_manager)', async () => {
-    Evaluation.findById = jest.fn().mockResolvedValue(mockEvalDoc({
+    Evaluation.findById = jest.fn().mockReturnValue(makeThenable(mockEvalDoc({
       evaluatorId: MANAGER_ID,
       evaluateeId: EMPLOYEE_ID,
       status:      'signed_evaluatee',
-    }))
+    })))
 
     const res = await request(app)
       .patch(`/api/evaluations/${EVAL_ID}`)
@@ -315,11 +326,11 @@ describe('PATCH /api/evaluations/:id — status transition validation', () => {
   beforeEach(() => jest.clearAllMocks())
 
   it('returns 400 for an invalid transition (employee: in_progress → validated)', async () => {
-    Evaluation.findById = jest.fn().mockResolvedValue(mockEvalDoc({
+    Evaluation.findById = jest.fn().mockReturnValue(makeThenable(mockEvalDoc({
       evaluatorId: EMPLOYEE_ID,
       evaluateeId: EMPLOYEE_ID,
       status:      'in_progress',
-    }))
+    })))
 
     const res = await request(app)
       .patch(`/api/evaluations/${EVAL_ID}`)
@@ -331,11 +342,11 @@ describe('PATCH /api/evaluations/:id — status transition validation', () => {
   })
 
   it('returns 400 for an unknown target status', async () => {
-    Evaluation.findById = jest.fn().mockResolvedValue(mockEvalDoc({
+    Evaluation.findById = jest.fn().mockReturnValue(makeThenable(mockEvalDoc({
       evaluatorId: MANAGER_ID,
       evaluateeId: EMPLOYEE_ID,
       status:      'submitted',
-    }))
+    })))
 
     const res = await request(app)
       .patch(`/api/evaluations/${EVAL_ID}`)
@@ -347,11 +358,11 @@ describe('PATCH /api/evaluations/:id — status transition validation', () => {
 
   it('admin bypasses ROLE_TRANSITIONS and can use any VALID_TRANSITIONS step', async () => {
     // Admin moves submitted → reviewed (normally a manager-only transition)
-    Evaluation.findById = jest.fn().mockResolvedValue(mockEvalDoc({
+    Evaluation.findById = jest.fn().mockReturnValue(makeThenable(mockEvalDoc({
       evaluatorId: MANAGER_ID,
       evaluateeId: EMPLOYEE_ID,
       status:      'submitted',
-    }))
+    })))
 
     const res = await request(app)
       .patch(`/api/evaluations/${EVAL_ID}`)
@@ -362,11 +373,11 @@ describe('PATCH /api/evaluations/:id — status transition validation', () => {
   })
 
   it('returns 409 when saving answers on a locked evaluation', async () => {
-    Evaluation.findById = jest.fn().mockResolvedValue(mockEvalDoc({
+    Evaluation.findById = jest.fn().mockReturnValue(makeThenable(mockEvalDoc({
       evaluatorId: EMPLOYEE_ID,
       evaluateeId: EMPLOYEE_ID,
       status:      'submitted',  // locked
-    }))
+    })))
 
     const res = await request(app)
       .patch(`/api/evaluations/${EVAL_ID}`)
@@ -411,11 +422,11 @@ describe('PATCH /api/evaluations/:id — input validation', () => {
   })
 
   it('returns 400 when answers is not an array', async () => {
-    Evaluation.findById = jest.fn().mockResolvedValue(mockEvalDoc({
+    Evaluation.findById = jest.fn().mockReturnValue(makeThenable(mockEvalDoc({
       evaluatorId: EMPLOYEE_ID,
       evaluateeId: EMPLOYEE_ID,
       status:      'in_progress',
-    }))
+    })))
 
     const res = await request(app)
       .patch(`/api/evaluations/${EVAL_ID}`)

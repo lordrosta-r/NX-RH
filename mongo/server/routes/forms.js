@@ -15,8 +15,7 @@ const mongoose = require('mongoose')
 const { Form } = require('../models')
 const { ADMIN_ROLES } = require('../config/constants')
 
-// ─── GET /api/forms ──────────────────────────────────────────────────────────
-
+// GET /api/forms — Liste des formulaires (filtrable par campaignId, formType)
 router.get('/', async (req, res, next) => {
   try {
     const filter = {}
@@ -35,31 +34,20 @@ router.get('/', async (req, res, next) => {
       filter.formType = req.query.formType
     }
 
-    if (req.query.page) {
-      const page  = Math.max(1, parseInt(req.query.page)  || 1)
-      const limit = Math.min(100, parseInt(req.query.limit) || 50)
-      const skip  = (page - 1) * limit
-      const [forms, total] = await Promise.all([
-        Form.find(filter).populate('createdBy', 'firstName lastName').sort({ createdAt: 1 }).skip(skip).limit(limit).lean(),
-        Form.countDocuments(filter),
-      ])
-      return res.json({ data: forms, total, page, limit })
-    }
-
-    const forms = await Form.find(filter)
-      .populate('createdBy', 'firstName lastName')
-      .sort({ createdAt: 1 })
-      .limit(100)
-      .lean()
-
-    res.json(forms)
+    const page  = Math.max(1, parseInt(req.query.page)  || 1)
+    const limit = Math.min(100, parseInt(req.query.limit) || 50)
+    const skip  = (page - 1) * limit
+    const [forms, total] = await Promise.all([
+      Form.find(filter).populate('createdBy', 'firstName lastName').sort({ createdAt: 1 }).skip(skip).limit(limit).lean(),
+      Form.countDocuments(filter),
+    ])
+    res.json({ data: forms, total, page, limit })
   } catch (err) {
     next(err)
   }
 })
 
-// ─── GET /api/forms/:id ──────────────────────────────────────────────────────
-
+// GET /api/forms/:id — Détail d'un formulaire
 router.get('/:id', async (req, res, next) => {
   try {
     if (!mongoose.isValidObjectId(req.params.id)) {
@@ -77,8 +65,7 @@ router.get('/:id', async (req, res, next) => {
   }
 })
 
-// ─── POST /api/forms ─────────────────────────────────────────────────────────
-
+// POST /api/forms — Créer un formulaire (admin/hr)
 router.post('/', async (req, res, next) => {
   try {
     if (!ADMIN_ROLES.includes(req.user.role)) {
@@ -107,7 +94,8 @@ router.post('/', async (req, res, next) => {
       createdBy:    req.user.id,
     })
 
-    res.status(201).json({ id: form._id })
+    const created = await Form.findById(form._id).populate('createdBy', 'firstName lastName').lean()
+    res.status(201).json(created)
   } catch (err) {
     // Erreurs de validation Mongoose (pre-save, required, enum)
     if (err.name === 'ValidationError') {
@@ -117,8 +105,7 @@ router.post('/', async (req, res, next) => {
   }
 })
 
-// ─── PATCH /api/forms/:id ────────────────────────────────────────────────────
-
+// PATCH /api/forms/:id — Modifier un formulaire (admin/hr, bloqué si frozenAt)
 router.patch('/:id', async (req, res, next) => {
   try {
     if (!ADMIN_ROLES.includes(req.user.role)) {
@@ -160,8 +147,7 @@ router.patch('/:id', async (req, res, next) => {
   }
 })
 
-// ─── DELETE /api/forms/:id ───────────────────────────────────────────────────
-
+// DELETE /api/forms/:id — Supprimer un formulaire non gelé (admin/hr)
 router.delete('/:id', async (req, res, next) => {
   try {
     if (!ADMIN_ROLES.includes(req.user.role)) {

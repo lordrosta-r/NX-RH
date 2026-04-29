@@ -27,10 +27,7 @@ function sanitizeAnonymity(doc) {
   return doc
 }
 
-// ─── GET /api/evaluations/history ────────────────────────────────────────────
-// Liste les évaluations passées (toutes campagnes, statut terminal/avancé) où
-// l'utilisateur courant est évalué OU évaluateur. Utilisé par la timeline
-// "Historique des entretiens" sur la page employée.
+// GET /api/evaluations/history — Historique des entretiens (statuts avancés, limité à 200)
 router.get('/history', async (req, res, next) => {
   try {
     const uid = new mongoose.Types.ObjectId(req.user.id)
@@ -50,14 +47,13 @@ router.get('/history', async (req, res, next) => {
       .limit(200)
       .lean()
 
-    res.json({ data: items.map(sanitizeAnonymity) })
+    res.json(items.map(sanitizeAnonymity))
   } catch (err) {
     next(err)
   }
 })
 
-// ─── GET /api/evaluations ────────────────────────────────────────────────────
-
+// GET /api/evaluations — Liste des évaluations (scopée par rôle)
 router.get('/', async (req, res, next) => {
   try {
     const filter = {}
@@ -116,39 +112,24 @@ router.get('/', async (req, res, next) => {
     const limit = Math.min(100, parseInt(req.query.limit) || 50)
     const skip  = (page - 1) * limit
 
-    if (req.query.page) {
-      const [items, total] = await Promise.all([
-        Evaluation.find(filter)
-          .populate('formId', 'title formType isAnonymous')
-          .populate('evaluatorId', 'firstName lastName')
-          .populate('evaluateeId', 'firstName lastName department')
-          .populate('campaignId', 'name status')
-          .sort({ createdAt: -1 })
-          .skip(skip).limit(limit).lean(),
-        Evaluation.countDocuments(filter),
-      ])
-      return res.json({ data: items.map(sanitizeAnonymity), total, page, limit })
-    }
-
-    // Legacy : retourne array, limité à 200
-    const evals = await Evaluation.find(filter)
-      .populate('formId', 'title formType isAnonymous')
-      .populate('evaluatorId', 'firstName lastName')
-      .populate('evaluateeId', 'firstName lastName department')
-      .populate('campaignId', 'name status')
-      .sort({ createdAt: -1 })
-      .limit(200).lean()
-
-    res.json(evals.map(sanitizeAnonymity))
+    const [items, total] = await Promise.all([
+      Evaluation.find(filter)
+        .populate('formId', 'title formType isAnonymous')
+        .populate('evaluatorId', 'firstName lastName')
+        .populate('evaluateeId', 'firstName lastName department')
+        .populate('campaignId', 'name status')
+        .sort({ createdAt: -1 })
+        .skip(skip).limit(limit).lean(),
+      Evaluation.countDocuments(filter),
+    ])
+    res.json({ data: items.map(sanitizeAnonymity), total, page, limit })
   } catch (err) {
     next(err)
   }
 })
 
-// ─── GET /api/evaluations/export ─────────────────────────────────────────────
-// Export CSV des évaluations (admin/hr uniquement)
+// GET /api/evaluations/export — Export CSV des évaluations (admin/hr)
 // Query params : campaignId (optionnel), status (optionnel), dept (optionnel)
-
 router.get('/export', async (req, res, next) => {
   try {
     if (!ADMIN_ROLES.includes(req.user.role)) {
@@ -221,8 +202,7 @@ router.get('/export', async (req, res, next) => {
   }
 })
 
-// ─── GET /api/evaluations/:id ────────────────────────────────────────────────
-
+// GET /api/evaluations/:id — Détail d'une évaluation (avec anonymisation si nécessaire)
 router.get('/:id', async (req, res, next) => {
   try {
     if (!mongoose.isValidObjectId(req.params.id)) {
@@ -248,24 +228,9 @@ router.get('/:id', async (req, res, next) => {
       if (!isOwn) return res.status(403).json({ error: 'Accès refusé' })
     }
 
-    // Contrôle d'accès : manager ne voit que les évaluations dans son périmètre
-    if (role === 'manager') {
+    // Contrôle d'accès : manager/director ne voit que les évaluations dans son périmètre
+    if (role === 'manager' || role === 'director') {
       const visibleIds = await getVisibleUserIds(req.user.id, evaluation.campaignId)
-      const evaluateeId = evaluation.evaluateeId?._id?.toString() ?? evaluation.evaluateeId?.toString()
-      const evaluatorId = evaluation.evaluatorId?._id?.toString() ?? evaluation.evaluatorId?.toString()
-      if (
-        !visibleIds.includes(evaluateeId) &&
-        !visibleIds.includes(evaluatorId) &&
-        uid !== evaluateeId &&
-        uid !== evaluatorId
-      ) {
-        return res.status(403).json({ error: 'Accès refusé' })
-      }
-    }
-
-    // Contrôle d'accès : director ne voit que les évaluations dans son périmètre
-    if (role === 'director') {
-      const visibleIds = await getVisibleUserIds(req.user.id)
       const evaluateeId = evaluation.evaluateeId?._id?.toString() ?? evaluation.evaluateeId?.toString()
       const evaluatorId = evaluation.evaluatorId?._id?.toString() ?? evaluation.evaluatorId?.toString()
       if (
@@ -284,8 +249,7 @@ router.get('/:id', async (req, res, next) => {
   }
 })
 
-// ─── POST /api/evaluations ───────────────────────────────────────────────────
-
+// POST /api/evaluations — Créer une évaluation individuelle (admin/hr)
 router.post('/', async (req, res, next) => {
   try {
     if (!ADMIN_ROLES.includes(req.user.role)) {
@@ -325,8 +289,7 @@ router.post('/', async (req, res, next) => {
   }
 })
 
-// ─── POST /api/evaluations/bulk ──────────────────────────────────────────────
-
+// POST /api/evaluations/bulk — Créer des évaluations en masse (admin/hr, max 500)
 router.post('/bulk', async (req, res, next) => {
   try {
     if (!ADMIN_ROLES.includes(req.user.role)) {
@@ -411,13 +374,8 @@ router.post('/bulk', async (req, res, next) => {
   }
 })
 
-// ─── PATCH /api/evaluations/bulk ─────────────────────────────────────────────
-// Actions en masse sur des évaluations existantes.
-// Doit être défini AVANT /:id pour éviter le conflit de routing.
-//
+// PATCH /api/evaluations/bulk — Actions en masse sur des évaluations (admin/hr)
 // Body: { ids: string[], action: 'archive'|'sign_hr'|'assign_reviewer', reviewerId?: string }
-// Renvoie: { success: N, skipped: M, errors: [{id, reason}] }
-
 router.patch('/bulk', async (req, res, next) => {
   try {
     if (!ADMIN_ROLES.includes(req.user.role)) {
@@ -520,13 +478,8 @@ router.patch('/bulk', async (req, res, next) => {
   }
 })
 
-// ─── PATCH /api/evaluations/:id/reassign ─────────────────────────────────────
-// Réaffecte l'évaluateur d'une évaluation en cours.
-// Rôles requis : admin ou hr.
+// PATCH /api/evaluations/:id/reassign — Réaffecter l'évaluateur d'une évaluation (admin/hr)
 // Body : { newEvaluatorId: string, reason?: string }
-// Statuts bloquants (terminaux) : signed_hr, validated.
-// L'ancien évaluatorId et la raison sont tracés dans evaluation.auditLog.
-
 router.patch('/:id/reassign', async (req, res, next) => {
   try {
     if (!ADMIN_ROLES.includes(req.user.role)) {
@@ -592,8 +545,7 @@ router.patch('/:id/reassign', async (req, res, next) => {
   }
 })
 
-// ─── PATCH /api/evaluations/:id ──────────────────────────────────────────────
-
+// PATCH /api/evaluations/:id — Sauvegarder réponses, modifier statut ou commentaires
 router.patch('/:id', async (req, res, next) => {
   try {
     if (!mongoose.isValidObjectId(req.params.id)) {
@@ -787,22 +739,19 @@ router.patch('/:id', async (req, res, next) => {
       })()
     }
 
-    res.json({
-      id:               evaluation._id,
-      status:           evaluation.status,
-      lastSavedAt:      evaluation.lastSavedAt,
-      reviewerComment:  evaluation.reviewerComment,
-      evaluateeComment: evaluation.evaluateeComment,
-    })
+    const updated = await Evaluation.findById(evaluation._id)
+      .populate('formId', 'title formType isAnonymous questions')
+      .populate('evaluatorId', 'firstName lastName')
+      .populate('evaluateeId', 'firstName lastName department position')
+      .populate('campaignId', 'name status extendedVisibility')
+      .lean()
+    res.json(sanitizeAnonymity(updated))
   } catch (err) {
     next(err)
   }
 })
 
-// ─── POST /api/evaluations/:id/expire — Expiration manuelle ──────────────────
-// Passe le statut à 'expired'. Rôles requis : admin ou hr.
-// Endpoint de test — le scheduler le fait automatiquement chaque heure.
-
+// POST /api/evaluations/:id/expire — Expiration manuelle d'une évaluation (admin/hr)
 router.post('/:id/expire', async (req, res, next) => {
   try {
     if (!ADMIN_ROLES.includes(req.user.role)) {
@@ -825,7 +774,7 @@ router.post('/:id/expire', async (req, res, next) => {
   }
 })
 
-// ─── GET /api/evaluations/:id/pdf — Export PDF d'une évaluation ──────────────
+// GET /api/evaluations/:id/pdf — Export PDF d'une évaluation individuelle
 
 // Formate une valeur de réponse en fonction du type de question
 function formatAnswer(value, question) {

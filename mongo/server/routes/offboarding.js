@@ -16,11 +16,11 @@ const AuditLog = require('../models/AuditLog')
 const HR_ROLES    = ['hr', 'admin']
 const ADMIN_ROLES = ['admin']
 
-// ── POST /api/offboarding — créer une demande ──────────────────────────────
+// POST /api/offboarding — Créer une demande de départ (hr/admin)
 router.post('/', async (req, res, next) => {
   try {
     if (!HR_ROLES.includes(req.user.role)) {
-      return res.status(403).json({ error: 'Insufficient permissions' })
+      return res.status(403).json({ error: 'Accès refusé' })
     }
 
     const { userId, reason, lastDay, notes } = req.body
@@ -65,11 +65,11 @@ router.post('/', async (req, res, next) => {
   }
 })
 
-// ── GET /api/offboarding — liste ──────────────────────────────────────────
+// GET /api/offboarding — Liste des demandes de départ (hr/admin)
 router.get('/', async (req, res, next) => {
   try {
     if (!HR_ROLES.includes(req.user.role)) {
-      return res.status(403).json({ error: 'Insufficient permissions' })
+      return res.status(403).json({ error: 'Accès refusé' })
     }
 
     const filter = {}
@@ -99,11 +99,11 @@ router.get('/', async (req, res, next) => {
   }
 })
 
-// ── GET /api/offboarding/:id — détail ────────────────────────────────────
+// GET /api/offboarding/:id — Détail d'une demande de départ (hr/admin)
 router.get('/:id', async (req, res, next) => {
   try {
     if (!HR_ROLES.includes(req.user.role)) {
-      return res.status(403).json({ error: 'Insufficient permissions' })
+      return res.status(403).json({ error: 'Accès refusé' })
     }
     if (!mongoose.isValidObjectId(req.params.id)) {
       return res.status(400).json({ error: 'ID invalide' })
@@ -121,11 +121,11 @@ router.get('/:id', async (req, res, next) => {
   }
 })
 
-// ── PATCH /api/offboarding/:id — màj status/notes ────────────────────────
+// PATCH /api/offboarding/:id — Mettre à jour le statut ou les notes (hr/admin)
 router.patch('/:id', async (req, res, next) => {
   try {
     if (!HR_ROLES.includes(req.user.role)) {
-      return res.status(403).json({ error: 'Insufficient permissions' })
+      return res.status(403).json({ error: 'Accès refusé' })
     }
     if (!mongoose.isValidObjectId(req.params.id)) {
       return res.status(400).json({ error: 'ID invalide' })
@@ -177,11 +177,11 @@ router.patch('/:id', async (req, res, next) => {
   }
 })
 
-// ── PATCH /api/offboarding/:id/checklist/:itemIndex — cocher un item ─────
+// PATCH /api/offboarding/:id/checklist/:itemIndex — Cocher un item de la checklist (hr/admin)
 router.patch('/:id/checklist/:itemIndex', async (req, res, next) => {
   try {
     if (!HR_ROLES.includes(req.user.role)) {
-      return res.status(403).json({ error: 'Insufficient permissions' })
+      return res.status(403).json({ error: 'Accès refusé' })
     }
     if (!mongoose.isValidObjectId(req.params.id)) {
       return res.status(400).json({ error: 'ID invalide' })
@@ -221,7 +221,7 @@ router.patch('/:id/checklist/:itemIndex', async (req, res, next) => {
   }
 })
 
-// ── DELETE /api/offboarding/:id — supprimer (admin only) ─────────────────
+// DELETE /api/offboarding/:id — Supprimer une demande de départ (admin uniquement)
 router.delete('/:id', async (req, res, next) => {
   try {
     if (!ADMIN_ROLES.includes(req.user.role)) {
@@ -243,7 +243,7 @@ router.delete('/:id', async (req, res, next) => {
       meta:       {},
     }).catch(() => {})
 
-    res.json({ success: true })
+    res.status(204).end()
   } catch (err) {
     next(err)
   }

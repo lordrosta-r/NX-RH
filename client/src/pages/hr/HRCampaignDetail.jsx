@@ -558,8 +558,9 @@ export default function HRCampaignDetail() {
         headers:     { 'Content-Type': 'application/json' },
         credentials: 'include',
         body:        JSON.stringify({ status }),
-      }),
+      }).then(r => r.ok ? r.json() : r.json().then(e => Promise.reject(new Error(e.error || 'Erreur serveur')))),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['hr-campaign', id] }),
+    onError: (err) => showToast({ message: err.message, type: 'error' }),
   })
 
   function handleStatusChange(action) {
@@ -588,7 +589,9 @@ export default function HRCampaignDetail() {
   if (isError || !campaign) return <p className="cmp-state-msg">{t('cmp.error.load')}</p>
 
   const { name, status, stats = {} } = campaign
-  const { completionRate = 0, total = 0, pending = 0, submitted = 0, validated = 0 } = stats
+  const { total = 0, started = 0, submitted = 0, validated = 0 } = stats
+  const completionRate = total > 0 ? Math.round(started / total * 100) : 0
+  const pending = total - started
 
   const canDelete = status === 'draft' || status === 'archived'
 

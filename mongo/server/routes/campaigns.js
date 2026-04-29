@@ -100,13 +100,16 @@ router.post('/', async (req, res, next) => {
     }
 
     const { name, description, startDate, endDate, targetDepartments, extendedVisibility,
-      deadlineEmployee, deadlineManager } = req.body
+      deadlineEmployee, deadlineManager, status } = req.body
 
     if (!name || !startDate || !endDate) {
       return res.status(400).json({ error: 'name, startDate et endDate sont requis' })
     }
     if (new Date(endDate) < new Date(startDate)) {
       return res.status(400).json({ error: 'endDate doit être après startDate' })
+    }
+    if (status && !['draft', 'active'].includes(status)) {
+      return res.status(400).json({ error: 'Le statut initial doit être draft ou active' })
     }
 
     const campaign = await Campaign.create({
@@ -119,6 +122,7 @@ router.post('/', async (req, res, next) => {
       deadlineEmployee:   deadlineEmployee || null,
       deadlineManager:    deadlineManager  || null,
       createdBy:          req.user.id,
+      ...(status ? { status } : {}),
     })
 
     // Fire-and-forget audit log

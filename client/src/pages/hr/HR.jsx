@@ -134,7 +134,7 @@ export default function HR() {
   // ── Employés (nombre total) ───────────────────────────────
   const { data: employees = [] } = useQuery({
     queryKey: ['hr-employees'],
-    queryFn:  () => apiFetch('/api/employees').then(d => Array.isArray(d) ? d : (d.data || [])),
+    queryFn:  () => apiFetch('/api/users').then(d => Array.isArray(d) ? d : (d.data || [])),
     enabled:   !!user,
     staleTime: 10 * 60 * 1000,
   })

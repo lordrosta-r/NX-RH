@@ -12,6 +12,15 @@ const router   = require('express').Router()
 const mongoose = require('mongoose')
 const { AuditLog } = require('../models')
 
+// Whitelist des valeurs acceptées — empêche tout probing arbitraire sur la piste d'audit
+const VALID_ACTIONS = [
+  'status_change', 'evaluation_update', 'campaign_create', 'campaign_activate',
+  'campaign_update', 'campaign_delete', 'bulk_action', 'offboard', 'offboarding_create',
+  'offboarding_update', 'offboarding_delete', 'gdpr_anonymize', 'reassigned',
+  'login', 'login_failed',
+]
+const VALID_TARGET_TYPES = ['Evaluation', 'Campaign', 'User', 'Form', 'OffboardingRequest']
+
 router.get('/', async (req, res, next) => {
   try {
     const page  = Math.max(1, parseInt(req.query.page)  || 1)
@@ -20,10 +29,16 @@ router.get('/', async (req, res, next) => {
 
     const filter = {}
 
-    if (req.query.action     && typeof req.query.action === 'string') {
+    if (req.query.action) {
+      if (!VALID_ACTIONS.includes(req.query.action)) {
+        return res.status(400).json({ error: `action invalide. Valeurs acceptées: ${VALID_ACTIONS.join(', ')}` })
+      }
       filter.action = req.query.action
     }
-    if (req.query.targetType && typeof req.query.targetType === 'string') {
+    if (req.query.targetType) {
+      if (!VALID_TARGET_TYPES.includes(req.query.targetType)) {
+        return res.status(400).json({ error: `targetType invalide. Valeurs acceptées: ${VALID_TARGET_TYPES.join(', ')}` })
+      }
       filter.targetType = req.query.targetType
     }
     if (req.query.userId && mongoose.isValidObjectId(req.query.userId)) {

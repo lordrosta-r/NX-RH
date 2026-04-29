@@ -16,7 +16,7 @@ import './hr-settings.css'
 export default function HRSettings() {
   const { user } = useAuth()
   const { locale, setLocale } = useLocaleCtx()
-  const { theme, setTheme } = useThemeCtx()
+  const { theme } = useThemeCtx()
   const t = useTranslate(pageT)
 
   const [notifEmail, setNotifEmail] = useState(

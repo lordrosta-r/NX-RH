@@ -31,37 +31,6 @@ Ce fichier décrit le contrat d'interface (méthode, chemin, rôles, body, répo
 
 ---
 
-### `PATCH /api/auth/change-password`
-
-**Description** : Modification du mot de passe de l'utilisateur connecté.
-
-**Rôles autorisés** : Tous les utilisateurs authentifiés avec `authSource = 'local'`
-
-**Body** :
-```json
-{
-  "currentPassword": "string",
-  "newPassword": "string",
-  "confirmPassword": "string"
-}
-```
-
-**Réponse** `200 OK` :
-```json
-{ "message": "Mot de passe mis à jour avec succès" }
-```
-
-**Cas d'erreur** :
-| Code | Raison | Comportement UI |
-|---|---|---|
-| `400` | `newPassword` < 8 chars ou `confirmPassword` ≠ `newPassword` | Erreur inline sur les champs concernés |
-| `401` | `currentPassword` incorrect | Erreur inline sur le champ « Mot de passe actuel » |
-| `403` | `authSource = 'ldap'` (mot de passe géré par LDAP) | Toast `error` + onglet Sécurité masqué |
-
-**Règle UI** : Onglet « Sécurité » dans S-31 affiché uniquement si `user.authSource === 'local'`.
-
----
-
 ### `PATCH /api/users/:id/avatar`
 
 **Description** : Mise à jour de l'avatar d'un utilisateur (base64 ou URL).

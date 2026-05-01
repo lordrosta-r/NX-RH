@@ -1359,7 +1359,7 @@ Chaque card : icône 24px centrée · titre · description courte · lien.
                             [Rôle] · [Département] · [Poste]
                             ✉ email · Source: local / LDAP
 
-─── Onglets : Informations | Avatar | Sécurité | Préférences | Mes données ───
+─── Onglets : Informations | Avatar | Préférences | Mes données ───
 
 [Onglet Informations]
   Champs modifiables (self) : prénom, nom
@@ -1371,15 +1371,6 @@ Chaque card : icône 24px centrée · titre · description courte · lien.
   │  [Choisir une image]  (Secondary)           │
   │  Formats acceptés : JPG, PNG, WebP · max 2 Mo│
   │  [Supprimer l'avatar] → initiales générées  │
-  └─────────────────────────────────────────────┘
-
-[Onglet Sécurité] (uniquement si authSource = 'local')
-  ┌─────────────────────────────────────────────┐
-  │  Card "Changer le mot de passe"             │
-  │  Mot de passe actuel*  [●●●●●●●] [👁]       │
-  │  Nouveau mot de passe* [●●●●●●●] [👁]       │
-  │  Confirmation*         [●●●●●●●] [👁]       │
-  │  [Mettre à jour le mot de passe] (Primary)  │
   └─────────────────────────────────────────────┘
 
 [Onglet Préférences]
@@ -1396,13 +1387,6 @@ Chaque card : icône 24px centrée · titre · description courte · lien.
 - Preview instantanée via `FileReader` avant envoi
 - Envoi : `PATCH /api/users/:id/avatar` avec `{ avatar: "<base64>" }` ou URL
 - Toast « Avatar mis à jour » · En cas d'erreur taille/format : feedback inline
-
-**Onglet Sécurité — validation** :
-- `nouveauMotDePasse` ≥ 8 caractères (erreur inline `text-xs text-error-600`)
-- `confirmation` doit être identique à `nouveauMotDePasse` (erreur inline)
-- Sur succès : `PATCH /api/auth/change-password` · Toast « Mot de passe mis à jour »
-- Sur erreur 401 (ancien MDP incorrect) : erreur inline sur le champ « Mot de passe actuel »
-- Onglet Sécurité masqué si `authSource = 'ldap'` (mot de passe géré par l'annuaire)
 
 **Modification avatar** : Click → input `file` (image) ou génération automatique initiales.
 

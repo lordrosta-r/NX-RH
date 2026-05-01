@@ -3,27 +3,45 @@
 // =============================================================================
 // services/mailer.js — SMTP transport via Nodemailer
 //
-// Configuration via environment variables:
-//   MAIL_HOST, MAIL_PORT, MAIL_USER, MAIL_PASSWORD, MAIL_FROM, MAIL_SECURE
+// Configuration priority: MongoDB Config model > environment variables
+//   smtp.host / MAIL_HOST, smtp.port / MAIL_PORT,
+//   smtp.user / MAIL_USER, smtp.password / MAIL_PASSWORD,
+//   smtp.from / MAIL_FROM, smtp.secure / MAIL_SECURE
 //
-// Falls back to an Ethereal (ethereal.email) test account when MAIL_HOST is
-// not configured — emails are intercepted and viewable without a real SMTP
+// Falls back to an Ethereal (ethereal.email) test account when no host is
+// configured — emails are intercepted and viewable without a real SMTP
 // server. Preview URL is logged per message.
 // =============================================================================
 
 const nodemailer = require('nodemailer')
 
-const MAIL_FROM = process.env.MAIL_FROM || 'noreply@nanoxplore.com'
-
+let _mailFrom    = process.env.MAIL_FROM || 'noreply@nanoxplore.com'
 let _transporter = null
 let _initPromise  = null
 
 async function _initTransporter() {
-  const host     = process.env.MAIL_HOST     || ''
-  const port     = parseInt(process.env.MAIL_PORT, 10) || 587
-  const user     = process.env.MAIL_USER     || ''
-  const password = process.env.MAIL_PASSWORD || ''
-  const secure   = process.env.MAIL_SECURE === 'true' || port === 465
+  // Lire la config depuis MongoDB si disponible, sinon fallback env
+  let host     = process.env.MAIL_HOST     || ''
+  let port     = parseInt(process.env.MAIL_PORT, 10) || 587
+  let user     = process.env.MAIL_USER     || ''
+  let password = process.env.MAIL_PASSWORD || ''
+  let secure   = process.env.MAIL_SECURE === 'true' || port === 465
+
+  try {
+    const Config = require('../models/Config')
+    const cfgKeys = await Config.find({
+      key: { $in: ['smtp.host', 'smtp.port', 'smtp.user', 'smtp.password', 'smtp.secure', 'smtp.from'] }
+    }).lean()
+    const cfg = Object.fromEntries(cfgKeys.map(c => [c.key, c.value]))
+    if (cfg['smtp.host'])     host     = cfg['smtp.host']
+    if (cfg['smtp.port'])     port     = parseInt(cfg['smtp.port'], 10) || port
+    if (cfg['smtp.user'])     user     = cfg['smtp.user']
+    if (cfg['smtp.password']) password = cfg['smtp.password']
+    if (cfg['smtp.from'])     _mailFrom = cfg['smtp.from']
+    if (cfg['smtp.secure'] !== undefined) secure = cfg['smtp.secure'] === true || cfg['smtp.secure'] === 'true'
+  } catch (e) {
+    // MongoDB pas encore connecté (ex: démarrage) — fallback env silencieux
+  }
 
   if (host) {
     _transporter = nodemailer.createTransport({
@@ -61,7 +79,7 @@ async function sendMail({ to, subject, text, html }) {
   if (!to || !subject) return null
 
   const transport = await getTransporter()
-  const info = await transport.sendMail({ from: MAIL_FROM, to, subject, text, html })
+  const info = await transport.sendMail({ from: _mailFrom, to, subject, text, html })
 
   const previewUrl = nodemailer.getTestMessageUrl(info)
   if (previewUrl) console.log(`[Mailer] Preview: ${previewUrl}`)

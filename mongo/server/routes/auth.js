@@ -14,6 +14,7 @@ const jwt       = require('jsonwebtoken')
 const rateLimit    = require('express-rate-limit')
 const { ipKeyGenerator } = require('express-rate-limit')
 const User      = require('../models/User')
+const { AuditLog } = require('../models')
 const { authGuard } = require('../middleware/authGuard')
 const { LOCALES, THEMES, NOTIF_PREF_KEYS, NOTIF_KEYS_BY_ROLE } = require('../config/constants')
 
@@ -83,12 +84,14 @@ router.post('/login', loginByEmailLimiter, loginByIPLimiter, async (req, res, ne
 
     if (!user || user.authSource !== 'local' || !user.passwordHash) {
       console.warn('[auth] Login failed — user not found or wrong authSource:', email.toLowerCase())
+      AuditLog.create({ action: 'login_failed', details: { email: req.body.email, ip: req.ip } }).catch(console.error)
       return res.status(401).json({ error: 'Identifiants invalides' })
     }
 
     const valid = await bcrypt.compare(password, user.passwordHash)
     if (!valid) {
       console.warn('[auth] Login failed — wrong password for:', email.toLowerCase())
+      AuditLog.create({ action: 'login_failed', details: { email: req.body.email, ip: req.ip } }).catch(console.error)
       return res.status(401).json({ error: 'Identifiants invalides' })
     }
 
@@ -110,6 +113,8 @@ router.post('/login', loginByEmailLimiter, loginByIPLimiter, async (req, res, ne
     // Mise à jour de lastLoginAt — fire-and-forget, n'échoue jamais le login.
     User.updateOne({ _id: user._id }, { $set: { lastLoginAt: new Date() } })
       .catch(err => console.error('[auth] lastLoginAt update failed', err.message))
+
+    AuditLog.create({ action: 'login', userId: user._id, targetId: user._id, targetType: 'User', details: { ip: req.ip } }).catch(console.error)
 
     res.json({
       user: {
@@ -228,6 +233,39 @@ router.patch('/preferences', authGuard(), async (req, res, next) => {
     // Ne renvoyer que les clés autorisées pour le rôle
     fresh.notificationPrefs = filterNotifPrefsByRole(fresh.notificationPrefs, req.user.role)
     res.json(fresh)
+  } catch (err) {
+    next(err)
+  }
+})
+
+// ─── PATCH /api/auth/change-password ────────────────────────────────────────
+
+// PATCH /api/auth/change-password — Changer son mot de passe (local uniquement)
+router.patch('/change-password', authGuard(), async (req, res, next) => {
+  try {
+    const { currentPassword, newPassword } = req.body
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ error: 'currentPassword et newPassword requis' })
+    }
+    if (typeof newPassword !== 'string' || newPassword.length < 8) {
+      return res.status(400).json({ error: 'Le nouveau mot de passe doit faire au moins 8 caractères' })
+    }
+
+    const user = await User.findById(req.user.id).select('+passwordHash +authSource')
+    if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' })
+
+    if (user.authSource === 'ldap') {
+      return res.status(403).json({ error: 'Mot de passe géré par LDAP — modification impossible ici' })
+    }
+
+    const valid = await bcrypt.compare(currentPassword, user.passwordHash)
+    if (!valid) return res.status(401).json({ error: 'Mot de passe actuel incorrect' })
+
+    user.passwordHash = await bcrypt.hash(newPassword, 12)
+    await user.save()
+
+    res.json({ success: true })
   } catch (err) {
     next(err)
   }

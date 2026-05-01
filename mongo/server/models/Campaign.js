@@ -96,6 +96,25 @@ const campaignSchema = new Schema({
     _id: false,
   },
 
+  // ── Contexte N-1 ────────────────────────────────────────────────────────────
+  // Campagne de référence pour les données N-1.
+  // null = auto-détection (dernière campagne clôturée avant startDate).
+  previousCampaignId: {
+    type: Schema.Types.ObjectId,
+    ref: 'Campaign',
+    default: null,
+  },
+  // Active/désactive l'affichage du contexte N-1 dans les formulaires.
+  enableN1Context: {
+    type: Boolean,
+    default: true,
+  },
+  // Si false : le contexte N-1 n'est visible que par manager/hr/admin/director.
+  n1VisibleToEmployee: {
+    type: Boolean,
+    default: true,
+  },
+
 }, { timestamps: true, versionKey: false })
 
 // Validation : la date de fin doit être après ou égale à la date de début

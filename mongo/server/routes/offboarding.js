@@ -13,8 +13,8 @@ const { OffboardingRequest } = require('../models/OffboardingRequest')
 const User     = require('../models/User')
 const AuditLog = require('../models/AuditLog')
 
-const HR_ROLES    = ['hr', 'admin']
-const ADMIN_ROLES = ['admin']
+const { ADMIN_ROLES: HR_ROLES } = require('../config/constants')
+const ADMIN_ROLES = ['admin'] // admin-only — pas de constante équivalente dans constants.js
 
 // POST /api/offboarding — Créer une demande de départ (hr/admin)
 router.post('/', async (req, res, next) => {

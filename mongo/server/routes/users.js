@@ -13,10 +13,10 @@ router.get('/', async (req, res, next) => {
     const filter = {}
 
     // Scope par rôle appelant
-    if (req.user.role === 'manager') {
-      // Un manager ne voit que ses subordonnés directs
+    if (req.user.role === 'manager' || req.user.role === 'director') {
+      // Manager et director ne voient que leurs subordonnés directs
       filter.managerId = req.user.id
-    } else if (!['admin', 'hr', 'director'].includes(req.user.role)) {
+    } else if (!['admin', 'hr'].includes(req.user.role)) {
       return res.status(403).json({ error: 'Permissions insuffisantes' })
     }
 
@@ -148,7 +148,7 @@ router.patch('/:id', async (req, res, next) => {
     }
 
     // Whitelist des champs modifiables — authSource, passwordHash, ldapDn ne peuvent jamais être modifiés ici
-    const ALLOWED = ['email', 'firstName', 'lastName', 'department', 'position', 'role', 'managerId', 'isActive']
+    const ALLOWED = ['email', 'firstName', 'lastName', 'department', 'position', 'role', 'managerId', 'isActive', 'avatar', 'phone']
     const updates = {}
     for (const key of ALLOWED) {
       if (req.body[key] !== undefined) updates[key] = req.body[key]
@@ -171,6 +171,39 @@ router.patch('/:id', async (req, res, next) => {
     delete result.passwordHash
     delete result.ldapDn
     res.json(result)
+  } catch (err) {
+    next(err)
+  }
+})
+
+// PATCH /api/users/:id/avatar — Mettre à jour l'URL d'avatar (ou supprimer)
+router.patch('/:id/avatar', async (req, res, next) => {
+  try {
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({ error: 'ID invalide' })
+    }
+    const isSelf  = req.user.id === req.params.id
+    const isAdmin = ADMIN_ROLES.includes(req.user.role)
+    if (!isSelf && !isAdmin) {
+      return res.status(403).json({ error: 'Accès refusé' })
+    }
+
+    const { avatarUrl } = req.body
+    // null = supprimer l'avatar (retour aux initiales)
+    if (avatarUrl !== null && avatarUrl !== undefined) {
+      if (typeof avatarUrl !== 'string' || avatarUrl.length > 500) {
+        return res.status(400).json({ error: 'URL d\'avatar invalide (max 500 car)' })
+      }
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      { avatar: avatarUrl ?? null },
+      { new: true, select: '_id avatar' }
+    )
+    if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' })
+
+    res.json({ _id: user._id, avatar: user.avatar })
   } catch (err) {
     next(err)
   }

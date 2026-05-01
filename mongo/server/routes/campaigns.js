@@ -13,7 +13,7 @@
 const router     = require('express').Router()
 const mongoose   = require('mongoose')
 const { Campaign, Evaluation, Form, User, AuditLog, CAMPAIGN_TRANSITIONS: VALID_TRANSITIONS } = require('../models')
-const { ADMIN_ROLES } = require('../config/constants')
+const { ADMIN_ROLES, MANAGER_ROLES } = require('../config/constants')
 const { notifyMany }  = require('../services/notificationService')
 
 // GET /api/campaigns — Liste des campagnes (scopée par rôle)
@@ -28,8 +28,7 @@ router.get('/', async (req, res, next) => {
     }
 
     // Les employés ne voient que les campagnes actives
-    const ADMIN_ROLES_LOCAL = ['admin', 'hr', 'director', 'manager']
-    if (!ADMIN_ROLES_LOCAL.includes(req.user.role)) {
+    if (!MANAGER_ROLES.includes(req.user.role)) {
       filter.status = 'active'
     }
 
@@ -155,7 +154,8 @@ router.patch('/:id', async (req, res, next) => {
     }
 
     const EDITABLE = ['name', 'description', 'status', 'startDate', 'endDate',
-      'targetDepartments', 'extendedVisibility', 'deadlineEmployee', 'deadlineManager']
+      'targetDepartments', 'extendedVisibility', 'deadlineEmployee', 'deadlineManager',
+      'previousCampaignId', 'enableN1Context', 'n1VisibleToEmployee']
     EDITABLE.forEach(key => {
       if (req.body[key] !== undefined) campaign[key] = req.body[key]
     })
@@ -278,6 +278,9 @@ router.post('/:id/clone', async (req, res, next) => {
       targetDepartments:  source.targetDepartments || [],
       extendedVisibility: source.extendedVisibility || [],
       createdBy:          req.user.id,
+      previousCampaignId:  source._id,
+      enableN1Context:     source.enableN1Context  ?? true,
+      n1VisibleToEmployee: source.n1VisibleToEmployee ?? true,
     })
 
     // Clone tous les formulaires associés (sans frozenAt → modifiables)

@@ -238,37 +238,4 @@ router.patch('/preferences', authGuard(), async (req, res, next) => {
   }
 })
 
-// ─── PATCH /api/auth/change-password ────────────────────────────────────────
-
-// PATCH /api/auth/change-password — Changer son mot de passe (local uniquement)
-router.patch('/change-password', authGuard(), async (req, res, next) => {
-  try {
-    const { currentPassword, newPassword } = req.body
-
-    if (!currentPassword || !newPassword) {
-      return res.status(400).json({ error: 'currentPassword et newPassword requis' })
-    }
-    if (typeof newPassword !== 'string' || newPassword.length < 8) {
-      return res.status(400).json({ error: 'Le nouveau mot de passe doit faire au moins 8 caractères' })
-    }
-
-    const user = await User.findById(req.user.id).select('+passwordHash +authSource')
-    if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' })
-
-    if (user.authSource === 'ldap') {
-      return res.status(403).json({ error: 'Mot de passe géré par LDAP — modification impossible ici' })
-    }
-
-    const valid = await bcrypt.compare(currentPassword, user.passwordHash)
-    if (!valid) return res.status(401).json({ error: 'Mot de passe actuel incorrect' })
-
-    user.passwordHash = await bcrypt.hash(newPassword, 12)
-    await user.save()
-
-    res.json({ success: true })
-  } catch (err) {
-    next(err)
-  }
-})
-
 module.exports = router

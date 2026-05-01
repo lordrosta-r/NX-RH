@@ -287,7 +287,7 @@ navigate(returnUrl, { replace: true });
 |---|---|
 | **Écrans** | `/users` (S-04), `/users/new` (S-05), `/users/:id` (S-06), `/users/:id/edit` (S-07), `/users/:id/offboarding` (S-08), `/profile` (S-31), `/profile/preferences` (S-32), `/onboarding` (S-33) |
 | **Composants clés** | `DataTable`, `Avatar`, `StatusBadge`, `RoleBadge`, `OnboardingSteps`, `ProgressBar`, `ConfirmDialog`, `FormField`, `Select` |
-| **API** | `GET /api/users` · `POST /api/users` · `GET|PATCH /api/users/:id` · `PATCH /api/users/:id/onboarding/:stepIndex` · `GET /api/users/:id/gdpr-export` · `DELETE /api/users/:id/gdpr-anonymize` · `GET /api/users/:id/offboard-preview` · `PATCH /api/users/:id/offboard` · `PATCH /api/auth/preferences` · `PATCH /api/auth/change-password` · `PATCH /api/users/:id/avatar` |
+| **API** | `GET /api/users` · `POST /api/users` · `GET|PATCH /api/users/:id` · `PATCH /api/users/:id/onboarding/:stepIndex` · `GET /api/users/:id/gdpr-export` · `DELETE /api/users/:id/gdpr-anonymize` · `GET /api/users/:id/offboard-preview` · `PATCH /api/users/:id/offboard` · `PATCH /api/auth/preferences` · `PATCH /api/users/:id/avatar` |
 | **Rôles** | admin/hr = tout · director = subordonnés · manager = subordonnés directs · employee = soi |
 | **Flux** | Flux 5 (onboarding), Flux 10 (profil/préférences) |
 | **Notifications** | `onboardingComplete` (admin · hr · manager direct) |
@@ -540,7 +540,7 @@ Les règles suivantes sont **non-négociables**. Tout développeur doit les lire
 | Config LDAP | `/admin/ldap` | `Tabs`, `Input`, `Button`, `DataTable` | `POST /api/admin/ldap/*` | ☐ |
 | Journal d'audit | `/admin/audit` | `DataTable`, `FilterBar`, `Timeline` | `GET /api/admin/audit` | ☐ |
 | Gestion RGPD users | `/admin/users` | `DataTable`, `Avatar`, `ConfirmDialog` | `GET /api/users` + GDPR | ☐ |
-| Mon profil | `/profile` | `Avatar`, `Tabs`, `FormField`, `Toggle`, `Input` | `GET|PATCH /api/auth/me` · `PATCH /api/auth/change-password` · `PATCH /api/users/:id/avatar` | ☐ |
+| Mon profil | `/profile` | `Avatar`, `Tabs`, `FormField`, `Toggle`, `Input` | `GET|PATCH /api/auth/me` · `PATCH /api/users/:id/avatar` | ☐ |
 | Mes préférences | `/profile/preferences` | `RadioGroup`, `CheckboxGroup`, `Toggle` | `PATCH /api/auth/preferences` | ☐ |
 | Flux onboarding | `/onboarding` | `ProgressSteps`, `Input`, `Button` | `PATCH /api/users/:id/onboarding/:stepIndex` | ☐ |
 | Centre notifications | `/notifications` | `NotificationItem`, `FilterBar`, `Pagination` | `GET /api/notifications` | ☐ |

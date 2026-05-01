@@ -1,0 +1,48 @@
+version: "3.8"
+
+services:
+  ldap-test:
+    image: bitnami/openldap:2.6
+    container_name: ldap-test
+    ports:
+      - "1389:1389"
+      - "1636:1636"
+    environment:
+      LDAP_ROOT: "dc=nxrh,dc=local"
+      LDAP_ADMIN_USERNAME: "admin"
+      LDAP_ADMIN_PASSWORD: "adminpassword"
+      LDAP_USERS: "john.doe,jane.smith,bob.manager,alice.hr,carol.director"
+      LDAP_PASSWORDS: "employee123,hr123,manager123,hr123,director123"
+      LDAP_GROUP: "nxrh-users"
+      LDAP_ENABLE_TLS: "yes"
+      LDAP_TLS_CERT_FILE: "/opt/bitnami/openldap/certs/ldap.crt"
+      LDAP_TLS_KEY_FILE: "/opt/bitnami/openldap/certs/ldap.key"
+      LDAP_TLS_CA_FILE: "/opt/bitnami/openldap/certs/ca.crt"
+    volumes:
+      - ./certs:/opt/bitnami/openldap/certs:ro
+    networks:
+      - nxrh-ldap
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "ldapsearch",
+          "-x",
+          "-H",
+          "ldap://localhost:1389",
+          "-D",
+          "cn=admin,dc=nxrh,dc=local",
+          "-w",
+          "adminpassword",
+          "-b",
+          "dc=nxrh,dc=local",
+          "(objectClass=*)",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+
+networks:
+  nxrh-ldap:
+    driver: bridge

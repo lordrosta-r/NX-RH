@@ -1,0 +1,178 @@
+'use strict'
+
+// =============================================================================
+// routes/evaluations/bulk.js — Opérations en masse sur les évaluations
+//
+// POST  /bulk → créer des évaluations en masse (admin/hr, max 500)
+// PATCH /bulk → actions en masse : archive | sign_hr | assign_reviewer (admin/hr)
+// =============================================================================
+
+const mongoose  = require('mongoose')
+const { Evaluation, Form, Campaign, User, AuditLog, VALID_TRANSITIONS, ROLE_TRANSITIONS } = require('../../models')
+const { ADMIN_ROLES }           = require('../../config/constants')
+const { notifyMany }            = require('../../services/notificationService')
+
+// POST /bulk — Créer des évaluations en masse (max 500)
+async function handleBulkCreate(req, res, next) {
+  try {
+    if (!ADMIN_ROLES.includes(req.user.role)) {
+      return res.status(403).json({ error: 'Réservé aux admins et RH' })
+    }
+
+    const { evaluations } = req.body
+    if (!Array.isArray(evaluations) || evaluations.length === 0) {
+      return res.status(400).json({ error: 'evaluations doit être un tableau non vide' })
+    }
+    if (evaluations.length > 500) {
+      return res.status(400).json({ error: 'Maximum 500 évaluations par batch' })
+    }
+
+    for (const e of evaluations) {
+      for (const field of ['campaignId', 'formId', 'evaluatorId', 'evaluateeId']) {
+        if (!e[field]) return res.status(400).json({ error: `Champ requis manquant: ${field}` })
+        if (!mongoose.isValidObjectId(e[field])) return res.status(400).json({ error: `${field} invalide` })
+      }
+    }
+
+    // Geler tous les formulaires concernés
+    const formIds = [...new Set(evaluations.map(e => e.formId).filter(id => id && mongoose.isValidObjectId(id)))]
+    await Form.updateMany(
+      { _id: { $in: formIds }, frozenAt: null },
+      { $set: { frozenAt: new Date() } }
+    )
+
+    // Calculer expiresAt par campagne
+    const uniqueCampaignIds = [...new Set(evaluations.map(e => e.campaignId?.toString()).filter(Boolean))]
+    const campaigns = await Campaign.find({ _id: { $in: uniqueCampaignIds } }, 'endDate').lean()
+    const campaignEndDates = new Map(campaigns.map(c => [c._id.toString(), c.endDate]))
+
+    const sanitized = evaluations.map(e => {
+      const endDate = campaignEndDates.get(e.campaignId?.toString())
+      return {
+        ...e,
+        status: 'assigned',
+        lastSavedAt: null,
+        expiresAt: endDate
+          ? new Date(new Date(endDate).getTime() + 30 * 24 * 60 * 60 * 1000)
+          : null,
+      }
+    })
+
+    const result = await Evaluation.insertMany(sanitized, { ordered: false })
+
+    // Notifier les évalués (fire-and-forget)
+    ;(async () => {
+      try {
+        const evaluateeIds = [...new Set(sanitized.map(e => e.evaluateeId?.toString()).filter(Boolean))]
+        const campaignId = sanitized[0]?.campaignId
+        const campaign = campaignId ? await Campaign.findById(campaignId, 'name').lean() : null
+        const evaluatees = await User.find({ _id: { $in: evaluateeIds }, isActive: true }).lean()
+        if (evaluatees.length) await notifyMany('evaluationAssigned', evaluatees, { campaignName: campaign?.name || '' })
+      } catch (_) { /* notification failure must never block */ }
+    })()
+
+    res.status(201).json({ created: result.length })
+  } catch (err) {
+    if (err.writeErrors) {
+      return res.status(207).json({
+        created:  err.insertedDocs?.length || 0,
+        skipped:  err.writeErrors.length,
+        message:  'Certaines évaluations existaient déjà et ont été ignorées',
+      })
+    }
+    next(err)
+  }
+}
+
+// PATCH /bulk — Actions en masse : archive | sign_hr | assign_reviewer
+async function handleBulkAction(req, res, next) {
+  try {
+    if (!ADMIN_ROLES.includes(req.user.role)) {
+      return res.status(403).json({ error: 'Réservé aux admins et RH' })
+    }
+
+    const { ids, action, reviewerId } = req.body
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ error: 'ids doit être un tableau non vide' })
+    }
+    if (ids.length > 200) {
+      return res.status(400).json({ error: 'Maximum 200 évaluations par opération bulk' })
+    }
+
+    const VALID_BULK_ACTIONS = ['archive', 'sign_hr', 'assign_reviewer']
+    if (!VALID_BULK_ACTIONS.includes(action)) {
+      return res.status(400).json({ error: `action invalide — valeurs acceptées: ${VALID_BULK_ACTIONS.join(', ')}` })
+    }
+
+    for (const id of ids) {
+      if (!mongoose.isValidObjectId(id)) {
+        return res.status(400).json({ error: `ID invalide: ${id}` })
+      }
+    }
+
+    if (action === 'assign_reviewer' && (!reviewerId || !mongoose.isValidObjectId(reviewerId))) {
+      return res.status(400).json({ error: 'reviewerId valide requis pour assign_reviewer' })
+    }
+
+    const evaluations = await Evaluation.find({ _id: { $in: ids } })
+    const role = req.user.role
+    let success = 0, skipped = 0
+    const errors = []
+
+    for (const ev of evaluations) {
+      try {
+        if (action === 'sign_hr') {
+          const HR_CAN_SIGN = ['reviewed', 'signed_evaluatee', 'signed_manager']
+          if (!HR_CAN_SIGN.includes(ev.status)) { skipped++; continue }
+          ev.status = 'signed_hr'
+          ev.signedByHrAt = new Date()
+          await ev.save()
+          success++
+        } else if (action === 'archive') {
+          const roleTransitions = role === 'admin' ? VALID_TRANSITIONS : (ROLE_TRANSITIONS[role] || {})
+          const allowed = roleTransitions[ev.status] || []
+          if (allowed.length > 0) {
+            ev.status = allowed[0]
+            if (ev.status === 'signed_hr') ev.signedByHrAt = new Date()
+          }
+          ev.reviewerComment = 'Archivé en masse par RH'
+          await ev.save()
+          success++
+        } else if (action === 'assign_reviewer') {
+          const ASSIGNABLE = ['assigned', 'in_progress']
+          if (!ASSIGNABLE.includes(ev.status)) { skipped++; continue }
+          ev.evaluatorId = reviewerId
+          await ev.save()
+          success++
+        }
+      } catch (err) {
+        errors.push({ id: ev._id.toString(), reason: err.message })
+      }
+    }
+
+    // IDs non trouvés → skipped
+    const foundIds = new Set(evaluations.map(e => e._id.toString()))
+    for (const id of ids) {
+      if (!foundIds.has(id)) skipped++
+    }
+
+    res.json({ success, skipped, errors })
+
+    // Audit log (fire-and-forget, après la réponse)
+    if (success > 0) {
+      AuditLog.create({
+        userId:     req.user.id,
+        userRole:   req.user.role,
+        action:     'bulk_action',
+        targetType: 'Evaluation',
+        targetId:   ids[0],
+        meta:       { action, count: ids.length, success, skipped },
+      }).catch(() => {})
+    }
+  } catch (err) {
+    next(err)
+  }
+}
+
+module.exports = { handleBulkCreate, handleBulkAction }

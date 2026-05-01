@@ -18,8 +18,9 @@ const cors         = require('cors')
 const helmet       = require('helmet')
 const rateLimit    = require('express-rate-limit')
 
-const { connect }   = require('./config/db')
-const { authGuard } = require('./middleware/authGuard')
+const { connect }       = require('./config/db')
+const { authGuard }     = require('./middleware/authGuard')
+const { errorHandler }  = require('./middleware/errorHandler')
 
 const authRoutes        = require('./routes/auth')
 const eventRoutes       = require('./routes/events')
@@ -159,17 +160,7 @@ app.use((req, res) => {
 
 // ─── Global error handler ────────────────────────────────────────────────────
 
-// eslint-disable-next-line no-unused-vars
-app.use((err, _req, res, _next) => {
-  console.error('[Error]', err.message)
-  let status = err.status || 500
-  // Mongoose validation / cast errors are client mistakes, not server faults.
-  if (err.name === 'ValidationError' || err.name === 'CastError') status = 400
-  const message = (process.env.NODE_ENV === 'production' && status === 500)
-    ? 'Internal server error'
-    : err.message || 'Internal server error'
-  res.status(status).json({ error: message })
-})
+app.use(errorHandler)
 
 // ─── Start ───────────────────────────────────────────────────────────────────
 

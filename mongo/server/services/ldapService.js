@@ -29,10 +29,17 @@ function validate(config) {
 }
 
 function makeClient(config) {
+  // TLS certificate verification (default: true)
+  // Override via config.rejectUnauthorized or LDAP_TLS_REJECT_UNAUTHORIZED env var.
+  const rejectUnauthorized = config.rejectUnauthorized !== undefined
+    ? config.rejectUnauthorized
+    : (process.env.LDAP_TLS_REJECT_UNAUTHORIZED !== 'false')
+
   const client = ldap.createClient({
     url:            config.host,
     connectTimeout: 5000,
     timeout:        10000,
+    tlsOptions:     { rejectUnauthorized },
   })
   // Prevent unhandled 'error' event from crashing the process
   client.on('error', (err) => console.warn('[LDAP] Erreur client:', err.message))

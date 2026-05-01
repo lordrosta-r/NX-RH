@@ -8,7 +8,7 @@
 | Champ | Valeur |
 |---|---|
 | **Date de génération** | 2025 |
-| **Version** | 1.0.0 |
+| **Version** | 1.1.0 |
 | **Stack** | React 18 + Vite + TypeScript + Tailwind CSS |
 | **Statut** | ✅ READY FOR IMPLEMENTATION |
 | **Auteur** | Architecte produit (synthèse multi-agents) |
@@ -16,10 +16,11 @@
 **Fichiers sources** :
 - [`01-features.md`](./01-features.md) — Inventaire des fonctionnalités par rôle
 - [`02-design-system.md`](./02-design-system.md) — Tokens design
-- [`03-screens.md`](./03-screens.md) — Inventaire des 33+ écrans
+- [`03-screens.md`](./03-screens.md) — Inventaire des 40 écrans
 - [`04-flows.md`](./04-flows.md) — Flux UX et machines à états
 - [`05-notifications.md`](./05-notifications.md) — Système de notifications
 - [`06-components.md`](./06-components.md) — Bibliothèque de composants
+- [`07-api-contract.md`](./07-api-contract.md) — Contrats des endpoints backend
 
 ---
 
@@ -286,7 +287,7 @@ navigate(returnUrl, { replace: true });
 |---|---|
 | **Écrans** | `/users` (S-04), `/users/new` (S-05), `/users/:id` (S-06), `/users/:id/edit` (S-07), `/users/:id/offboarding` (S-08), `/profile` (S-31), `/profile/preferences` (S-32), `/onboarding` (S-33) |
 | **Composants clés** | `DataTable`, `Avatar`, `StatusBadge`, `RoleBadge`, `OnboardingSteps`, `ProgressBar`, `ConfirmDialog`, `FormField`, `Select` |
-| **API** | `GET /api/users` · `POST /api/users` · `GET|PATCH /api/users/:id` · `PATCH /api/users/:id/onboarding/:stepIndex` · `GET /api/users/:id/gdpr-export` · `DELETE /api/users/:id/gdpr-anonymize` · `GET /api/users/:id/offboard-preview` · `PATCH /api/users/:id/offboard` · `PATCH /api/auth/preferences` |
+| **API** | `GET /api/users` · `POST /api/users` · `GET|PATCH /api/users/:id` · `PATCH /api/users/:id/onboarding/:stepIndex` · `GET /api/users/:id/gdpr-export` · `DELETE /api/users/:id/gdpr-anonymize` · `GET /api/users/:id/offboard-preview` · `PATCH /api/users/:id/offboard` · `PATCH /api/auth/preferences` · `PATCH /api/auth/change-password` · `PATCH /api/users/:id/avatar` |
 | **Rôles** | admin/hr = tout · director = subordonnés · manager = subordonnés directs · employee = soi |
 | **Flux** | Flux 5 (onboarding), Flux 10 (profil/préférences) |
 | **Notifications** | `onboardingComplete` (admin · hr · manager direct) |
@@ -298,11 +299,11 @@ navigate(returnUrl, { replace: true });
 |---|---|
 | **Écrans** | `/campaigns` (S-09), `/campaigns/new` (S-10), `/campaigns/:id` (S-11), `/campaigns/:id/analytics` (S-12) |
 | **Composants clés** | `DataTable`, `StatusBadge`, `ProgressBar`, `Button`, `ConfirmDialog`, `DatePicker`, `Select` (multi), `StatCard` |
-| **API** | `GET /api/campaigns` · `POST /api/campaigns` · `GET|PATCH|DELETE /api/campaigns/:id` · `POST /api/campaigns/:id/clone` · `GET /api/campaigns/:id/analytics` |
+| **API** | `GET /api/campaigns` · `POST /api/campaigns` · `GET|PATCH|DELETE /api/campaigns/:id` · `POST /api/campaigns/:id/clone` · `GET /api/campaigns/:id/analytics` · `GET /api/evaluations/:id/n1-context` |
 | **Rôles** | admin/hr = tout · director/manager = actives (lecture) · employee = actives uniquement |
 | **Flux** | Flux 2 (création + activation) |
 | **Notifications** | `campaignLaunch` (participants depts ciblés) |
-| **Règles métier** | ① Cycle irréversible : `draft→active→closed→archived` · ② Suppression uniquement sur `draft` ou `archived` · ③ `endDate > startDate` obligatoire · ④ Clonage : formulaires clonés avec `frozenAt=null` |
+| **Règles métier** | ① Cycle irréversible : `draft→active→closed→archived` · ② Suppression uniquement sur `draft` ou `archived` · ③ `endDate > startDate` obligatoire · ④ Clonage : formulaires clonés avec `frozenAt=null` · ⑤ `enableN1Context=false` masque les champs `n1VisibleToEmployee` et `previousCampaignId` · ⑥ `previousCampaignId` vide → auto-fallback backend sur la campagne closed/archived la plus récente |
 
 ### Module 4 — Formulaires
 
@@ -382,8 +383,8 @@ navigate(returnUrl, { replace: true });
 |---|---|
 | **Écrans** | `/admin` (S-26), `/admin/config` (S-27), `/admin/ldap` (S-28), `/admin/audit` (S-29), `/admin/users` (S-30) |
 | **Composants clés** | `DataTable`, `Modal`, `Input`, `Button`, `Alert`, `Timeline`, `FilterBar` |
-| **API** | `GET|PUT|PATCH|DELETE /api/admin/config` · `POST /api/admin/email/test` · `GET /api/admin/audit` · `POST /api/admin/ldap/test` · `POST /api/admin/ldap/preview` · `POST /api/admin/ldap/sync` · `GET|PUT /api/admin/ldap/config` |
-| **Rôles** | admin (tout) · hr (`/admin/audit` uniquement) |
+| **API** | `GET|PUT|PATCH|DELETE /api/admin/config` · `PATCH /api/admin/config/batch` · `POST /api/admin/email/test` · `GET /api/admin/audit` · `GET /api/admin/audit?format=csv` · `POST /api/admin/ldap/test` · `POST /api/admin/ldap/preview` · `POST /api/admin/ldap/sync` · `GET|PUT /api/admin/ldap/config` · `POST /api/hr/notifications/bulk-remind` |
+| **Rôles** | admin (tout) · hr (`/admin/audit` + `/hr/settings` + `/hr/notifications/bulk-remind`) |
 | **Flux** | Flux 8 (LDAP), Flux 9 (audit) |
 | **Notifications** | `ldapSyncComplete` · `ldapSyncFailed` · `systemAlerts` |
 | **Règles métier** | ① `bindPassword` jamais retourné en lecture (write-only) · ② Nouveaux utilisateurs LDAP = rôle `employee` par défaut · ③ Rôle toujours géré en DB, jamais depuis LDAP |
@@ -513,7 +514,8 @@ Les règles suivantes sont **non-négociables**. Tout développeur doit les lire
 | Modifier utilisateur | `/users/:id/edit` | `FormField`, `Input`, `Select`, `Toggle` | `PATCH /api/users/:id` | ☐ |
 | Redirect offboarding | `/users/:id/offboarding` | — | — | ☐ |
 | Liste campagnes | `/campaigns` | `DataTable`, `StatusBadge`, `ProgressBar` | `GET /api/campaigns` | ☐ |
-| Créer campagne | `/campaigns/new` | `FormField`, `Input`, `DatePicker`, `Select` | `POST /api/campaigns` | ☐ |
+| Créer campagne | `/campaigns/new` | `FormField`, `Input`, `DatePicker`, `Select`, `Toggle` | `POST /api/campaigns` | ☐ |
+| Modifier campagne | `/campaigns/:id/edit` | `FormField`, `Input`, `DatePicker`, `Select`, `Toggle` | `PATCH /api/campaigns/:id` | ☐ |
 | Détail campagne | `/campaigns/:id` | `StatCard`, `StatusBadge`, `Tabs`, `ProgressBar` | `GET /api/campaigns/:id` | ☐ |
 | Analytics campagne | `/campaigns/:id/analytics` | `ScoreDistribution`, `CompletionRateChart` | `GET /api/campaigns/:id/analytics` | ☐ |
 | Bibliothèque formulaires | `/forms` | `DataCard`, `StatusBadge` | `GET /api/forms` | ☐ |
@@ -533,15 +535,17 @@ Les règles suivantes sont **non-négociables**. Tout développeur doit les lire
 | Dossier offboarding | `/offboarding/:id` | `OffboardingChecklist`, `ProgressBar`, `Textarea` | `GET|PATCH /api/offboarding/:id` | ☐ |
 | Nouvel offboarding | `/offboarding/new` | `FormField`, `Select`, `DatePicker` | `POST /api/offboarding` | ☐ |
 | Analytics global | `/analytics` | `StatCard`, `ScoreDistribution`, `CompletionRateChart` | `GET /api/campaigns/:id/analytics` | ☐ |
-| Hub admin | `/admin` | `DataCard` (4 cards) | — | ☐ |
+| Hub admin | `/admin` | `DataCard` (5 cards) | — | ☐ |
 | Config système | `/admin/config` | `DataTable`, `Modal` | `GET|PUT|PATCH|DELETE /api/admin/config` | ☐ |
 | Config LDAP | `/admin/ldap` | `Tabs`, `Input`, `Button`, `DataTable` | `POST /api/admin/ldap/*` | ☐ |
 | Journal d'audit | `/admin/audit` | `DataTable`, `FilterBar`, `Timeline` | `GET /api/admin/audit` | ☐ |
 | Gestion RGPD users | `/admin/users` | `DataTable`, `Avatar`, `ConfirmDialog` | `GET /api/users` + GDPR | ☐ |
-| Mon profil | `/profile` | `Avatar`, `Tabs`, `FormField` | `GET|PATCH /api/auth/me` | ☐ |
+| Mon profil | `/profile` | `Avatar`, `Tabs`, `FormField`, `Toggle`, `Input` | `GET|PATCH /api/auth/me` · `PATCH /api/auth/change-password` · `PATCH /api/users/:id/avatar` | ☐ |
 | Mes préférences | `/profile/preferences` | `RadioGroup`, `CheckboxGroup`, `Toggle` | `PATCH /api/auth/preferences` | ☐ |
 | Flux onboarding | `/onboarding` | `ProgressSteps`, `Input`, `Button` | `PATCH /api/users/:id/onboarding/:stepIndex` | ☐ |
 | Centre notifications | `/notifications` | `NotificationItem`, `FilterBar`, `Pagination` | `GET /api/notifications` | ☐ |
+| Paramètres système | `/admin/settings` | `FormField`, `Input`, `Toggle`, `Select` | `PATCH /api/admin/config/batch` | ☐ |
+| Paramètres RH | `/hr/settings` | `FormField`, `Toggle`, `Select`, `Button` | `PATCH /api/admin/config/batch` · `POST /api/hr/notifications/bulk-remind` | ☐ |
 
 ---
 
@@ -602,4 +606,4 @@ export const queryKeys = {
 
 ---
 
-*Fin du document — NX-RH Master Spec v1.0.0*
+*Fin du document — NX-RH Master Spec v1.1.0 · 40 écrans*

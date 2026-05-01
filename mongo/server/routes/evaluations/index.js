@@ -14,6 +14,7 @@ const { handleHistory, handleList, handleExport, handleDetail } = require('./que
 const { handleCreate, handleUpdate, handleReassign, handleExpire } = require('./mutations')
 const { handleBulkCreate, handleBulkAction } = require('./bulk')
 const { handlePdf } = require('./pdf')
+const { handleN1Context } = require('./n1Context')
 
 // Routes statiques en premier (ordre critique pour Express)
 router.get('/history', handleHistory)
@@ -26,6 +27,7 @@ router.post('/',      handleCreate)
 
 // Routes dynamiques ensuite
 router.get('/:id/pdf',        handlePdf)
+router.get('/:id/n1-context', handleN1Context)
 router.patch('/:id/reassign', handleReassign)
 router.get('/:id',            handleDetail)
 router.patch('/:id',          handleUpdate)

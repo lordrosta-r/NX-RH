@@ -161,6 +161,7 @@ async function handleUpdate(req, res, next) {
     }
 
     // Score (manager/director/admin/hr uniquement)
+    let _evaluatee = null
     if (req.body.score !== undefined) {
       if (!['manager', 'director', 'admin', 'hr'].includes(role)) {
         return res.status(403).json({ error: 'Seuls les managers et admins peuvent ajouter un score' })
@@ -169,8 +170,8 @@ async function handleUpdate(req, res, next) {
         return res.status(403).json({ error: 'Score non modifiable sur une évaluation validée' })
       }
       if (['manager', 'director'].includes(role)) {
-        const evaluatee = await User.findById(evaluation.evaluateeId, 'managerId').lean()
-        if (!evaluatee || evaluatee.managerId?.toString() !== uid) {
+        if (!_evaluatee) _evaluatee = await User.findById(evaluation.evaluateeId, 'managerId').lean()
+        if (!_evaluatee || _evaluatee.managerId?.toString() !== uid) {
           return res.status(403).json({ error: "Vous n'êtes pas le manager de cet évalué" })
         }
       }
@@ -185,6 +186,14 @@ async function handleUpdate(req, res, next) {
       if (typeof req.body.reviewerComment !== 'string' || req.body.reviewerComment.length > 5000) {
         return res.status(400).json({ error: 'reviewerComment invalide (max 5000 chars)' })
       }
+      if (['manager', 'director'].includes(role)) {
+        if (!_evaluatee) _evaluatee = await User.findById(evaluation.evaluateeId, 'managerId').lean()
+        const isEvaluator = evaluation.evaluatorId.toString() === uid
+        const isManagerOf = _evaluatee?.managerId?.toString() === uid
+        if (!isEvaluator && !isManagerOf) {
+          return res.status(403).json({ error: "Accès refusé : vous n'êtes pas l'évaluateur ou le manager de cet évalué" })
+        }
+      }
       evaluation.reviewerComment = req.body.reviewerComment
     }
 
@@ -196,6 +205,14 @@ async function handleUpdate(req, res, next) {
       if (typeof req.body.nextObjectives !== 'string' || req.body.nextObjectives.length > 5000) {
         return res.status(400).json({ error: 'nextObjectives invalide (max 5000 chars)' })
       }
+      if (['manager', 'director'].includes(role)) {
+        if (!_evaluatee) _evaluatee = await User.findById(evaluation.evaluateeId, 'managerId').lean()
+        const isEvaluator = evaluation.evaluatorId.toString() === uid
+        const isManagerOf = _evaluatee?.managerId?.toString() === uid
+        if (!isEvaluator && !isManagerOf) {
+          return res.status(403).json({ error: "Accès refusé : vous n'êtes pas l'évaluateur ou le manager de cet évalué" })
+        }
+      }
       evaluation.nextObjectives = req.body.nextObjectives
     }
 
@@ -206,6 +223,14 @@ async function handleUpdate(req, res, next) {
       }
       if (typeof req.body.objectiveRatings !== 'object' || Array.isArray(req.body.objectiveRatings)) {
         return res.status(400).json({ error: 'objectiveRatings doit être un objet' })
+      }
+      if (['manager', 'director'].includes(role)) {
+        if (!_evaluatee) _evaluatee = await User.findById(evaluation.evaluateeId, 'managerId').lean()
+        const isEvaluator = evaluation.evaluatorId.toString() === uid
+        const isManagerOf = _evaluatee?.managerId?.toString() === uid
+        if (!isEvaluator && !isManagerOf) {
+          return res.status(403).json({ error: "Accès refusé : vous n'êtes pas l'évaluateur ou le manager de cet évalué" })
+        }
       }
       evaluation.objectiveRatings = req.body.objectiveRatings
     }
@@ -220,6 +245,18 @@ async function handleUpdate(req, res, next) {
         return res.status(400).json({ error: 'evaluateeComment invalide (max 5000 chars)' })
       }
       evaluation.evaluateeComment = req.body.evaluateeComment
+    }
+
+    // Flag de désaccord — évalué, admin ou hr uniquement
+    if (req.body.disagreementFlag !== undefined) {
+      const isEvaluatee = evaluation.evaluateeId.toString() === uid
+      if (!isEvaluatee && !['admin', 'hr'].includes(role)) {
+        return res.status(403).json({ error: "Seul l'évalué ou un admin peut modifier le flag de désaccord" })
+      }
+      if (typeof req.body.disagreementFlag !== 'boolean') {
+        return res.status(400).json({ error: 'disagreementFlag doit être un booléen' })
+      }
+      evaluation.disagreementFlag = req.body.disagreementFlag
     }
 
     // Transition de statut

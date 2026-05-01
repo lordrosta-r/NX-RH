@@ -45,6 +45,21 @@ const TEMPLATES = {
     subject: `[NanoXplore RH] Alerte système : ${data.alertTitle || 'Notification'}`,
     text: `Bonjour ${data.firstName || ''},\n\n${data.alertBody || 'Une alerte système a été déclenchée.'}\n\nCordialement,\nNanoXplore RH`,
   }),
+
+  bulkReminder: (data) => ({
+    subject: `[NanoXplore RH] Rappel : évaluation en attente${data.campaignName ? ` — ${data.campaignName}` : ''}`,
+    text: [
+      `Bonjour ${data.firstName || ''},`,
+      '',
+      `Votre évaluation${data.campaignName ? ` dans la campagne "${data.campaignName}"` : ''} est toujours en attente de complétion.`,
+      ...(data.message ? ['', data.message] : []),
+      '',
+      'Merci de vous connecter pour la finaliser.',
+      '',
+      'Cordialement,',
+      'NanoXplore RH',
+    ].join('\n'),
+  }),
 }
 
 /**

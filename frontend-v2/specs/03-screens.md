@@ -1,10 +1,11 @@
 # NX-RH — Inventaire des écrans (Frontend v2)
 
-> **Version** : 2.0 · **Date** : 2025 · **Langue** : Français
+> **Version** : 2.1 · **Date** : 2025 · **Langue** : Français
 > **Stack** : React 18 + Vite + TypeScript + Tailwind CSS
 > **Navigation** : Top navbar fixe (h-16) · Pas de sidebar · Fil d'Ariane pour le contexte
 > **Responsive** : desktop 1280px · tablette 768px · mobile 375px
 > **Design ref** : Eurecia — cards blanches, primaire teal `#17A8D4`, illustrations SVG
+> **Écrans** : 40 (S-01 → S-35 + S-10b)
 
 ---
 
@@ -499,13 +500,15 @@ KPI row (3 cols) : Évals à compléter · Équipe en attente · Rappels deadlin
 
 ---
 
-### S-10 · `/campaigns/new` — Créer une campagne
+### S-10 · `/campaigns/new` et `/campaigns/:id/edit` — Créer / Modifier une campagne
 
 **Accessible à** : admin, hr
 
-**Fil d'Ariane** : Accueil › Campagnes › Nouvelle campagne
+**Fil d'Ariane** :
+- Création : Accueil › Campagnes › Nouvelle campagne
+- Édition : Accueil › Campagnes › [Nom] › Modifier
 
-**Page title** : « Nouvelle campagne »
+**Page title** : « Nouvelle campagne » / « Modifier — [Nom de la campagne] »
 
 **Layout** :
 ```
@@ -525,10 +528,22 @@ KPI row (3 cols) : Évals à compléter · Équipe en attente · Rappels deadlin
 │ Card "Ciblage"                                      │
 │  Départements cibles  [Multi-select ▼]              │
 │  ☐ Visibilité étendue (managers voient N+2)         │
+├─────────────────────────────────────────────────────┤
+│ Card "Contexte N-1"                                 │
+│  Activer le contexte N-1      [Toggle ON/OFF]       │
+│  Visible par l'employé        [Toggle ON/OFF]       │
+│  (affiché seulement si N-1 activé)                  │
+│  Campagne source (optionnel)  [Select ▼]            │
+│  (liste des campagnes closed/archived)              │
+│  Si vide → auto-fallback backend                    │
 └─────────────────────────────────────────────────────┘
 ```
 
-**Champs** : `name`* · `description` · `startDate`* · `endDate`* · `deadlineEmployee` · `deadlineManager` · `targetDepartments` (multi-select) · `extendedVisibility` (checkbox)
+**Champs** : `name`* · `description` · `startDate`* · `endDate`* · `deadlineEmployee` · `deadlineManager` · `targetDepartments` (multi-select) · `extendedVisibility` (checkbox) · `enableN1Context` (toggle) · `n1VisibleToEmployee` (toggle, conditionnel) · `previousCampaignId` (select optionnel)
+
+**Logique conditionnelle** :
+- `n1VisibleToEmployee` et `previousCampaignId` sont **masqués** si `enableN1Context = false`
+- Si `previousCampaignId` vide, le backend sélectionne automatiquement la campagne source la plus récente
 
 **Validation** : `endDate > startDate` (erreur inline) · Nom requis
 
@@ -1182,17 +1197,26 @@ Total évals       Score moyen        Taux complétion   Évals validées
 
 **Page title** : « Administration »
 
-**Layout** : Grille de cards de navigation 4 colonnes :
+**Layout** : Grille de cards de navigation 5 colonnes :
 ```
-┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐
-│ [Settings]  │  │ [Server]    │  │ [Shield]    │  │ [Users]     │
-│ Config      │  │ LDAP        │  │ Audit       │  │ Gestion     │
-│ système     │  │             │  │ Journal     │  │ avancée     │
-│ → /admin/   │  │ → /admin/   │  │ → /admin/   │  │ → /admin/   │
-│   config    │  │   ldap      │  │   audit     │  │   users     │
-└─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘
+┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐
+│[Settings]│ │ [Server] │ │ [Shield] │ │ [Users]  │ │[Sliders] │
+│ Config   │ │ LDAP     │ │ Audit    │ │ Gestion  │ │Paramètres│
+│ système  │ │          │ │ Journal  │ │ avancée  │ │ système  │
+│→ /admin/ │ │→ /admin/ │ │→ /admin/ │ │→ /admin/ │ │→ /admin/ │
+│  config  │ │  ldap    │ │  audit   │ │  users   │ │  settings│
+└──────────┘ └──────────┘ └──────────┘ └──────────┘ └──────────┘
 ```
 Chaque card : icône 24px centrée · titre · description courte · lien.
+
+**Cards** :
+| # | Icône | Titre | Description | Lien |
+|---|---|---|---|---|
+| 1 | `Settings` | Config système | Clés de configuration, SMTP, feature flags | `/admin/config` |
+| 2 | `Server` | LDAP | Annuaire d'entreprise, synchronisation | `/admin/ldap` |
+| 3 | `Shield` | Journal d'audit | Piste d'audit complète des actions | `/admin/audit` |
+| 4 | `Users` | Gestion avancée | Conformité RGPD, anonymisation | `/admin/users` |
+| 5 | `SlidersHorizontal` | Paramètres système | Général, SMTP, feature flags, sécurité | `/admin/settings` |
 
 ---
 
@@ -1335,11 +1359,28 @@ Chaque card : icône 24px centrée · titre · description courte · lien.
                             [Rôle] · [Département] · [Poste]
                             ✉ email · Source: local / LDAP
 
-─────── Onglets : Informations | Préférences | Mes données ────────
+─── Onglets : Informations | Avatar | Sécurité | Préférences | Mes données ───
 
 [Onglet Informations]
   Champs modifiables (self) : prénom, nom
   Champs lecture seule : email, rôle, département, poste, manager
+
+[Onglet Avatar]
+  ┌─────────────────────────────────────────────┐
+  │  [Aperçu avatar actuel — cercle 96px]       │
+  │  [Choisir une image]  (Secondary)           │
+  │  Formats acceptés : JPG, PNG, WebP · max 2 Mo│
+  │  [Supprimer l'avatar] → initiales générées  │
+  └─────────────────────────────────────────────┘
+
+[Onglet Sécurité] (uniquement si authSource = 'local')
+  ┌─────────────────────────────────────────────┐
+  │  Card "Changer le mot de passe"             │
+  │  Mot de passe actuel*  [●●●●●●●] [👁]       │
+  │  Nouveau mot de passe* [●●●●●●●] [👁]       │
+  │  Confirmation*         [●●●●●●●] [👁]       │
+  │  [Mettre à jour le mot de passe] (Primary)  │
+  └─────────────────────────────────────────────┘
 
 [Onglet Préférences]
   → redirige vers /profile/preferences
@@ -1349,6 +1390,19 @@ Chaque card : icône 24px centrée · titre · description courte · lien.
   Mes entretiens terminés (raccourci /evaluations/history)
   [Exporter mes données RGPD] → téléchargement JSON
 ```
+
+**Onglet Avatar — comportement** :
+- Click « Choisir une image » → `<input type="file" accept="image/*">` (max 2 Mo)
+- Preview instantanée via `FileReader` avant envoi
+- Envoi : `PATCH /api/users/:id/avatar` avec `{ avatar: "<base64>" }` ou URL
+- Toast « Avatar mis à jour » · En cas d'erreur taille/format : feedback inline
+
+**Onglet Sécurité — validation** :
+- `nouveauMotDePasse` ≥ 8 caractères (erreur inline `text-xs text-error-600`)
+- `confirmation` doit être identique à `nouveauMotDePasse` (erreur inline)
+- Sur succès : `PATCH /api/auth/change-password` · Toast « Mot de passe mis à jour »
+- Sur erreur 401 (ancien MDP incorrect) : erreur inline sur le champ « Mot de passe actuel »
+- Onglet Sécurité masqué si `authSource = 'ldap'` (mot de passe géré par l'annuaire)
 
 **Modification avatar** : Click → input `file` (image) ou génération automatique initiales.
 
@@ -1439,7 +1493,130 @@ Chaque card : icône 24px centrée · titre · description courte · lien.
 
 ---
 
-## Annexe A — Récapitulatif des modals
+## 14. Paramètres système
+
+---
+
+### S-34 · `/admin/settings` — Paramètres système
+
+**Accessible à** : admin uniquement
+
+**Fil d'Ariane** : Accueil › Administration › Paramètres système
+
+**Page title** : « Paramètres système »
+
+**Layout** :
+```
+[H1: Paramètres système]                         [Sauvegarder]
+
+┌────────────────────────────────────────────────────────┐
+│ Card "Général"                                         │
+│  Nom de la plateforme  [NX-RH___________________]      │
+│  Fuseau horaire        [Select ▼ Europe/Paris]         │
+│  Logo (URL)            [https://...]                   │
+├────────────────────────────────────────────────────────┤
+│ Card "Configuration SMTP"                              │
+│  Serveur SMTP*  [smtp.example.com]                     │
+│  Port*          [587]                                  │
+│  Utilisateur    [user@example.com]                     │
+│  Mot de passe   [●●●●●●●] [👁]                        │
+│  ○ Activer TLS  [Toggle ON/OFF]                        │
+├────────────────────────────────────────────────────────┤
+│ Card "Feature Flags"                                   │
+│  Onboarding employé    [Toggle ON/OFF]                 │
+│  Module Offboarding    [Toggle ON/OFF]                 │
+│  Export PDF            [Toggle ON/OFF]                 │
+│  Connexion LDAP        [Toggle ON/OFF]                 │
+│  (liste dynamique des flags présents en DB)            │
+├────────────────────────────────────────────────────────┤
+│ Card "Sécurité"                                        │
+│  Durée session JWT (heures)  [8___]                    │
+│  Max tentatives login        [5___]                    │
+│  Fenêtre blocage (minutes)   [15__]                    │
+└────────────────────────────────────────────────────────┘
+```
+
+**Bouton Sauvegarder** :
+- Envoie `PATCH /api/admin/config/batch` avec l'ensemble des clés modifiées
+- Toast `success` « Paramètres sauvegardés » · Toast `error` en cas d'échec
+
+**Champs SMTP** :
+- Mot de passe masqué par défaut (`type="password"`)
+- Toggle visibilité `[👁]` → `type="text"` temporairement
+- Placeholder « •••••••• » (write-only, jamais retourné par l'API)
+
+**Feature Flags** :
+- Chaque flag est un `Toggle` avec libellé + description courte
+- Rendu dynamique selon les clés retournées par `GET /api/admin/config`
+
+**Validation** :
+- `smtpPort` : entier 1–65535
+- `jwtSessionDuration` : entier 1–720 (heures)
+- `maxLoginAttempts` : entier 1–20
+
+**Mobile** : Sections empilées, bouton Sauvegarder sticky en bas.
+
+**Liens depuis S-26** : ← Retour Administration
+
+---
+
+## 15. Paramètres RH
+
+---
+
+### S-35 · `/hr/settings` — Paramètres RH
+
+**Accessible à** : hr (écriture) · admin (lecture seule)
+
+**Fil d'Ariane** : Accueil › Paramètres RH
+
+**Page title** : « Paramètres RH »
+
+**Layout** :
+```
+[H1: Paramètres RH]                              [Sauvegarder]
+
+┌────────────────────────────────────────────────────────┐
+│ Card "Campagnes — Rappels automatiques"                 │
+│  Rappels J-3 actifs    [Toggle ON/OFF]                 │
+│  Délai avant expiration (jours après endDate)  [30___] │
+├────────────────────────────────────────────────────────┤
+│ Card "Contexte N-1 — Valeurs par défaut"               │
+│  Activer N-1 sur nouvelles campagnes  [Toggle ON/OFF]  │
+│  Visible par l'employé par défaut     [Toggle ON/OFF]  │
+├────────────────────────────────────────────────────────┤
+│ Card "Exports"                                         │
+│  [⬇ Exporter le journal d'audit (CSV)] (Secondary)    │
+│  Déclenche : GET /api/admin/audit?format=csv           │
+└────────────────────────────────────────────────────────┘
+```
+
+**Bouton Sauvegarder** :
+- Envoie `PATCH /api/admin/config/batch` avec les préférences RH
+- Toast `success` « Préférences RH sauvegardées » · Toast `error` en cas d'échec
+
+**Section Rappels groupés** :
+```
+┌────────────────────────────────────────────────────────┐
+│ Card "Rappels groupés"                                 │
+│  Filtre campagne active  [Select ▼ — campagnes active] │
+│  [Envoyer un rappel groupé] (Primary)                  │
+│   → POST /api/hr/notifications/bulk-remind             │
+│   → Body : { campaignId, message? }                    │
+└────────────────────────────────────────────────────────┘
+```
+
+**Comportement rappels groupés** :
+- Sélecteur filtrant uniquement les campagnes `active`
+- Bouton désactivé si aucune campagne sélectionnée
+- Confirmation Modal avant envoi : « Envoyer un rappel à tous les évaluateurs non soumis de [campagne] ? »
+- Toast `success` « Rappels envoyés à N personnes » · Toast `error` en cas d'échec
+
+**Admin en lecture** : Tous les champs sont `disabled` + bannière `info` « Vue lecture seule — réservée aux RH »
+
+**Mobile** : Sections empilées, bouton Sauvegarder sticky en bas.
+
+---
 
 | ID | Écran | Titre | Action | Type |
 |---|---|---|---|---|
@@ -1454,6 +1631,7 @@ Chaque card : icône 24px centrée · titre · description courte · lien.
 | S-24-M1 | `/offboarding/:id` | Supprimer la demande | DELETE offboarding | Danger |
 | S-27-M1 | `/admin/config` | Email de test | POST email/test | Info |
 | S-27-M2 | `/admin/config` | Créer/modifier une clé | PUT config | Primary |
+| S-35-M1 | `/hr/settings` | Confirmer rappel groupé | POST bulk-remind | Warning |
 
 ---
 
@@ -1471,6 +1649,7 @@ Chaque card : icône 24px centrée · titre · description courte · lien.
 | S-08 | `/users/:id/offboarding` | Redirect offboarding | admin, hr |
 | S-09 | `/campaigns` | Liste campagnes | Tous |
 | S-10 | `/campaigns/new` | Créer campagne | admin, hr |
+| S-10b | `/campaigns/:id/edit` | Modifier campagne | admin, hr |
 | S-11 | `/campaigns/:id` | Détail campagne | Tous |
 | S-12 | `/campaigns/:id/analytics` | Analytique campagne | admin, hr |
 | S-13 | `/forms` | Bibliothèque formulaires | Tous |
@@ -1494,6 +1673,8 @@ Chaque card : icône 24px centrée · titre · description courte · lien.
 | S-31 | `/profile` | Mon profil | Tous |
 | S-32 | `/profile/preferences` | Mes préférences | Tous |
 | S-33 | `/onboarding` | Flux onboarding | Tous (si non complété) |
+| S-34 | `/admin/settings` | Paramètres système | admin |
+| S-35 | `/hr/settings` | Paramètres RH | hr (écriture) · admin (lecture) |
 
 ---
 

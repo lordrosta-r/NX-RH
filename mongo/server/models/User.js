@@ -17,6 +17,7 @@ const DEFAULT_NOTIF_PREFS = {
   deadlineReminder:      true,
   managerActionRequired: true,
   systemAlerts:          false,
+  bulkReminder:          true,
 }
 
 const userSchema = new Schema({

@@ -10,6 +10,7 @@
 //
 // Configuration applicative (modèle Config — store clé/valeur)
 //   GET   /config           — Lister toutes les clés de configuration
+//   PUT   /config/batch     — Upsert de plusieurs clés en une seule requête
 //   GET   /config/:key      — Lire la valeur d'une clé
 //   PUT   /config/:key      — Créer ou remplacer une clé (upsert)
 //   PATCH /config/:key      — Mettre à jour la valeur d'une clé existante
@@ -50,6 +51,37 @@ router.get('/config', async (req, res, next) => {
   try {
     const configs = await Config.find({}).sort('key').lean()
     res.json(configs)
+  } catch (err) {
+    next(err)
+  }
+})
+
+// PUT /api/admin/config/batch — Upsert de plusieurs clés config en une seule requête
+router.put('/config/batch', async (req, res, next) => {
+  try {
+    const { configs } = req.body
+    if (!Array.isArray(configs) || configs.length === 0) {
+      return res.status(400).json({ error: 'configs doit être un tableau non vide de { key, value }' })
+    }
+    if (configs.length > 50) {
+      return res.status(400).json({ error: 'Maximum 50 clés par batch' })
+    }
+    const invalids = configs.filter(c => !c.key || typeof c.key !== 'string' || !c.key.match(/^[a-z0-9._-]+$/i))
+    if (invalids.length > 0) {
+      return res.status(400).json({ error: `Clés invalides : ${invalids.map(c => c.key).join(', ')}` })
+    }
+
+    const ops = configs.map(({ key, value }) => ({
+      updateOne: {
+        filter:  { key },
+        update:  { $set: { key, value } },
+        upsert:  true,
+      }
+    }))
+    await Config.bulkWrite(ops)
+
+    const updated = await Config.find({ key: { $in: configs.map(c => c.key) } }).lean()
+    res.json({ updated: updated.length, results: updated })
   } catch (err) {
     next(err)
   }

@@ -148,6 +148,10 @@ evaluationSchema.index(
 evaluationSchema.index({ campaignId: 1, status: 1 })
 evaluationSchema.index({ evaluateeId: 1, campaignId: 1 })
 evaluationSchema.index({ evaluatorId: 1, campaignId: 1 })
+// N-1 : lookup direct (éval validée pour un évaluatee dans une campagne donnée)
+evaluationSchema.index({ evaluateeId: 1, campaignId: 1, status: 1 }, { name: 'idx_eval_n1_direct' })
+// N-1 : fallback auto (dernière éval validée d'un évaluatee, toutes campagnes)
+evaluationSchema.index({ evaluateeId: 1, status: 1, updatedAt: -1 }, { name: 'idx_eval_n1_fallback' })
 
 evaluationSchema.post('init', function() {
   this._originalStatus = this.status;

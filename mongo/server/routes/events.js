@@ -6,7 +6,7 @@
 const router   = require('express').Router()
 const mongoose = require('mongoose')
 const { Event }      = require('../models')
-const { ADMIN_ROLES } = require('../config/constants')
+const { ADMIN_ROLES, ROLES } = require('../config/constants')
 
 // GET /api/events — Liste des événements calendrier (filtrée par rôle)
 router.get('/', async (req, res, next) => {
@@ -51,9 +51,17 @@ router.get('/:id', async (req, res, next) => {
 router.post('/', async (req, res, next) => {
   try {
     if (!ADMIN_ROLES.includes(req.user.role)) return res.status(403).json({ error: 'Accès refusé' })
-    const { title, date, type, campaignId } = req.body
-    if (!title || !date) return res.status(400).json({ error: 'title et date requis' })
-    const event = await Event.create({ title, date, type, campaignId, createdBy: req.user.id })
+    const { title, date, type, campaignId, description, location, endDate, targetRoles } = req.body
+    if (!title || !date || !type) return res.status(400).json({ error: 'title, date et type sont requis' })
+    if (targetRoles !== undefined) {
+      if (!Array.isArray(targetRoles) || !targetRoles.every(r => ROLES.includes(r))) {
+        return res.status(400).json({ error: 'targetRoles doit être un tableau de rôles valides' })
+      }
+    }
+    const event = await Event.create({
+      title, date, type, campaignId, description, location, endDate, targetRoles,
+      createdBy: req.user.id,
+    })
     res.status(201).json(event)
   } catch (err) { next(err) }
 })

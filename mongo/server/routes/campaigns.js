@@ -86,7 +86,7 @@ router.post('/', async (req, res, next) => {
     }
 
     const { name, description, startDate, endDate, targetDepartments, extendedVisibility,
-      deadlineEmployee, deadlineManager, status } = req.body
+      deadlineEmployee, deadlineManager, status, targetScope, objectivesFormId } = req.body
 
     if (!name || !startDate || !endDate) {
       return res.status(400).json({ error: 'name, startDate et endDate sont requis' })
@@ -105,10 +105,12 @@ router.post('/', async (req, res, next) => {
       endDate,
       targetDepartments:  targetDepartments || [],
       extendedVisibility: extendedVisibility || [],
-      deadlineEmployee:   deadlineEmployee || null,
-      deadlineManager:    deadlineManager  || null,
+      deadlineEmployee:   deadlineEmployee   || null,
+      deadlineManager:    deadlineManager    || null,
       createdBy:          req.user.id,
-      ...(status ? { status } : {}),
+      ...(status           ? { status }           : {}),
+      ...(targetScope      ? { targetScope }      : {}),
+      ...(objectivesFormId ? { objectivesFormId } : {}),
     })
 
     // Fire-and-forget audit log
@@ -155,7 +157,8 @@ router.patch('/:id', async (req, res, next) => {
 
     const EDITABLE = ['name', 'description', 'status', 'startDate', 'endDate',
       'targetDepartments', 'extendedVisibility', 'deadlineEmployee', 'deadlineManager',
-      'previousCampaignId', 'enableN1Context', 'n1VisibleToEmployee']
+      'previousCampaignId', 'enableN1Context', 'n1VisibleToEmployee',
+      'targetScope', 'objectivesFormId']
     EDITABLE.forEach(key => {
       if (req.body[key] !== undefined) campaign[key] = req.body[key]
     })

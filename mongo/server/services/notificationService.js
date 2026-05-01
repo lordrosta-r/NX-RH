@@ -11,8 +11,14 @@
 //   await notify('evaluationAssigned', user, { campaignName, evaluatorName })
 // =============================================================================
 
-const { sendMail } = require('./mailer')
+const { sendMail }    = require('./mailer')
 const { NOTIF_KEYS_BY_ROLE } = require('../config/constants')
+// MailTemplate chargé dynamiquement pour éviter les dépendances circulaires au démarrage
+let _MailTemplate = null
+function getMailTemplate() {
+  if (!_MailTemplate) _MailTemplate = require('../models').MailTemplate
+  return _MailTemplate
+}
 
 // ── Email templates (subject + body) per notification key ────────────────────
 const TEMPLATES = {
@@ -81,10 +87,30 @@ async function notify(key, user, data = {}) {
   const prefs = user.notificationPrefs || {}
   if (prefs[key] === false) return false
 
-  // Build email from template
   const templateFn = TEMPLATES[key]
   if (!templateFn) return false
 
+  // Tentative DB-first : charger le template depuis MongoDB
+  try {
+    const MailTemplate = getMailTemplate()
+    const dbTemplate   = await MailTemplate.findOne({ slug: key }).lean()
+    if (dbTemplate) {
+      const interpolate = (str, vars) =>
+        str.replace(/\{\{\s*(\w+)\s*\}\}/g, (_, k) => vars[k] ?? '')
+      const vars = { ...data, firstName: user.firstName }
+      const interpolated = {
+        subject: interpolate(dbTemplate.subject,              vars),
+        text:    interpolate(dbTemplate.bodyText,             vars),
+        html:    interpolate(dbTemplate.bodyHtml || dbTemplate.bodyText, vars),
+      }
+      await sendMail({ to: user.email, ...interpolated })
+      return true
+    }
+  } catch (_e) {
+    // Fallback silencieux vers le template hardcodé
+  }
+
+  // Fallback : template hardcodé
   const { subject, text, html } = templateFn({ ...data, firstName: user.firstName })
 
   try {
@@ -110,4 +136,4 @@ async function notifyMany(key, users, data = {}) {
   return results.filter(r => r.status === 'fulfilled' && r.value === true).length
 }
 
-module.exports = { notify, notifyMany }
+module.exports = { notify, notifyMany, TEMPLATES }

@@ -1,7 +1,9 @@
 # NX-RH — Flux UX & Patterns d'interaction (Frontend v2)
 
-> **Auteur** : Architecte UX · **Version** : 1.0 · **Date** : 2025
+> **Auteur** : Architecte UX · **Version** : 1.1 · **Date** : 2025
 > Stack : React 18 + Vite + TypeScript + Tailwind CSS · Couleur primaire : `#17A8D4`
+>
+> **Flows couverts** : Flux 1–10 (Batch A) · F-NEW-01–09 (Batch B)
 
 ---
 
@@ -820,4 +822,367 @@ Implémentation CSS shimmer :
 
 ---
 
-*Fin du document — NX-RH Flows UX v1.0*
+---
+
+## 9. Nouveaux Flows (Batch B)
+
+> **Version** : 1.1 · Flows F-NEW-01 → F-NEW-09 · ajoutés lors du Batch B
+>
+> | ID | Titre | Acteurs | Écrans |
+> |----|-------|---------|--------|
+> | F-NEW-01 | Drag & Drop Organigramme | HR / Admin | S-39 |
+> | F-NEW-02 | Import utilisateurs CSV/JSON | HR / Admin | S-40 |
+> | F-NEW-03 | Import formulaire JSON | HR / Admin | S-41, S-14 |
+> | F-NEW-04 | Dépôt demande employé | Employé | S-31, S-09 |
+> | F-NEW-05 | Traitement demande par RH (HR Flags) | HR / Admin | S-38 |
+> | F-NEW-06 | Sélection périmètre campagne | HR / Admin | S-10 |
+> | F-NEW-07 | Import données N-1 dans objectives | Employé / Manager | S-09 |
+> | F-NEW-08 | Gestion secteurs dans l'organigramme | HR / Admin | S-35, S-39 |
+> | F-NEW-09 | Manager N+1 d'un autre manager | HR / Admin | S-39 |
+
+---
+
+### Flow F-NEW-01 — Drag & Drop Organigramme
+
+**Acteurs** : HR / Admin
+**Écran principal** : S-39 (`/admin/orgchart`)
+
+**Déclencheur** : HR ouvre l'organigramme et fait glisser un nœud utilisateur sur un nouveau manager.
+
+**Étapes (happy path) :**
+1. Ouvrir `/admin/orgchart` → `GET /api/org/tree?view=all` — l'arbre hiérarchique est rendu
+2. HR fait glisser (drag) un nœud user vers un autre nœud (le futur manager)
+3. Au drop : modale de confirmation :
+   > "Changer le manager de **[Prénom Nom]** vers **[Prénom Nom manager]** ?"
+   > Boutons : **Confirmer** · **Annuler**
+4. Confirmer → `PATCH /api/org/users/:id` `{ managerId: newManagerId }`
+5. Succès → rechargement de l'arbre : `GET /api/org/tree?view=all`
+6. Toast `success` : "Hiérarchie mise à jour"
+
+**Chemins d'erreur :**
+- `PATCH 409` (cycle hiérarchique détecté) → modale d'erreur : "Cette modification créerait une boucle hiérarchique. Opération annulée." — le nœud revient à sa position initiale (arbre inchangé)
+- `PATCH 400` → toast `error` générique : "Modification impossible — vérifiez les données"
+- Annuler la modale → annulation du drop, arbre inchangé (aucun appel API)
+- Perte de connexion pendant le drag → bannière hors-ligne standard + rollback visuel
+
+**Transitions :**
+- S-39 → S-39 (rechargement en place après succès)
+- S-39 → S-39-P1 (panneau latéral de détail utilisateur, si clic sur le nœud)
+
+---
+
+### Flow F-NEW-02 — Import utilisateurs CSV/JSON
+
+**Acteurs** : HR / Admin
+**Écran principal** : S-40 (`/admin/users/import`)
+
+**Déclencheur** : HR/Admin souhaite créer ou mettre à jour plusieurs utilisateurs en masse via un fichier.
+
+**Étapes (happy path) :**
+1. Ouvrir `/admin/users/import`
+2. Téléverser un fichier `.csv` ou `.json` via la zone de dépôt (drag & drop ou bouton "Parcourir")
+3. Validation locale immédiate : extension acceptée (`.csv` ou `.json`) ; sinon → erreur client, aucun upload
+4. Clic **"Simuler"** → `POST /api/users/import?dryRun=true` (multipart ou JSON selon le type)
+5. Affichage de l'aperçu de simulation :
+   - Résumé : "**N** créations · **M** mises à jour · **K** erreurs non bloquantes"
+   - Si erreurs : tableau détaillé (ligne, champ, message d'erreur)
+   - Option **"Continuer quand même"** disponible si des erreurs non bloquantes existent
+6. Clic **"Importer"** (actif uniquement si simulation passée sans erreurs bloquantes) → `POST /api/users/import?dryRun=false`
+7. Succès → toast `success` : "**N** utilisateurs créés, **M** mis à jour" + redirection automatique vers `/admin/users`
+
+**Chemins d'erreur :**
+- Fichier format inconnu (ex : `.xls`, `.txt`) → erreur client avant upload : "Format non supporté. Utilisez .csv ou .json"
+- `POST 500` serveur → toast `error` + le fichier reste en mémoire pour permettre un retry (bouton "Réessayer")
+- Toutes les lignes en erreur lors de la simulation → bouton "Importer" désactivé (`disabled`) ; seul le résultat de simulation est affiché
+- Timeout réseau → toast `warning` : "La requête a pris trop de temps. Réessayez."
+
+**Transitions :**
+- S-40 → S-40 (phase simulation : aperçu des résultats dans la même page)
+- S-40 → `/admin/users` (après import réussi)
+
+---
+
+### Flow F-NEW-03 — Import formulaire JSON
+
+**Acteurs** : HR / Admin
+**Écran principal** : S-41 (`/admin/forms/import`)
+**Écran lié** : S-14 (liste des formulaires, lien "📤 Importer JSON")
+
+**Déclencheur** : HR clique sur "📤 Importer JSON" depuis S-14 pour créer un formulaire à partir d'un fichier de définition.
+
+**Étapes (happy path) :**
+1. Ouvrir `/admin/forms/import` (lien depuis S-14 "📤 Importer JSON")
+2. Deux onglets disponibles :
+   - **Onglet "Fichier"** : zone de dépôt pour upload d'un `.json`
+   - **Onglet "Coller"** : `<textarea>` pour coller du JSON brut
+3. Clic **"Valider"** → validation client :
+   - JSON parseable (syntaxe correcte)
+   - Champs requis présents : `title`, `formType`, `questions` (tableau non vide)
+   - Si invalide : erreurs affichées inline sous le champ
+4. Si valide → aperçu du formulaire :
+   - Titre, type (`formType`), nombre de questions, liste des questions avec leur type
+5. Clic **"Importer"** → `POST /api/forms/import`
+6. `201 Created` → toast `success` : "Formulaire importé" + redirection vers `/admin/forms/:id` (formulaire créé)
+7. `400 Bad Request` → affichage des erreurs retournées `errors[]` (champ + message)
+
+**Téléchargement du template :**
+- Bouton **"📥 Télécharger le template"** → `GET /api/forms/template`
+- Retourne un `.json` vide contenant tous les types de questions documentés, utilisable comme guide
+
+**Chemins d'erreur :**
+- JSON malformé (syntaxe) → erreur client avant envoi : "JSON invalide — vérifiez la syntaxe"
+- `formType` inconnu → `400` serveur : "Type de formulaire inconnu : [valeur]"
+- `question.type` inconnu → `400` serveur avec numéro de question concernée : "Question #N : type inconnu '[valeur]'"
+- Fichier trop volumineux → erreur client : "Fichier trop grand (max 1 Mo)"
+
+**Transitions :**
+- S-41 → `/admin/forms/:id` (après import réussi)
+- S-41 → S-14 (bouton retour "← Retour aux formulaires")
+
+---
+
+### Flow F-NEW-04 — Dépôt demande employé
+
+**Acteurs** : Employé
+**Écran principal** : S-31 (`/profile`, onglet "Mes demandes")
+**Écran lié** : S-09 (`/evaluations/new?formId=xxx`, mode demande)
+
+**Déclencheur** : Employé souhaite soumettre une demande (mobilité, augmentation, promotion, formation) depuis son profil.
+
+**Types de demandes supportés :**
+- Mobilité interne (`mobility_request`)
+- Augmentation de salaire (`raise_request`)
+- Promotion (`promotion_request`)
+- Formation (`training_request`)
+
+**Étapes (happy path) :**
+1. Employé accède à son profil (`/profile`) → onglet **"Mes demandes"** (S-31)
+2. Clic sur le dropdown **"+ Déposer une demande"** → sélectionner le type de demande
+3. `GET /api/forms?formType=<type_sélectionné>` pour récupérer le formulaire associé
+4. Si formulaire trouvé → redirection vers `/evaluations/new?formId=<id>` (S-09 en mode demande employé)
+5. L'employé remplit le formulaire (sauvegarde automatique toutes les 30 s)
+6. Clic **"Envoyer ma demande"** → modale de confirmation : "Votre demande sera transmise aux RH. Continuer ?"
+7. Confirmation → `POST /api/evaluations` avec les données du formulaire rempli
+8. Succès → toast `success` : "Demande envoyée aux RH" + redirection vers S-31 onglet "Mes demandes"
+9. La demande apparaît dans la liste avec statut badge **"En attente"** (`warning`)
+
+**Chemins d'erreur :**
+- Aucun formulaire disponible pour le type choisi → toast `info` : "Formulaire non disponible pour ce type de demande, contactez les RH"
+- `POST /api/evaluations` échoue → toast `error` + le formulaire reste affiché avec les données saisies (pas de perte)
+- Session expirée en cours de remplissage → redirection vers `/login?returnUrl=/evaluations/new?formId=xxx` (données non sauvegardées si non auto-sauvegardées)
+
+**Transitions :**
+- S-31 → S-09 (remplissage du formulaire de demande)
+- S-09 → S-31 onglet "Mes demandes" (après soumission réussie)
+
+---
+
+### Flow F-NEW-05 — Traitement demande par RH (HR Flags)
+
+**Acteurs** : HR / Admin
+**Écran principal** : S-38 (`/hr/flags`)
+
+**Déclencheur** : Badge rouge sur la navbar indique N demandes en statut "new" → RH clique pour traiter.
+
+**Étapes (happy path) :**
+1. Badge rouge sur l'icône de la navbar affiche le nombre de demandes non traitées
+2. Clic → navigation vers `/hr/flags`
+3. `GET /api/hr/flags` → liste des évaluations dont le `formType` appartient aux `REQUEST_FORM_TYPES`
+4. **FilterBar** (zone de filtres) :
+   - Type de demande (mobilité, augmentation, promotion, formation)
+   - Statut (`new`, `in_review`, `approved`, `rejected`)
+   - Département / Secteur / Période (date de dépôt)
+5. Clic sur une ligne de demande → panneau latéral **S-38-P1** s'ouvre
+6. Panneau S-38-P1 affiche :
+   - Réponses de l'employé (formulaire en lecture seule)
+   - Informations contextuelles de l'employé (poste, département, manager)
+   - Champ note interne (optionnel, visible uniquement par RH/Admin)
+7. Saisir note interne (optionnel) + sélectionner nouveau statut → `PATCH /api/hr/flags/:evalId/status` `{ status, internalNote }`
+8. Succès :
+   - Badge navbar décrémenté (si statut `new` → autre statut)
+   - Ligne mise à jour inline dans la liste (badge statut mis à jour)
+   - Toast `success` : "Demande mise à jour"
+
+**Comportement temps réel du badge :**
+- Polling toutes les 30 s : `GET /api/hr/flags/count`
+- Si WebSocket disponible : mise à jour push instantanée (évènement `flags:new`)
+
+**Chemins d'erreur :**
+- `PATCH 404` → toast `error` : "Demande introuvable — rafraîchissez la page"
+- `PATCH 403` → toast `error` : "Vous n'êtes pas autorisé à traiter cette demande"
+- Perte de connexion → mise à jour différée, indicateur hors-ligne standard
+
+**Transitions :**
+- S-38 → S-38 (mise à jour inline de la liste, badge mis à jour)
+- S-38 (panneau S-38-P1) → fermeture panneau → retour S-38
+
+---
+
+### Flow F-NEW-06 — Sélection périmètre campagne
+
+**Acteurs** : HR / Admin
+**Écran principal** : S-10 (`/campaigns/new` ou `/campaigns/:id`, section "Périmètre")
+
+**Déclencheur** : HR/Admin crée ou édite une campagne et doit définir le périmètre des utilisateurs ciblés.
+
+**Étapes (happy path) :**
+1. Dans S-10 (formulaire campagne), section **"Périmètre de la campagne"**
+2. Sélectionner le type de scope via un groupe de radio buttons :
+   - **Tous** : tous les utilisateurs actifs
+   - **Département** → affiche un multi-select des départements (valeurs issues des constantes `DEPARTMENTS`)
+   - **Secteur** → affiche un multi-select alimenté par `GET /api/org/sectors`
+   - **Utilisateurs spécifiques** → affiche un champ de recherche/select : `GET /api/users?search=xxx` (autocomplete)
+3. Sélections validées → le champ `targetScope` est renseigné dans l'objet campagne :
+   ```json
+   {
+     "targetScope": {
+       "type": "department" | "sector" | "specific" | "all",
+       "values": ["RH", "IT"] // ou IDs selon le type
+     }
+   }
+   ```
+4. Sauvegarde de la campagne → `POST /api/campaigns` ou `PATCH /api/campaigns/:id` (selon création/édition)
+
+**Effets du targetScope sur le lancement :**
+- `POST /api/campaigns/:id/launch` utilise `targetScope` pour générer les évaluations uniquement pour les utilisateurs dans le périmètre
+- Si `type: "all"` → toutes évaluations créées pour tous les utilisateurs actifs
+- Si `type: "department"` → évaluations pour les utilisateurs dont `department ∈ values`
+- Modification du scope sur une campagne `draft` → autorisée ; sur une campagne `active` → bloquée (scope gelé au lancement)
+
+**Chemins d'erreur :**
+- `GET /api/org/sectors` échoue → toast `warning` + fallback sur liste vide avec message "Impossible de charger les secteurs"
+- Multi-select "Utilisateurs spécifiques" : aucun résultat de recherche → état vide "Aucun utilisateur trouvé"
+- Scope vide (aucun utilisateur sélectionné) → validation bloquante avant sauvegarde : "Sélectionnez au moins un périmètre"
+
+**Transitions :**
+- S-10 → S-10 (sauvegarde du scope, même page)
+- S-10 → S-27 (`/campaigns`, liste des campagnes, après sauvegarde/validation complète)
+
+---
+
+### Flow F-NEW-07 — Import données N-1 dans objectives
+
+**Acteurs** : Employé / Manager
+**Écran principal** : S-09 (`/evaluations/:id`, formulaire de type `objectives`)
+
+**Déclencheur** : L'utilisateur remplit une évaluation avec un formulaire de type `objectives` et la campagne autorise le contexte N-1.
+
+**Pré-conditions :**
+- Le formulaire (`formType: 'objectives'`) contient des questions de type `objective_item`
+- La campagne associée a `enableN1Context: true`
+- Le rôle de l'utilisateur lui donne accès (voir règles ci-dessous)
+
+**Étapes (happy path) :**
+1. S-09 chargé avec un formulaire de type `objectives`
+2. Si la campagne a `enableN1Context: true` → bouton **"📥 Importer depuis N-1"** affiché en haut de la section objectifs
+3. Clic sur le bouton → `GET /api/evaluations/:id/n1-context`
+4. Succès `200` → les champs `objective_item` sont pré-remplis avec les objectifs de la campagne précédente
+   - Chaque objectif importé est marqué visuellement avec une étiquette "Importé N-1" (`info-50/info-600`)
+5. L'utilisateur peut :
+   - Modifier le texte de chaque objectif importé
+   - Supprimer un objectif importé (croix `✕`)
+   - Ajouter de nouveaux objectifs manuellement
+6. Soumission normale du formulaire (`PATCH /api/evaluations/:id`) — le contenu importé est traité comme n'importe quelle réponse
+
+**Règles de visibilité du bouton :**
+- Si `n1VisibleToEmployee: false` et que l'utilisateur est un employé → bouton **caché**
+- Si rôle `manager` ou `director` → bouton toujours visible quand `enableN1Context: true`
+- `403` reçu depuis l'API → bouton caché, aucun message d'erreur affiché
+
+**Chemins d'erreur :**
+- `GET 204` (pas de données N-1 disponibles) → toast `info` : "Pas de données N-1 disponibles pour cette évaluation"
+- `GET 403` → bouton caché selon le rôle (voir règles ci-dessus), pas de toast
+- `GET 500` → toast `error` : "Impossible de charger les données N-1 — réessayez"
+
+**Transitions :**
+- S-09 → S-09 (les champs sont pré-remplis dans la même page, pas de navigation)
+- Soumission → flow normal d'évaluation (statut `in_progress → submitted`)
+
+---
+
+### Flow F-NEW-08 — Gestion secteurs dans l'organigramme
+
+**Acteurs** : HR / Admin
+**Écrans** : S-35 (`/admin/settings`, section "Secteurs organisationnels") · S-39 (`/admin/orgchart`, vue "Secteur")
+
+**Déclencheur** : HR/Admin souhaite créer, modifier ou supprimer des secteurs organisationnels, puis les visualiser dans l'organigramme.
+
+**Étapes — CRUD secteurs (S-35) :**
+
+1. Accéder à S-35 → section **"Secteurs organisationnels"** → `GET /api/org/sectors`
+   - Liste des secteurs avec nom, description, couleur, compteur d'utilisateurs
+
+2. **Créer un secteur :**
+   - Clic **"+ Nouveau secteur"** → formulaire inline ou modale : nom + description + sélecteur couleur
+   - `POST /api/org/sectors` `{ name, description, color }`
+   - Succès → toast `success` : "Secteur créé" + secteur ajouté à la liste
+
+3. **Modifier un secteur :**
+   - Clic sur l'icône édition d'un secteur → champs passent en mode édition inline
+   - `PATCH /api/org/sectors/:id` `{ name?, description?, color? }`
+   - Succès → toast `success` : "Secteur mis à jour"
+
+4. **Supprimer un secteur :**
+   - Clic sur l'icône corbeille → modale de confirmation
+   - `DELETE /api/org/sectors/:id`
+   - Si le secteur contient des utilisateurs → `409` (voir chemins d'erreur)
+   - Succès → toast `success` : "Secteur supprimé"
+
+**Étapes — Visualisation et réassignation (S-39) :**
+
+5. Dans S-39, sélectionner la vue **"Secteur"** → l'organigramme affiche les utilisateurs groupés par secteur, chaque groupe colorisé selon la couleur du secteur
+6. Drag & drop d'un nœud utilisateur vers un autre groupe de secteur → `PATCH /api/org/users/:id` `{ sectorId: newSectorId }`
+7. Succès → l'utilisateur apparaît dans le nouveau secteur
+
+**Chemins d'erreur :**
+- `DELETE 409` (secteur utilisé par des utilisateurs) → modale d'information :
+  > "Ce secteur est utilisé par **N** utilisateur(s). Veuillez les réassigner avant de supprimer le secteur."
+  > Bouton **"Voir les utilisateurs"** → filtre S-39 sur ce secteur
+- `POST 409` (nom de secteur en doublon) → erreur inline : "Un secteur avec ce nom existe déjà"
+- `PATCH /api/org/users/:id` (`sectorId`) échoue → toast `error` + rollback visuel du drag
+
+**Transitions :**
+- S-35 → S-35 (CRUD inline, même page)
+- S-35 → S-39 (lien "Voir dans l'organigramme" sur un secteur)
+- S-39 → S-35 (lien "Gérer les secteurs" dans la toolbar de S-39)
+- Lien bidirectionnel S-35 ↔ S-39
+
+---
+
+### Flow F-NEW-09 — Manager N+1 d'un autre manager
+
+**Acteurs** : HR / Admin
+**Écran principal** : S-39 (`/admin/orgchart`), panneau latéral S-39-P1
+
+**Contexte et décision de design :**
+
+Ce flow clarifie le comportement lorsqu'un manager doit superviser une équipe dont il n'est pas le manager direct dans l'arbre hiérarchique.
+
+| Rôle | Périmètre de visibilité |
+|------|------------------------|
+| `manager` | Rapports directs uniquement |
+| `director` | Sous-arbre complet de manière récursive |
+
+> ⚠️ **Note v1** : Il n'existe pas de "permission transversale" granulaire dans la v1. La visibilité est entièrement déterminée par le rôle. Pour donner un accès limité à une équipe spécifique sans être dans la hiérarchie, cette fonctionnalité est marquée **à implémenter dans une version future**.
+
+**Étapes (happy path) :**
+1. HR identifie dans S-39 un manager qui doit superviser une équipe transversale
+2. Clic sur le nœud du manager → panneau latéral **S-39-P1** s'ouvre
+3. Dans S-39-P1, section **"Rôle"** → sélectionner `director` (depuis `manager`)
+4. `PATCH /api/org/users/:id` `{ role: 'director' }`
+5. Succès → toast `success` : "Rôle mis à jour" + badge du nœud mis à jour dans l'arbre
+6. Le user promu `director` peut désormais voir son sous-arbre complet récursivement dans S-05 (Dashboard) et dans la liste des évaluations
+7. *(Optionnel)* Si une réorganisation hiérarchique est nécessaire : `PATCH /api/org/users/:id` `{ managerId: newManagerId }` (flow F-NEW-01)
+
+**Chemins d'erreur :**
+- `PATCH 403` → toast `error` : "Vous n'avez pas les droits pour modifier ce rôle"
+- `PATCH 400` (rôle invalide) → toast `error` générique
+- Tentative de passer `director` → `employee` directement sur un user avec des rapports directs → `409` : "Cet utilisateur a des rapports directs. Réassignez-les avant de changer le rôle."
+
+**Transitions :**
+- S-39 (nœud sélectionné) → S-39-P1 (panneau latéral, édition du rôle)
+- S-39-P1 → S-39 (fermeture du panneau, arbre mis à jour)
+
+---
+
+*Fin du document — NX-RH Flows UX v1.1*

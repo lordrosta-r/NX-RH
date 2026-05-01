@@ -8,7 +8,7 @@
 | Champ | Valeur |
 |---|---|
 | **Date de génération** | 2025 |
-| **Version** | 1.1.0 |
+| **Version** | 1.2.0 |
 | **Stack** | React 18 + Vite + TypeScript + Tailwind CSS |
 | **Statut** | ✅ READY FOR IMPLEMENTATION |
 | **Auteur** | Architecte produit (synthèse multi-agents) |
@@ -16,7 +16,7 @@
 **Fichiers sources** :
 - [`01-features.md`](./01-features.md) — Inventaire des fonctionnalités par rôle
 - [`02-design-system.md`](./02-design-system.md) — Tokens design
-- [`03-screens.md`](./03-screens.md) — Inventaire des 40 écrans
+- [`03-screens.md`](./03-screens.md) — Inventaire des 45 écrans
 - [`04-flows.md`](./04-flows.md) — Flux UX et machines à états
 - [`05-notifications.md`](./05-notifications.md) — Système de notifications
 - [`06-components.md`](./06-components.md) — Bibliothèque de composants
@@ -42,7 +42,7 @@ NX-RH est l'outil de gestion des entretiens annuels de NanoXplore. Il couvre l'i
 
 ### Les 10 modules
 
-1. **Auth & Profil** · 2. **Utilisateurs** · 3. **Campagnes** · 4. **Formulaires** · 5. **Évaluations** · 6. **Calendrier & Événements** · 7. **Ressources** · 8. **Offboarding** · 9. **Analytique** · 10. **Administration**
+1. **Auth & Profil** · 2. **Utilisateurs** · 3. **Campagnes** · 4. **Formulaires** · 5. **Évaluations** · 6. **Calendrier & Événements** · 7. **Ressources** · 8. **Offboarding** · 9. **Analytique** · 10. **Administration** · 11. **Organigramme** · 12. **Demandes RH** · 13. **Import** · 14. **Mail Templates**
 
 ### Décisions de design clés
 
@@ -99,9 +99,9 @@ Dans `StatusBadge`, mapper `signed_evaluatee` → `bg-info-50 text-info-600` · 
 - `/resources/new` — mentionné dans `04-flows` Flux 7 et `01-features` §4
 - `/offboarding/new` — mentionné dans `04-flows` Flux 6 et `01-features` §4
 - `/notifications` — page complète définie dans `05-notifications` §6 mais absente de `03-screens`
-- `/calendar/new` — mentionné dans l'annexe B de `03-screens` mais sans fiche écran
+- `/events/new` — mentionné dans l'annexe B de `03-screens` mais sans fiche écran (anciennement `/calendar/new`)
 
-**Résolution** ✅ : **Ajouter ces 5 routes** à l'inventaire officiel (voir Section 7, checklist). Layout identique aux patterns existants. Rôles : `/evaluations/bulk` (admin/hr), `/resources/new` (admin/hr), `/offboarding/new` (admin/hr), `/notifications` (tous), `/calendar/new` (admin/hr).
+**Résolution** ✅ : **Ajouter ces 5 routes** à l'inventaire officiel (voir Section 7, checklist). Layout identique aux patterns existants. Rôles : `/evaluations/bulk` (admin/hr), `/resources/new` (admin/hr), `/offboarding/new` (admin/hr), `/notifications` (tous), `/events/new` (admin/hr).
 
 ---
 
@@ -333,8 +333,8 @@ navigate(returnUrl, { replace: true });
 
 | Champ | Détail |
 |---|---|
-| **Écrans** | `/events` (S-19), `/events/:id` (S-20), `/calendar/new` (ajouté INC-03) |
-| **Composants clés** | `DataCard`, `Select`, `DatePicker`, `Modal` (slide-over), `FilterBar` |
+| **Écrans** | `/events` (S-19), `/events/:id` (S-20), `/events/new` (ajouté INC-03) |
+| **Composants clés** | `DataCard`, `Select`, `DatePicker`, `SlideOver` (création inline), `FilterBar` |
 | **API** | `GET /api/events` · `POST /api/events` · `GET|PATCH|DELETE /api/events/:id` |
 | **Rôles** | Tous (filtrés par `targetRoles`) · admin/hr = écriture |
 | **Flux** | Partie flux 4 (événements deadline) |
@@ -381,13 +381,61 @@ navigate(returnUrl, { replace: true });
 
 | Champ | Détail |
 |---|---|
-| **Écrans** | `/admin` (S-26), `/admin/config` (S-27), `/admin/ldap` (S-28), `/admin/audit` (S-29), `/admin/users` (S-30) |
-| **Composants clés** | `DataTable`, `Modal`, `Input`, `Button`, `Alert`, `Timeline`, `FilterBar` |
-| **API** | `GET|PUT|PATCH|DELETE /api/admin/config` · `PATCH /api/admin/config/batch` · `POST /api/admin/email/test` · `GET /api/admin/audit` · `GET /api/admin/audit?format=csv` · `POST /api/admin/ldap/test` · `POST /api/admin/ldap/preview` · `POST /api/admin/ldap/sync` · `GET|PUT /api/admin/ldap/config` · `POST /api/hr/notifications/bulk-remind` |
-| **Rôles** | admin (tout) · hr (`/admin/audit` + `/hr/settings` + `/hr/notifications/bulk-remind`) |
+| **Écrans** | `/admin` (S-26), `/admin/config` (S-27), `/admin/ldap` (S-28), `/admin/audit` (S-29), `/admin/users` (S-30), `/admin/mail-templates` (S-40) |
+| **Composants clés** | `DataTable`, `Modal`, `Input`, `Button`, `Alert`, `Timeline`, `FilterBar`, `SlideOver` (mail templates) |
+| **API** | `GET|PUT|PATCH|DELETE /api/admin/config` · `PATCH /api/admin/config/batch` · `POST /api/admin/email/test` · `GET /api/admin/audit` · `GET /api/admin/audit?format=csv` · `POST /api/admin/ldap/test` · `POST /api/admin/ldap/preview` · `POST /api/admin/ldap/sync` · `GET|PUT /api/admin/ldap/config` · `POST /api/hr/notifications/bulk-remind` · `GET /api/admin/mail-templates` · `PATCH /api/admin/mail-templates/:slug` |
+| **Rôles** | admin (tout) · hr (`/admin/audit` + `/hr/settings` + `/hr/notifications/bulk-remind` + mail-templates lecture) |
 | **Flux** | Flux 8 (LDAP), Flux 9 (audit) |
 | **Notifications** | `ldapSyncComplete` · `ldapSyncFailed` · `systemAlerts` |
-| **Règles métier** | ① `bindPassword` jamais retourné en lecture (write-only) · ② Nouveaux utilisateurs LDAP = rôle `employee` par défaut · ③ Rôle toujours géré en DB, jamais depuis LDAP |
+| **Règles métier** | ① `bindPassword` jamais retourné en lecture (write-only) · ② Nouveaux utilisateurs LDAP = rôle `employee` par défaut · ③ Rôle toujours géré en DB, jamais depuis LDAP · ④ Templates mail : `PATCH` restreint à `admin` (hr = lecture seule) · ⑤ `DELETE /api/admin/mail-templates/:slug` = reset to default (non-destructif) |
+
+### Module 11 — Organigramme
+
+| Champ | Détail |
+|---|---|
+| **Écrans** | `/org` (S-36) |
+| **Composants clés** | `OrgTree`, `SlideOver` (édition utilisateur inline), `Avatar`, `Select`, `Button` |
+| **API** | `GET /api/org/tree` · `PATCH /api/org/users/:id` · `GET /api/org/sectors` · `POST /api/org/sectors` · `PATCH /api/org/sectors/:id` · `DELETE /api/org/sectors/:id` |
+| **Rôles** | admin/hr |
+| **Flux** | (lecture + édition inline via SlideOver) |
+| **Notifications** | Aucune |
+| **Règles métier** | ① `GET /tree` retourne l'arbre hiérarchique complet · ② `PATCH /users/:id` permet de déplacer un utilisateur dans l'arbre · ③ CRUD secteurs indépendant de la hiérarchie users |
+
+### Module 12 — Demandes RH (Flags)
+
+| Champ | Détail |
+|---|---|
+| **Écrans** | `/hr/flags` (S-38) |
+| **Composants clés** | `DataTable`, `StatusBadge`, `FilterBar`, `SlideOver` (détail demande) |
+| **API** | `GET /api/hr/flags` · `PATCH /api/hr/flags/:evalId/status` |
+| **Rôles** | admin/hr |
+| **Flux** | (file de traitement des demandes de formulaires spéciaux) |
+| **Notifications** | Aucune |
+| **Règles métier** | ① Regroupe les évaluations de type `REQUEST_FORM_TYPES` · ② `PATCH /:evalId/status` fait avancer le workflow de la demande |
+
+### Module 13 — Import Utilisateurs
+
+| Champ | Détail |
+|---|---|
+| **Écrans** | `/users/import` (S-39) |
+| **Composants clés** | `FileUpload`, `DataTable`, `Alert` (résumé dryRun), `Button`, `ProgressBar` |
+| **API** | `POST /api/users/import` |
+| **Rôles** | admin/hr |
+| **Flux** | ① Upload fichier CSV/JSON → `?dryRun=true` pour aperçu · ② Confirmer → import réel |
+| **Notifications** | Aucune |
+| **Règles métier** | ① Accepte `application/json` (tableau) ou `text/csv`/`text/plain` · ② `?dryRun=true` = validation + aperçu sans persistance · ③ Rapport : `created`, `updated`, `skipped`, `errors` |
+
+### Module 14 — Templates Mail
+
+| Champ | Détail |
+|---|---|
+| **Écrans** | `/admin/mail-templates` (S-40) — inclus dans Module 10 (Admin) |
+| **Composants clés** | `SlideOver` (édition template), `Textarea`, `Input`, `Button`, `Alert` |
+| **API** | `GET /api/admin/mail-templates` · `PATCH /api/admin/mail-templates/:slug` · `DELETE /api/admin/mail-templates/:slug` (reset to default) |
+| **Rôles** | admin (écriture + reset) · hr (lecture) |
+| **Flux** | (édition inline via SlideOver, reset-to-default via DELETE) |
+| **Notifications** | Aucune |
+| **Règles métier** | ① `DELETE` = reset to default (non-destructif, pas de suppression réelle) · ② `PATCH` restreint à `admin` uniquement · ③ Champs : `subject`, `body` (HTML/texte) par slug de notification |
 
 ---
 
@@ -527,7 +575,7 @@ Les règles suivantes sont **non-négociables**. Tout développeur doit les lire
 | Création en masse | `/evaluations/bulk` | `DataTable`, `Select`, `Button` | `POST /api/evaluations/bulk` | ☐ |
 | Calendrier | `/events` | `DataCard`, `FilterBar` | `GET /api/events` | ☐ |
 | Détail événement | `/events/:id` | `Modal` (slide-over), `FormField` | `GET|PATCH|DELETE /api/events/:id` | ☐ |
-| Nouvel événement | `/calendar/new` | `FormField`, `DatePicker`, `Select` | `POST /api/events` | ☐ |
+| Nouvel événement | `/events/new` | `FormField`, `DatePicker`, `Select` | `POST /api/events` | ☐ |
 | Bibliothèque ressources | `/resources` | `DataCard`, `StatusBadge` | `GET /api/resources` | ☐ |
 | Détail ressource | `/resources/:id` | `StatusBadge`, `Button` | `GET|PATCH /api/resources/:id` | ☐ |
 | Nouvelle ressource | `/resources/new` | `FormField`, `Input`, `Select` | `POST /api/resources` | ☐ |
@@ -546,6 +594,10 @@ Les règles suivantes sont **non-négociables**. Tout développeur doit les lire
 | Centre notifications | `/notifications` | `NotificationItem`, `FilterBar`, `Pagination` | `GET /api/notifications` | ☐ |
 | Paramètres système | `/admin/settings` | `FormField`, `Input`, `Toggle`, `Select` | `PATCH /api/admin/config/batch` | ☐ |
 | Paramètres RH | `/hr/settings` | `FormField`, `Toggle`, `Select`, `Button` | `PATCH /api/admin/config/batch` · `POST /api/hr/notifications/bulk-remind` | ☐ |
+| Organigramme (S-36) | `/org` | `OrgTree`, `SlideOver`, `Avatar`, `Select` | `GET /api/org/tree` · `PATCH /api/org/users/:id` · `GET|POST|PATCH|DELETE /api/org/sectors` | ☐ |
+| Demandes RH / Flags (S-38) | `/hr/flags` | `DataTable`, `StatusBadge`, `FilterBar`, `SlideOver` | `GET /api/hr/flags` · `PATCH /api/hr/flags/:evalId/status` | ☐ |
+| Import utilisateurs CSV (S-39) | `/users/import` | `FileUpload`, `DataTable`, `Alert`, `Button` | `POST /api/users/import` | ☐ |
+| Templates mail (S-40) | `/admin/mail-templates` | `SlideOver`, `Textarea`, `Input`, `Button` | `GET /api/admin/mail-templates` · `PATCH /api/admin/mail-templates/:slug` | ☐ |
 
 ---
 
@@ -606,4 +658,4 @@ export const queryKeys = {
 
 ---
 
-*Fin du document — NX-RH Master Spec v1.1.0 · 40 écrans*
+*Fin du document — NX-RH Master Spec v1.2.0 · 45 écrans*

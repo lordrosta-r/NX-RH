@@ -684,3 +684,70 @@ export default config
 | Icons | Lucide React | Cohérence, tree-shakable, MIT |
 | Transitions | 150ms ease-in-out | Réactif sans être brusque |
 | Grid | 12 colonnes, gap-6 | Flexibilité layouts complexes RH |
+
+---
+
+## SlideOver
+
+Panneau latéral animé (right side) pour les actions contextuelles sans quitter la vue principale (édition inline, aperçu de détail, formulaires courts).
+
+### Usage
+
+```tsx
+<SlideOver open={open} onClose={() => setOpen(false)} title="Modifier l'utilisateur">
+  <UserEditForm userId={id} onSaved={() => setOpen(false)} />
+</SlideOver>
+```
+
+### Props
+
+| Prop | Type | Défaut | Description |
+|---|---|---|---|
+| `open` | `boolean` | — | Contrôle la visibilité du panneau |
+| `onClose` | `() => void` | — | Appelé sur backdrop-click ou bouton ✕ |
+| `title` | `string` | — | Titre affiché dans le header du panneau |
+| `children` | `ReactNode` | — | Contenu du corps |
+| `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | Largeur du panneau (`sm`=320px, `md`=480px, `lg`=640px) |
+| `footer` | `ReactNode` | `undefined` | Barre d'actions bas de panneau (ex. Annuler / Enregistrer) |
+
+### Comportement
+
+- **Entrée** : `translate-x-full → translate-x-0`, `300ms ease-out`
+- **Sortie** : `translate-x-0 → translate-x-full`, `200ms ease-in`
+- **Backdrop** : `bg-black/40`, clic ferme le panneau
+- **Focus trap** : `Tab` cycle dans le panneau uniquement quand ouvert
+- **Scroll** : corps scrollable indépendamment (`overflow-y-auto`)
+- **Fermeture clavier** : `Escape` déclenche `onClose`
+
+### Variantes d'utilisation
+
+| Contexte | Taille | Contenu |
+|---|---|---|
+| Édition utilisateur (Org, S-36) | `md` | Formulaire champs hiérarchie + secteur |
+| Détail demande RH (Flags, S-38) | `md` | Résumé évaluation + bouton changement statut |
+| Édition template mail (S-40) | `lg` | Textarea `subject` + `body` + aperçu rendu |
+| Création événement (S-19) | `sm` | `DatePicker`, `Select`, `Input` |
+
+### Classes Tailwind (structure)
+
+```
+/* Overlay */
+fixed inset-0 z-50 bg-black/40
+
+/* Panneau */
+fixed inset-y-0 right-0 z-50 flex flex-col
+bg-white dark:bg-neutral-900 shadow-2xl
+w-80 | w-[480px] | w-[640px]   /* sm | md | lg */
+transition-transform duration-300 ease-out
+
+/* Header */
+flex items-center justify-between px-6 py-4
+border-b border-neutral-200 dark:border-neutral-700
+
+/* Corps */
+flex-1 overflow-y-auto px-6 py-5
+
+/* Footer (optionnel) */
+flex items-center justify-end gap-3 px-6 py-4
+border-t border-neutral-200 dark:border-neutral-700
+```

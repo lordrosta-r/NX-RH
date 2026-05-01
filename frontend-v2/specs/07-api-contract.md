@@ -1,253 +1,718 @@
-# NX-RH — Contrats des endpoints backend (Frontend v2)
+# NX-RH — Contrat API Backend (Frontend v2)
 
-> **Version** : 1.0 · **Date** : 2025 · **Langue** : Français
-> **Stack** : React 18 + Vite + TypeScript + Tailwind CSS
-> **Source** : `00-master.md` · `03-screens.md`
+> **Version** : 2.0 · **Date** : 2025 · **Source de vérité** : `mongo/server/`
+> **Stack** : Express + MongoDB · Cookie `httpOnly` JWT · Base URL `VITE_API_URL`
 
-Ce fichier décrit le contrat d'interface (méthode, chemin, rôles, body, réponses, erreurs) pour chaque endpoint utilisé par le frontend. Il complète les specs écran et sert de référence pour la couche `src/services/`.
+Ce fichier documente **tous** les endpoints backend, organisés par module.
+Chaque endpoint est décrit avec ses rôles, paramètres, body, réponse et erreurs possibles.
 
 ---
 
-## Conventions
+## Conventions globales
 
-- **Authentification** : cookie `httpOnly` (JWT) — `withCredentials: true` dans Axios
-- **Base URL** : `VITE_API_URL` (ex. `https://nxrh.nanoxplore.com`)
-- **Format** : JSON (`Content-Type: application/json`) sauf upload multipart
-- **Erreurs standard** :
+- **Auth** : cookie `httpOnly` (`token`) — `withCredentials: true` dans Axios
+- **Pas de Bearer token** en localStorage
+- **Format** : `application/json` sauf mention contraire (CSV, multipart)
+- **Pagination** : `?page=1&limit=50` (max 100) → `{ data, total, page, limit }`
 
 | Code HTTP | Signification frontend |
 |---|---|
 | `400` | Validation échouée — afficher erreurs inline |
 | `401` | Session expirée — logout + redirect `/login` |
 | `403` | Accès interdit — redirect `/` + toast `error` |
-| `404` | Ressource introuvable — page 404 inline |
+| `404` | Ressource introuvable — état vide inline |
 | `409` | Conflit (doublon, état invalide) — toast `error` |
 | `429` | Trop de requêtes — toast `warning` avec délai |
 | `500` | Erreur serveur — toast `error` + bouton « Réessayer » |
 
 ---
 
-## 1. Auth & Profil
+## 1. Auth (`/api/auth`)
+
+### POST /api/auth/login
+- **Auth** : Public (non authentifié)
+- **Rate limit** : 5 tentatives/15min/email · 20/15min/IP
+- **Body** : `{ email: string, password: string, remember?: boolean }`
+- **Response** `200` : `{ user: { id, email, firstName, lastName, role } }` + cookie `token`
+- **Errors** : `400` champs manquants · `401` identifiants invalides · `429` trop de tentatives
 
 ---
 
-### `PATCH /api/users/:id/avatar`
-
-**Description** : Mise à jour de l'avatar d'un utilisateur (base64 ou URL).
-
-**Rôles autorisés** : self (l'utilisateur modifie son propre avatar) · admin, hr (tout utilisateur)
-
-**Paramètre URL** : `:id` — identifiant de l'utilisateur
-
-**Body** :
-```json
-{
-  "avatar": "data:image/png;base64,iVBORw0KGgo..." 
-}
-```
-> Accepte une chaîne base64 (data URI) ou une URL HTTPS valide.
-
-**Réponse** `200 OK` :
-```json
-{
-  "id": "uuid",
-  "avatarUrl": "https://cdn.example.com/avatars/uuid.jpg"
-}
-```
-
-**Cas d'erreur** :
-| Code | Raison | Comportement UI |
-|---|---|---|
-| `400` | Format non supporté (ni base64, ni URL valide) | Toast `error` + erreur inline |
-| `400` | Image > 2 Mo | Toast `error` « L'image dépasse 2 Mo » |
-| `403` | Tentative de modifier l'avatar d'un autre utilisateur sans permission | Toast `error` |
-| `404` | Utilisateur introuvable | Toast `error` |
-
-**Règle UI** : Preview locale via `FileReader` avant envoi. Affichage du spinner sur l'avatar pendant l'upload.
+### POST /api/auth/logout
+- **Auth** : Public
+- **Body** : aucun
+- **Response** `200` : `{ message: "Déconnecté" }` — efface le cookie `token`
+- **Errors** : aucune
 
 ---
 
-## 2. Administration système
+### GET /api/auth/me
+- **Auth** : Tous les rôles (cookie valide requis)
+- **Response** `200` : objet User complet `{ id, email, firstName, lastName, role, department, position, isActive, locale, theme, notificationPrefs, lastLoginAt, authSource, managerId, onboarding, createdAt }` (notificationPrefs filtré par rôle)
+- **Errors** : `401` session invalide ou cookie expiré
 
 ---
 
-### `PATCH /api/admin/config/batch`
-
-**Description** : Mise à jour groupée de plusieurs clés de configuration système ou RH en une seule requête.
-
-**Rôles autorisés** : admin (toutes les clés) · hr (uniquement les clés préfixées `hr.*`)
-
-**Body** :
-```json
-{
-  "updates": [
-    { "key": "general.platformName", "value": "NX-RH" },
-    { "key": "smtp.host", "value": "smtp.example.com" },
-    { "key": "smtp.port", "value": "587" },
-    { "key": "smtp.user", "value": "user@example.com" },
-    { "key": "smtp.password", "value": "secret" },
-    { "key": "smtp.tls", "value": "true" },
-    { "key": "feature.onboarding", "value": "true" },
-    { "key": "security.jwtSessionDuration", "value": "8" },
-    { "key": "security.maxLoginAttempts", "value": "5" },
-    { "key": "hr.n1DefaultEnabled", "value": "true" },
-    { "key": "hr.n1VisibleToEmployeeByDefault", "value": "false" }
-  ]
-}
-```
-
-**Réponse** `200 OK` :
-```json
-{
-  "updated": 11,
-  "keys": ["general.platformName", "smtp.host", "..."]
-}
-```
-
-**Cas d'erreur** :
-| Code | Raison | Comportement UI |
-|---|---|---|
-| `400` | Une ou plusieurs clés invalides | Toast `error` avec liste des clés rejetées |
-| `403` | hr tente de modifier une clé non-`hr.*` | Toast `error` « Permission insuffisante » |
-| `422` | Valeur hors plage (ex. `smtpPort` > 65535) | Toast `error` avec détail de validation |
-
-**Règle UI** : Le bouton « Sauvegarder » passe en état `loading` pendant la requête. Invalidation du cache TanStack Query `['admin', 'config']` après succès.
+### PATCH /api/auth/preferences
+- **Auth** : Tous les rôles
+- **Body** : `{ locale?: 'fr'|'en', theme?: 'light'|'dark'|'system', notificationPrefs?: Record<string, boolean> }`
+- **Response** `200` : `{ locale, theme, notificationPrefs }`
+- **Errors** : `400` locale/thème invalide · `400` clé notification inconnue · `403` clé non autorisée pour le rôle · `400` aucune préférence envoyée
 
 ---
 
-### `GET /api/admin/audit?format=csv`
+## 2. Users (`/api/users`)
 
-**Description** : Export du journal d'audit complet au format CSV.
-
-**Rôles autorisés** : admin, hr
-
-**Paramètres query** :
-| Param | Type | Obligatoire | Description |
-|---|---|---|---|
-| `format` | `'csv'` | oui | Déclenche le téléchargement CSV |
-| `startDate` | `ISO 8601` | non | Filtre les entrées après cette date |
-| `endDate` | `ISO 8601` | non | Filtre les entrées avant cette date |
-| `action` | `string` | non | Filtre par type d'action (ex. `login`, `update`) |
-| `userId` | `uuid` | non | Filtre par acteur |
-
-**Réponse** `200 OK` :
-```
-Content-Type: text/csv
-Content-Disposition: attachment; filename="audit-log-2025-01-15.csv"
-
-date,acteur,action,cible,statut
-2025-01-15T10:30:00Z,jean.dupont@nx.fr,UPDATE,evaluation#abc123,success
-...
-```
-
-**Cas d'erreur** :
-| Code | Raison | Comportement UI |
-|---|---|---|
-| `403` | Rôle non autorisé | Toast `error` |
-| `500` | Génération CSV échouée | Toast `error` + bouton « Réessayer » |
-
-**Règle UI** : Déclenché via `window.location.href` (téléchargement direct) ou `<a href download>`. Ne pas passer par Axios pour éviter de charger le fichier en mémoire.
+### GET /api/users
+- **Auth** : admin, hr (tout) · manager, director (leurs subordonnés directs)
+- **Query** : `?role=&department=&search=&isActive=true|false&page=1&limit=50`
+- **Response** `200` : `{ data: User[], total, page, limit }` (sans `passwordHash`, `ldapDn`)
+- **Errors** : `403` rôle insuffisant
 
 ---
 
-## 3. Notifications RH
+### GET /api/users/:id
+- **Auth** : admin, hr (tout) · manager (soi + subordonnés directs) · employee (soi + son manager direct)
+- **Response** `200` : objet User (sans `passwordHash`, `ldapDn`)
+- **Errors** : `400` ID invalide · `403` accès refusé · `404` utilisateur introuvable
 
 ---
 
-### `POST /api/hr/notifications/bulk-remind`
-
-**Description** : Envoie un rappel email groupé à tous les évaluateurs d'une campagne n'ayant pas encore soumis leur évaluation.
-
-**Rôles autorisés** : hr, admin
-
-**Body** :
-```json
-{
-  "campaignId": "uuid",
-  "message": "string (optionnel — message personnalisé)"
-}
-```
-
-> Si `message` est absent, le backend utilise le template par défaut `deadlineReminder`.
-
-**Réponse** `200 OK` :
-```json
-{
-  "sent": 12,
-  "skipped": 3,
-  "recipients": ["user@example.com", "..."]
-}
-```
-
-**Cas d'erreur** :
-| Code | Raison | Comportement UI |
-|---|---|---|
-| `400` | `campaignId` manquant ou invalide | Toast `error` |
-| `404` | Campagne introuvable | Toast `error` |
-| `409` | La campagne n'est pas `active` | Toast `error` « La campagne doit être active pour envoyer des rappels » |
-| `422` | Aucun évaluateur éligible (tous ont soumis) | Toast `info` « Tous les évaluateurs ont déjà soumis » |
-
-**Règle UI** :
-- Bouton désactivé si aucune campagne sélectionnée dans le filtre
-- Modal de confirmation avant envoi (S-35-M1)
-- Toast `success` « Rappels envoyés à N personnes » après succès
+### POST /api/users
+- **Auth** : admin, hr
+- **Body** : `{ firstName: string, lastName: string, email: string, role?: string, department?: string, position?: string, managerId?: string }`
+- **Response** `201` : User créé + `tempPassword` (affiché une seule fois)
+- **Errors** : `400` champs requis manquants · `400` rôle invalide · `409` email déjà utilisé
 
 ---
 
-## 4. Contexte N-1
+### PATCH /api/users/:id
+- **Auth** : admin, hr (tous les champs) · self (firstName, lastName, avatar, phone uniquement)
+- **Body** : champs parmi `{ email, firstName, lastName, department, position, role, managerId, isActive, avatar, phone }`
+- **Response** `200` : User mis à jour (sans `passwordHash`, `ldapDn`)
+- **Errors** : `400` ID invalide · `403` champs protégés (non-admin) · `404` introuvable
 
 ---
 
-### `GET /api/evaluations/:id/n1-context`
-
-**Description** : Récupère le contexte N-1 (évaluation de la campagne précédente) pour une évaluation donnée.
-
-**Rôles autorisés** :
-- admin, hr, director, manager — accès complet
-- employee (évalué) — uniquement si `n1VisibleToEmployee = true` sur la campagne
-
-**Paramètre URL** : `:id` — identifiant de l'évaluation courante
-
-**Réponse** `200 OK` :
-```json
-{
-  "hasN1Context": true,
-  "sourceCampaignId": "uuid",
-  "sourceCampaignName": "Entretiens annuels 2024",
-  "n1VisibleToEmployee": true,
-  "answers": [
-    {
-      "questionId": "uuid",
-      "questionText": "Commentaire manager",
-      "answer": "Excellent travail sur le projet X.",
-      "type": "text"
-    }
-  ],
-  "reviewerScore": 85,
-  "reviewerComment": "Très bonne performance globale."
-}
-```
-
-**Réponse** `200 OK` (contexte absent) :
-```json
-{
-  "hasN1Context": false,
-  "sourceCampaignId": null
-}
-```
-
-**Cas d'erreur** :
-| Code | Raison | Comportement UI |
-|---|---|---|
-| `403` | employee tente d'accéder alors que `n1VisibleToEmployee = false` | Section N-1 masquée, pas de toast |
-| `404` | Évaluation introuvable | Affichage état vide dans la section N-1 |
-
-**Règle UI** :
-- Appelé uniquement si `evaluation.campaign.enableN1Context = true`
-- Si `hasN1Context = false`, afficher un état vide discret : « Aucun contexte N-1 disponible »
-- La section N-1 est en lecture seule pour tous les rôles (jamais modifiable)
-- Pour le rôle `employee` : vérifier `n1VisibleToEmployee` avant d'afficher la section
+### PATCH /api/users/:id/avatar
+- **Auth** : self · admin, hr
+- **Body** : `{ avatarUrl: string | null }` (URL HTTPS, max 500 chars — `null` supprime)
+- **Response** `200` : `{ _id, avatar }`
+- **Errors** : `400` URL invalide · `403` accès refusé · `404` introuvable
 
 ---
 
-*Fin du document — NX-RH API Contract v1.0*
+### GET /api/users/:id/offboard-preview
+- **Auth** : admin, hr
+- **Response** `200` : `{ user, pendingEvaluations: number, activeCampaigns: string[] }`
+- **Errors** : `400` ID invalide · `403` accès refusé · `404` introuvable
+
+---
+
+### PATCH /api/users/:id/offboard
+- **Auth** : admin, hr
+- **Body** : `{ reason: string, effectiveDate: string (ISO) }`
+- **Response** `200` : User mis à jour (offboardingStatus, offboardingReason, offboardingDate)
+- **Errors** : `400` reason/effectiveDate requis · `403` accès refusé · `404` introuvable
+
+---
+
+### PATCH /api/users/:id/onboarding/complete
+- **Auth** : self · admin, hr
+- **Body** : aucun
+- **Response** `200` : User avec `onboarding.completed=true`, `onboarding.completedAt`
+- **Errors** : `400` ID invalide · `403` accès refusé · `404` introuvable
+
+---
+
+### PATCH /api/users/:id/onboarding/:stepIndex
+- **Auth** : self · admin, hr
+- **Body** : `{ done?: boolean }` (défaut `true`)
+- **Response** `200` : User mis à jour (step coché/décoché)
+- **Errors** : `400` ID/stepIndex invalide · `400` stepIndex hors limites · `403` accès refusé · `404` introuvable
+
+---
+
+### GET /api/users/:id/gdpr-export
+- **Auth** : self · admin, hr
+- **Response** `200` : `Content-Disposition: attachment; filename="gdpr-export-{id}.json"` — `{ user, evaluations, exportedAt }`
+- **Errors** : `400` ID invalide · `403` accès refusé · `404` introuvable
+
+---
+
+### DELETE /api/users/:id/gdpr-anonymize
+- **Auth** : admin uniquement
+- **Response** `204` : aucun corps
+- **Errors** : `400` ID invalide · `403` non admin · `404` introuvable · `409` évaluations actives en cours
+
+---
+
+## 3. Users Import (`/api/users/import`)
+
+### POST /api/users/import
+- **Auth** : admin, hr
+- **Query** : `?dryRun=true|false`
+- **Body** : JSON `application/json` (tableau d'objets) OU CSV `text/csv` / `text/plain`
+- **Colonnes CSV / champs JSON** : `firstName, lastName, email, role, department, managerEmail, sectorName`
+- **Response** `200` :
+  ```json
+  {
+    "created": 5, "updated": 3, "skipped": 1,
+    "errors": [{ "row": 2, "field": "email", "message": "Email invalide" }],
+    "warnings": [{ "row": 4, "field": "managerEmail", "message": "Manager introuvable" }],
+    "preview": []
+  }
+  ```
+  Si `dryRun=true` : `preview[]` rempli, aucune écriture DB.
+- **Errors** : `400` body vide ou invalide · `400` aucune donnée
+
+---
+
+## 4. Campaigns (`/api/campaigns`)
+
+### GET /api/campaigns
+- **Auth** : Tous les rôles
+- **Query** : `?status=draft|active|closed|archived&page=1&limit=50`
+- **Scope** : employee → actives uniquement · manager/director → toutes · admin/hr → toutes
+- **Response** `200` : `{ data: Campaign[], total, page, limit }` (createdBy populé)
+- **Errors** : aucune
+
+---
+
+### GET /api/campaigns/:id
+- **Auth** : Tous les rôles
+- **Response** `200` : Campaign + `stats: { total, started, submitted, validated }`
+- **Errors** : `400` ID invalide · `404` introuvable
+
+---
+
+### POST /api/campaigns
+- **Auth** : admin, hr
+- **Body** : `{ name: string, startDate: ISO, endDate: ISO, description?: string, targetDepartments?: string[], extendedVisibility?: string[], deadlineEmployee?: ISO, deadlineManager?: ISO, status?: 'draft'|'active', targetScope?: object, objectivesFormId?: string }`
+- **Response** `201` : Campaign créée (createdBy populé)
+- **Errors** : `400` name/startDate/endDate requis · `400` endDate < startDate · `400` statut initial invalide · `403` accès refusé
+
+---
+
+### PATCH /api/campaigns/:id
+- **Auth** : admin, hr
+- **Body** : champs parmi `{ name, description, status, startDate, endDate, targetDepartments, extendedVisibility, deadlineEmployee, deadlineManager, previousCampaignId, enableN1Context, n1VisibleToEmployee, targetScope, objectivesFormId }`
+- **Response** `200` : Campaign mise à jour
+- **Errors** : `400` ID/transition invalide · `403` accès refusé · `404` introuvable
+
+---
+
+### DELETE /api/campaigns/:id
+- **Auth** : admin, hr
+- **Response** `204` : aucun corps (supprime aussi les évaluations et formulaires liés)
+- **Errors** : `400` ID invalide · `400` campagne active (clôturer d'abord) · `400` statut non supprimable · `403` accès refusé · `404` introuvable
+
+---
+
+### POST /api/campaigns/:id/clone
+- **Auth** : admin, hr
+- **Body** : `{ name?: string, startDate?: ISO, endDate?: ISO }` (optionnel — dates décalées +1 an par défaut)
+- **Response** `201` : `{ id: string, formsCloned: number }`
+- **Errors** : `400` ID invalide · `400` endDate < startDate · `403` accès refusé · `404` introuvable
+
+---
+
+### GET /api/campaigns/:id/analytics
+- **Auth** : admin, hr
+- **Response** `200` :
+  ```json
+  {
+    "campaignId", "campaignName",
+    "totalEvaluations", "completedEvaluations", "completionPct",
+    "avgScore",
+    "statusDistribution": { "assigned": 5, "submitted": 3, ... },
+    "scoreDistribution": [{ "from": 70, "to": 79, "count": 4 }, ...],
+    "byDepartment": [{ "department": "R&D", "total": 10, "completed": 8, "completionPct": 80, "avgScore": 75 }]
+  }
+  ```
+- **Errors** : `400` ID invalide · `403` accès refusé · `404` introuvable
+
+---
+
+## 5. Evaluations (`/api/evaluations`)
+
+### GET /api/evaluations
+- **Auth** : Tous les rôles (scopé automatiquement)
+- **Query** : `?campaignId=&status=&evaluateeId=&page=1&limit=50`
+- **Scope** : employee → ses propres · manager/director → ses subordonnés · admin/hr → tout
+- **Response** `200` : `{ data: Evaluation[], total, page, limit }` (formId, evaluatorId, evaluateeId, campaignId populés)
+- **Errors** : `400` campaignId/evaluateeId/status invalide
+
+---
+
+### GET /api/evaluations/history
+- **Auth** : Tous les rôles
+- **Response** `200` : `Evaluation[]` statuts terminés, max 200 (populé — tri updatedAt desc)
+- **Errors** : aucune
+
+---
+
+### GET /api/evaluations/export
+- **Auth** : admin, hr
+- **Query** : `?campaignId=&status=&dept=`
+- **Response** `200` : `Content-Type: text/csv` — colonnes : Évalué, Manager, Campagne, Statut, Score, Département, Date
+- **Errors** : `400` campaignId/status invalide · `403` accès refusé
+
+---
+
+### POST /api/evaluations
+- **Auth** : admin, hr
+- **Body** : `{ campaignId: string, formId: string, evaluatorId: string, evaluateeId: string }`
+- **Response** `201` : `{ id: string }` — gèle le formulaire si pas encore gelé
+- **Errors** : `400` champs requis manquants · `400` IDs invalides · `403` accès refusé · `409` évaluation déjà existante
+
+---
+
+### POST /api/evaluations/bulk
+- **Auth** : admin, hr
+- **Body** : `{ evaluations: Array<{ campaignId, formId, evaluatorId, evaluateeId }> }` (max 500)
+- **Response** `201` : `{ created: number }`
+- **Response** `207` (partiel) : `{ created, skipped, message }`
+- **Errors** : `400` tableau vide · `400` > 500 · `400` champ requis manquant · `403` accès refusé
+
+---
+
+### PATCH /api/evaluations/bulk
+- **Auth** : admin, hr
+- **Body** : `{ ids: string[], action: 'archive'|'sign_hr'|'assign_reviewer', reviewerId?: string }`
+- **Response** `200` : `{ success, skipped, errors }`
+- **Errors** : `400` ids vide · `400` > 200 · `400` action invalide · `400` reviewerId manquant pour assign_reviewer · `403` accès refusé
+
+---
+
+### GET /api/evaluations/:id
+- **Auth** : Tous les rôles (RBAC + anonymisation)
+- **Response** `200` : Evaluation complète (formId avec questions, evaluatorId/evaluateeId/campaignId populés) — `evaluatorId` masqué si `isAnonymous`
+- **Errors** : `400` ID invalide · `403` accès refusé · `404` introuvable
+
+---
+
+### PATCH /api/evaluations/:id
+- **Auth** : Tous les rôles (selon le champ)
+- **Body** (selon rôle) :
+  - `answers: Array<{ questionId, value }>` — tous les rôles (avant `submitted`)
+  - `status: string` — transition selon matrice rôle/statut
+  - `score: number` (0–100) — manager/director/admin/hr
+  - `reviewerComment: string` — manager/director/admin/hr
+  - `nextObjectives: string` — manager/director/admin/hr
+  - `objectiveRatings: object` — manager/director/admin/hr
+  - `evaluateeComment: string` — évalué/admin/hr
+  - `disagreementFlag: boolean` — évalué/admin/hr
+- **Response** `200` : Evaluation complète populée
+- **Errors** : `400` ID/answers invalides · `403` accès refusé (mauvais rôle/évaluateur) · `404` introuvable · `409` réponses verrouillées après submitted
+
+---
+
+### PATCH /api/evaluations/:id/reassign
+- **Auth** : admin, hr
+- **Body** : `{ newEvaluatorId: string, reason?: string }`
+- **Response** `200` : `{ id, evaluatorId, evaluatorName }`
+- **Errors** : `400` ID/newEvaluatorId invalide · `400` évaluateur inactif · `400` rôle invalide (manager/director requis) · `403` accès refusé · `404` introuvable · `409` statut terminal (signed_hr/validated)
+
+---
+
+### POST /api/evaluations/:id/expire
+- **Auth** : admin, hr
+- **Body** : aucun
+- **Response** `200` : `{ id, status: 'expired' }`
+- **Errors** : `400` ID invalide · `403` accès refusé · `404` introuvable · `409` déjà validé ou expiré
+
+---
+
+### GET /api/evaluations/:id/pdf
+- **Auth** : Tous les rôles (RBAC)
+- **Response** `200` : `Content-Type: application/pdf` — PDF de l'évaluation
+- **Errors** : `400` ID invalide · `403` accès refusé · `404` introuvable
+
+---
+
+### GET /api/evaluations/:id/n1-context
+- **Auth** : Tous les rôles (RBAC + `n1VisibleToEmployee`)
+- **Response** `200` :
+  ```json
+  {
+    "n1Campaign": { "id", "name", "startDate", "endDate" },
+    "score", "reviewerComment", "nextObjectives", "objectiveRatings",
+    "status", "objectivesAnswers": [{ "questionId", "questionLabel", "questionType", "value" }],
+    "formTitle", "formType",
+    "evaluateeComment", "disagreementFlag"
+  }
+  ```
+- **Response** `204` : pas de contexte N-1 (feature désactivée ou aucune éval précédente)
+- **Errors** : `400` ID invalide · `403` accès refusé · `404` introuvable
+
+---
+
+## 6. Forms (`/api/forms`)
+
+### GET /api/forms
+- **Auth** : Tous les rôles
+- **Query** : `?campaignId=&formType=&page=1&limit=50`
+- **Response** `200` : `{ data: Form[], total, page, limit }` (createdBy populé)
+- **Errors** : `400` campaignId/formType invalide
+
+---
+
+### GET /api/forms/:id
+- **Auth** : Tous les rôles
+- **Response** `200` : Form complet (questions incluses, createdBy populé)
+- **Errors** : `400` ID invalide · `404` introuvable
+
+---
+
+### POST /api/forms
+- **Auth** : admin, hr
+- **Body** : `{ title: string, formType: string, description?: string, isAnonymous?: boolean, questions?: Question[], campaignId?: string }`
+- **Response** `201` : Form créé (createdBy populé) — `isAnonymous` forcé `true` si `formType=upward_feedback`
+- **Errors** : `400` title/formType requis · `400` campaignId invalide · `400` questions non tableau · `400` validation Mongoose · `403` accès refusé
+
+---
+
+### PATCH /api/forms/:id
+- **Auth** : admin, hr
+- **Body** : `{ title?: string, description?: string, questions?: Question[] }`
+- **Response** `200` : `{ id }`
+- **Errors** : `400` ID invalide · `403` accès refusé · `404` introuvable · `409` questions gelées (`frozenAt` présent)
+
+---
+
+### DELETE /api/forms/:id
+- **Auth** : admin, hr
+- **Response** `204` : aucun corps
+- **Errors** : `400` ID invalide · `403` accès refusé · `404` introuvable · `409` form gelé (évaluations existantes)
+
+---
+
+## 7. Forms Import/Export (`/api/forms/import`, `/api/forms/template`, `/api/forms/:id/export`)
+
+### POST /api/forms/import
+- **Auth** : admin, hr
+- **Body** : objet JSON `{ title, formType, description?, isAnonymous?, questions: [{ id, type, label, ... }] }`
+- **Response** `201` : Form créé (`frozenAt=null`)
+- **Errors** : `400` body invalide · `400` title manquant/trop court · `400` formType invalide · `400` questions manquantes ou types inconnus · `403` accès refusé
+
+---
+
+### GET /api/forms/template
+- **Auth** : admin, hr
+- **Response** `200` : `Content-Disposition: attachment; filename="form-template.json"` — template JSON vide avec exemples de questions (text, rating, yes_no, choice, scale, objective_item, weather, mobility)
+- **Errors** : `403` accès refusé
+
+---
+
+### GET /api/forms/:id/export
+- **Auth** : admin, hr
+- **Response** `200` : `Content-Disposition: attachment; filename="form-{slug}.json"` — Form exporté sans `_id`, `createdBy`, `frozenAt`, `campaignId`
+- **Errors** : `400` ID invalide · `403` accès refusé · `404` introuvable
+
+---
+
+## 8. Org (`/api/org`)
+
+### GET /api/org/tree
+- **Auth** : admin, hr
+- **Query** : `?view=all|teams|sector`
+- **Response** `200` (view=all) : arbre récursif `[{ _id, firstName, lastName, role, department, sectorId, managerId, avatar, children: [...] }]`
+- **Response** `200` (view=teams) : `[{ manager, directReports, subManagers }]`
+- **Response** `200` (view=sector) : `[{ sector, users }]` + `{ sector: null, users }` pour non-assignés
+- **Errors** : `400` view invalide
+
+---
+
+### PATCH /api/org/users/:id
+- **Auth** : admin, hr
+- **Body** : `{ managerId?: string|null, sectorId?: string|null, role?: string }`
+- **Response** `200` : User mis à jour (sans passwordHash, ldapDn)
+- **Errors** : `400` ID invalide · `400` managerId/sectorId/role invalide · `400` manager introuvable · `400` secteur introuvable · `404` utilisateur introuvable · `400` cycle hiérarchique détecté (pre-save hook)
+
+---
+
+### GET /api/org/sectors
+- **Auth** : admin, hr
+- **Response** `200` : `Sector[]` actifs triés par nom (createdBy populé)
+- **Errors** : aucune
+
+---
+
+### POST /api/org/sectors
+- **Auth** : admin, hr
+- **Body** : `{ name: string (2–100 chars), description?: string, color?: string (hex) }`
+- **Response** `201` : Sector créé
+- **Errors** : `400` name requis/invalide · `409` nom déjà utilisé
+
+---
+
+### PATCH /api/org/sectors/:id
+- **Auth** : admin, hr
+- **Body** : `{ name?: string, description?: string, color?: string, isActive?: boolean }`
+- **Response** `200` : Sector mis à jour (createdBy populé)
+- **Errors** : `400` ID invalide · `404` introuvable · `409` nom déjà utilisé
+
+---
+
+### DELETE /api/org/sectors/:id
+- **Auth** : admin, hr
+- **Response** `204` : aucun corps
+- **Errors** : `400` ID invalide · `404` introuvable · `409` secteur utilisé par N utilisateur(s)
+
+---
+
+## 9. HR Notifications (`/api/hr/notifications`)
+
+### POST /api/hr/notifications/bulk-remind
+- **Auth** : admin, hr
+- **Body** :
+  ```json
+  {
+    "campaignId": "string",
+    "targetStatuses": ["assigned", "in_progress"],
+    "targetRoles": ["employee", "manager"],
+    "message": "string (optionnel)"
+  }
+  ```
+- **Response** `200` : `{ sent: number, skipped: number, campaignId: string }`
+- **Errors** : `400` campaignId requis · `404` campagne introuvable · `404` campagne non active
+
+---
+
+## 10. HR Flags (`/api/hr/flags`)
+
+### GET /api/hr/flags
+- **Auth** : admin, hr
+- **Query** : `?type=&status=&from=ISO&to=ISO&department=&sectorId=`
+- **Filtres** : `type` parmi les `REQUEST_FORM_TYPES` · `status` parmi `assigned|in_progress|submitted|reviewed|validated`
+- **Response** `200** : `Evaluation[]` de type "request" (evaluateeId et formId populés)
+- **Errors** : aucune
+
+---
+
+### PATCH /api/hr/flags/:evalId/status
+- **Auth** : admin, hr
+- **Body** : `{ status: 'submitted'|'reviewed'|'validated', note?: string }`
+- **Response** `200` : Evaluation mise à jour (avec auditLog si note présente)
+- **Errors** : `400` ID invalide · `400` status invalide · `404` évaluation introuvable
+
+---
+
+## 11. Admin (`/api/admin`)
+
+### POST /api/admin/email/test
+- **Auth** : admin
+- **Body** : `{ to: string (email valide) }`
+- **Response** `200` : `{ sent: true, previewUrl: string|null }` (`previewUrl` = URL Ethereal en dev)
+- **Errors** : `400` adresse invalide
+
+---
+
+### GET /api/admin/config
+- **Auth** : admin
+- **Response** `200` : `Config[]` triés par clé (tous les paramètres système)
+- **Errors** : aucune
+
+---
+
+### PUT /api/admin/config/batch
+- **Auth** : admin
+- **Body** : `{ configs: Array<{ key: string, value: any }> }` (max 50)
+- **Response** `200` : `{ updated: number, results: Config[] }`
+- **Errors** : `400` configs non tableau/vide · `400` > 50 clés · `400` clés avec caractères invalides
+
+---
+
+### GET /api/admin/config/:key
+- **Auth** : admin
+- **Response** `200` : `{ key, value, _id, ... }`
+- **Errors** : `404` clé introuvable
+
+---
+
+### PUT /api/admin/config/:key
+- **Auth** : admin
+- **Body** : `{ value: any }`
+- **Response** `200` : Config créée ou remplacée (upsert)
+- **Errors** : `400` value manquant
+
+---
+
+### PATCH /api/admin/config/:key
+- **Auth** : admin
+- **Body** : `{ value: any }`
+- **Response** `200` : Config mise à jour
+- **Errors** : `400` value manquant · `404` clé introuvable
+
+---
+
+### DELETE /api/admin/config/:key
+- **Auth** : admin
+- **Response** `204` : aucun corps
+- **Errors** : `404` clé introuvable
+
+---
+
+## 12. Admin Mail Templates (`/api/admin/mail-templates`)
+
+### GET /api/admin/mail-templates
+- **Auth** : admin, hr
+- **Response** `200` : `MailTemplate[]` triés par slug
+- **Errors** : aucune
+
+---
+
+### PATCH /api/admin/mail-templates/:slug
+- **Auth** : admin uniquement (hr peut lister mais pas modifier)
+- **Body** : `{ subject?: string, bodyText?: string, bodyHtml?: string, reset?: boolean }`
+  - Si `reset: true` → remet les valeurs hardcodées du `notificationService`
+- **Response** `200` : MailTemplate mis à jour
+- **Errors** : `403` non admin · `404` slug introuvable (ou pas de template hardcodé pour reset)
+
+---
+
+## 13. Audit (`/api/admin/audit`)
+
+### GET /api/admin/audit
+- **Auth** : admin, hr
+- **Query** : `?page=1&limit=20&action=&targetType=&userId=&from=ISO&to=ISO`
+- **Valeurs `action`** : `status_change, evaluation_update, campaign_create, campaign_activate, campaign_update, campaign_delete, bulk_action, offboard, offboarding_create, offboarding_update, offboarding_delete, gdpr_anonymize, reassigned, login, login_failed`
+- **Valeurs `targetType`** : `Evaluation, Campaign, User, Form, OffboardingRequest`
+- **Response** `200` : `{ data: AuditLog[], total, page, limit }` (userId populé avec firstName, lastName, role)
+- **Errors** : `400` action/targetType invalide
+
+---
+
+### GET /api/admin/audit/export
+- **Auth** : admin, hr
+- **Query** : `?action=&targetType=&userId=&from=ISO&to=ISO`
+- **Response** `200` : `Content-Type: text/csv; charset=utf-8` — BOM Excel, colonnes : Date;Utilisateur;Email;Action;Type cible;ID cible;Détails (max 5000 lignes)
+- **Errors** : `400` filtres invalides
+
+---
+
+## 14. Events (`/api/events`)
+
+### GET /api/events
+- **Auth** : Tous les rôles
+- **Query** : `?page=1&limit=50`
+- **Scope** : admin/hr → tout · autres → `targetRoles` vide OU contient leur rôle
+- **Response** `200` : `{ data: Event[], total, page, limit }`
+- **Errors** : aucune
+
+---
+
+### GET /api/events/:id
+- **Auth** : Tous les rôles (RBAC sur `targetRoles`)
+- **Response** `200` : Event complet
+- **Errors** : `400` ID invalide · `403` accès refusé · `404` introuvable
+
+---
+
+### POST /api/events
+- **Auth** : admin, hr
+- **Body** : `{ title: string, date: ISO, type: string, description?: string, location?: string, endDate?: ISO, campaignId?: string, targetRoles?: Role[] }`
+- **Response** `201` : Event créé
+- **Errors** : `400` title/date/type requis · `400` targetRoles invalide · `403` accès refusé
+
+---
+
+### PATCH /api/events/:id
+- **Auth** : admin, hr
+- **Body** : `{ title?, date?, type?, targetRoles?, description? }`
+- **Response** `200` : Event mis à jour
+- **Errors** : `400` ID invalide · `403` accès refusé · `404` introuvable
+
+---
+
+### DELETE /api/events/:id
+- **Auth** : admin, hr
+- **Response** `204` : aucun corps
+- **Errors** : `400` ID invalide · `403` accès refusé · `404` introuvable
+
+---
+
+## 15. Offboarding (`/api/offboarding`)
+
+### POST /api/offboarding
+- **Auth** : admin, hr
+- **Body** : `{ userId: string, reason: 'resignation'|'termination'|'retirement'|'other', lastDay: ISO, notes?: string }`
+- **Response** `201` : OffboardingRequest créée
+- **Errors** : `400` userId/reason/lastDay requis · `400` reason invalide · `400` userId invalide · `403` accès refusé · `404` utilisateur introuvable · `409` demande déjà existante
+
+---
+
+### GET /api/offboarding
+- **Auth** : admin, hr
+- **Query** : `?status=pending|in_progress|completed&page=1&limit=50`
+- **Response** `200` : `{ data: OffboardingRequest[], total, page, limit }` (userId et requestedBy populés)
+- **Errors** : `403` accès refusé
+
+---
+
+### GET /api/offboarding/:id
+- **Auth** : admin, hr
+- **Response** `200** : OffboardingRequest (userId et requestedBy populés)
+- **Errors** : `400` ID invalide · `403` accès refusé · `404` introuvable
+
+---
+
+### PATCH /api/offboarding/:id
+- **Auth** : admin, hr
+- **Body** : `{ status?: 'pending'|'in_progress'|'completed', notes?: string }`
+  - `completed` → `user.isActive=false`, `user.archivedAt=now`, `user.offboardingStatus='offboarded'`
+- **Response** `200** : OffboardingRequest peuplée (après mise à jour)
+- **Errors** : `400` ID invalide · `400` status invalide · `403` accès refusé · `404` introuvable
+
+---
+
+### PATCH /api/offboarding/:id/checklist/:itemIndex
+- **Auth** : admin, hr
+- **Body** : `{ done?: boolean }` (défaut `true`)
+- **Response** `200` : OffboardingRequest mise à jour — passage auto en `in_progress` au 1er item coché
+- **Errors** : `400` ID/itemIndex invalide · `400` itemIndex hors limites · `403` accès refusé · `404` introuvable
+
+---
+
+### DELETE /api/offboarding/:id
+- **Auth** : admin uniquement
+- **Response** `204` : aucun corps
+- **Errors** : `400` ID invalide · `403` non admin · `404` introuvable
+
+---
+
+## 16. Health
+
+### GET /api/health
+- **Auth** : Public
+- **Response** `200` : `{ status: 'ok', timestamp: ISO }`
+- **Response** `503` : `{ status: 'error', reason: 'database unreachable' }`
+
+---
+
+## Résumé
+
+| Module | Endpoints |
+|---|---|
+| Auth | 4 |
+| Users | 11 |
+| Users Import | 1 |
+| Campaigns | 7 |
+| Evaluations | 12 |
+| Forms | 5 |
+| Forms Import/Export | 3 |
+| Org | 6 |
+| HR Notifications | 1 |
+| HR Flags | 2 |
+| Admin | 7 |
+| Admin Mail Templates | 2 |
+| Audit | 2 |
+| Events | 5 |
+| Offboarding | 6 |
+| Health | 1 |
+| **Total** | **75 endpoints** |
+
+---
+
+*Fin du document — NX-RH API Contract v2.0 · 75 endpoints · 16 modules*

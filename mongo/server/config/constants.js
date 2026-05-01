@@ -31,7 +31,7 @@ const DEPARTMENTS = [
   'Executive',
 ]
 
-const QUESTION_TYPES = ['rating', 'text', 'yes_no', 'choice', 'weather', 'mobility', 'n1_import']
+const QUESTION_TYPES = ['rating', 'text', 'yes_no', 'choice', 'weather', 'mobility', 'n1_import', 'scale', 'objective_item']
 
 const FORM_TYPES = [
   'self_evaluation',
@@ -39,7 +39,14 @@ const FORM_TYPES = [
   'upward_feedback',
   'director_evaluation',
   'peer_review',
+  'objectives',
+  'mobility_request',
+  'salary_raise_request',
+  'promotion_request',
+  'training_request',
 ]
+
+const REQUEST_FORM_TYPES = ['mobility_request', 'salary_raise_request', 'promotion_request', 'training_request']
 
 const ADMIN_ROLES    = ['admin', 'hr']
 const MANAGER_ROLES  = ['admin', 'hr', 'director', 'manager']
@@ -87,7 +94,7 @@ const NOTIF_KEYS_BY_ROLE = {
 }
 
 module.exports = {
-  ROLES, DEPARTMENTS, QUESTION_TYPES, FORM_TYPES,
+  ROLES, DEPARTMENTS, QUESTION_TYPES, FORM_TYPES, REQUEST_FORM_TYPES,
   ADMIN_ROLES, MANAGER_ROLES,
   EVENT_TYPES, RESOURCE_TYPES,
   CAMPAIGN_STATUSES, EVALUATION_STATUSES, AUTH_SOURCES,

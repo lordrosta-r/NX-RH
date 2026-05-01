@@ -5,7 +5,7 @@
 > **Navigation** : Top navbar fixe (h-16) · Pas de sidebar · Fil d'Ariane pour le contexte
 > **Responsive** : desktop 1280px · tablette 768px · mobile 375px
 > **Design ref** : Eurecia — cards blanches, primaire teal `#17A8D4`, illustrations SVG
-> **Écrans** : 40 (S-01 → S-35 + S-10b)
+> **Écrans** : 41 (S-01 → S-41 · hors S-37 · + S-10b)
 
 ---
 
@@ -536,14 +536,30 @@ KPI row (3 cols) : Évals à compléter · Équipe en attente · Rappels deadlin
 │  Campagne source (optionnel)  [Select ▼]            │
 │  (liste des campagnes closed/archived)              │
 │  Si vide → auto-fallback backend                    │
+├─────────────────────────────────────────────────────┤
+│ Card "Périmètre de la campagne"                     │
+│  [●] Tous les collaborateurs actifs                 │
+│  [ ] Par département → [multi-select départements]  │
+│  [ ] Par secteur     → [multi-select secteurs]      │
+│  [ ] Sélection manuelle → [search+select users]     │
+├─────────────────────────────────────────────────────┤
+│ Card "Formulaires"                                  │
+│  Formulaire principal*   [Select ▼]                 │
+│  Formulaire d'objectifs  [Select ▼ — optionnel]     │
+│  (type: 'objectives' uniquement)                    │
 └─────────────────────────────────────────────────────┘
 ```
 
-**Champs** : `name`* · `description` · `startDate`* · `endDate`* · `deadlineEmployee` · `deadlineManager` · `targetDepartments` (multi-select) · `extendedVisibility` (checkbox) · `enableN1Context` (toggle) · `n1VisibleToEmployee` (toggle, conditionnel) · `previousCampaignId` (select optionnel)
+**Champs** : `name`* · `description` · `startDate`* · `endDate`* · `deadlineEmployee` · `deadlineManager` · `targetDepartments` (multi-select) · `extendedVisibility` (checkbox) · `enableN1Context` (toggle) · `n1VisibleToEmployee` (toggle, conditionnel) · `previousCampaignId` (select optionnel) · `targetScope` (radio: `all` | `department` | `sector` | `users`) · `targetSectorIds` (multi-select, conditionnel) · `targetUserIds` (autocomplete, conditionnel) · `objectivesFormId` (select optionnel)
 
 **Logique conditionnelle** :
 - `n1VisibleToEmployee` et `previousCampaignId` sont **masqués** si `enableN1Context = false`
 - Si `previousCampaignId` vide, le backend sélectionne automatiquement la campagne source la plus récente
+- `targetScope = 'all'` → aucun sélecteur supplémentaire
+- `targetScope = 'department'` → multi-select des DEPARTMENTS
+- `targetScope = 'sector'` → multi-select des secteurs (`GET /api/org/sectors`)
+- `targetScope = 'users'` → autocomplete (`GET /api/users?q=...`)
+- Formulaire d'objectifs : sélecteur filtré sur `formType = 'objectives'` uniquement
 
 **Validation** : `endDate > startDate` (erreur inline) · Nom requis
 
@@ -686,7 +702,7 @@ Grille 3 colonnes (xl) / 2 (md) / 1 (mobile)
 
 **Layout** :
 ```
-[H1: Nouveau formulaire]          [Annuler] [Enregistrer]
+[H1: Nouveau formulaire]    [📤 Importer JSON →]  [Annuler] [Enregistrer]
 
 [col-4] Métadonnées               [col-8] Questions (FormBuilder)
   Titre*                            [+ Ajouter une question]
@@ -699,6 +715,31 @@ Grille 3 colonnes (xl) / 2 (md) / 1 (mobile)
                                     [+ Ajouter une question]
 ```
 
+**Types de formulaire** (sélecteur `Type*`) :
+```
+─── Évaluations ───────────────────
+• Auto-évaluation        (self_evaluation)
+• Évaluation manager     (manager_evaluation)
+• Feedback ascendant     (upward_feedback)
+• Évaluation directeur   (director_evaluation)
+• Peer review            (peer_review)
+
+─── Objectifs ──────────────────────
+• Objectifs              (objectives)
+
+─── Formulaires de demande ─────────
+• Demande de mobilité        (mobility_request)
+• Demande d'augmentation     (salary_raise_request)
+• Demande de promotion       (promotion_request)
+• Demande de formation       (training_request)
+```
+
+Si `formType = 'objectives'` → afficher option supplémentaire :
+```
+[ ] 📥 Importer automatiquement les objectifs N-1
+    (les réponses de la campagne précédente, phase 'objectives', seront pré-remplies)
+```
+
 **Types de questions** (sélecteur dans chaque card) :
 - `rating` — Curseur 1–5 (ou 1–10 configurable)
 - `text` — Textarea libre
@@ -707,12 +748,16 @@ Grille 3 colonnes (xl) / 2 (md) / 1 (mobile)
 - `weather` — Météo humeur (5 icônes soleil→tempête)
 - `mobility` — Souhait de mobilité (oui/non + commentaire)
 - `n1_import` — Import réponse N+1 (lecture seule évalué)
+- `scale` — Curseur 0–100% (label : « Atteinte d'objectif % »)
+- `objective_item` — Champ structuré : « Libellé de l'objectif » + « Résultat attendu » + « Date cible »
 
 **Phases** : `self` · `n-1` · `objectives` · `aspirations` · `all`
 
 **Drag & Drop** : Réordonnancement des questions par glisser-déposer (handle `⠿`).
 
 **Validation** : IDs de questions auto-générés (UUID) mais uniques. Titre requis. Type requis.
+
+**Lien « 📤 Importer JSON »** : redirige vers S-41 `/admin/forms/import`.
 
 **Mobile** : Métadonnées repliées (accordéon) · FormBuilder pleine largeur.
 
@@ -731,6 +776,7 @@ Grille 3 colonnes (xl) / 2 (md) / 1 (mobile)
 - Questions en lecture seule si gelé (pas d'édition, pas de drag, pas de suppression)
 - Bouton « Supprimer le formulaire » (Danger, footer, admin/hr, si non gelé)
 - Badge « Gelé » en haut à droite du titre
+- Bouton « ⬇️ Exporter JSON » (Secondary, admin/hr) → `GET /api/forms/:id/export`
 
 **Modal suppression (S-15-M1)** :
 > « Supprimer ce formulaire ? Cette action est irréversible. » · [Annuler] [Supprimer] (Danger)
@@ -1197,15 +1243,15 @@ Total évals       Score moyen        Taux complétion   Évals validées
 
 **Page title** : « Administration »
 
-**Layout** : Grille de cards de navigation 5 colonnes :
+**Layout** : Grille de cards de navigation 6 colonnes (3+3 sur deux lignes) :
 ```
-┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐
-│[Settings]│ │ [Server] │ │ [Shield] │ │ [Users]  │ │[Sliders] │
-│ Config   │ │ LDAP     │ │ Audit    │ │ Gestion  │ │Paramètres│
-│ système  │ │          │ │ Journal  │ │ avancée  │ │ système  │
-│→ /admin/ │ │→ /admin/ │ │→ /admin/ │ │→ /admin/ │ │→ /admin/ │
-│  config  │ │  ldap    │ │  audit   │ │  users   │ │  settings│
-└──────────┘ └──────────┘ └──────────┘ └──────────┘ └──────────┘
+┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐
+│[Settings]│ │ [Server] │ │ [Shield] │ │ [Users]  │ │[Sliders] │ │  [Tree]  │
+│ Config   │ │ LDAP     │ │ Audit    │ │ Gestion  │ │Paramètres│ │Organig-  │
+│ système  │ │          │ │ Journal  │ │ avancée  │ │ système  │ │  ramme   │
+│→ /admin/ │ │→ /admin/ │ │→ /admin/ │ │→ /admin/ │ │→ /admin/ │ │→ /admin/ │
+│  config  │ │  ldap    │ │  audit   │ │  users   │ │  settings│ │ orgchart │
+└──────────┘ └──────────┘ └──────────┘ └──────────┘ └──────────┘ └──────────┘
 ```
 Chaque card : icône 24px centrée · titre · description courte · lien.
 
@@ -1217,6 +1263,7 @@ Chaque card : icône 24px centrée · titre · description courte · lien.
 | 3 | `Shield` | Journal d'audit | Piste d'audit complète des actions | `/admin/audit` |
 | 4 | `Users` | Gestion avancée | Conformité RGPD, anonymisation | `/admin/users` |
 | 5 | `SlidersHorizontal` | Paramètres système | Général, SMTP, feature flags, sécurité | `/admin/settings` |
+| 6 | `Network` | Organigramme | Visualiser et gérer la hiérarchie | `/admin/orgchart` |
 
 ---
 
@@ -1359,7 +1406,7 @@ Chaque card : icône 24px centrée · titre · description courte · lien.
                             [Rôle] · [Département] · [Poste]
                             ✉ email · Source: local / LDAP
 
-─── Onglets : Informations | Avatar | Préférences | Mes données ───
+─── Onglets : Informations | Avatar | Préférences | Mes données | Mes demandes ───
 
 [Onglet Informations]
   Champs modifiables (self) : prénom, nom
@@ -1380,6 +1427,17 @@ Chaque card : icône 24px centrée · titre · description courte · lien.
   Mes évaluations (raccourci /evaluations)
   Mes entretiens terminés (raccourci /evaluations/history)
   [Exporter mes données RGPD] → téléchargement JSON
+
+[Onglet Mes demandes]
+  [+ Déposer une demande ▼]  ← dropdown
+    → [Demande de mobilité]
+    → [Demande d'augmentation]
+    → [Demande de promotion]
+    → [Demande de formation]
+
+  [DataTable — mes demandes]
+  Colonnes : Type | Date | Statut | Actions
+  [Ligne : Demande de mobilité | 01/05/2026 | En traitement | [Voir →]]
 ```
 
 **Onglet Avatar — comportement** :
@@ -1389,6 +1447,11 @@ Chaque card : icône 24px centrée · titre · description courte · lien.
 - Toast « Avatar mis à jour » · En cas d'erreur taille/format : feedback inline
 
 **Modification avatar** : Click → input `file` (image) ou génération automatique initiales.
+
+**Onglet Mes demandes — comportement** :
+- Liste : `GET /api/evaluations?formType=mobility_request,salary_raise_request,promotion_request,training_request&evaluateeId=me`
+- Dropdown « + Déposer » → chaque option déclenche `GET /api/forms?formType=<type>` pour récupérer l'id du formulaire → redirige vers `/evaluations/new?formId=<id>`
+- Si aucun formulaire du type demandé n'existe → toast `warning` « Aucun formulaire de ce type disponible — contactez votre RH »
 
 ---
 
@@ -1600,6 +1663,330 @@ Chaque card : icône 24px centrée · titre · description courte · lien.
 
 **Mobile** : Sections empilées, bouton Sauvegarder sticky en bas.
 
+**Section Secteurs organisationnels** :
+```
+┌────────────────────────────────────────────────────────┐
+│ Card "Secteurs organisationnels"                       │
+│                                                        │
+│  ● [●] R&D          12 users  [✏️] [🗑️]              │
+│  ● [●] Finance       8 users  [✏️] [🗑️]              │
+│  ● [●] Commercial   15 users  [✏️] [🗑️]              │
+│                                                        │
+│  [+ Ajouter un secteur]                                │
+└────────────────────────────────────────────────────────┘
+```
+
+**Modal Nouveau / Modifier secteur** :
+- Champ `Nom*`
+- Color picker `Couleur` (swatch palette + hex input)
+- Champ `Description` (optionnel)
+- [Annuler] [Enregistrer]
+
+**Comportement** :
+- Suppression impossible si le secteur a des utilisateurs → message d'erreur inline
+- Même endpoints que depuis l'organigramme (S-39) :
+  - `GET /api/org/sectors`
+  - `POST /api/org/sectors`
+  - `PATCH /api/org/sectors/:id`
+  - `DELETE /api/org/sectors/:id`
+
+---
+
+## 16. Administration — Templates de mail
+
+---
+
+### S-36 · `/admin/mail-templates` — Gestion des templates de mail
+
+**Accessible à** : admin (écriture) · hr (lecture seule)
+
+**Fil d'Ariane** : Administration › Templates de mail
+
+**Layout — liste** :
+```
+[H1: Templates de mail]
+
+[DataTable]
+Colonnes : Slug | Sujet | Variables | Dernière modif. | Actions
+[Ligne: evaluationAssigned | "Nouvelle évaluation..." | firstName,campaignName | 01/05/2026 | [✏️ Modifier]]
+...
+(7 templates listés)
+```
+
+**Layout — éditeur (slide-over)** :
+```
+─── Modifier le template ───
+Slug :   [evaluationAssigned]  (read-only)
+Sujet :  [____________________________]
+Variables disponibles : firstName · campaignName · evaluatorName · etc.
+
+[Corps (texte)]
+┌──────────────────────────────────────────┐
+│ textarea monospace                       │
+│ Utilise {{ variable }} pour insérer      │
+└──────────────────────────────────────────┘
+
+[Corps (HTML)] (optionnel)
+┌──────────────────────────────────────────┐
+│ textarea monospace                       │
+└──────────────────────────────────────────┘
+
+[Prévisualisation →]  (panel remplaçant les variables par des exemples)
+
+[Réinitialiser aux valeurs par défaut]  (Secondary/Danger)
+[Annuler]  [Sauvegarder]
+```
+
+**Comportement** :
+- hr : formulaire entièrement `disabled` + bannière `info` « Vue lecture seule »
+- Validation : sujet requis, corps texte requis
+- Toast `success` / `error` après sauvegarde
+- « Réinitialiser aux valeurs par défaut » → modal de confirmation → `PATCH /api/admin/mail-templates/:slug` avec `{ reset: true }`
+
+**Endpoints** :
+- `GET /api/admin/mail-templates` → liste tous les templates
+- `PATCH /api/admin/mail-templates/:slug` → `{ subject, bodyText, bodyHtml? }` ou `{ reset: true }`
+
+---
+
+## 17. RH — Demandes collaborateurs
+
+---
+
+### S-38 · `/hr/flags` — Dashboard demandes RH
+
+**Accessible à** : admin · hr
+
+**Fil d'Ariane** : RH › Demandes collaborateurs
+
+**Layout** :
+```
+[H1: Demandes collaborateurs]
+
+[FilterBar]
+Type    : [Toutes ▼]  [Mobilité | Augmentation | Promotion | Formation]
+Statut  : [Tous ▼]   [Nouveau | En traitement | Traité]
+Période : [date range picker]
+Département : [Tous ▼]
+Secteur : [Tous ▼]
+
+[DataTable]
+Colonnes : Employé | Type | Date soumission | Campagne | Statut | Actions
+[Badge statut coloré : new=blue · in_progress=orange · treated=green]
+
+[Clic sur ligne → panneau latéral S-38-P1]
+```
+
+**Panneau latéral — détail d'une demande (S-38-P1)** :
+```
+[Nom de l'employé]  [Type de demande — badge]
+Date : xx/xx/xxxx
+Campagne : [nom campagne ou "—"]
+─────────────────────────────────
+Réponses au formulaire :
+  Q1 : ...
+  Q2 : ...
+─────────────────────────────────
+Statut actuel : [Select ▼]
+  • Nouveau
+  • En traitement
+  • Traité
+
+Note interne :
+[textarea]
+
+[Annuler]  [Mettre à jour]
+
+[Voir l'évaluation complète →]  (lien /evaluations/:id)
+```
+
+**Comportement** :
+- Mise à jour `PATCH /api/hr/flags/:evalId/status` → `{ status, note }` → rafraîchissement de la liste
+- Badge rouge sur l'icône nav si nombre de demandes `new` > 0
+
+**Endpoints** :
+- `GET /api/hr/flags?type=...&status=...&from=...&to=...&department=...&sector=...`
+- `PATCH /api/hr/flags/:evalId/status` → `{ status: 'new'|'in_progress'|'treated', note: '...' }`
+
+---
+
+## 18. Organisation
+
+---
+
+### S-39 · `/admin/orgchart` — Organigramme
+
+**Accessible à** : admin, hr
+
+**Fil d'Ariane** : Administration › Organigramme
+
+**3 vues (tabs en haut)** :
+1. **Tout** (`view=all`) — arbre complet, racines = users sans `managerId`, tous rôles confondus
+2. **Équipes** (`view=teams`) — regroupé par manager direct ; chaque nœud manager = carte avec compteur équipe
+3. **Secteur** (`view=sector`) — chaque secteur = groupe coloré, utilisateurs assignés dedans ; section « Non assigné » en bas
+
+**Layout** :
+```
+[Onglets: 🏢 Tout | 👥 Équipes | 🗂 Secteur]    [Recherche user ____]  [+ Nouveau secteur]
+
+[Arbre SVG / D3 — collapsible — branches/feuilles]
+
+[Panneau latéral (slide-over) quand un nœud est sélectionné]
+```
+
+**Nœud dans l'arbre** :
+- Avatar + Nom + Rôle (badge coloré) + Département
+- Badge secteur (couleur du secteur)
+- Compteur rapports directs (si manager/director)
+- Badge orange si `managerId = null` ET rôle ∉ `['admin','hr']` (sans N+1 défini)
+- Bouton `-` / `+` pour replier/déplier la branche
+
+**Interactions** :
+- Clic sur nœud → panneau latéral s'ouvre (S-39-P1)
+- Drag & drop d'un nœud sous un autre → dialog confirmation « Changer le manager de [Nom] pour [Nouveau manager] ? » → `PATCH /api/org/users/:id`
+- Sélection multiple (checkbox sur les nœuds) → bouton « Assigner au secteur » (batch)
+
+**Panneau latéral S-39-P1** :
+```
+[Avatar L]  [Prénom Nom]
+            [Rôle] · [Département] · [Secteur]
+            Manager : [Nom du N+1 ou "—"]
+            Rapports directs : N
+────────────────────────────────────
+[Changer le rôle      ▼]
+[Changer le secteur   ▼]
+[Voir ses évaluations →]
+[Créer une campagne pour ce secteur →]  (si secteur défini)
+```
+- Changer rôle → `PATCH /api/org/users/:id { role }`
+- Changer secteur → `PATCH /api/org/users/:id { sectorId }`
+
+**Vue Secteur — gestion secteurs** :
+- Chaque secteur = card avec sa couleur + nom + nb users + boutons [✏️] [🗑️]
+- Bouton « + Nouveau secteur » → modal inline : nom + couleur (color picker) + description
+- Drag & drop d'un user d'un secteur à un autre
+
+**Endpoints** :
+| Méthode | URL | Usage |
+|---|---|---|
+| `GET` | `/api/org/tree?view=all\|teams\|sector` | Données de l'arbre |
+| `PATCH` | `/api/org/users/:id` | managerId, sectorId, role |
+| `GET` | `/api/org/sectors` | Liste des secteurs |
+| `POST` | `/api/org/sectors` | Créer un secteur |
+| `PATCH` | `/api/org/sectors/:id` | Modifier un secteur |
+| `DELETE` | `/api/org/sectors/:id` | Supprimer un secteur |
+
+**Mobile** : Arbre remplacé par une liste hiérarchique repliable (accordéon). Panneau latéral = bottom-sheet.
+
+---
+
+### S-40 · `/admin/users/import` — Import utilisateurs
+
+**Accessible à** : admin, hr
+
+**Fil d'Ariane** : Administration › Utilisateurs › Import
+
+**Layout** :
+```
+[H1: Import utilisateurs]
+
+┌────────────────────────────────────────────────────────┐
+│        [Illustration Upload SVG 80px]                  │
+│   Glissez un fichier CSV ou JSON ici                   │
+│        [ou cliquez pour parcourir]                     │
+└────────────────────────────────────────────────────────┘
+[⬇ Télécharger le template CSV]
+
+[Si fichier chargé → Tableau aperçu]
+┌───────────────────────────────────────────────────────────────────────────┐
+│ PRÉNOM  │ NOM   │ EMAIL          │ RÔLE     │ DÉPARTEMENT │ MANAGER │ SECTEUR│
+├───────────────────────────────────────────────────────────────────────────┤
+│ Jean    │ Dupont│ j.dupont@…     │ employee │ R&D         │ -       │ Tech   │
+│ [fond rouge — email invalide]  ⚠ "Email déjà existant"                   │
+└───────────────────────────────────────────────────────────────────────────┘
+
+[Mode simulation ☑]
+
+[Lancer l'import]   (Primary)
+
+[Résultats : ✅ N créés · 🔄 M mis à jour · ⚠️ P erreurs]
+[Voir les utilisateurs créés →]
+```
+
+**Comportement** :
+- CSV (séparateur `;` ou `,` auto-détecté) ou JSON array
+- Mode simulation (`dryRun=true`) : preview sans modification réelle
+- Upsert par email
+- Erreurs non bloquantes : ligne en erreur signalée (fond rouge + tooltip), les autres passent
+- Post-import : lien « Voir les utilisateurs créés → » (filtre `/admin/users?source=import`)
+
+**Colonnes CSV/JSON** : `firstName` · `lastName` · `email`* · `role` · `department` · `managerEmail` · `sector`
+
+**Endpoint** : `POST /api/users/import?dryRun=true|false`
+
+**Mobile** : Formulaire 1 col, tableau en scroll horizontal.
+
+---
+
+### S-41 · `/admin/forms/import` — Import formulaire JSON
+
+**Accessible à** : admin, hr
+
+**Fil d'Ariane** : Administration › Formulaires › Import JSON
+
+**Layout** :
+```
+[H1: Import formulaire JSON]
+
+[Onglets : 📁 Fichier | 📋 Coller JSON]
+
+[Onglet Fichier]
+┌────────────────────────────────────────────────────────┐
+│        [Illustration Upload SVG 80px]                  │
+│   Glissez un fichier JSON ici                          │
+│        [ou cliquez pour parcourir]                     │
+└────────────────────────────────────────────────────────┘
+
+[Onglet Coller JSON]
+┌────────────────────────────────────────────────────────┐
+│  {                                                     │
+│    "title": "...",                                     │
+│    "formType": "...",                                  │
+│    ...                                                 │
+│  }                                 [Textarea monospace]│
+└────────────────────────────────────────────────────────┘
+
+[⬇ Télécharger le template JSON]   [Valider]
+
+[Si valide → Aperçu]
+┌────────────────────────────────────────────────────────┐
+│ ✅ JSON valide                                         │
+│ Titre : "Évaluation annuelle 2025"                     │
+│ Type  : self_evaluation                                │
+│ Questions : 12                                         │
+└────────────────────────────────────────────────────────┘
+[Importer]   (Primary)
+
+[Si erreurs]
+⚠ Erreurs de validation :
+  • question[2].type : valeur inconnue "unknown_type"
+  • questions[5].id : dupliqué (déjà utilisé en position 2)
+```
+
+**Comportement** :
+- Validation complète : types de questions, options, IDs uniques, `formType` valide
+- Aperçu avant confirmation (titre, type, nb de questions)
+- Post-import → redirige vers S-15 `/forms/:id`
+- Bouton « ⬇ Télécharger le template JSON » → `GET /api/forms/template`
+
+**Endpoints** :
+| Méthode | URL | Usage |
+|---|---|---|
+| `POST` | `/api/forms/import` | Import du formulaire |
+| `GET` | `/api/forms/template` | Téléchargement du template JSON vide |
+
+**Mobile** : Onglets en pleine largeur, textarea réduit (12 lignes).
+
 ---
 
 | ID | Écran | Titre | Action | Type |
@@ -1659,6 +2046,11 @@ Chaque card : icône 24px centrée · titre · description courte · lien.
 | S-33 | `/onboarding` | Flux onboarding | Tous (si non complété) |
 | S-34 | `/admin/settings` | Paramètres système | admin |
 | S-35 | `/hr/settings` | Paramètres RH | hr (écriture) · admin (lecture) |
+| S-36 | `/admin/mail-templates` | Templates de mail | admin (écriture) · hr (lecture) |
+| S-38 | `/hr/flags` | Demandes collaborateurs | admin, hr |
+| S-39 | `/admin/orgchart` | Organigramme | admin, hr |
+| S-40 | `/admin/users/import` | Import utilisateurs | admin, hr |
+| S-41 | `/admin/forms/import` | Import formulaire JSON | admin, hr |
 
 ---
 

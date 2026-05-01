@@ -115,6 +115,27 @@ const campaignSchema = new Schema({
     default: true,
   },
 
+  // Périmètre de la campagne : qui est concerné
+  targetScope: {
+    type: {
+      type: String,
+      enum: ['all', 'department', 'sector', 'users'],
+      default: 'all',
+    },
+    ids: {
+      type: [Schema.Types.Mixed],
+      default: [],
+    },
+    _id: false,
+  },
+
+  // Formulaire d'objectifs lié à cette campagne (optionnel, type 'objectives')
+  objectivesFormId: {
+    type: Schema.Types.ObjectId,
+    ref: 'Form',
+    default: null,
+  },
+
 }, { timestamps: true, versionKey: false })
 
 // Validation : la date de fin doit être après ou égale à la date de début

@@ -69,6 +69,13 @@ const userSchema = new Schema({
     index: true,
   },
 
+  sectorId: {
+    type: Schema.Types.ObjectId,
+    ref: 'Sector',
+    default: null,
+    index: true,
+  },
+
   // Distingue les comptes locaux (créés en DB) des comptes LDAP.
   authSource: {
     type: String,

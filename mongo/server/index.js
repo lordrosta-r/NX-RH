@@ -35,6 +35,11 @@ const adminRoutes       = require('./routes/admin')
 const auditRoutes       = require('./routes/audit')
 const offboardingRoutes = require('./routes/offboarding')
 const hrNotifRoutes     = require('./routes/hr/notifications')
+const orgRoutes         = require('./routes/org')
+const userImportRoutes  = require('./routes/users/import')
+const formImportRoutes  = require('./routes/forms/importExport')
+const hrFlagsRoutes     = require('./routes/hr/flags')
+const mailTemplateRoutes = require('./routes/admin/mailTemplates')
 
 // ─── App setup ───────────────────────────────────────────────────────────────
 
@@ -135,8 +140,15 @@ const mutationLimiter = rateLimit({ windowMs: 60 * 1000, max: 500, standardHeade
 app.use('/api/', apiLimiter)
 
 app.use('/api/auth',        authRoutes)
+
+// ⚠️ /api/users/import AVANT /api/users (évite capture par la route paramétrée)
+app.use('/api/users/import', mutationLimiter, authGuard(['admin', 'hr']), userImportRoutes)
 app.use('/api/users',       mutationLimiter, authenticated, userRoutes)
 app.use('/api/campaigns',   mutationLimiter, authenticated, campaignRoutes)
+// ⚠️ /api/forms/template et /api/forms/import AVANT /api/forms (routes spécifiques d'abord)
+app.use('/api/forms/template',   mutationLimiter, authGuard(['admin', 'hr']), formImportRoutes)
+app.use('/api/forms/import',     mutationLimiter, authGuard(['admin', 'hr']), formImportRoutes)
+app.use('/api/forms/:id/export', mutationLimiter, authGuard(['admin', 'hr']), formImportRoutes)
 app.use('/api/forms',       mutationLimiter, authenticated, formRoutes)
 app.use('/api/evaluations/bulk', mutationLimiter)
 app.use('/api/evaluations', authenticated, evaluationRoutes)
@@ -144,12 +156,15 @@ app.use('/api/analytics',   apiLimiter, authenticated, analyticsRoutes)
 app.use('/api/events',      mutationLimiter, authenticated, eventRoutes)
 app.use('/api/resources',   mutationLimiter, authenticated, resourceRoutes)
 app.use('/api/admin/ldap',  mutationLimiter, authGuard(['admin']), ldapRoutes)
-// ⚠️ /api/admin/audit MUST be declared before /api/admin to prevent
-//    authGuard(['admin']) from blocking HR users on the more-specific path.
-app.use('/api/admin/audit', apiLimiter, authGuard(['admin', 'hr']), auditRoutes)
-app.use('/api/admin',      mutationLimiter, authGuard(['admin']), adminRoutes)
+// ⚠️ Routes /api/admin/* spécifiques AVANT /api/admin (catch-all admin-only)
+//    pour éviter que authGuard(['admin']) bloque les utilisateurs HR.
+app.use('/api/admin/audit',          apiLimiter,      authGuard(['admin', 'hr']), auditRoutes)
+app.use('/api/admin/mail-templates', mutationLimiter, authGuard(['admin', 'hr']), mailTemplateRoutes)
+app.use('/api/admin',                mutationLimiter, authGuard(['admin']),        adminRoutes)
 app.use('/api/offboarding', mutationLimiter, authenticated, offboardingRoutes)
 app.use('/api/hr/notifications', mutationLimiter, authGuard(['admin', 'hr']), hrNotifRoutes)
+app.use('/api/hr/flags',         mutationLimiter, authGuard(['admin', 'hr']), hrFlagsRoutes)
+app.use('/api/org',              mutationLimiter, authGuard(['admin', 'hr']), orgRoutes)
 
 // ─── 404 Fallback ────────────────────────────────────────────────────────────
 

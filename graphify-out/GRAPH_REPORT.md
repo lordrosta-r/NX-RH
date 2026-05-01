@@ -1,7 +1,7 @@
 # Graph Report - NX-RH  (2026-05-01)
 
 ## Corpus Check
-- 206 files · ~232,728 words
+- 206 files · ~268,418 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -61,10 +61,10 @@
   scripts/e2e/test-restricted.js → client/src/pages/login/Login.jsx
 - `authGuard()` --calls--> `buildApp()`  [INFERRED]
   mongo/server/middleware/authGuard.js → mongo/server/__tests__/routes/users.test.js
-- `buildApp()` --calls--> `authGuard()`  [INFERRED]
-  mongo/server/__tests__/routes/evaluations.pdf.test.js → mongo/server/middleware/authGuard.js
-- `buildApp()` --calls--> `authGuard()`  [INFERRED]
-  mongo/server/__tests__/routes/offboarding.test.js → mongo/server/middleware/authGuard.js
+- `authGuard()` --calls--> `buildApp()`  [INFERRED]
+  mongo/server/middleware/authGuard.js → mongo/server/__tests__/routes/evaluations.pdf.test.js
+- `authGuard()` --calls--> `buildApp()`  [INFERRED]
+  mongo/server/middleware/authGuard.js → mongo/server/__tests__/routes/offboarding.test.js
 
 ## Communities
 

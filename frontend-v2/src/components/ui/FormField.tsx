@@ -13,16 +13,16 @@ export interface FormFieldProps {
 
 export default function FormField({ label, hint, error, required, children, className, htmlFor }: FormFieldProps) {
   return (
-    <div className={clsx('w-full', className)}>
+    <div className={clsx('flex flex-col gap-1.5 w-full', className)}>
       {label && (
-        <label htmlFor={htmlFor} className="block text-sm font-medium text-slate-700 mb-1">
+        <label htmlFor={htmlFor} className="text-sm font-medium text-slate-700">
           {label}
-          {required && <span className="text-error-500 ml-1" aria-hidden>*</span>}
+          {required && <span className="text-error-500 ml-0.5" aria-hidden>*</span>}
         </label>
       )}
       {children}
-      {error && <p className="mt-1 text-xs text-error-600" role="alert">{error}</p>}
-      {hint && !error && <p className="mt-1 text-xs text-slate-500">{hint}</p>}
+      {error && <p className="text-xs text-error-600" role="alert">{error}</p>}
+      {hint && !error && <p className="text-xs text-slate-400">{hint}</p>}
     </div>
   )
 }

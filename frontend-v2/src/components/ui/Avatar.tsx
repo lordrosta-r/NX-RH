@@ -23,9 +23,9 @@ function getInitials(name: string): string {
 
 const SIZE_CLASSES = {
   sm: 'h-6 w-6 text-xs',
-  md: 'h-8 w-8 text-xs',
-  lg: 'h-10 w-10 text-sm',
-  xl: 'h-12 w-12 text-base',
+  md: 'h-8 w-8 text-sm',
+  lg: 'h-10 w-10 text-base',
+  xl: 'h-12 w-12 text-lg',
 }
 
 export interface AvatarProps {
@@ -44,6 +44,8 @@ export default function Avatar({ name, src, size = 'md', className }: AvatarProp
         !src && getColorFromName(name),
         className
       )}
+      aria-label={`Avatar de ${name}`}
+      role="img"
       title={name}
     >
       {src ? (

@@ -11,7 +11,8 @@
 // Le PATCH restreint supplémentairement à 'admin' via vérification dans le handler.
 // =============================================================================
 
-const router = require('express').Router()
+const router      = require('express').Router()
+const sanitizeHtml = require('sanitize-html')
 const { MailTemplate } = require('../../models')
 
 // ─── GET /api/admin/mail-templates ────────────────────────────────────────────
@@ -67,7 +68,22 @@ router.patch('/:slug', async (req, res, next) => {
     const updates = { lastEditedBy: req.user.id }
     if (subject  !== undefined) updates.subject  = subject
     if (bodyText !== undefined) updates.bodyText = bodyText
-    if (bodyHtml !== undefined) updates.bodyHtml = bodyHtml
+    if (bodyHtml !== undefined) {
+      updates.bodyHtml = sanitizeHtml(bodyHtml, {
+        allowedTags: ['p', 'br', 'strong', 'em', 'a', 'ul', 'ol', 'li', 'h2', 'h3', 'span', 'div'],
+        allowedAttributes: {
+          'a': ['href', 'target'],
+          '*': ['style'],
+        },
+        allowedStyles: {
+          '*': {
+            'color':       [/.*/],
+            'font-weight': [/.*/],
+            'text-align':  [/.*/],
+          },
+        },
+      })
+    }
 
     const template = await MailTemplate.findOneAndUpdate(
       { slug },

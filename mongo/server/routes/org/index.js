@@ -10,7 +10,8 @@
 // PATCH  /api/org/sectors/:id                 → modifier un secteur
 // DELETE /api/org/sectors/:id                 → supprimer un secteur
 //
-// Rôles autorisés : admin, hr (déclaré dans index.js via authGuard)
+// Rôles autorisés : admin, hr (toutes routes sauf GET /tree)
+//                   manager, director (GET /tree — vue scopée)
 // =============================================================================
 
 const router   = require('express').Router()
@@ -28,9 +29,31 @@ router.get('/tree', async (req, res, next) => {
       return res.status(400).json({ error: 'view invalide : all, teams ou sector attendu' })
     }
 
-    const users = await User.find({ isActive: true })
+    const role   = req.user.role
+    const userId = (req.user.id || req.user._id).toString()
+
+    // Déterminer les IDs accessibles selon le rôle
+    let scopeIds = null // null = accès complet (admin/hr)
+
+    if (role === 'director') {
+      const directReports = await User.find({ managerId: userId, isActive: true }).select('_id').lean()
+      const directIds = directReports.map(u => u._id)
+      const secondLevel = await User.find({ managerId: { $in: directIds }, isActive: true }).select('_id').lean()
+      scopeIds = new Set([userId, ...directIds.map(String), ...secondLevel.map(u => u._id.toString())])
+    } else if (role === 'manager') {
+      const directReports = await User.find({ managerId: userId, isActive: true }).select('_id').lean()
+      scopeIds = new Set([userId, ...directReports.map(u => u._id.toString())])
+    } else if (!['admin', 'hr'].includes(role)) {
+      return res.status(403).json({ error: 'Accès interdit' })
+    }
+
+    let users = await User.find({ isActive: true })
       .select('_id firstName lastName role department sectorId managerId avatar')
       .lean()
+
+    if (scopeIds) {
+      users = users.filter(u => scopeIds.has(u._id.toString()))
+    }
 
     // ── all : arbre récursif depuis les racines ────────────────────────────
     if (view === 'all') {
@@ -130,6 +153,9 @@ router.get('/tree', async (req, res, next) => {
 
 router.patch('/users/:id', async (req, res, next) => {
   try {
+    if (!['admin', 'hr'].includes(req.user.role)) {
+      return res.status(403).json({ error: 'Accès interdit' })
+    }
     const { id } = req.params
     if (!mongoose.isValidObjectId(id)) {
       return res.status(400).json({ error: 'ID invalide' })
@@ -181,6 +207,9 @@ router.patch('/users/:id', async (req, res, next) => {
 
 router.get('/sectors', async (req, res, next) => {
   try {
+    if (!['admin', 'hr'].includes(req.user.role)) {
+      return res.status(403).json({ error: 'Accès interdit' })
+    }
     const sectors = await Sector.find({ isActive: true })
       .sort({ name: 1 })
       .populate('createdBy', 'firstName lastName')
@@ -195,6 +224,9 @@ router.get('/sectors', async (req, res, next) => {
 
 router.post('/sectors', async (req, res, next) => {
   try {
+    if (!['admin', 'hr'].includes(req.user.role)) {
+      return res.status(403).json({ error: 'Accès interdit' })
+    }
     const { name, description, color } = req.body
 
     if (!name || typeof name !== 'string' || name.trim().length < 2 || name.trim().length > 100) {
@@ -220,6 +252,9 @@ router.post('/sectors', async (req, res, next) => {
 
 router.patch('/sectors/:id', async (req, res, next) => {
   try {
+    if (!['admin', 'hr'].includes(req.user.role)) {
+      return res.status(403).json({ error: 'Accès interdit' })
+    }
     const { id } = req.params
     if (!mongoose.isValidObjectId(id)) return res.status(400).json({ error: 'ID invalide' })
 
@@ -248,6 +283,9 @@ router.patch('/sectors/:id', async (req, res, next) => {
 
 router.delete('/sectors/:id', async (req, res, next) => {
   try {
+    if (!['admin', 'hr'].includes(req.user.role)) {
+      return res.status(403).json({ error: 'Accès interdit' })
+    }
     const { id } = req.params
     if (!mongoose.isValidObjectId(id)) return res.status(400).json({ error: 'ID invalide' })
 

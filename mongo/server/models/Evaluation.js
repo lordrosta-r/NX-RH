@@ -54,6 +54,7 @@ const ROLE_TRANSITIONS = {
     reviewed:         ['signed_hr'],
     signed_evaluatee: ['signed_hr'],
     signed_manager:   ['signed_hr'],
+    signed_hr:        ['validated'],
   },
 }
 
@@ -94,14 +95,14 @@ const evaluationSchema = new Schema({
   lastSavedAt: { type: Date, default: null },
 
   // Score global optionnel (0–100), ajouté par le reviewer
-  score: { type: Number, min: 0, max: 100, default: null },
+  reviewerScore: { type: Number, min: 0, max: 100, default: null },
 
   // Commentaire du reviewer (manager ou directeur)
   reviewerComment: { type: String, default: '', maxlength: 5000 },
   reviewedBy:      { type: Schema.Types.ObjectId, ref: 'User', default: null },
 
   // Objectifs pour la période N+1, saisis par le reviewer
-  nextObjectives: { type: String, default: '', maxlength: 5000 },
+  nextYearObjectives: { type: String, default: '', maxlength: 5000 },
 
   // Appréciation des objectifs par le reviewer — { [questionId]: 'achieved'|'partial'|'not_achieved' }
   objectiveRatings: { type: Schema.Types.Mixed, default: {} },

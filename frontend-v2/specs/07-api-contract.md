@@ -62,6 +62,24 @@ Chaque endpoint est décrit avec ses rôles, paramètres, body, réponse et erre
 
 ---
 
+### PATCH /api/auth/password
+- **Auth** : Authentifié (tous rôles)
+- **⚠️ DÉSACTIVÉ (LDAP)** : retourne toujours `403 { message: 'La modification du mot de passe est gérée par le LDAP.' }`
+
+---
+
+### POST /api/auth/forgot-password
+- **Auth** : Public
+- **⚠️ DÉSACTIVÉ (LDAP)** : retourne toujours `403 { message: 'La réinitialisation du mot de passe est gérée par le LDAP.' }`
+
+---
+
+### POST /api/auth/reset-password
+- **Auth** : Public
+- **⚠️ DÉSACTIVÉ (LDAP)** : retourne toujours `403 { message: 'La réinitialisation du mot de passe est gérée par le LDAP.' }`
+
+---
+
 ## 2. Users (`/api/users`)
 
 ### GET /api/users/me
@@ -73,7 +91,7 @@ Chaque endpoint est décrit avec ses rôles, paramètres, body, réponse et erre
 
 ### GET /api/users
 - **Auth** : admin, hr (tout) · manager, director (leurs subordonnés directs)
-- **Query** : `?role=&department=&search=&isActive=true|false&page=1&limit=50`
+- **Query** : `?role=&department=&search=&isActive=true|false&sector=<sectorId>&page=1&limit=50`
 - **Response** `200` : `{ data: User[], total, page, limit }` (sans `passwordHash`, `ldapDn`)
 - **Errors** : `403` rôle insuffisant
 
@@ -155,13 +173,20 @@ Chaque endpoint est décrit avec ses rôles, paramètres, body, réponse et erre
 
 ---
 
+### DELETE /api/users/:id
+- **Auth** : admin uniquement
+- **Response** `204` : aucun corps (soft delete — `isActive = false`)
+- **Errors** : `400` ID invalide · `403` non admin · `403` impossible de se supprimer soi-même · `404` introuvable
+
+---
+
 ## 3. Users Import (`/api/users/import`)
 
 ### POST /api/users/import
 - **Auth** : admin, hr
 - **Query** : `?dryRun=true|false`
 - **Body** : JSON `application/json` (tableau d'objets) OU CSV `text/csv` / `text/plain`
-- **Colonnes CSV / champs JSON** : `firstName, lastName, email, role, department, managerEmail, sectorName`
+- **Colonnes CSV / champs JSON** : `firstName, lastName, email, role, department, managerEmail, sector`
 - **Response** `200` :
   ```json
   {
@@ -226,6 +251,7 @@ Chaque endpoint est décrit avec ses rôles, paramètres, body, réponse et erre
 ---
 
 ### GET /api/campaigns/:id/analytics
+> ⚠️ **Déprécié** — L'endpoint canonique est désormais `GET /api/analytics/campaigns/:id` (mêmes données, accès étendu aux managers et directeurs). Cet endpoint reste disponible pour compatibilité.
 - **Auth** : admin, hr
 - **Response** `200` :
   ```json
@@ -304,15 +330,23 @@ Chaque endpoint est décrit avec ses rôles, paramètres, body, réponse et erre
 - **Auth** : Tous les rôles (selon le champ)
 - **Body** (selon rôle) :
   - `answers: Array<{ questionId, value }>` — tous les rôles (avant `submitted`)
-  - `status: string` — transition selon matrice rôle/statut
-  - `score: number` (0–100) — manager/director/admin/hr
+  - `status: string` — transition selon matrice rôle/statut (voir tableau ci-dessous)
+  - `reviewerScore: number` (0–100) — manager/director/admin/hr
   - `reviewerComment: string` — manager/director/admin/hr
-  - `nextObjectives: string` — manager/director/admin/hr
+  - `nextYearObjectives: string` — manager/director/admin/hr
   - `objectiveRatings: object` — manager/director/admin/hr
   - `evaluateeComment: string` — évalué/admin/hr
   - `disagreementFlag: boolean` — évalué/admin/hr
+- **Transitions par rôle** :
+  | Rôle | Depuis → Vers |
+  |---|---|
+  | employee | `assigned→in_progress`, `in_progress→submitted`, `reviewed→signed_evaluatee` |
+  | manager/director | `submitted→reviewed`, `signed_evaluatee→signed_manager` |
+  | hr | `reviewed→signed_hr`, `signed_evaluatee→signed_hr`, `signed_manager→signed_hr`, **`signed_hr→validated`** |
+  | admin | toutes les transitions valides (`VALID_TRANSITIONS`) |
+- **Timestamps automatiques** : lors d'une transition vers `signed_evaluatee`, `signed_manager` ou `signed_hr`, les champs `signedByEvaluateeAt`, `signedByManagerAt`, `signedByHrAt` sont settés automatiquement.
 - **Response** `200` : Evaluation complète populée
-- **Errors** : `400` ID/answers invalides · `403` accès refusé (mauvais rôle/évaluateur) · `404` introuvable · `409` réponses verrouillées après submitted
+- **Errors** : `400` ID/answers invalides · `400` transition non autorisée · `403` accès refusé (mauvais rôle/évaluateur) · `404` introuvable · `409` réponses verrouillées après submitted
 
 ---
 
@@ -345,7 +379,7 @@ Chaque endpoint est décrit avec ses rôles, paramètres, body, réponse et erre
   ```json
   {
     "n1Campaign": { "id", "name", "startDate", "endDate" },
-    "score", "reviewerComment", "nextObjectives", "objectiveRatings",
+    "reviewerScore", "reviewerComment", "nextYearObjectives", "objectiveRatings",
     "status", "objectivesAnswers": [{ "questionId", "questionLabel", "questionType", "value" }],
     "formTitle", "formType",
     "evaluateeComment", "disagreementFlag"
@@ -465,6 +499,14 @@ Chaque endpoint est décrit avec ses rôles, paramètres, body, réponse et erre
 - **Body** : `{ name?: string, description?: string, color?: string, isActive?: boolean }`
 - **Response** `200` : Sector mis à jour (createdBy populé)
 - **Errors** : `400` ID invalide · `404` introuvable · `409` nom déjà utilisé
+
+---
+
+### PATCH /api/org/sectors/:id/assign-users
+- **Auth** : admin, hr
+- **Body** : `{ userIds: string[] }` (tableau d'ObjectIds)
+- **Response** `200` : `{ updated: number }`
+- **Errors** : `400` ID invalide · `400` userIds tableau non vide requis · `404` secteur introuvable
 
 ---
 
@@ -717,7 +759,7 @@ Chaque endpoint est décrit avec ses rôles, paramètres, body, réponse et erre
 
 | Module | Endpoints |
 |---|---|
-| Auth | 4 |
+| Auth | 7 |
 | Users | 11 |
 | Users Import | 1 |
 | Campaigns | 7 |
@@ -726,6 +768,7 @@ Chaque endpoint est décrit avec ses rôles, paramètres, body, réponse et erre
 | Forms Import/Export | 3 |
 | Org | 6 |
 | HR Notifications | 1 |
+| Notifications | 5 |
 | HR Flags | 2 |
 | Admin | 7 |
 | Admin Mail Templates | 2 |
@@ -771,11 +814,70 @@ Chaque endpoint est décrit avec ses rôles, paramètres, body, réponse et erre
 
 ---
 
-### Analytics (`/api/analytics`) — 1 route — auth: admin, hr
+### Analytics (`/api/analytics`) — 4 routes — auth: voir détail par route
 
-| METHOD | Path | Description |
-|---|---|---|
-| GET | `/api/analytics/export/pdf` | Export PDF analytique global (filtre `?campaignId=` possible) |
+| METHOD | Path | Rôles | Description |
+|---|---|---|---|
+| GET | `/api/analytics/summary` | admin, hr, director | Stats globales toutes campagnes |
+| GET | `/api/analytics/campaigns/:id` | admin, hr, director, manager | Stats par campagne |
+| GET | `/api/analytics/export/csv` | admin, hr | Export CSV des évaluations |
+| GET | `/api/analytics/export/pdf` | admin, hr | Export PDF analytique global |
+
+---
+
+### GET /api/analytics/summary
+- **Auth** : admin, hr, director
+- **Response** `200` :
+  ```json
+  {
+    "totalCampaigns": 10,
+    "activeCampaigns": 3,
+    "totalEvaluations": 250,
+    "completionRate": 72,
+    "avgScore": 78,
+    "byStatus": { "assigned": 20, "in_progress": 15, "validated": 180, "..." : "..." }
+  }
+  ```
+- **Errors** : `403` accès refusé
+
+---
+
+### GET /api/analytics/campaigns/:id
+- **Auth** : admin, hr, director, manager
+- **Note** : Remplace l'ancien endpoint campaign-scoped `GET /api/campaigns/:id/analytics` (toujours disponible pour compatibilité)
+- **Response** `200` :
+  ```json
+  {
+    "campaign": { "id": "...", "name": "Campagne 2024", "status": "active" },
+    "totalEvaluations": 40,
+    "completionRate": 65,
+    "byStatus": { "assigned": 5, "validated": 26, "..." : "..." },
+    "avgScore": 74,
+    "signaturesProgress": { "evaluatee": 80, "manager": 60, "hr": 40 }
+  }
+  ```
+- **Errors** : `400` ID invalide · `403` accès refusé · `404` introuvable
+
+---
+
+### GET /api/analytics/export/csv
+- **Auth** : admin, hr
+- **Query** : `?campaignId=xxx` (optionnel — filtre par campagne)
+- **Response** `200` : fichier CSV
+  - `Content-Type: text/csv`
+  - `Content-Disposition: attachment; filename="analytics-export-YYYY-MM-DD.csv"`
+  - **Colonnes** : `evaluateeId, evaluateeName, managerId, managerName, campaignId, campaignName, status, reviewerScore, signedByEvaluateeAt, signedByManagerAt, signedByHrAt, createdAt`
+- **Errors** : `400` campaignId invalide · `403` accès refusé
+
+---
+
+### GET /api/analytics/export/pdf
+- **Auth** : admin, hr
+- **Query** : `?campaignId=xxx` (optionnel — filtre par campagne)
+- **Response** `200` : fichier PDF
+  - `Content-Type: application/pdf`
+  - `Content-Disposition: attachment; filename="analytics-rh-YYYY-MM-DD.pdf"`
+- **Errors** : `400` campaignId invalide · `403` accès refusé
 
 ---
 

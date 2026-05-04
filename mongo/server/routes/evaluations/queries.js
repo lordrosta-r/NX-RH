@@ -169,7 +169,7 @@ async function handleExport(req, res, next) {
         evaluatorName,
         ev.campaignId?.name || '',
         ev.status || '',
-        ev.score !== null && ev.score !== undefined ? ev.score : '',
+        ev.reviewerScore !== null && ev.reviewerScore !== undefined ? ev.reviewerScore : '',
         evaluateeDept,
         ev.createdAt ? new Date(ev.createdAt).toISOString().slice(0, 10) : '',
       ])

@@ -200,7 +200,7 @@ async function handleUpdate(req, res, next) {
     }
 
     // Score (manager/director/admin/hr uniquement)
-    if (req.body.score !== undefined) {
+    if (req.body.reviewerScore !== undefined) {
       if (!['manager', 'director', 'admin', 'hr'].includes(role)) {
         return res.status(403).json({ error: 'Seuls les managers et admins peuvent ajouter un score' })
       }
@@ -213,7 +213,7 @@ async function handleUpdate(req, res, next) {
           return res.status(403).json({ error: "Vous n'êtes pas le manager de cet évalué" })
         }
       }
-      evaluation.score = req.body.score
+      evaluation.reviewerScore = req.body.reviewerScore
     }
 
     // Commentaire reviewer (manager/director/admin/hr)
@@ -236,12 +236,12 @@ async function handleUpdate(req, res, next) {
     }
 
     // Objectifs suivants (manager/director/admin/hr)
-    if (req.body.nextObjectives !== undefined) {
+    if (req.body.nextYearObjectives !== undefined) {
       if (!['manager', 'director', 'admin', 'hr'].includes(role)) {
         return res.status(403).json({ error: 'Seuls les managers et admins peuvent définir les objectifs suivants' })
       }
-      if (typeof req.body.nextObjectives !== 'string' || req.body.nextObjectives.length > 5000) {
-        return res.status(400).json({ error: 'nextObjectives invalide (max 5000 chars)' })
+      if (typeof req.body.nextYearObjectives !== 'string' || req.body.nextYearObjectives.length > 5000) {
+        return res.status(400).json({ error: 'nextYearObjectives invalide (max 5000 chars)' })
       }
       if (['manager', 'director'].includes(role)) {
         if (!_evaluatee) _evaluatee = await User.findById(evaluation.evaluateeId, 'managerId').lean()
@@ -251,7 +251,7 @@ async function handleUpdate(req, res, next) {
           return res.status(403).json({ error: "Accès refusé : vous n'êtes pas l'évaluateur ou le manager de cet évalué" })
         }
       }
-      evaluation.nextObjectives = req.body.nextObjectives
+      evaluation.nextYearObjectives = req.body.nextYearObjectives
     }
 
     // Notations des objectifs (manager/director/admin/hr)
@@ -315,6 +315,11 @@ async function handleUpdate(req, res, next) {
         })
       }
       evaluation.status = req.body.status
+
+      // Setter les timestamps de signature
+      if (req.body.status === 'signed_evaluatee') evaluation.signedByEvaluateeAt = new Date()
+      if (req.body.status === 'signed_manager')   evaluation.signedByManagerAt   = new Date()
+      if (req.body.status === 'signed_hr')        evaluation.signedByHrAt        = new Date()
     }
 
     await evaluation.save()

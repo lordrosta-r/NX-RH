@@ -66,6 +66,19 @@ const EVALUATION_STATUSES = [
   'archived',   // terminal — évaluation annulée suite à un offboarding
 ]
 
+// Statuts patchables des HR flags (via PATCH /api/hr/flags/:id/status)
+// Les statuts assigned et in_progress sont valides en lecture mais ne sont pas patchables via cette route.
+const HR_FLAG_STATUSES = ['submitted', 'reviewed', 'validated', 'rejected']
+
+// Actions d'audit — source de vérité pour le champ `action` du modèle AuditLog
+const AUDIT_ACTIONS = [
+  'login', 'login_failed',
+  'status_change', 'evaluation_update', 'reassigned', 'bulk_action',
+  'campaign_create', 'campaign_activate', 'campaign_update', 'campaign_delete',
+  'offboard', 'offboarding_create', 'offboarding_update', 'offboarding_delete',
+  'gdpr_anonymize',
+]
+
 const AUTH_SOURCES = ['local', 'ldap']
 
 const BCRYPT_ROUNDS = parseInt(process.env.BCRYPT_ROUNDS, 10) || 12
@@ -103,7 +116,7 @@ const NOTIFICATION_TYPES = [
   'eval_reminder_deadline', 'eval_expired',
   'campaign_launched', 'campaign_closed',
   'request_submitted', 'request_treated', 'request_rejected',
-  'system',
+  'reminder', 'system',
 ]
 
 module.exports = {
@@ -111,6 +124,7 @@ module.exports = {
   ADMIN_ROLES, MANAGER_ROLES,
   EVENT_TYPES, RESOURCE_TYPES,
   CAMPAIGN_STATUSES, EVALUATION_STATUSES, AUTH_SOURCES,
+  HR_FLAG_STATUSES, AUDIT_ACTIONS,
   BCRYPT_ROUNDS,
   LOCALES, THEMES, NOTIF_PREF_KEYS, NOTIF_KEYS_BY_ROLE, NOTIFICATION_TYPES,
 }

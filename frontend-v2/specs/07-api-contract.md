@@ -492,9 +492,18 @@ Chaque endpoint est décrit avec ses rôles, paramètres, body, réponse et erre
 
 ### GET /api/hr/flags
 - **Auth** : admin, hr
-- **Query** : `?type=&status=&from=ISO&to=ISO&department=&sectorId=`
-- **Filtres** : `type` parmi les `REQUEST_FORM_TYPES` · `status` parmi `assigned|in_progress|submitted|reviewed|validated`
-- **Response** `200** : `Evaluation[]` de type "request" (evaluateeId et formId populés)
+- **Query params** :
+  | Param        | Type       | Description                                                  |
+  |-------------|------------|--------------------------------------------------------------|
+  | `type`       | string     | Filtre par `formType` (doit être dans `REQUEST_FORM_TYPES`)  |
+  | `status`     | string     | Filtre par statut évaluation : `assigned\|in_progress\|submitted\|reviewed\|validated` |
+  | `from`       | ISO date   | `createdAt >= from`                                          |
+  | `to`         | ISO date   | `createdAt <= to`                                            |
+  | `department` | string     | Department de l'évaluataire (filtre DB via User)             |
+  | `sectorId`   | ObjectId   | sectorId de l'évaluataire (filtre DB via User)               |
+  | `page`       | number     | Numéro de page (défaut : 1)                                  |
+  | `limit`      | number     | Résultats par page (défaut : 20, max : 100)                  |
+- **Response** `200` : `{ data: Evaluation[], total: number, page: number, limit: number, totalPages: number }` (evaluateeId et formId populés)
 - **Errors** : aucune
 
 ---
@@ -787,3 +796,63 @@ Chaque endpoint est décrit avec ses rôles, paramètres, body, réponse et erre
 - **Auth** : Tous les rôles
 - **Response attendue** : agrégats pour la page d'accueil (compteurs évaluations en cours, campagnes actives, événements à venir)
 - **Note** : `/dashboard` dans le serveur est un redirect 301 SPA — pas un endpoint API.
+
+---
+
+## Module Dashboard
+
+### GET /api/dashboard
+
+- **Auth** : Authentifié (tous rôles : `employee`, `manager`, `director`, `hr`, `admin`)
+- **Rate limit** : `apiLimiter` (2 000 req/min)
+- **Response** `200` : `{ role, ...kpis }` — les champs KPI varient selon le rôle (voir ci-dessous)
+- **Errors** : `401` non authentifié · `500` erreur serveur
+
+#### Réponse par rôle
+
+**`employee`**
+```json
+{
+  "role": "employee",
+  "activeCampaigns": [{ "_id", "name", "startDate", "endDate" }],
+  "myEvals": [{ "_id", "status", "campaignId": { "name", "endDate" }, "formId": { "title" } }],
+  "myRequests": [{ "_id", "status", "formId": { "title", "formType" } }]
+}
+```
+
+**`manager`**
+```json
+{
+  "role": "manager",
+  "activeCampaigns": [{ "_id", "name", "startDate", "endDate" }],
+  "team": { "total": number, "submitted": number, "completionRate": number },
+  "teamSize": number,
+  "pendingRequests": [{ "_id", "status", "evaluateeId": { "firstName", "lastName" }, "formId": { "title", "formType" } }]
+}
+```
+
+**`director`**
+```json
+{
+  "role": "director",
+  "activeCampaigns": [{ "_id", "name", "startDate", "endDate" }],
+  "subtree": { "total": number, "submitted": number, "completionRate": number, "size": number },
+  "pendingRequests": [{ "_id", "status", "evaluateeId": { "firstName", "lastName" }, "formId": { "formType" } }]
+}
+```
+> Les évaluations couvrent le sous-arbre à 2 niveaux (directs + leurs directs).
+
+**`hr` / `admin`**
+```json
+{
+  "role": "hr",
+  "activeCampaign": { "_id", "name", "status", "startDate", "endDate" } | null,
+  "evalStats": {
+    "total": number, "assigned": number, "in_progress": number,
+    "submitted": number, "validated": number, "expired": number
+  },
+  "openRequests": [{ "_id", "status", "formId": { "formType" }, "evaluateeId": { "firstName", "lastName", "department" } }],
+  "usersWithoutManager": number,
+  "totalUsers": number
+}
+```

@@ -7,6 +7,7 @@
 // PATCH  /api/org/users/:id                   → mise à jour org d'un utilisateur
 // GET    /api/org/sectors                     → liste des secteurs
 // POST   /api/org/sectors                     → créer un secteur
+// PATCH  /api/org/sectors/:id/assign-users    → assigner des users en lot à un secteur
 // PATCH  /api/org/sectors/:id                 → modifier un secteur
 // DELETE /api/org/sectors/:id                 → supprimer un secteur
 //
@@ -244,6 +245,31 @@ router.post('/sectors', async (req, res, next) => {
     res.status(201).json(sector.toObject())
   } catch (err) {
     if (err.code === 11000) return res.status(409).json({ error: 'Un secteur avec ce nom existe déjà' })
+    next(err)
+  }
+})
+
+// ─── PATCH /api/org/sectors/:id/assign-users ──────────────────────────────────
+
+router.patch('/sectors/:id/assign-users', async (req, res, next) => {
+  try {
+    if (!['admin', 'hr'].includes(req.user.role)) {
+      return res.status(403).json({ error: 'Accès interdit' })
+    }
+    const { id } = req.params
+    if (!mongoose.isValidObjectId(id)) return res.status(400).json({ error: 'ID invalide' })
+
+    const { userIds } = req.body
+    if (!Array.isArray(userIds) || userIds.length === 0) {
+      return res.status(400).json({ error: 'userIds doit être un tableau non vide' })
+    }
+
+    const sector = await Sector.findById(id, '_id').lean()
+    if (!sector) return res.status(404).json({ error: 'Secteur introuvable' })
+
+    const result = await User.updateMany({ _id: { $in: userIds } }, { sectorId: id })
+    res.json({ updated: result.modifiedCount })
+  } catch (err) {
     next(err)
   }
 })

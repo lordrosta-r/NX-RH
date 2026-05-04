@@ -5,7 +5,7 @@
 > **Navigation** : Top navbar fixe (h-16) · Pas de sidebar · Fil d'Ariane pour le contexte
 > **Responsive** : desktop 1280px · tablette 768px · mobile 375px
 > **Design ref** : Eurecia — cards blanches, primaire teal `#17A8D4`, illustrations SVG
-> **Écrans** : 42 (S-01 → S-42 · hors S-37 · + S-10b)
+> **Écrans** : 44 (S-01 → S-43 · + S-10b) — Auth LDAP : pas d'écrans forgot-password / reset-password (gérés par LDAP)
 
 ---
 
@@ -649,7 +649,7 @@ Période: 01/01/2025 – 31/03/2025 · Créée le …
 
 ### S-12 · `/campaigns/:id/analytics` — Analytique de la campagne
 
-**Accessible à** : admin, hr
+**Accessible à** : admin, hr · director, manager (lecture — scopé à leur périmètre)
 
 **Fil d'Ariane** : Accueil › Campagnes › [Nom] › Analytique
 
@@ -668,9 +668,11 @@ Période: 01/01/2025 – 31/03/2025 · Créée le …
 
 **Graphes** : SVG/Canvas inline (recharts ou similaire). Palette : couleurs sémantiques du design system.
 
+**Endpoint données** : `GET /api/analytics/campaigns/:id` (canonique — remplace `GET /api/campaigns/:id/analytics` déprécié, accessible à manager/director)
+
 **Export PDF** : Déclenche `GET /api/analytics/export/pdf?campaignId=:id` → téléchargement.
 
-**Export CSV** : Déclenche `GET /api/evaluations/export?campaignId=:id`.
+**Export CSV (analytique)** : Déclenche `GET /api/analytics/export/csv?campaignId=:id` → téléchargement.
 
 **Empty state** : « Aucune donnée analytique disponible — lancez la campagne pour commencer. »
 
@@ -714,7 +716,13 @@ Grille 3 colonnes (xl) / 2 (md) / 1 (mobile)
 
 **Actions `⋮`** (admin/hr) : Modifier · Dupliquer · Supprimer (si non gelé)
 
-**Filtres** : Type (`self_evaluation` / `manager_evaluation` / `upward_feedback` / `director_evaluation` / `peer_review`) · Campagne liée
+**Filtres** : Type (`self_evaluation` / `manager_evaluation` / `upward_feedback` / `director_evaluation` / `peer_review`) · Campagne liée · Recherche texte (`?search=<titre>`)
+
+**Modal clone (S-13-M1)** :
+> Titre : « Dupliquer — [Titre du formulaire] »
+> Corps : « Une copie sera créée avec le titre "Copie de [titre]", non gelée et sans campagne associée. »
+> Footer : [Annuler] [Dupliquer] (Primary)
+> Endpoint : `POST /api/forms/:id/clone`
 
 **Empty state** : Illustration `FileText` + « Aucun formulaire » + « + Créer le premier formulaire »
 
@@ -807,9 +815,23 @@ Si `formType = 'objectives'` → afficher option supplémentaire :
 - Bouton « Supprimer le formulaire » (Danger, footer, admin/hr, si non gelé)
 - Badge « Gelé » en haut à droite du titre
 - Bouton « ⬇️ Exporter JSON » (Secondary, admin/hr) → `GET /api/forms/:id/export`
+- Bouton « 🔒 Geler le formulaire » (Danger, admin uniquement, si `isFrozen = false`) → Modal S-15-M2
+- Bouton « 🔓 Dégeler le formulaire » (Warning, admin uniquement, si `isFrozen = true`) → Modal S-15-M3
 
 **Modal suppression (S-15-M1)** :
 > « Supprimer ce formulaire ? Cette action est irréversible. » · [Annuler] [Supprimer] (Danger)
+
+**Modal gel (S-15-M2)** (admin uniquement) :
+> Titre : « Geler ce formulaire ? »
+> Corps : « Une fois gelé, les questions ne seront plus modifiables. Les évaluations associées utiliseront cette version figée. »
+> Footer : [Annuler] [Geler le formulaire] (Danger)
+> Endpoint : `POST /api/forms/:id/freeze`
+
+**Modal dégel (S-15-M3)** (admin uniquement) :
+> Titre : « Dégeler ce formulaire ? »
+> Corps : « Les questions redeviendront modifiables. Les évaluations existantes conserveront leurs réponses sur la version précédente. »
+> Footer : [Annuler] [Dégeler le formulaire] (Warning)
+> Endpoint : `POST /api/forms/:id/unfreeze`
 
 ---
 
@@ -1233,7 +1255,7 @@ Motif: Démission · Dernier jour: 28/02/2025
 
 ### S-25 · `/analytics` — Dashboard analytique global
 
-**Accessible à** : admin, hr
+**Accessible à** : admin, hr, director
 
 **Fil d'Ariane** : Accueil › Analytique
 
@@ -1261,6 +1283,11 @@ Total évals       Score moyen        Taux complétion   Évals validées
 
 **Export PDF** : `GET /api/analytics/export/pdf` (avec `campaignId` si sélection).
 
+**Endpoints** :
+- `GET /api/analytics/summary` — statistiques globales toutes campagnes (admin, hr, director)
+- `GET /api/analytics/export/pdf` — export PDF global (admin, hr)
+- `GET /api/analytics/export/csv` — export CSV global (admin, hr)
+
 **Empty state** : « Sélectionnez une campagne active pour afficher les données. »
 
 **Loading state** : Skeleton sur les 4 KPI cards + graphes (donut et histogramme en gris animé). Sélecteur campagne désactivé pendant le chargement.
@@ -1268,6 +1295,63 @@ Total évals       Score moyen        Taux complétion   Évals validées
 **Error state** : Bannière `danger` « Impossible de charger les données analytiques » + bouton [Réessayer]. KPI cards affichent `—`.
 
 **Mobile** : KPI 2×2 · graphes 1 col · tableau scroll horizontal.
+
+---
+
+### S-43 · `/analytics/campaigns/:id` — Analytics campagne (vue étendue)
+
+**Accessible à** : admin, hr, director, manager
+
+**Fil d'Ariane** : Accueil › Analytique › [Nom campagne]
+
+**Page title** : « Analytique — [Nom] »
+
+> **Note** : Cet écran utilise l'endpoint canonique `GET /api/analytics/campaigns/:id`, accessible aux 4 rôles (admin, hr, director, manager). Il complète S-12 qui reste accessible depuis le détail campagne. Les managers et directeurs voient uniquement les données de leur périmètre.
+
+**Layout** :
+```
+[H1: Analytique — Nom]             [← Voir la campagne]
+
+[col-3] Total évals   [col-3] Complétées   [col-3] Score moyen   [col-3] Taux complétion
+
+[col-6] Distribution des statuts     [col-6] Progression des signatures
+  Graphe donut (statuts colorés)       Barres horizontales :
+  assigned / in_progress / validated   Évalué ████ 80%
+                                       Manager ██░░ 60%
+                                       RH      █░░░ 40%
+
+[col-12] Tableau résumé (par département pour admin/hr — par équipe pour manager/director)
+  Département · Total · Complétées · Score moyen · %
+```
+
+**Périmètre selon rôle** :
+- **admin, hr** : toutes les évaluations de la campagne
+- **director** : sous-arbre (soi + N1 + N2)
+- **manager** : rapports directs uniquement
+
+**Rôles — visibilité des sections** :
+| Section | admin/hr | director | manager |
+|---|---|---|---|
+| KPI globaux | ✓ | ✓ (scopé) | ✓ (scopé) |
+| Distribution statuts | ✓ | ✓ | ✓ |
+| Progression signatures | ✓ | ✓ | ✓ |
+| Tableau par département | ✓ | ✓ | ✓ |
+
+**Endpoint** : `GET /api/analytics/campaigns/:id`
+
+**Différences vs S-12** :
+- S-12 (`/campaigns/:id/analytics`) → accessible depuis le détail campagne, endpoint déprécié `GET /api/campaigns/:id/analytics`
+- S-43 (`/analytics/campaigns/:id`) → endpoint canonique, inclut `signaturesProgress`, accessible aux 4 rôles
+
+**Empty state** : « Aucune donnée analytique disponible pour cette campagne. »
+
+**Loading state** : Skeleton KPI cards + graphes en gris animé. Boutons désactivés pendant le chargement.
+
+**Error state** : Bannière `danger` « Impossible de charger les données » + [Réessayer]. KPI affichent `—`.
+
+**Mobile** : KPI 2×2 · graphes 1 col.
+
+**Liens** : → `/campaigns/:id` (retour)
 
 ---
 
@@ -1860,6 +1944,61 @@ Note interne :
 
 ---
 
+### S-37 · `/orgchart` — Organigramme (vue équipe — manager / directeur)
+
+**Accessible à** : manager, director
+
+**Fil d'Ariane** : Accueil › Mon équipe
+
+**Page title** : « Mon équipe » (manager) · « Mon département » (director)
+
+**Layout** :
+```
+[H1: Mon équipe / Mon département]
+
+[Tabs: 👥 Vue directe | 🌲 Hiérarchie complète]  (director : 2 niveaux visibles)
+
+[Arbre hiérarchique — lecture seule]
+
+┌──────────┐     ┌──────────┐   ┌──────────┐
+│[Av] Self │ ──► │[Av] N-1a │──►│[Av] N-2a │  (director : 2 niveaux)
+│ Director │     │ Manager  │   │ Employee │
+└──────────┘     └──────────┘   └──────────┘
+                 ┌──────────┐
+            ──►  │[Av] N-1b │
+                 │ Manager  │
+                 └──────────┘
+```
+
+**Périmètre selon rôle** :
+- **manager** : soi-même + rapports directs (1 niveau)
+- **director** : soi-même + rapports directs + leurs rapports directs (2 niveaux)
+
+**Nœud dans l'arbre** : Avatar + Nom + Rôle (badge coloré) + Département
+
+**Différences vs S-39 (`/admin/orgchart`)** :
+- Lecture seule — pas de drag & drop, pas de réassignation de manager
+- Pas de gestion de secteurs, pas d'actions `⋮` sur les nœuds
+- Pas de sélection multiple ni de batch assign
+- Clic sur un nœud → redirection `/users/:id` (profil utilisateur, lecture)
+- Périmètre automatiquement scopé selon le rôle connecté
+
+**Endpoints** :
+- `GET /api/org/tree?view=teams` — manager (vue directe)
+- `GET /api/org/tree?view=all` — director (sous-arbre à 2 niveaux)
+
+**Empty state** : Illustration `Users` + « Aucun membre dans votre équipe. »
+
+**Loading state** : Skeleton nœuds en grille.
+
+**Error state** : Message `danger` « Impossible de charger la hiérarchie » + [Réessayer].
+
+**Mobile** : Liste hiérarchique accordéon (arbre masqué sur mobile).
+
+**Liens** : → `/users/:id` (clic sur un nœud)
+
+---
+
 ### S-39 · `/admin/orgchart` — Organigramme
 
 **Accessible à** : admin, hr
@@ -2123,6 +2262,9 @@ Note interne :
 | S-27-M1 | `/admin/config` | Email de test | POST email/test | Info |
 | S-27-M2 | `/admin/config` | Créer/modifier une clé | PUT config | Primary |
 | S-35-M1 | `/hr/settings` | Confirmer rappel groupé | POST bulk-remind | Warning |
+| S-13-M1 | `/forms` | Dupliquer un formulaire | POST forms/:id/clone | Primary |
+| S-15-M2 | `/forms/:id` | Geler le formulaire | POST forms/:id/freeze | Danger |
+| S-15-M3 | `/forms/:id` | Dégeler le formulaire | POST forms/:id/unfreeze | Warning |
 
 ---
 
@@ -2167,11 +2309,13 @@ Note interne :
 | S-34 | `/admin/settings` | Paramètres système | admin |
 | S-35 | `/hr/settings` | Paramètres RH | hr (écriture) · admin (lecture) |
 | S-36 | `/admin/mail-templates` | Templates de mail | admin (écriture) · hr (lecture) |
+| S-37 | `/orgchart` | Organigramme équipe (lecture) | manager, director |
 | S-38 | `/hr/flags` | Demandes collaborateurs | admin, hr |
-| S-39 | `/admin/orgchart` | Organigramme | admin, hr |
+| S-39 | `/admin/orgchart` | Organigramme (gestion) | admin, hr |
 | S-40 | `/admin/users/import` | Import utilisateurs | admin, hr |
 | S-41 | `/admin/forms/import` | Import formulaire JSON | admin, hr |
 | S-42 | `/notifications` | Centre de notifications | Tous |
+| S-43 | `/analytics/campaigns/:id` | Analytics campagne (étendue) | admin, hr, director, manager |
 
 ---
 

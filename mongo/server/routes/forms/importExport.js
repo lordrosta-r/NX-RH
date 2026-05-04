@@ -68,7 +68,7 @@ router.post('/', async (req, res, next) => {
     })
 
     await form.save()
-    res.status(201).json(form.toObject())
+    res.status(201).json({ imported: 1, skipped: 0, errors: [], form: form.toObject() })
   } catch (err) {
     next(err)
   }

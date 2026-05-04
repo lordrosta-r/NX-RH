@@ -957,3 +957,33 @@ export const NOTIFICATION_CONFIG: Record<NotificationTypeId, {
   evaluationBulkCreated:        { icon: Layers,         variant: 'info',    priority: 'medium', autoDismiss: 8000  },
 }
 ```
+
+---
+
+## Annexe C — Réconciliation noms camelCase (frontend) ↔ constantes backend
+
+> **Contexte P2-16** : les noms de types de notification utilisent le camelCase dans ce fichier (convention frontend React) et peuvent différer des valeurs string émises par le backend dans `config/constants.js` / `notificationHelper.js`.
+
+| Clé frontend (camelCase) | Valeur backend probable | Notes |
+|---|---|---|
+| `campaignLaunch` | `campaign_started` | À vérifier dans `NOTIF_PREF_KEYS` |
+| `evaluationAssigned` | `evaluation_assigned` | Cohérent |
+| `evaluationSubmitted` | `evaluation_submitted` | Cohérent |
+| `deadlineReminder` | `reminder` | Agrège J-7 et J-1 |
+| `managerActionRequired` | `manager_action_required` | À confirmer |
+| `systemAlerts` | `system_alert` | À confirmer |
+| `evaluationReviewed` | `evaluation_reviewed` | Type dérivé |
+| `evaluationSignedByEvaluatee` | `evaluation_signed_evaluatee` | Type dérivé |
+| `evaluationSignedByManager` | `evaluation_signed_manager` | Type dérivé |
+| `evaluationSignedByHR` | `evaluation_signed_hr` | Type dérivé ; après fix-notifs-models |
+| `evaluationValidated` | `evaluation_validated` | Type dérivé |
+| `evaluationExpired` | `evaluation_expired` | Type dérivé |
+| `formFrozen` | `form_frozen` | À confirmer |
+| `offboardingInitiated` | `offboarding_initiated` | À confirmer |
+| `offboardingCompleted` | `offboarding_completed` | À confirmer |
+| `ldapSyncComplete` | `ldap_sync_complete` | À confirmer |
+| `ldapSyncFailed` | `ldap_sync_failed` | À confirmer |
+| `onboardingComplete` | `onboarding_complete` | À confirmer |
+| `evaluationBulkCreated` | `evaluation_bulk_created` | À confirmer |
+
+**Convention à appliquer** : Le frontend consomme la propriété `type` des objets `Notification` retournés par `GET /api/notifications`. Le composant `NotificationItem` doit mapper ces valeurs string → config (icône, couleur) via `NOTIFICATION_CONFIG`. Utiliser le `NotificationTypeId` (camelCase) comme clé interne et le backend string comme valeur reçue de l'API — un helper `toNotifType(backendKey: string): NotificationTypeId` doit normaliser la conversion.

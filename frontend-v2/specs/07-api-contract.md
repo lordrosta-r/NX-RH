@@ -807,7 +807,7 @@ Chaque endpoint est décrit avec ses rôles, paramètres, body, réponse et erre
 
 ---
 
-*Fin du document — NX-RH API Contract v2.0 · 80 endpoints · 17 modules*
+*Fin du document — NX-RH API Contract v2.0 · 83 endpoints · 17 modules (+ 14 routes hors-contrat documentées en appendice)*
 
 ---
 

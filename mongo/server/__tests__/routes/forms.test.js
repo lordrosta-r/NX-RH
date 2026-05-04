@@ -577,3 +577,205 @@ describe('DELETE /api/forms/:id', () => {
     expect(Form.prototype.deleteOne).toHaveBeenCalledTimes(1)
   })
 })
+
+// =============================================================================
+// POST /api/forms/:id/freeze
+// =============================================================================
+
+describe('POST /api/forms/:id/freeze', () => {
+  const app = buildApp()
+
+  beforeEach(() => {
+    jest.clearAllMocks()
+    Form.prototype.save.mockResolvedValue(undefined)
+  })
+
+  it('returns 403 for hr role (admin only)', async () => {
+    const res = await request(app)
+      .post(`/api/forms/${FORM_ID}/freeze`)
+      .set('Cookie', `token=${tokenFor({ id: HR_ID, role: 'hr' })}`)
+    expect(res.status).toBe(403)
+  })
+
+  it('returns 403 for employee', async () => {
+    const res = await request(app)
+      .post(`/api/forms/${FORM_ID}/freeze`)
+      .set('Cookie', `token=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+    expect(res.status).toBe(403)
+  })
+
+  it('returns 400 for invalid ObjectId', async () => {
+    const res = await request(app)
+      .post('/api/forms/bad-id/freeze')
+      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+    expect(res.status).toBe(400)
+    expect(res.body.error).toMatch(/invalide/i)
+  })
+
+  it('returns 404 when form not found', async () => {
+    Form.findById = jest.fn()
+      .mockResolvedValueOnce(null)
+    const res = await request(app)
+      .post(`/api/forms/${FORM_ID}/freeze`)
+      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+    expect(res.status).toBe(404)
+  })
+
+  it('admin can freeze a form — returns 200 with success and form', async () => {
+    const doc = mockFormDoc({ isFrozen: false, frozenAt: null })
+    Form.findById = jest.fn()
+      .mockResolvedValueOnce(doc)
+      .mockReturnValueOnce(makeChain({ ...doc, isFrozen: true }))
+    const res = await request(app)
+      .post(`/api/forms/${FORM_ID}/freeze`)
+      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+    expect(res.status).toBe(200)
+    expect(res.body.success).toBe(true)
+    expect(res.body.form).toBeDefined()
+  })
+})
+
+// =============================================================================
+// POST /api/forms/:id/unfreeze
+// =============================================================================
+
+describe('POST /api/forms/:id/unfreeze', () => {
+  const app = buildApp()
+
+  beforeEach(() => {
+    jest.clearAllMocks()
+    Form.prototype.save.mockResolvedValue(undefined)
+  })
+
+  it('returns 403 for hr role (admin only)', async () => {
+    const res = await request(app)
+      .post(`/api/forms/${FORM_ID}/unfreeze`)
+      .set('Cookie', `token=${tokenFor({ id: HR_ID, role: 'hr' })}`)
+    expect(res.status).toBe(403)
+  })
+
+  it('returns 404 when form not found', async () => {
+    Form.findById = jest.fn().mockResolvedValueOnce(null)
+    const res = await request(app)
+      .post(`/api/forms/${FORM_ID}/unfreeze`)
+      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+    expect(res.status).toBe(404)
+  })
+
+  it('admin can unfreeze a form — returns 200 with success and form', async () => {
+    const doc = mockFormDoc({ isFrozen: true, frozenAt: new Date() })
+    Form.findById = jest.fn()
+      .mockResolvedValueOnce(doc)
+      .mockReturnValueOnce(makeChain({ ...doc, isFrozen: false, frozenAt: null }))
+    const res = await request(app)
+      .post(`/api/forms/${FORM_ID}/unfreeze`)
+      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+    expect(res.status).toBe(200)
+    expect(res.body.success).toBe(true)
+    expect(res.body.form).toBeDefined()
+  })
+})
+
+// =============================================================================
+// POST /api/forms/:id/clone
+// =============================================================================
+
+describe('POST /api/forms/:id/clone', () => {
+  const app = buildApp()
+  const NEW_FORM_ID = '507f1f77bcf86cd799439099'
+
+  beforeEach(() => {
+    jest.clearAllMocks()
+  })
+
+  it('returns 403 for employee', async () => {
+    const res = await request(app)
+      .post(`/api/forms/${FORM_ID}/clone`)
+      .set('Cookie', `token=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+    expect(res.status).toBe(403)
+  })
+
+  it('returns 403 for manager', async () => {
+    const res = await request(app)
+      .post(`/api/forms/${FORM_ID}/clone`)
+      .set('Cookie', `token=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
+    expect(res.status).toBe(403)
+  })
+
+  it('returns 400 for invalid ObjectId', async () => {
+    const res = await request(app)
+      .post('/api/forms/bad-id/clone')
+      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 404 when form not found', async () => {
+    Form.findById = jest.fn().mockReturnValueOnce(makeChain(null))
+    const res = await request(app)
+      .post(`/api/forms/${FORM_ID}/clone`)
+      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+    expect(res.status).toBe(404)
+  })
+
+  it('admin clones a form — returns 201 with cloned form titled "Copie de ..."', async () => {
+    const original = { _id: FORM_ID, title: 'Formulaire annuel', formType: 'self_assessment', questions: [], createdBy: ADMIN_ID }
+    const cloned   = { _id: NEW_FORM_ID, title: 'Copie de Formulaire annuel', formType: 'self_assessment', questions: [], isFrozen: false }
+    Form.findById = jest.fn()
+      .mockReturnValueOnce(makeChain(original))
+      .mockReturnValueOnce(makeChain(cloned))
+    Form.create = jest.fn().mockResolvedValue({ _id: NEW_FORM_ID })
+    const res = await request(app)
+      .post(`/api/forms/${FORM_ID}/clone`)
+      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+    expect(res.status).toBe(201)
+    expect(res.body.form).toBeDefined()
+    expect(res.body.form.title).toMatch(/^Copie de/)
+    const createArg = Form.create.mock.calls[0][0]
+    expect(createArg.isFrozen).toBe(false)
+    expect(createArg.frozenAt).toBeNull()
+  })
+
+  it('hr can clone a form — returns 201', async () => {
+    const original = { _id: FORM_ID, title: 'Form RH', formType: 'peer_review', questions: [], createdBy: HR_ID }
+    const cloned   = { _id: NEW_FORM_ID, title: 'Copie de Form RH', formType: 'peer_review', questions: [] }
+    Form.findById = jest.fn()
+      .mockReturnValueOnce(makeChain(original))
+      .mockReturnValueOnce(makeChain(cloned))
+    Form.create = jest.fn().mockResolvedValue({ _id: NEW_FORM_ID })
+    const res = await request(app)
+      .post(`/api/forms/${FORM_ID}/clone`)
+      .set('Cookie', `token=${tokenFor({ id: HR_ID, role: 'hr' })}`)
+    expect(res.status).toBe(201)
+  })
+})
+
+// =============================================================================
+// GET /api/forms — ?search filter
+// =============================================================================
+
+describe('GET /api/forms — search filter', () => {
+  const app = buildApp()
+
+  beforeEach(() => jest.clearAllMocks())
+
+  it('applies ?search filter as case-insensitive regex on title', async () => {
+    Form.find           = jest.fn(() => makeChain([]))
+    Form.countDocuments = jest.fn().mockResolvedValue(0)
+    const res = await request(app)
+      .get('/api/forms?search=annuel')
+      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+    expect(res.status).toBe(200)
+    const [filter] = Form.find.mock.calls[0]
+    expect(filter.title).toEqual({ $regex: 'annuel', $options: 'i' })
+  })
+
+  it('returns results when ?search matches form titles', async () => {
+    Form.find           = jest.fn(() => makeChain([{ _id: FORM_ID, title: 'Évaluation annuelle' }]))
+    Form.countDocuments = jest.fn().mockResolvedValue(1)
+    const res = await request(app)
+      .get('/api/forms?search=annuelle')
+      .set('Cookie', `token=${tokenFor({ id: HR_ID, role: 'hr' })}`)
+    expect(res.status).toBe(200)
+    expect(res.body.data.length).toBe(1)
+  })
+})

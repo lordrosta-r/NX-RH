@@ -6,7 +6,7 @@
 // POST /api/users/import?dryRun=true|false
 //   Corps : application/json (tableau) OU text/csv / text/plain (CSV)
 //   Colonnes CSV / champs JSON : firstName, lastName, email, role, department,
-//                                managerEmail, sectorName
+//                                managerEmail, sector
 //
 // Rôles autorisés : admin, hr (déclaré dans index.js)
 // =============================================================================
@@ -118,10 +118,11 @@ router.post(
           }
         }
 
-        // Résoudre sectorName → sectorId
+        // Résoudre sector / sectorName → sectorId
         let sectorId = null
-        if (row.sectorName && row.sectorName.trim()) {
-          const sec = await Sector.findOne({ name: row.sectorName.trim() }, '_id').lean()
+        const sectorName = (row.sectorName || row.sector || '').trim()
+        if (sectorName) {
+          const sec = await Sector.findOne({ name: sectorName }, '_id').lean()
           if (sec) sectorId = sec._id
         }
 

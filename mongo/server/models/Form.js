@@ -73,6 +73,10 @@ const formSchema = new Schema({
   // Les routes doivent refuser les modifications de questions si frozenAt est défini.
   frozenAt: { type: Date, default: null },
 
+  // Vrai quand le formulaire est gelé (empêche toute modification des questions).
+  // Synchronisé avec frozenAt : freeze → isFrozen=true + frozenAt=Date, unfreeze → isFrozen=false + frozenAt=null.
+  isFrozen: { type: Boolean, default: false },
+
   createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
 
 }, { timestamps: true, versionKey: false })

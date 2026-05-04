@@ -504,11 +504,7 @@ Statut initial : `pending` → `in_progress` au premier item coché
   - Admin : + Alertes système
 
 **Changement de mot de passe :**
-1. Onglet ou section "Sécurité"
-2. Champs : mot de passe actuel, nouveau mot de passe, confirmation
-3. Validation : min 8 caractères, force visuellement indiquée (barre de force)
-4. `PATCH /api/auth/password` (route dédiée côté serveur)
-5. Succès → toast "Mot de passe modifié" + déconnexion optionnelle des autres sessions
+- **⚠️ DÉSACTIVÉ (LDAP)** : `PATCH /api/auth/password` retourne `403`. Le changement de mot de passe est géré par le LDAP côté SI. La section "Sécurité" du profil doit informer l'utilisateur de contacter l'administrateur SI.
 
 ---
 
@@ -1188,28 +1184,17 @@ Ce flow clarifie le comportement lorsqu'un manager doit superviser une équipe d
 
 ### F-NEW-10 — Mot de passe oublié
 
-**Acteurs** : Tout utilisateur (authSource: "local")
-**Pré-condition** : Non connecté. Compte de type local (non LDAP).
+**⚠️ DÉSACTIVÉ** : L'application utilise LDAP pour l'authentification. Les routes `POST /api/auth/forgot-password` et `POST /api/auth/reset-password` retournent `403` — la gestion des mots de passe est assurée par le LDAP côté SI.
 
-**Étapes** :
-1. Sur `/login` → clic "Mot de passe oublié ?"
-2. → Redirect `/forgot-password`
-3. Saisie de l'adresse email → `POST /api/auth/forgot-password { email }`
-4. → Afficher message de confirmation (même si email inconnu — anti-énumération)
-5. Email reçu avec lien `https://[domain]/reset-password?token=TOKEN`
-6. → Clic lien → `/reset-password?token=TOKEN`
-7. Saisie nouveau mdp + confirmation → `POST /api/auth/reset-password { token, newPassword }`
-8. → Redirect `/login` avec toast "Mot de passe réinitialisé avec succès"
+**Acteurs** : N/A (LDAP-only)
+**Pré-condition** : N/A
 
-**Cas d'erreur** :
-- Token expiré (> 1h) → "Ce lien a expiré, demandez un nouveau" + bouton "Renvoyer"
-- Token déjà utilisé → idem
-- Compte LDAP → "Votre compte utilise LDAP — contactez votre administrateur"
-- Email inconnu → même message succès (sécurité)
+**Comportement actuel** :
+- Sur `/login`, le lien "Mot de passe oublié ?" doit renvoyer vers une page informant l'utilisateur de contacter l'administrateur SI.
+- `POST /api/auth/forgot-password { email }` → `403 { message: 'La réinitialisation du mot de passe est gérée par le LDAP.' }`
+- `POST /api/auth/reset-password { token, newPassword }` → `403 { message: 'La réinitialisation du mot de passe est gérée par le LDAP.' }`
 
-**Notifications** : Email template "password_reset"
-**Backend** : C1 (add-forgot-password) — à implémenter
-**Screens** : S-NEW-01 `/forgot-password`, S-NEW-02 `/reset-password`
+**Backend** : Désactivé (routes 403)
 
 ---
 

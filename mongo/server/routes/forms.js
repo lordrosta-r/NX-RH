@@ -3,11 +3,14 @@
 // =============================================================================
 // /api/forms — Formulaires (templates de questions)
 //
-// GET    /api/forms              → liste (filtrable par campaignId, formType)
+// GET    /api/forms              → liste (filtrable par campaignId, formType, search)
 // GET    /api/forms/:id          → détail
 // POST   /api/forms              → créer (admin/hr)
 // PATCH  /api/forms/:id          → modifier (admin/hr, bloqué si frozenAt)
 // DELETE /api/forms/:id          → supprimer (admin/hr, bloqué si frozenAt)
+// POST   /api/forms/:id/freeze   → geler (admin seulement)
+// POST   /api/forms/:id/unfreeze → dégeler (admin seulement)
+// POST   /api/forms/:id/clone    → cloner (admin/hr)
 // =============================================================================
 
 const router   = require('express').Router()
@@ -32,6 +35,10 @@ router.get('/', async (req, res, next) => {
         return res.status(400).json({ error: 'formType invalide' })
       }
       filter.formType = req.query.formType
+    }
+
+    if (req.query.search) {
+      filter.title = { $regex: req.query.search, $options: 'i' }
     }
 
     const page  = Math.max(1, parseInt(req.query.page)  || 1)
@@ -139,6 +146,87 @@ router.patch('/:id', async (req, res, next) => {
 
     await form.save()
     res.json({ id: form._id })
+  } catch (err) {
+    if (err.name === 'ValidationError') {
+      return res.status(400).json({ error: err.message })
+    }
+    next(err)
+  }
+})
+
+// POST /api/forms/:id/freeze — Geler un formulaire (admin seulement)
+router.post('/:id/freeze', async (req, res, next) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Réservé aux admins' })
+    }
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({ error: 'ID invalide' })
+    }
+
+    const form = await Form.findById(req.params.id)
+    if (!form) return res.status(404).json({ error: 'Formulaire introuvable' })
+
+    form.isFrozen = true
+    form.frozenAt = form.frozenAt || new Date()
+    await form.save()
+
+    const updated = await Form.findById(form._id).populate('createdBy', 'firstName lastName').lean()
+    res.json({ success: true, form: updated })
+  } catch (err) {
+    next(err)
+  }
+})
+
+// POST /api/forms/:id/unfreeze — Dégeler un formulaire (admin seulement)
+router.post('/:id/unfreeze', async (req, res, next) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Réservé aux admins' })
+    }
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({ error: 'ID invalide' })
+    }
+
+    const form = await Form.findById(req.params.id)
+    if (!form) return res.status(404).json({ error: 'Formulaire introuvable' })
+
+    form.isFrozen = false
+    form.frozenAt = null
+    await form.save()
+
+    const updated = await Form.findById(form._id).populate('createdBy', 'firstName lastName').lean()
+    res.json({ success: true, form: updated })
+  } catch (err) {
+    next(err)
+  }
+})
+
+// POST /api/forms/:id/clone — Cloner un formulaire (admin/hr)
+router.post('/:id/clone', async (req, res, next) => {
+  try {
+    if (!ADMIN_ROLES.includes(req.user.role)) {
+      return res.status(403).json({ error: 'Réservé aux admins et RH' })
+    }
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({ error: 'ID invalide' })
+    }
+
+    const original = await Form.findById(req.params.id).lean()
+    if (!original) return res.status(404).json({ error: 'Formulaire introuvable' })
+
+    // eslint-disable-next-line no-unused-vars
+    const { _id, createdAt, updatedAt, frozenAt, isFrozen, ...rest } = original
+    const clone = await Form.create({
+      ...rest,
+      title:    `Copie de ${original.title}`,
+      isFrozen: false,
+      frozenAt: null,
+      createdBy: req.user.id,
+    })
+
+    const created = await Form.findById(clone._id).populate('createdBy', 'firstName lastName').lean()
+    res.status(201).json({ form: created })
   } catch (err) {
     if (err.name === 'ValidationError') {
       return res.status(400).json({ error: err.message })

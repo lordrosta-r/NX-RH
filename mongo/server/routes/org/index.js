@@ -25,7 +25,8 @@ const { ROLES } = require('../../config/constants')
 
 router.get('/tree', async (req, res, next) => {
   try {
-    const { view = 'all' } = req.query
+    let { view = 'all' } = req.query
+    if (view === 'team') view = 'teams'  // alias singulier → pluriel
     if (!['all', 'teams', 'sector'].includes(view)) {
       return res.status(400).json({ error: 'view invalide : all, teams ou sector attendu' })
     }

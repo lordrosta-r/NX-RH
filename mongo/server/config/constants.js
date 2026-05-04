@@ -62,6 +62,7 @@ const CAMPAIGN_STATUSES   = ['draft', 'active', 'closed', 'archived']
 const EVALUATION_STATUSES = [
   'assigned', 'in_progress', 'submitted', 'reviewed',
   'signed_evaluatee', 'signed_manager', 'signed_hr', 'validated', 'expired',
+  'rejected',   // terminal — demande RH refusée par un RH
   'archived',   // terminal — évaluation annulée suite à un offboarding
 ]
 
@@ -80,18 +81,30 @@ const NOTIF_PREF_KEYS = [
   'managerActionRequired',
   'systemAlerts',
   'bulkReminder',
+  'request_treated',
+  'request_rejected',
 ]
 
 // Mapping des notifications pertinentes par rôle.
 // Source de vérité unique : le backend filtre /me et valide PATCH /preferences
 // d'après cette table — le front se contente d'afficher ce qu'il reçoit.
 const NOTIF_KEYS_BY_ROLE = {
-  employee: ['evaluationAssigned', 'deadlineReminder', 'managerActionRequired', 'bulkReminder'],
+  employee: ['evaluationAssigned', 'deadlineReminder', 'managerActionRequired', 'bulkReminder', 'request_treated', 'request_rejected'],
   manager:  ['evaluationAssigned', 'deadlineReminder', 'evaluationSubmitted', 'bulkReminder'],
   director: ['evaluationAssigned', 'deadlineReminder', 'evaluationSubmitted', 'bulkReminder'],
   hr:       ['evaluationAssigned', 'deadlineReminder', 'evaluationSubmitted', 'campaignLaunch', 'bulkReminder'],
   admin:    ['evaluationAssigned', 'deadlineReminder', 'evaluationSubmitted', 'campaignLaunch', 'systemAlerts', 'bulkReminder'],
 }
+
+// Types de notifications in-app (source de vérité pour models/Notification.js)
+const NOTIFICATION_TYPES = [
+  'eval_assigned', 'eval_submitted', 'eval_reviewed',
+  'eval_signed_evaluatee', 'eval_signed_manager', 'eval_signed_hr',
+  'eval_reminder_deadline', 'eval_expired',
+  'campaign_launched', 'campaign_closed',
+  'request_submitted', 'request_treated', 'request_rejected',
+  'system',
+]
 
 module.exports = {
   ROLES, DEPARTMENTS, QUESTION_TYPES, FORM_TYPES, REQUEST_FORM_TYPES,
@@ -99,5 +112,5 @@ module.exports = {
   EVENT_TYPES, RESOURCE_TYPES,
   CAMPAIGN_STATUSES, EVALUATION_STATUSES, AUTH_SOURCES,
   BCRYPT_ROUNDS,
-  LOCALES, THEMES, NOTIF_PREF_KEYS, NOTIF_KEYS_BY_ROLE,
+  LOCALES, THEMES, NOTIF_PREF_KEYS, NOTIF_KEYS_BY_ROLE, NOTIFICATION_TYPES,
 }

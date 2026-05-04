@@ -66,6 +66,34 @@ const SEED_TEMPLATES = [
     bodyHtml:  '',
     variables: ['firstName', 'campaignName', 'message'],
   },
+  {
+    slug:      'request_treated',
+    subject:   'Votre demande a été traitée',
+    bodyText:  'Bonjour {{ firstName }},\n\nVotre demande "{{ formTitle }}" a été examinée par les RH.\n\nCordialement,\nL\'équipe RH',
+    bodyHtml:  '<p>Bonjour {{ firstName }},</p><p>Votre demande <strong>{{ formTitle }}</strong> a été examinée par les RH.</p>',
+    variables: ['firstName', 'formTitle', 'evalId'],
+  },
+  {
+    slug:      'request_rejected',
+    subject:   'Votre demande n\'a pas été retenue',
+    bodyText:  'Bonjour {{ firstName }},\n\nVotre demande "{{ formTitle }}" n\'a pas été retenue.\nMotif : {{ note }}\n\nCordialement,\nL\'équipe RH',
+    bodyHtml:  '<p>Bonjour {{ firstName }},</p><p>Votre demande <strong>{{ formTitle }}</strong> n\'a pas été retenue.</p><p>Motif : {{ note }}</p>',
+    variables: ['firstName', 'formTitle', 'note', 'evalId'],
+  },
+  {
+    slug:      'password_reset',
+    subject:   'Réinitialisation de votre mot de passe',
+    bodyText:  'Bonjour {{ firstName }},\n\nVous avez demandé la réinitialisation de votre mot de passe.\nCliquez sur ce lien (valable 1h) :\n{{ resetLink }}\n\nSi vous n\'êtes pas à l\'origine de cette demande, ignorez cet email.\n\nCordialement,\nL\'équipe RH',
+    bodyHtml:  '<p>Bonjour {{ firstName }},</p><p>Vous avez demandé la réinitialisation de votre mot de passe.</p><p><a href="{{ resetLink }}">Réinitialiser mon mot de passe</a> (lien valable 1h)</p><p>Si vous n\'êtes pas à l\'origine de cette demande, ignorez cet email.</p>',
+    variables: ['firstName', 'resetLink'],
+  },
+  {
+    slug:      'welcome_import',
+    subject:   'Bienvenue sur NX-RH — vos accès',
+    bodyText:  'Bonjour {{ firstName }},\n\nVotre compte NX-RH a été créé.\nEmail : {{ email }}\nMot de passe temporaire : {{ tempPassword }}\n\nConnectez-vous sur : {{ loginUrl }}\nVous devrez changer votre mot de passe lors de votre première connexion.\n\nCordialement,\nL\'équipe RH',
+    bodyHtml:  '<p>Bonjour {{ firstName }},</p><p>Votre compte NX-RH a été créé.</p><ul><li>Email : {{ email }}</li><li>Mot de passe temporaire : <code>{{ tempPassword }}</code></li></ul><p><a href="{{ loginUrl }}">Se connecter</a></p>',
+    variables: ['firstName', 'email', 'tempPassword', 'loginUrl'],
+  },
 ]
 
 async function seed() {

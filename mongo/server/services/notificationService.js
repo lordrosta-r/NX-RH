@@ -66,6 +66,16 @@ const TEMPLATES = {
       'NanoXplore RH',
     ].join('\n'),
   }),
+
+  request_treated: (data) => ({
+    subject: '[NanoXplore RH] Votre demande a été traitée',
+    text: `Bonjour ${data.firstName || ''},\n\nVotre demande "${data.formTitle || 'votre demande'}" a été examinée par les RH.\n\nCordialement,\nNanoXplore RH`,
+  }),
+
+  request_rejected: (data) => ({
+    subject: '[NanoXplore RH] Votre demande n\'a pas été retenue',
+    text: `Bonjour ${data.firstName || ''},\n\nVotre demande "${data.formTitle || 'votre demande'}" n'a pas été retenue.${data.note ? `\nMotif : ${data.note}` : ''}\n\nCordialement,\nNanoXplore RH`,
+  }),
 }
 
 /**
@@ -136,4 +146,50 @@ async function notifyMany(key, users, data = {}) {
   return results.filter(r => r.status === 'fulfilled' && r.value === true).length
 }
 
-module.exports = { notify, notifyMany, TEMPLATES }
+/**
+ * Send a transactional email to a user by ID, bypassing role/pref checks.
+ * Used for password reset, welcome emails, etc.
+ *
+ * @param {string|ObjectId} userId
+ * @param {string}          key    Template slug (e.g. 'password_reset')
+ * @param {object}          data   Template variables
+ * @returns {Promise<boolean>}
+ */
+async function sendToUser(userId, key, data = {}) {
+  const User = require('../models/User')
+  const user = await User.findById(userId).select('email firstName').lean()
+  if (!user?.email) return false
+
+  const interpolate = (str, vars) =>
+    str.replace(/\{\{\s*(\w+)\s*\}\}/g, (_, k) => vars[k] ?? '')
+  const vars = { ...data, firstName: user.firstName }
+
+  // DB-template first
+  try {
+    const MailTemplate = getMailTemplate()
+    const dbTemplate   = await MailTemplate.findOne({ slug: key }).lean()
+    if (dbTemplate) {
+      await sendMail({
+        to:      user.email,
+        subject: interpolate(dbTemplate.subject, vars),
+        text:    interpolate(dbTemplate.bodyText, vars),
+        html:    interpolate(dbTemplate.bodyHtml || dbTemplate.bodyText, vars),
+      })
+      return true
+    }
+  } catch (_e) { /* fallback */ }
+
+  // Fallback to hardcoded template if one exists
+  const templateFn = TEMPLATES[key]
+  if (!templateFn) return false
+  try {
+    const { subject, text, html } = templateFn(vars)
+    await sendMail({ to: user.email, subject, text, html })
+    return true
+  } catch (err) {
+    console.error(`[NotificationService] sendToUser failed "${key}" to ${user.email}:`, err.message)
+    return false
+  }
+}
+
+module.exports = { notify, notifyMany, sendToUser, TEMPLATES }

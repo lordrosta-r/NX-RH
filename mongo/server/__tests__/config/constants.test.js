@@ -45,9 +45,9 @@ describe('constants', () => {
     const expected = [
       'assigned', 'in_progress', 'submitted', 'reviewed',
       'signed_evaluatee', 'signed_manager', 'signed_hr', 'validated', 'expired',
-      'archived',
+      'archived', 'rejected',
     ]
-    it('has all 10 statuses', () => expect(EVALUATION_STATUSES).toHaveLength(10))
+    it('has all 11 statuses', () => expect(EVALUATION_STATUSES).toHaveLength(11))
     it('contains all expected status values', () => {
       expect(EVALUATION_STATUSES).toEqual(expect.arrayContaining(expected))
     })
@@ -55,6 +55,9 @@ describe('constants', () => {
     it('contains terminal status "expired"', () => expect(EVALUATION_STATUSES).toContain('expired'))
     it('contains terminal status "archived" (offboarding cancellation)', () => {
       expect(EVALUATION_STATUSES).toContain('archived')
+    })
+    it('contains terminal status "rejected" (HR refusal)', () => {
+      expect(EVALUATION_STATUSES).toContain('rejected')
     })
   })
 

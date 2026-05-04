@@ -13,11 +13,12 @@
 
 const router   = require('express').Router()
 const mongoose = require('mongoose')
-const { Form, Evaluation } = require('../../models')
+const { User, Form, Evaluation } = require('../../models')
 const { REQUEST_FORM_TYPES } = require('../../config/constants')
 const { notify: notifyInApp } = require('../../services/notificationHelper')
+const notificationService     = require('../../services/notificationService')
 
-const VALID_HR_STATUSES = ['assigned', 'in_progress', 'submitted', 'reviewed', 'validated']
+const VALID_HR_STATUSES = ['assigned', 'in_progress', 'submitted', 'reviewed', 'validated', 'rejected']
 
 // ─── GET /api/hr/flags/count — badge navbar polling ──────────────────────────
 
@@ -51,13 +52,15 @@ router.get('/count', async (req, res) => {
 router.get('/', async (req, res, next) => {
   try {
     const { type, status, from, to, department, sectorId } = req.query
+    const page  = Math.max(1, parseInt(req.query.page)  || 1)
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 20))
 
     // Formes de type "request"
     const formFilter = { formType: { $in: REQUEST_FORM_TYPES } }
     if (type && REQUEST_FORM_TYPES.includes(type)) formFilter.formType = type
 
-    const forms    = await Form.find(formFilter, '_id formType title').lean()
-    const formIds  = forms.map(f => f._id)
+    const forms   = await Form.find(formFilter, '_id formType title').lean()
+    const formIds = forms.map(f => f._id)
 
     const evalFilter = { formId: { $in: formIds } }
 
@@ -71,20 +74,26 @@ router.get('/', async (req, res, next) => {
       if (to)   evalFilter.createdAt.$lte = new Date(to)
     }
 
-    let evaluations = await Evaluation.find(evalFilter)
+    // Filtre DB-level sur les utilisateurs (department / sectorId) pour que la
+    // pagination soit précise (pas de filtre post-populate).
+    if (department || sectorId) {
+      const userFilter = {}
+      if (department) userFilter.department = department
+      if (sectorId && mongoose.isValidObjectId(sectorId)) userFilter.sectorId = sectorId
+      const matchingUsers = await User.find(userFilter, '_id').lean()
+      evalFilter.evaluateeId = { $in: matchingUsers.map(u => u._id) }
+    }
+
+    const total = await Evaluation.countDocuments(evalFilter)
+    const data  = await Evaluation.find(evalFilter)
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit)
       .populate('evaluateeId', 'firstName lastName email department sectorId')
       .populate('formId',      'title formType')
       .lean()
 
-    // Filtres post-populate sur l'évalué
-    if (department) {
-      evaluations = evaluations.filter(e => e.evaluateeId?.department === department)
-    }
-    if (sectorId) {
-      evaluations = evaluations.filter(e => e.evaluateeId?.sectorId?.toString() === sectorId)
-    }
-
-    res.json(evaluations)
+    res.json({ data, total, page, limit, totalPages: Math.ceil(total / limit) })
   } catch (err) {
     next(err)
   }
@@ -101,7 +110,7 @@ router.patch('/:evalId/status', async (req, res, next) => {
 
     const { status, note } = req.body
 
-    const PATCHABLE_STATUSES = ['submitted', 'reviewed', 'validated']
+    const PATCHABLE_STATUSES = ['submitted', 'reviewed', 'validated', 'rejected']
     if (!status || !PATCHABLE_STATUSES.includes(status)) {
       return res.status(400).json({
         error: `status invalide. Valeurs autorisées : ${PATCHABLE_STATUSES.join(', ')}`,
@@ -124,14 +133,41 @@ router.patch('/:evalId/status', async (req, res, next) => {
 
     await evaluation.save()
 
-    // Notification in-app pour l'évalué (fire-and-forget)
-    if (['reviewed', 'validated'].includes(status)) {
-      notifyInApp(
-        evaluation.evaluateeId,
+    // Populate formId pour obtenir le titre (après save pour ne pas bloquer la persistence)
+    await evaluation.populate('formId', 'title')
+
+    const evaluateeId = evaluation.evaluateeId
+    const formTitle   = evaluation.formId?.title || 'votre demande'
+    const evalLink    = `/evaluations/${evaluation._id}`
+
+    // ── Notification : demande traitée (reviewed ou validated) ───────────────
+    if (status === 'validated' || status === 'reviewed') {
+      await notifyInApp(
+        evaluateeId,
         'request_treated',
         'Votre demande a été traitée',
-        note ? String(note).slice(0, 200) : '',
-      ).catch(() => {})
+        `"${formTitle}" a été examinée par les RH.`,
+        evalLink,
+        'medium',
+      )
+      User.findById(evaluateeId).lean()
+        .then(u => u && notificationService.notify('request_treated', u, { formTitle, evalId: evaluation._id.toString() }))
+        .catch(err => console.error('[flag-notify email]', err))
+    }
+
+    // ── Notification : demande refusée ou note ajoutée ────────────────────────
+    if (status === 'rejected' || (note && String(note).trim())) {
+      await notifyInApp(
+        evaluateeId,
+        'request_rejected',
+        'Votre demande a été refusée',
+        note ? `Motif : ${note}` : `"${formTitle}" n'a pas été retenue.`,
+        evalLink,
+        'high',
+      )
+      User.findById(evaluateeId).lean()
+        .then(u => u && notificationService.notify('request_rejected', u, { formTitle, note: note || '', evalId: evaluation._id.toString() }))
+        .catch(err => console.error('[flag-reject email]', err))
     }
 
     res.json(evaluation.toObject())

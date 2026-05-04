@@ -14,6 +14,7 @@ Chaque endpoint est décrit avec ses rôles, paramètres, body, réponse et erre
 - **Pas de Bearer token** en localStorage
 - **Format** : `application/json` sauf mention contraire (CSV, multipart)
 - **Pagination** : `?page=1&limit=50` (max 100) → `{ data, total, page, limit }`
+- **Format d'erreur** : toutes les réponses d'erreur utilisent `{ error: string }` — sauf `POST /api/auth/logout` qui retourne `{ message: string }` pour le succès 200
 
 | Code HTTP | Signification frontend |
 |---|---|
@@ -56,12 +57,19 @@ Chaque endpoint est décrit avec ses rôles, paramètres, body, réponse et erre
 ### PATCH /api/auth/preferences
 - **Auth** : Tous les rôles
 - **Body** : `{ locale?: 'fr'|'en', theme?: 'light'|'dark'|'system', notificationPrefs?: Record<string, boolean> }`
-- **Response** `200` : `{ locale, theme, notificationPrefs }`
+- **Response** `200` : `{ _id, locale, theme, notificationPrefs }` ⚠️ *le champ `_id` est inclus dans la réponse réelle (lean MongoDB)*
 - **Errors** : `400` locale/thème invalide · `400` clé notification inconnue · `403` clé non autorisée pour le rôle · `400` aucune préférence envoyée
 
 ---
 
 ## 2. Users (`/api/users`)
+
+### GET /api/users/me
+- **Auth** : tout utilisateur authentifié (alias de `GET /api/auth/me`)
+- **Response** `200` : `{ id, firstName, lastName, email, role, department, position, isActive, locale, theme, notificationPrefs, lastLoginAt, authSource, managerId, onboarding, createdAt }` (notificationPrefs filtrées selon le rôle)
+- **Errors** : `401` session invalide (cookie expiré ou utilisateur inactif)
+
+---
 
 ### GET /api/users
 - **Auth** : admin, hr (tout) · manager, director (leurs subordonnés directs)
@@ -588,7 +596,7 @@ Chaque endpoint est décrit avec ses rôles, paramètres, body, réponse et erre
 - **Auth** : admin, hr
 - **Query** : `?action=&targetType=&userId=&from=ISO&to=ISO`
 - **Response** `200` : `Content-Type: text/csv; charset=utf-8` — BOM Excel, colonnes : Date;Utilisateur;Email;Action;Type cible;ID cible;Détails (max 5000 lignes)
-- **Errors** : `400` filtres invalides
+- **Errors** : `400` filtres invalides ⚠️ *non implémenté — les filtres invalides sont silencieusement ignorés (contrairement à `GET /api/admin/audit` qui valide contre whitelist). À corriger backend.*
 
 ---
 
@@ -716,3 +724,66 @@ Chaque endpoint est décrit avec ses rôles, paramètres, body, réponse et erre
 ---
 
 *Fin du document — NX-RH API Contract v2.0 · 75 endpoints · 16 modules*
+
+---
+
+## Routes hors contrat (présentes dans le backend, non documentées)
+
+> Ces routes ont été identifiées dans `audit/01-routes.md` (Agent 1) et confirmées par l'audit de parité (Agent 7).
+
+### Admin LDAP (`/api/admin/ldap`) — 5 routes — auth: admin uniquement
+
+| METHOD | Path | Description |
+|---|---|---|
+| POST | `/api/admin/ldap/test` | Tester la connexion LDAP |
+| POST | `/api/admin/ldap/preview` | Prévisualiser la synchronisation (dry-run) |
+| POST | `/api/admin/ldap/sync` | Lancer la synchronisation LDAP → MongoDB |
+| GET | `/api/admin/ldap/config` | Lire la configuration LDAP (sans `bindPassword`) |
+| PUT | `/api/admin/ldap/config` | Mettre à jour la configuration LDAP |
+
+⚠️ *Aucune validation du body `config` dans les routes POST — risque si body malformé.*
+
+---
+
+### Resources (`/api/resources`) — 5 routes — auth: Tous (lecture scopée) / admin, hr (écriture)
+
+| METHOD | Path | Rôles | Description |
+|---|---|---|---|
+| GET | `/api/resources` | Tous (scopé) | Liste des ressources documentaires |
+| GET | `/api/resources/:id` | Tous (RBAC) | Détail d'une ressource |
+| POST | `/api/resources` | admin, hr | Créer une ressource |
+| PATCH | `/api/resources/:id` | admin, hr | Modifier une ressource |
+| DELETE | `/api/resources/:id` | admin, hr | Supprimer une ressource |
+
+---
+
+### Analytics (`/api/analytics`) — 1 route — auth: admin, hr
+
+| METHOD | Path | Description |
+|---|---|---|
+| GET | `/api/analytics/export/pdf` | Export PDF analytique global (filtre `?campaignId=` possible) |
+
+---
+
+## Routes absentes du contrat ET du backend (⚠️ NOT IMPLEMENTED)
+
+> Ces routes sont attendues par les specs (`05-notifications.md`, `03-screens.md`) mais ni documentées ni implémentées.
+
+### `GET /api/notifications` — ⚠️ NOT IMPLEMENTED
+
+- **Auth** : Tous les rôles (scopé par `userId`)
+- **Query attendue** : `?unreadOnly=true&page=1&limit=20`
+- **Response attendue** : `{ data: Notification[], total, page, limit, unreadCount }`
+- **Blocage** : modèle `Notification` absent du backend (cf. `audit/02-models.md` P1-01)
+
+### `PATCH /api/notifications/:id/read` — ⚠️ NOT IMPLEMENTED
+
+- **Auth** : Tous les rôles (scope : notification de l'utilisateur courant)
+- **Body attendu** : aucun (ou `{ read: true }`)
+- **Response attendue** : `{ id, read: true }`
+
+### `GET /api/dashboard` — ⚠️ NOT IMPLEMENTED
+
+- **Auth** : Tous les rôles
+- **Response attendue** : agrégats pour la page d'accueil (compteurs évaluations en cours, campagnes actives, événements à venir)
+- **Note** : `/dashboard` dans le serveur est un redirect 301 SPA — pas un endpoint API.

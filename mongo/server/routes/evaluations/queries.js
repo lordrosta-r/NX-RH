@@ -139,10 +139,15 @@ async function handleExport(req, res, next) {
       .limit(5000)
       .lean()
 
-    function csvEscape(val) {
-      const str = (val === null || val === undefined) ? '' : String(val)
-      if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
-        return '"' + str.replace(/"/g, '""') + '"'
+    function csvEscape(value) {
+      const str = String(value ?? '')
+      // Neutraliser les formules Excel/Sheets (CSV injection)
+      if (str.length > 0 && ['=', '+', '-', '@', '\t', '\r'].includes(str[0])) {
+        return `'${str.replace(/"/g, '""')}`
+      }
+      // Entourer de guillemets si contient virgule, point-virgule, guillemet ou saut de ligne
+      if (str.includes(',') || str.includes(';') || str.includes('"') || str.includes('\n')) {
+        return `"${str.replace(/"/g, '""')}"`
       }
       return str
     }

@@ -1,0 +1,202 @@
+import { Link } from 'react-router-dom'
+import { ClipboardList, Users, Bell } from 'lucide-react'
+import { useDashboardManager } from '../hooks/useDashboardByRole'
+import { StatusBadge } from '../components/ui'
+import type { Evaluation } from '../types'
+
+interface KpiCardProps {
+  label: string
+  value: string | number
+  icon: React.ReactNode
+  color: 'primary' | 'success' | 'warning' | 'error'
+}
+
+function KpiCard({ label, value, icon, color }: KpiCardProps) {
+  const colorMap = {
+    primary: 'bg-primary-50 text-primary-600',
+    success: 'bg-success-50 text-success-600',
+    warning: 'bg-warning-50 text-warning-600',
+    error:   'bg-error-50 text-error-600',
+  }
+  return (
+    <div className="col-span-4 bg-white rounded-xl shadow-sm border border-slate-100 p-6">
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-sm font-medium text-slate-500">{label}</span>
+        <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${colorMap[color]}`}>
+          {icon}
+        </div>
+      </div>
+      <p className="text-3xl font-bold text-slate-900">{value}</p>
+    </div>
+  )
+}
+
+function progressWidth(ev: Evaluation): string {
+  switch (ev.status) {
+    case 'validated':        return '100%'
+    case 'submitted':        return '75%'
+    case 'in_progress':      return '40%'
+    default:                 return '10%'
+  }
+}
+
+function EvalsToComplete({ evaluations }: { evaluations: Evaluation[] }) {
+  const pending = evaluations.filter(e =>
+    e.status === 'assigned' || e.status === 'in_progress'
+  )
+
+  if (pending.length === 0) {
+    return (
+      <p className="text-sm text-slate-400 text-center py-4">
+        Aucune évaluation à compléter
+      </p>
+    )
+  }
+
+  return (
+    <div className="space-y-3">
+      {pending.map(ev => (
+        <div
+          key={ev.id}
+          className="bg-white rounded-xl border border-slate-100 p-4 shadow-sm hover:shadow-md transition-shadow"
+        >
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="font-semibold text-slate-900 text-sm">{ev.evaluateeId}</p>
+              <p className="text-xs text-slate-500 mt-0.5">Campagne : {ev.campaignId}</p>
+            </div>
+            <StatusBadge status={ev.status} />
+          </div>
+          <div className="flex items-center justify-between mt-3">
+            <span className="text-xs text-slate-400">Deadline : —</span>
+            <Link
+              to={`/evaluations/${ev.id}`}
+              className="text-sm text-primary-600 hover:text-primary-700 font-medium hover:underline"
+            >
+              Remplir →
+            </Link>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function MyTeam({ evaluations }: { evaluations: Evaluation[] }) {
+  if (evaluations.length === 0) {
+    return (
+      <p className="text-sm text-slate-400 text-center py-4">
+        Aucun membre dans l'équipe
+      </p>
+    )
+  }
+
+  return (
+    <div className="space-y-3">
+      {evaluations.map(ev => (
+        <div key={ev.id} className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-full bg-primary-100 text-primary-700 text-xs font-semibold flex items-center justify-center flex-shrink-0">
+            {ev.evaluateeId.slice(0, 2).toUpperCase()}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between mb-1">
+              <p className="text-sm font-medium text-slate-700 truncate">{ev.evaluateeId}</p>
+              <StatusBadge status={ev.status} />
+            </div>
+            <div className="w-full bg-slate-100 rounded-full h-1.5">
+              <div
+                className="bg-primary-500 h-1.5 rounded-full transition-all"
+                style={{ width: progressWidth(ev) }}
+              />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+export default function DashboardManagerPage() {
+  const { evaluations } = useDashboardManager()
+
+  if (evaluations.isLoading) {
+    return (
+      <div>
+        <div className="h-8 w-64 bg-slate-200 rounded animate-pulse mb-8" />
+        <div className="grid grid-cols-12 gap-6">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="col-span-3 h-32 bg-slate-200 rounded-xl animate-pulse" />
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  const evalList = evaluations.data?.data ?? []
+
+  const toCompleteCount = evalList.filter(
+    e => e.status === 'assigned' || e.status === 'in_progress'
+  ).length
+  const waitingCount = evalList.filter(e => e.status === 'assigned').length
+
+  return (
+    <div>
+      {/* Header */}
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900">Tableau de bord — Mon équipe</h1>
+          <p className="text-slate-500 mt-1">Suivez et gérez les évaluations de votre équipe</p>
+        </div>
+        <Link
+          to="/evaluations"
+          className="inline-flex items-center gap-2 bg-primary-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors"
+        >
+          Mes évaluations →
+        </Link>
+      </div>
+
+      {/* KPI row */}
+      <div className="grid grid-cols-12 gap-6 mb-6">
+        <KpiCard
+          label="Évals à compléter"
+          value={toCompleteCount}
+          icon={<ClipboardList size={18} />}
+          color="warning"
+        />
+        <KpiCard
+          label="Équipe en attente"
+          value={waitingCount}
+          icon={<Users size={18} />}
+          color="primary"
+        />
+        <KpiCard
+          label="Rappels deadline"
+          value={0}
+          icon={<Bell size={18} />}
+          color="error"
+        />
+      </div>
+
+      {/* Middle row: evals to complete + my team */}
+      <div className="grid grid-cols-12 gap-6 mb-6">
+        <div className="col-span-7 bg-white rounded-xl shadow-sm border border-slate-100 p-6">
+          <h2 className="text-lg font-semibold text-slate-900 mb-4">Évaluations à compléter</h2>
+          <EvalsToComplete evaluations={evalList} />
+        </div>
+
+        <div className="col-span-5 bg-white rounded-xl shadow-sm border border-slate-100 p-6">
+          <h2 className="text-lg font-semibold text-slate-900 mb-4">Mon équipe</h2>
+          <MyTeam evaluations={evalList} />
+        </div>
+      </div>
+
+      {/* Upcoming events — placeholder Sprint 8 */}
+      <div className="grid grid-cols-12 gap-6">
+        <div className="col-span-12 bg-white rounded-xl shadow-sm border border-slate-100 p-6">
+          <h2 className="text-lg font-semibold text-slate-900 mb-4">Prochains événements</h2>
+          <p className="text-sm text-slate-400 text-center py-4">Agenda disponible en Sprint 8</p>
+        </div>
+      </div>
+    </div>
+  )
+}

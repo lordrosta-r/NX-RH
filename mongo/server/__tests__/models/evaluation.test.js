@@ -131,10 +131,14 @@ describe('Evaluation model — ROLE_TRANSITIONS', () => {
     it('can sign from signed_manager (normal path)', () => {
       expect(hr.signed_manager).toContain('signed_hr')
     })
-    it('cannot transition to "validated" directly (reserved for post-signed_hr)', () => {
-      // HR signs → signed_hr, then validated via VALID_TRANSITIONS
-      Object.values(hr).forEach(targets => {
-        expect(targets).not.toContain('validated')
+    it('can validate after signing (signed_hr → validated)', () => {
+      expect(hr.signed_hr).toContain('validated')
+    })
+    it('cannot transition to "validated" from early statuses (reviewed, signed_evaluatee, signed_manager)', () => {
+      // Only signed_hr → validated is allowed for HR; earlier states must not jump to validated
+      const earlyStates = ['reviewed', 'signed_evaluatee', 'signed_manager']
+      earlyStates.forEach(state => {
+        expect(hr[state]).not.toContain('validated')
       })
     })
   })

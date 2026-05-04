@@ -16,7 +16,7 @@
 **Fichiers sources** :
 - [`01-features.md`](./01-features.md) — Inventaire des fonctionnalités par rôle
 - [`02-design-system.md`](./02-design-system.md) — Tokens design
-- [`03-screens.md`](./03-screens.md) — Inventaire des 46 écrans
+- [`03-screens.md`](./03-screens.md) — Inventaire des 44 écrans
 - [`04-flows.md`](./04-flows.md) — Flux UX et machines à états
 - [`05-notifications.md`](./05-notifications.md) — Système de notifications
 - [`06-components.md`](./06-components.md) — Bibliothèque de composants
@@ -673,4 +673,4 @@ export const queryKeys = {
 
 ---
 
-*Fin du document — NX-RH Master Spec v1.2.0 · 46 écrans*
+*Fin du document — NX-RH Master Spec v1.2.0 · 44 écrans*

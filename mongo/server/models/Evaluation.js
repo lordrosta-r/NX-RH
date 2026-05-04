@@ -50,10 +50,12 @@ const ROLE_TRANSITIONS = {
   },
   // HR peut signer directement depuis reviewed OU signed_manager (bypass intentionnel :
   // permet à RH de valider même si l'employé ou le manager n'a pas encore signé).
+  // HR peut aussi valider (signed_hr → validated) sans passer par l'admin.
   hr:        {
     reviewed:         ['signed_hr'],
     signed_evaluatee: ['signed_hr'],
     signed_manager:   ['signed_hr'],
+    signed_hr:        ['validated'],
   },
 }
 

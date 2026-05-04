@@ -580,6 +580,14 @@ Chaque endpoint est décrit avec ses rôles, paramètres, body, réponse et erre
 
 ---
 
+### GET /api/hr/flags/count
+- **Auth** : admin, hr
+- **Response** `200` : `{ pending: number }` — nombre d'évaluations/demandes en attente de traitement RH (`status` dans `['assigned', 'in_progress', 'submitted']` avec `campaignId: null`)
+- **Usage** : polling badge navbar (`NotificationBell` ou badge HR dédié)
+- **Errors** : `401` non authentifié · `403` rôle insuffisant
+
+---
+
 ### PATCH /api/hr/flags/:evalId/status
 - **Auth** : admin, hr
 - **Body** : `{ status: 'submitted'|'reviewed'|'validated'|'rejected', note?: string }`
@@ -879,6 +887,14 @@ Chaque endpoint est décrit avec ses rôles, paramètres, body, réponse et erre
 
 ⚠️ *Aucune validation du body `config` dans les routes POST — risque si body malformé.*
 
+#### POST /api/admin/ldap/preview
+- **Auth** : admin
+- **Body** : `{ config?: { host, port, bindDn, bindPassword, searchBase, searchFilter } }` — si `bindPassword` absent, utilise le mot de passe stocké en base
+- **Response** `200` : `{ users: Array<{ dn, uid, cn, mail, ... }> }` — max 50 utilisateurs LDAP
+- **Errors** : `500` échec connexion LDAP
+
+---
+
 ---
 
 ### Resources (`/api/resources`) — 5 routes — auth: Tous (lecture scopée) / admin, hr (écriture)
@@ -976,11 +992,7 @@ Chaque endpoint est décrit avec ses rôles, paramètres, body, réponse et erre
 - **Body attendu** : aucun (ou `{ read: true }`)
 - **Response** : `{ id, read: true }`
 
-### `GET /api/dashboard` — ⚠️ NOT IMPLEMENTED
-
-- **Auth** : Tous les rôles
-- **Response attendue** : agrégats pour la page d'accueil (compteurs évaluations en cours, campagnes actives, événements à venir)
-- **Note** : `/dashboard` dans le serveur est un redirect 301 SPA — pas un endpoint API.
+### `GET /api/dashboard` — ✅ IMPLEMENTED (voir § Module Dashboard ci-dessous)
 
 ---
 

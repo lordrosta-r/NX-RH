@@ -168,7 +168,7 @@ app.use('/api/admin',                mutationLimiter, authGuard(['admin']),     
 app.use('/api/offboarding', mutationLimiter, authenticated, offboardingRoutes)
 app.use('/api/hr/notifications', mutationLimiter, authGuard(['admin', 'hr']), hrNotifRoutes)
 app.use('/api/hr/flags',         mutationLimiter, authGuard(['admin', 'hr']), hrFlagsRoutes)
-app.use('/api/org',              mutationLimiter, authGuard(['admin', 'hr']), orgRoutes)
+app.use('/api/org',              mutationLimiter, authGuard(['admin', 'hr', 'manager', 'director']), orgRoutes)
 app.use('/api/notifications',    apiLimiter, authenticated, notificationsRouter)
 app.use('/api/dashboard',        apiLimiter, dashboardRouter)
 

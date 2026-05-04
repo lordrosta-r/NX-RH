@@ -423,12 +423,17 @@ Chaque endpoint est décrit avec ses rôles, paramètres, body, réponse et erre
 ## 8. Org (`/api/org`)
 
 ### GET /api/org/tree
-- **Auth** : admin, hr
+- **Auth** : admin, hr (vue complète) · manager (vue scopée — soi-même + directs) · director (vue scopée — soi-même + directs + directs de leurs directs)
 - **Query** : `?view=all|teams|sector`
+- **Scoping** :
+  - `admin` / `hr` : tous les utilisateurs actifs
+  - `director` : sous-arbre à 2 niveaux (soi + N1 + N2)
+  - `manager` : sous-arbre à 1 niveau (soi + directs uniquement)
+  - Autres rôles : `403 Accès interdit`
 - **Response** `200` (view=all) : arbre récursif `[{ _id, firstName, lastName, role, department, sectorId, managerId, avatar, children: [...] }]`
 - **Response** `200` (view=teams) : `[{ manager, directReports, subManagers }]`
 - **Response** `200` (view=sector) : `[{ sector, users }]` + `{ sector: null, users }` pour non-assignés
-- **Errors** : `400` view invalide
+- **Errors** : `400` view invalide · `403` rôle non autorisé
 
 ---
 

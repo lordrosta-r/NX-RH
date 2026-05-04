@@ -218,6 +218,7 @@ Accueil / Administration / LDAP
 3. Clic → modale de confirmation : "Lancer la campagne envoie des notifications aux utilisateurs des départements ciblés. Confirmer ?"
 4. Confirmation → `PATCH /api/campaigns/:id` avec `status: 'active'`
 5. Succès → badge passe à `ACTIVE` (`success-500`), notification `campaignLaunch` envoyée
+6. _(Automatique, côté serveur)_ Génération automatique des évaluations via `targetScope` : pour chaque utilisateur ciblé × chaque formulaire de la campagne, une `Evaluation` est créée (statut `assigned`) en upsert — l'opération est fire-and-forget et n'impacte pas la réponse HTTP.
 
 **Clonage d'une campagne :**
 1. Sur `/campaigns/:id` ou depuis la liste → icône/bouton **"Cloner"**
@@ -1182,6 +1183,33 @@ Ce flow clarifie le comportement lorsqu'un manager doit superviser une équipe d
 **Transitions :**
 - S-39 (nœud sélectionné) → S-39-P1 (panneau latéral, édition du rôle)
 - S-39-P1 → S-39 (fermeture du panneau, arbre mis à jour)
+
+---
+
+### F-NEW-10 — Mot de passe oublié
+
+**Acteurs** : Tout utilisateur (authSource: "local")
+**Pré-condition** : Non connecté. Compte de type local (non LDAP).
+
+**Étapes** :
+1. Sur `/login` → clic "Mot de passe oublié ?"
+2. → Redirect `/forgot-password`
+3. Saisie de l'adresse email → `POST /api/auth/forgot-password { email }`
+4. → Afficher message de confirmation (même si email inconnu — anti-énumération)
+5. Email reçu avec lien `https://[domain]/reset-password?token=TOKEN`
+6. → Clic lien → `/reset-password?token=TOKEN`
+7. Saisie nouveau mdp + confirmation → `POST /api/auth/reset-password { token, newPassword }`
+8. → Redirect `/login` avec toast "Mot de passe réinitialisé avec succès"
+
+**Cas d'erreur** :
+- Token expiré (> 1h) → "Ce lien a expiré, demandez un nouveau" + bouton "Renvoyer"
+- Token déjà utilisé → idem
+- Compte LDAP → "Votre compte utilise LDAP — contactez votre administrateur"
+- Email inconnu → même message succès (sécurité)
+
+**Notifications** : Email template "password_reset"
+**Backend** : C1 (add-forgot-password) — à implémenter
+**Screens** : S-NEW-01 `/forgot-password`, S-NEW-02 `/reset-password`
 
 ---
 

@@ -19,6 +19,7 @@ const router  = express.Router()
 const User   = require('../../models/User')
 const Sector = require('../../models/Sector')
 const { ROLES, DEPARTMENTS, BCRYPT_ROUNDS } = require('../../config/constants')
+const notificationService = require('../../services/notificationService')
 
 // ── Utilitaires ───────────────────────────────────────────────────────────────
 
@@ -167,23 +168,31 @@ router.post(
             results.skipped++
             continue
           }
-          const randomPw     = crypto.randomBytes(16).toString('hex')
-          const passwordHash = await bcrypt.hash(randomPw, BCRYPT_ROUNDS)
+          const tempPassword = crypto.randomBytes(8).toString('hex') // 16 chars hex
+          const passwordHash = await bcrypt.hash(tempPassword, BCRYPT_ROUNDS)
           const newUser = new User({
             email,
-            firstName:    row.firstName.trim(),
-            lastName:     row.lastName.trim(),
+            firstName:          row.firstName.trim(),
+            lastName:           row.lastName.trim(),
             role,
             department,
             managerId,
             sectorId,
-            authSource:   'local',
-            isActive:     true,
+            authSource:         'local',
+            isActive:           true,
             passwordHash,
+            mustChangePassword: true,
           })
           try {
             await newUser.save()
             results.created++
+            // Email de bienvenue — non-bloquant
+            notificationService.sendToUser(newUser._id, 'welcome_import', {
+              firstName:   newUser.firstName,
+              email:       newUser.email,
+              tempPassword,
+              loginUrl:    process.env.FRONTEND_URL || 'http://localhost:5173',
+            }).catch(err => console.error('[import welcome email]', err))
           } catch (e) {
             results.errors.push({ row: rowNum, field: null, message: e.message })
             results.skipped++

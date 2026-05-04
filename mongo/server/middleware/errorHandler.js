@@ -46,8 +46,7 @@ function errorHandler(err, _req, res, _next) {
   if (err instanceof jwt.TokenExpiredError) {
     status  = 401
     message = 'Session expirée'
-  }
-  if (err instanceof jwt.JsonWebTokenError) {
+  } else if (err instanceof jwt.JsonWebTokenError) {
     status  = 401
     message = 'Token invalide'
   }

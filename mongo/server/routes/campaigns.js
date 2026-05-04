@@ -16,6 +16,61 @@ const { Campaign, Evaluation, Form, User, AuditLog, CAMPAIGN_TRANSITIONS: VALID_
 const { ADMIN_ROLES, MANAGER_ROLES } = require('../config/constants')
 const { notifyMany }  = require('../services/notificationService')
 
+// Génère des évaluations pour tous les utilisateurs ciblés par campaign.targetScope.
+// Appelée en fire-and-forget lors du passage en statut 'active'.
+async function generateEvaluationsForCampaign(campaign) {
+  let userFilter = { isActive: true }
+  const { scopeType, ids } = campaign.targetScope || {}
+
+  if (scopeType === 'department' && ids?.length) {
+    userFilter.department = { $in: ids }
+  } else if (scopeType === 'sector' && ids?.length) {
+    userFilter.sectorId = { $in: ids }
+  } else if (scopeType === 'users' && ids?.length) {
+    userFilter._id = { $in: ids }
+  }
+  // 'all' → pas de filtre supplémentaire
+
+  const [users, forms] = await Promise.all([
+    User.find(userFilter).select('_id managerId').lean(),
+    Form.find({ campaignId: campaign._id }).select('_id formType').lean(),
+  ])
+
+  if (!forms.length) {
+    console.warn(`[campaign-scope] Aucun formulaire pour la campagne ${campaign._id}`)
+    return 0
+  }
+
+  const ops = []
+  for (const user of users) {
+    for (const form of forms) {
+      const evaluatorId = user.managerId || user._id
+      ops.push({
+        updateOne: {
+          filter: { campaignId: campaign._id, formId: form._id, evaluateeId: user._id },
+          update: {
+            $setOnInsert: {
+              campaignId: campaign._id,
+              formId:     form._id,
+              evaluateeId: user._id,
+              evaluatorId,
+              status:    'assigned',
+              createdAt: new Date(),
+            },
+          },
+          upsert: true,
+        },
+      })
+    }
+  }
+
+  if (ops.length) {
+    const result = await Evaluation.bulkWrite(ops, { ordered: false })
+    return result.upsertedCount || 0
+  }
+  return 0
+}
+
 // GET /api/campaigns — Liste des campagnes (scopée par rôle)
 router.get('/', async (req, res, next) => {
   try {
@@ -182,6 +237,15 @@ router.patch('/:id', async (req, res, next) => {
       },
     }).catch(() => {})
 
+    // ── Fire-and-forget: generate evaluations from targetScope ──────────────
+    if (req.body.status === 'active') {
+      generateEvaluationsForCampaign(campaign).then(count => {
+        console.log(`[campaign-scope] ${count} évaluation(s) créée(s) pour la campagne ${campaign._id}`)
+      }).catch(err => {
+        console.error('[campaign-scope] Erreur génération évaluations:', err)
+      })
+    }
+
     // ── Fire-and-forget: notify users when campaign goes active ──────────────
     if (req.body.status === 'active') {
       ;(async () => {
@@ -222,11 +286,27 @@ router.delete('/:id', async (req, res, next) => {
       return res.status(400).json({ error: 'Seules les campagnes en brouillon ou archivées peuvent être supprimées.' })
     }
 
-    await Promise.all([
-      Evaluation.deleteMany({ campaignId: campaign._id }),
-      Form.deleteMany({ campaignId: campaign._id }),
-    ])
-    await campaign.deleteOne()
+    const session = await mongoose.startSession()
+    try {
+      await session.withTransaction(async () => {
+        await Evaluation.deleteMany({ campaignId: campaign._id }, { session })
+        await Form.deleteMany({ campaignId: campaign._id }, { session })
+        await campaign.deleteOne({ session })
+      })
+    } catch (err) {
+      if (err.code === 20 || err.message?.includes('Transaction') || err.message?.includes('replica')) {
+        console.warn('[delete-campaign] Transactions non disponibles, exécution séquentielle')
+        await Promise.all([
+          Evaluation.deleteMany({ campaignId: campaign._id }),
+          Form.deleteMany({ campaignId: campaign._id }),
+        ])
+        await campaign.deleteOne()
+      } else {
+        throw err
+      }
+    } finally {
+      await session.endSession()
+    }
 
     // Fire-and-forget audit log
     AuditLog.create({

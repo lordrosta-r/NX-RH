@@ -312,15 +312,29 @@ router.patch('/:id/offboard', async (req, res, next) => {
     user.offboardingStatus = 'offboarding'
     user.offboardingReason = reason.trim()
     user.offboardingDate   = new Date(effectiveDate)
-    await user.save()
 
-    await Evaluation.updateMany(
-      {
-        $or: [{ evaluateeId: userId }, { evaluatorId: userId }],
-        status: { $nin: ['validated', 'archived'] },
-      },
-      { $set: { status: 'archived' } }
-    )
+    const evalFilter = {
+      $or: [{ evaluateeId: userId }, { evaluatorId: userId }],
+      status: { $nin: ['validated', 'archived'] },
+    }
+
+    const session = await mongoose.startSession()
+    try {
+      await session.withTransaction(async () => {
+        await user.save({ session })
+        await Evaluation.updateMany(evalFilter, { $set: { status: 'archived' } }, { session })
+      })
+    } catch (err) {
+      if (err.code === 20 || err.message?.includes('Transaction') || err.message?.includes('replica')) {
+        console.warn('[offboard] Transactions non disponibles, exécution séquentielle')
+        await user.save()
+        await Evaluation.updateMany(evalFilter, { $set: { status: 'archived' } })
+      } else {
+        throw err
+      }
+    } finally {
+      await session.endSession()
+    }
 
     AuditLog.create({
       userId:     req.user.id,

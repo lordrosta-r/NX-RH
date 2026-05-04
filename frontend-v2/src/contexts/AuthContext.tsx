@@ -6,7 +6,7 @@ interface AuthContextType {
   user: User | null
   isLoading: boolean
   isAuthenticated: boolean
-  login: (email: string, password: string) => Promise<void>
+  login: (email: string, password: string, remember?: boolean) => Promise<void>
   loginLdap: (login: string, password: string) => Promise<void>
   logout: () => Promise<void>
   refreshUser: () => Promise<void>
@@ -31,8 +31,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     refreshUser().finally(() => setIsLoading(false))
   }, [])
 
-  const login = async (email: string, password: string) => {
-    const { data } = await authApi.login(email, password)
+  const login = async (email: string, password: string, remember?: boolean) => {
+    const { data } = await authApi.login(email, password, remember)
     setUser(data.user)
   }
 
@@ -42,7 +42,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const logout = async () => {
-    await authApi.logout()
+    try {
+      await authApi.logout()
+    } catch {
+      // ignore logout errors — clear user anyway
+    }
     setUser(null)
     window.location.href = '/login'
   }

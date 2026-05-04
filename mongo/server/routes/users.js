@@ -21,7 +21,7 @@ function filterNotifPrefsByRole(prefs, role) {
 // GET /api/users — Liste les utilisateurs (scope par rôle)
 router.get('/', async (req, res, next) => {
   try {
-    const { role, department, search } = req.query
+    const { role, department, search, sector } = req.query
     const filter = {}
 
     // Scope par rôle appelant
@@ -40,6 +40,7 @@ router.get('/', async (req, res, next) => {
     if (department && typeof department === 'string' && department.length <= 100) {
       filter.department = department
     }
+    if (sector && mongoose.isValidObjectId(sector)) filter.sectorId = sector
     if (search) {
       // Échapper les caractères spéciaux regex pour éviter ReDoS
       const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
@@ -462,6 +463,34 @@ router.get('/:id/gdpr-export', async (req, res, next) => {
     res.setHeader('Content-Type', 'application/json; charset=utf-8')
     res.setHeader('Content-Disposition', `attachment; filename="gdpr-export-${userId}.json"`)
     res.json({ user, evaluations, exportedAt: new Date() })
+  } catch (err) {
+    next(err)
+  }
+})
+
+// ─── DELETE /api/users/:id — Soft delete (désactivation) ────────────────────
+// Admin uniquement — ne peut pas se supprimer soi-même
+
+// DELETE /api/users/:id — Désactive un utilisateur (soft delete)
+router.delete('/:id', async (req, res, next) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Réservé à l\'administrateur' })
+    }
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({ error: 'ID invalide' })
+    }
+    if (req.user.id === req.params.id) {
+      return res.status(403).json({ error: 'Impossible de se supprimer soi-même' })
+    }
+
+    const user = await User.findById(req.params.id)
+    if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' })
+
+    user.isActive = false
+    await user.save()
+
+    res.status(204).end()
   } catch (err) {
     next(err)
   }

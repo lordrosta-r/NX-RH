@@ -1,16 +1,203 @@
 'use strict'
 
 // =============================================================================
-// /api/analytics — Exports analytiques RH (PDF)
+// /api/analytics — Exports analytiques RH
 //
-// GET  /api/analytics/export/pdf  → rapport PDF (admin/hr uniquement)
+// GET  /api/analytics/summary            → stats globales (admin, hr, director)
+// GET  /api/analytics/campaigns/:id      → stats par campagne (admin, hr, director, manager)
+// GET  /api/analytics/export/csv         → export CSV (admin, hr)
+// GET  /api/analytics/export/pdf         → rapport PDF (admin, hr)
 // =============================================================================
 
 const router      = require('express').Router()
 const mongoose    = require('mongoose')
 const PDFDocument = require('pdfkit')
-const { Evaluation } = require('../models')
+const { Evaluation, Campaign } = require('../models')
 const { ADMIN_ROLES } = require('../config/constants')
+
+const SUMMARY_ROLES  = ['admin', 'hr', 'director']
+const CAMPAIGN_ROLES = ['admin', 'hr', 'director', 'manager']
+
+// ── GET /api/analytics/summary ────────────────────────────────────────────────
+// Statistiques globales toutes campagnes confondues.
+// Auth : admin, hr, director
+router.get('/summary', async (req, res, next) => {
+  try {
+    if (!SUMMARY_ROLES.includes(req.user.role)) {
+      return res.status(403).json({ error: 'Accès réservé aux admins, RH et directeurs' })
+    }
+
+    const [campaigns, evals] = await Promise.all([
+      Campaign.find({}, 'status').lean(),
+      Evaluation.find({}, 'status score campaignId').lean(),
+    ])
+
+    const totalCampaigns   = campaigns.length
+    const activeCampaigns  = campaigns.filter(c => c.status === 'active').length
+    const totalEvaluations = evals.length
+
+    const validatedEvals = evals.filter(e => e.status === 'validated')
+    const completionRate = totalEvaluations > 0
+      ? Math.round((validatedEvals.length / totalEvaluations) * 100)
+      : 0
+
+    const scoredEvals = validatedEvals.filter(e => e.score !== null && e.score !== undefined)
+    const avgScore = scoredEvals.length > 0
+      ? Math.round(scoredEvals.reduce((sum, e) => sum + e.score, 0) / scoredEvals.length)
+      : null
+
+    const byStatus = {}
+    for (const ev of evals) {
+      byStatus[ev.status] = (byStatus[ev.status] || 0) + 1
+    }
+
+    return res.json({
+      totalCampaigns,
+      activeCampaigns,
+      totalEvaluations,
+      completionRate,
+      avgScore,
+      byStatus,
+    })
+  } catch (err) {
+    next(err)
+  }
+})
+
+// ── GET /api/analytics/campaigns/:id ─────────────────────────────────────────
+// Statistiques pour une campagne donnée.
+// Auth : admin, hr, director, manager
+router.get('/campaigns/:id', async (req, res, next) => {
+  try {
+    if (!CAMPAIGN_ROLES.includes(req.user.role)) {
+      return res.status(403).json({ error: 'Accès réservé aux admins, RH, directeurs et managers' })
+    }
+
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({ error: 'ID campagne invalide' })
+    }
+
+    const campaign = await Campaign.findById(req.params.id, 'name status').lean()
+    if (!campaign) return res.status(404).json({ error: 'Campagne introuvable' })
+
+    const evals = await Evaluation.find(
+      { campaignId: req.params.id },
+      'status score signedByEvaluateeAt signedByManagerAt signedByHrAt',
+    ).lean()
+
+    const total         = evals.length
+    const validatedEvals = evals.filter(e => e.status === 'validated')
+    const completionRate = total > 0
+      ? Math.round((validatedEvals.length / total) * 100)
+      : 0
+
+    const scoredEvals = validatedEvals.filter(e => e.score !== null && e.score !== undefined)
+    const avgScore = scoredEvals.length > 0
+      ? Math.round(scoredEvals.reduce((sum, e) => sum + e.score, 0) / scoredEvals.length)
+      : null
+
+    const byStatus = {}
+    for (const ev of evals) {
+      byStatus[ev.status] = (byStatus[ev.status] || 0) + 1
+    }
+
+    const signaturesProgress = {
+      evaluatee: total > 0
+        ? Math.round(evals.filter(e => e.signedByEvaluateeAt).length / total * 100)
+        : 0,
+      manager: total > 0
+        ? Math.round(evals.filter(e => e.signedByManagerAt).length / total * 100)
+        : 0,
+      hr: total > 0
+        ? Math.round(evals.filter(e => e.signedByHrAt).length / total * 100)
+        : 0,
+    }
+
+    return res.json({
+      campaign: { id: campaign._id, name: campaign.name, status: campaign.status },
+      totalEvaluations: total,
+      completionRate,
+      byStatus,
+      avgScore,
+      signaturesProgress,
+    })
+  } catch (err) {
+    next(err)
+  }
+})
+
+// ── GET /api/analytics/export/csv ────────────────────────────────────────────
+// Export CSV des évaluations. Filtre optionnel : ?campaignId=xxx
+// Auth : admin, hr
+router.get('/export/csv', async (req, res, next) => {
+  try {
+    if (!ADMIN_ROLES.includes(req.user.role)) {
+      return res.status(403).json({ error: 'Réservé aux admins et RH' })
+    }
+
+    let evalFilter = {}
+    if (req.query.campaignId) {
+      if (!mongoose.isValidObjectId(req.query.campaignId)) {
+        return res.status(400).json({ error: 'campaignId invalide' })
+      }
+      evalFilter.campaignId = req.query.campaignId
+    }
+
+    const evals = await Evaluation.find(evalFilter)
+      .populate('evaluateeId', 'firstName lastName')
+      .populate('evaluatorId', 'firstName lastName')
+      .populate('campaignId', 'name')
+      .lean()
+
+    const escapeCell = val => {
+      if (val === null || val === undefined) return ''
+      const str = String(val)
+      if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+        return `"${str.replace(/"/g, '""')}"`
+      }
+      return str
+    }
+
+    const headers = [
+      'evaluateeId', 'evaluateeName',
+      'managerId', 'managerName',
+      'campaignId', 'campaignName',
+      'status', 'reviewerScore',
+      'signedByEvaluateeAt', 'signedByManagerAt', 'signedByHrAt',
+      'createdAt',
+    ]
+
+    const rows = evals.map(ev => {
+      const evaluatee = ev.evaluateeId
+      const manager   = ev.evaluatorId
+      const campaign  = ev.campaignId
+
+      return [
+        escapeCell(evaluatee?._id ?? ev.evaluateeId),
+        escapeCell(evaluatee ? `${evaluatee.firstName} ${evaluatee.lastName}` : ''),
+        escapeCell(manager?._id ?? ev.evaluatorId),
+        escapeCell(manager ? `${manager.firstName} ${manager.lastName}` : ''),
+        escapeCell(campaign?._id ?? ev.campaignId),
+        escapeCell(campaign?.name ?? ''),
+        escapeCell(ev.status),
+        escapeCell(ev.score),
+        escapeCell(ev.signedByEvaluateeAt ? new Date(ev.signedByEvaluateeAt).toISOString() : ''),
+        escapeCell(ev.signedByManagerAt   ? new Date(ev.signedByManagerAt).toISOString()   : ''),
+        escapeCell(ev.signedByHrAt        ? new Date(ev.signedByHrAt).toISOString()        : ''),
+        escapeCell(ev.createdAt           ? new Date(ev.createdAt).toISOString()           : ''),
+      ].join(',')
+    })
+
+    const csv = [headers.join(','), ...rows].join('\n')
+    const filename = `analytics-export-${new Date().toISOString().slice(0, 10)}.csv`
+
+    res.setHeader('Content-Type', 'text/csv')
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
+    return res.send(csv)
+  } catch (err) {
+    next(err)
+  }
+})
 
 // GET /api/analytics/export/pdf — Rapport PDF analytique RH (admin/hr, ?campaignId optionnel)
 router.get('/export/pdf', async (req, res, next) => {

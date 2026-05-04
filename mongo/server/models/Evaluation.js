@@ -54,7 +54,6 @@ const ROLE_TRANSITIONS = {
     reviewed:         ['signed_hr'],
     signed_evaluatee: ['signed_hr'],
     signed_manager:   ['signed_hr'],
-    signed_hr:        ['validated'],
   },
 }
 

@@ -35,6 +35,7 @@ frontend-v2/src/
 │       ├── evaluations/ # EvaluationCard, EvaluationForm, SignaturePanel
 │       ├── offboarding/ # OffboardingChecklist
 │       ├── users/       # OnboardingSteps, RoleBadge, DepartmentTag
+│       ├── org/         # OrgChart
 │       └── notifications/ # NotificationItem, NotificationBell
 ├── charts/              # CompletionRateChart, ScoreDistribution, CampaignSummaryTable
 ├── pages/
@@ -170,6 +171,46 @@ interface NavbarProps {
 ```
 
 **Accessibilité** : `<nav aria-label="Navigation principale">` ; lien actif reçoit `aria-current="page"`.
+
+---
+
+### `AdminNavbar`
+
+**Description** : Barre de navigation dédiée aux rôles `admin` et `hr`. Spécialisation de `Navbar` avec les liens spécifiques à l'administration. Affiche le nom complet de l'utilisateur connecté (disponible via le payload JWT depuis fix-auth).
+
+```typescript
+interface AdminNavbarProps {
+  user: {
+    firstName: string;
+    lastName: string;
+    role: 'admin' | 'hr';
+    avatar?: string;
+  };
+  onLogout: () => void;
+}
+```
+
+**Description visuelle** : Identique à `Navbar` (`fixed h-16 bg-white shadow-sm`). Zone droite : `NotificationBell` + nom complet `"Prénom Nom"` + `Avatar` md + `UserMenu`.
+
+**Liens de navigation** :
+| Lien | Route |
+|---|---|
+| Tableau de bord | `/` |
+| Campagnes | `/campaigns` |
+| Utilisateurs | `/users` |
+| Formulaires | `/forms` |
+| Analytics | `/analytics` |
+| Organigramme | `/org` |
+| Évaluations ▾ | Toutes · Créer · Créer en masse · Historique |
+| Admin ▾ *(admin uniquement)* | Configuration · LDAP · Journal d'audit |
+
+```tsx
+<AdminNavbar user={currentUser} onLogout={handleLogout} />
+```
+
+**Règles de placement** : remplace `Navbar` dans `AppLayout` pour les rôles `admin` et `hr`.
+
+**Accessibilité** : `<nav aria-label="Navigation administration">`.
 
 ---
 
@@ -848,10 +889,10 @@ interface RatingInputProps {
 
 ### `QuestionBuilder`
 
-**Description** : Composant composé pour la création et l'édition de questions dans un formulaire. Permet de choisir le type de question, de rédiger le texte, de définir les options de réponse (pour `choice`), d'activer l'obligation et de réordonner les questions par glisser-déposer (décrit sans code).
+**Description** : Composant composé pour la création et l'édition de questions dans un formulaire. Permet de choisir le type de question, de rédiger le texte, de définir les options de réponse (pour `multiple_choice` / `choice`), d'activer l'obligation et de réordonner les questions par glisser-déposer.
 
 ```typescript
-type QuestionType = 'text' | 'rating' | 'yes_no' | 'choice' | 'scale';
+type QuestionType = 'text' | 'rating' | 'yes_no' | 'multiple_choice' | 'choice' | 'scale';
 
 interface Question {
   id: string;
@@ -859,18 +900,20 @@ interface Question {
   text: string;
   required: boolean;
   phase: 'self' | 'n-1' | 'objectives' | 'aspirations' | 'all';
-  options?: string[];   // pour type 'choice'
+  options?: string[];   // pour type 'choice' / 'multiple_choice'
   scale?: { min: number; max: number };
 }
 
 interface QuestionBuilderProps {
   questions: Question[];
   onChange: (questions: Question[]) => void;
-  disabled?: boolean; // vrai si formulaire gelé (frozenAt)
+  readonly?: boolean; // true si formulaire gelé (isFrozen=true)
 }
 ```
 
-**Description visuelle** : Chaque question est une carte `DataCard` compacte avec handle de drag `GripVertical`, sélecteur de type `Select`, champ texte `Input`, toggle "Obligatoire". En bas : bouton `+ Ajouter une question`. Si `disabled=true` : mode lecture seule avec badge "Formulaire gelé".
+**Description visuelle** : Chaque question est une carte `DataCard` compacte avec handle de drag `GripVertical`, sélecteur de type `Select`, champ texte `Input`, toggle "Obligatoire". En bas : bouton `+ Ajouter une question`. Si `readonly=true` (état gelé, `isFrozen=true`) : tous les champs sont désactivés, badge **"Formulaire gelé"** orange, boutons d'ajout/suppression masqués.
+
+**Frozen state** : Le formulaire passe en `readonly` automatiquement dès qu'une première évaluation est créée sur sa base (`frozenAt` non null côté backend). Le composant parent doit passer `readonly={form.isFrozen}`.
 
 **Règles de placement** : uniquement dans les pages de création/édition de formulaire (admin/hr).
 
@@ -1435,7 +1478,58 @@ interface NotificationBellProps {
 
 **Description visuelle** : `<Bell className="w-5 h-5" />`. Badge : `absolute -top-1 -right-1 h-4 w-4 rounded-full bg-error-500 text-white text-[10px] font-bold flex items-center justify-center`. Dropdown : `absolute right-0 top-full mt-2 w-80 bg-white rounded-xl shadow-xl border border-slate-200 z-50`.
 
+**Mapping API** : `unreadCount` vient directement de `GET /api/notifications` → `{ data, total, unreadCount }` ou `GET /api/notifications/count` → `{ unreadCount }`.
+
 **Accessibilité** : `aria-label="X notifications non lues"`, `aria-haspopup`, `aria-expanded`.
+
+---
+
+### `OrgChart`
+
+**Description** : Composant d'organigramme interactif affichant la hiérarchie des utilisateurs sous forme d'arbre. Trois vues disponibles selon le rôle et le contexte. Clic sur un nœud → fiche utilisateur (modal ou navigation vers `/users/:id`).
+
+```typescript
+interface OrgChartProps {
+  view: 'all' | 'team' | 'sector';
+  sectorId?: string;   // requis si view='sector'
+  teamId?: string;     // optionnel pour filtrer une équipe dans view='team'
+  onNodeClick?: (userId: string) => void;
+}
+
+interface OrgChartNode {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  role: string;
+  department?: string;
+  sectorId?: string;
+  avatar?: string;
+  children: OrgChartNode[]; // nœuds enfants (sous-hiérarchie)
+}
+```
+
+**Source de données** : `GET /api/org/tree?view=all|teams|sector`
+
+**Vues** :
+| `view` | Données | Affichage |
+|---|---|---|
+| `all` | Arbre récursif complet | Arbre vertical avec branches et feuilles |
+| `team` | `[{ manager, directReports, subManagers }]` | Groupes d'équipes par manager |
+| `sector` | `[{ sector, users }]` | Colonnes par secteur |
+
+**Description visuelle** : Conteneur scrollable. Chaque nœud : `Avatar` sm + nom + `RoleBadge`. Branches : lignes SVG `stroke-slate-200`. Nœud actif (hover) : `bg-primary-50 ring-1 ring-primary-300`. Feuilles (sans enfants) : `text-slate-600`. Managers/directeurs : `font-semibold`.
+
+```tsx
+<OrgChart
+  view="all"
+  onNodeClick={(userId) => navigate(`/users/${userId}`)}
+/>
+<OrgChart view="sector" sectorId="64abc..." />
+```
+
+**Règles de placement** : page `/org` dédiée (admin/hr/director). Peut être embarqué dans une `DataCard` xl.
+
+**Accessibilité** : `role="tree"`, nœuds `role="treeitem"`, `aria-expanded` si expandable.
 
 ---
 
@@ -1504,13 +1598,13 @@ interface CampaignSummaryTableProps {
 
 | Catégorie | Composants |
 |---|---|
-| **Layout** | `AppLayout`, `PageHeader`, `PageContainer`, `Navbar`, `Breadcrumbs`, `EmptyState`, `LoadingPage`, `ErrorBoundary` |
+| **Layout** | `AppLayout`, `PageHeader`, `PageContainer`, `Navbar`, `AdminNavbar`, `Breadcrumbs`, `EmptyState`, `LoadingPage`, `ErrorBoundary` |
 | **Navigation** | `NavItem`, `NavDropdown`, `UserMenu`, `MobileDrawer` |
 | **Données** | `DataTable`, `DataCard`, `StatCard`, `StatusBadge`, `Avatar`, `AvatarGroup`, `ProgressBar`, `ProgressSteps`, `Timeline` |
 | **Formulaires** | `FormField`, `Input`, `Textarea`, `Select`, `DatePicker`, `Toggle`, `Checkbox`, `CheckboxGroup`, `RadioGroup`, `RatingInput`, `QuestionBuilder`, `SearchInput` |
 | **Feedback** | `Toast`, `ToastContainer`, `Alert`, `Modal`, `ConfirmDialog`, `Tooltip`, `Skeleton` |
 | **Actions** | `Button`, `IconButton`, `ActionMenu`, `Pagination`, `FilterBar` |
-| **Domaine** | `CampaignCard`, `EvaluationCard`, `EvaluationForm`, `SignaturePanel`, `OffboardingChecklist`, `OnboardingSteps`, `RoleBadge`, `DepartmentTag`, `NotificationItem`, `NotificationBell` |
+| **Domaine** | `CampaignCard`, `EvaluationCard`, `EvaluationForm`, `SignaturePanel`, `OffboardingChecklist`, `OnboardingSteps`, `RoleBadge`, `DepartmentTag`, `NotificationItem`, `NotificationBell`, `OrgChart` |
 | **Graphiques** | `CompletionRateChart`, `ScoreDistribution`, `CampaignSummaryTable` |
 
-**Total : 50 composants**
+**Total : 53 composants**

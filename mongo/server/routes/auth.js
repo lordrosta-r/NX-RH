@@ -43,7 +43,10 @@ function filterNotifPrefsByRole(prefs, role) {
 const loginByEmailLimiter = rateLimit({
   windowMs:       15 * 60 * 1000,
   max:            process.env.NODE_ENV === 'test' ? 1000 : 5,
-  keyGenerator:   (req) => `email:${req.body?.email?.toLowerCase() || 'unknown'}`,
+  keyGenerator:   (req) => {
+    const raw = req.body?.email
+    return `email:${typeof raw === 'string' ? raw.toLowerCase().trim() : 'unknown'}`
+  },
   standardHeaders: true,
   legacyHeaders:  false,
   message:        { error: 'Trop de tentatives. Réessayez dans 15 minutes.' },
@@ -108,7 +111,7 @@ router.post('/login', loginByEmailLimiter, loginByIPLimiter, async (req, res, ne
 
     const jwtExpiry = remember ? '30d' : (process.env.JWT_EXPIRES_IN || '8h')
     const token = jwt.sign(
-      { id: user._id, email: user.email, role: user.role },
+      { id: user._id, email: user.email, role: user.role, firstName: user.firstName, lastName: user.lastName },
       process.env.JWT_SECRET,
       { algorithm: 'HS256', expiresIn: jwtExpiry }
     )
@@ -250,99 +253,25 @@ router.patch('/preferences', authGuard(), async (req, res, next) => {
 })
 
 // ─── PATCH /api/auth/password ─────────────────────────────────────────────
-// Permet à l'utilisateur courant de changer son mot de passe local.
+// Désactivé — la modification du mot de passe est gérée par le LDAP côté SI.
 
-// PATCH /api/auth/password — Mise à jour du mot de passe (comptes locaux uniquement)
-router.patch('/password', authGuard(), async (req, res, next) => {
-  try {
-    const { currentPassword, newPassword } = req.body
-    if (!currentPassword || !newPassword) {
-      return res.status(400).json({ error: 'Champs requis : currentPassword, newPassword' })
-    }
-    if (typeof newPassword !== 'string' || newPassword.length < 8) {
-      return res.status(400).json({ error: 'Le nouveau mot de passe doit faire au moins 8 caractères' })
-    }
-
-    // Recharger le user avec passwordHash (select: false par défaut)
-    const user = await User.findById(req.user.id).select('+passwordHash')
-    if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' })
-
-    if (user.authSource === 'ldap') {
-      return res.status(400).json({ error: "Impossible de changer le mot de passe d'un compte LDAP" })
-    }
-
-    const valid = await bcrypt.compare(currentPassword, user.passwordHash)
-    if (!valid) return res.status(401).json({ error: 'Mot de passe actuel incorrect' })
-
-    // Le hook pre-save détecte si passwordHash est déjà un hash bcrypt (regex $2[aby]$...)
-    // et saute le re-hashage dans ce cas — on peut donc assigner directement.
-    user.passwordHash = await bcrypt.hash(newPassword, 12)
-    user.mustChangePassword = false
-    await user.save()
-
-    return res.json({ message: 'Mot de passe mis à jour avec succès' })
-  } catch (err) {
-    next(err)
-  }
+// PATCH /api/auth/password — Désactivé (LDAP-only)
+router.patch('/password', authGuard(), (req, res) => {
+  return res.status(403).json({ message: 'La modification du mot de passe est gérée par le LDAP.' })
 })
 
 // ─── POST /api/auth/forgot-password ─────────────────────────────────────────
+// Désactivé — la réinitialisation du mot de passe est gérée par le LDAP côté SI.
 
-router.post('/forgot-password', async (req, res) => {
-  try {
-    const { email } = req.body
-    if (!email) return res.status(400).json({ error: 'Email requis' })
-
-    // Répondre TOUJOURS avec succès (anti-énumération)
-    const user = await User.findOne({ email: email.toLowerCase(), isActive: true })
-      .select('+resetPasswordToken +resetPasswordExpiry')
-
-    if (user && user.authSource !== 'ldap') {
-      const token = crypto.randomBytes(32).toString('hex')
-      user.resetPasswordToken  = token
-      user.resetPasswordExpiry = new Date(Date.now() + 3600000) // 1h
-      await user.save()
-
-      notificationService.sendToUser(user._id, 'password_reset', {
-        firstName: user.firstName,
-        resetLink: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password?token=${token}`,
-      }).catch(err => console.error('[forgot-password email]', err))
-    }
-
-    return res.json({ message: 'Si un compte existe avec cet email, un lien de réinitialisation a été envoyé.' })
-  } catch (err) {
-    console.error('[forgot-password]', err)
-    return res.status(500).json({ error: 'Erreur serveur' })
-  }
+router.post('/forgot-password', (req, res) => {
+  return res.status(403).json({ message: 'La réinitialisation du mot de passe est gérée par le LDAP.' })
 })
 
 // ─── POST /api/auth/reset-password ──────────────────────────────────────────
+// Désactivé — la réinitialisation du mot de passe est gérée par le LDAP côté SI.
 
-router.post('/reset-password', async (req, res) => {
-  try {
-    const { token, newPassword } = req.body
-    if (!token || !newPassword) return res.status(400).json({ error: 'Champs requis' })
-    if (newPassword.length < 8) return res.status(400).json({ error: 'Mot de passe trop court (min 8 car.)' })
-
-    const user = await User.findOne({
-      resetPasswordToken:  token,
-      resetPasswordExpiry: { $gt: new Date() },
-    }).select('+resetPasswordToken +resetPasswordExpiry +passwordHash')
-
-    if (!user) return res.status(400).json({ error: 'Lien invalide ou expiré' })
-
-    // Le hook pre-save détecte le hash bcrypt et ne re-hashe pas
-    user.passwordHash        = await bcrypt.hash(newPassword, 12)
-    user.resetPasswordToken  = null
-    user.resetPasswordExpiry = null
-    user.mustChangePassword  = false
-    await user.save()
-
-    return res.json({ message: 'Mot de passe réinitialisé avec succès' })
-  } catch (err) {
-    console.error('[reset-password]', err)
-    return res.status(500).json({ error: 'Erreur serveur' })
-  }
+router.post('/reset-password', (req, res) => {
+  return res.status(403).json({ message: 'La réinitialisation du mot de passe est gérée par le LDAP.' })
 })
 
 module.exports = router

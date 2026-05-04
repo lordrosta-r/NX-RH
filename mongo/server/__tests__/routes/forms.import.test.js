@@ -115,8 +115,11 @@ describe('POST /api/forms/import', () => {
       .set('Cookie', `token=${token('hr')}`)
       .send(validForm())
     expect(res.status).toBe(201)
-    expect(res.body).toHaveProperty('title', 'Formulaire annuel auto-évaluation')
-    expect(res.body).toHaveProperty('formType', 'self_evaluation')
+    expect(res.body).toHaveProperty('imported', 1)
+    expect(res.body).toHaveProperty('skipped', 0)
+    expect(res.body.errors).toEqual([])
+    expect(res.body.form).toHaveProperty('title', 'Formulaire annuel auto-évaluation')
+    expect(res.body.form).toHaveProperty('formType', 'self_evaluation')
   })
 
   it('should return 400 when title is missing', async () => {

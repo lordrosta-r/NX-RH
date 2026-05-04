@@ -47,7 +47,7 @@ const authGuard = (allowedRoles = []) => async (req, res, next) => {
     return next(err)
   }
 
-  req.user = payload
+  req.user = { ...payload, _id: payload.id }
   next()
 }
 

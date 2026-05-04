@@ -170,7 +170,7 @@ app.use('/api/hr/notifications', mutationLimiter, authGuard(['admin', 'hr']), hr
 app.use('/api/hr/flags',         mutationLimiter, authGuard(['admin', 'hr']), hrFlagsRoutes)
 app.use('/api/org',              mutationLimiter, authGuard(['admin', 'hr', 'manager', 'director']), orgRoutes)
 app.use('/api/notifications',    apiLimiter, authenticated, notificationsRouter)
-app.use('/api/dashboard',        apiLimiter, dashboardRouter)
+app.use('/api/dashboard',        apiLimiter, authenticated, dashboardRouter)
 
 // ─── 404 Fallback ────────────────────────────────────────────────────────────
 

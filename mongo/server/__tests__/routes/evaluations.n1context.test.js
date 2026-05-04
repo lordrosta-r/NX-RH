@@ -127,7 +127,7 @@ function mockN1Eval(overrides = {}) {
     evaluatorId:      MANAGER_ID,
     evaluateeId:      EMPLOYEE_ID,
     status:           'validated',
-    score:            4,
+    reviewerScore:    4,
     reviewerComment:  'Excellent travail.',
     evaluateeComment: "Je suis d'accord.",
     disagreementFlag: false,
@@ -175,7 +175,7 @@ describe('GET /:id/n1-context — N-1 context endpoint', () => {
     expect(res.status).toBe(200)
     expect(res.body).toMatchObject({
       status:           'validated',
-      score:             4,
+      reviewerScore:     4,
       reviewerComment:  'Excellent travail.',
       evaluateeComment: "Je suis d'accord.",
       disagreementFlag: false,
@@ -200,7 +200,7 @@ describe('GET /:id/n1-context — N-1 context endpoint', () => {
     expect(res.body).toMatchObject({
       evaluateeComment: "Je suis d'accord.",
       disagreementFlag: false,
-      score:             4,
+      reviewerScore:     4,
     })
   })
 
@@ -217,7 +217,7 @@ describe('GET /:id/n1-context — N-1 context endpoint', () => {
     expect(res.body).not.toHaveProperty('disagreementFlag')
     expect(res.body).toMatchObject({
       status: 'validated',
-      score:   4,
+      reviewerScore:   4,
       n1Campaign: expect.objectContaining({ name: 'Campagne 2023' }),
     })
   })
@@ -267,7 +267,7 @@ describe('GET /:id/n1-context — N-1 context endpoint', () => {
     expect(res.status).toBe(200)
     expect(res.body).toMatchObject({
       status: 'validated',
-      score:   4,
+      reviewerScore:   4,
       n1Campaign: expect.objectContaining({ name: 'Campagne 2023' }),
     })
   })

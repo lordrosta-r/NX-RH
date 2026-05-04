@@ -15,8 +15,36 @@ const router   = require('express').Router()
 const mongoose = require('mongoose')
 const { Form, Evaluation } = require('../../models')
 const { REQUEST_FORM_TYPES } = require('../../config/constants')
+const { notify: notifyInApp } = require('../../services/notificationHelper')
 
 const VALID_HR_STATUSES = ['assigned', 'in_progress', 'submitted', 'reviewed', 'validated']
+
+// ─── GET /api/hr/flags/count — badge navbar polling ──────────────────────────
+
+router.get('/count', async (req, res) => {
+  try {
+    const requestForms = await Form.find({ formType: { $in: REQUEST_FORM_TYPES } }).select('_id formType').lean()
+    const formIdToType = {}
+    const formIds = requestForms.map(f => { formIdToType[f._id.toString()] = f.formType; return f._id })
+
+    const evals = await Evaluation.find({
+      campaignId: null,
+      formId: { $in: formIds },
+      status: { $in: ['assigned', 'submitted'] }
+    }).select('formId').lean()
+
+    const byType = {}
+    for (const e of evals) {
+      const t = formIdToType[e.formId.toString()] || 'unknown'
+      byType[t] = (byType[t] || 0) + 1
+    }
+
+    return res.json({ count: evals.length, byType })
+  } catch (err) {
+    console.error('[flags/count]', err)
+    return res.status(500).json({ error: 'Erreur serveur' })
+  }
+})
 
 // ─── GET /api/hr/flags ────────────────────────────────────────────────────────
 
@@ -95,6 +123,17 @@ router.patch('/:evalId/status', async (req, res, next) => {
     }
 
     await evaluation.save()
+
+    // Notification in-app pour l'évalué (fire-and-forget)
+    if (['reviewed', 'validated'].includes(status)) {
+      notifyInApp(
+        evaluation.evaluateeId,
+        'request_treated',
+        'Votre demande a été traitée',
+        note ? String(note).slice(0, 200) : '',
+      ).catch(() => {})
+    }
+
     res.json(evaluation.toObject())
   } catch (err) {
     next(err)

@@ -40,6 +40,7 @@ const userImportRoutes  = require('./routes/users/import')
 const formImportRoutes  = require('./routes/forms/importExport')
 const hrFlagsRoutes     = require('./routes/hr/flags')
 const mailTemplateRoutes = require('./routes/admin/mailTemplates')
+const notificationsRouter = require('./routes/notifications')
 
 // ─── App setup ───────────────────────────────────────────────────────────────
 
@@ -90,6 +91,8 @@ app.use((_req, res, next) => {
   next()
 })
 app.use(express.json({ limit: '100kb' }))
+const mongoSanitize = require('express-mongo-sanitize')
+app.use(mongoSanitize())
 app.use(express.urlencoded({ extended: false, limit: '100kb' }))
 app.use(cookieParser())
 // Redirect /page.html → /page (strip .html extension)
@@ -165,6 +168,7 @@ app.use('/api/offboarding', mutationLimiter, authenticated, offboardingRoutes)
 app.use('/api/hr/notifications', mutationLimiter, authGuard(['admin', 'hr']), hrNotifRoutes)
 app.use('/api/hr/flags',         mutationLimiter, authGuard(['admin', 'hr']), hrFlagsRoutes)
 app.use('/api/org',              mutationLimiter, authGuard(['admin', 'hr']), orgRoutes)
+app.use('/api/notifications',    apiLimiter, authenticated, notificationsRouter)
 
 // ─── 404 Fallback ────────────────────────────────────────────────────────────
 

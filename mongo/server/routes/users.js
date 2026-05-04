@@ -4,7 +4,19 @@ const mongoose = require('mongoose')
 const bcrypt = require('bcrypt')
 const router = require('express').Router()
 const { User, Evaluation, AuditLog } = require('../models')
-const { ROLES, ADMIN_ROLES } = require('../config/constants')
+const { ROLES, ADMIN_ROLES, NOTIF_KEYS_BY_ROLE } = require('../config/constants')
+
+function allowedNotifKeysFor(role) {
+  return NOTIF_KEYS_BY_ROLE[role] || NOTIF_KEYS_BY_ROLE.employee
+}
+function filterNotifPrefsByRole(prefs, role) {
+  const allowed = allowedNotifKeysFor(role)
+  const out = {}
+  for (const k of allowed) {
+    if (prefs && Object.prototype.hasOwnProperty.call(prefs, k)) out[k] = !!prefs[k]
+  }
+  return out
+}
 
 // GET /api/users — Liste les utilisateurs (scope par rôle)
 router.get('/', async (req, res, next) => {
@@ -47,6 +59,32 @@ router.get('/', async (req, res, next) => {
       User.countDocuments(filter),
     ])
     res.json({ data: users, total, page, limit })
+  } catch (err) {
+    next(err)
+  }
+})
+
+// GET /api/users/me — Alias de /api/auth/me (même comportement)
+router.get('/me', async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.id)
+      .select('firstName lastName email role department position isActive locale theme notificationPrefs lastLoginAt authSource managerId onboarding createdAt')
+      .lean()
+
+    if (!user || !user.isActive) {
+      res.clearCookie('token', {
+        httpOnly: true,
+        secure:   process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        path:     '/',
+      })
+      return res.status(401).json({ error: 'Session invalide' })
+    }
+
+    user.notificationPrefs = filterNotifPrefsByRole(user.notificationPrefs, user.role)
+
+    const { _id, ...rest } = user
+    res.json({ id: _id, ...rest })
   } catch (err) {
     next(err)
   }

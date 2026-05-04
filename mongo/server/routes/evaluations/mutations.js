@@ -11,26 +11,48 @@
 
 const mongoose  = require('mongoose')
 const { Evaluation, Form, Campaign, User, AuditLog, VALID_TRANSITIONS, ROLE_TRANSITIONS, LOCKED_STATUSES } = require('../../models')
-const { ADMIN_ROLES }          = require('../../config/constants')
+const { ADMIN_ROLES, REQUEST_FORM_TYPES } = require('../../config/constants')
 const { notify }               = require('../../services/notificationService')
+const { notify: notifyInApp }  = require('../../services/notificationHelper')
 const { sanitizeAnonymity }    = require('./helpers')
 
-// POST / — Créer une évaluation individuelle (admin/hr)
+// POST / — Créer une évaluation individuelle
+// • admin/hr : création complète (campaignId, formId, evaluatorId, evaluateeId requis)
+// • autres rôles : demande standalone uniquement — formType doit être dans REQUEST_FORM_TYPES,
+//   evaluateeId et evaluatorId sont forcés à soi-même, campaignId est forcé à null.
 async function handleCreate(req, res, next) {
   try {
-    if (!ADMIN_ROLES.includes(req.user.role)) {
-      return res.status(403).json({ error: 'Réservé aux admins et RH' })
+    const isAdminHr = ADMIN_ROLES.includes(req.user.role)
+
+    if (!isAdminHr) {
+      const { formId } = req.body
+      if (!formId || !mongoose.isValidObjectId(formId)) {
+        return res.status(400).json({ error: 'formId valide requis' })
+      }
+
+      const form = await Form.findById(formId).select('formType').lean()
+      if (!form) return res.status(404).json({ error: 'Formulaire introuvable' })
+
+      if (!REQUEST_FORM_TYPES.includes(form.formType)) {
+        return res.status(403).json({ error: 'Accès interdit pour ce type de formulaire' })
+      }
+
+      // Forcer la demande en standalone : évaluateur = évalué = soi-même, pas de campagne
+      req.body.evaluateeId = req.user._id.toString()
+      req.body.evaluatorId = req.user._id.toString()
+      req.body.campaignId  = null
     }
 
     const { campaignId, formId, evaluatorId, evaluateeId } = req.body
 
-    if (!campaignId || !formId || !evaluatorId || !evaluateeId) {
-      return res.status(400).json({ error: 'campaignId, formId, evaluatorId et evaluateeId sont requis' })
-    }
-
-    for (const [key, val] of Object.entries({ campaignId, formId, evaluatorId, evaluateeId })) {
-      if (!mongoose.isValidObjectId(val)) {
-        return res.status(400).json({ error: `${key} invalide` })
+    if (isAdminHr) {
+      if (!campaignId || !formId || !evaluatorId || !evaluateeId) {
+        return res.status(400).json({ error: 'campaignId, formId, evaluatorId et evaluateeId sont requis' })
+      }
+      for (const [key, val] of Object.entries({ campaignId, formId, evaluatorId, evaluateeId })) {
+        if (!mongoose.isValidObjectId(val)) {
+          return res.status(400).json({ error: `${key} invalide` })
+        }
       }
     }
 
@@ -38,13 +60,22 @@ async function handleCreate(req, res, next) {
     await Form.findByIdAndUpdate(formId, { $set: { frozenAt: new Date() } }, { timestamps: false })
       .where({ frozenAt: null })
 
-    const campaign  = await Campaign.findById(campaignId, 'endDate').lean()
+    const campaign  = campaignId ? await Campaign.findById(campaignId, 'endDate').lean() : null
     const expiresAt = campaign?.endDate
       ? new Date(new Date(campaign.endDate).getTime() + 30 * 24 * 60 * 60 * 1000)
       : null
 
-    const evaluation = await Evaluation.create({ campaignId, formId, evaluatorId, evaluateeId, expiresAt })
+    const evaluation = await Evaluation.create({ campaignId: campaignId || null, formId, evaluatorId, evaluateeId, expiresAt })
     res.status(201).json({ id: evaluation._id })
+
+    // Notification in-app (fire-and-forget)
+    notifyInApp(
+      evaluateeId,
+      'eval_assigned',
+      'Évaluation assignée',
+      campaign?.name || '',
+      `/evaluations/${evaluation._id}`,
+    ).catch(() => {})
   } catch (err) {
     if (err.code === 11000) {
       return res.status(409).json({ error: 'Cette évaluation existe déjà' })
@@ -141,6 +172,7 @@ async function handleUpdate(req, res, next) {
     }
 
     // Sauvegarde des réponses (brouillon)
+    let _evaluatee = null
     if (req.body.answers !== undefined) {
       if (!Array.isArray(req.body.answers)) {
         return res.status(400).json({ error: 'answers doit être un tableau' })
@@ -156,12 +188,18 @@ async function handleUpdate(req, res, next) {
       if (LOCKED_STATUSES.includes(evaluation.status)) {
         return res.status(409).json({ error: 'Les réponses sont verrouillées — évaluation déjà soumise' })
       }
+      // Guard RBAC : manager et director ne peuvent modifier answers que pour leurs subordonnés directs
+      if (['manager', 'director'].includes(role)) {
+        if (!_evaluatee) _evaluatee = await User.findById(evaluation.evaluateeId).select('managerId').lean()
+        if (!_evaluatee || !_evaluatee.managerId || !_evaluatee.managerId.equals(req.user._id)) {
+          return res.status(403).json({ error: "Accès interdit : vous n'êtes pas le manager de cet évaluataire." })
+        }
+      }
       evaluation.answers     = req.body.answers
       evaluation.lastSavedAt = new Date()
     }
 
     // Score (manager/director/admin/hr uniquement)
-    let _evaluatee = null
     if (req.body.score !== undefined) {
       if (!['manager', 'director', 'admin', 'hr'].includes(role)) {
         return res.status(403).json({ error: 'Seuls les managers et admins peuvent ajouter un score' })

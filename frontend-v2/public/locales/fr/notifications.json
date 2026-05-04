@@ -1,0 +1,24 @@
+{
+  "title": "Notifications",
+  "markAllRead": "Tout marquer comme lu",
+  "noNotifications": "Aucune notification",
+  "unread": "Non lues",
+  "all": "Toutes",
+  "types": {
+    "campaign_started": "Campagne démarrée",
+    "evaluation_assigned": "Évaluation assignée",
+    "evaluation_submitted": "Évaluation soumise",
+    "evaluation_reviewed": "Évaluation révisée",
+    "evaluation_signed": "Évaluation signée",
+    "evaluation_validated": "Évaluation validée",
+    "evaluation_reminder": "Rappel évaluation",
+    "campaign_reminder": "Rappel campagne",
+    "hr_flag_created": "Signal RH créé",
+    "hr_flag_resolved": "Signal RH résolu",
+    "campaign_closed": "Campagne clôturée",
+    "campaign_archived": "Campagne archivée",
+    "bulk_action_complete": "Action groupée terminée",
+    "import_complete": "Import terminé",
+    "offboarding_started": "Offboarding démarré"
+  }
+}

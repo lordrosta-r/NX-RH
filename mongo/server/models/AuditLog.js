@@ -13,7 +13,7 @@ const TWO_YEARS_SECONDS = 2 * 365 * 24 * 60 * 60  // 63 072 000 s
 
 const auditLogSchema = new Schema({
   userId:     { type: Schema.Types.ObjectId, ref: 'User', required: true },
-  userRole:   { type: String },
+  userRole:   { type: String, enum: ['admin', 'hr', 'director', 'manager', 'employee'] },
   action:     { type: String, required: true },   // 'status_change', 'evaluation_update', 'campaign_create', …
   targetType: { type: String, required: true },   // 'Evaluation', 'Campaign', 'User'
   targetId:   { type: Schema.Types.ObjectId, required: true },
@@ -23,6 +23,8 @@ const auditLogSchema = new Schema({
 
 // TTL — MongoDB supprime automatiquement les documents après 2 ans
 auditLogSchema.index({ createdAt: 1 }, { expireAfterSeconds: TWO_YEARS_SECONDS })
+auditLogSchema.index({ action: 1 })
+auditLogSchema.index({ userRole: 1 })
 
 // Index composites pour les requêtes fréquentes
 auditLogSchema.index({ userId:     1, createdAt: -1 })

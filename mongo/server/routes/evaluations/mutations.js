@@ -390,19 +390,29 @@ async function _sendStatusNotifications(evaluation, newStatus) {
         const manager = await User.findById(evaluatee.managerId).lean()
         if (manager) await notify('evaluationSubmitted', manager, { evaluatorName: evaluatee.firstName, campaignName: cName })
       }
+      // In-app : notifier l'évaluateur que l'évaluation est soumise
+      notifyInApp(evaluation.evaluatorId, 'eval_submitted', 'Évaluation soumise', cName).catch(() => {})
     } else if (newStatus === 'reviewed') {
       const evaluatee = await User.findById(evaluation.evaluateeId).lean()
       if (evaluatee) await notify('managerActionRequired', evaluatee, { campaignName: cName })
+      // In-app : notifier l'évalué que son évaluation est révisée
+      notifyInApp(evaluation.evaluateeId, 'eval_reviewed', 'Évaluation complétée', cName).catch(() => {})
     } else if (newStatus === 'signed_evaluatee') {
       const evaluatee = await User.findById(evaluation.evaluateeId, 'managerId firstName').lean()
       if (evaluatee?.managerId) {
         const manager = await User.findById(evaluatee.managerId).lean()
         if (manager) await notify('evaluationSubmitted', manager, { evaluatorName: evaluatee.firstName, campaignName: cName })
       }
+      // In-app : notifier l'évaluateur de la signature de l'évalué
+      notifyInApp(evaluation.evaluatorId, 'eval_signed_evaluatee', 'Évaluation signée par l\'évalué', cName).catch(() => {})
     } else if (newStatus === 'signed_manager') {
       const { notifyMany } = require('../../services/notificationService')
       const hrUsers = await User.find({ role: { $in: ['hr', 'admin'] }, isActive: true }).lean()
       if (hrUsers.length) await notifyMany('evaluationSubmitted', hrUsers, { evaluatorName: 'Manager', campaignName: cName })
+      // In-app : notifier les hr/admin de la signature du manager
+      for (const hrUser of hrUsers) {
+        notifyInApp(hrUser._id, 'eval_signed_manager', 'Évaluation signée par le manager', cName).catch(() => {})
+      }
     } else if (newStatus === 'signed_hr') {
       const evaluatee = await User.findById(evaluation.evaluateeId).lean()
       if (evaluatee) await notify('managerActionRequired', evaluatee, { campaignName: cName })
@@ -410,6 +420,8 @@ async function _sendStatusNotifications(evaluation, newStatus) {
         const manager = await User.findById(evaluatee.managerId).lean()
         if (manager) await notify('evaluationSubmitted', manager, { evaluatorName: evaluatee.firstName, campaignName: cName })
       }
+      // In-app : notifier l'évalué et l'évaluateur de la signature RH
+      notifyInApp(evaluation.evaluateeId, 'eval_signed_hr', 'Évaluation signée par le RH', cName).catch(() => {})
     }
   } catch (_) { /* notification failure must never block */ }
 }

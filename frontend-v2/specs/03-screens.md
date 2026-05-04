@@ -5,7 +5,7 @@
 > **Navigation** : Top navbar fixe (h-16) · Pas de sidebar · Fil d'Ariane pour le contexte
 > **Responsive** : desktop 1280px · tablette 768px · mobile 375px
 > **Design ref** : Eurecia — cards blanches, primaire teal `#17A8D4`, illustrations SVG
-> **Écrans** : 41 (S-01 → S-41 · hors S-37 · + S-10b)
+> **Écrans** : 42 (S-01 → S-42 · hors S-37 · + S-10b)
 
 ---
 
@@ -283,6 +283,32 @@ KPI row (3 cols) : Évals à compléter · Équipe en attente · Rappels deadlin
 **Mobile** : Empilement vertical, cards pleine largeur.
 
 **Liens depuis dashboard** : → `/evaluations` · `/evaluations/:id` · `/events` · `/resources` · `/evaluations/history` · `/profile`
+
+#### Appels API par rôle
+
+**employee** : `GET /api/campaigns?status=active`, `GET /api/evaluations?evaluateeId=me&status=in_progress,assigned`, `GET /api/evaluations?campaignId=null&evaluateeId=me`
+
+**manager** : `GET /api/campaigns?status=active`, `GET /api/evaluations?scope=my_team`, `GET /api/hr/flags?status=submitted&limit=5`
+
+**director** : idem manager + `GET /api/evaluations?scope=subtree`
+
+**hr** : `GET /api/campaigns?status=active`, `GET /api/hr/flags?status=submitted`, `GET /api/evaluations?status=submitted&limit=5`, `GET /api/users?isActive=true&managerId=null&limit=5`
+
+**admin** : idem hr + `GET /api/config`
+
+#### Widgets par rôle
+
+- **employee** : carte "Mes évaluations en cours" (compteur + deadline), carte "Mes demandes" (standalone requests), CTA "Voir campagne active"
+- **manager** : jauge completion équipe (soumises/total), tableau évals en retard, liste demandes récentes
+- **director** : idem manager + vue récap par département
+- **hr** : tableau KPIs global, demandes ouvertes par type, alerte users sans manager
+- **admin** : idem hr + santé système
+
+#### États UI
+
+- **loading** : skeleton de la grille de widgets
+- **vide** (aucune campagne active) : illustration + "Aucune campagne active" + bouton "Voir les archives"
+- **erreur** : toast + bouton "Réessayer"
 
 ---
 
@@ -648,6 +674,10 @@ Période: 01/01/2025 – 31/03/2025 · Créée le …
 
 **Empty state** : « Aucune donnée analytique disponible — lancez la campagne pour commencer. »
 
+**Loading state** : Skeleton loaders sur chaque widget (donut, histogramme, tableau). Barre de chargement en haut de page. Boutons Export désactivés pendant le chargement.
+
+**Error state** : Bannière `danger` « Impossible de charger les données analytiques » + bouton [Réessayer] qui re-déclenche l'appel API. Les widgets affichent `—` à la place des données.
+
 **Mobile** : Graphes pleine largeur empilés.
 
 ---
@@ -944,6 +974,12 @@ Affichage complet en lecture : questions/réponses · score · commentaire revie
 
 **Mobile (tous modes)** : 1 question par écran · swipe navigation · barre de progression sticky en haut.
 
+**Empty state** : Évaluation non trouvée → illustration `ClipboardX` + « Cette évaluation n'existe pas ou vous n'y avez pas accès. » + [Retour à mes évaluations].
+
+**Loading state** : Skeleton du formulaire (placeholder de question + boutons désactivés). Sauvegarde auto bloquée pendant le chargement initial.
+
+**Error state (soumission)** : Toast `danger` « Erreur lors de la soumission — vos réponses ont été sauvegardées. » + modal se referme. L'évaluation reste en `in_progress`.
+
 **Liens** : → `/evaluations` · PDF download
 
 ---
@@ -1226,6 +1262,10 @@ Total évals       Score moyen        Taux complétion   Évals validées
 **Export PDF** : `GET /api/analytics/export/pdf` (avec `campaignId` si sélection).
 
 **Empty state** : « Sélectionnez une campagne active pour afficher les données. »
+
+**Loading state** : Skeleton sur les 4 KPI cards + graphes (donut et histogramme en gris animé). Sélecteur campagne désactivé pendant le chargement.
+
+**Error state** : Bannière `danger` « Impossible de charger les données analytiques » + bouton [Réessayer]. KPI cards affichent `—`.
 
 **Mobile** : KPI 2×2 · graphes 1 col · tableau scroll horizontal.
 
@@ -1804,6 +1844,12 @@ Note interne :
 - Mise à jour `PATCH /api/hr/flags/:evalId/status` → `{ status, note }` → rafraîchissement de la liste
 - Badge rouge sur l'icône nav si nombre de demandes `new` > 0
 
+**Empty state** : Illustration `Inbox` + « Aucune demande en cours. » (filtres actifs → « Aucune demande ne correspond aux filtres. » + [Effacer les filtres]).
+
+**Loading state** : Skeleton de 5 lignes dans le DataTable. Filtres désactivés pendant le chargement.
+
+**Error state** : Bannière `danger` en haut du tableau + [Réessayer]. Panneau latéral affiche un spinner si le détail est en cours de chargement.
+
 **Endpoints** :
 - `GET /api/hr/flags?type=...&status=...&from=...&to=...&department=...&sector=...`
 - `PATCH /api/hr/flags/:evalId/status` → `{ status: 'new'|'in_progress'|'treated', note: '...' }`
@@ -1877,6 +1923,12 @@ Note interne :
 | `DELETE` | `/api/org/sectors/:id` | Supprimer un secteur |
 
 **Mobile** : Arbre remplacé par une liste hiérarchique repliable (accordéon). Panneau latéral = bottom-sheet.
+
+**Empty state** : Aucun utilisateur → illustration `Network` + « Aucun utilisateur dans l'organigramme. » + [Importer des utilisateurs →]. Vue secteur sans secteurs → « Aucun secteur défini. » + [+ Nouveau secteur].
+
+**Loading state** : Spinner centré pendant le chargement de l'arbre SVG/D3. Nœuds du panneau latéral en skeleton.
+
+**Error state** : Message `danger` « Impossible de charger l'organigramme » + [Réessayer]. Les actions drag-and-drop sont désactivées en cas d'erreur de mise à jour (toast + annulation visuelle du déplacement).
 
 ---
 
@@ -1989,6 +2041,74 @@ Note interne :
 
 ---
 
+## 19. Notifications
+
+---
+
+### S-42 · `/notifications` — Centre de notifications
+
+**Rôles** : Tous (chacun voit uniquement ses propres notifications)
+**Layout** : Topbar + contenu centré (max-width 768px, padding mobile)
+
+#### Données affichées
+
+- Liste de notifications groupées par date :
+  - **Aujourd'hui** — notifications des dernières 24h
+  - **Cette semaine** — derniers 7 jours
+  - **Plus tôt** — tout le reste (paginé, 20 par page)
+- Chaque notification affiche :
+  - Icône selon le `type` (🔔 générique, ✅ éval validée, 📋 éval assignée, 📩 demande traitée, ⏰ rappel deadline)
+  - Titre (max 1 ligne, ellipsis)
+  - Corps (max 2 lignes, ellipsis)
+  - Temps relatif ("il y a 5 min", "hier")
+  - Indicateur non-lu (point bleu à gauche)
+  - Si `link` présent : toute la carte est cliquable → navigate(link)
+
+#### Actions
+
+- **"Tout marquer comme lu"** — `PATCH /api/notifications/read-all` — visible uniquement si unreadCount > 0
+- **Clic sur une notification non-lue** — `PATCH /api/notifications/:id/read` + navigation vers `link`
+- **Chargement page suivante** — scroll infini ou bouton "Charger plus" → `GET /api/notifications?page=N`
+
+#### Endpoints
+
+- `GET /api/notifications?page=1&limit=20` — chargement initial
+- `GET /api/notifications/count` — polling badge (interval 30s via React Query refetchInterval)
+- `PATCH /api/notifications/:id/read`
+- `PATCH /api/notifications/read-all`
+
+#### Badge navbar
+
+- Le composant Navbar affiche un badge rouge avec le `unreadCount`
+- Polling `GET /api/notifications/count` toutes les 30s (React Query `refetchInterval: 30000`)
+- Clic sur l'icône cloche → navigate('/notifications')
+
+#### États
+
+- **Loading** : liste de 5 skeleton cards (même hauteur qu'une notification réelle)
+- **Vide** : illustration neutre + texte "Pas de notifications pour le moment" (pas de CTA)
+- **Erreur** : toast d'erreur "Impossible de charger les notifications" + bouton "Réessayer"
+- **Tout lu** : affichage normal sans points bleus, bouton "Tout marquer comme lu" masqué
+
+#### Types de notifications affichables
+
+| type | Icône | Déclencheur |
+|------|-------|-------------|
+| eval_assigned | 📋 | Évaluation assignée à l'utilisateur |
+| eval_submitted | 📩 | Évaluation soumise par un membre de l'équipe |
+| eval_reviewed | ✅ | Évaluation révisée par le manager |
+| eval_signed_* | ✍️ | Signature dans la chaîne |
+| eval_reminder_deadline | ⏰ | Rappel avant expiration |
+| eval_expired | 🔴 | Évaluation expirée |
+| campaign_launched | 🚀 | Nouvelle campagne lancée |
+| campaign_closed | 📁 | Campagne fermée |
+| request_submitted | 📝 | Demande soumise (pour RH) |
+| request_treated | ✅ | Demande traitée (pour l'employé) |
+| request_rejected | ❌ | Demande rejetée (pour l'employé) |
+| system | 🔧 | Notification système (admin) |
+
+---
+
 | ID | Écran | Titre | Action | Type |
 |---|---|---|---|---|
 | S-04-M1 | `/users` | Confirmer la suppression | DELETE user | Danger |
@@ -2051,6 +2171,7 @@ Note interne :
 | S-39 | `/admin/orgchart` | Organigramme | admin, hr |
 | S-40 | `/admin/users/import` | Import utilisateurs | admin, hr |
 | S-41 | `/admin/forms/import` | Import formulaire JSON | admin, hr |
+| S-42 | `/notifications` | Centre de notifications | Tous |
 
 ---
 

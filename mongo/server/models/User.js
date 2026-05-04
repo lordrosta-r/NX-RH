@@ -115,6 +115,11 @@ const userSchema = new Schema({
 
   isActive: { type: Boolean, default: true },
 
+  resetPasswordToken:  { type: String,  default: null, select: false },
+  resetPasswordExpiry: { type: Date,    default: null, select: false },
+
+  mustChangePassword: { type: Boolean, default: false },
+
   // Onboarding — suivi de l'intégration des nouveaux arrivants
   onboarding: {
     completed:   { type: Boolean, default: false },

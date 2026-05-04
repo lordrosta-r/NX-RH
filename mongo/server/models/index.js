@@ -13,10 +13,11 @@ const AuditLog   = require('./AuditLog')
 const { OffboardingRequest }                                                               = require('./OffboardingRequest')
 const Sector       = require('./Sector')
 const MailTemplate = require('./MailTemplate')
+const Notification = require('./Notification')
 
 module.exports = {
   User, Config, Campaign, Form, Evaluation, Resource, Event, AuditLog, OffboardingRequest,
-  Sector, MailTemplate,
+  Sector, MailTemplate, Notification,
   CAMPAIGN_TRANSITIONS, EVAL_TRANSITIONS, ROLE_TRANSITIONS, LOCKED_STATUSES,
   VALID_TRANSITIONS: EVAL_TRANSITIONS,
 }

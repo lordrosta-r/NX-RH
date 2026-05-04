@@ -423,7 +423,7 @@ describe('POST /api/events', () => {
     const res = await request(app)
       .post('/api/events')
       .set('Cookie', `token=${tokenFor({ id: HR_ID, role: 'hr' })}`)
-      .send({ title: 'HR Meeting', date: '2025-07-15' })
+      .send({ title: 'HR Meeting', date: '2025-07-15', type: 'other' })
 
     expect(res.status).toBe(201)
     expect(res.body.title).toBe('HR Meeting')
@@ -435,7 +435,7 @@ describe('POST /api/events', () => {
     await request(app)
       .post('/api/events')
       .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
-      .send({ title: 'Check', date: '2025-01-01' })
+      .send({ title: 'Check', date: '2025-01-01', type: 'other' })
 
     expect(Event.create).toHaveBeenCalledWith(
       expect.objectContaining({ createdBy: ADMIN_ID }),

@@ -117,7 +117,7 @@ const campaignSchema = new Schema({
 
   // Périmètre de la campagne : qui est concerné
   targetScope: {
-    type: {
+    scopeType: {
       type: String,
       enum: ['all', 'department', 'sector', 'users'],
       default: 'all',

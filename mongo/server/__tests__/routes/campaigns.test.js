@@ -91,6 +91,7 @@ jest.mock('../../services/notificationService', () => ({
 }))
 
 // ─── Imports (after mocks) ────────────────────────────────────────────────────
+const mongoose       = require('mongoose')
 const { Campaign, Evaluation, Form, AuditLog } = require('../../models')
 const request        = require('supertest')
 const express        = require('express')
@@ -527,6 +528,11 @@ describe('DELETE /api/campaigns/:id', () => {
 
   beforeEach(() => {
     jest.clearAllMocks()
+    // Stub mongoose session: throw a "no replica set" error so the fallback sequential path runs
+    jest.spyOn(mongoose, 'startSession').mockResolvedValue({
+      withTransaction: jest.fn().mockRejectedValue({ code: 20, message: 'Transaction requires replica set' }),
+      endSession:      jest.fn().mockResolvedValue(undefined),
+    })
     Campaign.prototype.deleteOne.mockResolvedValue({})
     Evaluation.deleteMany.mockResolvedValue({ deletedCount: 0 })
     Form.deleteMany.mockResolvedValue({ deletedCount: 0 })

@@ -16,7 +16,7 @@
 **Fichiers sources** :
 - [`01-features.md`](./01-features.md) — Inventaire des fonctionnalités par rôle
 - [`02-design-system.md`](./02-design-system.md) — Tokens design
-- [`03-screens.md`](./03-screens.md) — Inventaire des 45 écrans
+- [`03-screens.md`](./03-screens.md) — Inventaire des 46 écrans
 - [`04-flows.md`](./04-flows.md) — Flux UX et machines à états
 - [`05-notifications.md`](./05-notifications.md) — Système de notifications
 - [`06-components.md`](./06-components.md) — Bibliothèque de composants
@@ -439,6 +439,20 @@ navigate(returnUrl, { replace: true });
 
 ---
 
+### Module 15 — Notifications
+
+| Champ | Détail |
+|---|---|
+| **Écrans** | `/notifications` (S-42) |
+| **Composants clés** | `NotificationItem`, `NotificationBell` (badge navbar), `SkeletonCard` (×5 loading), `InfiniteScroll` ou bouton "Charger plus" |
+| **API** | `GET /api/notifications?page=1&limit=20` · `GET /api/notifications/count` · `PATCH /api/notifications/:id/read` · `PATCH /api/notifications/read-all` |
+| **Rôles** | Tous (chacun voit uniquement ses propres notifications) |
+| **Flux** | Polling badge 30s (React Query `refetchInterval: 30000`) · Scroll infini ou pagination · Mark-as-read inline |
+| **Notifications** | Aucune (c'est le module qui les affiche) |
+| **Règles métier** | ① Badge navbar masqué si `unreadCount === 0` · ② "Tout marquer comme lu" visible uniquement si `unreadCount > 0` · ③ Anti-énumération : même comportement email connu/inconnu |
+
+---
+
 ## Section 5 — Design System Quick Reference
 
 ### Palette de couleurs
@@ -592,6 +606,7 @@ Les règles suivantes sont **non-négociables**. Tout développeur doit les lire
 | Mes préférences | `/profile/preferences` | `RadioGroup`, `CheckboxGroup`, `Toggle` | `PATCH /api/auth/preferences` | ☐ |
 | Flux onboarding | `/onboarding` | `ProgressSteps`, `Input`, `Button` | `PATCH /api/users/:id/onboarding/:stepIndex` | ☐ |
 | Centre notifications | `/notifications` | `NotificationItem`, `FilterBar`, `Pagination` | `GET /api/notifications` | ☐ |
+| **S-42 · Centre notifications** | `/notifications` | `NotificationItem`, `NotificationBell`, `SkeletonCard` | `GET /api/notifications` · `GET /api/notifications/count` · `PATCH /api/notifications/:id/read` · `PATCH /api/notifications/read-all` | ☐ |
 | Paramètres système | `/admin/settings` | `FormField`, `Input`, `Toggle`, `Select` | `PATCH /api/admin/config/batch` | ☐ |
 | Paramètres RH | `/hr/settings` | `FormField`, `Toggle`, `Select`, `Button` | `PATCH /api/admin/config/batch` · `POST /api/hr/notifications/bulk-remind` | ☐ |
 | Organigramme (S-36) | `/org` | `OrgTree`, `SlideOver`, `Avatar`, `Select` | `GET /api/org/tree` · `PATCH /api/org/users/:id` · `GET|POST|PATCH|DELETE /api/org/sectors` | ☐ |
@@ -658,4 +673,4 @@ export const queryKeys = {
 
 ---
 
-*Fin du document — NX-RH Master Spec v1.2.0 · 45 écrans*
+*Fin du document — NX-RH Master Spec v1.2.0 · 46 écrans*

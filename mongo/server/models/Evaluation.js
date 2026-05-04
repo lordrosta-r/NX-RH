@@ -26,6 +26,7 @@ const VALID_TRANSITIONS = {
   signed_hr:       ['validated'],
   validated:       [],  // terminal
   expired:         [],  // terminal — positionné par le scheduler
+  rejected:        [],  // terminal — demande RH refusée
   archived:        [],  // terminal — évaluation annulée suite à un offboarding
 }
 

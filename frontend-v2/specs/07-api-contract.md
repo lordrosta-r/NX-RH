@@ -394,7 +394,8 @@ Chaque endpoint est décrit avec ses rôles, paramètres, body, réponse et erre
 
 ### GET /api/forms
 - **Auth** : Tous les rôles
-- **Query** : `?campaignId=&formType=&page=1&limit=50`
+- **Query** : `?campaignId=&formType=&search=<string>&page=1&limit=50`
+  - `search` : regex insensible à la casse sur `title` (ex. `?search=annuel` → formulaires dont le titre contient "annuel")
 - **Response** `200` : `{ data: Form[], total, page, limit }` (createdBy populé)
 - **Errors** : `400` campaignId/formType invalide
 
@@ -430,12 +431,36 @@ Chaque endpoint est décrit avec ses rôles, paramètres, body, réponse et erre
 
 ---
 
+### POST /api/forms/:id/freeze
+- **Auth** : admin seulement
+- **Body** : aucun
+- **Response** `200` : `{ success: true, form: Form }` — `isFrozen` passé à `true`, `frozenAt` défini
+- **Errors** : `400` ID invalide · `403` accès refusé · `404` introuvable
+
+---
+
+### POST /api/forms/:id/unfreeze
+- **Auth** : admin seulement
+- **Body** : aucun
+- **Response** `200` : `{ success: true, form: Form }` — `isFrozen` passé à `false`, `frozenAt` remis à `null`
+- **Errors** : `400` ID invalide · `403` accès refusé · `404` introuvable
+
+---
+
+### POST /api/forms/:id/clone
+- **Auth** : admin, hr
+- **Body** : aucun
+- **Response** `201` : `{ form: Form }` — copie avec `title: "Copie de [titre original]"`, `isFrozen: false`, `frozenAt: null`, sans `_id` original
+- **Errors** : `400` ID invalide · `403` accès refusé · `404` introuvable · `400` validation Mongoose
+
+---
+
 ## 7. Forms Import/Export (`/api/forms/import`, `/api/forms/template`, `/api/forms/:id/export`)
 
 ### POST /api/forms/import
 - **Auth** : admin, hr
 - **Body** : objet JSON `{ title, formType, description?, isAnonymous?, questions: [{ id, type, label, ... }] }`
-- **Response** `201` : Form créé (`frozenAt=null`)
+- **Response** `201` : `{ imported: 1, skipped: 0, errors: [], form: Form }` — Form créé (`frozenAt=null`)
 - **Errors** : `400` body invalide · `400` title manquant/trop court · `400` formType invalide · `400` questions manquantes ou types inconnus · `403` accès refusé
 
 ---
@@ -543,7 +568,7 @@ Chaque endpoint est décrit avec ses rôles, paramètres, body, réponse et erre
   | Param        | Type       | Description                                                  |
   |-------------|------------|--------------------------------------------------------------|
   | `type`       | string     | Filtre par `formType` (doit être dans `REQUEST_FORM_TYPES`)  |
-  | `status`     | string     | Filtre par statut évaluation : `assigned\|in_progress\|submitted\|reviewed\|validated` |
+  | `status`     | string     | Filtre par statut évaluation : `assigned\|in_progress\|submitted\|reviewed\|validated\|rejected` |
   | `from`       | ISO date   | `createdAt >= from`                                          |
   | `to`         | ISO date   | `createdAt <= to`                                            |
   | `department` | string     | Department de l'évaluataire (filtre DB via User)             |
@@ -557,7 +582,9 @@ Chaque endpoint est décrit avec ses rôles, paramètres, body, réponse et erre
 
 ### PATCH /api/hr/flags/:evalId/status
 - **Auth** : admin, hr
-- **Body** : `{ status: 'submitted'|'reviewed'|'validated', note?: string }`
+- **Body** : `{ status: 'submitted'|'reviewed'|'validated'|'rejected', note?: string }`
+- **Transitions de statut** : `submitted → reviewed → validated` (traité) ou `submitted|reviewed → rejected` (refusé). Les statuts `assigned` et `in_progress` sont en lecture seule via ce endpoint.
+- **Effets** : `validated`/`reviewed` → notification `request_treated` ; `rejected` → notification `request_rejected` (avec `note` comme motif si présent)
 - **Response** `200` : Evaluation mise à jour (avec auditLog si note présente)
 - **Errors** : `400` ID invalide · `400` status invalide · `404` évaluation introuvable
 
@@ -764,7 +791,7 @@ Chaque endpoint est décrit avec ses rôles, paramètres, body, réponse et erre
 | Users Import | 1 |
 | Campaigns | 7 |
 | Evaluations | 12 |
-| Forms | 5 |
+| Forms | 8 |
 | Forms Import/Export | 3 |
 | Org | 6 |
 | HR Notifications | 1 |
@@ -776,11 +803,63 @@ Chaque endpoint est décrit avec ses rôles, paramètres, body, réponse et erre
 | Events | 5 |
 | Offboarding | 6 |
 | Health | 1 |
-| **Total** | **75 endpoints** |
+| **Total** | **83 endpoints** |
 
 ---
 
-*Fin du document — NX-RH API Contract v2.0 · 75 endpoints · 16 modules*
+*Fin du document — NX-RH API Contract v2.0 · 80 endpoints · 17 modules*
+
+---
+
+## 17. Notifications (`/api/notifications`)
+
+### GET /api/notifications
+- **Auth** : Tous les rôles (scopé par `userId`)
+- **Query params** :
+  | Param | Type | Description |
+  |---|---|---|
+  | `unreadOnly` | boolean | Si `true`, retourne uniquement les notifications non lues |
+  | `page` | number | Numéro de page (défaut : 1) |
+  | `limit` | number | Résultats par page (défaut : 20, max : 100) |
+- **Response** `200` : `{ data: Notification[], total, page, limit, unreadCount }`
+- **Errors** : aucune
+
+---
+
+### PATCH /api/notifications/read-all
+- **Auth** : Tous les rôles
+- **Body** : aucun
+- **Response** `200` : `{ modifiedCount: number }`
+- **Errors** : aucune
+
+---
+
+### PATCH /api/notifications/:id/read
+- **Auth** : Tous les rôles (scope : notification de l'utilisateur courant)
+- **Body** : aucun
+- **Response** `200` : `{ id, read: true }`
+- **Errors** : `400` ID invalide · `403` notification appartenant à un autre user · `404` notification introuvable
+
+---
+
+### GET /api/notifications/count
+- **Auth** : Tous les rôles
+- **Response** `200` : `{ total: number, unreadCount: number }`
+- **Errors** : aucune
+
+---
+
+### POST /api/notifications/global-remind
+- **Auth** : admin, hr
+- **Body** :
+  ```json
+  {
+    "campaignId": "string (optionnel)",
+    "message": "string (optionnel)"
+  }
+  ```
+- **Response** `200` : `{ sent: number }`
+- **Errors** : `403` rôle insuffisant
 
 ---
 
@@ -885,18 +964,17 @@ Chaque endpoint est décrit avec ses rôles, paramètres, body, réponse et erre
 
 > Ces routes sont attendues par les specs (`05-notifications.md`, `03-screens.md`) mais ni documentées ni implémentées.
 
-### `GET /api/notifications` — ⚠️ NOT IMPLEMENTED
+### `GET /api/notifications` — ✅ IMPLEMENTED (voir § 17)
 
 - **Auth** : Tous les rôles (scopé par `userId`)
 - **Query attendue** : `?unreadOnly=true&page=1&limit=20`
-- **Response attendue** : `{ data: Notification[], total, page, limit, unreadCount }`
-- **Blocage** : modèle `Notification` absent du backend (cf. `audit/02-models.md` P1-01)
+- **Response** : `{ data: Notification[], total, page, limit, unreadCount }`
 
-### `PATCH /api/notifications/:id/read` — ⚠️ NOT IMPLEMENTED
+### `PATCH /api/notifications/:id/read` — ✅ IMPLEMENTED (voir § 17)
 
 - **Auth** : Tous les rôles (scope : notification de l'utilisateur courant)
 - **Body attendu** : aucun (ou `{ read: true }`)
-- **Response attendue** : `{ id, read: true }`
+- **Response** : `{ id, read: true }`
 
 ### `GET /api/dashboard` — ⚠️ NOT IMPLEMENTED
 

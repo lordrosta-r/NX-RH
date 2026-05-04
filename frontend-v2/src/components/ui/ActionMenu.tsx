@@ -27,7 +27,26 @@ export default function ActionMenu({ items, align = 'right' }: ActionMenuProps) 
       }
     }
     function keyHandler(e: KeyboardEvent) {
-      if (e.key === 'Escape') setOpen(false)
+      if (e.key === 'Escape') {
+        setOpen(false)
+        return
+      }
+      if (!open) return
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault()
+        const items = containerRef.current?.querySelectorAll<HTMLElement>('[role="menuitem"]:not(:disabled)')
+        if (!items || items.length === 0) return
+        const focused = document.activeElement
+        const arr = Array.from(items)
+        const idx = arr.indexOf(focused as HTMLElement)
+        if (e.key === 'ArrowDown') {
+          const next = idx < arr.length - 1 ? arr[idx + 1] : arr[0]
+          next?.focus()
+        } else {
+          const prev = idx > 0 ? arr[idx - 1] : arr[arr.length - 1]
+          prev?.focus()
+        }
+      }
     }
     document.addEventListener('mousedown', handler)
     document.addEventListener('keydown', keyHandler)
@@ -35,14 +54,21 @@ export default function ActionMenu({ items, align = 'right' }: ActionMenuProps) 
       document.removeEventListener('mousedown', handler)
       document.removeEventListener('keydown', keyHandler)
     }
-  }, [])
+  }, [open])
+
+  useEffect(() => {
+    if (open) {
+      const firstItem = containerRef.current?.querySelector<HTMLElement>('[role="menuitem"]:not(:disabled)')
+      setTimeout(() => firstItem?.focus(), 0)
+    }
+  }, [open])
 
   return (
     <div className="relative inline-flex" ref={containerRef}>
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        aria-haspopup="true"
+        aria-haspopup="menu"
         aria-expanded={open}
         aria-label="Actions"
         className="inline-flex items-center justify-center h-8 w-8 rounded-lg text-slate-500 hover:bg-slate-100 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-300"

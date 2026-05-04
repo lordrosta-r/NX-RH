@@ -31,11 +31,11 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
             ref={ref}
             id={inputId}
             className={clsx(
-              'w-full h-9 bg-white border rounded-lg text-sm text-slate-900 pl-3 pr-8 appearance-none transition-colors',
-              'focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500',
+              'w-full h-10 bg-white border rounded-lg text-sm text-slate-900 pl-3 pr-8 appearance-none transition-colors',
+              'focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-500',
               error
-                ? 'border-error-500 focus:ring-error-500'
-                : 'border-slate-200 hover:border-slate-300',
+                ? 'border-error-500 focus:ring-error-200'
+                : 'border-slate-300 hover:border-slate-400',
               'disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed',
               className
             )}

@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 
 export interface ToastItem {
   id: string
@@ -46,12 +46,12 @@ export function dismissAllToasts() {
 export function useToast(): ToastStore {
   const [toasts, setToasts] = useState<ToastItem[]>([...store])
 
-  useState(() => {
+  useEffect(() => {
     listeners.push(setToasts)
     return () => {
       listeners = listeners.filter(l => l !== setToasts)
     }
-  })
+  }, [])
 
   const add = useCallback((item: Omit<ToastItem, 'id'>) => {
     addToast(item)

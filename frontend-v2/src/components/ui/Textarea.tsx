@@ -23,10 +23,10 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
           rows={rows}
           className={clsx(
             'w-full bg-white border rounded-lg text-sm text-slate-900 placeholder-slate-400 px-3 py-2 transition-colors resize-y',
-            'focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500',
+            'focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-500',
             error
-              ? 'border-error-500 focus:ring-error-500'
-              : 'border-slate-200 hover:border-slate-300',
+              ? 'border-error-500 focus:ring-error-200'
+              : 'border-slate-300 hover:border-slate-400',
             'disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed',
             className
           )}

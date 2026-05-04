@@ -4,7 +4,7 @@ import clsx from 'clsx'
 type CampaignStatus = 'draft' | 'active' | 'closed' | 'archived'
 type EvaluationStatus =
   | 'assigned' | 'in_progress' | 'submitted' | 'reviewed'
-  | 'signed_evaluatee' | 'signed_manager' | 'signed_hr'
+  | 'signed_evaluatee' | 'signed_manager'
   | 'validated' | 'expired' | 'archived'
 
 export type StatusType = CampaignStatus | EvaluationStatus
@@ -17,18 +17,17 @@ interface StatusConfig {
 const STATUS_MAP: Record<StatusType, StatusConfig> = {
   // Campaign statuses
   draft:            { label: 'Brouillon',      classes: 'bg-slate-100 text-slate-600' },
-  active:           { label: 'Active',          classes: 'bg-success-50 text-success-700' },
-  closed:           { label: 'Clôturée',        classes: 'bg-slate-100 text-slate-500' },
-  archived:         { label: 'Archivée',        classes: 'bg-slate-100 text-slate-400' },
+  active:           { label: 'Active',          classes: 'bg-primary-100 text-primary-700' },
+  closed:           { label: 'Clôturée',        classes: 'bg-warning-50 text-warning-600' },
+  archived:         { label: 'Archivée',        classes: 'bg-slate-200 text-slate-500' },
   // Evaluation statuses
   assigned:         { label: 'Assignée',        classes: 'bg-info-50 text-info-600' },
-  in_progress:      { label: 'En cours',        classes: 'bg-warning-50 text-warning-600' },
-  submitted:        { label: 'Soumise',         classes: 'bg-primary-50 text-primary-700' },
-  reviewed:         { label: 'Révisée',         classes: 'bg-primary-100 text-primary-800' },
-  signed_evaluatee: { label: 'Signée (collaborateur)', classes: 'bg-success-50 text-success-600' },
-  signed_manager:   { label: 'Signée (manager)',       classes: 'bg-success-100 text-success-700' },
-  signed_hr:        { label: 'Signée (RH)',            classes: 'bg-success-200 text-success-800' },
-  validated:        { label: 'Validée',         classes: 'bg-success-500 text-white' },
+  in_progress:      { label: 'En cours',        classes: 'bg-primary-100 text-primary-700' },
+  submitted:        { label: 'Soumise',         classes: 'bg-warning-50 text-warning-600' },
+  reviewed:         { label: 'Vérifiée',        classes: 'bg-success-50 text-success-600' },
+  signed_evaluatee: { label: 'Signée (collaborateur)', classes: 'bg-info-50 text-info-600' },
+  signed_manager:   { label: 'Signée (manager)',       classes: 'bg-primary-100 text-primary-700' },
+  validated:        { label: 'Validée',         classes: 'bg-success-50 text-success-700' },
   expired:          { label: 'Expirée',         classes: 'bg-error-50 text-error-600' },
 }
 

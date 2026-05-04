@@ -4,7 +4,7 @@ import clsx from 'clsx'
 export interface TimelineItem {
   id: string
   icon?: React.ReactNode
-  title: string
+  label: string
   description?: string
   date?: string
   color?: string  // Tailwind bg class for dot
@@ -39,7 +39,7 @@ export default function Timeline({ items, className }: TimelineProps) {
           {/* Content */}
           <div>
             <div className="flex items-baseline gap-2">
-              <h3 className="text-sm font-semibold text-slate-900">{item.title}</h3>
+              <h3 className="text-sm font-semibold text-slate-900">{item.label}</h3>
               {item.date && <time className="text-xs text-slate-400">{item.date}</time>}
             </div>
             {item.description && <p className="mt-0.5 text-sm text-slate-600">{item.description}</p>}

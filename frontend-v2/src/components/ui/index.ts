@@ -71,7 +71,7 @@ export type { ActionMenuProps, ActionMenuItem } from './ActionMenu'
 export { default as Pagination } from './Pagination'
 export type { PaginationProps } from './Pagination'
 export { default as FilterBar } from './FilterBar'
-export type { FilterBarProps } from './FilterBar'
+export type { FilterBarProps, ActiveFilter } from './FilterBar'
 
 // Layout helpers
 export { default as PageHeader } from './PageHeader'

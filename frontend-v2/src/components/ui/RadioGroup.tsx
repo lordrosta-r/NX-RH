@@ -1,4 +1,4 @@
-
+import { useId } from 'react'
 import clsx from 'clsx'
 
 export interface RadioGroupOption {
@@ -26,9 +26,10 @@ export default function RadioGroup({
   error,
   orientation = 'vertical',
 }: RadioGroupProps) {
+  const legendId = useId()
   return (
-    <fieldset role="radiogroup">
-      {label && <legend className="text-sm font-medium text-slate-700 mb-2">{label}</legend>}
+    <fieldset role="radiogroup" aria-labelledby={label ? legendId : undefined}>
+      {label && <legend id={legendId} className="text-sm font-medium text-slate-700 mb-2">{label}</legend>}
       <div className={clsx('flex gap-3', orientation === 'vertical' ? 'flex-col' : 'flex-row flex-wrap')}>
         {options.map(opt => (
           <label

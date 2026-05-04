@@ -18,23 +18,30 @@ export default function Tooltip({ content, placement = 'top', children }: Toolti
   const [visible, setVisible] = useState(false)
   const id = useId()
 
-  const child = React.cloneElement(children, {
+  const childProps = children.props as {
+    onMouseEnter?: (e: React.MouseEvent) => void
+    onMouseLeave?: (e: React.MouseEvent) => void
+    onFocus?: (e: React.FocusEvent) => void
+    onBlur?: (e: React.FocusEvent) => void
+  }
+
+  const child = React.cloneElement(children as React.ReactElement<Record<string, unknown>>, {
     'aria-describedby': id,
     onMouseEnter: (e: React.MouseEvent) => {
       setVisible(true)
-      children.props.onMouseEnter?.(e)
+      childProps.onMouseEnter?.(e)
     },
     onMouseLeave: (e: React.MouseEvent) => {
       setVisible(false)
-      children.props.onMouseLeave?.(e)
+      childProps.onMouseLeave?.(e)
     },
     onFocus: (e: React.FocusEvent) => {
       setVisible(true)
-      children.props.onFocus?.(e)
+      childProps.onFocus?.(e)
     },
     onBlur: (e: React.FocusEvent) => {
       setVisible(false)
-      children.props.onBlur?.(e)
+      childProps.onBlur?.(e)
     },
   })
 

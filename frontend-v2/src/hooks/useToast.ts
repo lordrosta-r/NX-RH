@@ -54,7 +54,7 @@ export function useToast(): ToastStore {
   })
 
   const add = useCallback((item: Omit<ToastItem, 'id'>) => {
-    addToast({ duration: 4000, ...item })
+    addToast(item)
   }, [])
 
   return {

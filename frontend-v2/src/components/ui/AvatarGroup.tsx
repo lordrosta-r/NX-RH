@@ -1,6 +1,6 @@
-import React from 'react'
 import clsx from 'clsx'
-import Avatar, { AvatarProps } from './Avatar'
+import Avatar from './Avatar'
+import type { AvatarProps } from './Avatar'
 
 export interface AvatarGroupProps {
   avatars: Array<Pick<AvatarProps, 'name' | 'src'>>

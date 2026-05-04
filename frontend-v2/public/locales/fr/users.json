@@ -1,0 +1,48 @@
+{
+  "title": "Utilisateurs",
+  "new": "Nouvel utilisateur",
+  "fields": {
+    "firstName": "Prénom",
+    "lastName": "Nom",
+    "email": "Email",
+    "role": "Rôle",
+    "department": "Département",
+    "position": "Poste",
+    "manager": "Manager",
+    "sector": "Secteur",
+    "isActive": "Actif",
+    "authSource": "Source d'authentification",
+    "ldap": "LDAP",
+    "local": "Local"
+  },
+  "actions": {
+    "import": "Importer",
+    "exportGdpr": "Export GDPR",
+    "offboard": "Départ",
+    "activate": "Activer",
+    "deactivate": "Désactiver"
+  },
+  "offboarding": {
+    "title": "Procédure de départ",
+    "reason": "Motif de départ",
+    "lastDay": "Dernier jour",
+    "steps": {
+      "access": "Révocation des accès",
+      "evaluation": "Entretien de départ",
+      "gdpr": "Anonymisation GDPR"
+    }
+  },
+  "import": {
+    "title": "Import en masse",
+    "description": "Importez des utilisateurs via un fichier CSV",
+    "downloadTemplate": "Télécharger le modèle CSV",
+    "results": {
+      "success": "{{count}} utilisateur(s) importé(s)",
+      "errors": "{{count}} erreur(s)"
+    }
+  },
+  "empty": {
+    "noUsers": "Aucun utilisateur",
+    "noResults": "Aucun utilisateur trouvé"
+  }
+}

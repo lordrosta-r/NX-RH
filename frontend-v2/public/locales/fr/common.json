@@ -1,0 +1,170 @@
+{
+  "app": {
+    "name": "NX-RH",
+    "tagline": "L'entretien annuel, simplifié."
+  },
+  "nav": {
+    "dashboard": "Tableau de bord",
+    "users": "Utilisateurs",
+    "campaigns": "Campagnes",
+    "forms": "Formulaires",
+    "evaluations": "Évaluations",
+    "calendar": "Calendrier",
+    "resources": "Ressources",
+    "analytics": "Analytics",
+    "admin": "Admin",
+    "profile": "Mon profil",
+    "notifications": "Notifications",
+    "logout": "Se déconnecter",
+    "offboarding": "Offboarding",
+    "org": "Organigramme",
+    "hrFlags": "Signaux RH",
+    "myEvaluations": "Mes évaluations",
+    "myTeam": "Mon équipe",
+    "allEvaluations": "Toutes les évaluations",
+    "history": "Historique",
+    "audit": "Audit",
+    "config": "Configuration",
+    "ldap": "LDAP",
+    "auditLog": "Journal d'audit",
+    "mailTemplates": "Modèles email",
+    "usersImport": "Import utilisateurs",
+    "formsImport": "Import formulaires"
+  },
+  "actions": {
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "submit": "Soumettre",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "create": "Créer",
+    "export": "Exporter",
+    "import": "Importer",
+    "clone": "Dupliquer",
+    "close": "Fermer",
+    "confirm": "Confirmer",
+    "search": "Rechercher",
+    "filter": "Filtrer",
+    "back": "Retour",
+    "view": "Voir",
+    "download": "Télécharger",
+    "publish": "Publier",
+    "unpublish": "Dépublier",
+    "freeze": "Geler",
+    "unfreeze": "Dégeler",
+    "send": "Envoyer",
+    "archive": "Archiver",
+    "activate": "Activer",
+    "deactivate": "Désactiver",
+    "add": "Ajouter",
+    "remove": "Retirer",
+    "reset": "Réinitialiser",
+    "refresh": "Actualiser",
+    "apply": "Appliquer",
+    "continue": "Continuer",
+    "next": "Suivant",
+    "previous": "Précédent",
+    "finish": "Terminer",
+    "sign": "Signer",
+    "validate": "Valider",
+    "reject": "Rejeter",
+    "approve": "Approuver"
+  },
+  "status": {
+    "campaign": {
+      "draft": "Brouillon",
+      "active": "Active",
+      "closed": "Clôturée",
+      "archived": "Archivée"
+    },
+    "evaluation": {
+      "assigned": "Assignée",
+      "in_progress": "En cours",
+      "submitted": "Soumise",
+      "reviewed": "Révisée",
+      "signed_evaluatee": "Signée (évalué)",
+      "signed_manager": "Signée (manager)",
+      "signed_hr": "Signée (RH)",
+      "validated": "Validée",
+      "expired": "Expirée",
+      "archived": "Archivée"
+    },
+    "user": {
+      "active": "Actif",
+      "inactive": "Inactif",
+      "offboarding": "En départ"
+    },
+    "flag": {
+      "open": "Ouvert",
+      "resolved": "Résolu",
+      "dismissed": "Ignoré"
+    },
+    "resource": {
+      "published": "Publié",
+      "draft": "Brouillon"
+    }
+  },
+  "roles": {
+    "admin": "Administrateur",
+    "hr": "RH",
+    "director": "Directeur",
+    "manager": "Manager",
+    "employee": "Collaborateur"
+  },
+  "errors": {
+    "generic": "Une erreur est survenue",
+    "notFound": "Ressource introuvable",
+    "forbidden": "Accès interdit",
+    "network": "Erreur réseau — vérifiez votre connexion",
+    "unauthorized": "Session expirée — reconnectez-vous",
+    "rateLimited": "Trop de requêtes — réessayez dans un moment",
+    "serverError": "Erreur serveur — contactez le support",
+    "required": "Champ obligatoire",
+    "invalidEmail": "Email invalide",
+    "invalidDate": "Date invalide",
+    "minLength": "Minimum {{min}} caractères",
+    "maxLength": "Maximum {{max}} caractères"
+  },
+  "pagination": {
+    "showing": "Affichage de",
+    "of": "sur",
+    "previous": "Précédent",
+    "next": "Suivant",
+    "itemsPerPage": "par page",
+    "noResults": "Aucun résultat"
+  },
+  "empty": {
+    "noResults": "Aucun résultat",
+    "noData": "Aucune donnée disponible",
+    "noItems": "Aucun élément"
+  },
+  "confirm": {
+    "areYouSure": "Êtes-vous sûr ?",
+    "actionIrreversible": "Cette action est irréversible.",
+    "typeToConfirm": "Tapez {{value}} pour confirmer"
+  },
+  "loading": "Chargement...",
+  "saving": "Enregistrement...",
+  "success": "Opération réussie",
+  "fields": {
+    "name": "Nom",
+    "firstName": "Prénom",
+    "lastName": "Nom",
+    "email": "Email",
+    "role": "Rôle",
+    "department": "Département",
+    "position": "Poste",
+    "manager": "Manager",
+    "sector": "Secteur",
+    "description": "Description",
+    "startDate": "Date de début",
+    "endDate": "Date de fin",
+    "createdAt": "Créé le",
+    "updatedAt": "Modifié le",
+    "status": "Statut",
+    "actions": "Actions",
+    "title": "Titre",
+    "type": "Type",
+    "date": "Date"
+  }
+}

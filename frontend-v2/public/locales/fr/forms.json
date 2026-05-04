@@ -1,0 +1,41 @@
+{
+  "title": "Formulaires",
+  "new": "Nouveau formulaire",
+  "fields": {
+    "title": "Titre du formulaire",
+    "description": "Description",
+    "formType": "Type de formulaire",
+    "questions": "Questions",
+    "isFrozen": "Gelé",
+    "frozenAt": "Gelé le"
+  },
+  "questionTypes": {
+    "text": "Texte court",
+    "textarea": "Texte long",
+    "rating": "Note (1-5)",
+    "multiple_choice": "Choix multiple",
+    "yes_no": "Oui / Non"
+  },
+  "phases": {
+    "employee": "Phase collaborateur",
+    "manager": "Phase manager",
+    "both": "Les deux phases"
+  },
+  "actions": {
+    "addQuestion": "Ajouter une question",
+    "freeze": "Geler le formulaire",
+    "unfreeze": "Dégeler",
+    "clone": "Dupliquer",
+    "export": "Exporter",
+    "import": "Importer"
+  },
+  "messages": {
+    "frozenWarning": "Ce formulaire est gelé. Il ne peut plus être modifié.",
+    "freezeConfirm": "Geler ce formulaire ? Il sera utilisé dans des campagnes et ne pourra plus être modifié.",
+    "deleteConfirm": "Supprimer ce formulaire ?"
+  },
+  "empty": {
+    "noForms": "Aucun formulaire",
+    "noQuestions": "Aucune question — ajoutez-en une"
+  }
+}

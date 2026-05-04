@@ -1,0 +1,26 @@
+{
+  "title": "Tableau de bord",
+  "welcome": "Bonjour, {{name}} 👋",
+  "kpi": {
+    "activeCampaigns": "Campagnes actives",
+    "myEvaluations": "Mes évaluations",
+    "pendingEvaluations": "Évaluations en attente",
+    "completionRate": "Taux de complétion",
+    "totalEmployees": "Collaborateurs",
+    "evaluationsInProgress": "Évaluations en cours",
+    "evaluationsToValidate": "À valider",
+    "hrFlags": "Signaux RH ouverts",
+    "averageScore": "Score moyen"
+  },
+  "sections": {
+    "recentActivity": "Activité récente",
+    "myPendingEvaluations": "Mes évaluations en attente",
+    "teamProgress": "Progression de l'équipe",
+    "upcomingDeadlines": "Échéances proches"
+  },
+  "empty": {
+    "noActivity": "Aucune activité récente",
+    "noEvaluations": "Aucune évaluation en cours",
+    "noDeadlines": "Aucune échéance proche"
+  }
+}

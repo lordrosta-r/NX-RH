@@ -189,6 +189,7 @@ export default function FormDetailPage() {
                 type="text"
                 value={meta.title}
                 onChange={e => { setMeta(m => ({ ...m, title: e.target.value })); setIsDirty(true) }}
+                disabled={isFrozen}
                 className="w-full h-10 px-3 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-400"
               />
             </div>
@@ -199,6 +200,7 @@ export default function FormDetailPage() {
                 rows={3}
                 value={meta.description}
                 onChange={e => { setMeta(m => ({ ...m, description: e.target.value })); setIsDirty(true) }}
+                disabled={isFrozen}
                 className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-400 resize-none"
               />
             </div>

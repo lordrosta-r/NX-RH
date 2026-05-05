@@ -21,7 +21,7 @@ export const evaluationsApi = {
     client.get<Evaluation>(`/api/evaluations/${id}`),
 
   updateEvaluation: (id: string, data: Partial<Evaluation>) =>
-    client.put<Evaluation>(`/api/evaluations/${id}`, data),
+    client.patch<Evaluation>(`/api/evaluations/${id}`, data),
 
   submitEvaluation: (id: string) =>
     client.post<Evaluation>(`/api/evaluations/${id}/submit`),

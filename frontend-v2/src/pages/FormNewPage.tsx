@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { Plus, Trash2, FileText, Upload, ChevronUp, ChevronDown, X } from 'lucide-react'
 import { formsApi } from '../api/forms'
+import { campaignsApi } from '../api/campaigns'
 import type { Form, FormQuestion, QuestionType, QuestionPhase } from '../types'
 
 const QUESTION_TYPES: { value: QuestionType; label: string }[] = [
@@ -176,11 +177,19 @@ function QuestionCard({
 export default function FormNewPage() {
   const navigate = useNavigate()
 
+  const { data: campaignsData } = useQuery({
+    queryKey: ['campaigns', 'active'],
+    queryFn: () => campaignsApi.getCampaigns({ status: 'active' }).then(r => r.data),
+  })
+  const activeCampaigns = campaignsData?.data ?? []
+
   const [meta, setMeta] = useState({
     title: '',
     description: '',
     formType: '',
     isFrozen: false,
+    campaignId: '',
+    isAnonymous: false,
   })
   const [questions, setQuestions] = useState<FormQuestion[]>([])
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -305,6 +314,35 @@ export default function FormNewPage() {
                 </optgroup>
               </select>
               {errors.formType && <p className="text-xs text-error-500 mt-1">{errors.formType}</p>}
+            </div>
+
+            {/* Campagne liée */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-slate-700 mb-1">Campagne liée</label>
+              <select
+                className={SELECT_CLS}
+                value={meta.campaignId}
+                onChange={e => setMeta(m => ({ ...m, campaignId: e.target.value }))}
+              >
+                <option value="">Aucune campagne</option>
+                {activeCampaigns.map(c => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Anonyme */}
+            <div className="mb-4">
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={meta.isAnonymous}
+                  onChange={e => setMeta(m => ({ ...m, isAnonymous: e.target.checked }))}
+                  className="w-4 h-4 rounded border-slate-300 text-primary-600 focus:ring-primary-500"
+                />
+                <span className="text-sm font-medium text-slate-700">Formulaire anonyme</span>
+              </label>
+              <p className="text-xs text-slate-400 mt-1 ml-6">Les réponses ne seront pas attribuées nominativement</p>
             </div>
 
             {/* Objectifs N-1 (si type = objectives) */}

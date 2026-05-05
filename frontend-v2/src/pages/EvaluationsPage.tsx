@@ -26,7 +26,7 @@ export default function EvaluationsPage() {
   const isEmployee = user?.role === 'employee'
 
   const [campaignFilter, setCampaignFilter] = useState('')
-  const [statusFilter, setStatusFilter] = useState('')
+  const [statusFilter, setStatusFilter] = useState<string[]>([])
   const [deptFilter, setDeptFilter] = useState('')
   const [search, setSearch] = useState('')
   const [searchDebounced, setSearchDebounced] = useState('')
@@ -46,8 +46,8 @@ export default function EvaluationsPage() {
   const { data, isLoading } = useQuery({
     queryKey: ['evaluations', campaignFilter, statusFilter, deptFilter, searchDebounced, page],
     queryFn: () => (isEmployee
-      ? evaluationsApi.getMyEvaluations({ page, limit: 20, campaignId: campaignFilter || undefined, status: statusFilter || undefined })
-      : evaluationsApi.getEvaluations({ page, limit: 20, campaignId: campaignFilter || undefined, status: statusFilter || undefined, department: deptFilter || undefined, q: searchDebounced || undefined })
+      ? evaluationsApi.getMyEvaluations({ page, limit: 20, campaignId: campaignFilter || undefined, status: statusFilter.length === 1 ? statusFilter[0] : undefined })
+      : evaluationsApi.getEvaluations({ page, limit: 20, campaignId: campaignFilter || undefined, status: statusFilter.length === 1 ? statusFilter[0] : undefined, department: deptFilter || undefined, q: searchDebounced || undefined })
     ).then(r => r.data),
     placeholderData: keepPreviousData,
   })
@@ -118,11 +118,17 @@ export default function EvaluationsPage() {
           <option value="">Toutes les campagnes</option>
         </select>
         <select
+          multiple
+          size={1}
           value={statusFilter}
-          onChange={e => { setStatusFilter(e.target.value); setPage(1) }}
-          className="h-9 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-200"
+          onChange={e => {
+            const selected = Array.from(e.target.selectedOptions).map(o => o.value)
+            setStatusFilter(selected); setPage(1)
+          }}
+          aria-label="Filtrer par statut"
+          className="h-9 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-200 min-w-[140px]"
+          style={{ height: 'auto', minHeight: '2.25rem', maxHeight: '7rem' }}
         >
-          <option value="">Tous les statuts</option>
           {Object.entries(EVAL_STATUS_CONFIG).map(([k, v]) => (
             <option key={k} value={k}>{v.label}</option>
           ))}

@@ -90,8 +90,7 @@ export default function EvaluationDetailPage() {
       reviewerScore: Number(reviewerScore),
       reviewerComment,
       nextYearObjectives,
-      status: 'reviewed',
-    }),
+    }).then(() => evaluationsApi.transitionEvaluation(id!, 'review')),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['evaluation', id] }),
   })
 

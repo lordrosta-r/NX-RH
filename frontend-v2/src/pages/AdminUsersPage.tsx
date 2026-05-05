@@ -71,6 +71,11 @@ export default function AdminUsersPage() {
         <h1 className="text-3xl font-bold text-slate-900">Gestion avancée des utilisateurs</h1>
       </div>
 
+      <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-xl flex items-center gap-2">
+        <span className="text-base">🔒</span>
+        <p className="text-sm text-blue-800">Les données utilisateur sont soumises au RGPD. Toute anonymisation est irréversible et auditée.</p>
+      </div>
+
       {hasOffboarding && (
         <div className="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-center gap-3">
           <span className="text-lg">⚠️</span>

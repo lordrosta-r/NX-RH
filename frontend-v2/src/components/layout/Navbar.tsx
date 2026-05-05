@@ -1,9 +1,11 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Bell, ChevronDown, Menu, X } from 'lucide-react'
 import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '../../contexts/AuthContext'
 import type { Role } from '../../types'
 import { cn } from '../../utils/cn'
+import { notificationsApi } from '../../api/notifications'
 
 interface NavLink {
   label: string
@@ -111,6 +113,13 @@ export default function Navbar() {
   const [profileOpen, setProfileOpen] = useState(false)
   const [openDropdown, setOpenDropdown] = useState<string | null>(null)
 
+  const { data: notifCount } = useQuery({
+    queryKey: ['notifications-count'],
+    queryFn: () => notificationsApi.getNotificationCount().then((r) => r.data),
+    refetchInterval: 30000,
+  })
+  const unreadCount = notifCount?.count ?? 0
+
   const links = user ? getNavLinks(user.role) : []
 
   const isActive = (to: string) => location.pathname === to || location.pathname.startsWith(to + '/')
@@ -188,6 +197,11 @@ export default function Navbar() {
             aria-label="Notifications"
           >
             <Bell className="w-5 h-5" />
+            {unreadCount > 0 && (
+              <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
           </button>
 
           {/* Avatar + dropdown */}

@@ -6,13 +6,15 @@ export interface EvaluationFilters extends PaginationParams {
   status?: string
   evaluateeId?: string
   evaluatorId?: string
+  q?: string
+  year?: string
 }
 
 export const evaluationsApi = {
   getEvaluations: (params?: EvaluationFilters) =>
     client.get<PaginatedResponse<Evaluation>>('/api/evaluations', { params }),
 
-  getMyEvaluations: (params?: PaginationParams) =>
+  getMyEvaluations: (params?: EvaluationFilters) =>
     client.get<PaginatedResponse<Evaluation>>('/api/evaluations/me', { params }),
 
   getEvaluation: (id: string) =>

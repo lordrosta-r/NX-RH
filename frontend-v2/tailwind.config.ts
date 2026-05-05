@@ -36,6 +36,7 @@ const config: Config = {
           400: '#FBBF24',
           500: '#F59E0B',
           600: '#D97706',
+          700: '#B45309',
         },
         error: {
           50:  '#FEF2F2',

@@ -205,6 +205,8 @@ export interface AnalyticsSummary {
   averageScore?: number
   byStatus: Record<EvaluationStatus, number>
   byDepartment?: Record<string, number>
+  topPerformers?: Array<{ userId: string; name: string; score: number; campaignName: string }>
+  byDepartmentCompletion?: Array<{ department: string; total: number; submitted: number; validated: number; rate: number }>
 }
 
 export interface CampaignAnalytics {

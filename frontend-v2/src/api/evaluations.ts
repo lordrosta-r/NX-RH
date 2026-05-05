@@ -6,6 +6,7 @@ export interface EvaluationFilters extends PaginationParams {
   status?: string
   evaluateeId?: string
   evaluatorId?: string
+  department?: string
   q?: string
   year?: string
 }

@@ -282,6 +282,7 @@ export interface PaginationParams {
   order?: 'asc' | 'desc'
   formType?: string
   q?: string
+  campaignId?: string
 }
 
 // ─── Erreurs API ───────────────────────────────────────────────────────────────

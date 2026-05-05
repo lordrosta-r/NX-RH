@@ -1,7 +1,7 @@
 import { Link, useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { BarChart2, FileText, Download, ChevronRight } from 'lucide-react'
-import { campaignsApi } from '../api/campaigns'
+import { analyticsApi } from '../api/analytics'
 
 // ─── DonutChart ───────────────────────────────────────────────────────────────
 interface DonutSegment { label: string; value: number; color: string }
@@ -109,7 +109,7 @@ export default function CampaignAnalyticsPage() {
 
   const { data: analytics, isLoading, isError, refetch } = useQuery({
     queryKey: ['campaign-analytics', id],
-    queryFn:  () => campaignsApi.getCampaignAnalytics(id!).then(r => r.data),
+    queryFn:  () => analyticsApi.getCampaignAnalytics(id!).then(r => r.data),
     enabled:  !!id,
   })
 

@@ -296,7 +296,7 @@ export default function OnboardingPage() {
 
         {/* Footer buttons */}
         <div className="flex justify-between items-center mt-8 pt-4 border-t border-slate-100">
-          {step > 0 && step < STEP_COUNT - 1 ? (
+          {step > 0 ? (
             <button
               onClick={async () => {
                 await goStep(step + 1)

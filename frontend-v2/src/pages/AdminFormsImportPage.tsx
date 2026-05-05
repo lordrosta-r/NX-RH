@@ -33,18 +33,9 @@ function validateForm(json: unknown): string[] {
   return errs
 }
 
-function downloadTemplate() {
-  const template = {
-    title: 'Mon formulaire',
-    formType: 'self_evaluation',
-    description: 'Description du formulaire',
-    questions: [
-      { id: 'q1', type: 'rating', text: 'Comment évaluez-vous votre performance ?', required: true, phase: 'self' },
-      { id: 'q2', type: 'text', text: 'Quels sont vos objectifs pour l\'année ?', required: false, phase: 'objectives' },
-      { id: 'q3', type: 'yes_no', text: 'Avez-vous atteint vos objectifs ?', required: true, phase: 'self' },
-    ]
-  }
-  const blob = new Blob([JSON.stringify(template, null, 2)], { type: 'application/json' })
+async function downloadTemplate() {
+  const res = await adminApi.getFormTemplate()
+  const blob = new Blob([res.data as BlobPart], { type: 'application/json' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a'); a.href = url; a.download = 'template-formulaire.json'; a.click()
   URL.revokeObjectURL(url)

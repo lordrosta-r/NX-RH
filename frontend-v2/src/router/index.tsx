@@ -46,6 +46,8 @@ const HrFlagDetailPage = lazy(() => import('../pages/HrFlagDetailPage'))
 const AnalyticsPage = lazy(() => import('../pages/AnalyticsPage'))
 const OrgPage = lazy(() => import('../pages/OrgPage'))
 const ProfilePage = lazy(() => import('../pages/ProfilePage'))
+const PreferencesPage = lazy(() => import('../pages/PreferencesPage'))
+const OnboardingPage = lazy(() => import('../pages/OnboardingPage'))
 const NotificationsPage = lazy(() => import('../pages/NotificationsPage'))
 const AdminUsersImportPage = lazy(() => import('../pages/AdminUsersImportPage'))
 const AdminFormsImportPage = lazy(() => import('../pages/AdminFormsImportPage'))
@@ -67,6 +69,11 @@ export const router = createBrowserRouter([
       { path: '/login', element: <S><LoginPage /></S> },
       { path: '/login/ldap', element: <S><LoginLdapPage /></S> },
     ],
+  },
+  // Onboarding — plein écran sans navbar
+  {
+    path: '/onboarding',
+    element: <AuthGuard><S><OnboardingPage /></S></AuthGuard>,
   },
   // Routes privées
   {
@@ -111,6 +118,7 @@ export const router = createBrowserRouter([
       { path: '/org', element: <S><OrgPage /></S> },
       // Profil & Notifications
       { path: '/profile', element: <S><ProfilePage /></S> },
+      { path: '/profile/preferences', element: <S><PreferencesPage /></S> },
       { path: '/notifications', element: <S><NotificationsPage /></S> },
       // Admin
       { path: '/admin/users/import', element: <S><AdminUsersImportPage /></S> },

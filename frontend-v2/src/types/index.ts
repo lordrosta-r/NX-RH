@@ -279,6 +279,26 @@ export interface AuditLogEntry {
   createdAt: string
 }
 
+// ─── Préférences utilisateur ───────────────────────────────────────────────────
+export interface UserPreferences {
+  language?: 'fr' | 'en'
+  theme?: 'light' | 'dark' | 'system'
+  emailNotifications?: {
+    evalAssigned?: boolean
+    deadlineReminder?: boolean
+    managerActionRequired?: boolean
+    evalSubmission?: boolean
+    campaignLaunch?: boolean
+    systemAlerts?: boolean
+  }
+}
+
+// ─── Onboarding ────────────────────────────────────────────────────────────────
+export interface OnboardingState {
+  currentStep: number
+  completed: boolean
+}
+
 // ─── Import/Export ─────────────────────────────────────────────────────────────
 export interface ImportResult {
   success: number

@@ -1,5 +1,5 @@
 import client from './client'
-import type { User } from '../types'
+import type { User, UserPreferences } from '../types'
 
 export const authApi = {
   login: (email: string, password: string, remember?: boolean) =>
@@ -14,6 +14,6 @@ export const authApi = {
   getMe: () =>
     client.get<{ user: User }>('/api/auth/me'),
 
-  updatePreferences: (prefs: { locale?: string; theme?: string; notificationPrefs?: Record<string, boolean> }) =>
-    client.patch<{ _id: string; locale: string; theme: string; notificationPrefs: Record<string, boolean> }>('/api/auth/preferences', prefs),
+  updatePreferences: (data: Partial<UserPreferences>) =>
+    client.patch<{ _id: string; locale: string; theme: string; notificationPrefs: Record<string, boolean> }>('/api/auth/preferences', data),
 }

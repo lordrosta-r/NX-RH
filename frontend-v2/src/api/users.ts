@@ -2,6 +2,7 @@ import client from './client'
 import type { User, PaginatedResponse, PaginationParams, ImportResult } from '../types'
 
 export interface UserFilters extends PaginationParams {
+  q?: string
   role?: string
   isActive?: boolean
   department?: string
@@ -34,6 +35,9 @@ export const usersApi = {
 
   gdprExport: (id: string) =>
     client.get(`/api/users/${id}/gdpr`, { responseType: 'blob' }),
+
+  anonymize: (id: string) =>
+    client.post(`/api/users/${id}/anonymize`),
 
   offboard: (id: string, data?: { reason?: string; lastDay?: string }) =>
     client.post(`/api/users/${id}/offboarding`, data),

@@ -3,6 +3,7 @@ import type { Campaign, PaginatedResponse, PaginationParams, CampaignAnalytics }
 
 export interface CampaignFilters extends PaginationParams {
   status?: string
+  q?: string
 }
 
 export const campaignsApi = {

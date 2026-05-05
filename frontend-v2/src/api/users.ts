@@ -41,4 +41,16 @@ export const usersApi = {
 
   offboard: (id: string, data?: { reason?: string; lastDay?: string }) =>
     client.post(`/api/users/${id}/offboarding`, data),
+
+  updateAvatar: (id: string, avatar: string) =>
+    client.patch(`/api/users/${id}/avatar`, { avatar }),
+
+  updateOnboardingStep: (id: string, step: number) =>
+    client.patch(`/api/users/${id}/onboarding/${step}`),
+
+  completeOnboarding: (id: string) =>
+    client.patch(`/api/users/${id}/onboarding/complete`),
+
+  exportGdpr: (id: string) =>
+    client.get(`/api/users/${id}/gdpr-export`, { responseType: 'blob' }),
 }

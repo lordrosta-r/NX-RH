@@ -1,8 +1,488 @@
-export default function UsersPage() {
+import { useState, useEffect, useRef } from 'react'
+import { Link } from 'react-router-dom'
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
+import { Search, UserPlus, MoreVertical, Users, Plus, ChevronLeft, ChevronRight, X } from 'lucide-react'
+import { useAuth } from '../contexts/AuthContext'
+import { usersApi } from '../api/users'
+import type { User } from '../types'
+
+const PER_PAGE = 20
+
+const ROLE_BADGES: Record<string, string> = {
+  admin: 'bg-error-50 text-error-700',
+  hr: 'bg-warning-50 text-warning-700',
+  director: 'bg-purple-50 text-purple-700',
+  manager: 'bg-primary-50 text-primary-700',
+  employee: 'bg-slate-100 text-slate-700',
+}
+
+const ROLE_LABELS: Record<string, string> = {
+  admin: 'Admin',
+  hr: 'RH',
+  director: 'Directeur',
+  manager: 'Manager',
+  employee: 'Employé',
+}
+
+function StatusBadge({ isActive, offboarding }: { isActive: boolean; offboarding?: boolean }) {
+  if (offboarding)
+    return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-warning-50 text-warning-700">Offboarding</span>
+  if (isActive)
+    return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-success-50 text-success-700">● Actif</span>
+  return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-500">Inactif</span>
+}
+
+function Avatar({ user }: { user: User }) {
+  const initials = `${user.firstName?.[0] ?? ''}${user.lastName?.[0] ?? ''}`.toUpperCase()
   return (
-    <div>
-      <h1 className="text-3xl font-bold text-slate-900">Utilisateurs</h1>
-      <p className="text-slate-500 mt-2">Sprint 4 — À implémenter</p>
+    <div className="w-9 h-9 rounded-full bg-primary-100 text-primary-700 text-xs font-semibold flex items-center justify-center flex-shrink-0">
+      {initials}
     </div>
   )
 }
+
+function RelativeDate({ date }: { date?: string }) {
+  if (!date) return <span className="text-xs text-slate-400">—</span>
+  const diff = Date.now() - new Date(date).getTime()
+  const days = Math.floor(diff / 86400000)
+  const hours = Math.floor(diff / 3600000)
+  const minutes = Math.floor(diff / 60000)
+  let label: string
+  if (days > 30) label = new Date(date).toLocaleDateString('fr-FR')
+  else if (days >= 2) label = `il y a ${days}j`
+  else if (days === 1) label = 'hier'
+  else if (hours >= 1) label = `il y a ${hours}h`
+  else if (minutes >= 1) label = `il y a ${minutes}min`
+  else label = "à l'instant"
+  return <span className="text-xs text-slate-400">{label}</span>
+}
+
+function ActionMenu({ user: u, currentRole, onOffboard, onAnonymize }: {
+  user: User
+  currentRole: string
+  onOffboard: (id: string) => void
+  onAnonymize: (user: User) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handle(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handle)
+    return () => document.removeEventListener('mousedown', handle)
+  }, [])
+
+  const canEdit = currentRole === 'admin' || currentRole === 'hr'
+  const canAnonymize = currentRole === 'admin'
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setOpen(v => !v)}
+        className="p-1.5 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
+      >
+        <MoreVertical className="w-4 h-4" />
+      </button>
+      {open && (
+        <div className="absolute right-0 top-8 z-20 bg-white rounded-lg shadow-lg border border-slate-100 w-44 py-1">
+          <Link
+            to={`/users/${u.id}`}
+            className="flex items-center px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 w-full"
+            onClick={() => setOpen(false)}
+          >
+            Voir le profil
+          </Link>
+          {canEdit && (
+            <Link
+              to={`/users/${u.id}/edit`}
+              className="flex items-center px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 w-full"
+              onClick={() => setOpen(false)}
+            >
+              Modifier
+            </Link>
+          )}
+          {canEdit && (
+            <button
+              className="flex items-center px-3 py-2 text-sm text-warning-700 hover:bg-warning-50 w-full text-left"
+              onClick={() => { setOpen(false); onOffboard(u.id) }}
+            >
+              Offboarding
+            </button>
+          )}
+          {canAnonymize && (
+            <button
+              className="flex items-center px-3 py-2 text-sm text-error-700 hover:bg-error-50 w-full text-left"
+              onClick={() => { setOpen(false); onAnonymize(u) }}
+            >
+              Anonymiser
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function SkeletonRows() {
+  return (
+    <>
+      {Array.from({ length: 5 }).map((_, i) => (
+        <tr key={i} className="border-b border-slate-50">
+          <td className="px-6 py-4">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-full bg-slate-200 animate-pulse" />
+              <div className="h-4 bg-slate-200 rounded w-32 animate-pulse" />
+            </div>
+          </td>
+          <td className="px-6 py-4"><div className="h-5 bg-slate-200 rounded-full w-20 animate-pulse" /></td>
+          <td className="px-6 py-4"><div className="h-4 bg-slate-200 rounded w-24 animate-pulse" /></td>
+          <td className="px-6 py-4"><div className="h-5 bg-slate-200 rounded-full w-16 animate-pulse" /></td>
+          <td className="px-6 py-4"><div className="h-4 bg-slate-200 rounded w-20 animate-pulse" /></td>
+          <td className="px-6 py-4"><div className="h-4 bg-slate-200 rounded w-6 animate-pulse" /></td>
+        </tr>
+      ))}
+    </>
+  )
+}
+
+export default function UsersPage() {
+  const { user } = useAuth()
+  const queryClient = useQueryClient()
+
+  const [searchInput, setSearchInput] = useState('')
+  const [search, setSearch] = useState('')
+  const [roleFilter, setRoleFilter] = useState('')
+  const [deptFilter, setDeptFilter] = useState('')
+  const [statusFilter, setStatusFilter] = useState('')
+  const [page, setPage] = useState(1)
+
+  const [anonymizeModal, setAnonymizeModal] = useState<User | null>(null)
+  const [confirmText, setConfirmText] = useState('')
+
+  // Debounce search
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setSearch(searchInput)
+      setPage(1)
+    }, 300)
+    return () => clearTimeout(t)
+  }, [searchInput])
+
+  // Reset page on filter change
+  useEffect(() => { setPage(1) }, [roleFilter, deptFilter, statusFilter])
+
+  const { data, isLoading, isError, refetch } = useQuery({
+    queryKey: ['users', search, roleFilter, deptFilter, statusFilter, page],
+    queryFn: () =>
+      usersApi.getUsers({
+        q: search || undefined,
+        role: roleFilter || undefined,
+        department: deptFilter || undefined,
+        isActive:
+          statusFilter === 'active' ? true : statusFilter === 'inactive' ? false : undefined,
+        page,
+        limit: PER_PAGE,
+      }).then(r => r.data),
+    placeholderData: keepPreviousData,
+  })
+
+  // Departments derived from current result set
+  const departments = Array.from(
+    new Set((data?.data ?? []).map(u => u.department).filter(Boolean))
+  ) as string[]
+
+  const offboardMutation = useMutation({
+    mutationFn: (id: string) => usersApi.offboard(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['users'] }),
+  })
+
+  const anonymizeMutation = useMutation({
+    mutationFn: (id: string) => usersApi.anonymize(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] })
+      setAnonymizeModal(null)
+      setConfirmText('')
+    },
+  })
+
+  function handleAnonymize() {
+    if (anonymizeModal) anonymizeMutation.mutate(anonymizeModal.id)
+  }
+
+  const hasFilters = !!(search || roleFilter || deptFilter || statusFilter)
+
+  function resetFilters() {
+    setSearchInput('')
+    setSearch('')
+    setRoleFilter('')
+    setDeptFilter('')
+    setStatusFilter('')
+    setPage(1)
+  }
+
+  const totalPages = data?.totalPages ?? Math.ceil((data?.total ?? 0) / PER_PAGE)
+
+  // Pagination pages array (max 5 visible)
+  function getPageNumbers() {
+    const total = totalPages
+    if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1)
+    if (page <= 3) return [1, 2, 3, 4, 5]
+    if (page >= total - 2) return [total - 4, total - 3, total - 2, total - 1, total]
+    return [page - 2, page - 1, page, page + 1, page + 2]
+  }
+
+  return (
+    <div className="bg-slate-50 min-h-screen p-6">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">Collaborateurs</h1>
+          {data?.total !== undefined && (
+            <p className="text-sm text-slate-500 mt-1">
+              {data.total} utilisateur{data.total > 1 ? 's' : ''}
+            </p>
+          )}
+        </div>
+        {(user?.role === 'admin' || user?.role === 'hr') && (
+          <Link
+            to="/users/new"
+            className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+          >
+            <UserPlus className="w-4 h-4" />
+            Nouvel utilisateur
+          </Link>
+        )}
+      </div>
+
+      {/* Filters */}
+      <div className="flex items-center gap-3 mb-4 flex-wrap">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <input
+            type="text"
+            placeholder="Rechercher..."
+            value={searchInput}
+            onChange={e => setSearchInput(e.target.value)}
+            className="pl-10 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white w-64 outline-none"
+          />
+        </div>
+
+        <select
+          value={roleFilter}
+          onChange={e => setRoleFilter(e.target.value)}
+          className="border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-primary-500 outline-none"
+        >
+          <option value="">Tous les rôles</option>
+          <option value="admin">Admin</option>
+          <option value="hr">RH</option>
+          <option value="director">Directeur</option>
+          <option value="manager">Manager</option>
+          <option value="employee">Employé</option>
+        </select>
+
+        <select
+          value={deptFilter}
+          onChange={e => setDeptFilter(e.target.value)}
+          className="border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-primary-500 outline-none"
+        >
+          <option value="">Tous les départements</option>
+          {departments.map(d => (
+            <option key={d} value={d}>{d}</option>
+          ))}
+        </select>
+
+        <select
+          value={statusFilter}
+          onChange={e => setStatusFilter(e.target.value)}
+          className="border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-primary-500 outline-none"
+        >
+          <option value="">Tous les statuts</option>
+          <option value="active">Actif</option>
+          <option value="inactive">Inactif</option>
+        </select>
+
+        {hasFilters && (
+          <button
+            onClick={resetFilters}
+            className="inline-flex items-center gap-1.5 px-3 py-2 text-sm text-slate-500 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors bg-white"
+          >
+            <X className="w-3.5 h-3.5" />
+            Réinitialiser
+          </button>
+        )}
+      </div>
+
+      {/* Error state */}
+      {isError && (
+        <div className="bg-error-50 border border-error-200 text-error-700 rounded-xl px-4 py-3 mb-4 flex items-center justify-between">
+          <span className="text-sm">Erreur lors du chargement des utilisateurs.</span>
+          <button
+            onClick={() => refetch()}
+            className="text-sm font-medium underline hover:no-underline"
+          >
+            Réessayer
+          </button>
+        </div>
+      )}
+
+      {/* Table */}
+      <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="bg-slate-50">
+                <th className="text-left text-xs font-medium text-slate-500 uppercase tracking-wider px-6 py-3">Nom</th>
+                <th className="text-left text-xs font-medium text-slate-500 uppercase tracking-wider px-6 py-3">Rôle</th>
+                <th className="text-left text-xs font-medium text-slate-500 uppercase tracking-wider px-6 py-3">Département</th>
+                <th className="text-left text-xs font-medium text-slate-500 uppercase tracking-wider px-6 py-3">Statut</th>
+                <th className="text-left text-xs font-medium text-slate-500 uppercase tracking-wider px-6 py-3">Dernière connexion</th>
+                <th className="px-6 py-3" />
+              </tr>
+            </thead>
+            <tbody>
+              {isLoading ? (
+                <SkeletonRows />
+              ) : data?.data?.length === 0 ? (
+                <tr>
+                  <td colSpan={6}>
+                    <div className="text-center py-16">
+                      <Users className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+                      <p className="text-slate-500 font-medium">Aucun collaborateur trouvé</p>
+                      {(user?.role === 'admin' || user?.role === 'hr') && (
+                        <Link
+                          to="/users/new"
+                          className="mt-4 inline-flex items-center gap-2 text-primary-600 hover:underline text-sm"
+                        >
+                          <Plus className="w-4 h-4" /> Créer le premier collaborateur
+                        </Link>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                (data?.data ?? []).map(u => (
+                  <tr
+                    key={u.id}
+                    className="hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0"
+                  >
+                    <td className="px-6 py-4">
+                      <Link to={`/users/${u.id}`} className="flex items-center gap-3 group">
+                        <Avatar user={u} />
+                        <div>
+                          <p className="text-sm font-medium text-slate-900 group-hover:text-primary-600 transition-colors">
+                            {u.firstName} {u.lastName}
+                          </p>
+                          <p className="text-xs text-slate-400">{u.email}</p>
+                        </div>
+                      </Link>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${ROLE_BADGES[u.role] ?? 'bg-slate-100 text-slate-700'}`}>
+                        {ROLE_LABELS[u.role] ?? u.role}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-slate-600">{u.department ?? '—'}</td>
+                    <td className="px-6 py-4">
+                      <StatusBadge isActive={u.isActive} />
+                    </td>
+                    <td className="px-6 py-4">
+                      <RelativeDate date={u.updatedAt} />
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <ActionMenu
+                        user={u}
+                        currentRole={user?.role ?? ''}
+                        onOffboard={(id) => offboardMutation.mutate(id)}
+                        onAnonymize={(target) => { setAnonymizeModal(target); setConfirmText('') }}
+                      />
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100">
+            <p className="text-sm text-slate-500">
+              Page {page} sur {totalPages} · {data?.total} utilisateurs
+            </p>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="px-2 py-1 text-sm border border-slate-200 rounded hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              {getPageNumbers().map(n => (
+                <button
+                  key={n}
+                  onClick={() => setPage(n)}
+                  className={`px-3 py-1 text-sm border rounded transition-colors ${
+                    n === page
+                      ? 'bg-primary-500 text-white border-primary-500'
+                      : 'border-slate-200 hover:bg-slate-50'
+                  }`}
+                >
+                  {n}
+                </button>
+              ))}
+              <button
+                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+                className="px-2 py-1 text-sm border border-slate-200 rounded hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Anonymize Modal */}
+      {anonymizeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-xl">
+            <h3 className="text-lg font-semibold text-slate-900 mb-2">Anonymiser les données</h3>
+            <p className="text-sm text-slate-600 mb-4">
+              ⚠️ Cette action est irréversible. Les données personnelles de{' '}
+              <strong>{anonymizeModal.firstName} {anonymizeModal.lastName}</strong> seront
+              définitivement anonymisées conformément au RGPD.
+            </p>
+            <p className="text-sm text-slate-600 mb-2">
+              Saisissez <strong>CONFIRMER</strong> pour valider :
+            </p>
+            <input
+              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm mb-4 focus:ring-2 focus:ring-error-500 focus:border-error-500 outline-none"
+              value={confirmText}
+              onChange={e => setConfirmText(e.target.value)}
+              placeholder="CONFIRMER"
+              autoFocus
+            />
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => { setAnonymizeModal(null); setConfirmText('') }}
+                className="px-4 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
+              >
+                Annuler
+              </button>
+              <button
+                disabled={confirmText !== 'CONFIRMER' || anonymizeMutation.isPending}
+                onClick={handleAnonymize}
+                className="px-4 py-2 text-sm bg-error-500 text-white rounded-lg hover:bg-error-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {anonymizeMutation.isPending ? 'En cours...' : 'Anonymiser définitivement'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+

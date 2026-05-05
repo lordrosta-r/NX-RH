@@ -44,6 +44,7 @@ const OffboardingDetailPage = lazy(() => import('../pages/OffboardingDetailPage'
 const HrFlagsPage = lazy(() => import('../pages/HrFlagsPage'))
 const HrFlagDetailPage = lazy(() => import('../pages/HrFlagDetailPage'))
 const AnalyticsPage = lazy(() => import('../pages/AnalyticsPage'))
+const AnalyticsCampaignPage = lazy(() => import('../pages/AnalyticsCampaignPage'))
 const OrgPage = lazy(() => import('../pages/OrgPage'))
 const ProfilePage = lazy(() => import('../pages/ProfilePage'))
 const NotificationsPage = lazy(() => import('../pages/NotificationsPage'))
@@ -108,6 +109,7 @@ export const router = createBrowserRouter([
       { path: '/hr/flags/:id', element: <S><HrFlagDetailPage /></S> },
       // Analytics & Org
       { path: '/analytics', element: <S><AnalyticsPage /></S> },
+      { path: '/analytics/campaigns/:id', element: <S><AnalyticsCampaignPage /></S> },
       { path: '/org', element: <S><OrgPage /></S> },
       // Profil & Notifications
       { path: '/profile', element: <S><ProfilePage /></S> },

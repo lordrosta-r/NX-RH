@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect } from 'react'
 import { NavLink, Link, useNavigate } from 'react-router-dom'
 import { Bell, ChevronDown, LogOut, User, Menu, X } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '../../contexts/AuthContext'
 import type { Role } from '../../types'
+import { notificationsApi } from '../../api/notifications'
 import clsx from 'clsx'
 
 interface NavItem {
@@ -165,6 +167,13 @@ export default function Navbar() {
     return () => document.removeEventListener('mousedown', handle)
   }, [])
 
+  const { data: notifCount } = useQuery({
+    queryKey: ['notifications-count'],
+    queryFn: () => notificationsApi.getNotificationCount().then((r) => r.data),
+    refetchInterval: 30000,
+  })
+  const unreadCount = notifCount?.count ?? 0
+
   const navItems = user ? getNavItems(user.role) : []
   const initials = user
     ? `${user.firstName[0] ?? ''}${user.lastName[0] ?? ''}`.toUpperCase()
@@ -217,6 +226,11 @@ export default function Navbar() {
             aria-label="Notifications"
           >
             <Bell className="w-5 h-5" />
+            {unreadCount > 0 && (
+              <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
           </button>
 
           {/* Avatar + menu */}

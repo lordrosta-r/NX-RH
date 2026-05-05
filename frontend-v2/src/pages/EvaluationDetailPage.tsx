@@ -234,7 +234,7 @@ export default function EvaluationDetailPage() {
                 </div>
               )}
 
-              {currentQuestion.type === 'multiple_choice' && currentQuestion.options && (
+              {currentQuestion.type === 'choice' && currentQuestion.options && (
                 <div className="space-y-2">
                   {currentQuestion.options.map(opt => (
                     <button

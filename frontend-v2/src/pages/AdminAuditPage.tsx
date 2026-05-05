@@ -29,7 +29,7 @@ function ActionBadge({ action }: { action: string }) {
 
 export default function AdminAuditPage() {
   const [page, setPage] = useState(1)
-  const [filters, setFilters] = useState({ action: '', targetType: '', actor: '', from: '', to: '' })
+  const [filters, setFilters] = useState({ action: '', targetType: '', actorId: '', from: '', to: '' })
 
   const { data, isLoading } = useQuery<PaginatedResponse<AuditLogEntry>>({
     queryKey: ['audit-log', page, filters],
@@ -38,7 +38,13 @@ export default function AdminAuditPage() {
   })
 
   async function exportCsv() {
-    const res = await adminApi.exportAuditCsv()
+    const res = await adminApi.exportAuditCsv({
+      action: filters.action || undefined,
+      actorId: filters.actorId || undefined,
+      targetType: filters.targetType || undefined,
+      from: filters.from || undefined,
+      to: filters.to || undefined,
+    })
     const url = URL.createObjectURL(res.data as Blob)
     const a = document.createElement('a')
     a.href = url; a.download = 'audit.csv'; a.click()
@@ -61,8 +67,8 @@ export default function AdminAuditPage() {
           <input
             className="pl-8 pr-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-400 w-44"
             placeholder="Acteur..."
-            value={filters.actor}
-            onChange={e => { setFilters(f => ({ ...f, actor: e.target.value })); setPage(1) }}
+            value={filters.actorId}
+            onChange={e => { setFilters(f => ({ ...f, actorId: e.target.value })); setPage(1) }}
           />
         </div>
         <input

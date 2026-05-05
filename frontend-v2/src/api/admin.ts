@@ -26,7 +26,7 @@ export const adminApi = {
     client.post('/api/admin/ldap/preview', config),
 
   // Journal d'audit
-  getAuditLog: (params?: PaginationParams & { action?: string; actorId?: string }) =>
+  getAuditLog: (params?: PaginationParams & { action?: string; actorId?: string; targetType?: string; from?: string; to?: string }) =>
     client.get<PaginatedResponse<AuditLogEntry>>('/api/admin/audit', { params }),
 
   // Modèles email
@@ -43,18 +43,21 @@ export const adminApi = {
     client.post('/api/admin/mail-templates/test', { templateId, to }),
 
   // Config keys CRUD
-  getConfigKeys: () => client.get<Array<{ key: string; value: string }>>('/api/admin/config/keys'),
+  getConfigKeys: () => client.get<Array<{ key: string; value: string }>>('/api/admin/config'),
   setConfigKey: (key: string, value: string) => client.put('/api/admin/config/keys', { key, value }),
   deleteConfigKey: (key: string) => client.delete(`/api/admin/config/keys/${encodeURIComponent(key)}`),
   sendTestEmail: (to: string) => client.post('/api/admin/config/test-email', { to }),
-  exportAuditCsv: () => client.get('/api/admin/audit/export', { responseType: 'blob' }),
+  exportAuditCsv: (params?: { action?: string; actorId?: string; targetType?: string; from?: string; to?: string }) =>
+    client.get('/api/admin/audit/export/csv', { params, responseType: 'blob' }),
   // RGPD advanced users
-  getAdminUsers: (params?: PaginationParams & { q?: string }) => client.get<PaginatedResponse<User>>('/api/admin/users', { params }),
+  getAdminUsers: (params?: PaginationParams & { q?: string; authSource?: string }) => client.get<PaginatedResponse<User>>('/api/admin/users', { params }),
   anonymizeUser: (id: string) => client.post(`/api/admin/users/${id}/anonymize`),
   exportUserGdpr: (id: string) => client.get(`/api/admin/users/${id}/gdpr-export`, { responseType: 'blob' }),
+  forceDeactivateUser: (id: string) => client.patch(`/api/users/${id}`, { isActive: false }),
   // Import
-  importUsers: (data: unknown[]) => client.post('/api/admin/users/import', { users: data }),
-  importForm: (json: unknown) => client.post('/api/admin/forms/import', { form: json }),
+  importUsers: (data: unknown[], dryRun = true) => client.post('/api/users/import', data, { params: { dryRun } }),
+  importForm: (json: unknown) => client.post<{ id: string }>('/api/forms/import', json),
+  getFormTemplate: () => client.get('/api/forms/template', { responseType: 'blob' }),
   // Org chart
   getOrgChart: () => client.get<OrgNode>('/api/org/chart'),
   getOrgChartManaged: () => client.get<OrgNode[]>('/api/org/chart/managed'),

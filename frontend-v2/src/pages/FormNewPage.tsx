@@ -9,18 +9,20 @@ const QUESTION_TYPES: { value: QuestionType; label: string }[] = [
   { value: 'rating',          label: 'Note (1-10)' },
   { value: 'text',            label: 'Texte libre' },
   { value: 'yes_no',          label: 'Oui / Non' },
-  { value: 'multiple_choice', label: 'Choix multiple' },
+  { value: 'choice',          label: 'Choix multiple' },
   { value: 'weather',         label: 'Météo humeur' },
   { value: 'mobility',        label: 'Souhait mobilité' },
+  { value: 'n1_import',       label: 'Import N-1 (auto)' },
   { value: 'scale',           label: 'Curseur 0-100%' },
   { value: 'objective_item',  label: 'Objectif structuré' },
 ]
 
 const PHASES: { value: QuestionPhase; label: string }[] = [
-  { value: 'employee', label: 'Phase employé' },
-  { value: 'manager',  label: 'Phase manager' },
-  { value: 'both',     label: 'Employé + manager' },
-  { value: 'all',      label: 'Toutes phases' },
+  { value: 'self',        label: 'Auto-évaluation' },
+  { value: 'n-1',         label: 'Évaluation N-1' },
+  { value: 'objectives',  label: 'Objectifs' },
+  { value: 'aspirations', label: 'Aspirations' },
+  { value: 'all',         label: 'Toutes phases' },
 ]
 
 const INPUT_CLS =
@@ -105,8 +107,8 @@ function QuestionCard({
             className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none resize-none mb-3"
           />
 
-          {/* Options (multiple_choice only) */}
-          {question.type === 'multiple_choice' && (
+          {/* Options (choice only) */}
+          {question.type === 'choice' && (
             <div className="mb-3">
               <p className="text-xs font-medium text-slate-500 mb-2">Options :</p>
               {(question.options ?? []).map((opt, i) => (

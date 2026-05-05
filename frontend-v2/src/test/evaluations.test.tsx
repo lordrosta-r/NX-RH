@@ -70,14 +70,14 @@ const formQuestions: FormQuestion[] = [
     type: 'text',
     text: 'Qu’avez-vous accompli cette année ?',
     required: true,
-    phase: 'employee',
+    phase: 'self',
   },
   {
     id: 'q-2',
     type: 'textarea',
     text: 'Quels sont vos objectifs ?',
     required: true,
-    phase: 'employee',
+    phase: 'self',
   },
 ]
 
@@ -487,7 +487,6 @@ describe('EvaluationHistoryPage', () => {
     await waitFor(() => expect(screen.getAllByRole('link', { name: 'Voir le compte-rendu' })).toHaveLength(2))
 
     const [yearSelect] = screen.getAllByRole('combobox')
-    const user = userEvent.setup()
     fireEvent.change(yearSelect, { target: { value: '2024' } })
 
     await waitFor(() => {

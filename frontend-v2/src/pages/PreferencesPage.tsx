@@ -4,11 +4,10 @@ import { Link } from 'react-router-dom'
 import { ChevronLeft, Save } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { authApi } from '../api/auth'
-import type { UserPreferences } from '../types'
 import { cn } from '../utils/cn'
 
 interface NotifDef {
-  key: keyof NonNullable<UserPreferences['emailNotifications']>
+  key: string
   label: string
   roles: string[]
 }
@@ -25,9 +24,9 @@ const ALL_NOTIFS: NotifDef[] = [
 export default function PreferencesPage() {
   const { user } = useAuth()
 
-  const [language, setLanguage] = useState<'fr' | 'en'>('fr')
+  const [locale, setLocale] = useState<'fr' | 'en'>('fr')
   const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('system')
-  const [notifs, setNotifs] = useState<NonNullable<UserPreferences['emailNotifications']>>({})
+  const [notifs, setNotifs] = useState<Record<string, boolean>>({})
   const [toast, setToast] = useState<string>('')
 
   // Apply theme immediately on change
@@ -44,7 +43,7 @@ export default function PreferencesPage() {
 
   const saveMutation = useMutation({
     mutationFn: () =>
-      authApi.updatePreferences({ language, theme, emailNotifications: notifs }),
+      authApi.updatePreferences({ locale, theme, notificationPrefs: notifs }),
     onSuccess: () => {
       setToast('Préférences sauvegardées')
       setTimeout(() => setToast(''), 3000)
@@ -55,8 +54,8 @@ export default function PreferencesPage() {
 
   const visibleNotifs = ALL_NOTIFS.filter((n) => n.roles.includes(user.role))
 
-  function toggleNotif(key: keyof NonNullable<UserPreferences['emailNotifications']>) {
-    setNotifs((prev) => ({ ...prev, [key]: !prev[key] }))
+  function toggleNotif(key: string) {
+    setNotifs((prev: Record<string, boolean>) => ({ ...prev, [key]: !prev[key] }))
   }
 
   return (
@@ -81,7 +80,7 @@ export default function PreferencesPage() {
                 key={lang}
                 className={cn(
                   'flex items-center gap-2 px-4 py-2 rounded-lg border cursor-pointer transition-colors',
-                  language === lang
+                  locale === lang
                     ? 'border-primary-500 bg-primary-50 text-primary-700'
                     : 'border-slate-200 text-slate-600 hover:bg-slate-50',
                 )}
@@ -90,8 +89,8 @@ export default function PreferencesPage() {
                   type="radio"
                   name="language"
                   value={lang}
-                  checked={language === lang}
-                  onChange={() => setLanguage(lang)}
+                  checked={locale === lang}
+                  onChange={() => setLocale(lang)}
                   className="sr-only"
                 />
                 {lang === 'fr' ? '🇫🇷 Français' : '🇬🇧 English'}

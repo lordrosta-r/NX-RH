@@ -242,9 +242,9 @@ describe('API contracts', () => {
         })
       )
 
-      await campaignsApi.createCampaign({ title: 'Campagne 1' })
+      await campaignsApi.createCampaign({ name: 'Campagne 1' })
 
-      expect(capturedBody).toEqual({ title: 'Campagne 1' })
+      expect(capturedBody).toEqual({ name: 'Campagne 1' })
     })
 
     it('activateCampaign appelle POST /api/campaigns/c-1/activate', async () => {
@@ -349,9 +349,9 @@ describe('API contracts', () => {
         })
       )
 
-      await evaluationsApi.updateEvaluation('e-1', { status: 'draft' })
+      await evaluationsApi.updateEvaluation('e-1', { status: 'in_progress' })
 
-      expect(capturedBody).toEqual({ status: 'draft' })
+      expect(capturedBody).toEqual({ status: 'in_progress' })
     })
 
     it('submitEvaluation appelle POST /api/evaluations/e-1/submit', async () => {

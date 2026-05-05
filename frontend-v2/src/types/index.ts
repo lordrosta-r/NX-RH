@@ -135,21 +135,31 @@ export interface Notification {
 }
 
 // ─── Signaux RH (HrFlags) ──────────────────────────────────────────────────────
-export type HrFlagStatus = 'open' | 'resolved' | 'dismissed'
-export type HrFlagType = 'disagreement' | 'hr_review' | 'manual'
+export type HrFlagStatus = 'pending' | 'in_progress' | 'treated' | 'rejected'
+export type HrFlagType = 'mobility_request' | 'salary_raise_request' | 'promotion_request' | 'training_request' | 'other'
 
 export interface HrFlag {
   id: string
-  evaluationId: string
   type: HrFlagType
   status: HrFlagStatus
+  userId: string
+  userName?: string
+  description?: string
   note?: string
-  evaluation?: Evaluation
   createdAt: string
   updatedAt?: string
 }
 
 // ─── Organisation ──────────────────────────────────────────────────────────────
+export type OrgNode = {
+  id: string
+  name: string
+  role: Role
+  department?: string
+  avatarUrl?: string
+  children?: OrgNode[]
+}
+
 export interface Sector {
   id: string
   name: string
@@ -310,8 +320,10 @@ export interface AuditLogEntry {
   action: string
   actorId: string
   actorEmail?: string
+  actorName?: string
   targetType?: string
   targetId?: string
+  targetLabel?: string
   metadata?: Record<string, unknown>
   createdAt: string
 }

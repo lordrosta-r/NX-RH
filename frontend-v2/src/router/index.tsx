@@ -54,6 +54,9 @@ const AdminLdapPage = lazy(() => import('../pages/AdminLdapPage'))
 const AdminAuditPage = lazy(() => import('../pages/AdminAuditPage'))
 const AdminConfigPage = lazy(() => import('../pages/AdminConfigPage'))
 const AdminMailTemplatesPage = lazy(() => import('../pages/AdminMailTemplatesPage'))
+const AdminHubPage = lazy(() => import('../pages/AdminHubPage'))
+const AdminUsersPage = lazy(() => import('../pages/AdminUsersPage'))
+const HrSettingsPage = lazy(() => import('../pages/HrSettingsPage'))
 const NotFoundPage = lazy(() => import('../pages/NotFoundPage'))
 
 function S({ children }: { children: React.ReactNode }) {
@@ -115,6 +118,11 @@ export const router = createBrowserRouter([
       { path: '/profile', element: <S><ProfilePage /></S> },
       { path: '/notifications', element: <S><NotificationsPage /></S> },
       // Admin
+      { path: '/admin', element: <S><AdminHubPage /></S> },
+      { path: '/admin/users', element: <S><AdminUsersPage /></S> },
+      { path: '/admin/settings', element: <S><HrSettingsPage /></S> },
+      { path: '/hr/settings', element: <S><HrSettingsPage /></S> },
+      { path: '/admin/orgchart', element: <S><OrgPage /></S> },
       { path: '/admin/users/import', element: <S><AdminUsersImportPage /></S> },
       { path: '/admin/forms/import', element: <S><AdminFormsImportPage /></S> },
       { path: '/admin/ldap', element: <S><AdminLdapPage /></S> },

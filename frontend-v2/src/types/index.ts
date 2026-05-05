@@ -159,7 +159,15 @@ export interface OrgTreeNode {
 }
 
 // ─── Événements calendrier ─────────────────────────────────────────────────────
-export type EventType = 'evaluation' | 'meeting' | 'deadline' | 'offboarding' | 'other'
+export type EventType =
+  | 'evaluation'
+  | 'meeting'
+  | 'deadline'
+  | 'offboarding'
+  | 'other'
+  | 'interview'
+  | 'feedback'
+  | 'campaign'
 
 export interface CalendarEvent {
   id: string
@@ -172,9 +180,14 @@ export interface CalendarEvent {
   participants?: string[]
   createdBy?: string
   createdAt?: string
+  location?: string
+  campaignId?: string
+  targetRoles?: string[]
 }
 
 // ─── Ressources ────────────────────────────────────────────────────────────────
+export type ResourceType = 'pdf' | 'xlsx' | 'doc' | 'video' | 'link' | 'image' | 'other'
+
 export interface Resource {
   id: string
   title: string
@@ -186,6 +199,12 @@ export interface Resource {
   attachments?: ResourceAttachment[]
   createdAt?: string
   updatedAt?: string
+  // S8 extensions
+  type?: ResourceType
+  fileSize?: number
+  fileUrl?: string
+  visibleTo?: string[]
+  status?: 'published' | 'draft'
 }
 
 export interface ResourceAttachment {

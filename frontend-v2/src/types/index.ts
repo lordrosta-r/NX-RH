@@ -43,6 +43,11 @@ export interface Campaign {
   targetDepartments?: string[]
   extendedVisibility?: boolean
   enableN1Context?: boolean
+  n1VisibleToEmployee?: boolean
+  previousCampaignId?: string
+  targetScope?: 'all' | 'department' | 'sector' | 'users'
+  targetSectorIds?: string[]
+  targetUserIds?: string[]
   formId?: string
   objectivesFormId?: string
   createdBy?: string
@@ -89,8 +94,8 @@ export interface Evaluation {
 }
 
 // ─── Formulaires ───────────────────────────────────────────────────────────────
-export type QuestionType = 'text' | 'textarea' | 'rating' | 'multiple_choice' | 'yes_no'
-export type QuestionPhase = 'employee' | 'manager' | 'both'
+export type QuestionType = 'text' | 'textarea' | 'rating' | 'multiple_choice' | 'yes_no' | 'weather' | 'mobility' | 'scale' | 'objective_item'
+export type QuestionPhase = 'employee' | 'manager' | 'both' | 'all'
 
 export interface FormQuestion {
   id: string
@@ -209,12 +214,20 @@ export interface AnalyticsSummary {
 
 export interface CampaignAnalytics {
   campaignId: string
+  campaignName?: string
   totalAssigned: number
   submitted: number
   validated: number
   completionRate: number
   averageScore?: number
   scoreDistribution?: Record<string, number>
+  statusDistribution?: {
+    assigned?: number
+    in_progress?: number
+    submitted?: number
+    reviewed?: number
+    validated?: number
+  }
   byDepartment?: Array<{ department: string; total: number; completed: number }>
 }
 
@@ -233,6 +246,8 @@ export interface PaginationParams {
   search?: string
   sort?: string
   order?: 'asc' | 'desc'
+  formType?: string
+  q?: string
 }
 
 // ─── Erreurs API ───────────────────────────────────────────────────────────────

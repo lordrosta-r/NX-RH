@@ -70,6 +70,7 @@ export interface Evaluation {
   evaluatorId: string
   formId: string
   status: EvaluationStatus
+  deadline?: string
   answers?: Record<string, unknown>
   reviewerScore?: number
   nextYearObjectives?: string

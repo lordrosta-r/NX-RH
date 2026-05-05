@@ -1,8 +1,260 @@
+import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
+import { useQuery, keepPreviousData } from '@tanstack/react-query'
+import { ClipboardList, Download, MoreHorizontal } from 'lucide-react'
+import { useAuth } from '../contexts/AuthContext'
+import { evaluationsApi } from '../api/evaluations'
+import type { Evaluation } from '../types'
+
+const EVAL_STATUS_CONFIG: Record<string, { label: string; color: string }> = {
+  assigned:         { label: 'Assignée',         color: 'bg-slate-100 text-slate-600' },
+  in_progress:      { label: 'En cours',          color: 'bg-primary-50 text-primary-700' },
+  submitted:        { label: 'Soumise',           color: 'bg-warning-50 text-warning-700' },
+  reviewed:         { label: 'Révisée',           color: 'bg-info-50 text-info-700' },
+  signed_evaluatee: { label: 'Signée (évalué)',   color: 'bg-purple-50 text-purple-700' },
+  signed_manager:   { label: 'Signée (mgr)',      color: 'bg-indigo-50 text-indigo-700' },
+  signed_hr:        { label: 'Signée (RH)',       color: 'bg-teal-50 text-teal-700' },
+  validated:        { label: 'Validée ✓',         color: 'bg-success-50 text-success-700' },
+  expired:          { label: 'Expirée',           color: 'bg-error-50 text-error-600' },
+  archived:         { label: 'Archivée',          color: 'bg-slate-50 text-slate-400' },
+}
+
 export default function EvaluationsPage() {
+  const { user } = useAuth()
+  const isAdminOrHr = user?.role === 'admin' || user?.role === 'hr'
+  const isEmployee = user?.role === 'employee'
+
+  const [campaignFilter, setCampaignFilter] = useState('')
+  const [statusFilter, setStatusFilter] = useState('')
+  const [search, setSearch] = useState('')
+  const [searchDebounced, setSearchDebounced] = useState('')
+  const [page, setPage] = useState(1)
+  const [selected, setSelected] = useState<string[]>([])
+  const [bulkModal, setBulkModal] = useState<'archive' | 'sign' | null>(null)
+
+  useEffect(() => {
+    const t = setTimeout(() => { setSearchDebounced(search); setPage(1) }, 300)
+    return () => clearTimeout(t)
+  }, [search])
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['evaluations', campaignFilter, statusFilter, searchDebounced, page],
+    queryFn: () => (isEmployee
+      ? evaluationsApi.getMyEvaluations({ page, limit: 20, campaignId: campaignFilter || undefined, status: statusFilter || undefined })
+      : evaluationsApi.getEvaluations({ page, limit: 20, campaignId: campaignFilter || undefined, status: statusFilter || undefined, q: searchDebounced || undefined })
+    ).then(r => r.data),
+    placeholderData: keepPreviousData,
+  })
+
+  const evaluations: Evaluation[] = data?.data ?? []
+  const total = data?.total ?? 0
+  const totalPages = data?.totalPages ?? 1
+
+  const allSelected = evaluations.length > 0 && selected.length === evaluations.length
+  const toggleAll = () => setSelected(allSelected ? [] : evaluations.map(e => e.id))
+  const toggleOne = (id: string) => setSelected(s => s.includes(id) ? s.filter(x => x !== id) : [...s, id])
+
   return (
     <div>
-      <h1 className="text-3xl font-bold text-slate-900">Évaluations</h1>
-      <p className="text-slate-500 mt-2">Sprint 7 — À implémenter</p>
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+        <h1 className="text-2xl font-bold text-slate-900">
+          {isEmployee ? 'Mes évaluations' : 'Évaluations'}
+        </h1>
+        <div className="flex items-center gap-2">
+          {isAdminOrHr && selected.length > 0 && (
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-slate-600">{selected.length} sélectionnée(s)</span>
+              <button onClick={() => setBulkModal('archive')} className="text-sm px-3 py-1.5 border border-slate-200 rounded-lg hover:bg-slate-50">Archiver</button>
+              <button onClick={() => setBulkModal('sign')} className="text-sm px-3 py-1.5 border border-slate-200 rounded-lg hover:bg-slate-50">Signer RH</button>
+            </div>
+          )}
+          {isAdminOrHr && (
+            <button className="inline-flex items-center gap-2 border border-slate-200 hover:bg-slate-50 px-3 py-1.5 rounded-lg text-sm font-medium">
+              <Download className="w-4 h-4" /> Exporter CSV
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Filtres */}
+      <div className="flex flex-wrap gap-3 mb-6">
+        <select
+          value={campaignFilter}
+          onChange={e => { setCampaignFilter(e.target.value); setPage(1) }}
+          className="h-9 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-200"
+        >
+          <option value="">Toutes les campagnes</option>
+        </select>
+        <select
+          value={statusFilter}
+          onChange={e => { setStatusFilter(e.target.value); setPage(1) }}
+          className="h-9 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-200"
+        >
+          <option value="">Tous les statuts</option>
+          {Object.entries(EVAL_STATUS_CONFIG).map(([k, v]) => (
+            <option key={k} value={k}>{v.label}</option>
+          ))}
+        </select>
+        {!isEmployee && (
+          <input
+            type="text"
+            placeholder="Rechercher…"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="h-9 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-200 w-48"
+          />
+        )}
+      </div>
+
+      {/* Table (admin / hr / manager / director) */}
+      {!isEmployee && (
+        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+          <table className="w-full text-sm">
+            <thead className="bg-slate-50 border-b border-slate-200">
+              <tr>
+                {isAdminOrHr && (
+                  <th className="w-10 px-4 py-3">
+                    <input type="checkbox" checked={allSelected} onChange={toggleAll} className="rounded border-slate-300" />
+                  </th>
+                )}
+                <th className="px-4 py-3 text-left font-medium text-slate-600">Évalué</th>
+                <th className="px-4 py-3 text-left font-medium text-slate-600">Évaluateur</th>
+                <th className="px-4 py-3 text-left font-medium text-slate-600">Campagne</th>
+                <th className="px-4 py-3 text-left font-medium text-slate-600">Statut</th>
+                <th className="px-4 py-3 text-left font-medium text-slate-600">Date</th>
+                <th className="w-10 px-4 py-3" />
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {isLoading ? (
+                [...Array(5)].map((_, i) => (
+                  <tr key={i}>
+                    <td colSpan={isAdminOrHr ? 7 : 6} className="px-4 py-3">
+                      <div className="h-5 bg-slate-100 rounded animate-pulse" />
+                    </td>
+                  </tr>
+                ))
+              ) : evaluations.length === 0 ? (
+                <tr>
+                  <td colSpan={isAdminOrHr ? 7 : 6} className="px-4 py-12 text-center">
+                    <ClipboardList className="w-10 h-10 text-slate-300 mx-auto mb-2" />
+                    <p className="text-slate-500">Aucune évaluation</p>
+                  </td>
+                </tr>
+              ) : evaluations.map(ev => (
+                <tr key={ev.id} className={`hover:bg-slate-50 ${selected.includes(ev.id) ? 'bg-primary-50' : ''}`}>
+                  {isAdminOrHr && (
+                    <td className="px-4 py-3">
+                      <input type="checkbox" checked={selected.includes(ev.id)} onChange={() => toggleOne(ev.id)} className="rounded border-slate-300" />
+                    </td>
+                  )}
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-full bg-primary-100 text-primary-700 text-xs font-semibold flex items-center justify-center flex-shrink-0">
+                        {ev.evaluatee?.firstName?.[0]}{ev.evaluatee?.lastName?.[0]}
+                      </div>
+                      <Link to={`/evaluations/${ev.id}`} className="font-medium text-slate-900 hover:text-primary-600">
+                        {ev.evaluatee?.firstName} {ev.evaluatee?.lastName}
+                      </Link>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-slate-600">
+                    {ev.evaluator?.firstName} {ev.evaluator?.lastName}
+                  </td>
+                  <td className="px-4 py-3 text-slate-600">{ev.campaign?.name ?? ev.campaignId}</td>
+                  <td className="px-4 py-3">
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${EVAL_STATUS_CONFIG[ev.status]?.color ?? 'bg-slate-100 text-slate-600'}`}>
+                      {EVAL_STATUS_CONFIG[ev.status]?.label ?? ev.status}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-slate-500 text-xs">
+                    {ev.updatedAt ? new Date(ev.updatedAt).toLocaleDateString('fr-FR') : '—'}
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="relative group">
+                      <button className="p-1 text-slate-400 hover:text-slate-600 rounded">
+                        <MoreHorizontal className="w-4 h-4" />
+                      </button>
+                      <div className="absolute right-0 top-8 bg-white border border-slate-200 rounded-lg shadow-lg z-10 min-w-32 py-1 hidden group-hover:block">
+                        <Link to={`/evaluations/${ev.id}`} className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Voir</Link>
+                        <button onClick={() => window.open(`/api/evaluations/${ev.id}/pdf`, '_blank')} className="block w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">PDF</button>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between px-4 py-3 border-t border-slate-100">
+              <span className="text-sm text-slate-500">{total} résultats</span>
+              <div className="flex items-center gap-1">
+                <button disabled={page === 1} onClick={() => setPage(p => p - 1)} className="px-3 py-1.5 text-sm border border-slate-200 rounded-lg disabled:opacity-40 hover:bg-slate-50">←</button>
+                <span className="px-3 py-1.5 text-sm">{page} / {totalPages}</span>
+                <button disabled={page === totalPages} onClick={() => setPage(p => p + 1)} className="px-3 py-1.5 text-sm border border-slate-200 rounded-lg disabled:opacity-40 hover:bg-slate-50">→</button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Cards employee */}
+      {isEmployee && (
+        <div className="space-y-3">
+          {isLoading ? (
+            [...Array(3)].map((_, i) => <div key={i} className="h-20 bg-slate-100 rounded-xl animate-pulse" />)
+          ) : evaluations.length === 0 ? (
+            <div className="text-center py-16">
+              <ClipboardList className="w-12 h-12 text-slate-200 mx-auto mb-3" />
+              <p className="text-slate-500">Aucune évaluation en cours.</p>
+            </div>
+          ) : evaluations.map(ev => (
+            <div key={ev.id} className="bg-white rounded-xl border border-slate-200 p-4 flex items-center justify-between">
+              <div>
+                <p className="font-medium text-slate-900">{ev.campaign?.name ?? ev.campaignId}</p>
+                <p className="text-sm text-slate-500 mt-0.5">{ev.form?.title ?? ev.formId}</p>
+                {ev.deadline && (
+                  <p className="text-xs text-slate-400 mt-0.5">Deadline : {new Date(ev.deadline).toLocaleDateString('fr-FR')}</p>
+                )}
+              </div>
+              <div className="flex items-center gap-3">
+                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${EVAL_STATUS_CONFIG[ev.status]?.color ?? 'bg-slate-100 text-slate-600'}`}>
+                  {EVAL_STATUS_CONFIG[ev.status]?.label ?? ev.status}
+                </span>
+                <Link
+                  to={`/evaluations/${ev.id}`}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium ${
+                    ['assigned', 'in_progress'].includes(ev.status)
+                      ? 'bg-primary-500 text-white hover:bg-primary-600'
+                      : 'border border-slate-200 text-slate-700 hover:bg-slate-50'
+                  }`}
+                >
+                  {['assigned', 'in_progress'].includes(ev.status) ? 'Remplir' : 'Voir'}
+                </Link>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Modal bulk */}
+      {bulkModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-xl">
+            <h3 className="text-lg font-semibold text-slate-900 mb-2">
+              {bulkModal === 'archive' ? 'Archiver' : 'Signer RH'} {selected.length} évaluation(s) ?
+            </h3>
+            <p className="text-sm text-slate-600 mb-4">Cette action s'appliquera aux évaluations sélectionnées.</p>
+            <div className="flex gap-3 justify-end">
+              <button onClick={() => setBulkModal(null)} className="px-4 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50">Annuler</button>
+              <button onClick={() => { setBulkModal(null); setSelected([]) }} className="px-4 py-2 text-sm bg-primary-500 text-white rounded-lg hover:bg-primary-600">Confirmer</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -114,6 +114,13 @@ export default function ProfilePage() {
     reader.readAsDataURL(file)
   }
 
+  // ── Manager (lecture seule) ───────────────────────────────────────────────
+  const { data: managerData } = useQuery({
+    queryKey: ['manager', user?.managerId],
+    queryFn: () => usersApi.getUser(user!.managerId!).then((r) => r.data),
+    enabled: !!user?.managerId,
+  })
+
   // ── Onglet Mes demandes ───────────────────────────────────────────────────
   const [requestDropdownOpen, setRequestDropdownOpen] = useState(false)
 
@@ -124,11 +131,14 @@ export default function ProfilePage() {
     { label: 'Demande de formation', formType: 'training_request' },
   ]
 
+  const REQUEST_FORM_TYPES = 'mobility_request,salary_raise_request,promotion_request,training_request'
+
   const { data: myEvals } = useQuery({
     queryKey: ['my-requests'],
     queryFn: () =>
       evaluationsApi.getEvaluations({
         evaluateeId: user?.id,
+        formType: REQUEST_FORM_TYPES,
         limit: 20,
       }).then((r) => r.data),
     enabled: tab === 'requests' && !!user,
@@ -150,7 +160,7 @@ export default function ProfilePage() {
   async function handleRequestType(formType: string) {
     setRequestDropdownOpen(false)
     try {
-      const { data } = await formsApi.getForms({ search: formType, limit: 1 })
+      const { data } = await formsApi.getForms({ formType: formType, limit: 1 })
       const form = (data as unknown as { data: Form[] }).data?.[0]
       if (form) {
         navigate(`/evaluations/new?formId=${form.id}`)
@@ -302,6 +312,12 @@ export default function ProfilePage() {
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Poste</label>
                 <p className="text-sm text-slate-500 px-3 py-2 bg-slate-50 rounded-lg">{user.position ?? '—'}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Manager</label>
+                <p className="text-sm text-slate-500 px-3 py-2 bg-slate-50 rounded-lg">
+                  {managerData ? `${managerData.firstName} ${managerData.lastName}` : '—'}
+                </p>
               </div>
               {editMode && (
                 <div className="flex gap-3 pt-2">

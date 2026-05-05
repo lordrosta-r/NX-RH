@@ -306,7 +306,7 @@ export default function FormDetailPage() {
                             onChange={e => { setQuestions(qs => qs.map(x => x.id === q.id ? { ...x, type: e.target.value as FormQuestion['type'] } : x)); setIsDirty(true) }}
                             className="h-7 px-2 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-300"
                           >
-                            {(['text', 'textarea', 'rating', 'multiple_choice', 'yes_no'] as const).map(t => (
+                            {(['text', 'textarea', 'rating', 'choice', 'yes_no'] as const).map(t => (
                               <option key={t} value={t}>{t}</option>
                             ))}
                           </select>
@@ -327,7 +327,7 @@ export default function FormDetailPage() {
                           placeholder="Texte de la question…"
                           className="w-full h-10 px-3 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-400"
                         />
-                        {q.type === 'multiple_choice' && (
+                        {q.type === 'choice' && (
                           <div>
                             <p className="text-xs text-slate-500 mb-1">Options (une par ligne)</p>
                             <textarea

@@ -35,12 +35,19 @@ export default function OnboardingPage() {
   // Step 4
   const [checklist, setChecklist] = useState<boolean[]>(DEFAULT_CHECKLIST.map(() => false))
 
-  // Teammates
+  // Manager direct
+  const { data: managerData } = useQuery({
+    queryKey: ['onboarding-manager', user?.managerId],
+    queryFn: () => usersApi.getUser(user!.managerId!).then((r) => r.data),
+    enabled: step === 2 && !!user?.managerId,
+  })
+
+  // Membres de l'équipe (même manager)
   const { data: teammates } = useQuery({
-    queryKey: ['onboarding-teammates', user?.department],
+    queryKey: ['onboarding-teammates', user?.managerId],
     queryFn: () =>
-      usersApi.getUsers({ department: user?.department, limit: 4 }).then((r) => r.data),
-    enabled: step === 2 && !!user?.department,
+      usersApi.getUsers({ managerId: user?.managerId, limit: 10 }).then((r) => r.data),
+    enabled: step === 2 && !!user?.managerId,
   })
 
   // Active campaign
@@ -211,21 +218,40 @@ export default function OnboardingPage() {
         {step === 2 && (
           <div className="mt-4 space-y-3">
             <p className="text-sm text-slate-500 text-center mb-2">
-              Voici les membres de votre équipe.
+              Voici votre manager et les membres de votre équipe.
             </p>
-            {teammates?.data?.filter((m) => m.id !== user.id).slice(0, 4).map((member) => (
-              <div key={member.id} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50">
-                <div className="w-9 h-9 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center text-sm font-bold shrink-0">
-                  {member.firstName[0]}{member.lastName[0]}
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-slate-800">{member.firstName} {member.lastName}</p>
-                  <p className="text-xs text-slate-400">{member.position ?? member.role}</p>
+            {managerData && (
+              <div className="mb-2">
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1 px-1">Manager direct</p>
+                <div className="flex items-center gap-3 p-3 rounded-xl bg-primary-50 border border-primary-100">
+                  <div className="w-9 h-9 rounded-full bg-primary-200 text-primary-800 flex items-center justify-center text-sm font-bold shrink-0">
+                    {managerData.firstName[0]}{managerData.lastName[0]}
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-slate-800">{managerData.firstName} {managerData.lastName}</p>
+                    <p className="text-xs text-slate-400">{managerData.position ?? managerData.role}</p>
+                  </div>
                 </div>
               </div>
-            ))}
-            {(!teammates?.data?.length || teammates.data.filter((m) => m.id !== user.id).length === 0) && (
-              <p className="text-sm text-slate-400 text-center py-4">Aucun collègue trouvé dans votre département.</p>
+            )}
+            {(teammates?.data?.filter((m) => m.id !== user.id) ?? []).length > 0 && (
+              <div>
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1 px-1">Équipe</p>
+                {teammates?.data?.filter((m) => m.id !== user.id).slice(0, 4).map((member) => (
+                  <div key={member.id} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 mb-1">
+                    <div className="w-9 h-9 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center text-sm font-bold shrink-0">
+                      {member.firstName[0]}{member.lastName[0]}
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-slate-800">{member.firstName} {member.lastName}</p>
+                      <p className="text-xs text-slate-400">{member.position ?? member.role}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            {!managerData && (!teammates?.data?.length || teammates.data.filter((m) => m.id !== user.id).length === 0) && (
+              <p className="text-sm text-slate-400 text-center py-4">Aucun membre d'équipe trouvé.</p>
             )}
           </div>
         )}
@@ -270,14 +296,18 @@ export default function OnboardingPage() {
 
         {/* Footer buttons */}
         <div className="flex justify-between items-center mt-8 pt-4 border-t border-slate-100">
-          <button
-            onClick={async () => {
-              if (step < STEP_COUNT - 1) await goStep(step + 1)
-            }}
-            className="text-sm text-slate-400 hover:text-slate-600 transition-colors"
-          >
-            {step < STEP_COUNT - 1 ? 'Passer cette étape' : ''}
-          </button>
+          {step > 0 && step < STEP_COUNT - 1 ? (
+            <button
+              onClick={async () => {
+                await goStep(step + 1)
+              }}
+              className="text-sm text-slate-400 hover:text-slate-600 transition-colors"
+            >
+              Passer cette étape
+            </button>
+          ) : (
+            <span />
+          )}
 
           {step === 0 && (
             <button

@@ -34,6 +34,9 @@ export const campaignsApi = {
   archiveCampaign: (id: string) =>
     client.post(`/api/campaigns/${id}/archive`),
 
+  updateCampaignStatus: (id: string, status: string) =>
+    client.patch<Campaign>(`/api/campaigns/${id}/status`, { status }),
+
   getCampaignAnalytics: (id: string) =>
     client.get<CampaignAnalytics>(`/api/campaigns/${id}/analytics`),
 

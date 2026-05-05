@@ -35,6 +35,12 @@ export const evaluationsApi = {
   getEvaluationPdf: (id: string) =>
     client.get(`/api/evaluations/${id}/pdf`, { responseType: 'blob' }),
 
+  createEvaluation: (data: { campaignId: string; evaluateeId: string; evaluatorId: string }) =>
+    client.post<Evaluation>('/api/evaluations', data),
+
+  transitionEvaluation: (id: string, action: string) =>
+    client.post<Evaluation>(`/api/evaluations/${id}/transition`, { action }),
+
   createBulk: (data: { campaignId: string; pairs: Array<{ evaluateeId: string; evaluatorId: string }> }) =>
     client.post('/api/evaluations/bulk', data),
 }

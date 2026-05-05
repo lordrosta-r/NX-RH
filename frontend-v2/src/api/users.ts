@@ -7,6 +7,7 @@ export interface UserFilters extends PaginationParams {
   isActive?: boolean
   department?: string
   sectorId?: string
+  managerId?: string
 }
 
 export const usersApi = {
@@ -34,7 +35,7 @@ export const usersApi = {
   },
 
   gdprExport: (id: string) =>
-    client.get(`/api/users/${id}/gdpr`, { responseType: 'blob' }),
+    client.get(`/api/users/${id}/gdpr-export`, { responseType: 'blob' }),
 
   anonymize: (id: string) =>
     client.post(`/api/users/${id}/anonymize`),

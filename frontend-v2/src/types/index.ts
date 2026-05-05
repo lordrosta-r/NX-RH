@@ -16,6 +16,8 @@ export interface User {
   isActive: boolean
   authSource: AuthSource
   gdprAnonymized?: boolean
+  deactivatedAt?: string
+  offboardingStatus?: string
   createdAt?: string
   updatedAt?: string
 }
@@ -95,8 +97,8 @@ export interface Evaluation {
 }
 
 // ─── Formulaires ───────────────────────────────────────────────────────────────
-export type QuestionType = 'text' | 'textarea' | 'rating' | 'multiple_choice' | 'yes_no' | 'weather' | 'mobility' | 'scale' | 'objective_item'
-export type QuestionPhase = 'employee' | 'manager' | 'both' | 'all'
+export type QuestionType = 'text' | 'textarea' | 'rating' | 'choice' | 'yes_no' | 'weather' | 'mobility' | 'n1_import' | 'scale' | 'objective_item'
+export type QuestionPhase = 'self' | 'n-1' | 'objectives' | 'aspirations' | 'all'
 
 export interface FormQuestion {
   id: string
@@ -330,16 +332,9 @@ export interface AuditLogEntry {
 
 // ─── Préférences utilisateur ───────────────────────────────────────────────────
 export interface UserPreferences {
-  language?: 'fr' | 'en'
+  locale?: 'fr' | 'en'
   theme?: 'light' | 'dark' | 'system'
-  emailNotifications?: {
-    evalAssigned?: boolean
-    deadlineReminder?: boolean
-    managerActionRequired?: boolean
-    evalSubmission?: boolean
-    campaignLaunch?: boolean
-    systemAlerts?: boolean
-  }
+  notificationPrefs?: Record<string, boolean>
 }
 
 // ─── Onboarding ────────────────────────────────────────────────────────────────

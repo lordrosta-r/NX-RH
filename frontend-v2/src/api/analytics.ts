@@ -1,5 +1,5 @@
 import client from './client'
-import type { AnalyticsSummary, CampaignAnalytics } from '../types'
+import type { AnalyticsSummary, CampaignAnalytics, Campaign, PaginatedResponse } from '../types'
 
 export const analyticsApi = {
   getSummary: () =>
@@ -7,6 +7,9 @@ export const analyticsApi = {
 
   getCampaignAnalytics: (campaignId: string) =>
     client.get<CampaignAnalytics>(`/api/analytics/campaigns/${campaignId}`),
+
+  getCampaigns: () =>
+    client.get<PaginatedResponse<Campaign>>('/api/campaigns', { params: { limit: 100 } }),
 
   exportCsv: (campaignId?: string) =>
     client.get('/api/analytics/export/csv', {

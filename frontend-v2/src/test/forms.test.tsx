@@ -79,13 +79,13 @@ describe('FormsPage', () => {
     expect(await screen.findByRole('heading', { name: 'Bilan manager' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Demande mobilité' })).toBeInTheDocument()
 
-    await userEvent.selectOptions(screen.getByRole('combobox'), 'manager_evaluation')
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: /type/i }), 'manager_evaluation')
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: 'Bilan manager' })).toBeInTheDocument()
       expect(screen.queryByRole('heading', { name: 'Demande mobilité' })).not.toBeInTheDocument()
     })
 
-    await userEvent.selectOptions(screen.getByRole('combobox'), '')
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: /type/i }), '')
     const search = screen.getByPlaceholderText('Rechercher un formulaire...')
     await userEvent.clear(search)
     await userEvent.type(search, 'mobilité')

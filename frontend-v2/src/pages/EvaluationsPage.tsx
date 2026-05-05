@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { useQuery, keepPreviousData } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import { ClipboardList, Download, MoreHorizontal } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { evaluationsApi } from '../api/evaluations'
+import { usersApi } from '../api/users'
 import type { Evaluation } from '../types'
 
 const EVAL_STATUS_CONFIG: Record<string, { label: string; color: string }> = {
@@ -26,11 +27,16 @@ export default function EvaluationsPage() {
 
   const [campaignFilter, setCampaignFilter] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
+  const [deptFilter, setDeptFilter] = useState('')
   const [search, setSearch] = useState('')
   const [searchDebounced, setSearchDebounced] = useState('')
   const [page, setPage] = useState(1)
   const [selected, setSelected] = useState<string[]>([])
   const [bulkModal, setBulkModal] = useState<'archive' | 'sign' | null>(null)
+  const [reassignTarget, setReassignTarget] = useState<string | null>(null)
+  const [reassignUserId, setReassignUserId] = useState('')
+  const [expireConfirm, setExpireConfirm] = useState<string | null>(null)
+  const queryClient = useQueryClient()
 
   useEffect(() => {
     const t = setTimeout(() => { setSearchDebounced(search); setPage(1) }, 300)
@@ -38,12 +44,37 @@ export default function EvaluationsPage() {
   }, [search])
 
   const { data, isLoading } = useQuery({
-    queryKey: ['evaluations', campaignFilter, statusFilter, searchDebounced, page],
+    queryKey: ['evaluations', campaignFilter, statusFilter, deptFilter, searchDebounced, page],
     queryFn: () => (isEmployee
       ? evaluationsApi.getMyEvaluations({ page, limit: 20, campaignId: campaignFilter || undefined, status: statusFilter || undefined })
-      : evaluationsApi.getEvaluations({ page, limit: 20, campaignId: campaignFilter || undefined, status: statusFilter || undefined, q: searchDebounced || undefined })
+      : evaluationsApi.getEvaluations({ page, limit: 20, campaignId: campaignFilter || undefined, status: statusFilter || undefined, department: deptFilter || undefined, q: searchDebounced || undefined })
     ).then(r => r.data),
     placeholderData: keepPreviousData,
+  })
+
+  const { data: usersData } = useQuery({
+    queryKey: ['users', 'evaluators'],
+    queryFn: () => usersApi.getUsers({ limit: 200 }).then(r => r.data),
+    enabled: isAdminOrHr,
+  })
+  const usersList = usersData?.data ?? []
+
+  const reassignMutation = useMutation({
+    mutationFn: ({ id, evaluatorId }: { id: string; evaluatorId: string }) =>
+      evaluationsApi.updateEvaluation(id, { evaluatorId }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['evaluations'] })
+      setReassignTarget(null)
+      setReassignUserId('')
+    },
+  })
+
+  const expireMutation = useMutation({
+    mutationFn: (id: string) => evaluationsApi.updateEvaluation(id, { status: 'expired' }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['evaluations'] })
+      setExpireConfirm(null)
+    },
   })
 
   const evaluations: Evaluation[] = data?.data ?? []
@@ -96,6 +127,15 @@ export default function EvaluationsPage() {
             <option key={k} value={k}>{v.label}</option>
           ))}
         </select>
+        {!isEmployee && (
+          <input
+            type="text"
+            placeholder="Département…"
+            value={deptFilter}
+            onChange={e => { setDeptFilter(e.target.value); setPage(1) }}
+            className="h-9 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-200 w-36"
+          />
+        )}
         {!isEmployee && (
           <input
             type="text"
@@ -176,9 +216,26 @@ export default function EvaluationsPage() {
                       <button className="p-1 text-slate-400 hover:text-slate-600 rounded">
                         <MoreHorizontal className="w-4 h-4" />
                       </button>
-                      <div className="absolute right-0 top-8 bg-white border border-slate-200 rounded-lg shadow-lg z-10 min-w-32 py-1 hidden group-hover:block">
+                      <div className="absolute right-0 top-8 bg-white border border-slate-200 rounded-lg shadow-lg z-10 min-w-36 py-1 hidden group-hover:block">
                         <Link to={`/evaluations/${ev.id}`} className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Voir</Link>
                         <button onClick={() => window.open(`/api/evaluations/${ev.id}/pdf`, '_blank')} className="block w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">PDF</button>
+                        {isAdminOrHr && (
+                          <>
+                            <hr className="my-1 border-slate-100" />
+                            <button
+                              onClick={() => { setReassignTarget(ev.id); setReassignUserId('') }}
+                              className="block w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                            >
+                              Réaffecter
+                            </button>
+                            <button
+                              onClick={() => setExpireConfirm(ev.id)}
+                              className="block w-full text-left px-4 py-2 text-sm text-error-600 hover:bg-error-50"
+                            >
+                              Expirer
+                            </button>
+                          </>
+                        )}
                       </div>
                     </div>
                   </td>
@@ -251,6 +308,56 @@ export default function EvaluationsPage() {
             <div className="flex gap-3 justify-end">
               <button onClick={() => setBulkModal(null)} className="px-4 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50">Annuler</button>
               <button onClick={() => { setBulkModal(null); setSelected([]) }} className="px-4 py-2 text-sm bg-primary-500 text-white rounded-lg hover:bg-primary-600">Confirmer</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Réaffecter */}
+      {reassignTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-xl">
+            <h3 className="text-lg font-semibold text-slate-900 mb-4">Réaffecter l'évaluation</h3>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Nouvel évaluateur</label>
+            <select
+              value={reassignUserId}
+              onChange={e => setReassignUserId(e.target.value)}
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-200 mb-4"
+            >
+              <option value="">Sélectionner un évaluateur…</option>
+              {usersList.map(u => (
+                <option key={u.id} value={u.id}>{u.firstName} {u.lastName} ({u.role})</option>
+              ))}
+            </select>
+            <div className="flex gap-3 justify-end">
+              <button onClick={() => setReassignTarget(null)} className="px-4 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50">Annuler</button>
+              <button
+                onClick={() => reassignMutation.mutate({ id: reassignTarget, evaluatorId: reassignUserId })}
+                disabled={!reassignUserId || reassignMutation.isPending}
+                className="px-4 py-2 text-sm bg-primary-500 text-white rounded-lg hover:bg-primary-600 disabled:opacity-50"
+              >
+                {reassignMutation.isPending ? 'Traitement…' : 'Réaffecter'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Expirer */}
+      {expireConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-xl p-6 w-full max-w-sm shadow-xl">
+            <h3 className="text-lg font-semibold text-slate-900 mb-2">Expirer cette évaluation ?</h3>
+            <p className="text-sm text-slate-600 mb-4">Cette action est irréversible. L'évaluation sera marquée comme expirée.</p>
+            <div className="flex gap-3 justify-end">
+              <button onClick={() => setExpireConfirm(null)} className="px-4 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50">Annuler</button>
+              <button
+                onClick={() => expireMutation.mutate(expireConfirm)}
+                disabled={expireMutation.isPending}
+                className="px-4 py-2 text-sm bg-error-500 text-white rounded-lg hover:bg-error-600 disabled:opacity-50"
+              >
+                {expireMutation.isPending ? 'Traitement…' : 'Expirer'}
+              </button>
             </div>
           </div>
         </div>

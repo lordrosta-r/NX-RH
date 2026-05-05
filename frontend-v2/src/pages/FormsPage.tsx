@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, Copy, Trash2, FileText } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { formsApi } from '../api/forms'
+import { campaignsApi } from '../api/campaigns'
 import type { Form } from '../types'
 
 const FORM_TYPE_CONFIG: Record<string, { label: string; color: string }> = {
@@ -21,6 +22,7 @@ const FORM_TYPE_CONFIG: Record<string, { label: string; color: string }> = {
 
 export default function FormsPage() {
   const [typeFilter, setTypeFilter] = useState('')
+  const [campaignFilter, setCampaignFilter] = useState('')
   const [search, setSearch] = useState('')
   const { user } = useAuth()
   const [cloneTarget, setCloneTarget] = useState<Form | null>(null)
@@ -28,11 +30,17 @@ export default function FormsPage() {
 
   const isAdminOrHr = user?.role === 'admin' || user?.role === 'hr'
 
+  const { data: campaignsData } = useQuery({
+    queryKey: ['campaigns', 'active'],
+    queryFn: () => campaignsApi.getCampaigns({ status: 'active', limit: 100 }).then(r => r.data),
+  })
+  const campaigns = campaignsData?.data ?? []
+
   const { data, isLoading } = useQuery({
-    queryKey: ['forms', typeFilter, search],
+    queryKey: ['forms', typeFilter, campaignFilter, search],
     queryFn: () =>
       formsApi
-        .getForms({ formType: typeFilter || undefined, q: search || undefined, limit: 50 })
+        .getForms({ formType: typeFilter || undefined, campaignId: campaignFilter || undefined, q: search || undefined, limit: 50 })
         .then(r => r.data),
   })
 
@@ -73,8 +81,9 @@ export default function FormsPage() {
       </div>
 
       {/* Filtres */}
-      <div className="flex items-center gap-3 mb-6">
+      <div className="flex items-center gap-3 mb-6 flex-wrap">
         <select
+          aria-label="Filtrer par type"
           value={typeFilter}
           onChange={e => setTypeFilter(e.target.value)}
           className="border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
@@ -82,6 +91,16 @@ export default function FormsPage() {
           <option value="">Tous les types</option>
           {Object.entries(FORM_TYPE_CONFIG).map(([k, v]) => (
             <option key={k} value={k}>{v.label}</option>
+          ))}
+        </select>
+        <select
+          value={campaignFilter}
+          onChange={e => setCampaignFilter(e.target.value)}
+          className="border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
+        >
+          <option value="">Toutes les campagnes</option>
+          {campaigns.map(c => (
+            <option key={c.id} value={c.id}>{c.name}</option>
           ))}
         </select>
         <input

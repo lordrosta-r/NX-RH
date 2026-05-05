@@ -329,6 +329,15 @@ export default function EvaluationDetailPage() {
               >
                 <Download className="w-4 h-4" /> PDF
               </button>
+              {(isAdminOrHr || isManager) && (
+                <button
+                  onClick={() => reviewMutation.mutate()}
+                  disabled={reviewMutation.isPending}
+                  className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium disabled:opacity-50"
+                >
+                  {reviewMutation.isPending ? 'Traitement…' : 'Revoir →'}
+                </button>
+              )}
             </div>
           </div>
 
@@ -410,9 +419,8 @@ export default function EvaluationDetailPage() {
                 { key: 'signed_evaluatee', label: 'Signé (évalué)' },
                 { key: 'signed_manager', label: 'Signé (manager)' },
                 { key: 'signed_hr', label: 'Signé (RH)' },
-                { key: 'validated', label: 'Validé' },
               ].map((step, idx, arr) => {
-                const statuses = ['submitted', 'reviewed', 'signed_evaluatee', 'signed_manager', 'signed_hr', 'validated']
+                const statuses = ['submitted', 'reviewed', 'signed_evaluatee', 'signed_manager', 'signed_hr']
                 const currentIdx = statuses.indexOf(status)
                 const stepIdx = statuses.indexOf(step.key)
                 const isDone = stepIdx < currentIdx

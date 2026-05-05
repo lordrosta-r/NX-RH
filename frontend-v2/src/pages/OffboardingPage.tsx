@@ -177,6 +177,8 @@ export default function OffboardingPage() {
   const [showForm, setShowForm] = useState(false)
   const [openMenu, setOpenMenu] = useState<string | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
+  const [statusTarget, setStatusTarget] = useState<{ id: string; current: string } | null>(null)
+  const [newStatus, setNewStatus] = useState('')
 
   const { data, isLoading } = useQuery({
     queryKey: ['offboardings', filters],
@@ -202,6 +204,16 @@ export default function OffboardingPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['offboardings'] })
       setDeleteConfirm(null)
+    },
+  })
+
+  const changeStatusMutation = useMutation({
+    mutationFn: ({ id, status }: { id: string; status: string }) =>
+      offboardingApi.changeStatus(id, status),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['offboardings'] })
+      setStatusTarget(null)
+      setNewStatus('')
     },
   })
 
@@ -320,7 +332,7 @@ export default function OffboardingPage() {
                             <MoreVertical className="w-4 h-4" />
                           </button>
                           {openMenu === rec.id && (
-                            <div className="absolute right-0 top-full mt-1 w-40 bg-white border border-slate-200 rounded-xl shadow-lg py-1 z-10">
+                            <div className="absolute right-0 top-full mt-1 w-44 bg-white border border-slate-200 rounded-xl shadow-lg py-1 z-10">
                               <Link
                                 to={`/offboarding/${rec.id}`}
                                 onClick={() => setOpenMenu(null)}
@@ -328,6 +340,14 @@ export default function OffboardingPage() {
                               >
                                 Voir le détail
                               </Link>
+                              {(isAdmin || user?.role === 'hr') && (
+                                <button
+                                  onClick={() => { setOpenMenu(null); setStatusTarget({ id: rec.id, current: rec.status }); setNewStatus(rec.status) }}
+                                  className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-primary-50"
+                                >
+                                  Modifier statut
+                                </button>
+                              )}
                               {isAdmin && (
                                 <button
                                   onClick={() => { setOpenMenu(null); setDeleteConfirm(rec.id) }}
@@ -414,6 +434,40 @@ export default function OffboardingPage() {
               </button>
               <button
                 onClick={() => setDeleteConfirm(null)}
+                className="px-4 py-2 border border-slate-300 text-sm font-medium rounded-lg text-slate-700 hover:bg-slate-50 transition-colors"
+              >
+                Annuler
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modifier statut modal */}
+      {statusTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/30" onClick={() => setStatusTarget(null)} />
+          <div className="relative bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm">
+            <h3 className="text-base font-semibold text-slate-900 mb-4">Modifier le statut</h3>
+            <select
+              value={newStatus}
+              onChange={e => setNewStatus(e.target.value)}
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-200 mb-4"
+            >
+              <option value="pending">En attente</option>
+              <option value="in_progress">En cours</option>
+              <option value="completed">Terminé</option>
+            </select>
+            <div className="flex gap-3">
+              <button
+                onClick={() => changeStatusMutation.mutate({ id: statusTarget.id, status: newStatus })}
+                disabled={changeStatusMutation.isPending || newStatus === statusTarget.current}
+                className="flex-1 px-4 py-2 bg-primary-500 text-white text-sm font-medium rounded-lg hover:bg-primary-600 disabled:opacity-50 transition-colors"
+              >
+                {changeStatusMutation.isPending ? 'Enregistrement…' : 'Enregistrer'}
+              </button>
+              <button
+                onClick={() => setStatusTarget(null)}
                 className="px-4 py-2 border border-slate-300 text-sm font-medium rounded-lg text-slate-700 hover:bg-slate-50 transition-colors"
               >
                 Annuler

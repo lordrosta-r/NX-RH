@@ -88,7 +88,11 @@ export default function AdminConfigPage() {
              ) : keys.map(k => (
                <tr key={k.key} className="hover:bg-slate-50 transition">
                  <td className="px-4 py-3 font-mono text-slate-800">{k.key}</td>
-                 <td className="px-4 py-3 text-slate-600 max-w-xs truncate">{k.value}</td>
+                 <td className="px-4 py-3 text-slate-600 max-w-xs truncate">
+                    {typeof k.value === 'object' && k.value !== null
+                      ? JSON.stringify(k.value)
+                      : String(k.value ?? '')}
+                  </td>
                  <td className="px-4 py-3 text-right flex justify-end gap-2">
                    <button onClick={() => openEdit(k)} className="p-1.5 text-slate-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition"><Pencil size={15} /></button>
                    <button onClick={() => setDeleteTarget(k.key)} className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"><Trash2 size={15} /></button>

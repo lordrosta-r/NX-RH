@@ -118,7 +118,7 @@ router.post('/login', loginByEmailLimiter, loginByIPLimiter, async (req, res, ne
 
     res.cookie('token', token, {
       httpOnly: true,
-      secure:   process.env.NODE_ENV === 'production',
+      secure:   process.env.COOKIE_SECURE !== undefined ? process.env.COOKIE_SECURE === 'true' : process.env.NODE_ENV === 'production',
       sameSite: 'strict',
       path:     '/',
       maxAge:   remember ? 30 * 24 * 60 * 60 * 1000 : 8 * 60 * 60 * 1000,
@@ -150,7 +150,7 @@ router.post('/login', loginByEmailLimiter, loginByIPLimiter, async (req, res, ne
 router.post('/logout', (_req, res) => {
   res.clearCookie('token', {
     httpOnly: true,
-    secure:   process.env.NODE_ENV === 'production',
+    secure:   process.env.COOKIE_SECURE !== undefined ? process.env.COOKIE_SECURE === 'true' : process.env.NODE_ENV === 'production',
     sameSite: 'strict',
     path:     '/',
   })
@@ -171,7 +171,7 @@ router.get('/me', authGuard(), async (req, res, next) => {
     if (!user || !user.isActive) {
       res.clearCookie('token', {
         httpOnly: true,
-        secure:   process.env.NODE_ENV === 'production',
+        secure:   process.env.COOKIE_SECURE !== undefined ? process.env.COOKIE_SECURE === 'true' : process.env.NODE_ENV === 'production',
         sameSite: 'strict',
         path:     '/',
       })

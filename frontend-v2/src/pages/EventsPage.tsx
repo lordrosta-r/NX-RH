@@ -55,13 +55,15 @@ function firstWeekday(year: number, month: number): number {
   return d === 0 ? 6 : d - 1
 }
 
-function formatDateFR(s: string): string {
-  try {
-    return new Date(s).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })
-  } catch {
-    return s
-  }
+function formatDateFR(s: string | undefined): string {
+  if (!s) return '—'
+  const d = new Date(s)
+  if (isNaN(d.getTime())) return '—'
+  return d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })
 }
+
+/** Backend uses `date`, frontend type uses `startDate` — normalise either way */
+const evDate = (e: CalendarEvent): string => e.startDate ?? e.date ?? ''
 
 function sameDay(s: string, y: number, m: number, d: number): boolean {
   const dt = new Date(s)
@@ -129,7 +131,7 @@ function CalendarGrid({ year, month, events, selectedDay, onDayClick }: Calendar
               </span>
               <div className="mt-1 space-y-px overflow-hidden">
                 {events
-                  .filter(e => sameDay(e.startDate, year, month, day))
+                  .filter(e => sameDay(evDate(e), year, month, day))
                   .slice(0, 2)
                   .map(ev => {
                     const c = EVENT_CONFIG[ev.type]
@@ -140,9 +142,9 @@ function CalendarGrid({ year, month, events, selectedDay, onDayClick }: Calendar
                       </div>
                     )
                   })}
-                {events.filter(e => sameDay(e.startDate, year, month, day)).length > 2 && (
+                {events.filter(e => sameDay(evDate(e), year, month, day)).length > 2 && (
                   <div className="text-xs text-slate-400 pl-1">
-                    +{events.filter(e => sameDay(e.startDate, year, month, day)).length - 2}
+                    +{events.filter(e => sameDay(evDate(e), year, month, day)).length - 2}
                   </div>
                 )}
               </div>
@@ -417,11 +419,11 @@ export default function EventsPage() {
 
   const allEvents = data?.data ?? []
   const monthEvents = allEvents.filter(e => {
-    const d = new Date(e.startDate)
+    const d = new Date(evDate(e))
     return d.getFullYear() === year && d.getMonth() === month
   })
   const selectedDayEvents = selectedDay
-    ? monthEvents.filter(e => sameDay(e.startDate, year, month, selectedDay))
+    ? monthEvents.filter(e => sameDay(evDate(e), year, month, selectedDay))
     : []
 
   // ── Mutations ──
@@ -472,6 +474,7 @@ export default function EventsPage() {
     createMutation.mutate({
       title: form.title,
       type: form.type,
+      date: form.startDate,
       startDate: form.startDate,
       endDate: form.endDate || undefined,
       description: form.description || undefined,
@@ -658,7 +661,7 @@ export default function EventsPage() {
                     {allEvents.map(ev => (
                       <tr key={ev.id} className="hover:bg-slate-50/50 transition-colors">
                         <td className="px-5 py-4 text-slate-500 whitespace-nowrap">
-                          {formatDateFR(ev.startDate)}
+                          {formatDateFR(evDate(ev))}
                         </td>
                         <td className="px-5 py-4">
                           <EventTypeChip type={ev.type} />
@@ -737,7 +740,7 @@ export default function EventsPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <EventTypeChip type={ev.type} />
-                        <span className="text-xs text-slate-400">{formatDateFR(ev.startDate)}</span>
+                        <span className="text-xs text-slate-400">{formatDateFR(evDate(ev))}</span>
                       </div>
                       <button
                         onClick={() => navigate(`/events/${ev.id}`)}

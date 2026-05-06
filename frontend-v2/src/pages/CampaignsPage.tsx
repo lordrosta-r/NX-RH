@@ -36,7 +36,8 @@ function formatDateRange(start: string, end: string) {
   return `${s} – ${e}`
 }
 
-function progressPlaceholder(id: string): number {
+function progressPlaceholder(id: string | undefined): number {
+  if (!id) return 42
   let h = 5381
   for (let i = 0; i < id.length; i++) {
     h = ((h << 5) + h) ^ id.charCodeAt(i)
@@ -44,6 +45,9 @@ function progressPlaceholder(id: string): number {
   }
   return h % 101
 }
+
+/** Backend returns `_id` from lean() queries — this helper normalises to a string id */
+const cid = (c: Campaign): string => c.id ?? c._id ?? ''
 
 function StatusBadge({ status }: { status: string }) {
   return (
@@ -94,14 +98,14 @@ function ActionMenu({
       {open && (
         <div className="absolute right-0 top-8 z-20 bg-white rounded-lg shadow-lg border border-slate-100 w-44 py-1">
           <Link
-            to={`/campaigns/${campaign.id}`}
+            to={`/campaigns/${cid(campaign)}`}
             className="flex items-center px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 w-full"
             onClick={() => setOpen(false)}
           >
             Voir
           </Link>
           <Link
-            to={`/campaigns/${campaign.id}/edit`}
+            to={`/campaigns/${cid(campaign)}/edit`}
             className="flex items-center px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 w-full"
             onClick={() => setOpen(false)}
           >
@@ -109,14 +113,14 @@ function ActionMenu({
           </Link>
           <button
             className="flex items-center px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 w-full"
-            onClick={() => { onClone(campaign.id); setOpen(false) }}
+            onClick={() => { onClone(cid(campaign)); setOpen(false) }}
           >
             Cloner
           </button>
           {canArchive && (
             <button
               className="flex items-center px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 w-full"
-              onClick={() => { onArchive(campaign.id); setOpen(false) }}
+              onClick={() => { onArchive(cid(campaign)); setOpen(false) }}
             >
               Archiver
             </button>
@@ -124,7 +128,7 @@ function ActionMenu({
           {canDelete && (
             <button
               className="flex items-center px-3 py-2 text-sm text-error-600 hover:bg-error-50 w-full"
-              onClick={() => { onDelete(campaign.id); setOpen(false) }}
+              onClick={() => { onDelete(cid(campaign)); setOpen(false) }}
             >
               Supprimer
             </button>
@@ -262,12 +266,12 @@ export default function CampaignsPage() {
                 </thead>
                 <tbody className="divide-y divide-slate-50">
                   {campaigns.map(campaign => {
-                    const progress = progressPlaceholder(campaign.id)
+                    const progress = progressPlaceholder(cid(campaign))
                     return (
-                      <tr key={campaign.id} className="hover:bg-slate-50 transition-colors">
+                      <tr key={cid(campaign)} className="hover:bg-slate-50 transition-colors">
                         <td className="px-4 py-3">
                           <Link
-                            to={`/campaigns/${campaign.id}`}
+                            to={`/campaigns/${cid(campaign)}`}
                             className="font-medium text-slate-900 hover:text-primary-600 transition-colors"
                           >
                             {campaign.name}
@@ -314,12 +318,12 @@ export default function CampaignsPage() {
             {/* Mobile cards */}
             <div className="md:hidden divide-y divide-slate-100">
               {campaigns.map(campaign => {
-                const progress = progressPlaceholder(campaign.id)
+                const progress = progressPlaceholder(cid(campaign))
                 return (
-                  <div key={campaign.id} className="p-4 flex items-start gap-3">
+                  <div key={cid(campaign)} className="p-4 flex items-start gap-3">
                     <div className="flex-1 min-w-0">
                       <Link
-                        to={`/campaigns/${campaign.id}`}
+                        to={`/campaigns/${cid(campaign)}`}
                         className="font-medium text-slate-900 hover:text-primary-600 block mb-1"
                       >
                         {campaign.name}

@@ -15,89 +15,124 @@ interface NavItem {
 
 function getNavItems(role: Role): NavItem[] {
   const dashboard: NavItem = { label: 'Tableau de bord', href: '/' }
-  const calendar: NavItem  = { label: 'Calendrier', href: '/events' }
-  const resources: NavItem = { label: 'Ressources', href: '/resources' }
+  const activities: NavItem = {
+    label: 'Activités',
+    dropdown: [
+      { label: 'Calendrier', href: '/events' },
+      { label: 'Ressources', href: '/resources' },
+    ],
+  }
 
   if (role === 'admin') return [
     dashboard,
-    { label: 'Utilisateurs', href: '/users' },
-    { label: 'Campagnes', href: '/campaigns' },
-    { label: 'Formulaires', href: '/forms' },
+    {
+      label: 'Collaborateurs',
+      dropdown: [
+        { label: 'Utilisateurs', href: '/users' },
+        { label: 'Organigramme', href: '/org' },
+        { label: 'Offboarding', href: '/offboarding', separator: true },
+      ],
+    },
+    {
+      label: 'Campagnes',
+      dropdown: [
+        { label: 'Campagnes', href: '/campaigns' },
+        { label: 'Formulaires', href: '/forms' },
+      ],
+    },
     {
       label: 'Évaluations',
       dropdown: [
-        { label: 'Mes évaluations', href: '/evaluations' },
         { label: 'Toutes les évaluations', href: '/evaluations' },
         { label: 'Historique', href: '/evaluations/history' },
       ],
     },
-    calendar,
-    resources,
+    activities,
     { label: 'Analytics', href: '/analytics' },
     {
-      label: 'Admin',
+      label: 'Administration',
       dropdown: [
         { label: 'Configuration', href: '/admin/config' },
         { label: 'LDAP', href: '/admin/ldap' },
         { label: "Journal d'audit", href: '/admin/audit' },
-        { label: 'Email de test', href: '/admin/mail-templates', separator: true },
+        { label: 'Utilisateurs (import)', href: '/admin/users/import', separator: true },
+        { label: 'Email templates', href: '/admin/mail-templates' },
       ],
     },
   ]
 
   if (role === 'hr') return [
     dashboard,
-    { label: 'Utilisateurs', href: '/users' },
-    { label: 'Campagnes', href: '/campaigns' },
-    { label: 'Formulaires', href: '/forms' },
+    {
+      label: 'Collaborateurs',
+      dropdown: [
+        { label: 'Utilisateurs', href: '/users' },
+        { label: 'Organigramme', href: '/org' },
+        { label: 'Offboarding', href: '/offboarding', separator: true },
+      ],
+    },
+    {
+      label: 'Campagnes',
+      dropdown: [
+        { label: 'Campagnes', href: '/campaigns' },
+        { label: 'Formulaires', href: '/forms' },
+      ],
+    },
     {
       label: 'Évaluations',
       dropdown: [
         { label: 'Toutes les évaluations', href: '/evaluations' },
         { label: 'Historique', href: '/evaluations/history' },
+        { label: 'Signalements RH', href: '/hr/flags', separator: true },
       ],
     },
-    { label: 'Offboarding', href: '/offboarding' },
-    calendar,
-    resources,
+    activities,
     { label: 'Analytics', href: '/analytics' },
   ]
 
   if (role === 'director') return [
     dashboard,
     {
+      label: 'Mon Équipe',
+      dropdown: [
+        { label: 'Collaborateurs', href: '/users' },
+        { label: 'Organigramme', href: '/org' },
+      ],
+    },
+    {
       label: 'Évaluations',
       dropdown: [
         { label: 'Mes évaluations', href: '/evaluations' },
-        { label: 'Mon équipe', href: '/evaluations/history' },
-        { label: 'Historique', href: '/evaluations/history' },
+        { label: 'Historique équipe', href: '/evaluations/history' },
       ],
     },
-    { label: 'Mon Équipe', href: '/users' },
-    calendar,
-    resources,
+    activities,
   ]
 
   if (role === 'manager') return [
     dashboard,
     {
-      label: 'Mes Évaluations',
+      label: 'Mon Équipe',
+      dropdown: [
+        { label: 'Mon équipe', href: '/users' },
+        { label: 'Organigramme', href: '/org' },
+      ],
+    },
+    {
+      label: 'Évaluations',
       dropdown: [
         { label: 'À traiter', href: '/evaluations' },
         { label: 'Historique', href: '/evaluations/history' },
       ],
     },
-    { label: 'Mon Équipe', href: '/users' },
-    calendar,
-    resources,
+    activities,
   ]
 
   // employee
   return [
     dashboard,
     { label: 'Mes Évaluations', href: '/evaluations' },
-    calendar,
-    resources,
+    activities,
   ]
 }
 

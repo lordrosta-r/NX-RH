@@ -12,7 +12,7 @@ export const authApi = {
     client.post<{ message: string }>('/api/auth/logout'),
 
   getMe: () =>
-    client.get<{ user: User }>('/api/auth/me'),
+    client.get<User>('/api/auth/me'),
 
   updatePreferences: (data: Partial<UserPreferences>) =>
     client.patch<{ _id: string; locale: string; theme: string; notificationPrefs: Record<string, boolean> }>('/api/auth/preferences', data),

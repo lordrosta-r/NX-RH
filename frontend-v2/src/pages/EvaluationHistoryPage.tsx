@@ -22,11 +22,8 @@ export default function EvaluationHistoryPage() {
   const [campaignFilter, setCampaignFilter] = useState('')
 
   const { data: evaluations = [], isLoading } = useQuery({
-    queryKey: ['evaluations-history', yearFilter, campaignFilter],
-    queryFn: () =>
-      evaluationsApi
-        .getMyEvaluations({ status: 'validated', year: yearFilter || undefined, campaignId: campaignFilter || undefined })
-        .then(r => r.data.data),
+    queryKey: ['evaluations-history'],
+    queryFn: () => evaluationsApi.getHistory().then(r => r.data),
   })
 
   const years = [...new Set(evaluations.map(e => e.createdAt?.slice(0, 4)).filter(Boolean))].sort().reverse() as string[]

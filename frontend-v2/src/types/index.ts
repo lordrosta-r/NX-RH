@@ -35,6 +35,7 @@ export type CampaignStatus = 'draft' | 'active' | 'closed' | 'archived'
 
 export interface Campaign {
   id: string
+  _id?: string
   name: string
   description?: string
   status: CampaignStatus
@@ -192,7 +193,8 @@ export interface CalendarEvent {
   title: string
   description?: string
   type: EventType
-  startDate: string
+  date?: string
+  startDate?: string
   endDate?: string
   allDay?: boolean
   participants?: string[]

@@ -18,6 +18,9 @@ export const evaluationsApi = {
   getMyEvaluations: (params?: EvaluationFilters) =>
     client.get<PaginatedResponse<Evaluation>>('/api/evaluations/me', { params }),
 
+  getHistory: () =>
+    client.get<Evaluation[]>('/api/evaluations/history'),
+
   getEvaluation: (id: string) =>
     client.get<Evaluation>(`/api/evaluations/${id}`),
 

@@ -10,7 +10,7 @@ export function useDashboardAdmin() {
   })
   const evaluations = useQuery({
     queryKey: ['dashboard', 'evaluations'],
-    queryFn: () => evaluationsApi.getEvaluations({ status: 'in_progress,submitted,reviewed' }),
+    queryFn: () => evaluationsApi.getEvaluations({ limit: 100 }),
   })
   const users = useQuery({
     queryKey: ['dashboard', 'users'],

@@ -6,7 +6,8 @@ export const notificationsApi = {
     client.get<PaginatedResponse<Notification>>('/api/notifications', { params }),
 
   getNotificationCount: () =>
-    client.get<{ count: number }>('/api/notifications/count'),
+    client.get<{ unreadCount: number }>('/api/notifications', { params: { limit: 1 } })
+      .then(r => ({ data: { count: r.data.unreadCount } })),
 
   markRead: (id: string) =>
     client.patch(`/api/notifications/${id}/read`),

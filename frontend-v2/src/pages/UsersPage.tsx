@@ -364,7 +364,7 @@ export default function UsersPage() {
               ) : (
                 (data?.data ?? []).map(u => (
                   <tr
-                    key={u.id}
+                    key={u.id ?? u.email}
                     className="hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0"
                   >
                     <td className="px-6 py-4">

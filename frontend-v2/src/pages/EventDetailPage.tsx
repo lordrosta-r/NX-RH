@@ -38,21 +38,22 @@ const EVENT_CONFIG: Record<EventType, EventConfigItem> = {
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
-function formatDateFR(s: string): string {
-  try {
-    return new Date(s).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })
-  } catch {
-    return s
-  }
+function formatDateFR(s: string | undefined): string {
+  if (!s) return '—'
+  const d = new Date(s)
+  if (isNaN(d.getTime())) return '—'
+  return d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })
 }
 
-function formatTimeFR(s: string): string {
-  try {
-    return new Date(s).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
-  } catch {
-    return ''
-  }
+function formatTimeFR(s: string | undefined): string {
+  if (!s) return ''
+  const d = new Date(s)
+  if (isNaN(d.getTime())) return ''
+  return d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
 }
+
+/** Backend returns `date`, frontend uses `startDate` — normalise */
+const evDate = (e: { startDate?: string; date?: string }): string => e.startDate ?? e.date ?? ''
 
 function toDatetimeLocal(s: string): string {
   try {
@@ -333,7 +334,7 @@ export default function EventDetailPage() {
       setEditForm({
         title: event.title,
         type: event.type,
-        startDate: toDatetimeLocal(event.startDate),
+        startDate: toDatetimeLocal(evDate(event)),
         endDate: event.endDate ? toDatetimeLocal(event.endDate) : '',
         description: event.description ?? '',
         location: event.location ?? '',
@@ -418,8 +419,8 @@ export default function EventDetailPage() {
   }
 
   const dateDisplay = (() => {
-    const start = formatDateFR(event.startDate)
-    const startTime = hasTime(event.startDate) ? formatTimeFR(event.startDate) : null
+    const start = formatDateFR(evDate(event))
+    const startTime = hasTime(evDate(event)) ? formatTimeFR(evDate(event)) : null
     if (!event.endDate) return startTime ? `${start} — ${startTime}` : start
     const end = formatDateFR(event.endDate)
     const endTime = hasTime(event.endDate) ? formatTimeFR(event.endDate) : null

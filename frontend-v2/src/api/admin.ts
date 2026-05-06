@@ -11,10 +11,10 @@ export const adminApi = {
 
   // LDAP
   getLdapConfig: () =>
-    client.get<LdapConfig>('/api/admin/ldap'),
+    client.get<LdapConfig>('/api/admin/ldap/config'),
 
   updateLdapConfig: (data: Partial<LdapConfig>) =>
-    client.put<LdapConfig>('/api/admin/ldap', data),
+    client.put<LdapConfig>('/api/admin/ldap/config', data),
 
   testLdap: (credentials?: { bindDN?: string; password?: string }) =>
     client.post<{ success: boolean; message?: string }>('/api/admin/ldap/test', credentials),

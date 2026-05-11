@@ -77,7 +77,8 @@
 | **Formulaires / Templates** | | | | | |
 | Lister les formulaires | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Voir un formulaire | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Créer un formulaire | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Créer un formulaire (template) | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Copier un template vers une campagne | ✅ | ✅ | ❌ | ❌ | ❌ |
 | Modifier un formulaire | ✅ | ✅ | ❌ | ❌ | ❌ |
 | Supprimer un formulaire | ✅ | ✅ | ❌ | ❌ | ❌ |
 | **Évaluations** | | | | | |
@@ -249,22 +250,40 @@
 
 ### 3.4 Formulaires / Templates
 
+#### Architecture Template-first
+
+- **Template** = formulaire avec `campaignId: null` — réutilisable dans n'importe quelle campagne
+- **Formulaire de campagne** = copie d'un template avec `campaignId` défini + `templateSourceId` (traçabilité)
+- **Multi-formulaires** : une campagne peut avoir plusieurs formulaires de types variés (pas de contrainte d'unicité `{campaignId, formType}`)
+
+#### Page `/forms` — 2 onglets
+
+| Onglet | Contenu | Badge |
+|--------|---------|-------|
+| **Templates** | Formulaires `campaignId: null` réutilisables | Badge bleu "Template" |
+| **Formulaires de campagne** | Formulaires liés à une campagne spécifique | Badge campagne |
+
 #### Liste et détail (`GET /api/forms`, `GET /api/forms/:id`)
-- **Description** : Bibliothèque de formulaires, filtrables par `campaignId` ou `formType`.
+- **Description** : Bibliothèque de formulaires, filtrables par `campaignId` ou `formType`. Endpoint `?campaignId=null` pour les templates uniquement.
 - **Rôles** : Tous
 - **Types de formulaires** : `self_evaluation` · `manager_evaluation` · `upward_feedback` · `director_evaluation` · `peer_review`
 
-#### Création d'un formulaire (`POST /api/forms`)
-- **Description** : Crée un formulaire avec ses questions. Peut être autonome (template de bibliothèque) ou rattaché à une campagne.
+#### Création d'un template (`POST /api/forms`)
+- **Description** : Crée un formulaire template (sans campaignId). Peut ensuite être copié dans une ou plusieurs campagnes.
 - **Rôles** : admin, hr
 - **Types de questions** : `rating` · `text` · `yes_no` · `choice` · `weather` · `mobility` · `n1_import`
 - **Phases** : `self` · `n-1` · `objectives` · `aspirations` · `all`
 - **Règles métier** : `upward_feedback` est toujours anonyme (forcé). Les IDs de questions doivent être uniques au sein d'un formulaire.
 
+#### Copier un template vers une campagne (`POST /api/campaigns/:id/copy-template`)
+- **Description** : Depuis la page d'une campagne, bouton "Ajouter un formulaire" → modal bibliothèque → sélection d'un template → copie créée avec `campaignId` + `templateSourceId`.
+- **Rôles** : admin, hr
+- **UX** : Le template original reste intact et peut être copié dans d'autres campagnes.
+
 #### Modification d'un formulaire (`PATCH /api/forms/:id`)
 - **Description** : Modifie le titre, la description ou les questions d'un formulaire.
 - **Rôles** : admin, hr
-- **Règles métier** : **`frozenAt` bloque la modification des questions.** Le gel (`frozenAt`) est positionné automatiquement dès la création de la première évaluation sur ce formulaire. Le titre et la description restent modifiables même après gel.
+- **Règles métier** : **`frozenAt` bloque la modification des questions.** Le gel est positionné automatiquement dès la première évaluation. Le titre et la description restent modifiables même après gel.
 
 #### Suppression d'un formulaire (`DELETE /api/forms/:id`)
 - **Description** : Supprime un formulaire non utilisé.

@@ -3,11 +3,14 @@
 // =============================================================================
 // /api/campaigns — Campagnes d'évaluation
 //
-// GET    /api/campaigns          → liste (scopée par rôle)
-// GET    /api/campaigns/:id      → détail + stats
-// POST   /api/campaigns          → créer (admin/hr)
-// PATCH  /api/campaigns/:id      → modifier / changer statut (admin/hr)
-// DELETE /api/campaigns/:id      → supprimer (admin/hr — draft/archived seulement)
+// GET    /api/campaigns                    → liste (scopée par rôle)
+// GET    /api/campaigns/:id                → détail + stats
+// POST   /api/campaigns                    → créer (admin/hr)
+// POST   /api/campaigns/:id/clone          → dupliquer (admin/hr)
+// POST   /api/campaigns/:id/copy-template  → copier un template vers la campagne (admin/hr)
+// PATCH  /api/campaigns/:id               → modifier / changer statut (admin/hr)
+// DELETE /api/campaigns/:id               → supprimer (admin/hr — draft/archived seulement)
+// GET    /api/campaigns/:id/analytics     → agrégats analytiques (admin/hr)
 // =============================================================================
 
 const router     = require('express').Router()
@@ -388,7 +391,63 @@ router.post('/:id/clone', async (req, res, next) => {
   }
 })
 
-// GET /api/campaigns/:id/analytics — Agrégats analytiques d'une campagne (admin/hr)
+// POST /api/campaigns/:id/copy-template — Copier un template vers une campagne (admin/hr)
+// Duplique un template (campaignId: null) en un nouveau formulaire lié à cette campagne.
+// Le template d'origine reste intact et réutilisable dans d'autres campagnes.
+router.post('/:id/copy-template', async (req, res, next) => {
+  try {
+    if (!ADMIN_ROLES.includes(req.user.role)) {
+      return res.status(403).json({ error: 'Réservé aux admins et RH' })
+    }
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({ error: 'ID de campagne invalide' })
+    }
+
+    const { templateId } = req.body
+    if (!templateId || !mongoose.isValidObjectId(templateId)) {
+      return res.status(400).json({ error: 'templateId est requis et doit être un ObjectId valide' })
+    }
+
+    const [campaign, template] = await Promise.all([
+      Campaign.findById(req.params.id).lean(),
+      Form.findById(templateId).lean(),
+    ])
+
+    if (!campaign) return res.status(404).json({ error: 'Campagne introuvable' })
+    if (!template) return res.status(404).json({ error: 'Template introuvable' })
+    if (template.campaignId !== null && template.campaignId !== undefined) {
+      return res.status(400).json({ error: 'Ce formulaire est déjà lié à une campagne. Seuls les templates (campaignId: null) peuvent être copiés.' })
+    }
+
+    const copy = await Form.create({
+      campaignId:       campaign._id,
+      templateSourceId: template._id,
+      title:            template.title,
+      description:      template.description || '',
+      formType:         template.formType,
+      isAnonymous:      template.isAnonymous,
+      questions:        template.questions,
+      frozenAt:         null,
+      isFrozen:         false,
+      createdBy:        req.user.id,
+    })
+
+    AuditLog.create({
+      userId:     req.user.id,
+      userRole:   req.user.role,
+      action:     'form_copy_template',
+      targetType: 'Form',
+      targetId:   copy._id,
+      meta:       { campaignId: campaign._id, templateId: template._id, templateTitle: template.title },
+    }).catch(() => {})
+
+    res.status(201).json(copy.toObject())
+  } catch (err) {
+    next(err)
+  }
+})
+
+
 router.get('/:id/analytics', async (req, res, next) => {
   try {
     if (!ADMIN_ROLES.includes(req.user.role)) {

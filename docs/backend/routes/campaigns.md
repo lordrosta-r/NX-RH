@@ -27,9 +27,22 @@ Détail d'une campagne + statistiques de complétion (total évaluations, répar
 
 Créer une campagne (admin/hr uniquement).
 
-**Body :** `{ name, description?, formId, startDate, endDate, targetDepartments?, extendedVisibility? }`
+**Body :** `{ name, description?, startDate, endDate, targetDepartments?, extendedVisibility? }`
 
-Gèle le formulaire (`frozenAt`) si des évaluations y sont associées.
+> ⚠️ La campagne ne contient **pas** de `formId`. Les formulaires sont liés à une campagne via leur propre champ `campaignId`, après la création. Utiliser `POST /api/campaigns/:id/copy-template` pour copier un template dans une campagne.
+
+---
+
+### `POST /api/campaigns/:id/copy-template`
+
+Copier un template (formulaire réutilisable) vers une campagne (admin/hr uniquement).
+
+**Body :** `{ templateId }`
+
+**Comportement :**
+1. Vérifie que le template existe et a `campaignId: null`
+2. Crée une copie du formulaire avec `campaignId` et `templateSourceId` renseignés
+3. Retourne le nouveau formulaire créé
 
 ---
 

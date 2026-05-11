@@ -8,6 +8,7 @@
 | Champ | Type | Notes |
 |-------|------|-------|
 | `campaignId` | ObjectId → Campaign | optionnel — `null` = template réutilisable |
+| `templateSourceId` | ObjectId → Form | optionnel — référence au template d'origine si copié via `POST /api/campaigns/:id/copy-template` |
 | `title` | String | requis |
 | `description` | String | |
 | `formType` | String | enum `FORM_TYPES` |

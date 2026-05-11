@@ -15,8 +15,17 @@ interface NavItem {
 
 function getNavItems(role: Role): NavItem[] {
   const dashboard: NavItem = { label: 'Tableau de bord', href: '/' }
-  const activities: NavItem = {
-    label: 'Activités',
+  const pilotage: NavItem = {
+    label: 'Pilotage',
+    dropdown: [
+      { label: 'Calendrier', href: '/events' },
+      { label: 'Ressources', href: '/resources' },
+      { label: 'Analytics', href: '/analytics', separator: true },
+    ],
+  }
+
+  const pilotageNoAnalytics: NavItem = {
+    label: 'Pilotage',
     dropdown: [
       { label: 'Calendrier', href: '/events' },
       { label: 'Ressources', href: '/resources' },
@@ -47,8 +56,7 @@ function getNavItems(role: Role): NavItem[] {
         { label: 'Historique', href: '/evaluations/history' },
       ],
     },
-    activities,
-    { label: 'Analytics', href: '/analytics' },
+    pilotage,
     {
       label: 'Administration',
       dropdown: [
@@ -86,8 +94,7 @@ function getNavItems(role: Role): NavItem[] {
         { label: 'Signalements RH', href: '/hr/flags', separator: true },
       ],
     },
-    activities,
-    { label: 'Analytics', href: '/analytics' },
+    pilotage,
   ]
 
   if (role === 'director') return [
@@ -106,7 +113,7 @@ function getNavItems(role: Role): NavItem[] {
         { label: 'Historique équipe', href: '/evaluations/history' },
       ],
     },
-    activities,
+    pilotageNoAnalytics,
   ]
 
   if (role === 'manager') return [
@@ -125,14 +132,14 @@ function getNavItems(role: Role): NavItem[] {
         { label: 'Historique', href: '/evaluations/history' },
       ],
     },
-    activities,
+    pilotageNoAnalytics,
   ]
 
   // employee
   return [
     dashboard,
     { label: 'Mes Évaluations', href: '/evaluations' },
-    activities,
+    pilotageNoAnalytics,
   ]
 }
 

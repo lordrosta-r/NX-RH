@@ -14,12 +14,11 @@ FROM node:20-alpine AS client-builder
 WORKDIR /build/client
 
 # Install dependencies first (layer cache)
-COPY client/package*.json ./
+COPY frontend-v2/package*.json ./
 RUN npm install
 
 # Copy source and build
-# --outDir overrides vite.config.js so output lands in a known Docker path
-COPY client/ .
+COPY frontend-v2/ .
 RUN npx vite build --outDir /build/dist --emptyOutDir
 
 

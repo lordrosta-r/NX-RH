@@ -1,5 +1,5 @@
 import client from './client'
-import type { AppConfig, LdapConfig, MailTemplate, AuditLogEntry, PaginatedResponse, PaginationParams, User, OrgNode } from '../types'
+import type { AppConfig, LdapConfig, MailTemplate, AuditLogEntry, PaginatedResponse, PaginationParams, User, OrgTreeNode } from '../types'
 
 export const adminApi = {
   // Configuration
@@ -59,8 +59,8 @@ export const adminApi = {
   importForm: (json: unknown) => client.post<{ id: string }>('/api/forms/import', json),
   getFormTemplate: () => client.get('/api/forms/template', { responseType: 'blob' }),
   // Org chart
-  getOrgChart: () => client.get<OrgNode>('/api/org/chart'),
-  getOrgChartManaged: () => client.get<OrgNode[]>('/api/org/chart/managed'),
+  getOrgChart: () => client.get<OrgTreeNode>('/api/org/chart'),
+  getOrgChartManaged: () => client.get<OrgTreeNode[]>('/api/org/chart/managed'),
   updateOrgChart: (data: { userId: string; managerId: string | null }[]) => client.put('/api/org/chart', data),
   // HR flags
   getFlags: (params?: PaginationParams & { status?: string; type?: string }) => client.get('/api/hr/flags', { params }),

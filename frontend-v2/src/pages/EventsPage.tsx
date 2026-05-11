@@ -185,6 +185,7 @@ interface EventSlideOverProps {
   onClose: () => void
   onSubmit: (e: React.FormEvent) => void
   isPending: boolean
+  error?: string | null
 }
 
 function EventSlideOver({
@@ -196,6 +197,7 @@ function EventSlideOver({
   onClose,
   onSubmit,
   isPending,
+  error,
 }: EventSlideOverProps) {
   return (
     <>
@@ -308,22 +310,30 @@ function EventSlideOver({
             </div>
           </div>
           {/* Footer */}
-          <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-100">
-            <button
-              type="button" onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
-            >
-              Annuler
-            </button>
-            <button
-              type="submit" disabled={isPending}
-              className="flex items-center gap-2 bg-primary-500 hover:bg-primary-600 disabled:opacity-60 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors"
-            >
-              {isPending && (
-                <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-              )}
-              {submitLabel}
-            </button>
+          <div className="flex flex-col gap-2 px-6 py-4 border-t border-slate-100">
+            {error && (
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
+                <span className="flex-shrink-0">⚠️</span>
+                <span>{error}</span>
+              </div>
+            )}
+            <div className="flex items-center justify-end gap-3">
+              <button
+                type="button" onClick={onClose}
+                className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
+              >
+                Annuler
+              </button>
+              <button
+                type="submit" disabled={isPending}
+                className="flex items-center gap-2 bg-primary-500 hover:bg-primary-600 disabled:opacity-60 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+              >
+                {isPending && (
+                  <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                )}
+                {submitLabel}
+              </button>
+            </div>
           </div>
         </form>
       </div>
@@ -427,6 +437,8 @@ export default function EventsPage() {
     : []
 
   // ── Mutations ──
+  const [formError, setFormError] = useState<string | null>(null)
+
   const createMutation = useMutation({
     mutationFn: (payload: Partial<CalendarEvent>) =>
       eventsApi.createEvent(payload).then(r => r.data),
@@ -434,6 +446,12 @@ export default function EventsPage() {
       queryClient.invalidateQueries({ queryKey: ['events'] })
       setIsSlideOverOpen(false)
       setForm(EMPTY_FORM)
+      setFormError(null)
+    },
+    onError: (err: unknown) => {
+      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error
+        ?? 'Une erreur est survenue lors de la création de l\'événement.'
+      setFormError(msg)
     },
   })
 
@@ -471,6 +489,11 @@ export default function EventsPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    setFormError(null)
+    if (form.endDate && form.startDate && new Date(form.endDate) <= new Date(form.startDate)) {
+      setFormError('La date de fin doit être postérieure à la date de début.')
+      return
+    }
     createMutation.mutate({
       title: form.title,
       type: form.type,
@@ -794,9 +817,10 @@ export default function EventsPage() {
           form={form}
           onChange={handleChange}
           onToggleRole={handleToggleRole}
-          onClose={() => { setIsSlideOverOpen(false); setForm(EMPTY_FORM) }}
+          onClose={() => { setIsSlideOverOpen(false); setForm(EMPTY_FORM); setFormError(null) }}
           onSubmit={handleSubmit}
           isPending={createMutation.isPending}
+          error={formError}
         />
       )}
 

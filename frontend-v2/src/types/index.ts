@@ -154,27 +154,47 @@ export interface HrFlag {
 }
 
 // ─── Organisation ──────────────────────────────────────────────────────────────
-export type OrgNode = {
-  id: string
-  name: string
+export interface OrgUser {
+  _id: string
+  firstName: string
+  lastName: string
   role: Role
   department?: string
-  avatarUrl?: string
-  children?: OrgNode[]
+  email?: string
+  sectorId?: string | null
+  managerId?: string | null
+  avatar?: string | null
+}
+
+export interface OrgTreeNode extends OrgUser {
+  children: OrgTreeNode[]
+}
+
+export interface OrgTeamGroup {
+  manager: OrgUser
+  directReports: OrgUser[]
+  subManagers?: OrgTeamGroup[]
+}
+
+export interface OrgSectorGroup {
+  sector: (Sector & { color?: string }) | null
+  users: OrgUser[]
 }
 
 export interface Sector {
   id: string
+  _id?: string
   name: string
+  color?: string
   managerId?: string
   manager?: User
   userCount?: number
 }
 
-export interface OrgTreeNode {
+export interface OrgTreeNode_LEGACY {
   user: User
   sector?: Sector
-  reports?: OrgTreeNode[]
+  reports?: OrgTreeNode_LEGACY[]
 }
 
 // ─── Événements calendrier ─────────────────────────────────────────────────────

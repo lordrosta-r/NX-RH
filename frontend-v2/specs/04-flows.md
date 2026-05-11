@@ -30,7 +30,7 @@ La navbar est fixe en haut (`position: fixed; top: 0; z-index: 50`), fond blanc 
 #### Navbar — Rôle `admin`
 
 ```
-NX-RH | Tableau de bord | Utilisateurs | Campagnes | Formulaires | Évaluations | Calendrier | Ressources | Analytics | Admin ▾ |  🔔  | [Avatar] ▾
+NX-RH | Tableau de bord | Utilisateurs | Campagnes | Formulaires | Évaluations | Pilotage ▾ | Admin ▾ |  🔔  | [Avatar] ▾
 ```
 
 | Lien | Route | Dropdown |
@@ -40,9 +40,7 @@ NX-RH | Tableau de bord | Utilisateurs | Campagnes | Formulaires | Évaluations 
 | Campagnes | `/campaigns` | — |
 | Formulaires | `/forms` | — |
 | Évaluations | `/evaluations` | Mes évaluations · Toutes · Créer en masse · Historique |
-| Calendrier | `/calendar` | — |
-| Ressources | `/resources` | — |
-| Analytics | `/analytics` | — |
+| Pilotage ▾ | — | Calendrier · Ressources · Analytics |
 | Admin ▾ | — | Configuration · LDAP · Journal d'audit · Email de test |
 
 ---
@@ -50,7 +48,7 @@ NX-RH | Tableau de bord | Utilisateurs | Campagnes | Formulaires | Évaluations 
 #### Navbar — Rôle `hr`
 
 ```
-NX-RH | Tableau de bord | Utilisateurs | Campagnes | Formulaires | Évaluations | Offboarding | Calendrier | Ressources | Analytics |  🔔  | [Avatar] ▾
+NX-RH | Tableau de bord | Utilisateurs | Campagnes | Formulaires | Évaluations | Offboarding | Pilotage ▾ |  🔔  | [Avatar] ▾
 ```
 
 | Lien | Route |
@@ -61,9 +59,7 @@ NX-RH | Tableau de bord | Utilisateurs | Campagnes | Formulaires | Évaluations 
 | Formulaires | `/forms` |
 | Évaluations ▾ | Toutes · Créer · Créer en masse · Historique · Audit |
 | Offboarding | `/offboarding` |
-| Calendrier | `/calendar` |
-| Ressources | `/resources` |
-| Analytics | `/analytics` |
+| Pilotage ▾ | Calendrier · Ressources · Analytics |
 
 ---
 

@@ -84,7 +84,7 @@ router.post('/login', loginByEmailLimiter, loginByIPLimiter, async (req, res, ne
 
     // select: false sur passwordHash — on le force ici
     const user = await User.findOne({ email: email.toLowerCase().trim(), isActive: true })
-      .select('+passwordHash')
+      .select('+passwordHash +authSource')
       .lean()
 
     if (!user || user.authSource !== 'local' || !user.passwordHash) {

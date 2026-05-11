@@ -2,6 +2,7 @@ import { createBrowserRouter } from 'react-router-dom'
 import { lazy, Suspense } from 'react'
 import AuthLayout from '../layouts/AuthLayout'
 import AppLayout from '../layouts/AppLayout'
+import OrgLayout from '../layouts/OrgLayout'
 import AuthGuard from '../components/shared/AuthGuard'
 
 function PageLoader() {
@@ -117,10 +118,9 @@ export const router = createBrowserRouter([
       // RH
       { path: '/hr/flags', element: <S><HrFlagsPage /></S> },
       { path: '/hr/flags/:id', element: <S><HrFlagDetailPage /></S> },
-      // Analytics & Org
+      // Analytics
       { path: '/analytics', element: <S><AnalyticsPage /></S> },
       { path: '/analytics/campaigns/:id', element: <S><AnalyticsCampaignPage /></S> },
-      { path: '/org', element: <S><OrgPage /></S> },
       // Profil & Notifications
       { path: '/profile', element: <S><ProfilePage /></S> },
       { path: '/profile/preferences', element: <S><PreferencesPage /></S> },
@@ -130,13 +130,20 @@ export const router = createBrowserRouter([
       { path: '/admin/users', element: <S><AdminUsersPage /></S> },
       { path: '/admin/settings', element: <S><HrSettingsPage /></S> },
       { path: '/hr/settings', element: <S><HrSettingsPage /></S> },
-      { path: '/admin/orgchart', element: <S><OrgPage /></S> },
       { path: '/admin/users/import', element: <S><AdminUsersImportPage /></S> },
       { path: '/admin/forms/import', element: <S><AdminFormsImportPage /></S> },
       { path: '/admin/ldap', element: <S><AdminLdapPage /></S> },
       { path: '/admin/audit', element: <S><AdminAuditPage /></S> },
       { path: '/admin/config', element: <S><AdminConfigPage /></S> },
       { path: '/admin/mail-templates', element: <S><AdminMailTemplatesPage /></S> },
+    ],
+  },
+  // Organigramme — plein écran (OrgLayout sans container max-w)
+  {
+    element: <AuthGuard><OrgLayout /></AuthGuard>,
+    children: [
+      { path: '/org', element: <S><OrgPage /></S> },
+      { path: '/admin/orgchart', element: <S><OrgPage /></S> },
     ],
   },
   // 404

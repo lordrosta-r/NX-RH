@@ -53,6 +53,9 @@ router.post('/', async (req, res, next) => {
     if (!ADMIN_ROLES.includes(req.user.role)) return res.status(403).json({ error: 'Accès refusé' })
     const { title, date, type, campaignId, description, location, endDate, targetRoles } = req.body
     if (!title || !date || !type) return res.status(400).json({ error: 'title, date et type sont requis' })
+    if (endDate && new Date(endDate) <= new Date(date)) {
+      return res.status(400).json({ error: 'La date de fin doit être postérieure à la date de début' })
+    }
     if (targetRoles !== undefined) {
       if (!Array.isArray(targetRoles) || !targetRoles.every(r => ROLES.includes(r))) {
         return res.status(400).json({ error: 'targetRoles doit être un tableau de rôles valides' })
@@ -84,12 +87,18 @@ router.patch('/:id', async (req, res, next) => {
     if (!mongoose.isValidObjectId(req.params.id)) return res.status(400).json({ error: 'ID invalide' })
     const event = await Event.findById(req.params.id)
     if (!event) return res.status(404).json({ error: 'Événement introuvable' })
-    const { title, date, type, targetRoles, description } = req.body
+    const { title, date, type, targetRoles, description, endDate } = req.body
     if (title       !== undefined) event.title       = title
     if (date        !== undefined) event.date        = date
     if (type        !== undefined) event.type        = type
     if (targetRoles !== undefined) event.targetRoles = targetRoles
     if (description !== undefined) event.description = description
+    if (endDate     !== undefined) event.endDate     = endDate || null
+    const effectiveDate    = event.date
+    const effectiveEndDate = event.endDate
+    if (effectiveEndDate && effectiveEndDate <= effectiveDate) {
+      return res.status(400).json({ error: 'La date de fin doit être postérieure à la date de début' })
+    }
     await event.save()
     res.json(event)
   } catch (err) { next(err) }

@@ -1,9 +1,15 @@
 import client from './client'
-import type { Sector, OrgTreeNode, PaginatedResponse } from '../types'
+import type { Sector, OrgTreeNode, OrgTeamGroup, OrgSectorGroup } from '../types'
 
 export const orgApi = {
-  getOrgTree: (params?: { view?: 'team' | 'teams' | 'all'; managerId?: string }) =>
+  getOrgTree: (params?: { view?: 'all' }) =>
     client.get<OrgTreeNode[]>('/api/org/tree', { params }),
+
+  getOrgTeams: (params?: { view?: 'teams' }) =>
+    client.get<OrgTeamGroup[]>('/api/org/tree', { params: { view: 'teams', ...params } }),
+
+  getOrgSectors: () =>
+    client.get<OrgSectorGroup[]>('/api/org/tree', { params: { view: 'sector' } }),
 
   getSectors: () =>
     client.get<Sector[]>('/api/org/sectors'),
@@ -12,11 +18,11 @@ export const orgApi = {
     client.post<Sector>('/api/org/sectors', data),
 
   updateSector: (id: string, data: Partial<Sector>) =>
-    client.put<Sector>(`/api/org/sectors/${id}`, data),
+    client.patch<Sector>(`/api/org/sectors/${id}`, data),
 
   deleteSector: (id: string) =>
     client.delete(`/api/org/sectors/${id}`),
 
-  getUsersInSector: (sectorId: string) =>
-    client.get<PaginatedResponse<import('../types').User>>(`/api/org/sectors/${sectorId}/users`),
+  patchOrgUser: (id: string, data: { managerId?: string | null; sectorId?: string | null; role?: string }) =>
+    client.patch(`/api/org/users/${id}`, data),
 }

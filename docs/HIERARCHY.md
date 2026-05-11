@@ -96,3 +96,60 @@ Si l'organisation nécessite un nouveau rôle (ex : `auditor` en lecture seule s
 6. **Documentation** — créer `docs/roles/NEWROLE.md` en suivant le même format que les autres fichiers de ce dossier
 
 > Ne pas oublier de mettre à jour ce fichier (`HIERARCHY.md`) avec la nouvelle entrée dans les matrices.
+
+---
+
+## Organigramme interactif (`/org`)
+
+La page `/org` offre un canvas interactif React Flow avec layout hiérarchique Dagre.
+
+### Vues disponibles
+
+| Vue | Onglet | Accès | Endpoint |
+|-----|--------|-------|----------|
+| **Tout** | Arbre récursif complet | Tous rôles | `GET /api/org/tree?view=all` |
+| **Équipes** | Groupé par manager direct | Admin / RH | `GET /api/org/tree?view=teams` |
+| **Secteurs** | Groupé par secteur | Admin / RH | `GET /api/org/tree?view=sector` |
+
+### Design des nœuds
+
+- Cercle SVG avec initiales (prénom + nom), taille variable selon le nombre de reportés directs (48–80px)
+- Couleur par rôle : admin (teal), RH (emerald), directeur (violet), manager (bleu), employé (gris)
+- Connexions pointillées (`smoothstep`, `strokeDasharray: 6 3`) entre parent → enfants
+- Highlight de chaîne au clic : ancêtres + descendants colorés en indigo, reste à 0.15 opacity
+- Anneau orange pointillé sur les nœuds sans manager (vue admin/RH)
+- Tooltip au survol (300 ms) : nom, rôle, email, département, nombre de reportés
+
+### Navigation & contrôles
+
+- Zoom via molette ou boutons (+/−/centrer/ajuster) — bas droite
+- Pan par cliquer-glisser sur le canvas
+- Fond en grille de points (React Flow `BackgroundVariant.Dots`)
+- Barre flottante en haut : onglets (Globe/Users/LayoutGrid), recherche nom, filtre rôle
+
+### Interactions
+
+| Rôle | Click sur nœud |
+|------|----------------|
+| Admin / RH | Panneau latéral slide-in 320px : infos + édition rôle/secteur/manager |
+| Manager / Directeur / Employé | Panneau latéral slide-in : infos en lecture seule |
+
+### Édition (admin / RH uniquement)
+
+- Drag & drop d'un nœud sur un autre → dialogue de confirmation → `PATCH /api/org/users/:id { managerId }`
+- Panneau latéral : changer rôle, secteur, manager → `PATCH /api/org/users/:id`
+- Création de secteurs via `POST /api/org/sectors`
+
+### Implémentation technique
+
+| Fichier | Rôle |
+|---------|------|
+| `src/pages/OrgPage.tsx` | Composant principal, ReactFlowProvider, filtres, highlight chaîne |
+| `src/hooks/useOrgLayout.ts` | Dagre layout (TB, ranksep=140, nodesep=70) + nœud virtuel si plusieurs racines |
+| `src/components/org/OrgCircleNode.tsx` | Nœud React Flow custom (cercle + initiales + tooltip) |
+| `src/components/org/OrgToolbar.tsx` | Barre flottante : onglets (icônes Lucide), recherche, filtres rôle |
+| `src/components/org/OrgControls.tsx` | Boutons zoom/fit (Lucide icons) |
+| `src/components/org/OrgSidePanel.tsx` | Panneau latéral : infos + édition |
+| `src/components/org/OrgTooltip.tsx` | Tooltip survol |
+
+**Librairies** : `@xyflow/react` v12, `dagre`

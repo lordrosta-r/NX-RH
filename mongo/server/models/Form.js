@@ -77,6 +77,14 @@ const formSchema = new Schema({
   // Synchronisé avec frozenAt : freeze → isFrozen=true + frozenAt=Date, unfreeze → isFrozen=false + frozenAt=null.
   isFrozen: { type: Boolean, default: false },
 
+  // Référence au template d'origine si ce formulaire a été copié depuis un template
+  // via POST /api/campaigns/:id/copy-template. null si créé directement.
+  templateSourceId: {
+    type: Schema.Types.ObjectId,
+    ref: 'Form',
+    default: null,
+  },
+
   createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
 
 }, { timestamps: true, versionKey: false })

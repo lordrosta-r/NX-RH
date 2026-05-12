@@ -7,8 +7,6 @@
 
 | Champ | Type | Notes |
 |-------|------|-------|
-| `campaignId` | ObjectId → Campaign | optionnel — `null` = template réutilisable |
-| `templateSourceId` | ObjectId → Form | optionnel — référence au template d'origine si copié via `POST /api/campaigns/:id/copy-template` |
 | `title` | String | requis |
 | `description` | String | |
 | `formType` | String | enum `FORM_TYPES` |
@@ -27,6 +25,12 @@
 | `scale` | Number | uniquement pour `rating` (2-10, default: 5) |
 | `options` | [String] | uniquement pour `choice` |
 | `phase` | String | `self \| n-1 \| objectives \| aspirations \| all` |
+
+## Modèle réutilisable
+
+Les formulaires sont **autonomes** — ils n'appartiennent pas à une campagne. Un même formulaire peut être lié à plusieurs campagnes simultanément via `Campaign.formIds`.
+
+Les formulaires servent à la fois de **templates** (non liés) et de formulaires **actifs** (liés à une ou plusieurs campagnes). Il n'y a plus de copie à la liaison.
 
 ## Gel des questions (`frozenAt`)
 

@@ -1,7 +1,8 @@
 // =============================================================================
 // models/Form.js — Formulaires (templates de questions)
 //
-// Un form est rattaché à une campagne et définit les questions.
+// Un form est autonome et réutilisable. Il peut être lié à plusieurs campagnes
+// via Campaign.formIds (référence directe, sans copie).
 // upward_feedback est TOUJOURS anonyme — forcé par pre-save.
 //
 // MODIFICATION DES QUESTIONS :
@@ -43,15 +44,6 @@ const questionSchema = new Schema({
 }, { _id: false })  // pas d'ObjectId sur les sous-documents, l'id suffit
 
 const formSchema = new Schema({
-  // Optionnel — null = template autonome (bibliothèque), défini = lié à une campagne
-  campaignId: {
-    type: Schema.Types.ObjectId,
-    ref: 'Campaign',
-    required: false,
-    default: null,
-    index: true,
-  },
-
   title:    { type: String, required: true, trim: true, minlength: 3, maxlength: 200 },
 
   // Instructions affichées à l'utilisateur avant de remplir le formulaire.
@@ -76,14 +68,6 @@ const formSchema = new Schema({
   // Vrai quand le formulaire est gelé (empêche toute modification des questions).
   // Synchronisé avec frozenAt : freeze → isFrozen=true + frozenAt=Date, unfreeze → isFrozen=false + frozenAt=null.
   isFrozen: { type: Boolean, default: false },
-
-  // Référence au template d'origine si ce formulaire a été copié depuis un template
-  // via POST /api/campaigns/:id/copy-template. null si créé directement.
-  templateSourceId: {
-    type: Schema.Types.ObjectId,
-    ref: 'Form',
-    default: null,
-  },
 
   createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
 

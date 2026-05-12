@@ -13,12 +13,13 @@
 // POST   /api/forms/:id/clone    → cloner (admin/hr)
 // =============================================================================
 
-const router   = require('express').Router()
-const mongoose = require('mongoose')
-const { Form } = require('../models')
+const router      = require('express').Router()
+const mongoose    = require('mongoose')
+const { Form, Campaign } = require('../models')
 const { ADMIN_ROLES } = require('../config/constants')
 
-// GET /api/forms — Liste des formulaires (filtrable par campaignId, formType)
+// GET /api/forms — Liste des formulaires (filtrable par campaignId, formType, search)
+// ?campaignId=X → retourne uniquement les forms liés à cette campagne (via Campaign.formIds)
 router.get('/', async (req, res, next) => {
   try {
     const filter = {}
@@ -27,7 +28,9 @@ router.get('/', async (req, res, next) => {
       if (!mongoose.isValidObjectId(req.query.campaignId)) {
         return res.status(400).json({ error: 'campaignId invalide' })
       }
-      filter.campaignId = req.query.campaignId
+      const campaign = await Campaign.findById(req.query.campaignId).select('formIds').lean()
+      if (!campaign) return res.status(404).json({ error: 'Campagne introuvable' })
+      filter._id = { $in: campaign.formIds || [] }
     }
 
     if (req.query.formType) {
@@ -79,20 +82,16 @@ router.post('/', async (req, res, next) => {
       return res.status(403).json({ error: 'Réservé aux admins et RH' })
     }
 
-    const { campaignId, title, description, formType, isAnonymous, questions } = req.body
+    const { title, description, formType, isAnonymous, questions } = req.body
 
     if (!title || !formType) {
       return res.status(400).json({ error: 'title et formType sont requis' })
-    }
-    if (campaignId && !mongoose.isValidObjectId(campaignId)) {
-      return res.status(400).json({ error: 'campaignId invalide' })
     }
     if (questions !== undefined && !Array.isArray(questions)) {
       return res.status(400).json({ error: 'questions doit être un tableau' })
     }
 
     const form = await Form.create({
-      campaignId:   campaignId || null,
       title,
       description:  description || '',
       formType,

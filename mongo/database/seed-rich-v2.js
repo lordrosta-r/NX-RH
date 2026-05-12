@@ -371,7 +371,7 @@ async function main() {
   for (const raw of RAW_USERS) {
     const user = await User.create({
       email:      raw.email,
-      password:   hash,
+      passwordHash: hash,
       firstName:  raw.firstName,
       lastName:   raw.lastName,
       role:       raw.role,

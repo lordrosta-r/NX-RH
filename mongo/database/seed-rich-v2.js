@@ -168,8 +168,6 @@ const RAW_USERS = [
 
 function makeSelfEvalSimple(adminId) {
   return {
-    campaignId: null,
-    templateSourceId: null,
     title: 'Auto-évaluation Standard',
     description: 'Formulaire d\'auto-évaluation court (5 questions). Idéal pour les évaluations intermédiaires.',
     formType: 'self_evaluation',
@@ -187,8 +185,6 @@ function makeSelfEvalSimple(adminId) {
 
 function makeSelfEvalDetailed(adminId) {
   return {
-    campaignId: null,
-    templateSourceId: null,
     title: 'Auto-évaluation Complète',
     description: 'Formulaire d\'auto-évaluation complet (12 questions) couvrant la performance, les compétences, les aspirations et la mobilité.',
     formType: 'self_evaluation',
@@ -213,8 +209,6 @@ function makeSelfEvalDetailed(adminId) {
 
 function makeManagerEvalSimple(adminId) {
   return {
-    campaignId: null,
-    templateSourceId: null,
     title: 'Évaluation Manager Standard',
     description: 'Grille d\'évaluation manager — 6 critères essentiels.',
     formType: 'manager_evaluation',
@@ -233,8 +227,6 @@ function makeManagerEvalSimple(adminId) {
 
 function makeManagerEval360(adminId) {
   return {
-    campaignId: null,
-    templateSourceId: null,
     title: 'Évaluation Manager 360°',
     description: 'Évaluation 360° complète — compétences métier, comportementales et potentiel d\'évolution.',
     formType: 'manager_evaluation',
@@ -257,8 +249,6 @@ function makeManagerEval360(adminId) {
 
 function makeUpwardFeedback(adminId) {
   return {
-    campaignId: null,
-    templateSourceId: null,
     title: 'Feedback Montant (anonyme)',
     description: 'Feedback anonyme des collaborateurs vers leur manager direct.',
     formType: 'upward_feedback',
@@ -275,8 +265,6 @@ function makeUpwardFeedback(adminId) {
 
 function makeDirectorEval(adminId) {
   return {
-    campaignId: null,
-    templateSourceId: null,
     title: 'Évaluation Directeur',
     description: 'Grille d\'évaluation réservée aux membres de direction.',
     formType: 'director_evaluation',
@@ -345,11 +333,11 @@ function computeScore(answers, questions) {
 // ─── Seed principal ───────────────────────────────────────────────────────────
 
 async function main() {
-  console.log('🌱 Connexion à MongoDB...')
+  console.log('Connexion a MongoDB...')
   await connect()
 
   // ── Suppression des données existantes ──
-  console.log('🗑️  Suppression des données existantes...')
+  console.log('Suppression des donnees existantes...')
   await Promise.all([
     User.deleteMany({}),
     Campaign.deleteMany({}),
@@ -359,11 +347,11 @@ async function main() {
   ])
 
   // ── Hash du mot de passe ──
-  console.log('🔐 Hash du mot de passe...')
+  console.log('Hash du mot de passe...')
   const hash = await bcrypt.hash(PASSWORD, SALT_ROUNDS)
 
   // ── Création des utilisateurs ──
-  console.log('👥 Création des utilisateurs...')
+  console.log('Creation des utilisateurs...')
   const userMap = new Map() // email → ObjectId
 
   // Première passe : créer tous les utilisateurs sans managerId
@@ -394,23 +382,23 @@ async function main() {
     }
   }
 
-  console.log(`✅ ${RAW_USERS.length} utilisateurs créés`)
+  console.log(`OK: ${RAW_USERS.length} utilisateurs crees`)
 
   const adminId = userMap.get('admin@nx-rh.fr')
   const hrId    = userMap.get('rh@nx-rh.fr')
 
   // ── Création des templates ──
-  console.log('📋 Création des templates de formulaires...')
+  console.log('Creation des templates de formulaires...')
   const tmplSelfSimple   = await Form.create(makeSelfEvalSimple(adminId))
   const tmplSelfDetailed = await Form.create(makeSelfEvalDetailed(adminId))
   const tmplMgrSimple    = await Form.create(makeManagerEvalSimple(adminId))
   const tmplMgr360       = await Form.create(makeManagerEval360(adminId))
   const tmplUpward       = await Form.create(makeUpwardFeedback(adminId))
   const tmplDirector     = await Form.create(makeDirectorEval(adminId))
-  console.log('✅ 6 templates créés')
+  console.log('OK: 6 templates crees')
 
   // ── Création des campagnes ──
-  console.log('📅 Création des campagnes...')
+  console.log('Creation des campagnes...')
 
   // C4 — Archived 2023
   const c4 = await Campaign.create({
@@ -459,31 +447,31 @@ async function main() {
     targetDepartments: ['Engineering', 'Sales'],
   })
 
-  console.log('✅ 4 campagnes créées (archived, closed, active, draft)')
+  console.log('OK: 4 campagnes creees (archived, closed, active, draft)')
 
-  // ── Création des formulaires de campagne (copies des templates) ──
-  console.log('📝 Copie des templates vers les campagnes...')
+  // ── Liaison des formulaires aux campagnes via formIds (pas de copie) ──
+  console.log('Liaison des formulaires aux campagnes...')
 
-  // C3 (2024) : Auto-éval Standard + Éval Manager Standard
-  const c3FormSelf = await Form.create({ ...tmplSelfSimple.toObject(),   _id: undefined, __v: undefined, campaignId: c3._id, templateSourceId: tmplSelfSimple._id,   frozenAt: new Date('2024-09-15'), isFrozen: true, createdBy: adminId })
-  const c3FormMgr  = await Form.create({ ...tmplMgrSimple.toObject(),    _id: undefined, __v: undefined, campaignId: c3._id, templateSourceId: tmplMgrSimple._id,    frozenAt: new Date('2024-09-15'), isFrozen: true, createdBy: adminId })
+  // Aliases pour clarté dans les évaluations (les formulaires sont les templates directement)
+  const c3FormSelf   = tmplSelfSimple
+  const c3FormMgr    = tmplMgrSimple
+  const c1FormSelf   = tmplSelfDetailed
+  const c1FormMgr    = tmplMgrSimple
+  const c1FormUpward = tmplUpward
 
-  // C1 (2025) : Auto-éval Complète + Éval Manager Standard + Feedback Montant
-  const c1FormSelf   = await Form.create({ ...tmplSelfDetailed.toObject(), _id: undefined, __v: undefined, campaignId: c1._id, templateSourceId: tmplSelfDetailed._id, frozenAt: new Date('2025-09-05'), isFrozen: true, createdBy: adminId })
-  const c1FormMgr    = await Form.create({ ...tmplMgrSimple.toObject(),    _id: undefined, __v: undefined, campaignId: c1._id, templateSourceId: tmplMgrSimple._id,    frozenAt: new Date('2025-09-05'), isFrozen: true, createdBy: adminId })
-  const c1FormUpward = await Form.create({ ...tmplUpward.toObject(),       _id: undefined, __v: undefined, campaignId: c1._id, templateSourceId: tmplUpward._id,       frozenAt: new Date('2025-09-05'), isFrozen: true, createdBy: adminId })
+  // Lier les formulaires aux campagnes (référence directe, pas de copie)
+  await Campaign.findByIdAndUpdate(c3._id, { formIds: [tmplSelfSimple._id, tmplMgrSimple._id] })
+  await Campaign.findByIdAndUpdate(c1._id, { formIds: [tmplSelfDetailed._id, tmplMgrSimple._id, tmplUpward._id] })
+  await Campaign.findByIdAndUpdate(c2._id, { formIds: [tmplSelfSimple._id] })
 
-  // C2 (draft) : Template simple en préparation (non gelé)
-  await Form.create({ ...tmplSelfSimple.toObject(), _id: undefined, __v: undefined, campaignId: c2._id, templateSourceId: tmplSelfSimple._id, frozenAt: null, isFrozen: false, createdBy: hrId })
-
-  console.log('✅ Formulaires de campagne créés (C1: 3, C2: 1, C3: 2)')
+  console.log('OK: Formulaires lies aux campagnes (C1: 3, C2: 1, C3: 2)')
 
   // ── Récupération des employés pour les évaluations ──
   const employees = await User.find({ role: 'employee' }).select('_id managerId department').lean()
   const managers  = await User.find({ role: 'manager'  }).select('_id').lean()
 
   // ── Évaluations C3 (2024) — toutes signées (données historiques) ──
-  console.log('📊 Création des évaluations C3/2024 (toutes signées)...')
+  console.log('Creation des evaluations C3/2024 (toutes signees)...')
   const c3Evals = []
   for (const emp of employees) {
     const evaluatorId = emp.managerId || adminId
@@ -540,10 +528,10 @@ async function main() {
   }
 
   await Evaluation.insertMany(c3Evals)
-  console.log(`✅ ${c3Evals.length} évaluations C3/2024 créées (toutes signed_hr)`)
+  console.log(`OK: ${c3Evals.length} evaluations C3/2024 creees (toutes signed_hr)`)
 
   // ── Évaluations C1 (2025) — partiellement remplies ──
-  console.log('📊 Création des évaluations C1/2025 (partielles)...')
+  console.log('Creation des evaluations C1/2025 (partielles)...')
   const c1Evals = []
   const statuses = ['assigned', 'assigned', 'in_progress', 'in_progress', 'in_progress', 'in_progress', 'submitted', 'submitted', 'reviewed', 'signed_evaluatee', 'signed_manager']
 
@@ -603,7 +591,7 @@ async function main() {
   }
 
   await Evaluation.insertMany(c1Evals)
-  console.log(`✅ ${c1Evals.length} évaluations C1/2025 créées (mix statuts)`)
+  console.log(`OK: ${c1Evals.length} evaluations C1/2025 creees (mix statuts)`)
 
   // ── Résumé ──
   const counts = await Promise.all([
@@ -613,22 +601,18 @@ async function main() {
     Evaluation.countDocuments(),
   ])
 
-  console.log('\n╔═══════════════════════════════════════╗')
-  console.log('║        SEED v2 — TERMINÉ ✅            ║')
-  console.log('╠═══════════════════════════════════════╣')
-  console.log(`║  👥 Utilisateurs   : ${String(counts[0]).padStart(3)} (dont ${RAW_USERS.filter(u => u.role === 'employee').length} employés) ║`)
-  console.log(`║  📅 Campagnes      : ${String(counts[1]).padStart(3)}                     ║`)
-  console.log(`║  📋 Formulaires    : ${String(counts[2]).padStart(3)} (6 templates + liés) ║`)
-  console.log(`║  📊 Évaluations    : ${String(counts[3]).padStart(3)}                     ║`)
-  console.log('╠═══════════════════════════════════════╣')
-  console.log('║  🔐 MDP : Test1234! (tous)            ║')
-  console.log('║  👤 admin@nx-rh.fr / rh@nx-rh.fr     ║')
-  console.log('╚═══════════════════════════════════════╝')
+  console.log('[SEED v2 TERMINE]')
+  console.log(`  Utilisateurs : ${counts[0]} (dont ${RAW_USERS.filter(u => u.role === 'employee').length} employes)`)
+  console.log(`  Campagnes    : ${counts[1]}`)
+  console.log(`  Formulaires  : ${counts[2]} (6 templates)`)
+  console.log(`  Evaluations  : ${counts[3]}`)
+  console.log('  MDP: Test1234! (tous)')
+  console.log('  admin@nx-rh.fr / rh@nx-rh.fr')
 
   process.exit(0)
 }
 
 main().catch(err => {
-  console.error('❌ Erreur seed:', err)
+  console.error('ERREUR seed:', err)
   process.exit(1)
 })

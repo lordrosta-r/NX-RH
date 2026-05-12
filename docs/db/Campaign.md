@@ -17,6 +17,7 @@
 | `deadlineManager` | Date | échéance phase manager |
 | `targetDepartments` | [String] | `[]` = toute l'entreprise |
 | `extendedVisibility` | Array | visibilité étendue par manager |
+| `formIds` | [ObjectId → Form] | formulaires liés à cette campagne (référence directe, pas de copie) |
 
 ## Cycle de statuts
 

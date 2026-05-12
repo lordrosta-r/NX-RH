@@ -9,12 +9,18 @@ const COMPLETED_STATUSES = [
   'signed_evaluatee', 'signed_manager', 'signed_hr', 'validated',
 ]
 
-/** Anonymise evaluatorId/Name si le formulaire est anonyme. */
+/** Anonymise evaluatorId/Name si le formulaire est anonyme.
+ *  Ajoute aussi les alias evaluatee/evaluator pour la cohérence frontend. */
 function sanitizeAnonymity(doc) {
-  if (doc.formId?.isAnonymous || doc.isAnonymous) {
-    return { ...doc, evaluatorId: null, evaluatorName: 'Anonyme' }
+  const out = {
+    ...doc,
+    evaluatee: doc.evaluateeId ?? null,
+    evaluator: doc.evaluatorId ?? null,
   }
-  return doc
+  if (doc.formId?.isAnonymous || doc.isAnonymous) {
+    return { ...out, evaluatorId: null, evaluator: null, evaluatorName: 'Anonyme' }
+  }
+  return out
 }
 
 /** Formate une réponse selon le type de question pour l'export PDF/CSV. */

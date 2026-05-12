@@ -36,7 +36,8 @@ function formatDateRange(start: string, end: string) {
   return `${s} – ${e}`
 }
 
-function progressPlaceholder(id: string | undefined): number {
+function progressPlaceholder(id: string | undefined, status?: string): number {
+  if (status === 'draft') return 0
   if (!id) return 42
   let h = 5381
   for (let i = 0; i < id.length; i++) {
@@ -266,9 +267,7 @@ export default function CampaignsPage() {
                 </thead>
                 <tbody className="divide-y divide-slate-50">
                   {campaigns.map(campaign => {
-                    const progress = progressPlaceholder(cid(campaign))
-                    return (
-                      <tr key={cid(campaign)} className="hover:bg-slate-50 transition-colors">
+                    const progress = progressPlaceholder(cid(campaign), campaign.status)
                         <td className="px-4 py-3">
                           <Link
                             to={`/campaigns/${cid(campaign)}`}
@@ -318,9 +317,7 @@ export default function CampaignsPage() {
             {/* Mobile cards */}
             <div className="md:hidden divide-y divide-slate-100">
               {campaigns.map(campaign => {
-                const progress = progressPlaceholder(cid(campaign))
-                return (
-                  <div key={cid(campaign)} className="p-4 flex items-start gap-3">
+                const progress = progressPlaceholder(cid(campaign), campaign.status)
                     <div className="flex-1 min-w-0">
                       <Link
                         to={`/campaigns/${cid(campaign)}`}

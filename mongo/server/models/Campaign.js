@@ -129,11 +129,11 @@ const campaignSchema = new Schema({
     _id: false,
   },
 
-  // Formulaire d'objectifs lié à cette campagne (optionnel, type 'objectives')
-  objectivesFormId: {
-    type: Schema.Types.ObjectId,
-    ref: 'Form',
-    default: null,
+  // Formulaires liés à cette campagne (références directes, sans copie).
+  // Contrainte d'unicité {campaignId, formType} appliquée côté route.
+  formIds: {
+    type: [{ type: Schema.Types.ObjectId, ref: 'Form' }],
+    default: [],
   },
 
 }, { timestamps: true, versionKey: false })

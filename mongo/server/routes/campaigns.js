@@ -7,7 +7,8 @@
 // GET    /api/campaigns/:id                → détail + stats
 // POST   /api/campaigns                    → créer (admin/hr)
 // POST   /api/campaigns/:id/clone          → dupliquer (admin/hr)
-// POST   /api/campaigns/:id/copy-template  → copier un template vers la campagne (admin/hr)
+// POST   /api/campaigns/:id/forms          → lier un formulaire à la campagne (admin/hr)
+// DELETE /api/campaigns/:id/forms/:formId  → délier un formulaire (admin/hr)
 // PATCH  /api/campaigns/:id               → modifier / changer statut (admin/hr)
 // DELETE /api/campaigns/:id               → supprimer (admin/hr — draft/archived seulement)
 // GET    /api/campaigns/:id/analytics     → agrégats analytiques (admin/hr)
@@ -36,7 +37,7 @@ async function generateEvaluationsForCampaign(campaign) {
 
   const [users, forms] = await Promise.all([
     User.find(userFilter).select('_id managerId').lean(),
-    Form.find({ campaignId: campaign._id }).select('_id formType').lean(),
+    Form.find({ _id: { $in: campaign.formIds || [] } }).select('_id formType').lean(),
   ])
 
   if (!forms.length) {
@@ -215,13 +216,29 @@ router.patch('/:id', async (req, res, next) => {
 
     const EDITABLE = ['name', 'description', 'status', 'startDate', 'endDate',
       'targetDepartments', 'extendedVisibility', 'deadlineEmployee', 'deadlineManager',
-      'previousCampaignId', 'enableN1Context', 'n1VisibleToEmployee',
-      'targetScope', 'objectivesFormId']
+      'previousCampaignId', 'enableN1Context', 'n1VisibleToEmployee', 'targetScope']
     EDITABLE.forEach(key => {
       if (req.body[key] !== undefined) campaign[key] = req.body[key]
     })
 
     await campaign.save()
+
+    // Avertissement si clôture/archivage avec complétion < 100%
+    let warning = null
+    const closingTransitions = ['closed', 'archived']
+    if (req.body.status && closingTransitions.includes(req.body.status)) {
+      const COMPLETED = ['submitted', 'reviewed', 'signed_evaluatee', 'signed_manager', 'signed_hr', 'validated']
+      const [totalAgg, completedAgg] = await Promise.all([
+        Evaluation.countDocuments({ campaignId: campaign._id }),
+        Evaluation.countDocuments({ campaignId: campaign._id, status: { $in: COMPLETED } }),
+      ])
+      if (totalAgg > 0) {
+        const pct = Math.round((completedAgg / totalAgg) * 100)
+        if (pct < 100) {
+          warning = `${pct}% des évaluations sont complètes (${completedAgg}/${totalAgg})`
+        }
+      }
+    }
 
     // Fire-and-forget audit log
     AuditLog.create({
@@ -263,7 +280,9 @@ router.patch('/:id', async (req, res, next) => {
       })()
     }
 
-    res.json(campaign.toObject())
+    const payload = campaign.toObject()
+    if (warning) payload.warning = warning
+    res.json(payload)
   } catch (err) {
     next(err)
   }
@@ -293,16 +312,12 @@ router.delete('/:id', async (req, res, next) => {
     try {
       await session.withTransaction(async () => {
         await Evaluation.deleteMany({ campaignId: campaign._id }, { session })
-        await Form.deleteMany({ campaignId: campaign._id }, { session })
         await campaign.deleteOne({ session })
       })
     } catch (err) {
       if (err.code === 20 || err.message?.includes('Transaction') || err.message?.includes('replica')) {
         console.warn('[delete-campaign] Transactions non disponibles, exécution séquentielle')
-        await Promise.all([
-          Evaluation.deleteMany({ campaignId: campaign._id }),
-          Form.deleteMany({ campaignId: campaign._id }),
-        ])
+        await Evaluation.deleteMany({ campaignId: campaign._id })
         await campaign.deleteOne()
       } else {
         throw err
@@ -363,38 +378,22 @@ router.post('/:id/clone', async (req, res, next) => {
       status:             'draft',
       targetDepartments:  source.targetDepartments || [],
       extendedVisibility: source.extendedVisibility || [],
+      formIds:            source.formIds || [],
       createdBy:          req.user.id,
       previousCampaignId:  source._id,
       enableN1Context:     source.enableN1Context  ?? true,
       n1VisibleToEmployee: source.n1VisibleToEmployee ?? true,
     })
 
-    // Clone tous les formulaires associés (sans frozenAt → modifiables)
-    const sourceForms = await Form.find({ campaignId: source._id }).lean()
-    if (sourceForms.length) {
-      const cloneDocs = sourceForms.map(f => ({
-        campaignId:  cloned._id,
-        title:       f.title,
-        description: f.description || '',
-        formType:    f.formType,
-        isAnonymous: f.isAnonymous,
-        questions:   f.questions,
-        frozenAt:    null,
-        createdBy:   req.user.id,
-      }))
-      await Form.insertMany(cloneDocs)
-    }
-
-    res.status(201).json({ id: cloned._id, formsCloned: sourceForms.length })
+    res.status(201).json({ id: cloned._id, formsLinked: (source.formIds || []).length })
   } catch (err) {
     next(err)
   }
 })
 
-// POST /api/campaigns/:id/copy-template — Copier un template vers une campagne (admin/hr)
-// Duplique un template (campaignId: null) en un nouveau formulaire lié à cette campagne.
-// Le template d'origine reste intact et réutilisable dans d'autres campagnes.
-router.post('/:id/copy-template', async (req, res, next) => {
+// POST /api/campaigns/:id/forms — Lier un formulaire à une campagne (admin/hr)
+// Ajoute formId à campaign.formIds. Contrainte : un seul formulaire par formType.
+router.post('/:id/forms', async (req, res, next) => {
   try {
     if (!ADMIN_ROLES.includes(req.user.role)) {
       return res.status(403).json({ error: 'Réservé aux admins et RH' })
@@ -403,45 +402,78 @@ router.post('/:id/copy-template', async (req, res, next) => {
       return res.status(400).json({ error: 'ID de campagne invalide' })
     }
 
-    const { templateId } = req.body
-    if (!templateId || !mongoose.isValidObjectId(templateId)) {
-      return res.status(400).json({ error: 'templateId est requis et doit être un ObjectId valide' })
+    const { formId } = req.body
+    if (!formId || !mongoose.isValidObjectId(formId)) {
+      return res.status(400).json({ error: 'formId est requis et doit être un ObjectId valide' })
     }
 
-    const [campaign, template] = await Promise.all([
-      Campaign.findById(req.params.id).lean(),
-      Form.findById(templateId).lean(),
+    const [campaign, form] = await Promise.all([
+      Campaign.findById(req.params.id).populate('formIds', 'formType'),
+      Form.findById(formId).lean(),
     ])
 
     if (!campaign) return res.status(404).json({ error: 'Campagne introuvable' })
-    if (!template) return res.status(404).json({ error: 'Template introuvable' })
-    if (template.campaignId !== null && template.campaignId !== undefined) {
-      return res.status(400).json({ error: 'Ce formulaire est déjà lié à une campagne. Seuls les templates (campaignId: null) peuvent être copiés.' })
+    if (!form) return res.status(404).json({ error: 'Formulaire introuvable' })
+
+    const alreadyLinked = campaign.formIds.some(f => f._id.toString() === formId)
+    if (alreadyLinked) {
+      return res.status(409).json({ error: 'Ce formulaire est déjà lié à cette campagne' })
     }
 
-    const copy = await Form.create({
-      campaignId:       campaign._id,
-      templateSourceId: template._id,
-      title:            template.title,
-      description:      template.description || '',
-      formType:         template.formType,
-      isAnonymous:      template.isAnonymous,
-      questions:        template.questions,
-      frozenAt:         null,
-      isFrozen:         false,
-      createdBy:        req.user.id,
-    })
+    const duplicateType = campaign.formIds.some(f => f.formType === form.formType)
+    if (duplicateType) {
+      return res.status(409).json({ error: `Un formulaire de type '${form.formType}' est déjà lié à cette campagne` })
+    }
+
+    campaign.formIds.push(form._id)
+    await campaign.save()
 
     AuditLog.create({
       userId:     req.user.id,
       userRole:   req.user.role,
-      action:     'form_copy_template',
-      targetType: 'Form',
-      targetId:   copy._id,
-      meta:       { campaignId: campaign._id, templateId: template._id, templateTitle: template.title },
+      action:     'campaign_form_linked',
+      targetType: 'Campaign',
+      targetId:   campaign._id,
+      meta:       { formId: form._id, formTitle: form.title, formType: form.formType },
     }).catch(() => {})
 
-    res.status(201).json(copy.toObject())
+    res.status(201).json({ campaignId: campaign._id, formId: form._id })
+  } catch (err) {
+    next(err)
+  }
+})
+
+// DELETE /api/campaigns/:id/forms/:formId — Délier un formulaire d'une campagne (admin/hr)
+router.delete('/:id/forms/:formId', async (req, res, next) => {
+  try {
+    if (!ADMIN_ROLES.includes(req.user.role)) {
+      return res.status(403).json({ error: 'Réservé aux admins et RH' })
+    }
+    if (!mongoose.isValidObjectId(req.params.id) || !mongoose.isValidObjectId(req.params.formId)) {
+      return res.status(400).json({ error: 'ID invalide' })
+    }
+
+    const campaign = await Campaign.findById(req.params.id)
+    if (!campaign) return res.status(404).json({ error: 'Campagne introuvable' })
+
+    const idx = campaign.formIds.findIndex(f => f.toString() === req.params.formId)
+    if (idx === -1) {
+      return res.status(404).json({ error: 'Formulaire non lié à cette campagne' })
+    }
+
+    campaign.formIds.splice(idx, 1)
+    await campaign.save()
+
+    AuditLog.create({
+      userId:     req.user.id,
+      userRole:   req.user.role,
+      action:     'campaign_form_unlinked',
+      targetType: 'Campaign',
+      targetId:   campaign._id,
+      meta:       { formId: req.params.formId },
+    }).catch(() => {})
+
+    res.status(204).end()
   } catch (err) {
     next(err)
   }

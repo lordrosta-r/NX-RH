@@ -73,7 +73,7 @@ function getDescendants(id: string, nodes: OrgTreeNode[]): Set<string> {
 // ─────────────────────────────────────────────────────────────
 // Inner component (needs ReactFlowProvider context)
 // ─────────────────────────────────────────────────────────────
-function OrgFlowInner({ treeData }: { treeData: OrgTreeNode[] }) {
+function OrgFlowInner() {
   const { user } = useAuth()
   const canEdit = user?.role === 'admin' || user?.role === 'hr'
   const queryClient = useQueryClient()
@@ -89,6 +89,13 @@ function OrgFlowInner({ treeData }: { treeData: OrgTreeNode[] }) {
 
   // Drag confirm
   const [dragTarget, setDragTarget] = useState<{ nodeId: string; newManagerId: string } | null>(null)
+
+  // Org tree — refetches when activeView changes
+  const { data: treeData = [], isLoading: treeLoading } = useQuery({
+    queryKey: ['org', 'tree', activeView],
+    queryFn: () => orgApi.getOrgTree({ view: activeView }).then(r => r.data),
+    staleTime: 5 * 60 * 1000,
+  })
 
   // Sectors
   const { data: sectors } = useQuery({
@@ -289,8 +296,18 @@ function OrgFlowInner({ treeData }: { treeData: OrgTreeNode[] }) {
     }
   }, [searchQuery, highlightIds])
 
+  if (treeLoading) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <div className="text-center space-y-3">
+          <div className="w-10 h-10 border-4 border-teal-200 border-t-teal-600 rounded-full animate-spin mx-auto" />
+          <p className="text-slate-500 text-sm">Chargement de l'organigramme…</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div style={{ position: 'relative', flex: 1, minHeight: 0, width: '100%' }}>
       <div style={{ position: 'absolute', inset: 0 }}>
       <ReactFlow
         nodes={styledNodes}
@@ -376,46 +393,14 @@ function OrgFlowInner({ treeData }: { treeData: OrgTreeNode[] }) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// Main export — fetches data + wraps with ReactFlowProvider
+// Main export — wraps with ReactFlowProvider
+// (data fetching moved into OrgFlowInner so activeView drives it)
 // ─────────────────────────────────────────────────────────────
 export default function OrgPage() {
-  const { data: treeData, isLoading, isError, refetch } = useQuery({
-    queryKey: ['org', 'tree'],
-    queryFn: () => orgApi.getOrgTree({ view: 'all' }).then(r => r.data),
-    staleTime: 5 * 60 * 1000,
-  })
-
-  if (isLoading) {
-    return (
-      <div className="h-[calc(100vh-64px)] flex items-center justify-center">
-        <div className="text-center space-y-3">
-          <div className="w-10 h-10 border-4 border-teal-200 border-t-teal-600 rounded-full animate-spin mx-auto" />
-          <p className="text-slate-500 text-sm">Chargement de l'organigramme…</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (isError || !treeData) {
-    return (
-      <div className="h-[calc(100vh-64px)] flex items-center justify-center">
-        <div className="text-center space-y-3">
-          <p className="text-slate-700 font-medium">Impossible de charger l'organigramme</p>
-          <button
-            onClick={() => refetch()}
-            className="px-4 py-2 bg-teal-600 text-white text-sm rounded-lg hover:bg-teal-700"
-          >
-            Réessayer
-          </button>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden' }}>
       <ReactFlowProvider>
-        <OrgFlowInner treeData={treeData} />
+        <OrgFlowInner />
       </ReactFlowProvider>
     </div>
   )

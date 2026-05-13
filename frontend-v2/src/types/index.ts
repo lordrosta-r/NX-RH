@@ -51,8 +51,14 @@ export interface Campaign {
   targetScope?: 'all' | 'department' | 'sector' | 'users'
   targetSectorIds?: string[]
   targetUserIds?: string[]
-  formId?: string
-  objectivesFormId?: string
+  formIds?: string[]
+  completionPct?: number
+  stats?: {
+    total: number
+    started: number
+    submitted: number
+    validated: number
+  }
   createdBy?: string
   createdAt?: string
   updatedAt?: string
@@ -333,11 +339,15 @@ export interface LdapConfig {
 }
 
 export interface MailTemplate {
-  id: string
-  name: string
+  id?: string
+  _id?: string
+  slug: string
+  name?: string
   subject: string
-  body: string
-  variables?: string[]
+  bodyText: string
+  bodyHtml?: string
+  lastEditedBy?: string
+  updatedAt?: string
 }
 
 export interface AuditLogEntry {

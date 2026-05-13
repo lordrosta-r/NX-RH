@@ -75,52 +75,58 @@ Transitions contrôlées par `CAMPAIGN_TRANSITIONS` dans `models/Campaign.js`.
 
 ---
 
-## 4. Flux Template-first (création et liaison d'un formulaire)
+## 4. Flux de liaison de formulaires à une campagne
 
-### 4.1 Créer un template (formulaire réutilisable)
+### 4.1 Créer un formulaire (bibliothèque)
 
 ```
 Admin/HR
   │
   │  POST /api/forms
-  │  { title, formType, questions, campaignId: null }
+  │  { title, formType, questions }
   ▼
-Form créé avec campaignId: null → Template de bibliothèque
+Form créé autonome (aucun lien de campagne direct)
   │
   ▼
-Visible dans /forms onglet "Templates"
-Peut être utilisé dans n'importe quelle campagne
+Visible dans /forms — bibliothèque globale
+Peut être lié à n'importe quelle campagne
 ```
 
-### 4.2 Copier un template vers une campagne
+### 4.2 Lier un formulaire à une campagne
 
 ```
-Admin/HR (depuis page Campagne)
+Admin/HR (depuis onglet "Formulaires" de la page Campagne)
   │
-  │  POST /api/campaigns/:id/copy-template
-  │  { templateId }
+  │  POST /api/campaigns/:id/forms
+  │  { formId }
   ▼
-Vérification : template existe + campaignId === null
-  │
-  ▼
-Copie : nouveau Form {
-  ...template.questions,
-  campaignId: campaign._id,
-  templateSourceId: template._id,
-  frozenAt: null
-}
+Vérification : form existe + non déjà lié
   │
   ▼
-Retourne le nouveau formulaire de campagne
-  ├── Template original reste intact (campaignId: null)
-  └── Peut être copié dans d'autres campagnes
+Campaign.formIds.push(formId)
+  │
+  ▼
+Retourne la campagne mise à jour
+  └── Formulaire partagé entre campagnes possible (pas de copie)
+```
+
+**Dissocier un formulaire :**
+
+```
+Admin/HR
+  │
+  │  DELETE /api/campaigns/:id/forms/:formId
+  ▼
+Campaign.formIds.pull(formId)
+  └── Le formulaire reste dans la bibliothèque
 ```
 
 **Règles :**
-- Un même template peut être copié dans plusieurs campagnes
-- Chaque campagne a sa propre copie indépendante
-- `templateSourceId` permet de tracer l'origine du formulaire
-- La copie est gélée (`frozenAt`) automatiquement à la première évaluation
+- Les formulaires sont autonomes — ils n'appartiennent pas à une campagne
+- `Campaign.formIds` est un tableau de références vers des `Form`
+- Un même formulaire peut être lié à plusieurs campagnes simultanément
+- Les formulaires se gèrent depuis l'onglet "Formulaires" de la page détail de campagne, non à la création
+- Le gel du formulaire (`frozenAt`) se déclenche à la première évaluation soumise
 
 ### 4.3 Multi-formulaires par campagne
 
@@ -129,15 +135,18 @@ Une campagne peut avoir **plusieurs formulaires** de types variés :
 - `manager_evaluation` : évaluation par le manager N+1
 - `upward_feedback` : feedback anonyme vers le manager
 - `director_evaluation` : évaluation par le directeur
+- `objectives` : formulaire d'objectifs
 
 ```
 Campaign
-  ├── Form (self_evaluation)      ← copy de template "Auto-éval Standard"
-  ├── Form (manager_evaluation)   ← copy de template "Éval Manager 360°"
-  └── Form (upward_feedback)      ← copy de template "Feedback Montant"
+  formIds: [
+    Form (self_evaluation)       ← "Auto-éval Standard"
+    Form (manager_evaluation)    ← "Éval Manager 360°"
+    Form (upward_feedback)       ← "Feedback Montant"
+  ]
 ```
 
-Toutes les copies sont gélées ensemble quand `POST /api/evaluations/bulk` est appelé.
+Tous les formulaires liés sont accessibles par les évaluateurs concernés.
 
 ---
 

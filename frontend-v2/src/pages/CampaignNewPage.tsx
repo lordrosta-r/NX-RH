@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { campaignsApi } from '../api/campaigns'
+import { orgApi } from '../api/org'
 import type { Campaign, CampaignStatus } from '../types'
 
 // ─── Shared sub-components ────────────────────────────────────────────────────
@@ -213,6 +214,12 @@ export default function CampaignNewPage() {
     enabled: form.enableN1Context,
   })
 
+  const { data: sectorsData } = useQuery({
+    queryKey: ['org-sectors'],
+    queryFn: () => orgApi.getSectors().then(r => r.data),
+    enabled: form.targetScope === 'sector',
+  })
+
   const createMutation = useMutation({
     mutationFn: (data: Partial<Campaign>) =>
       campaignsApi.createCampaign(data).then(r => r.data),
@@ -420,9 +427,30 @@ export default function CampaignNewPage() {
         {form.targetScope === 'sector' && (
           <div className="mt-4 pl-6">
             <Field label="Secteurs">
-              <p className="text-xs text-slate-400 italic">
-                Sélecteur de secteurs disponible prochainement (GET /api/org/sectors)
-              </p>
+              {sectorsData && sectorsData.length > 0 ? (
+                <div className="space-y-2">
+                  {sectorsData.map(sector => (
+                    <label key={sector._id ?? sector.id} className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={form.targetSectorIds.includes(sector._id ?? sector.id ?? '')}
+                        onChange={e => {
+                          const sid = sector._id ?? sector.id ?? ''
+                          if (e.target.checked) {
+                            set('targetSectorIds', [...form.targetSectorIds, sid])
+                          } else {
+                            set('targetSectorIds', form.targetSectorIds.filter(id => id !== sid))
+                          }
+                        }}
+                        className="rounded border-slate-300 text-primary-600 focus:ring-primary-500"
+                      />
+                      <span className="text-sm text-slate-700">{sector.name}</span>
+                    </label>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-slate-400 italic">Chargement des secteurs…</p>
+              )}
             </Field>
           </div>
         )}

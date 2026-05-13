@@ -33,14 +33,8 @@ export const adminApi = {
   getMailTemplates: () =>
     client.get<MailTemplate[]>('/api/admin/mail-templates'),
 
-  getMailTemplate: (id: string) =>
-    client.get<MailTemplate>(`/api/admin/mail-templates/${id}`),
-
-  updateMailTemplate: (id: string, data: Partial<MailTemplate>) =>
-    client.put<MailTemplate>(`/api/admin/mail-templates/${id}`, data),
-
-  sendTestMail: (templateId: string, to?: string) =>
-    client.post('/api/admin/mail-templates/test', { templateId, to }),
+  updateMailTemplate: (slug: string, data: { subject?: string; bodyText?: string; bodyHtml?: string; reset?: boolean }) =>
+    client.patch<MailTemplate>(`/api/admin/mail-templates/${slug}`, data),
 
   // Config keys CRUD
   getConfigKeys: () => client.get<Array<{ key: string; value: string }>>('/api/admin/config'),

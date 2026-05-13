@@ -1,7 +1,9 @@
 import { Link } from 'react-router-dom'
-import { ClipboardList, Users, Bell } from 'lucide-react'
+import { ClipboardList, Users, Bell, Calendar } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
 import { useDashboardManager } from '../hooks/useDashboardByRole'
 import { StatusBadge } from '../components/ui'
+import { eventsApi } from '../api/events'
 import type { Evaluation } from '../types'
 
 interface KpiCardProps {
@@ -119,6 +121,12 @@ function MyTeam({ evaluations }: { evaluations: Evaluation[] }) {
 export default function DashboardManagerPage() {
   const { evaluations } = useDashboardManager()
 
+  const { data: eventsData } = useQuery({
+    queryKey: ['dashboard-manager-events'],
+    queryFn: () => eventsApi.getEvents({ limit: 3 }),
+  })
+  const upcomingEvents = eventsData?.data?.items ?? []
+
   if (evaluations.isLoading) {
     return (
       <div>
@@ -190,11 +198,33 @@ export default function DashboardManagerPage() {
         </div>
       </div>
 
-      {/* Upcoming events — placeholder Sprint 8 */}
+      {/* Upcoming events */}
       <div className="grid grid-cols-12 gap-6">
         <div className="col-span-12 bg-white rounded-xl shadow-sm border border-slate-100 p-6">
-          <h2 className="text-lg font-semibold text-slate-900 mb-4">Prochains événements</h2>
-          <p className="text-sm text-slate-400 text-center py-4">Agenda disponible en Sprint 8</p>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-slate-900">Prochains événements</h2>
+            <Link to="/events" className="text-xs text-primary-600 hover:underline">Voir tout →</Link>
+          </div>
+          {upcomingEvents.length === 0 ? (
+            <p className="text-sm text-slate-400 text-center py-4">Aucun événement à venir.</p>
+          ) : (
+            <ul className="divide-y divide-slate-100">
+              {upcomingEvents.map(ev => (
+                <li key={ev.id} className="flex items-center gap-3 py-3">
+                  <div className="w-8 h-8 rounded-lg bg-primary-50 flex items-center justify-center flex-shrink-0">
+                    <Calendar size={15} className="text-primary-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-slate-900 truncate">{ev.title}</p>
+                    {(ev.startDate ?? ev.date) && (
+                      <p className="text-xs text-slate-400">{new Date(ev.startDate ?? ev.date!).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                    )}
+                  </div>
+                  <Link to={`/events/${ev.id}`} className="text-xs text-primary-600 hover:underline flex-shrink-0">Voir</Link>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </div>
     </div>

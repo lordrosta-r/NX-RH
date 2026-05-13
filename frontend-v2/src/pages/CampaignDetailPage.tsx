@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { BarChart2, Copy, Trash2, MoreVertical } from 'lucide-react'
+import { BarChart2, Copy, Trash2, MoreVertical, AlertTriangle, Plus, X, FileText } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { campaignsApi } from '../api/campaigns'
+import { formsApi } from '../api/forms'
 import { formatDate } from '../utils/formatDate'
 import { StatusBadge } from '../components/ui/StatusBadge'
-import type { Campaign } from '../types'
+import type { Campaign, Form } from '../types'
 
 type Tab = 'overview' | 'evaluations' | 'forms'
 
@@ -26,6 +27,7 @@ export default function CampaignDetailPage() {
   const [cloneModal, setCloneModal]     = useState(false)
   const [deleteModal, setDeleteModal]   = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState('')
+  const [addFormModal, setAddFormModal] = useState(false)
 
   const queryClient = useQueryClient()
   const invalidate  = () => queryClient.invalidateQueries({ queryKey: ['campaign', id] })
@@ -55,6 +57,20 @@ export default function CampaignDetailPage() {
   const cloneMutation = useMutation({
     mutationFn: () => campaignsApi.cloneCampaign(id!).then(r => r.data),
     onSuccess:  (newCampaign: Campaign) => navigate(`/campaigns/${newCampaign.id}`),
+  })
+  const linkFormMutation = useMutation({
+    mutationFn: (formId: string) => campaignsApi.linkForm(id!, formId),
+    onSuccess:  () => { invalidate(); setAddFormModal(false) },
+  })
+  const unlinkFormMutation = useMutation({
+    mutationFn: (formId: string) => campaignsApi.unlinkForm(id!, formId),
+    onSuccess:  invalidate,
+  })
+
+  const { data: allFormsData } = useQuery({
+    queryKey: ['forms-library'],
+    queryFn:  () => formsApi.getForms({ limit: 200 } as any).then(r => r.data),
+    enabled:  addFormModal,
   })
 
   const isAdminOrHr = user?.role === 'admin' || user?.role === 'hr'
@@ -294,26 +310,16 @@ export default function CampaignDetailPage() {
 
       {/* Onglet Formulaires */}
       {tab === 'forms' && (
-        <div>
-          {campaign?.formId ? (
-            <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
-              <p className="text-xs text-slate-400 uppercase font-medium mb-1">Formulaire principal</p>
-              <Link
-                to={`/forms/${campaign.formId}`}
-                className="flex items-center justify-between hover:bg-slate-50 rounded-lg p-3 -mx-3 group"
-              >
-                <span className="font-medium text-slate-700 group-hover:text-slate-900">
-                  Formulaire #{campaign.formId}
-                </span>
-                <span className="text-primary-500 text-sm">Consulter →</span>
-              </Link>
-            </div>
-          ) : (
-            <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-8 text-center text-slate-400 text-sm">
-              Aucun formulaire associé à cette campagne.
-            </div>
-          )}
-        </div>
+        <FormsTab
+          campaign={campaign}
+          isAdminOrHr={isAdminOrHr}
+          addFormModal={addFormModal}
+          setAddFormModal={setAddFormModal}
+          allForms={(allFormsData as any)?.data ?? []}
+          formIds={campaign?.formIds ?? []}
+          linkFormMutation={linkFormMutation}
+          unlinkFormMutation={unlinkFormMutation}
+        />
       )}
 
       {/* Modal Clonage */}
@@ -348,7 +354,10 @@ export default function CampaignDetailPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-xl mx-4">
             <h3 className="text-lg font-semibold text-slate-900 mb-2">Supprimer la campagne</h3>
-            <p className="text-sm text-slate-600 mb-3">⚠️ Cette action est irréversible.</p>
+            <p className="flex items-center gap-2 text-sm text-slate-600 mb-3">
+                <AlertTriangle size={16} className="text-error-500 shrink-0" />
+                Cette action est irréversible.
+              </p>
             <p className="text-sm text-slate-600 mb-2">Saisissez le nom de la campagne pour confirmer :</p>
             <p className="font-mono text-sm bg-slate-50 px-3 py-2 rounded mb-3">{campaign?.name}</p>
             <input
@@ -370,6 +379,176 @@ export default function CampaignDetailPage() {
                 className="bg-error-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-error-600 disabled:opacity-50"
               >
                 {deleteMutation.isPending ? 'Suppression…' : 'Supprimer définitivement'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─── FormsTab sub-component ───────────────────────────────────────────────────
+
+function FormsTab({
+  campaign,
+  isAdminOrHr,
+  addFormModal,
+  setAddFormModal,
+  allForms,
+  formIds,
+  linkFormMutation,
+  unlinkFormMutation,
+}: {
+  campaign: Campaign | undefined
+  isAdminOrHr: boolean
+  addFormModal: boolean
+  setAddFormModal: (v: boolean) => void
+  allForms: Form[]
+  formIds: string[]
+  linkFormMutation: ReturnType<typeof useMutation<unknown, Error, string>>
+  unlinkFormMutation: ReturnType<typeof useMutation<unknown, Error, string>>
+}) {
+  const linkedIds = new Set(formIds)
+  const availableForms = allForms.filter(f => !linkedIds.has(f.id))
+
+  const { data: linkedFormsData } = useQuery({
+    queryKey: ['forms-linked', formIds],
+    queryFn: async () => {
+      if (formIds.length === 0) return []
+      const results = await Promise.all(formIds.map(fid => formsApi.getForm(fid).then(r => r.data)))
+      return results
+    },
+    enabled: formIds.length > 0,
+  })
+
+  const linkedForms: Form[] = linkedFormsData ?? []
+
+  const formTypeLabel = (type: string) => {
+    const labels: Record<string, string> = {
+      self_evaluation:    'Auto-évaluation',
+      manager_evaluation: 'Évaluation manager',
+      upward_feedback:    'Feedback montant',
+      director_evaluation:'Évaluation directeur',
+      objectives:         'Objectifs',
+      peer_review:        'Peer review',
+    }
+    return labels[type] ?? type
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-slate-500">
+          {formIds.length === 0
+            ? 'Aucun formulaire associé.'
+            : `${formIds.length} formulaire${formIds.length > 1 ? 's' : ''} associé${formIds.length > 1 ? 's' : ''}`}
+        </p>
+        {isAdminOrHr && campaign?.status !== 'archived' && (
+          <button
+            onClick={() => setAddFormModal(true)}
+            className="flex items-center gap-1.5 text-sm font-medium text-primary-600 hover:text-primary-700 border border-primary-200 rounded-lg px-3 py-1.5 hover:bg-primary-50 transition-colors"
+          >
+            <Plus size={14} />
+            Ajouter un formulaire
+          </button>
+        )}
+      </div>
+
+      {formIds.length === 0 ? (
+        <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-8 text-center text-slate-400 text-sm">
+          <FileText className="w-10 h-10 mx-auto mb-3 text-slate-200" />
+          Aucun formulaire associé à cette campagne.
+          {isAdminOrHr && campaign?.status !== 'archived' && (
+            <p className="mt-2">
+              <button onClick={() => setAddFormModal(true)} className="text-primary-600 hover:underline">
+                Ajouter un formulaire depuis la bibliothèque
+              </button>
+            </p>
+          )}
+        </div>
+      ) : (
+        <div className="bg-white rounded-xl shadow-sm border border-slate-100 divide-y divide-slate-100">
+          {formIds.map(fid => {
+            const form = linkedForms.find(f => f.id === fid)
+            return (
+              <div key={fid} className="flex items-center justify-between p-4 hover:bg-slate-50 group">
+                <Link
+                  to={`/forms/${fid}`}
+                  className="flex items-center gap-3 min-w-0"
+                >
+                  <FileText size={16} className="text-slate-400 shrink-0" />
+                  <div className="min-w-0">
+                    <p className="font-medium text-slate-700 group-hover:text-slate-900 truncate">
+                      {form?.title ?? `Formulaire #${fid.slice(-6)}`}
+                    </p>
+                    {form?.formType && (
+                      <p className="text-xs text-slate-400">{formTypeLabel(form.formType)}</p>
+                    )}
+                  </div>
+                </Link>
+                <div className="flex items-center gap-2 shrink-0">
+                  <Link
+                    to={`/forms/${fid}`}
+                    className="text-xs text-primary-600 hover:text-primary-700 font-medium"
+                  >
+                    Consulter
+                  </Link>
+                  {isAdminOrHr && campaign?.status !== 'archived' && (
+                    <button
+                      onClick={() => unlinkFormMutation.mutate(fid)}
+                      disabled={unlinkFormMutation.isPending}
+                      className="p-1.5 rounded text-slate-300 hover:text-error-500 hover:bg-error-50 transition-colors"
+                      aria-label="Retirer ce formulaire"
+                    >
+                      <X size={14} />
+                    </button>
+                  )}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {/* Modal — bibliothèque de formulaires */}
+      {addFormModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 flex flex-col max-h-[80vh]">
+            <div className="flex items-center justify-between p-5 border-b border-slate-100">
+              <h3 className="text-base font-semibold text-slate-900">Ajouter un formulaire</h3>
+              <button onClick={() => setAddFormModal(false)} className="p-1.5 rounded hover:bg-slate-100 text-slate-400">
+                <X size={16} />
+              </button>
+            </div>
+            <div className="overflow-y-auto flex-1 divide-y divide-slate-100">
+              {availableForms.length === 0 ? (
+                <p className="p-6 text-center text-slate-400 text-sm">
+                  Tous les formulaires disponibles sont déjà liés à cette campagne.
+                </p>
+              ) : (
+                availableForms.map(f => (
+                  <button
+                    key={f.id}
+                    onClick={() => linkFormMutation.mutate(f.id)}
+                    disabled={linkFormMutation.isPending}
+                    className="w-full flex items-center justify-between p-4 hover:bg-slate-50 text-left transition-colors disabled:opacity-50"
+                  >
+                    <div className="min-w-0">
+                      <p className="font-medium text-slate-700 truncate">{f.title}</p>
+                      <p className="text-xs text-slate-400">{formTypeLabel(f.formType)}</p>
+                    </div>
+                    <Plus size={16} className="text-primary-500 shrink-0 ml-3" />
+                  </button>
+                ))
+              )}
+            </div>
+            <div className="p-4 border-t border-slate-100">
+              <button
+                onClick={() => setAddFormModal(false)}
+                className="w-full border border-slate-200 hover:bg-slate-50 px-4 py-2 rounded-lg text-sm font-medium"
+              >
+                Fermer
               </button>
             </div>
           </div>

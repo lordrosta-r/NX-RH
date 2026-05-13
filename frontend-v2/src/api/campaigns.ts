@@ -42,4 +42,10 @@ export const campaignsApi = {
 
   bulkRemind: (id: string, data?: { targetStatuses?: string[] }) =>
     client.post(`/api/campaigns/${id}/bulk-remind`, data),
+
+  linkForm: (campaignId: string, formId: string) =>
+    client.post(`/api/campaigns/${campaignId}/forms`, { formId }),
+
+  unlinkForm: (campaignId: string, formId: string) =>
+    client.delete(`/api/campaigns/${campaignId}/forms/${formId}`),
 }

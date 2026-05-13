@@ -1,8 +1,10 @@
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { ClipboardList, Check } from 'lucide-react'
+import { ClipboardList, Check, Calendar, BookOpen } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import client from '../api/client'
+import { eventsApi } from '../api/events'
+import { resourcesApi } from '../api/resources'
 import type { Evaluation, EvaluationStatus } from '../types'
 
 // ─── StatusBadge (inline) ────────────────────────────────────────────────────
@@ -74,6 +76,18 @@ export default function DashboardEmployeePage() {
         )
         .then((r) => r.data),
   })
+
+  const { data: eventsData } = useQuery({
+    queryKey: ['dashboard-employee-events'],
+    queryFn: () => eventsApi.getEvents({ limit: 3 }),
+  })
+  const upcomingEvents = eventsData?.data?.items ?? []
+
+  const { data: resourcesData } = useQuery({
+    queryKey: ['dashboard-employee-resources'],
+    queryFn: () => resourcesApi.getResources({ limit: 3, publishedOnly: true }),
+  })
+  const recentResources = resourcesData?.data?.items ?? []
 
   const showOnboarding = !!(user?.isActive && !user?.managerId)
 
@@ -196,7 +210,23 @@ export default function DashboardEmployeePage() {
               Voir tout →
             </Link>
           </div>
-          <p className="text-sm text-slate-400 text-center py-4">Disponible en Sprint 8</p>
+          {upcomingEvents.length === 0 ? (
+            <p className="text-sm text-slate-400 text-center py-4">Aucun événement à venir.</p>
+          ) : (
+            <ul className="divide-y divide-slate-100">
+              {upcomingEvents.map(ev => (
+                <li key={ev.id} className="flex items-center gap-3 py-2">
+                  <Calendar size={14} className="text-primary-500 flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-slate-800 truncate">{ev.title}</p>
+                    {(ev.startDate ?? ev.date) && (
+                      <p className="text-xs text-slate-400">{new Date(ev.startDate ?? ev.date!).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</p>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </div>
 
@@ -209,7 +239,22 @@ export default function DashboardEmployeePage() {
               Voir tout →
             </Link>
           </div>
-          <p className="text-sm text-slate-400 text-center py-4">Disponible en Sprint 8</p>
+          {recentResources.length === 0 ? (
+            <p className="text-sm text-slate-400 text-center py-4">Aucune ressource disponible.</p>
+          ) : (
+            <ul className="divide-y divide-slate-100">
+              {recentResources.map(r => (
+                <li key={r.id} className="flex items-center gap-3 py-2">
+                  <BookOpen size={14} className="text-slate-400 flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-slate-800 truncate">{r.title}</p>
+                    {r.category && <p className="text-xs text-slate-400">{r.category}</p>}
+                  </div>
+                  <Link to={`/resources/${r.id}`} className="text-xs text-primary-600 hover:underline flex-shrink-0">Voir</Link>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </div>
 

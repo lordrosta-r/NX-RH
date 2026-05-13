@@ -40,7 +40,7 @@ export const adminApi = {
   getConfigKeys: () => client.get<Array<{ key: string; value: string }>>('/api/admin/config'),
   setConfigKey: (key: string, value: string) => client.put('/api/admin/config/keys', { key, value }),
   deleteConfigKey: (key: string) => client.delete(`/api/admin/config/keys/${encodeURIComponent(key)}`),
-  sendTestEmail: (to: string) => client.post('/api/admin/config/test-email', { to }),
+  sendTestEmail: (to: string) => client.post('/api/admin/email/test', { to }),
   exportAuditCsv: (params?: { action?: string; actorId?: string; targetType?: string; from?: string; to?: string }) =>
     client.get('/api/admin/audit/export/csv', { params, responseType: 'blob' }),
   // RGPD advanced users

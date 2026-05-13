@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { campaignsApi } from '../api/campaigns'
-import { formsApi } from '../api/forms'
 import type { Campaign, CampaignStatus } from '../types'
 
 // ─── Shared sub-components ────────────────────────────────────────────────────
@@ -144,8 +143,6 @@ type FormState = {
   targetScope: 'all' | 'department' | 'sector' | 'users'
   targetSectorIds: string[]
   targetUserIds: string[]
-  formId: string
-  objectivesFormId: string
 }
 
 const initialForm: FormState = {
@@ -163,8 +160,6 @@ const initialForm: FormState = {
   targetScope: 'all',
   targetSectorIds: [],
   targetUserIds: [],
-  formId: '',
-  objectivesFormId: '',
 }
 
 function buildPayload(form: FormState, status: CampaignStatus): Partial<Campaign> {
@@ -184,8 +179,6 @@ function buildPayload(form: FormState, status: CampaignStatus): Partial<Campaign
     targetScope: form.targetScope,
     targetSectorIds: form.targetScope === 'sector' ? form.targetSectorIds : undefined,
     targetUserIds: form.targetScope === 'users' ? form.targetUserIds : undefined,
-    formId: form.formId,
-    objectivesFormId: form.objectivesFormId || undefined,
   }
 }
 
@@ -206,15 +199,9 @@ export default function CampaignNewPage() {
     if (!form.endDate) e.endDate = 'La date de fin est requise'
     if (form.startDate && form.endDate && form.endDate <= form.startDate)
       e.endDate = 'La date de fin doit être après la date de début'
-    if (!form.formId) e.formId = 'Le formulaire principal est requis'
     setErrors(e)
     return Object.keys(e).length === 0
   }
-
-  const { data: formsData } = useQuery({
-    queryKey: ['forms-select'],
-    queryFn: () => formsApi.getForms({ limit: 100 }).then(r => r.data),
-  })
 
   const { data: prevCampaigns } = useQuery({
     queryKey: ['campaigns-prev'],
@@ -455,34 +442,11 @@ export default function CampaignNewPage() {
 
       {/* Card 6 — Formulaires */}
       <Card title="Formulaires">
-        <Field label="Formulaire principal" required error={errors.formId}>
-          <select
-            value={form.formId}
-            onChange={e => set('formId', e.target.value)}
-            className={inputCls}
-          >
-            <option value="">Sélectionner un formulaire…</option>
-            {formsData?.data
-              ?.filter(f => f.formType !== 'objectives')
-              .map(f => (
-                <option key={f.id} value={f.id}>{f.title}</option>
-              ))}
-          </select>
-        </Field>
-        <Field label="Formulaire d'objectifs (optionnel)">
-          <select
-            value={form.objectivesFormId}
-            onChange={e => set('objectivesFormId', e.target.value)}
-            className={inputCls}
-          >
-            <option value="">Aucun</option>
-            {formsData?.data
-              ?.filter(f => f.formType === 'objectives')
-              .map(f => (
-                <option key={f.id} value={f.id}>{f.title}</option>
-              ))}
-          </select>
-        </Field>
+        <p className="text-sm text-slate-500">
+          Les formulaires se gèrent depuis la page de la campagne, une fois celle-ci créée.
+          Rendez-vous dans l'onglet <span className="font-medium text-slate-700">Formulaires</span> pour
+          associer un ou plusieurs formulaires depuis la bibliothèque.
+        </p>
       </Card>
 
       {/* Sticky bottom bar (mobile) */}

@@ -36,17 +36,6 @@ function formatDateRange(start: string, end: string) {
   return `${s} – ${e}`
 }
 
-function progressPlaceholder(id: string | undefined, status?: string): number {
-  if (status === 'draft') return 0
-  if (!id) return 42
-  let h = 5381
-  for (let i = 0; i < id.length; i++) {
-    h = ((h << 5) + h) ^ id.charCodeAt(i)
-    h = h >>> 0
-  }
-  return h % 101
-}
-
 /** Backend returns `_id` from lean() queries — this helper normalises to a string id */
 const cid = (c: Campaign): string => c.id ?? c._id ?? ''
 
@@ -267,7 +256,7 @@ export default function CampaignsPage() {
                 </thead>
                 <tbody className="divide-y divide-slate-50">
                   {campaigns.map(campaign => {
-                    const progress = progressPlaceholder(cid(campaign), campaign.status)
+                    const progress = campaign.completionPct ?? 0
                         <td className="px-4 py-3">
                           <Link
                             to={`/campaigns/${cid(campaign)}`}
@@ -317,7 +306,7 @@ export default function CampaignsPage() {
             {/* Mobile cards */}
             <div className="md:hidden divide-y divide-slate-100">
               {campaigns.map(campaign => {
-                const progress = progressPlaceholder(cid(campaign), campaign.status)
+                const progress = campaign.completionPct ?? 0
                     <div className="flex-1 min-w-0">
                       <Link
                         to={`/campaigns/${cid(campaign)}`}

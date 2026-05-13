@@ -98,6 +98,30 @@ router.get('/', async (req, res, next) => {
       Campaign.find(filter).populate('createdBy', 'firstName lastName email').sort({ startDate: -1 }).skip(skip).limit(limit).lean(),
       Campaign.countDocuments(filter),
     ])
+
+    // Enrich with completionPct from evaluations
+    if (campaigns.length > 0) {
+      const COMPLETED = ['submitted', 'validated']
+      const campaignIds = campaigns.map(c => c._id)
+      const stats = await Evaluation.aggregate([
+        { $match: { campaignId: { $in: campaignIds } } },
+        {
+          $group: {
+            _id: '$campaignId',
+            total: { $sum: 1 },
+            completed: { $sum: { $cond: [{ $in: ['$status', COMPLETED] }, 1, 0] } },
+          },
+        },
+      ])
+      const statsMap = {}
+      for (const s of stats) {
+        statsMap[s._id.toString()] = s.total > 0 ? Math.round((s.completed / s.total) * 100) : 0
+      }
+      for (const c of campaigns) {
+        c.completionPct = statsMap[c._id.toString()] ?? 0
+      }
+    }
+
     res.json({ data: campaigns, total, page, limit })
   } catch (err) {
     next(err)

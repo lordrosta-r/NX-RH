@@ -47,4 +47,7 @@ export const evaluationsApi = {
 
   createBulk: (data: { campaignId: string; pairs: Array<{ evaluateeId: string; evaluatorId: string }> }) =>
     client.post('/api/evaluations/bulk', data),
+
+  bulkAction: (data: { ids: string[]; action: 'archive' | 'sign_hr' | 'assign_reviewer'; reviewerId?: string }) =>
+    client.patch<{ success: number; skipped: number; errors: Array<{ id: string; reason: string }> }>('/api/evaluations/bulk', data),
 }

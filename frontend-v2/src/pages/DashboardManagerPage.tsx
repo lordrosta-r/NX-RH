@@ -4,7 +4,8 @@ import { useQuery } from '@tanstack/react-query'
 import { useDashboardManager } from '../hooks/useDashboardByRole'
 import { StatusBadge } from '../components/ui'
 import { eventsApi } from '../api/events'
-import type { Evaluation } from '../types'
+import { campaignsApi } from '../api/campaigns'
+import type { Evaluation, Campaign } from '../types'
 
 interface KpiCardProps {
   label: string
@@ -118,6 +119,87 @@ function MyTeam({ evaluations }: { evaluations: Evaluation[] }) {
   )
 }
 
+function CampaignsSkeleton() {
+  return (
+    <div className="space-y-3">
+      {[...Array(3)].map((_, i) => (
+        <div key={i} className="h-12 bg-slate-100 rounded-lg animate-pulse" />
+      ))}
+    </div>
+  )
+}
+
+function ActiveCampaigns() {
+  const { data, isLoading } = useQuery({
+    queryKey: ['dashboard-manager-campaigns'],
+    queryFn: () => campaignsApi.getCampaigns({ status: 'active', limit: 5 }),
+  })
+
+  const campaigns: Campaign[] = data?.data?.data ?? []
+
+  if (isLoading) return <CampaignsSkeleton />
+
+  if (campaigns.length === 0) {
+    return (
+      <p className="text-sm text-slate-400 text-center py-4">
+        Aucune campagne active
+      </p>
+    )
+  }
+
+  return (
+    <div className="space-y-2">
+      {campaigns.map(c => {
+        const pct =
+          c.completionPct != null
+            ? c.completionPct
+            : c.stats && c.stats.total > 0
+            ? Math.round(((c.stats.submitted + c.stats.validated) / c.stats.total) * 100)
+            : 0
+
+        return (
+          <div
+            key={c.id}
+            className="flex items-center gap-4 p-3 rounded-lg border border-slate-100 hover:bg-slate-50 transition-colors"
+          >
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-slate-900 truncate">{c.name}</p>
+              {c.endDate && (
+                <p className="text-xs text-slate-400 mt-0.5">
+                  {'Cloture : '}
+                  {new Date(c.endDate).toLocaleDateString('fr-FR', {
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric',
+                  })}
+                </p>
+              )}
+            </div>
+            <div className="w-40 flex-shrink-0">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs text-slate-500">Progression</span>
+                <span className="text-xs font-semibold text-slate-700">{pct}%</span>
+              </div>
+              <div className="w-full bg-slate-100 rounded-full h-1.5">
+                <div
+                  className="bg-primary-500 h-1.5 rounded-full transition-all"
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+            </div>
+            <Link
+              to={`/campaigns/${c.id}`}
+              className="text-xs text-primary-600 hover:text-primary-700 font-medium hover:underline flex-shrink-0"
+            >
+              Voir
+            </Link>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 export default function DashboardManagerPage() {
   const { evaluations } = useDashboardManager()
 
@@ -195,6 +277,19 @@ export default function DashboardManagerPage() {
         <div className="col-span-5 bg-white rounded-xl shadow-sm border border-slate-100 p-6">
           <h2 className="text-lg font-semibold text-slate-900 mb-4">Mon équipe</h2>
           <MyTeam evaluations={evalList} />
+        </div>
+      </div>
+
+      {/* Campagnes actives */}
+      <div className="grid grid-cols-12 gap-6 mb-6">
+        <div className="col-span-12 bg-white rounded-xl shadow-sm border border-slate-100 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-slate-900">Campagnes actives</h2>
+            <Link to="/campaigns" className="text-xs text-primary-600 hover:underline">
+              Voir toutes →
+            </Link>
+          </div>
+          <ActiveCampaigns />
         </div>
       </div>
 

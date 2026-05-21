@@ -30,26 +30,35 @@ router.post('/bulk-remind', async (req, res, next) => {
       message,
     } = req.body
 
-    if (!campaignId) {
-      return res.status(400).json({ error: 'campaignId est requis' })
+    // If no campaignId, target all active campaigns
+    let campaigns
+    if (campaignId) {
+      const campaign = await Campaign.findById(campaignId).lean()
+      if (!campaign) {
+        return res.status(404).json({ error: 'Campagne introuvable' })
+      }
+      if (campaign.status !== 'active') {
+        return res.status(400).json({ error: 'La campagne n\'est pas active' })
+      }
+      campaigns = [campaign]
+    } else {
+      campaigns = await Campaign.find({ status: 'active' }, '_id name').lean()
+      if (campaigns.length === 0) {
+        return res.json({ sent: 0, skipped: 0, campaignCount: 0 })
+      }
     }
 
-    const campaign = await Campaign.findById(campaignId).lean()
-    if (!campaign) {
-      return res.status(404).json({ error: 'Campagne introuvable' })
-    }
-    if (campaign.status !== 'active') {
-      return res.status(404).json({ error: 'La campagne n\'est pas active' })
-    }
+    const campaignIds = campaigns.map(c => c._id)
+    const campaignMap = Object.fromEntries(campaigns.map(c => [c._id.toString(), c.name]))
 
-    // Évaluations de la campagne correspondant aux statuts ciblés
+    // Évaluations de toutes les campagnes ciblées correspondant aux statuts ciblés
     const evaluations = await Evaluation.find(
-      { campaignId, status: { $in: targetStatuses } },
-      'evaluateeId evaluatorId',
+      { campaignId: { $in: campaignIds }, status: { $in: targetStatuses } },
+      'evaluateeId evaluatorId campaignId',
     ).lean()
 
     if (evaluations.length === 0) {
-      return res.json({ sent: 0, skipped: 0, campaignId })
+      return res.json({ sent: 0, skipped: 0, campaignCount: campaigns.length })
     }
 
     // Collecter les IDs destinataires selon les rôles ciblés (Set = dédup automatique)
@@ -65,7 +74,7 @@ router.post('/bulk-remind', async (req, res, next) => {
 
     const recipientIds = [...recipientIdSet]
     if (recipientIds.length === 0) {
-      return res.json({ sent: 0, skipped: 0, campaignId })
+      return res.json({ sent: 0, skipped: 0, campaignCount: campaigns.length })
     }
 
     // Charger les utilisateurs actifs avec les champs nécessaires à notify()
@@ -78,12 +87,22 @@ router.post('/bulk-remind', async (req, res, next) => {
     const validUsers = users.filter(u => u.email && u.email.includes('@'))
     const skipped    = recipientIds.length - validUsers.length
 
+    // Use campaign name for single campaign, generic label for multi
+    const campaignName = campaigns.length === 1
+      ? campaigns[0].name
+      : `${campaigns.length} campagnes actives`
+
     const sent = await notifyMany('bulkReminder', validUsers, {
-      campaignName: campaign.name,
+      campaignName,
       message,
     })
 
-    return res.json({ sent, skipped: skipped + (validUsers.length - sent), campaignId })
+    return res.json({
+      sent,
+      skipped: skipped + (validUsers.length - sent),
+      campaignCount: campaigns.length,
+      ...(campaignId ? { campaignId } : {}),
+    })
   } catch (err) {
     next(err)
   }

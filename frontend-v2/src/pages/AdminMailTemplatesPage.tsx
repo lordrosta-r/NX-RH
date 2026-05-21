@@ -1,20 +1,22 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Mail, ChevronDown, ChevronUp, RefreshCw, Save, AlertCircle } from 'lucide-react'
+import { Mail, ChevronDown, ChevronUp, RefreshCw, Save, AlertCircle, Send, CheckCircle } from 'lucide-react'
 import { adminApi } from '../api/admin'
+import { useAuth } from '../contexts/AuthContext'
 import type { MailTemplate } from '../types'
 
 const SLUG_LABELS: Record<string, string> = {
-  campaign_activated: 'Campagne activée',
-  campaign_closed: 'Campagne clôturée',
-  evaluation_assigned: 'Évaluation assignée',
-  evaluation_reminder: 'Rappel d\'évaluation',
-  evaluation_submitted: 'Évaluation soumise',
-  evaluation_validated: 'Évaluation validée',
-  hr_flag_created: 'Signal RH créé',
-  hr_flag_resolved: 'Signal RH résolu',
+  campaignLaunch: 'Campagne lancée',
+  evaluationAssigned: 'Évaluation assignée',
+  evaluationSubmitted: 'Évaluation soumise',
+  deadlineReminder: 'Rappel deadline',
+  managerActionRequired: 'Action manager requise',
+  systemAlerts: 'Alertes système',
+  bulkReminder: 'Rappel groupé',
+  request_treated: 'Demande traitée',
+  request_rejected: 'Demande rejetée',
   password_reset: 'Réinitialisation mot de passe',
-  welcome: 'Bienvenue',
+  welcome_import: 'Bienvenue (import)',
 }
 
 function formatDate(d?: string) {
@@ -161,9 +163,20 @@ function TemplateRow({ template }: { template: MailTemplate }) {
 }
 
 export default function AdminMailTemplatesPage() {
+  const { user } = useAuth()
+  const isAdmin = user?.role === 'admin'
+  const [smtpEmail, setSmtpEmail] = useState('')
+  const [smtpResult, setSmtpResult] = useState<{ ok: boolean; msg: string } | null>(null)
+
   const { data: templates, isLoading, isError } = useQuery<MailTemplate[]>({
     queryKey: ['mail-templates'],
     queryFn: () => adminApi.getMailTemplates().then(r => r.data),
+  })
+
+  const testSmtpMut = useMutation({
+    mutationFn: (to: string) => adminApi.sendTestEmail(to),
+    onSuccess: () => setSmtpResult({ ok: true, msg: 'Email envoyé avec succès.' }),
+    onError: () => setSmtpResult({ ok: false, msg: "Erreur lors de l'envoi. Vérifiez la configuration SMTP." }),
   })
 
   return (
@@ -174,6 +187,37 @@ export default function AdminMailTemplatesPage() {
           Personnalisez l'objet et le corps des emails envoyés automatiquement par la plateforme.
         </p>
       </div>
+
+      {isAdmin && (
+        <div className="bg-slate-50 border border-slate-200 rounded-xl p-5">
+          <h2 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
+            <Mail className="w-4 h-4" /> Tester l'envoi SMTP
+          </h2>
+          <div className="flex gap-3 items-start">
+            <input
+              type="email"
+              className="flex-1 px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-400 bg-white"
+              value={smtpEmail}
+              onChange={e => { setSmtpEmail(e.target.value); setSmtpResult(null) }}
+              placeholder="destinataire@exemple.com"
+            />
+            <button
+              onClick={() => testSmtpMut.mutate(smtpEmail)}
+              disabled={!smtpEmail || testSmtpMut.isPending}
+              className="flex items-center gap-2 px-4 py-2 text-sm bg-primary-500 text-white rounded-xl hover:bg-primary-600 disabled:opacity-50 transition"
+            >
+              <Send className="w-4 h-4" />
+              {testSmtpMut.isPending ? 'Envoi…' : 'Envoyer'}
+            </button>
+          </div>
+          {smtpResult && (
+            <p className={`mt-2 text-sm flex items-center gap-1 ${smtpResult.ok ? 'text-green-600' : 'text-red-600'}`}>
+              {smtpResult.ok ? <CheckCircle className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+              {smtpResult.msg}
+            </p>
+          )}
+        </div>
+      )}
 
       {isLoading && (
         <div className="space-y-3">

@@ -29,7 +29,7 @@ export const usersApi = {
   importUsers: (file: File) => {
     const formData = new FormData()
     formData.append('file', file)
-    return client.post<ImportResult>('/api/admin/users/import', formData, {
+    return client.post<ImportResult>('/api/users/import', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     })
   },

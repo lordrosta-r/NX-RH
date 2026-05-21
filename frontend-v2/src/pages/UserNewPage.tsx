@@ -8,7 +8,6 @@ import type { User } from '../types'
 const ROLE_LABELS: Record<string, string> = {
   admin: 'Admin',
   hr: 'RH',
-  director: 'Directeur',
   manager: 'Manager',
   employee: 'Employé',
 }

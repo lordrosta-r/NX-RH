@@ -6,7 +6,6 @@ import type { OrgTreeNode, Role } from '../types'
 const ROLE_COLORS: Record<Role, string> = {
   admin:    '#0D9488',
   hr:       '#059669',
-  director: '#7C3AED',
   manager:  '#2563EB',
   employee: '#64748B',
 }

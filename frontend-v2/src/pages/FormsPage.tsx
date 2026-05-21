@@ -5,6 +5,8 @@ import { Plus, Copy, Trash2, FileText } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { formsApi } from '../api/forms'
 import { campaignsApi } from '../api/campaigns'
+import { toast } from '../hooks/useToast'
+import ConfirmDialog from '../components/ui/ConfirmDialog'
 import type { Form } from '../types'
 
 const FORM_TYPE_CONFIG: Record<string, { label: string; color: string }> = {
@@ -26,6 +28,7 @@ export default function FormsPage() {
   const [search, setSearch] = useState('')
   const { user } = useAuth()
   const [cloneTarget, setCloneTarget] = useState<Form | null>(null)
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
   const queryClient = useQueryClient()
 
   const isAdminOrHr = user?.role === 'admin' || user?.role === 'hr'
@@ -47,6 +50,7 @@ export default function FormsPage() {
   const deleteMutation = useMutation({
     mutationFn: (id: string) => formsApi.deleteForm(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['forms'] }),
+    onError: () => toast.error('Erreur lors de la suppression', 'Veuillez réessayer.'),
   })
 
   const cloneMutation = useMutation({
@@ -55,12 +59,11 @@ export default function FormsPage() {
       queryClient.invalidateQueries({ queryKey: ['forms'] })
       setCloneTarget(null)
     },
+    onError: () => toast.error('Erreur lors de la duplication', 'Veuillez réessayer.'),
   })
 
   function handleDelete(id: string) {
-    if (window.confirm('Supprimer ce formulaire ?')) {
-      deleteMutation.mutate(id)
-    }
+    setDeleteConfirmId(id)
   }
 
   const forms = data?.data ?? []
@@ -220,6 +223,20 @@ export default function FormsPage() {
           </div>
         </div>
       )}
+
+      {/* Confirm delete */}
+      <ConfirmDialog
+        isOpen={deleteConfirmId !== null}
+        onClose={() => setDeleteConfirmId(null)}
+        onConfirm={() => {
+          if (deleteConfirmId) deleteMutation.mutate(deleteConfirmId)
+          setDeleteConfirmId(null)
+        }}
+        title="Supprimer le formulaire"
+        description="Cette action est irréversible. Le formulaire sera définitivement supprimé."
+        confirmLabel="Supprimer"
+        loading={deleteMutation.isPending}
+      />
     </div>
   )
 }

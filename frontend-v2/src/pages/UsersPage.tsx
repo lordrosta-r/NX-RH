@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tansta
 import { Search, UserPlus, MoreVertical, Users, Plus, ChevronLeft, ChevronRight, X } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { usersApi } from '../api/users'
+import { toast } from '../hooks/useToast'
 import type { User } from '../types'
 
 const PER_PAGE = 20
@@ -11,7 +12,6 @@ const PER_PAGE = 20
 const ROLE_BADGES: Record<string, string> = {
   admin: 'bg-error-50 text-error-700',
   hr: 'bg-warning-50 text-warning-700',
-  director: 'bg-purple-50 text-purple-700',
   manager: 'bg-primary-50 text-primary-700',
   employee: 'bg-slate-100 text-slate-700',
 }
@@ -19,7 +19,6 @@ const ROLE_BADGES: Record<string, string> = {
 const ROLE_LABELS: Record<string, string> = {
   admin: 'Admin',
   hr: 'RH',
-  director: 'Directeur',
   manager: 'Manager',
   employee: 'Employé',
 }
@@ -81,6 +80,7 @@ function ActionMenu({ user: u, currentRole, onOffboard, onAnonymize }: {
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen(v => !v)}
+        aria-label="Actions utilisateur"
         className="p-1.5 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
       >
         <MoreVertical className="w-4 h-4" />
@@ -196,6 +196,7 @@ export default function UsersPage() {
   const offboardMutation = useMutation({
     mutationFn: (id: string) => usersApi.offboard(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['users'] }),
+    onError: () => toast.error('Erreur lors de l\'offboarding', 'Veuillez réessayer.'),
   })
 
   const anonymizeMutation = useMutation({
@@ -205,6 +206,7 @@ export default function UsersPage() {
       setAnonymizeModal(null)
       setConfirmText('')
     },
+    onError: () => toast.error('Erreur lors de l\'anonymisation', 'Veuillez réessayer.'),
   })
 
   function handleAnonymize() {
@@ -277,7 +279,6 @@ export default function UsersPage() {
           <option value="">Tous les rôles</option>
           <option value="admin">Admin</option>
           <option value="hr">RH</option>
-          <option value="director">Directeur</option>
           <option value="manager">Manager</option>
           <option value="employee">Employé</option>
         </select>
@@ -415,6 +416,7 @@ export default function UsersPage() {
               <button
                 onClick={() => setPage(p => Math.max(1, p - 1))}
                 disabled={page === 1}
+                aria-label="Page précédente"
                 className="px-2 py-1 text-sm border border-slate-200 rounded hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 <ChevronLeft className="w-4 h-4" />
@@ -435,6 +437,7 @@ export default function UsersPage() {
               <button
                 onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
+                aria-label="Page suivante"
                 className="px-2 py-1 text-sm border border-slate-200 rounded hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 <ChevronRight className="w-4 h-4" />

@@ -186,7 +186,7 @@ export default function ProfilePage() {
   ]
 
   const roleLabels: Record<string, string> = {
-    admin: 'Administrateur', hr: 'RH', director: 'Directeur',
+    admin: 'Administrateur', hr: 'RH',
     manager: 'Manager', employee: 'Employé',
   }
 

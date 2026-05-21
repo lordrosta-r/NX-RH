@@ -80,7 +80,6 @@ export type CampaignStatus = keyof typeof CAMPAIGN_STATUS_CONFIG
 export const ROLE_CONFIG = {
   admin: { label: 'Administrateur', color: 'bg-error-50 text-error-700 border-error-200' },
   hr: { label: 'RH', color: 'bg-primary-50 text-primary-700 border-primary-200' },
-  director: { label: 'Directeur', color: 'bg-warning-50 text-warning-700 border-warning-200' },
   manager: { label: 'Manager', color: 'bg-info-50 text-info-700 border-info-200' },
   employee: { label: 'Collaborateur', color: 'bg-slate-100 text-slate-700 border-slate-200' },
 } as const

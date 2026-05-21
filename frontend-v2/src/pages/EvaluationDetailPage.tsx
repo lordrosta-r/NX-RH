@@ -20,7 +20,7 @@ export default function EvaluationDetailPage() {
   const isEvaluator = evaluation?.evaluatorId === user?.id
   const isEvaluatee = evaluation?.evaluateeId === user?.id
   const isAdminOrHr = user?.role === 'admin' || user?.role === 'hr'
-  const isManager = user?.role === 'manager' || user?.role === 'director'
+  const isManager = user?.role === 'manager'
   const status = evaluation?.status ?? 'assigned'
 
   const mode = useMemo(() => {

@@ -29,8 +29,8 @@
 
 **NanoXplore RH** is a lightweight, self-hosted web application for managing the full lifecycle of annual performance reviews — from campaign creation to manager validation.
 
-- **Multi-Page Application (MPA):** Express handles server-side routing. No client-side router bloat.
-- **React per page:** Each page is an independent React bundle — fast initial loads, zero shared state overhead.
+- **Single-Page Application (SPA):** React Router v6 handles all client-side routing. One React bundle, seamless navigation.
+- **React + Vite:** Full-featured frontend in `frontend-v2/` — TypeScript, TailwindCSS, React Query, and React Router v6.
 - **Docker-native:** Production-ready stack with Nginx SSL termination and horizontal scaling out of the box.
 
 ---
@@ -57,18 +57,17 @@
   Browser ──HTTPS──▶ ┌─────┴──────┐     ┌──────────────────────┐    │
                       │   Nginx    │────▶│    Express (app)      │    │
   (port 443)          │  (proxy +  │     │                       │    │
-                      │  SSL/TLS)  │     │  ┌── MPA Router ──┐  │    │
-                      └─────┬──────┘     │  │  GET /         │  │    │
-                            │            │  │  GET /dashboard│  │    │
-                     ┌──────┘            │  │  GET /manager  │  │    │
-                     │  Load balance     │  └────────────────┘  │    │
-                     │  across replicas  │                       │    │
-                     │                  │  ┌── API Routes ───┐  │    │
-                     ▼                  │  │  /api/auth      │  │    │
-              ┌──────────────┐          │  │  /api/users     │◀─┼────┼── fetch()
-              │  app (×1-N)  │          │  │  /api/campaigns │  │    │
-              └──────────────┘          │  │  /api/forms     │  │    │
-                                        │  │  /api/evals     │  │    │
+                      │  SSL/TLS)  │     │  ┌── Static SPA ───┐  │    │
+                      └─────┬──────┘     │  │  GET /*         │  │    │
+                            │            │  │  → index.html   │  │    │
+                     ┌──────┘            │  └────────────────┘  │    │
+                     │  Load balance     │                       │    │
+                     │  across replicas  │  ┌── API Routes ───┐  │    │
+                     │                  │  │  /api/auth      │  │    │
+                     ▼                  │  │  /api/users     │◀─┼────┼── fetch()
+              ┌──────────────┐          │  │  /api/campaigns │  │    │
+              │  app (×1-N)  │          │  │  /api/forms     │  │    │
+              └──────────────┘          │  │  /api/evals     │  │    │
                                         │  └─────────────────┘  │    │
                                         └──────────┬───────────┘    │
                                                    │                  │
@@ -84,14 +83,13 @@
                             └─────────────────────────────────────────┘
 ```
 
-### MPA Data Flow
+### SPA Data Flow
 
 ```
-  client/login.html ──▶ src/pages/login/main.jsx   ──┐
-  client/dashboard.html ▶ src/pages/dashboard/main.jsx├─▶ Vite build ──▶ mongo/server/public/
-  client/manager.html  ──▶ src/pages/manager/main.jsx ┘
+  frontend-v2/src/main.tsx  ──▶ React Router v6 ──▶ <App /> (client-side routing)
 
-  Browser ──GET /dashboard──▶ Express ──authGuard──▶ sendFile(public/dashboard.html)
+  Browser ──GET /dashboard──▶ Nginx ──▶ Express ──authGuard──▶ sendFile(index.html)
+  React Router renders the matching page component client-side.
   Browser ──fetch /api/──────▶ Express ──route────▶  JSON response
 ```
 
@@ -102,8 +100,8 @@
 | Layer | Technology | Role |
 |-------|-----------|------|
 | **Reverse Proxy** | Nginx 1.27 | SSL termination, load balancing, rate limiting, gzip |
-| **Backend** | Node.js 20 + Express 4 | MPA router, REST API, JWT auth |
-| **Frontend** | React 18 + Vite 5 | Per-page UI bundles (MPA mode) |
+| **Backend** | Node.js 20 + Express 4 | REST API, JWT auth, static SPA serving |
+| **Frontend** | React 19 + Vite + TailwindCSS + React Router v6 | SPA in `frontend-v2/` |
 | **Database** | MongoDB 7 | Document store, Mongoose ODM |
 | **Auth** | JWT + bcrypt / LDAP | Local or directory-based authentication |
 | **Mail** | Nodemailer | Any SMTP relay |
@@ -176,16 +174,16 @@ Password: changeme
 ```bash
 # 1. Install dependencies
 cd mongo/server && npm install
-cd ../client && npm install
+cd ../../frontend-v2 && npm install
 
 # 2. Initialize the database
-node mongo/database/seed.js
+cd ../mongo && node database/seed.js
 
 # 3. Start the backend (port 3000)
 cd mongo/server && npm run dev
 
 # 4. Start Vite dev server with HMR (port 5173)
-cd client && npm run dev
+cd frontend-v2 && npm run dev
 # → API calls are proxied to http://localhost:3000 automatically
 ```
 
@@ -267,7 +265,7 @@ MAIL_PORT=2525
 ```
 nanoxplore-rh/
 │
-├── Dockerfile                    ← Multi-stage build (client + server)
+├── Dockerfile                    ← Multi-stage build (frontend-v2 + server)
 ├── docker-compose.yml            ← Production stack (nginx + app + db)
 ├── docker-compose.dev.yml        ← Dev overrides (live-reload, exposed ports)
 ├── .env.example                  ← All configurable variables documented
@@ -283,9 +281,8 @@ nanoxplore-rh/
 │   ├── gen-certs.sh              ← Self-signed cert generator (dev)
 │   └── certbot-init.sh           ← Let's Encrypt issuance (prod)
 │
-│
 ├── mongo/server/                 ← Express backend
-│   ├── index.js                  ← App entry: MPA routes + API mounts
+│   ├── index.js                  ← App entry: API mounts + static SPA serving
 │   ├── config/
 │   │   └── db.js                 ← Mongoose connection
 │   ├── middleware/
@@ -300,20 +297,21 @@ nanoxplore-rh/
 │       ├── ldap.js               ← LDAP/AD connector (AD + OpenLDAP)
 │       └── mailer.js             ← Nodemailer SMTP transport
 │
-└── client/                       ← Vite + React (MPA)
-    ├── vite.config.js            ← Multi-entry build config
-    ├── login.html                ← Entry: GET /
-    ├── dashboard.html            ← Entry: GET /dashboard
-    ├── manager.html              ← Entry: GET /manager
+└── frontend-v2/                  ← React SPA (Vite + TypeScript + TailwindCSS)
+    ├── vite.config.ts            ← Vite config with API proxy
+    ├── index.html                ← Single HTML entry point
     └── src/
-        ├── pages/
-        │   ├── login/            main.jsx + Login.jsx
-        │   ├── dashboard/        main.jsx + Dashboard.jsx
-        │   └── manager/          main.jsx + Manager.jsx
-        ├── components/ui/
-        │   └── Button.jsx
-        └── styles/
-            └── global.css
+        ├── main.tsx              ← React entry + React Router setup
+        ├── App.tsx               ← Route definitions (React Router v6)
+        ├── types/                ← Shared TypeScript types
+        ├── api/                  ← Axios API clients per resource
+        ├── contexts/             ← AuthContext and other React contexts
+        ├── hooks/                ← Custom React hooks (React Query)
+        ├── components/           ← Shared UI components
+        │   ├── layout/           ← Navbar, Sidebar, Layout wrapper
+        │   └── ui/               ← Buttons, badges, modals, etc.
+        ├── pages/                ← One component per route
+        └── lib/                  ← Constants, utilities
 ```
 
 ---
@@ -321,21 +319,15 @@ nanoxplore-rh/
 ## Adding a New Page
 
 ```bash
-# 1. Create the HTML entry point
-touch client/new-page.html        # copy from client/dashboard.html
+# 1. Create the page component
+touch frontend-v2/src/pages/NewPage.tsx
 
-# 2. Create the React bundle
-mkdir -p client/src/pages/new-page
-touch client/src/pages/new-page/main.jsx
-touch client/src/pages/new-page/NewPage.jsx
+# 2. Register the route in App.tsx
+# frontend-v2/src/App.tsx:
+#   <Route path="/new-page" element={<NewPage />} />
 
-# 3. Register in Vite
-# client/vite.config.js → rollupOptions.input:
-#   'new-page': resolve(__dirname, 'new-page.html'),
-
-# 4. Register in Express
-# mongo/server/index.js:
-#   app.get('/new-page', authGuard([...]), sendPage('new-page'))
+# 3. Add a nav link in Navbar.tsx if needed
+# frontend-v2/src/components/layout/Navbar.tsx
 ```
 
 ---

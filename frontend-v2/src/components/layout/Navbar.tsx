@@ -60,11 +60,9 @@ function getNavItems(role: Role): NavItem[] {
     {
       label: 'Administration',
       dropdown: [
-        { label: 'Configuration', href: '/admin/config' },
-        { label: 'LDAP', href: '/admin/ldap' },
+        { label: 'Portail admin', href: '/admin' },
         { label: "Journal d'audit", href: '/admin/audit' },
-        { label: 'Utilisateurs (import)', href: '/admin/users/import', separator: true },
-        { label: 'Email templates', href: '/admin/mail-templates' },
+        { label: 'Paramètres RH', href: '/admin/settings', separator: true },
       ],
     },
   ]
@@ -95,25 +93,16 @@ function getNavItems(role: Role): NavItem[] {
       ],
     },
     pilotage,
-  ]
-
-  if (role === 'director') return [
-    dashboard,
     {
-      label: 'Mon Équipe',
+      label: 'Paramètres',
       dropdown: [
-        { label: 'Collaborateurs', href: '/users' },
-        { label: 'Organigramme', href: '/org' },
+        { label: 'Paramètres RH', href: '/admin/settings' },
+        { label: "Journal d'audit", href: '/admin/audit' },
+        { label: 'Utilisateurs (import)', href: '/admin/users/import' },
+        { label: 'Import formulaires', href: '/admin/forms/import' },
+        { label: 'Email templates', href: '/admin/mail-templates' },
       ],
     },
-    {
-      label: 'Évaluations',
-      dropdown: [
-        { label: 'Mes évaluations', href: '/evaluations' },
-        { label: 'Historique équipe', href: '/evaluations/history' },
-      ],
-    },
-    pilotageNoAnalytics,
   ]
 
   if (role === 'manager') return [
@@ -125,6 +114,7 @@ function getNavItems(role: Role): NavItem[] {
         { label: 'Organigramme', href: '/org' },
       ],
     },
+    { label: 'Campagnes', href: '/campaigns' },
     {
       label: 'Évaluations',
       dropdown: [

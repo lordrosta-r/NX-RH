@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { campaignsApi } from '../api/campaigns'
 import { orgApi } from '../api/org'
 import type { Campaign, CampaignStatus } from '../types'
+import Button from '../components/ui/Button'
 
 // ─── Shared sub-components ────────────────────────────────────────────────────
 
@@ -96,7 +97,7 @@ function ChipInput({
         <button
           type="button"
           onClick={add}
-          className="px-3 py-2 text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors"
+          className="px-3 py-2 text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md transition-colors"
         >
           Ajouter
         </button>
@@ -296,13 +297,14 @@ export default function CampaignEditPage() {
           >
             Annuler
           </Link>
-          <button
+          <Button
+            variant="primary"
             onClick={handleSave}
+            loading={updateMutation.isPending}
             disabled={updateMutation.isPending}
-            className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50"
           >
             Enregistrer
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -514,13 +516,15 @@ export default function CampaignEditPage() {
         >
           Annuler
         </Link>
-        <button
+        <Button
+          variant="primary"
+          className="flex-1"
           onClick={handleSave}
+          loading={updateMutation.isPending}
           disabled={updateMutation.isPending}
-          className="flex-1 px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg disabled:opacity-50"
         >
           Enregistrer
-        </button>
+        </Button>
       </div>
     </div>
   )

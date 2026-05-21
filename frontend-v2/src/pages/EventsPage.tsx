@@ -4,7 +4,7 @@ import type { LucideIcon } from 'lucide-react'
 import {
   Calendar, Clock, Users, Star, BarChart2, ClipboardList,
   LogOut, MessageSquare, ChevronLeft, ChevronRight, Plus, X,
-  MoreVertical, Trash2, Eye, Pencil,
+  MoreVertical, Trash2, Eye, Pencil, AlertTriangle,
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { eventsApi } from '../api/events'
@@ -120,7 +120,7 @@ function CalendarGrid({ year, month, events, selectedDay, onDayClick }: Calendar
             <button
               key={i}
               onClick={() => onDayClick(day)}
-              className={`h-20 p-1.5 rounded-lg text-left transition-colors hover:bg-slate-50 ${
+              className={`h-20 p-1.5 rounded-md text-left transition-colors hover:bg-slate-50 ${
                 selectedDay === day ? 'ring-2 ring-primary-500 bg-primary-50' : ''
               }`}
             >
@@ -206,7 +206,7 @@ function EventSlideOver({
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
           <h2 className="text-lg font-semibold text-slate-900">{heading}</h2>
-          <button onClick={onClose} className="p-2 rounded-lg hover:bg-slate-100 text-slate-400 transition-colors">
+          <button onClick={onClose} className="p-2 rounded-md hover:bg-slate-100 text-slate-400 transition-colors">
             <X size={20} />
           </button>
         </div>
@@ -313,7 +313,7 @@ function EventSlideOver({
           <div className="flex flex-col gap-2 px-6 py-4 border-t border-slate-100">
             {error && (
               <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
-                <span className="flex-shrink-0">⚠️</span>
+                <span className="flex-shrink-0"><AlertTriangle className="w-4 h-4 text-red-500" /></span>
                 <span>{error}</span>
               </div>
             )}
@@ -326,7 +326,7 @@ function EventSlideOver({
               </button>
               <button
                 type="submit" disabled={isPending}
-                className="flex items-center gap-2 bg-primary-500 hover:bg-primary-600 disabled:opacity-60 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+                className="flex items-center gap-2 bg-primary-500 hover:bg-primary-600 disabled:opacity-60 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
               >
                 {isPending && (
                   <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
@@ -378,7 +378,7 @@ function ConfirmDialog({
             <button
               onClick={onConfirm}
               disabled={isPending}
-              className="flex items-center gap-2 bg-red-500 hover:bg-red-600 disabled:opacity-60 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+              className="flex items-center gap-2 bg-red-500 hover:bg-red-600 disabled:opacity-60 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
             >
               {isPending && (
                 <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
@@ -526,7 +526,7 @@ export default function EventsPage() {
               <button
                 key={v}
                 onClick={() => setView(v)}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
                   view === v
                     ? 'bg-white text-slate-900 shadow-sm'
                     : 'text-slate-500 hover:text-slate-700'
@@ -550,7 +550,7 @@ export default function EventsPage() {
           {canEdit && (
             <button
               onClick={() => setIsSlideOverOpen(true)}
-              className="flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+              className="flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
             >
               <Plus size={16} />
               Nouvel événement
@@ -565,7 +565,7 @@ export default function EventsPage() {
           <button
             key={v}
             onClick={() => setView(v)}
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
               view === v
                 ? 'bg-white text-slate-900 shadow-sm'
                 : 'text-slate-500 hover:text-slate-700'
@@ -583,7 +583,7 @@ export default function EventsPage() {
           <div className="flex items-center justify-between">
             <button
               onClick={prevMonth}
-              className="p-2 rounded-xl hover:bg-slate-100 text-slate-500 transition-colors"
+              className="p-2 rounded-md hover:bg-slate-100 text-slate-500 transition-colors"
             >
               <ChevronLeft size={20} />
             </button>
@@ -592,7 +592,7 @@ export default function EventsPage() {
             </h2>
             <button
               onClick={nextMonth}
-              className="p-2 rounded-xl hover:bg-slate-100 text-slate-500 transition-colors"
+              className="p-2 rounded-md hover:bg-slate-100 text-slate-500 transition-colors"
             >
               <ChevronRight size={20} />
             </button>
@@ -721,7 +721,7 @@ export default function EventsPage() {
                             <div className="relative" onClick={e => e.stopPropagation()}>
                               <button
                                 onClick={() => setOpenMenuId(openMenuId === ev.id ? null : ev.id)}
-                                className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
+                                className="p-1.5 rounded-md hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
                               >
                                 <MoreVertical size={16} />
                               </button>
@@ -781,7 +781,7 @@ export default function EventsPage() {
                       <div className="relative" onClick={e => e.stopPropagation()}>
                         <button
                           onClick={() => setOpenMenuId(openMenuId === ev.id ? null : ev.id)}
-                          className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400"
+                          className="p-1.5 rounded-md hover:bg-slate-100 text-slate-400"
                         >
                           <MoreVertical size={16} />
                         </button>

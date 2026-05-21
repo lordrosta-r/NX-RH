@@ -28,6 +28,12 @@ export default function EvaluationHistoryPage() {
 
   const years = [...new Set(evaluations.map(e => e.createdAt?.slice(0, 4)).filter(Boolean))].sort().reverse() as string[]
 
+  const filteredEvaluations = evaluations.filter(ev => {
+    if (yearFilter && ev.createdAt?.slice(0, 4) !== yearFilter) return false
+    if (campaignFilter && ev.campaign?.name !== campaignFilter) return false
+    return true
+  })
+
   return (
     <div>
       {/* Header */}
@@ -73,7 +79,7 @@ export default function EvaluationHistoryPage() {
             <div key={i} className="h-36 bg-slate-100 rounded-xl animate-pulse" />
           ))}
         </div>
-      ) : evaluations.length === 0 ? (
+      ) : filteredEvaluations.length === 0 ? (
         <div className="text-center py-16">
           <History className="w-12 h-12 text-slate-200 mx-auto mb-3" />
           <p className="text-slate-500 font-medium">Aucun entretien terminé pour l'instant.</p>
@@ -81,7 +87,7 @@ export default function EvaluationHistoryPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {evaluations.map(ev => (
+          {filteredEvaluations.map(ev => (
             <div key={ev.id} className="bg-white rounded-xl border border-slate-200 p-5 hover:shadow-sm transition-shadow">
               <div className="flex items-start justify-between mb-3">
                 <div>

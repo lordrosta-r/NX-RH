@@ -172,7 +172,7 @@ export default function DashboardAdminPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-2xl font-bold text-slate-900">
-          Tableau de bord · Bonjour, {user?.firstName ?? '...'} 👋
+          Tableau de bord · Bonjour, {user?.firstName ?? '...'}
         </h1>
         <button
           disabled

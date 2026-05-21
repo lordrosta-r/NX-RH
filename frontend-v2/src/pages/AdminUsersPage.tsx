@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Search, Download, UserX, X, ShieldOff } from 'lucide-react'
+import { Search, Download, UserX, X, ShieldOff, AlertTriangle } from 'lucide-react'
 import { adminApi } from '../api/admin'
 import type { User, PaginatedResponse } from '../types'
 import { useAuth } from '../contexts/AuthContext'
@@ -78,7 +78,7 @@ export default function AdminUsersPage() {
 
       {hasOffboarding && (
         <div className="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-center gap-3">
-          <span className="text-lg">⚠️</span>
+          <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0" />
           <p className="text-sm font-medium text-amber-800">Des utilisateurs sont en cours d'offboarding. Vérifiez les dossiers.</p>
         </div>
       )}
@@ -181,7 +181,7 @@ export default function AdminUsersPage() {
               <button onClick={() => setConfirmUser(null)} className="p-1 text-slate-400 hover:text-slate-700"><X size={18} /></button>
             </div>
             <p className="text-sm text-slate-600 mb-2">Vous êtes sur le point d'anonymiser <strong>{confirmUser.firstName} {confirmUser.lastName}</strong>.</p>
-            <p className="text-sm text-red-600 mb-4 font-medium">⚠️ Cette action est irréversible. Toutes les données personnelles seront effacées.</p>
+            <p className="text-sm text-red-600 mb-4 font-medium flex items-center gap-1"><AlertTriangle className="w-4 h-4 shrink-0" /> Cette action est irréversible. Toutes les données personnelles seront effacées.</p>
             <label className="block text-sm font-medium text-slate-700 mb-1">Saisissez <span className="font-mono font-bold">CONFIRMER</span> pour continuer</label>
             <input
               className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-400 mb-4"
@@ -190,11 +190,11 @@ export default function AdminUsersPage() {
               placeholder="CONFIRMER"
             />
             <div className="flex justify-end gap-3">
-              <button onClick={() => setConfirmUser(null)} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-xl border border-slate-200">Annuler</button>
+              <button onClick={() => setConfirmUser(null)} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-md border border-slate-200">Annuler</button>
               <button
                 onClick={() => anonymizeMut.mutate(confirmUser.id)}
                 disabled={confirmText !== 'CONFIRMER' || anonymizeMut.isPending}
-                className="px-4 py-2 text-sm bg-red-500 text-white rounded-xl hover:bg-red-600 disabled:opacity-50 transition"
+                className="px-4 py-2 text-sm bg-red-500 text-white rounded-md hover:bg-red-600 disabled:opacity-50 transition"
               >
                 {anonymizeMut.isPending ? 'Anonymisation…' : 'Anonymiser'}
               </button>
@@ -217,11 +217,11 @@ export default function AdminUsersPage() {
             </p>
             <p className="text-sm text-amber-700 font-medium mb-6">Cette action désactivera immédiatement l'accès de cet utilisateur.</p>
             <div className="flex justify-end gap-3">
-              <button onClick={() => setDeactivateTarget(null)} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-xl border border-slate-200">Annuler</button>
+              <button onClick={() => setDeactivateTarget(null)} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-md border border-slate-200">Annuler</button>
               <button
                 onClick={() => forceDeactivateMut.mutate(deactivateTarget.id)}
                 disabled={forceDeactivateMut.isPending}
-                className="px-4 py-2 text-sm bg-amber-500 text-white rounded-xl hover:bg-amber-600 disabled:opacity-50 transition"
+                className="px-4 py-2 text-sm bg-amber-500 text-white rounded-md hover:bg-amber-600 disabled:opacity-50 transition"
               >
                 {forceDeactivateMut.isPending ? 'Désactivation…' : 'Forcer la désactivation'}
               </button>

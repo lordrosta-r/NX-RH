@@ -109,7 +109,7 @@ export default function HrFlagsPage() {
                    <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[flag.status]}`}>{STATUS_LABELS[flag.status]}</span>
                  </td>
                  <td className="px-4 py-3">
-                   <button onClick={() => { setSelectedFlag(flag); setNote(flag.note ?? ''); setNewStatus(flag.status) }} className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition">
+                   <button onClick={() => { setSelectedFlag(flag); setNote(flag.note ?? ''); setNewStatus(flag.status) }} className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-md transition">
                      <MoreVertical size={15} />
                    </button>
                  </td>
@@ -166,11 +166,11 @@ export default function HrFlagsPage() {
               </div>
             </div>
             <div className="p-6 border-t border-slate-100 flex gap-3">
-              <button onClick={() => setSelectedFlag(null)} className="flex-1 px-4 py-2 text-sm border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50">Fermer</button>
+              <button onClick={() => setSelectedFlag(null)} className="flex-1 px-4 py-2 text-sm border border-slate-200 text-slate-600 rounded-md hover:bg-slate-50">Fermer</button>
               <button
                 onClick={() => updateStatusMut.mutate({ id: selectedFlag.id, status: newStatus || selectedFlag.status, note })}
                 disabled={updateStatusMut.isPending}
-                className="flex-1 px-4 py-2 text-sm bg-primary-500 text-white rounded-xl hover:bg-primary-600 disabled:opacity-50 transition"
+                className="flex-1 px-4 py-2 text-sm bg-primary-500 text-white rounded-md hover:bg-primary-600 disabled:opacity-50 transition"
               >
                 {updateStatusMut.isPending ? 'Sauvegarde…' : 'Sauvegarder'}
               </button>

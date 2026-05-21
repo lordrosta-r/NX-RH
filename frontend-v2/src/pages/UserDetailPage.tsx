@@ -2,12 +2,13 @@ import { useState, useRef, useEffect } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
-  MoreVertical, Edit, LogOut, Download, Trash2, CheckSquare, Square,
+  MoreVertical, Edit, LogOut, Download, Trash2, CheckSquare, Square, AlertTriangle,
 } from 'lucide-react'
 import { usersApi } from '../api/users'
 import client from '../api/client'
 import type { User, Evaluation, PaginatedResponse } from '../types'
 import { useAuth } from '../contexts/AuthContext'
+import Breadcrumbs from '../components/ui/Breadcrumbs'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const ROLE_BADGES: Record<string, string> = {
@@ -159,19 +160,19 @@ export default function UserDetailPage() {
   return (
     <div className="max-w-4xl mx-auto">
       {/* Breadcrumb */}
-      <nav className="text-sm text-slate-500 mb-4">
-        <Link to="/" className="hover:text-primary-600">Accueil</Link>
-        {' › '}
-        <Link to="/users" className="hover:text-primary-600">Collaborateurs</Link>
-        {' › '}
-        <span className="text-slate-900">{userData.firstName} {userData.lastName}</span>
-      </nav>
+      <Breadcrumbs
+        items={[
+          { label: 'Utilisateurs', href: '/users' },
+          { label: `${userData.firstName} ${userData.lastName}` },
+        ]}
+      />
 
       {/* Offboarding banner */}
       {(userData as any).offboardingStatus === 'offboarding' && (
         <div className="border-l-4 border-warning-500 bg-warning-50 p-4 rounded-lg mb-6">
           <p className="text-sm font-medium text-warning-700">
-            ⚠️ Cet utilisateur est en cours d&apos;offboarding
+            <AlertTriangle className="inline w-4 h-4 mr-1 shrink-0" />
+            Cet utilisateur est en cours d&apos;offboarding
           </p>
         </div>
       )}
@@ -480,7 +481,8 @@ export default function UserDetailPage() {
             <h3 className="text-lg font-semibold text-slate-900 mb-2">Anonymiser les données</h3>
             <div className="border-l-4 border-warning-500 bg-warning-50 p-4 rounded-lg mb-4">
               <p className="text-sm text-warning-700">
-                ⚠️ Cette action est irréversible. Toutes les données personnelles de cet utilisateur
+                <AlertTriangle className="inline w-4 h-4 mr-1 shrink-0" />
+                Cette action est irréversible. Toutes les données personnelles de cet utilisateur
                 seront définitivement anonymisées conformément au RGPD.
               </p>
             </div>

@@ -5,6 +5,7 @@ import { Lock, Unlock, Download, Trash2, Plus, ChevronUp, ChevronDown } from 'lu
 import { useAuth } from '../contexts/AuthContext'
 import { formsApi } from '../api/forms'
 import type { FormQuestion } from '../types'
+import Breadcrumbs from '../components/ui/Breadcrumbs'
 
 const FORM_TYPE_CONFIG: Record<string, { label: string; color: string }> = {
   self_evaluation:      { label: 'Auto-évaluation',       color: 'bg-primary-50 text-primary-700' },
@@ -110,16 +111,16 @@ export default function FormDetailPage() {
 
   return (
     <div>
+      {/* Breadcrumb */}
+      <Breadcrumbs
+        items={[
+          { label: 'Formulaires', href: '/forms' },
+          { label: form.title },
+        ]}
+      />
       {/* Header */}
       <div className="flex items-start justify-between mb-6">
         <div>
-          <nav className="text-sm text-slate-500 mb-1">
-            <Link to="/" className="hover:text-slate-700">Accueil</Link>
-            {' › '}
-            <Link to="/forms" className="hover:text-slate-700">Formulaires</Link>
-            {' › '}
-            <span className="text-slate-900">{form.title}</span>
-          </nav>
           <div className="flex items-center gap-3 flex-wrap">
             <h1 className="text-2xl font-bold text-slate-900">{form.title}</h1>
             {isFrozen && (
@@ -134,17 +135,17 @@ export default function FormDetailPage() {
         </div>
         <div className="flex items-center gap-2 flex-wrap justify-end">
           {isAdminOrHr && (
-            <button onClick={handleExport} className="inline-flex items-center gap-2 border border-slate-200 hover:bg-slate-50 px-4 py-2 rounded-lg text-sm font-medium text-slate-700 transition-colors">
+            <button onClick={handleExport} className="inline-flex items-center gap-2 border border-slate-200 hover:bg-slate-50 px-4 py-2 rounded-md text-sm font-medium text-slate-700 transition-colors">
               <Download className="w-4 h-4" /> Exporter JSON
             </button>
           )}
           {isAdmin && !isFrozen && (
-            <button onClick={() => setFreezeModal(true)} className="inline-flex items-center gap-2 bg-error-500 hover:bg-error-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+            <button onClick={() => setFreezeModal(true)} className="inline-flex items-center gap-2 bg-error-500 hover:bg-error-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
               <Lock className="w-4 h-4" /> Geler
             </button>
           )}
           {isAdmin && isFrozen && (
-            <button onClick={() => setUnfreezeModal(true)} className="inline-flex items-center gap-2 bg-warning-500 hover:bg-warning-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+            <button onClick={() => setUnfreezeModal(true)} className="inline-flex items-center gap-2 bg-warning-500 hover:bg-warning-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
               <Unlock className="w-4 h-4" /> Dégeler
             </button>
           )}
@@ -152,7 +153,7 @@ export default function FormDetailPage() {
             <button
               onClick={() => saveMutation.mutate()}
               disabled={!isDirty || saveMutation.isPending}
-              className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+              className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors disabled:opacity-50"
             >
               {saveMutation.isPending ? 'Enregistrement…' : 'Enregistrer'}
             </button>
@@ -362,8 +363,8 @@ export default function FormDetailPage() {
             <h3 className="text-lg font-semibold text-slate-900 mb-2">Supprimer ce formulaire ?</h3>
             <p className="text-sm text-slate-600 mb-4">Cette action est irréversible. Les campagnes liées ne seront pas affectées.</p>
             <div className="flex gap-3 justify-end">
-              <button onClick={() => setDeleteModal(false)} className="px-4 py-2 text-sm font-medium text-slate-700 border border-slate-200 rounded-lg hover:bg-slate-50">Annuler</button>
-              <button onClick={() => deleteMutation.mutate()} disabled={deleteMutation.isPending} className="px-4 py-2 text-sm font-medium bg-error-500 text-white rounded-lg hover:bg-error-600 disabled:opacity-50">
+              <button onClick={() => setDeleteModal(false)} className="px-4 py-2 text-sm font-medium text-slate-700 border border-slate-200 rounded-md hover:bg-slate-50">Annuler</button>
+              <button onClick={() => deleteMutation.mutate()} disabled={deleteMutation.isPending} className="px-4 py-2 text-sm font-medium bg-error-500 text-white rounded-md hover:bg-error-600 disabled:opacity-50">
                 {deleteMutation.isPending ? 'Suppression…' : 'Supprimer'}
               </button>
             </div>
@@ -385,8 +386,8 @@ export default function FormDetailPage() {
               Une fois gelé, les questions ne seront plus modifiables. Cette version sera utilisée pour toutes les évaluations associées.
             </p>
             <div className="flex gap-3 justify-end">
-              <button onClick={() => setFreezeModal(false)} className="px-4 py-2 text-sm font-medium text-slate-700 border border-slate-200 rounded-lg hover:bg-slate-50">Annuler</button>
-              <button onClick={() => freezeMutation.mutate()} disabled={freezeMutation.isPending} className="px-4 py-2 text-sm font-medium bg-error-500 text-white rounded-lg hover:bg-error-600 disabled:opacity-50">
+              <button onClick={() => setFreezeModal(false)} className="px-4 py-2 text-sm font-medium text-slate-700 border border-slate-200 rounded-md hover:bg-slate-50">Annuler</button>
+              <button onClick={() => freezeMutation.mutate()} disabled={freezeMutation.isPending} className="px-4 py-2 text-sm font-medium bg-error-500 text-white rounded-md hover:bg-error-600 disabled:opacity-50">
                 {freezeMutation.isPending ? 'Gel en cours…' : 'Geler le formulaire'}
               </button>
             </div>
@@ -408,8 +409,8 @@ export default function FormDetailPage() {
               Les questions redeviendront modifiables. Les évaluations en cours conserveront leurs réponses.
             </p>
             <div className="flex gap-3 justify-end">
-              <button onClick={() => setUnfreezeModal(false)} className="px-4 py-2 text-sm font-medium text-slate-700 border border-slate-200 rounded-lg hover:bg-slate-50">Annuler</button>
-              <button onClick={() => unfreezeMutation.mutate()} disabled={unfreezeMutation.isPending} className="px-4 py-2 text-sm font-medium bg-warning-500 text-white rounded-lg hover:bg-warning-600 disabled:opacity-50">
+              <button onClick={() => setUnfreezeModal(false)} className="px-4 py-2 text-sm font-medium text-slate-700 border border-slate-200 rounded-md hover:bg-slate-50">Annuler</button>
+              <button onClick={() => unfreezeMutation.mutate()} disabled={unfreezeMutation.isPending} className="px-4 py-2 text-sm font-medium bg-warning-500 text-white rounded-md hover:bg-warning-600 disabled:opacity-50">
                 {unfreezeMutation.isPending ? 'Dégel en cours…' : 'Dégeler'}
               </button>
             </div>

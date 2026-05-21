@@ -19,9 +19,9 @@ const variantClasses: Record<NonNullable<ButtonProps['variant']>, string> = {
 }
 
 const sizeClasses: Record<NonNullable<ButtonProps['size']>, string> = {
-  sm: 'h-8 px-3 text-sm rounded-lg',
-  md: 'h-10 px-4 text-sm font-semibold rounded-lg',
-  lg: 'h-12 px-6 text-base font-semibold rounded-xl',
+  sm: 'h-8 px-3 text-sm rounded-md',
+  md: 'h-10 px-4 text-sm font-semibold rounded-md',
+  lg: 'h-12 px-6 text-base font-semibold rounded-md',
 }
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(({

@@ -75,7 +75,7 @@ export default function HrSettingsPage() {
           {remindResult && <p className="text-sm text-green-600 mb-3">{remindResult}</p>}
           <button
             onClick={() => setShowConfirm(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-amber-500 text-white rounded-xl text-sm hover:bg-amber-600 transition"
+            className="flex items-center gap-2 px-4 py-2 bg-amber-500 text-white rounded-md text-sm hover:bg-amber-600 transition"
           >
             <Bell size={16} /> Envoyer rappels groupés
           </button>
@@ -117,11 +117,11 @@ export default function HrSettingsPage() {
             </div>
             <p className="text-sm text-slate-600 mb-6">Vous allez envoyer des rappels à tous les utilisateurs avec les statuts sélectionnés{campaignId ? ` pour la campagne ${campaignId}` : ''}. Confirmer ?</p>
             <div className="flex justify-end gap-3">
-              <button onClick={() => setShowConfirm(false)} className="px-4 py-2 text-sm border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50">Annuler</button>
+              <button onClick={() => setShowConfirm(false)} className="px-4 py-2 text-sm border border-slate-200 text-slate-600 rounded-md hover:bg-slate-50">Annuler</button>
               <button
                 onClick={() => bulkRemindMut.mutate()}
                 disabled={bulkRemindMut.isPending}
-                className="px-4 py-2 text-sm bg-amber-500 text-white rounded-xl hover:bg-amber-600 disabled:opacity-50 transition"
+                className="px-4 py-2 text-sm bg-amber-500 text-white rounded-md hover:bg-amber-600 disabled:opacity-50 transition"
               >
                 {bulkRemindMut.isPending ? 'Envoi…' : 'Confirmer'}
               </button>

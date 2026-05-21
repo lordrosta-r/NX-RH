@@ -54,7 +54,7 @@ export default function AdminConfigPage() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold text-slate-900">Configuration système</h1>
         <div className="flex gap-3">
-          <button onClick={openNew} className="flex items-center gap-2 px-4 py-2 bg-primary-500 text-white rounded-xl text-sm font-medium hover:bg-primary-600 transition">
+          <button onClick={openNew} className="flex items-center gap-2 px-4 py-2 bg-primary-500 text-white rounded-md text-sm font-medium hover:bg-primary-600 transition">
             <Plus size={16} /> Nouvelle clé
           </button>
         </div>
@@ -82,8 +82,8 @@ export default function AdminConfigPage() {
                       : String(k.value ?? '')}
                   </td>
                  <td className="px-4 py-3 text-right flex justify-end gap-2">
-                   <button onClick={() => openEdit(k)} className="p-1.5 text-slate-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition"><Pencil size={15} /></button>
-                   <button onClick={() => setDeleteTarget(k.key)} className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"><Trash2 size={15} /></button>
+                   <button onClick={() => openEdit(k)} className="p-1.5 text-slate-400 hover:text-primary-600 hover:bg-primary-50 rounded-md transition"><Pencil size={15} /></button>
+                   <button onClick={() => setDeleteTarget(k.key)} className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition"><Trash2 size={15} /></button>
                  </td>
                </tr>
              ))
@@ -122,11 +122,11 @@ export default function AdminConfigPage() {
               </div>
             </div>
             <div className="flex justify-end gap-3 mt-6">
-              <button onClick={() => setShowKeyModal(false)} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-xl border border-slate-200">Annuler</button>
+              <button onClick={() => setShowKeyModal(false)} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-md border border-slate-200">Annuler</button>
               <button
                 onClick={() => setKeyMut.mutate(keyForm)}
                 disabled={!keyForm.key || setKeyMut.isPending}
-                className="px-4 py-2 text-sm bg-primary-500 text-white rounded-xl hover:bg-primary-600 disabled:opacity-50 transition"
+                className="px-4 py-2 text-sm bg-primary-500 text-white rounded-md hover:bg-primary-600 disabled:opacity-50 transition"
               >
                 {setKeyMut.isPending ? 'Sauvegarde…' : 'Sauvegarder'}
               </button>
@@ -144,11 +144,11 @@ export default function AdminConfigPage() {
             <h2 className="text-lg font-bold text-slate-900 mb-2">Supprimer la clé</h2>
             <p className="text-sm text-slate-600 mb-6">Supprimer <span className="font-mono font-semibold">{deleteTarget}</span> ?</p>
             <div className="flex justify-end gap-3">
-              <button onClick={() => setDeleteTarget(null)} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-xl border border-slate-200">Annuler</button>
+              <button onClick={() => setDeleteTarget(null)} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-md border border-slate-200">Annuler</button>
               <button
                 onClick={() => deleteKeyMut.mutate(deleteTarget)}
                 disabled={deleteKeyMut.isPending}
-                className="px-4 py-2 text-sm bg-red-500 text-white rounded-xl hover:bg-red-600 disabled:opacity-50 transition"
+                className="px-4 py-2 text-sm bg-red-500 text-white rounded-md hover:bg-red-600 disabled:opacity-50 transition"
               >
                 {deleteKeyMut.isPending ? 'Suppression…' : 'Supprimer'}
               </button>

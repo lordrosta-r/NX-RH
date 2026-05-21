@@ -91,7 +91,7 @@ export default function OrgSidePanel({
             </span>
           </div>
         </div>
-        <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 mt-0.5">
+        <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-slate-600 rounded-md hover:bg-slate-100 mt-0.5">
           <X size={16} />
         </button>
       </div>
@@ -124,7 +124,7 @@ export default function OrgSidePanel({
             <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Manager direct</p>
             <button
               onClick={() => onNavigateTo(currentManager.id)}
-              className="flex items-center gap-2 w-full p-2 rounded-lg hover:bg-slate-50 text-left group"
+              className="flex items-center gap-2 w-full p-2 rounded-md hover:bg-slate-50 text-left group"
             >
               <div
                 className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
@@ -218,7 +218,7 @@ export default function OrgSidePanel({
           <button
             onClick={() => mutation.mutate()}
             disabled={mutation.isPending}
-            className="w-full flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium py-2 rounded-lg transition-colors disabled:opacity-60"
+            className="w-full flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium py-2 rounded-md transition-colors disabled:opacity-60"
           >
             <Save size={14} />
             {mutation.isPending ? 'Enregistrement…' : 'Enregistrer'}
@@ -229,7 +229,7 @@ export default function OrgSidePanel({
         )}
         <button
           onClick={() => navigate(`/users/${person.id}`)}
-          className="w-full flex items-center justify-center gap-1.5 text-sm text-slate-500 hover:text-slate-700 py-1.5 rounded-lg hover:bg-slate-50 transition-colors"
+          className="w-full flex items-center justify-center gap-1.5 text-sm text-slate-500 hover:text-slate-700 py-1.5 rounded-md hover:bg-slate-50 transition-colors"
         >
           <ExternalLink size={13} />
           Voir le profil

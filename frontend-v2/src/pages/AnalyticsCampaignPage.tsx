@@ -10,9 +10,9 @@ import {
 import { analyticsApi } from '../api/analytics'
 
 const CAMPAIGN_STATUS_COLORS = {
-  notStarted: '#94A3B8',
-  submitted:  '#F59E0B',
-  validated:  '#22C55E',
+  notStarted: 'var(--color-slate-400)',
+  submitted:  'var(--color-amber-500)',
+  validated:  'var(--color-green-500)',
 }
 
 interface KpiCardProps {
@@ -190,20 +190,20 @@ export default function AnalyticsCampaignPage() {
           ) : (
             <ResponsiveContainer width="100%" height={288}>
               <BarChart data={scoreData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-slate-200)" />
                 <XAxis
                   dataKey="range"
-                  tick={{ fontSize: 12, fill: '#64748B' }}
+                  tick={{ fontSize: 12, fill: 'var(--color-slate-500)' }}
                   axisLine={false}
                   tickLine={false}
                 />
                 <YAxis
-                  tick={{ fontSize: 12, fill: '#64748B' }}
+                  tick={{ fontSize: 12, fill: 'var(--color-slate-500)' }}
                   axisLine={false}
                   tickLine={false}
                 />
                 <Tooltip />
-                <Bar dataKey="count" fill="#17A8D4" radius={[4, 4, 0, 0]} name="Évaluations" />
+                <Bar dataKey="count" fill="var(--color-primary)" radius={[4, 4, 0, 0]} name="Évaluations" />
               </BarChart>
             </ResponsiveContainer>
           )}

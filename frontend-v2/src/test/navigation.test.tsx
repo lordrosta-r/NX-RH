@@ -132,13 +132,13 @@ describe('Navbar', () => {
   it('affiche le logo NX RH', () => {
     renderNavbar(makeUser({ role: 'employee' }))
 
-    expect(screen.getByRole('link', { name: /nx rh/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /nanoxplore rh/i })).toBeInTheDocument()
   })
 
   it.each([
-    ['admin', [/utilisateurs/i, /campagnes/i, /formulaires/i, /analytics/i, /admin/i]],
-    ['employee', [/mes évaluations/i, /calendrier/i, /ressources/i]],
-    ['hr', [/utilisateurs/i, /campagnes/i, /formulaires/i, /offboarding/i, /analytics/i]],
+    ['admin', [/collaborateurs/i, /campagnes/i, /évaluations/i, /pilotage/i, /administration/i]],
+    ['employee', [/mes évaluations/i, /pilotage/i]],
+    ['hr', [/collaborateurs/i, /campagnes/i, /évaluations/i, /pilotage/i, /paramètres/i]],
   ] as const)('affiche les bons liens pour %s', (role, labels) => {
     renderNavbar(makeUser({ role }))
 
@@ -159,25 +159,26 @@ describe('Navbar', () => {
     expect(screen.getByRole('button', { name: /notifications/i })).toBeInTheDocument()
   })
 
-  it('polling GET /api/notifications/count toutes les 30s', async () => {
+  it('polling GET /api/notifications toutes les 30s', async () => {
     vi.useFakeTimers()
     let calls = 0
 
     server.use(
-      http.get('http://localhost:5050/api/notifications/count', () => {
+      http.get('http://localhost:5050/api/notifications', () => {
         calls += 1
-        return HttpResponse.json({ count: 1 })
+        return HttpResponse.json({ data: [], total: 0, page: 1, limit: 1, unreadCount: calls })
       }),
     )
 
     renderNavbar(makeUser({ role: 'employee' }))
 
-    await vi.advanceTimersByTimeAsync(0)
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(100)
+    })
     expect(calls).toBe(1)
     await act(async () => {
       await vi.advanceTimersByTimeAsync(30000)
     })
-    await vi.advanceTimersByTimeAsync(0)
     expect(calls).toBe(2)
   })
 })

@@ -8,6 +8,7 @@ import { formsApi } from '../api/forms'
 import { formatDate } from '../utils/formatDate'
 import { StatusBadge } from '../components/ui/StatusBadge'
 import type { Campaign, Form } from '../types'
+import Breadcrumbs from '../components/ui/Breadcrumbs'
 
 type Tab = 'overview' | 'evaluations' | 'forms'
 
@@ -92,13 +93,12 @@ export default function CampaignDetailPage() {
   return (
     <div className="max-w-6xl mx-auto px-4 py-6">
       {/* Fil d'Ariane */}
-      <nav className="text-sm text-slate-500 mb-4 flex items-center gap-1">
-        <Link to="/" className="hover:text-slate-700">Accueil</Link>
-        <span>›</span>
-        <Link to="/campaigns" className="hover:text-slate-700">Campagnes</Link>
-        <span>›</span>
-        <span className="text-slate-700">{campaign?.name ?? '…'}</span>
-      </nav>
+      <Breadcrumbs
+        items={[
+          { label: 'Campagnes', href: '/campaigns' },
+          { label: campaign?.name ?? '…' },
+        ]}
+      />
 
       {/* Header */}
       <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6 mb-6">
@@ -142,7 +142,7 @@ export default function CampaignDetailPage() {
                 {archiveMutation.isPending ? 'Archivage…' : 'Archiver'}
               </button>
             )}
-            {isAdminOrHr && (
+            {isAdminOrHr && campaign?.status !== 'closed' && campaign?.status !== 'archived' && (
               <Link
                 to={`/campaigns/${id}/edit`}
                 className="border border-slate-200 hover:bg-slate-50 px-4 py-2 rounded-lg text-sm font-medium"
@@ -298,13 +298,19 @@ export default function CampaignDetailPage() {
       {/* Onglet Évaluations */}
       {tab === 'evaluations' && (
         <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-8 text-center">
-          <p className="text-slate-500 mb-4">Consultez les évaluations associées à cette campagne.</p>
-          <Link
-            to={`/evaluations?campaign=${id}`}
-            className="inline-flex items-center gap-1 text-primary-600 font-medium hover:text-primary-700"
-          >
-            Voir les évaluations de cette campagne →
-          </Link>
+          {campaign?.status === 'draft' ? (
+            <p className="text-slate-400 text-sm">Aucune évaluation disponible — la campagne est en brouillon.</p>
+          ) : (
+            <>
+              <p className="text-slate-500 mb-4">Consultez les évaluations associées à cette campagne.</p>
+              <Link
+                to={`/evaluations?campaign=${id}`}
+                className="inline-flex items-center gap-1 text-primary-600 font-medium hover:text-primary-700"
+              >
+                Voir les évaluations de cette campagne →
+              </Link>
+            </>
+          )}
         </div>
       )}
 

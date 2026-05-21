@@ -336,12 +336,14 @@ router.delete('/:id', async (req, res, next) => {
     try {
       await session.withTransaction(async () => {
         await Evaluation.deleteMany({ campaignId: campaign._id }, { session })
+        await Form.deleteMany({ _id: { $in: campaign.formIds || [] } }, { session })
         await campaign.deleteOne({ session })
       })
     } catch (err) {
       if (err.code === 20 || err.message?.includes('Transaction') || err.message?.includes('replica')) {
         console.warn('[delete-campaign] Transactions non disponibles, exécution séquentielle')
         await Evaluation.deleteMany({ campaignId: campaign._id })
+        await Form.deleteMany({ _id: { $in: campaign.formIds || [] } })
         await campaign.deleteOne()
       } else {
         throw err
@@ -409,7 +411,18 @@ router.post('/:id/clone', async (req, res, next) => {
       n1VisibleToEmployee: source.n1VisibleToEmployee ?? true,
     })
 
-    res.status(201).json({ id: cloned._id, formsLinked: (source.formIds || []).length })
+    const sourceForms = await Form.find({ _id: { $in: source.formIds || [] } }).lean()
+    if (sourceForms.length > 0) {
+      const formCopies = sourceForms.map(({ _id, createdAt, updatedAt, frozenAt, isFrozen, ...rest }) => ({ // eslint-disable-line no-unused-vars
+        ...rest,
+        isFrozen: false,
+        frozenAt: null,
+        createdBy: req.user.id,
+      }))
+      await Form.insertMany(formCopies)
+    }
+
+    res.status(201).json({ id: cloned._id, formsCloned: sourceForms.length })
   } catch (err) {
     next(err)
   }

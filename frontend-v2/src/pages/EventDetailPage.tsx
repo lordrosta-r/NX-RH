@@ -117,7 +117,7 @@ function EditSlideOver({
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
           <h2 className="text-lg font-semibold text-slate-900">Modifier l'événement</h2>
-          <button onClick={onClose} className="p-2 rounded-lg hover:bg-slate-100 text-slate-400 transition-colors">
+          <button onClick={onClose} className="p-2 rounded-md hover:bg-slate-100 text-slate-400 transition-colors">
             <X size={20} />
           </button>
         </div>
@@ -222,7 +222,7 @@ function EditSlideOver({
             </button>
             <button
               type="submit" disabled={isPending}
-              className="flex items-center gap-2 bg-primary-500 hover:bg-primary-600 disabled:opacity-60 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+              className="flex items-center gap-2 bg-primary-500 hover:bg-primary-600 disabled:opacity-60 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
             >
               {isPending && (
                 <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
@@ -273,7 +273,7 @@ function ConfirmDialog({
             <button
               onClick={onConfirm}
               disabled={isPending}
-              className="flex items-center gap-2 bg-red-500 hover:bg-red-600 disabled:opacity-60 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+              className="flex items-center gap-2 bg-red-500 hover:bg-red-600 disabled:opacity-60 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
             >
               {isPending && (
                 <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
@@ -453,13 +453,13 @@ export default function EventDetailPage() {
           <div className="flex items-center gap-2 flex-shrink-0">
             <button
               onClick={() => setIsEditOpen(true)}
-              className="flex items-center gap-2 border border-slate-200 hover:border-slate-300 bg-white px-3 py-2 rounded-xl text-sm font-medium text-slate-700 hover:text-slate-900 transition-colors"
+              className="flex items-center gap-2 border border-slate-200 hover:border-slate-300 bg-white px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:text-slate-900 transition-colors"
             >
               <Pencil size={14} /> Modifier
             </button>
             <button
               onClick={() => setIsDeleteOpen(true)}
-              className="flex items-center gap-2 border border-red-200 hover:border-red-300 bg-white px-3 py-2 rounded-xl text-sm font-medium text-red-600 hover:text-red-700 transition-colors"
+              className="flex items-center gap-2 border border-red-200 hover:border-red-300 bg-white px-3 py-2 rounded-md text-sm font-medium text-red-600 hover:text-red-700 transition-colors"
             >
               <Trash2 size={14} /> Supprimer
             </button>

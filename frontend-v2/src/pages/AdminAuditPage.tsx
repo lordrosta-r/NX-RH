@@ -55,7 +55,7 @@ export default function AdminAuditPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold text-slate-900">Journal d'audit</h1>
-        <button onClick={exportCsv} className="flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 transition">
+        <button onClick={exportCsv} className="flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-50 transition">
           <Download size={16} /> Exporter CSV
         </button>
       </div>
@@ -88,6 +88,7 @@ export default function AdminAuditPage() {
       </div>
 
       <div className="bg-white rounded-2xl shadow overflow-hidden">
+        <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-slate-50 border-b border-slate-100">
             <tr>
@@ -116,12 +117,13 @@ export default function AdminAuditPage() {
             }
           </tbody>
         </table>
+        </div>
         {data && data.totalPages && data.totalPages > 1 && (
           <div className="flex items-center justify-between px-4 py-3 border-t border-slate-100">
             <p className="text-xs text-slate-500">Page {page} sur {data.totalPages}</p>
             <div className="flex gap-2">
-              <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="px-3 py-1 text-sm border border-slate-200 rounded-lg disabled:opacity-40 hover:bg-slate-50">Précédent</button>
-              <button onClick={() => setPage(p => p + 1)} disabled={page >= (data.totalPages ?? 1)} className="px-3 py-1 text-sm border border-slate-200 rounded-lg disabled:opacity-40 hover:bg-slate-50">Suivant</button>
+              <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="px-3 py-1 text-sm border border-slate-200 rounded-md disabled:opacity-40 hover:bg-slate-50">Précédent</button>
+              <button onClick={() => setPage(p => p + 1)} disabled={page >= (data.totalPages ?? 1)} className="px-3 py-1 text-sm border border-slate-200 rounded-md disabled:opacity-40 hover:bg-slate-50">Suivant</button>
             </div>
           </div>
         )}

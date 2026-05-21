@@ -221,7 +221,7 @@ describe('CampaignDetailPage', () => {
           startDate: '2025-01-01',
           endDate: '2025-03-31',
           createdAt: '2024-12-01T00:00:00Z',
-          formId: 'form-1',
+          formIds: ['form-1'],
         }))
     )
 

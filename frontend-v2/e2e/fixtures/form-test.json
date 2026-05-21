@@ -1,0 +1,22 @@
+{
+  "title": "Formulaire Test E2E",
+  "description": "Formulaire de test pour Playwright",
+  "sections": [
+    {
+      "title": "Section 1",
+      "questions": [
+        {
+          "label": "Comment s'est passee l'annee ?",
+          "type": "textarea",
+          "required": true
+        },
+        {
+          "label": "Note globale",
+          "type": "rating",
+          "required": true,
+          "scale": 5
+        }
+      ]
+    }
+  ]
+}

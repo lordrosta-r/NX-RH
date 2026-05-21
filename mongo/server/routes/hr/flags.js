@@ -99,6 +99,46 @@ router.get('/', async (req, res, next) => {
   }
 })
 
+// ─── GET /api/hr/flags/:id ────────────────────────────────────────────────────
+
+router.get('/:id', async (req, res, next) => {
+  try {
+    const { id } = req.params
+    if (!mongoose.isValidObjectId(id)) {
+      return res.status(400).json({ error: 'ID invalide' })
+    }
+
+    const requestForms = await Form.find({ formType: { $in: REQUEST_FORM_TYPES } }).select('_id formType').lean()
+    const requestFormIds = requestForms.map(f => f._id)
+
+    const evaluation = await Evaluation.findOne({ _id: id, formId: { $in: requestFormIds } })
+      .populate('evaluateeId', 'firstName lastName email department sectorId')
+      .populate('formId', 'title formType')
+      .lean()
+
+    if (!evaluation) {
+      return res.status(404).json({ error: 'Signal RH introuvable' })
+    }
+
+    const evaluatee = evaluation.evaluateeId
+    const form = evaluation.formId
+
+    res.json({
+      id: evaluation._id.toString(),
+      type: form?.formType ?? 'other',
+      status: evaluation.status,
+      userId: evaluatee?._id?.toString() ?? evaluation.evaluateeId?.toString(),
+      userName: evaluatee ? `${evaluatee.firstName} ${evaluatee.lastName}` : undefined,
+      description: evaluation.answers ? Object.values(evaluation.answers).filter(Boolean).join('\n') : undefined,
+      note: evaluation.auditLog?.filter(e => e.action === 'hr_note').map(e => e.meta?.note).filter(Boolean).join('\n') || undefined,
+      createdAt: evaluation.createdAt,
+      updatedAt: evaluation.updatedAt,
+    })
+  } catch (err) {
+    next(err)
+  }
+})
+
 // ─── PATCH /api/hr/flags/:evalId/status ──────────────────────────────────────
 
 router.patch('/:evalId/status', async (req, res, next) => {

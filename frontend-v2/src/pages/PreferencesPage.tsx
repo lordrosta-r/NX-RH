@@ -13,10 +13,10 @@ interface NotifDef {
 }
 
 const ALL_NOTIFS: NotifDef[] = [
-  { key: 'evalAssigned', label: 'Évaluation assignée', roles: ['employee', 'manager', 'director', 'hr', 'admin'] },
-  { key: 'deadlineReminder', label: 'Rappel de deadline', roles: ['employee', 'manager', 'director', 'hr', 'admin'] },
-  { key: 'managerActionRequired', label: 'Action manager requise', roles: ['manager', 'director', 'hr', 'admin'] },
-  { key: 'evalSubmission', label: "Soumission d'évaluation", roles: ['manager', 'director', 'hr', 'admin'] },
+  { key: 'evalAssigned', label: 'Évaluation assignée', roles: ['employee', 'manager', 'hr', 'admin'] },
+  { key: 'deadlineReminder', label: 'Rappel de deadline', roles: ['employee', 'manager', 'hr', 'admin'] },
+  { key: 'managerActionRequired', label: 'Action manager requise', roles: ['manager', 'hr', 'admin'] },
+  { key: 'evalSubmission', label: "Soumission d'évaluation", roles: ['manager', 'hr', 'admin'] },
   { key: 'campaignLaunch', label: 'Lancement de campagne', roles: ['hr', 'admin'] },
   { key: 'systemAlerts', label: 'Alertes système', roles: ['admin'] },
 ]

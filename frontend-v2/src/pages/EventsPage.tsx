@@ -18,9 +18,9 @@ const MONTHS_FR = [
   'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre',
 ]
 const DAYS_SHORT = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
-const ALL_ROLES: Role[] = ['admin', 'hr', 'manager', 'director', 'employee']
+const ALL_ROLES: Role[] = ['admin', 'hr', 'manager', 'employee']
 const ROLE_LABELS: Record<Role, string> = {
-  admin: 'Admin', hr: 'RH', manager: 'Manager', director: 'Directeur', employee: 'Employé',
+  admin: 'Admin', hr: 'RH', manager: 'Manager', employee: 'Employé',
 }
 
 // ── Event config ───────────────────────────────────────────────────────────────

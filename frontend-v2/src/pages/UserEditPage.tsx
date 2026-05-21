@@ -6,7 +6,7 @@ import type { User } from '../types'
 import { useAuth } from '../contexts/AuthContext'
 
 const ROLE_LABELS: Record<string, string> = {
-  admin: 'Admin', hr: 'RH', director: 'Directeur', manager: 'Manager', employee: 'Employé',
+  admin: 'Admin', hr: 'RH', manager: 'Manager', employee: 'Employé',
 }
 
 function useToast() {

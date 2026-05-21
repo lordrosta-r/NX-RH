@@ -40,9 +40,6 @@ export const campaignsApi = {
   getCampaignAnalytics: (id: string) =>
     client.get<CampaignAnalytics>(`/api/campaigns/${id}/analytics`),
 
-  bulkRemind: (id: string, data?: { targetStatuses?: string[] }) =>
-    client.post(`/api/campaigns/${id}/bulk-remind`, data),
-
   linkForm: (campaignId: string, formId: string) =>
     client.post(`/api/campaigns/${campaignId}/forms`, { formId }),
 

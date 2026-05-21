@@ -36,7 +36,7 @@ export default function HrSettingsPage() {
     <div>
       <h1 className="text-3xl font-bold text-slate-900 mb-6">Paramètres RH</h1>
 
-      <div className="grid gap-6 max-w-2xl">
+      <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
         {/* Card rappels */}
         <div className="bg-white rounded-2xl shadow p-6">
           <div className="flex items-center gap-3 mb-4">

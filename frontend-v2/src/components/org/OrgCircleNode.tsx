@@ -7,7 +7,6 @@ import OrgTooltip from './OrgTooltip'
 const ROLE_LABELS: Record<string, string> = {
   admin:    'Admin',
   hr:       'RH',
-  director: 'Directeur',
   manager:  'Manager',
   employee: 'Employé',
 }

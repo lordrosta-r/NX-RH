@@ -1,5 +1,5 @@
 // ─── Rôles & Auth ─────────────────────────────────────────────────────────────
-export type Role = 'admin' | 'hr' | 'director' | 'manager' | 'employee'
+export type Role = 'admin' | 'hr' | 'manager' | 'employee'
 export type AuthSource = 'local' | 'ldap'
 
 export interface User {

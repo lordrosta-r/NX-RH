@@ -45,7 +45,7 @@ function getTypeConfig(type?: ResourceType): TypeConfig {
   return TYPE_CONFIG.other
 }
 
-const AVAILABLE_ROLES: Role[] = ['admin', 'hr', 'director', 'manager', 'employee']
+const AVAILABLE_ROLES: Role[] = ['admin', 'hr', 'manager', 'employee']
 const RESOURCE_TYPES: ResourceType[] = ['pdf', 'xlsx', 'doc', 'video', 'link', 'image', 'other']
 
 // ─── Loading Skeleton ─────────────────────────────────────────────────────────

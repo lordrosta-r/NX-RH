@@ -11,6 +11,12 @@ import {
 import { analyticsApi } from '../api/analytics'
 import type { EvaluationStatus } from '../types'
 
+const CHART_COLORS = {
+  bar: '#17A8D4',
+  gridStroke: '#E2E8F0',
+  axisText: '#64748B',
+}
+
 const STATUS_COLORS: Record<EvaluationStatus, string> = {
   assigned:         '#94A3B8',
   in_progress:      '#3B82F6',
@@ -295,20 +301,20 @@ export default function AnalyticsPage() {
           ) : (
             <ResponsiveContainer width="100%" height={288}>
               <BarChart data={scoreChartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={CHART_COLORS.gridStroke} />
                 <XAxis
                   dataKey="range"
-                  tick={{ fontSize: 12, fill: '#64748B' }}
+                  tick={{ fontSize: 12, fill: CHART_COLORS.axisText }}
                   axisLine={false}
                   tickLine={false}
                 />
                 <YAxis
-                  tick={{ fontSize: 12, fill: '#64748B' }}
+                  tick={{ fontSize: 12, fill: CHART_COLORS.axisText }}
                   axisLine={false}
                   tickLine={false}
                 />
                 <Tooltip />
-                <Bar dataKey="count" fill="#17A8D4" radius={[4, 4, 0, 0]} name="Évaluations" />
+                <Bar dataKey="count" fill={CHART_COLORS.bar} radius={[4, 4, 0, 0]} name="Évaluations" />
               </BarChart>
             </ResponsiveContainer>
           )}

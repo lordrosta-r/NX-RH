@@ -3,6 +3,24 @@ import { useQuery } from '@tanstack/react-query'
 import { BarChart2, FileText, Download, ChevronRight } from 'lucide-react'
 import { analyticsApi } from '../api/analytics'
 
+const CHART_COLORS = {
+  track: '#f1f5f9',
+  gauge: '#3b82f6',
+  score: {
+    veryLow:  '#ef4444',
+    low:      '#f97316',
+    medium:   '#eab308',
+    good:     '#22c55e',
+    veryGood: '#10b981',
+  },
+  status: {
+    assigned:    '#94a3b8',
+    in_progress: '#3b82f6',
+    submitted:   '#f59e0b',
+    validated:   '#22c55e',
+  },
+}
+
 // ─── DonutChart ───────────────────────────────────────────────────────────────
 interface DonutSegment { label: string; value: number; color: string }
 
@@ -15,7 +33,7 @@ function DonutChart({ data }: { data: DonutSegment[] }) {
   return (
     <div className="flex items-center gap-6 flex-wrap">
       <svg width="160" height="160" viewBox="0 0 160 160" className="flex-shrink-0">
-        <circle cx="80" cy="80" r={radius} fill="none" strokeWidth="20" stroke="#f1f5f9" />
+        <circle cx="80" cy="80" r={radius} fill="none" strokeWidth="20" stroke={CHART_COLORS.track} />
         {total > 0 && data.map((segment, i) => {
           const dash   = (segment.value / total) * circumference
           const gap    = circumference - dash
@@ -53,11 +71,11 @@ function DonutChart({ data }: { data: DonutSegment[] }) {
 // ─── ScoreHistogram ───────────────────────────────────────────────────────────
 function ScoreHistogram({ distribution }: { distribution: Record<string, number> }) {
   const bars = [
-    { range: '0-2',  count: distribution['0-2']  || 0, color: '#ef4444' },
-    { range: '3-4',  count: distribution['3-4']  || 0, color: '#f97316' },
-    { range: '5-6',  count: distribution['5-6']  || 0, color: '#eab308' },
-    { range: '7-8',  count: distribution['7-8']  || 0, color: '#22c55e' },
-    { range: '9-10', count: distribution['9-10'] || 0, color: '#10b981' },
+    { range: '0-2',  count: distribution['0-2']  || 0, color: CHART_COLORS.score.veryLow  },
+    { range: '3-4',  count: distribution['3-4']  || 0, color: CHART_COLORS.score.low      },
+    { range: '5-6',  count: distribution['5-6']  || 0, color: CHART_COLORS.score.medium   },
+    { range: '7-8',  count: distribution['7-8']  || 0, color: CHART_COLORS.score.good     },
+    { range: '9-10', count: distribution['9-10'] || 0, color: CHART_COLORS.score.veryGood },
   ]
   const max = Math.max(...bars.map(b => b.count), 1)
 
@@ -91,11 +109,11 @@ function SemiCircleGauge({ value, max = 10 }: { value: number; max?: number }) {
     <svg width="160" height="90" viewBox="0 0 160 90">
       <path
         d={`M 25,80 A ${radius},${radius} 0 0 1 135,80`}
-        fill="none" stroke="#f1f5f9" strokeWidth="14" strokeLinecap="round"
+        fill="none" stroke={CHART_COLORS.track} strokeWidth="14" strokeLinecap="round"
       />
       <path
         d={`M 25,80 A ${radius},${radius} 0 0 1 135,80`}
-        fill="none" stroke="#3b82f6" strokeWidth="14" strokeLinecap="round"
+        fill="none" stroke={CHART_COLORS.gauge} strokeWidth="14" strokeLinecap="round"
         strokeDasharray={`${filled} ${circumference}`}
         strokeDashoffset="0"
       />
@@ -117,10 +135,10 @@ export default function CampaignAnalyticsPage() {
 
   const statusData = analytics?.statusDistribution ?? {}
   const donutData: DonutSegment[] = [
-    { label: 'Assignées', value: statusData.assigned    ?? 0, color: '#94a3b8' },
-    { label: 'En cours',  value: statusData.in_progress ?? 0, color: '#3b82f6' },
-    { label: 'Soumises',  value: statusData.submitted   ?? 0, color: '#f59e0b' },
-    { label: 'Validées',  value: statusData.validated   ?? 0, color: '#22c55e' },
+    { label: 'Assignées', value: statusData.assigned    ?? 0, color: CHART_COLORS.status.assigned    },
+    { label: 'En cours',  value: statusData.in_progress ?? 0, color: CHART_COLORS.status.in_progress },
+    { label: 'Soumises',  value: statusData.submitted   ?? 0, color: CHART_COLORS.status.submitted   },
+    { label: 'Validées',  value: statusData.validated   ?? 0, color: CHART_COLORS.status.validated   },
   ]
 
   const departmentCompletion = (analytics?.byDepartment ?? []).map(d => ({

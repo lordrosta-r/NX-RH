@@ -5,6 +5,7 @@ import { ClipboardList, Download, MoreHorizontal } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { evaluationsApi } from '../api/evaluations'
 import { usersApi } from '../api/users'
+import { toast } from '../hooks/useToast'
 import type { Evaluation } from '../types'
 
 const EVAL_STATUS_CONFIG: Record<string, { label: string; color: string }> = {
@@ -67,6 +68,7 @@ export default function EvaluationsPage() {
       setReassignTarget(null)
       setReassignUserId('')
     },
+    onError: () => toast.error('Erreur lors de la réaffectation', 'Veuillez réessayer.'),
   })
 
   const expireMutation = useMutation({
@@ -75,11 +77,73 @@ export default function EvaluationsPage() {
       queryClient.invalidateQueries({ queryKey: ['evaluations'] })
       setExpireConfirm(null)
     },
+    onError: () => toast.error('Erreur lors de l\'expiration', 'Veuillez réessayer.'),
+  })
+
+  const bulkArchiveMutation = useMutation({
+    mutationFn: (ids: string[]) => evaluationsApi.bulkAction({ ids, action: 'archive' }),
+    onSuccess: (res) => {
+      queryClient.invalidateQueries({ queryKey: ['evaluations'] })
+      setBulkModal(null)
+      setSelected([])
+      toast.success(
+        `${res.data.success} évaluation(s) archivée(s)`,
+        res.data.skipped > 0 ? `${res.data.skipped} ignorée(s) (statut incompatible)` : undefined,
+      )
+    },
+    onError: () => {
+      toast.error('Erreur lors de l\'archivage', 'Veuillez réessayer.')
+    },
+  })
+
+  const bulkSignHrMutation = useMutation({
+    mutationFn: (ids: string[]) => evaluationsApi.bulkAction({ ids, action: 'sign_hr' }),
+    onSuccess: (res) => {
+      queryClient.invalidateQueries({ queryKey: ['evaluations'] })
+      setBulkModal(null)
+      setSelected([])
+      toast.success(
+        `${res.data.success} évaluation(s) signée(s) RH`,
+        res.data.skipped > 0 ? `${res.data.skipped} ignorée(s) (statut incompatible)` : undefined,
+      )
+    },
+    onError: () => {
+      toast.error('Erreur lors de la signature RH', 'Veuillez réessayer.')
+    },
   })
 
   const evaluations: Evaluation[] = data?.data ?? []
   const total = data?.total ?? 0
   const totalPages = data?.totalPages ?? 1
+
+  function exportToCSV(rows: Evaluation[]) {
+    const BOM = '\uFEFF'
+    const headers = ['Évalué', 'Évaluateur', 'Campagne', 'Statut', 'Date création', 'Date soumission', 'Score']
+
+    const csvRows = rows.map(ev => {
+      const evaluateeName = `${ev.evaluatee?.firstName ?? ''} ${ev.evaluatee?.lastName ?? ''}`.trim()
+      const evaluatorName = `${ev.evaluator?.firstName ?? ''} ${ev.evaluator?.lastName ?? ''}`.trim()
+      const campaign = (ev.campaignId as { name?: string })?.name ?? (typeof ev.campaignId === 'string' ? ev.campaignId : '')
+      const status = EVAL_STATUS_CONFIG[ev.status]?.label ?? ev.status
+      const createdAt = ev.createdAt ? new Date(ev.createdAt).toLocaleDateString('fr-FR') : ''
+      const submittedAt = ev.signedByEvaluateeAt ? new Date(ev.signedByEvaluateeAt).toLocaleDateString('fr-FR') : ''
+      const score = ev.reviewerScore != null ? String(ev.reviewerScore) : ''
+      return [evaluateeName, evaluatorName, campaign, status, createdAt, submittedAt, score]
+    })
+
+    const csvContent = BOM + [headers, ...csvRows]
+      .map(row => row.map(cell => `"${cell.replace(/"/g, '""')}"`).join(';'))
+      .join('\n')
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const date = new Date().toISOString().slice(0, 10)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `evaluations-${date}.csv`
+    link.click()
+    URL.revokeObjectURL(url)
+  }
 
   const allSelected = evaluations.length > 0 && selected.length === evaluations.length
   const toggleAll = () => setSelected(allSelected ? [] : evaluations.map(e => e.id))
@@ -96,12 +160,28 @@ export default function EvaluationsPage() {
           {isAdminOrHr && selected.length > 0 && (
             <div className="flex items-center gap-2">
               <span className="text-sm text-slate-600">{selected.length} sélectionnée(s)</span>
-              <button onClick={() => setBulkModal('archive')} className="text-sm px-3 py-1.5 border border-slate-200 rounded-lg hover:bg-slate-50">Archiver</button>
-              <button onClick={() => setBulkModal('sign')} className="text-sm px-3 py-1.5 border border-slate-200 rounded-lg hover:bg-slate-50">Signer RH</button>
+              <button
+                onClick={() => setBulkModal('archive')}
+                disabled={bulkArchiveMutation.isPending || bulkSignHrMutation.isPending}
+                className="text-sm px-3 py-1.5 border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-50"
+              >
+                Archiver
+              </button>
+              <button
+                onClick={() => setBulkModal('sign')}
+                disabled={bulkArchiveMutation.isPending || bulkSignHrMutation.isPending}
+                className="text-sm px-3 py-1.5 border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-50"
+              >
+                Signer RH
+              </button>
             </div>
           )}
           {isAdminOrHr && (
-            <button className="inline-flex items-center gap-2 border border-slate-200 hover:bg-slate-50 px-3 py-1.5 rounded-lg text-sm font-medium">
+            <button
+              onClick={() => exportToCSV(evaluations)}
+              disabled={isLoading}
+              className="inline-flex items-center gap-2 border border-slate-200 hover:bg-slate-50 px-3 py-1.5 rounded-lg text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed"
+            >
               <Download className="w-4 h-4" /> Exporter CSV
             </button>
           )}
@@ -153,7 +233,7 @@ export default function EvaluationsPage() {
         )}
       </div>
 
-      {/* Table (admin / hr / manager / director) */}
+      {/* Table (admin / hr / manager) */}
       {!isEmployee && (
         <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
           <table className="w-full text-sm">
@@ -219,7 +299,7 @@ export default function EvaluationsPage() {
                   </td>
                   <td className="px-4 py-3">
                     <div className="relative group">
-                      <button className="p-1 text-slate-400 hover:text-slate-600 rounded">
+                      <button aria-label="Actions évaluation" className="p-1 text-slate-400 hover:text-slate-600 rounded">
                         <MoreHorizontal className="w-4 h-4" />
                       </button>
                       <div className="absolute right-0 top-8 bg-white border border-slate-200 rounded-lg shadow-lg z-10 min-w-36 py-1 hidden group-hover:block">
@@ -255,9 +335,9 @@ export default function EvaluationsPage() {
             <div className="flex items-center justify-between px-4 py-3 border-t border-slate-100">
               <span className="text-sm text-slate-500">{total} résultats</span>
               <div className="flex items-center gap-1">
-                <button disabled={page === 1} onClick={() => setPage(p => p - 1)} className="px-3 py-1.5 text-sm border border-slate-200 rounded-lg disabled:opacity-40 hover:bg-slate-50">←</button>
+                <button disabled={page === 1} onClick={() => setPage(p => p - 1)} aria-label="Page précédente" className="px-3 py-1.5 text-sm border border-slate-200 rounded-lg disabled:opacity-40 hover:bg-slate-50">←</button>
                 <span className="px-3 py-1.5 text-sm">{page} / {totalPages}</span>
-                <button disabled={page === totalPages} onClick={() => setPage(p => p + 1)} className="px-3 py-1.5 text-sm border border-slate-200 rounded-lg disabled:opacity-40 hover:bg-slate-50">→</button>
+                <button disabled={page === totalPages} onClick={() => setPage(p => p + 1)} aria-label="Page suivante" className="px-3 py-1.5 text-sm border border-slate-200 rounded-lg disabled:opacity-40 hover:bg-slate-50">→</button>
               </div>
             </div>
           )}
@@ -312,8 +392,23 @@ export default function EvaluationsPage() {
             </h3>
             <p className="text-sm text-slate-600 mb-4">Cette action s'appliquera aux évaluations sélectionnées.</p>
             <div className="flex gap-3 justify-end">
-              <button onClick={() => setBulkModal(null)} className="px-4 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50">Annuler</button>
-              <button onClick={() => { setBulkModal(null); setSelected([]) }} className="px-4 py-2 text-sm bg-primary-500 text-white rounded-lg hover:bg-primary-600">Confirmer</button>
+              <button
+                onClick={() => setBulkModal(null)}
+                disabled={bulkArchiveMutation.isPending || bulkSignHrMutation.isPending}
+                className="px-4 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-50"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={() => {
+                  if (bulkModal === 'archive') bulkArchiveMutation.mutate(selected)
+                  else bulkSignHrMutation.mutate(selected)
+                }}
+                disabled={bulkArchiveMutation.isPending || bulkSignHrMutation.isPending}
+                className="px-4 py-2 text-sm bg-primary-500 text-white rounded-lg hover:bg-primary-600 disabled:opacity-50"
+              >
+                {(bulkArchiveMutation.isPending || bulkSignHrMutation.isPending) ? 'Traitement…' : 'Confirmer'}
+              </button>
             </div>
           </div>
         </div>

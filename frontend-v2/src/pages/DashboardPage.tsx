@@ -3,7 +3,6 @@ import { useAuth } from '../contexts/AuthContext'
 
 const DashboardAdminPage = lazy(() => import('./DashboardAdminPage'))
 const DashboardHrPage = lazy(() => import('./DashboardHrPage'))
-const DashboardDirectorPage = lazy(() => import('./DashboardDirectorPage'))
 const DashboardManagerPage = lazy(() => import('./DashboardManagerPage'))
 const DashboardEmployeePage = lazy(() => import('./DashboardEmployeePage'))
 
@@ -28,9 +27,8 @@ export default function DashboardPage() {
     <Suspense fallback={<Loader />}>
       {user.role === 'admin' && <DashboardAdminPage />}
       {user.role === 'hr' && <DashboardHrPage />}
-      {user.role === 'director' && <DashboardDirectorPage />}
       {user.role === 'manager' && <DashboardManagerPage />}
-      {(user.role === 'employee' || !['admin', 'hr', 'director', 'manager'].includes(user.role)) && (
+      {(user.role === 'employee' || !['admin', 'hr', 'manager'].includes(user.role)) && (
         <DashboardEmployeePage />
       )}
     </Suspense>

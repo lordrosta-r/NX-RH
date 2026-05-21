@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { BarChart2, Search, Plus, MoreVertical } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { campaignsApi } from '../api/campaigns'
+import { toast } from '../hooks/useToast'
 import type { Campaign } from '../types'
 
 const STATUS_TABS = ['all', 'draft', 'active', 'closed', 'archived'] as const
@@ -81,6 +82,7 @@ function ActionMenu({
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen(v => !v)}
+        aria-label="Actions campagne"
         className="p-1.5 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
       >
         <MoreVertical className="w-4 h-4" />
@@ -152,16 +154,19 @@ export default function CampaignsPage() {
   const cloneMutation = useMutation({
     mutationFn: (id: string) => campaignsApi.cloneCampaign(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['campaigns'] }),
+    onError: () => toast.error('Erreur lors du clonage', 'Veuillez réessayer.'),
   })
 
   const archiveMutation = useMutation({
     mutationFn: (id: string) => campaignsApi.archiveCampaign(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['campaigns'] }),
+    onError: () => toast.error('Erreur lors de l\'archivage', 'Veuillez réessayer.'),
   })
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => campaignsApi.deleteCampaign(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['campaigns'] }),
+    onError: () => toast.error('Erreur lors de la suppression', 'Veuillez réessayer.'),
   })
 
   const campaigns = data?.data ?? []

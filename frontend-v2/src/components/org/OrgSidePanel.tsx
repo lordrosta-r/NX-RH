@@ -9,7 +9,6 @@ import type { Role } from '../../types'
 const ROLE_OPTIONS: { value: Role; label: string; color: string }[] = [
   { value: 'admin',    label: 'Admin',      color: '#0D9488' },
   { value: 'hr',       label: 'RH',         color: '#059669' },
-  { value: 'director', label: 'Directeur',  color: '#7C3AED' },
   { value: 'manager',  label: 'Manager',    color: '#2563EB' },
   { value: 'employee', label: 'Employé',    color: '#64748B' },
 ]

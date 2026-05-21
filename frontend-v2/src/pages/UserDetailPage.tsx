@@ -13,13 +13,12 @@ import { useAuth } from '../contexts/AuthContext'
 const ROLE_BADGES: Record<string, string> = {
   admin:    'bg-error-50 text-error-700',
   hr:       'bg-warning-50 text-warning-700',
-  director: 'bg-purple-50 text-purple-700',
   manager:  'bg-primary-50 text-primary-700',
   employee: 'bg-slate-100 text-slate-700',
 }
 
 const ROLE_LABELS: Record<string, string> = {
-  admin: 'Admin', hr: 'RH', director: 'Directeur', manager: 'Manager', employee: 'Employé',
+  admin: 'Admin', hr: 'RH', manager: 'Manager', employee: 'Employé',
 }
 
 const EVAL_STATUS_LABELS: Record<string, string> = {

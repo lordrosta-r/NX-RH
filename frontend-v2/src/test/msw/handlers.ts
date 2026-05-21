@@ -227,7 +227,7 @@ export const handlers = [
     HttpResponse.json({ success: true })),
   http.post('http://localhost:5050/api/admin/mail-templates/test', () =>
     HttpResponse.json({ success: true })),
-  http.post('http://localhost:5050/api/admin/users/import', () =>
+  http.post('http://localhost:5050/api/users/import', () =>
     HttpResponse.json({ imported: 3, errors: 0 })),
   http.post('http://localhost:5050/api/admin/forms/import', () =>
     HttpResponse.json({ success: true, formId: 'form-imported' })),

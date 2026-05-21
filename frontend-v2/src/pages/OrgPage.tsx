@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect } from 'react'
+import React, { useState, useMemo, useCallback, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   ReactFlow,
@@ -22,7 +22,98 @@ import OrgCircleNode from '../components/org/OrgCircleNode'
 import OrgToolbar, { type OrgView } from '../components/org/OrgToolbar'
 import OrgControls from '../components/org/OrgControls'
 import OrgSidePanel from '../components/org/OrgSidePanel'
-import type { OrgTreeNode, Role } from '../types'
+import type { OrgTreeNode, OrgTeamGroup, OrgSectorGroup, Role } from '../types'
+
+// ─── Teams view ────────────────────────────────────────────────────────────
+const ROLE_COLORS_HEX: Record<string, string> = {
+  admin: '#0D9488', hr: '#059669', manager: '#2563EB', employee: '#64748B', director: '#7C3AED',
+}
+function initials(firstName?: string, lastName?: string) {
+  return `${firstName?.[0] ?? ''}${lastName?.[0] ?? ''}`.toUpperCase()
+}
+
+function OrgTeamsView({ data, toolbar }: { data: OrgTeamGroup[]; toolbar: React.ReactNode }) {
+  return (
+    <div className="relative flex-1 flex flex-col" style={{ overflow: 'hidden' }}>
+      {toolbar}
+      <div className="flex-1 overflow-y-auto p-6 pt-20">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pb-8">
+          {data.map((team) => {
+            const mgr = team.manager
+            const reports = team.directReports ?? []
+            const color = ROLE_COLORS_HEX[mgr.role] ?? '#64748B'
+            return (
+              <div key={mgr._id} className="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+                <div className="flex items-center gap-3 mb-3 pb-3 border-b border-slate-100">
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-semibold flex-shrink-0" style={{ backgroundColor: color }}>
+                    {initials(mgr.firstName, mgr.lastName)}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-slate-900 truncate">{mgr.firstName} {mgr.lastName}</p>
+                    <p className="text-xs text-slate-500 truncate">{mgr.department ?? mgr.role}</p>
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  {reports.length === 0 ? (
+                    <p className="text-xs text-slate-400 italic">Aucun collaborateur direct</p>
+                  ) : reports.map(r => (
+                    <div key={r._id} className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-[10px] font-semibold flex-shrink-0" style={{ backgroundColor: ROLE_COLORS_HEX[r.role] ?? '#64748B' }}>
+                        {initials(r.firstName, r.lastName)}
+                      </div>
+                      <span className="text-xs text-slate-700 truncate">{r.firstName} {r.lastName}</span>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-[10px] text-slate-400 mt-2">{reports.length} membre{reports.length !== 1 ? 's' : ''}</p>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── Sectors view ──────────────────────────────────────────────────────────
+function OrgSectorsView({ data, toolbar }: { data: OrgSectorGroup[]; toolbar: React.ReactNode }) {
+  return (
+    <div className="relative flex-1 flex flex-col" style={{ overflow: 'hidden' }}>
+      {toolbar}
+      <div className="flex-1 overflow-y-auto p-6 pt-20">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pb-8">
+          {data.map((group, i) => {
+            const sector = group.sector
+            const users = group.users ?? []
+            const sectorColor = sector?.color ?? '#0D9488'
+            return (
+              <div key={sector?._id ?? `no-sector-${i}`} className="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+                <div className="flex items-center gap-2 mb-3 pb-3 border-b border-slate-100">
+                  <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: sectorColor }} />
+                  <h3 className="text-sm font-semibold text-slate-900 truncate">{sector ? sector.name : 'Sans secteur'}</h3>
+                  <span className="ml-auto text-xs font-medium text-slate-400">{users.length}</span>
+                </div>
+                <div className="space-y-1.5">
+                  {users.length === 0 ? (
+                    <p className="text-xs text-slate-400 italic">Aucun utilisateur</p>
+                  ) : users.map(u => (
+                    <div key={u._id} className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-[10px] font-semibold flex-shrink-0" style={{ backgroundColor: ROLE_COLORS_HEX[u.role] ?? '#64748B' }}>
+                        {initials(u.firstName, u.lastName)}
+                      </div>
+                      <span className="text-xs text-slate-700 truncate">{u.firstName} {u.lastName}</span>
+                      <span className="text-[10px] text-slate-400 ml-auto capitalize">{u.role}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    </div>
+  )
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const nodeTypes: any = { orgCircle: OrgCircleNode }
@@ -92,9 +183,24 @@ function OrgFlowInner() {
 
   // Org tree — refetches when activeView changes
   const { data: treeData = [], isLoading: treeLoading } = useQuery({
-    queryKey: ['org', 'tree', activeView],
-    queryFn: () => orgApi.getOrgTree({ view: activeView }).then(r => r.data),
+    queryKey: ['org', 'tree'],
+    queryFn: () => orgApi.getOrgTree().then(r => r.data),
     staleTime: 5 * 60 * 1000,
+    enabled: activeView === 'all',
+  })
+
+  const { data: teamsData = [], isLoading: teamsLoading } = useQuery({
+    queryKey: ['org', 'teams'],
+    queryFn: () => orgApi.getOrgTeams().then(r => r.data as unknown as OrgTeamGroup[]),
+    staleTime: 5 * 60 * 1000,
+    enabled: activeView === 'teams',
+  })
+
+  const { data: sectorData = [], isLoading: sectorLoading } = useQuery({
+    queryKey: ['org', 'sectors-view'],
+    queryFn: () => orgApi.getOrgSectors().then(r => r.data as unknown as OrgSectorGroup[]),
+    staleTime: 5 * 60 * 1000,
+    enabled: activeView === 'sector',
   })
 
   // Sectors
@@ -211,7 +317,7 @@ function OrgFlowInner() {
       return {
         ...e,
         style: {
-          stroke: bothInChain ? 'var(--color-indigo-500)' : 'var(--color-slate-400)',
+          stroke: bothInChain ? '#6366f1' : '#94a3b8',
           strokeWidth: bothInChain ? 2.5 : 1.5,
           strokeDasharray: bothInChain ? undefined : '6 3',
           opacity: chainIds !== null && !bothInChain ? 0.1 : dimmedByFilter ? 0.25 : 1,
@@ -296,7 +402,7 @@ function OrgFlowInner() {
     }
   }, [searchQuery, highlightIds])
 
-  if (treeLoading) {
+  if (treeLoading || teamsLoading || sectorLoading) {
     return (
       <div className="h-full flex items-center justify-center">
         <div className="text-center space-y-3">
@@ -305,6 +411,27 @@ function OrgFlowInner() {
         </div>
       </div>
     )
+  }
+
+  const toolbar = (
+    <OrgToolbar
+      activeView={activeView}
+      onViewChange={v => { setActiveView(v); setSelectedId(null) }}
+      searchQuery={searchQuery}
+      onSearchChange={setSearchQuery}
+      activeRoles={activeRoles}
+      onRolesChange={setActiveRoles}
+      totalCount={layoutNodes.length}
+      filteredCount={filteredTotal}
+    />
+  )
+
+  if (activeView === 'teams') {
+    return <OrgTeamsView data={teamsData} toolbar={toolbar} />
+  }
+
+  if (activeView === 'sector') {
+    return <OrgSectorsView data={sectorData} toolbar={toolbar} />
   }
 
   return (
@@ -333,19 +460,7 @@ function OrgFlowInner() {
       </div>{/* /absolute inset-0 */}
 
       {/* Floating toolbar */}
-      <OrgToolbar
-        activeView={activeView}
-        onViewChange={v => {
-          setActiveView(v)
-          setSelectedId(null)
-        }}
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        activeRoles={activeRoles}
-        onRolesChange={setActiveRoles}
-        totalCount={layoutNodes.length}
-        filteredCount={filteredTotal}
-      />
+      {toolbar}
 
       {/* Zoom/fit controls */}
       <OrgControls />

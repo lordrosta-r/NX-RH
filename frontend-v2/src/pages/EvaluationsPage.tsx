@@ -163,14 +163,14 @@ export default function EvaluationsPage() {
               <button
                 onClick={() => setBulkModal('archive')}
                 disabled={bulkArchiveMutation.isPending || bulkSignHrMutation.isPending}
-                className="text-sm px-3 py-1.5 border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-50"
+                className="text-sm px-3 py-1.5 border border-slate-200 rounded-md hover:bg-slate-50 disabled:opacity-50"
               >
                 Archiver
               </button>
               <button
                 onClick={() => setBulkModal('sign')}
                 disabled={bulkArchiveMutation.isPending || bulkSignHrMutation.isPending}
-                className="text-sm px-3 py-1.5 border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-50"
+                className="text-sm px-3 py-1.5 border border-slate-200 rounded-md hover:bg-slate-50 disabled:opacity-50"
               >
                 Signer RH
               </button>
@@ -180,7 +180,7 @@ export default function EvaluationsPage() {
             <button
               onClick={() => exportToCSV(evaluations)}
               disabled={isLoading}
-              className="inline-flex items-center gap-2 border border-slate-200 hover:bg-slate-50 px-3 py-1.5 rounded-lg text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed"
+              className="inline-flex items-center gap-2 border border-slate-200 hover:bg-slate-50 px-3 py-1.5 rounded-md text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <Download className="w-4 h-4" /> Exporter CSV
             </button>
@@ -236,6 +236,7 @@ export default function EvaluationsPage() {
       {/* Table (admin / hr / manager) */}
       {!isEmployee && (
         <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+          <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-slate-50 border-b border-slate-200">
               <tr>
@@ -329,15 +330,16 @@ export default function EvaluationsPage() {
               ))}
             </tbody>
           </table>
+          </div>
 
           {/* Pagination */}
           {totalPages > 1 && (
             <div className="flex items-center justify-between px-4 py-3 border-t border-slate-100">
               <span className="text-sm text-slate-500">{total} résultats</span>
               <div className="flex items-center gap-1">
-                <button disabled={page === 1} onClick={() => setPage(p => p - 1)} aria-label="Page précédente" className="px-3 py-1.5 text-sm border border-slate-200 rounded-lg disabled:opacity-40 hover:bg-slate-50">←</button>
+                <button disabled={page === 1} onClick={() => setPage(p => p - 1)} aria-label="Page précédente" className="px-3 py-1.5 text-sm border border-slate-200 rounded-md disabled:opacity-40 hover:bg-slate-50">←</button>
                 <span className="px-3 py-1.5 text-sm">{page} / {totalPages}</span>
-                <button disabled={page === totalPages} onClick={() => setPage(p => p + 1)} aria-label="Page suivante" className="px-3 py-1.5 text-sm border border-slate-200 rounded-lg disabled:opacity-40 hover:bg-slate-50">→</button>
+                <button disabled={page === totalPages} onClick={() => setPage(p => p + 1)} aria-label="Page suivante" className="px-3 py-1.5 text-sm border border-slate-200 rounded-md disabled:opacity-40 hover:bg-slate-50">→</button>
               </div>
             </div>
           )}
@@ -395,7 +397,7 @@ export default function EvaluationsPage() {
               <button
                 onClick={() => setBulkModal(null)}
                 disabled={bulkArchiveMutation.isPending || bulkSignHrMutation.isPending}
-                className="px-4 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-50"
+                className="px-4 py-2 text-sm border border-slate-200 rounded-md hover:bg-slate-50 disabled:opacity-50"
               >
                 Annuler
               </button>
@@ -405,7 +407,7 @@ export default function EvaluationsPage() {
                   else bulkSignHrMutation.mutate(selected)
                 }}
                 disabled={bulkArchiveMutation.isPending || bulkSignHrMutation.isPending}
-                className="px-4 py-2 text-sm bg-primary-500 text-white rounded-lg hover:bg-primary-600 disabled:opacity-50"
+                className="px-4 py-2 text-sm bg-primary-500 text-white rounded-md hover:bg-primary-600 disabled:opacity-50"
               >
                 {(bulkArchiveMutation.isPending || bulkSignHrMutation.isPending) ? 'Traitement…' : 'Confirmer'}
               </button>
@@ -431,11 +433,11 @@ export default function EvaluationsPage() {
               ))}
             </select>
             <div className="flex gap-3 justify-end">
-              <button onClick={() => setReassignTarget(null)} className="px-4 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50">Annuler</button>
+              <button onClick={() => setReassignTarget(null)} className="px-4 py-2 text-sm border border-slate-200 rounded-md hover:bg-slate-50">Annuler</button>
               <button
                 onClick={() => reassignMutation.mutate({ id: reassignTarget, evaluatorId: reassignUserId })}
                 disabled={!reassignUserId || reassignMutation.isPending}
-                className="px-4 py-2 text-sm bg-primary-500 text-white rounded-lg hover:bg-primary-600 disabled:opacity-50"
+                className="px-4 py-2 text-sm bg-primary-500 text-white rounded-md hover:bg-primary-600 disabled:opacity-50"
               >
                 {reassignMutation.isPending ? 'Traitement…' : 'Réaffecter'}
               </button>
@@ -451,11 +453,11 @@ export default function EvaluationsPage() {
             <h3 className="text-lg font-semibold text-slate-900 mb-2">Expirer cette évaluation ?</h3>
             <p className="text-sm text-slate-600 mb-4">Cette action est irréversible. L'évaluation sera marquée comme expirée.</p>
             <div className="flex gap-3 justify-end">
-              <button onClick={() => setExpireConfirm(null)} className="px-4 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50">Annuler</button>
+              <button onClick={() => setExpireConfirm(null)} className="px-4 py-2 text-sm border border-slate-200 rounded-md hover:bg-slate-50">Annuler</button>
               <button
                 onClick={() => expireMutation.mutate(expireConfirm)}
                 disabled={expireMutation.isPending}
-                className="px-4 py-2 text-sm bg-error-500 text-white rounded-lg hover:bg-error-600 disabled:opacity-50"
+                className="px-4 py-2 text-sm bg-error-500 text-white rounded-md hover:bg-error-600 disabled:opacity-50"
               >
                 {expireMutation.isPending ? 'Traitement…' : 'Expirer'}
               </button>

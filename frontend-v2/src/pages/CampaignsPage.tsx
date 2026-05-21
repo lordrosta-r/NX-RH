@@ -262,6 +262,8 @@ export default function CampaignsPage() {
                 <tbody className="divide-y divide-slate-50">
                   {campaigns.map(campaign => {
                     const progress = campaign.completionPct ?? 0
+                    return (
+                      <tr key={cid(campaign)}>
                         <td className="px-4 py-3">
                           <Link
                             to={`/campaigns/${cid(campaign)}`}
@@ -312,6 +314,8 @@ export default function CampaignsPage() {
             <div className="md:hidden divide-y divide-slate-100">
               {campaigns.map(campaign => {
                 const progress = campaign.completionPct ?? 0
+                return (
+                  <div key={cid(campaign)} className="flex items-center justify-between p-4">
                     <div className="flex-1 min-w-0">
                       <Link
                         to={`/campaigns/${cid(campaign)}`}

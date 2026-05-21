@@ -94,7 +94,7 @@ export default function AdminUsersImportPage() {
         <h1 className="text-2xl font-bold text-slate-900">Import utilisateurs</h1>
         <button
           onClick={downloadTemplateCsv}
-          className="inline-flex items-center gap-2 border border-slate-200 hover:bg-slate-50 px-3 py-2 rounded-lg text-sm"
+          className="inline-flex items-center gap-2 border border-slate-200 hover:bg-slate-50 px-3 py-2 rounded-md text-sm"
         >
           <Download className="w-4 h-4" /> Télécharger le template CSV
         </button>
@@ -168,11 +168,11 @@ export default function AdminUsersImportPage() {
             <button
               onClick={doImport}
               disabled={errors.length > 0 || isImporting}
-              className="px-5 py-2 bg-primary-500 text-white rounded-xl text-sm font-medium hover:bg-primary-600 disabled:opacity-50 transition"
+              className="px-5 py-2 bg-primary-500 text-white rounded-md text-sm font-medium hover:bg-primary-600 disabled:opacity-50 transition"
             >
               {isImporting ? 'Import en cours…' : dryRun ? `Simuler (${rows.length} lignes)` : `Importer ${rows.length} utilisateurs`}
             </button>
-            <button onClick={() => { setRows([]); setErrors([]); setResult(null) }} className="px-4 py-2 text-sm text-slate-600 border border-slate-200 rounded-xl hover:bg-slate-50">Réinitialiser</button>
+            <button onClick={() => { setRows([]); setErrors([]); setResult(null) }} className="px-4 py-2 text-sm text-slate-600 border border-slate-200 rounded-md hover:bg-slate-50">Réinitialiser</button>
           </div>
         </div>
       )}

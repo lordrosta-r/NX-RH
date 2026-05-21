@@ -122,7 +122,7 @@ export default function OffboardingDetailPage() {
         <div className="relative">
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            className="p-2 rounded-lg hover:bg-slate-100 text-slate-500 transition-colors"
+            className="p-2 rounded-md hover:bg-slate-100 text-slate-500 transition-colors"
           >
             <MoreVertical className="w-5 h-5" />
           </button>
@@ -164,7 +164,7 @@ export default function OffboardingDetailPage() {
                     onClick={() => toggleMutation.mutate(i)}
                     disabled={toggleMutation.isPending}
                     className={cn(
-                      'w-full flex items-center gap-3 p-3 rounded-xl border transition-colors text-left',
+                      'w-full flex items-center gap-3 p-3 rounded-md border transition-colors text-left',
                       item.done
                         ? 'border-success-500/30 bg-success-50'
                         : 'border-slate-100 bg-slate-50 hover:border-slate-200',
@@ -240,7 +240,7 @@ export default function OffboardingDetailPage() {
             <button
               onClick={() => notesMutation.mutate()}
               disabled={notesMutation.isPending}
-              className="w-full px-4 py-2 bg-primary-500 text-white text-sm font-medium rounded-lg hover:bg-primary-600 disabled:opacity-50 transition-colors"
+              className="w-full px-4 py-2 bg-primary-500 text-white text-sm font-medium rounded-md hover:bg-primary-600 disabled:opacity-50 transition-colors"
             >
               {notesMutation.isPending ? 'Sauvegarde…' : 'Sauvegarder les notes'}
             </button>
@@ -261,7 +261,7 @@ export default function OffboardingDetailPage() {
               }
             }}
             disabled={statusMutation.isPending}
-            className="px-5 py-2.5 bg-primary-500 text-white text-sm font-semibold rounded-xl hover:bg-primary-600 disabled:opacity-50 transition-colors"
+            className="px-5 py-2.5 bg-primary-500 text-white text-sm font-semibold rounded-md hover:bg-primary-600 disabled:opacity-50 transition-colors"
           >
             {nextStatusLabel[record.status]}
           </button>
@@ -273,7 +273,7 @@ export default function OffboardingDetailPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/30" onClick={() => setStatusConfirm(false)} />
           <div className="relative bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm">
-            <button onClick={() => setStatusConfirm(false)} className="absolute top-4 right-4 p-1 rounded-lg hover:bg-slate-100 text-slate-400">
+            <button onClick={() => setStatusConfirm(false)} className="absolute top-4 right-4 p-1 rounded-md hover:bg-slate-100 text-slate-400">
               <X className="w-4 h-4" />
             </button>
             <h3 className="text-base font-semibold text-slate-900 mb-2">Confirmer la clôture</h3>
@@ -284,13 +284,13 @@ export default function OffboardingDetailPage() {
               <button
                 onClick={() => statusMutation.mutate('completed')}
                 disabled={statusMutation.isPending}
-                className="flex-1 px-4 py-2 bg-primary-500 text-white text-sm font-medium rounded-lg hover:bg-primary-600 disabled:opacity-50 transition-colors"
+                className="flex-1 px-4 py-2 bg-primary-500 text-white text-sm font-medium rounded-md hover:bg-primary-600 disabled:opacity-50 transition-colors"
               >
                 {statusMutation.isPending ? 'En cours…' : 'Confirmer'}
               </button>
               <button
                 onClick={() => setStatusConfirm(false)}
-                className="px-4 py-2 border border-slate-300 text-sm font-medium rounded-lg text-slate-700 hover:bg-slate-50 transition-colors"
+                className="px-4 py-2 border border-slate-300 text-sm font-medium rounded-md text-slate-700 hover:bg-slate-50 transition-colors"
               >
                 Annuler
               </button>
@@ -312,13 +312,13 @@ export default function OffboardingDetailPage() {
               <button
                 onClick={() => deleteMutation.mutate()}
                 disabled={deleteMutation.isPending}
-                className="flex-1 px-4 py-2 bg-error-600 text-white text-sm font-medium rounded-lg hover:bg-error-700 disabled:opacity-50 transition-colors"
+                className="flex-1 px-4 py-2 bg-error-600 text-white text-sm font-medium rounded-md hover:bg-error-700 disabled:opacity-50 transition-colors"
               >
                 {deleteMutation.isPending ? 'Suppression…' : 'Supprimer'}
               </button>
               <button
                 onClick={() => setDeleteConfirm(false)}
-                className="px-4 py-2 border border-slate-300 text-sm font-medium rounded-lg text-slate-700 hover:bg-slate-50 transition-colors"
+                className="px-4 py-2 border border-slate-300 text-sm font-medium rounded-md text-slate-700 hover:bg-slate-50 transition-colors"
               >
                 Annuler
               </button>

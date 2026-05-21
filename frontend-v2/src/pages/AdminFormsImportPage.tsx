@@ -107,7 +107,7 @@ export default function AdminFormsImportPage() {
         <h1 className="text-2xl font-bold text-slate-900">Import formulaires</h1>
         <button
           onClick={downloadTemplate}
-          className="inline-flex items-center gap-2 border border-slate-200 hover:bg-slate-50 px-3 py-2 rounded-lg text-sm"
+          className="inline-flex items-center gap-2 border border-slate-200 hover:bg-slate-50 px-3 py-2 rounded-md text-sm"
         >
           <Download className="w-4 h-4" /> Télécharger le template JSON
         </button>
@@ -158,7 +158,7 @@ export default function AdminFormsImportPage() {
           <button
             onClick={handlePaste}
             disabled={!pasteText.trim()}
-            className="mt-3 px-4 py-2 bg-slate-700 text-white rounded-lg text-sm hover:bg-slate-800 disabled:opacity-50"
+            className="mt-3 px-4 py-2 bg-slate-700 text-white rounded-md text-sm hover:bg-slate-800 disabled:opacity-50"
           >
             Valider
           </button>
@@ -213,11 +213,11 @@ export default function AdminFormsImportPage() {
             <button
               onClick={doImport}
               disabled={isImporting || !!importedId}
-              className="px-5 py-2 bg-primary-500 text-white rounded-xl text-sm font-medium hover:bg-primary-600 disabled:opacity-50 transition flex items-center gap-2"
+              className="px-5 py-2 bg-primary-500 text-white rounded-md text-sm font-medium hover:bg-primary-600 disabled:opacity-50 transition flex items-center gap-2"
             >
               {isImporting ? 'Import en cours…' : 'Importer le formulaire'}
             </button>
-            <button onClick={reset} className="px-4 py-2 text-sm text-slate-600 border border-slate-200 rounded-xl hover:bg-slate-50">Réinitialiser</button>
+            <button onClick={reset} className="px-4 py-2 text-sm text-slate-600 border border-slate-200 rounded-md hover:bg-slate-50">Réinitialiser</button>
           </div>
 
           {importedId && (

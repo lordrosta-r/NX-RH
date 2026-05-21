@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { usersApi } from '../api/users'
 import type { User } from '../types'
 import { useAuth } from '../contexts/AuthContext'
+import Button from '../components/ui/Button'
 
 const ROLE_LABELS: Record<string, string> = {
   admin: 'Admin', hr: 'RH', manager: 'Manager', employee: 'Employé',
@@ -163,14 +164,15 @@ export default function UserEditPage() {
           >
             Voir le profil
           </Link>
-          <button
+          <Button
             type="submit"
             form="edit-form"
+            variant="primary"
+            loading={updateMutation.isPending}
             disabled={updateMutation.isPending}
-            className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-60"
           >
             {updateMutation.isPending ? 'Enregistrement…' : 'Enregistrer →'}
-          </button>
+          </Button>
         </div>
       </div>
 

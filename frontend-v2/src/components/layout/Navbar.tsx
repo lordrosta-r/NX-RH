@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { NavLink, Link, useNavigate } from 'react-router-dom'
+import nxLogo from '../../assets/nx-logo.png'
 import { Bell, ChevronDown, LogOut, User, Menu, X } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '../../contexts/AuthContext'
@@ -221,11 +222,8 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between gap-6">
 
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2 flex-shrink-0">
-          <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-xs">NX</span>
-          </div>
-          <span className="text-lg font-bold text-primary-700">RH</span>
+        <Link to="/" className="flex items-center flex-shrink-0">
+          <img src={nxLogo} alt="NanoXplore RH" className="h-8 w-auto" />
         </Link>
 
         {/* Nav desktop */}

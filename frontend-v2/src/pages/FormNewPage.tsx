@@ -5,6 +5,7 @@ import { Plus, Trash2, FileText, Upload, ChevronUp, ChevronDown, X } from 'lucid
 import { formsApi } from '../api/forms'
 import { campaignsApi } from '../api/campaigns'
 import type { Form, FormQuestion, QuestionType, QuestionPhase } from '../types'
+import Button from '../components/ui/Button'
 
 const QUESTION_TYPES: { value: QuestionType; label: string }[] = [
   { value: 'rating',          label: 'Note (1-10)' },
@@ -247,13 +248,14 @@ export default function FormNewPage() {
           >
             Annuler
           </Link>
-          <button
+          <Button
+            variant="primary"
             onClick={handleSave}
+            loading={createMutation.isPending}
             disabled={createMutation.isPending}
-            className="px-4 py-2 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 disabled:opacity-50 rounded-lg"
           >
             {createMutation.isPending ? 'Enregistrement…' : 'Enregistrer'}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -300,7 +302,6 @@ export default function FormNewPage() {
                   <option value="self_evaluation">Auto-évaluation</option>
                   <option value="manager_evaluation">Évaluation manager</option>
                   <option value="upward_feedback">Feedback ascendant</option>
-                  <option value="director_evaluation">Évaluation directeur</option>
                   <option value="peer_review">Peer review</option>
                 </optgroup>
                 <optgroup label="Objectifs">
@@ -415,7 +416,7 @@ export default function FormNewPage() {
           {questions.length > 0 && (
             <button
               onClick={() => setQuestions(qs => [...qs, newQuestion()])}
-              className="w-full py-3 border-2 border-dashed border-slate-200 rounded-xl text-sm text-slate-500 hover:text-primary-600 hover:border-primary-300 transition-colors mt-2"
+              className="w-full py-3 border-2 border-dashed border-slate-200 rounded-md text-sm text-slate-500 hover:text-primary-600 hover:border-primary-300 transition-colors mt-2"
             >
               + Ajouter une question
             </button>

@@ -211,7 +211,7 @@ function OrgFlowInner() {
       return {
         ...e,
         style: {
-          stroke: bothInChain ? '#6366F1' : '#94A3B8',
+          stroke: bothInChain ? 'var(--color-indigo-500)' : 'var(--color-slate-400)',
           strokeWidth: bothInChain ? 2.5 : 1.5,
           strokeDasharray: bothInChain ? undefined : '6 3',
           opacity: chainIds !== null && !bothInChain ? 0.1 : dimmedByFilter ? 0.25 : 1,
@@ -308,6 +308,7 @@ function OrgFlowInner() {
   }
 
   return (
+    <div className="relative flex-1" style={{ overflow: 'hidden' }}>
       <div style={{ position: 'absolute', inset: 0 }}>
       <ReactFlow
         nodes={styledNodes}
@@ -327,7 +328,7 @@ function OrgFlowInner() {
         fitViewOptions={{ padding: 0.15 }}
         proOptions={{ hideAttribution: true }}
       >
-        <Background variant={BackgroundVariant.Dots} gap={20} size={1.5} color="#E2E8F0" />
+        <Background variant={BackgroundVariant.Dots} gap={20} size={1.5} color="var(--color-slate-200)" />
       </ReactFlow>
       </div>{/* /absolute inset-0 */}
 

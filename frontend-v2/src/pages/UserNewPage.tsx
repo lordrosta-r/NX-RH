@@ -4,6 +4,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { CheckCircle, Copy, X } from 'lucide-react'
 import { usersApi } from '../api/users'
 import type { User } from '../types'
+import Button from '../components/ui/Button'
 
 const ROLE_LABELS: Record<string, string> = {
   admin: 'Admin',
@@ -121,14 +122,15 @@ export default function UserNewPage() {
           >
             Annuler
           </Link>
-          <button
+          <Button
             type="submit"
             form="user-form"
+            variant="primary"
+            loading={createMutation.isPending}
             disabled={createMutation.isPending}
-            className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-60"
           >
             {createMutation.isPending ? 'Création…' : 'Créer →'}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -290,7 +292,7 @@ export default function UserNewPage() {
             <div className="flex justify-end">
               <button
                 onClick={() => navigate(`/users/${createdUserId}`)}
-                className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg text-sm font-medium"
+                className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-md text-sm font-medium"
               >
                 Voir le profil →
               </button>

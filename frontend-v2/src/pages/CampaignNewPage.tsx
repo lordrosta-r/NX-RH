@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { campaignsApi } from '../api/campaigns'
 import { orgApi } from '../api/org'
 import type { Campaign, CampaignStatus } from '../types'
+import Button from '../components/ui/Button'
 
 // ─── Shared sub-components ────────────────────────────────────────────────────
 
@@ -96,7 +97,7 @@ function ChipInput({
         <button
           type="button"
           onClick={add}
-          className="px-3 py-2 text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors"
+          className="px-3 py-2 text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md transition-colors"
         >
           Ajouter
         </button>
@@ -260,20 +261,22 @@ export default function CampaignNewPage() {
           >
             Annuler
           </Link>
-          <button
+          <Button
+            variant="secondary"
             onClick={handleSaveDraft}
+            loading={createMutation.isPending}
             disabled={createMutation.isPending}
-            className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50"
           >
             Enregistrer brouillon
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="primary"
             onClick={handleActivate}
+            loading={createMutation.isPending}
             disabled={createMutation.isPending}
-            className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50"
           >
             Activer →
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -485,20 +488,24 @@ export default function CampaignNewPage() {
         >
           Annuler
         </Link>
-        <button
+        <Button
+          variant="secondary"
+          className="flex-1"
           onClick={handleSaveDraft}
+          loading={createMutation.isPending}
           disabled={createMutation.isPending}
-          className="flex-1 px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg disabled:opacity-50"
         >
           Brouillon
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="primary"
+          className="flex-1"
           onClick={handleActivate}
+          loading={createMutation.isPending}
           disabled={createMutation.isPending}
-          className="flex-1 px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg disabled:opacity-50"
         >
           Activer →
-        </button>
+        </Button>
       </div>
     </div>
   )

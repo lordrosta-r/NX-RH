@@ -15,11 +15,11 @@
 
 const router      = require('express').Router()
 const mongoose    = require('mongoose')
-const { Form, Campaign } = require('../models')
+const { Form } = require('../models')
 const { ADMIN_ROLES } = require('../config/constants')
 
 // GET /api/forms — Liste des formulaires (filtrable par campaignId, formType, search)
-// ?campaignId=X → retourne uniquement les forms liés à cette campagne (via Campaign.formIds)
+// ?campaignId=X → retourne uniquement les forms liés à cette campagne
 router.get('/', async (req, res, next) => {
   try {
     const filter = {}
@@ -28,9 +28,7 @@ router.get('/', async (req, res, next) => {
       if (!mongoose.isValidObjectId(req.query.campaignId)) {
         return res.status(400).json({ error: 'campaignId invalide' })
       }
-      const campaign = await Campaign.findById(req.query.campaignId).select('formIds').lean()
-      if (!campaign) return res.status(404).json({ error: 'Campagne introuvable' })
-      filter._id = { $in: campaign.formIds || [] }
+      filter.campaignId = req.query.campaignId
     }
 
     if (req.query.formType) {
@@ -82,10 +80,13 @@ router.post('/', async (req, res, next) => {
       return res.status(403).json({ error: 'Réservé aux admins et RH' })
     }
 
-    const { title, description, formType, isAnonymous, questions } = req.body
+    const { title, description, formType, isAnonymous, questions, campaignId } = req.body
 
     if (!title || !formType) {
       return res.status(400).json({ error: 'title et formType sont requis' })
+    }
+    if (campaignId !== undefined && !mongoose.isValidObjectId(campaignId)) {
+      return res.status(400).json({ error: 'campaignId invalide' })
     }
     if (questions !== undefined && !Array.isArray(questions)) {
       return res.status(400).json({ error: 'questions doit être un tableau' })

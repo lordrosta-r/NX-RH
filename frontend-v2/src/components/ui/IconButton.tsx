@@ -36,7 +36,7 @@ const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(({
     aria-label={tooltip}
     disabled={disabled}
     className={clsx(
-      'inline-flex items-center justify-center rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1',
+      'inline-flex items-center justify-center rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1',
       VARIANT_CLASSES[variant],
       SIZE_CLASSES[size],
       disabled && 'opacity-50 cursor-not-allowed pointer-events-none',

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
-import { Search, UserPlus, MoreVertical, Users, Plus, ChevronLeft, ChevronRight, X } from 'lucide-react'
+import { Search, UserPlus, MoreVertical, Users, Plus, ChevronLeft, ChevronRight, X, AlertTriangle } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { usersApi } from '../api/users'
 import { toast } from '../hooks/useToast'
@@ -453,7 +453,7 @@ export default function UsersPage() {
           <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-xl">
             <h3 className="text-lg font-semibold text-slate-900 mb-2">Anonymiser les données</h3>
             <p className="text-sm text-slate-600 mb-4">
-              ⚠️ Cette action est irréversible. Les données personnelles de{' '}
+              <span className="inline-flex items-center gap-1"><AlertTriangle className="w-4 h-4 text-warning-500 shrink-0" /> Cette action est irréversible.</span> Les données personnelles de{' '}
               <strong>{anonymizeModal.firstName} {anonymizeModal.lastName}</strong> seront
               définitivement anonymisées conformément au RGPD.
             </p>

@@ -4,20 +4,20 @@ import { BarChart2, FileText, Download, ChevronRight } from 'lucide-react'
 import { analyticsApi } from '../api/analytics'
 
 const CHART_COLORS = {
-  track: '#f1f5f9',
-  gauge: '#3b82f6',
+  track: 'var(--color-slate-100)',
+  gauge: 'var(--color-blue-500)',
   score: {
-    veryLow:  '#ef4444',
-    low:      '#f97316',
-    medium:   '#eab308',
-    good:     '#22c55e',
-    veryGood: '#10b981',
+    veryLow:  'var(--color-red-500)',
+    low:      'var(--color-orange-500)',
+    medium:   'var(--color-yellow-500)',
+    good:     'var(--color-green-500)',
+    veryGood: 'var(--color-emerald-500)',
   },
   status: {
-    assigned:    '#94a3b8',
-    in_progress: '#3b82f6',
-    submitted:   '#f59e0b',
-    validated:   '#22c55e',
+    assigned:    'var(--color-slate-400)',
+    in_progress: 'var(--color-blue-500)',
+    submitted:   'var(--color-amber-500)',
+    validated:   'var(--color-green-500)',
   },
 }
 
@@ -51,7 +51,7 @@ function DonutChart({ data }: { data: DonutSegment[] }) {
             />
           )
         })}
-        <text x="80" y="80" textAnchor="middle" dy="0.3em" fontSize="24" fontWeight="bold" fill="#0f172a">
+        <text x="80" y="80" textAnchor="middle" dy="0.3em" fontSize="24" fontWeight="bold" className="fill-slate-900">
           {total}
         </text>
       </svg>

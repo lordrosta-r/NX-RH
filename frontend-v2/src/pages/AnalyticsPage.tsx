@@ -12,22 +12,22 @@ import { analyticsApi } from '../api/analytics'
 import type { EvaluationStatus } from '../types'
 
 const CHART_COLORS = {
-  bar: '#17A8D4',
-  gridStroke: '#E2E8F0',
-  axisText: '#64748B',
+  bar: 'var(--color-primary)',
+  gridStroke: 'var(--color-slate-200)',
+  axisText: 'var(--color-slate-500)',
 }
 
 const STATUS_COLORS: Record<EvaluationStatus, string> = {
-  assigned:         '#94A3B8',
-  in_progress:      '#3B82F6',
-  submitted:        '#F59E0B',
-  reviewed:         '#F97316',
-  signed_evaluatee: '#A855F7',
-  signed_manager:   '#6366F1',
-  signed_hr:        '#8B5CF6',
-  validated:        '#22C55E',
-  expired:          '#EF4444',
-  archived:         '#64748B',
+  assigned:         'var(--color-slate-400)',
+  in_progress:      'var(--color-blue-500)',
+  submitted:        'var(--color-amber-500)',
+  reviewed:         'var(--color-orange-500)',
+  signed_evaluatee: 'var(--color-purple-500)',
+  signed_manager:   'var(--color-indigo-500)',
+  signed_hr:        'var(--color-violet-500)',
+  validated:        'var(--color-green-500)',
+  expired:          'var(--color-red-500)',
+  archived:         'var(--color-slate-500)',
 }
 
 const STATUS_LABELS: Record<EvaluationStatus, string> = {

@@ -115,6 +115,12 @@ export const handlers = [
     HttpResponse.json({ ...mockCampaign, _id: params.id as string, status: 'active' })),
   http.post('http://localhost:5050/api/campaigns/:id/close', ({ params }) =>
     HttpResponse.json({ ...mockCampaign, _id: params.id as string, status: 'closed' })),
+  http.post('http://localhost:5050/api/campaigns/:id/archive', ({ params }) =>
+    HttpResponse.json({ ...mockCampaign, _id: params.id as string, status: 'archived' })),
+  http.post('http://localhost:5050/api/campaigns/:id/clone', ({ params }) =>
+    HttpResponse.json({ ...mockCampaign, _id: 'camp-clone', id: 'camp-clone', name: `Copie campagne` })),
+  http.delete('http://localhost:5050/api/campaigns/:id', () =>
+    new HttpResponse(null, { status: 204 })),
 
   // Forms
   http.get('http://localhost:5050/api/forms', () =>
@@ -147,6 +153,10 @@ export const handlers = [
     HttpResponse.json({ ...mockEvaluation, _id: params.id as string, status: 'signed_evaluatee' })),
   http.get('http://localhost:5050/api/evaluations/:id/pdf', () =>
     new HttpResponse(new Blob(['%PDF'], { type: 'application/pdf' }))),
+  http.post('http://localhost:5050/api/evaluations/bulk', () =>
+    HttpResponse.json({ updated: 2 })),
+  http.patch('http://localhost:5050/api/evaluations/bulk', () =>
+    HttpResponse.json({ success: 2, skipped: 0, errors: [] })),
 
   // Notifications
   http.get('http://localhost:5050/api/notifications', () =>
@@ -205,6 +215,8 @@ export const handlers = [
     HttpResponse.json({ success: true })),
   http.post('http://localhost:5050/api/admin/config/test-email', () =>
     HttpResponse.json({ success: true })),
+  http.post('http://localhost:5050/api/admin/email/test', () =>
+    HttpResponse.json({ success: true })),
   http.get('http://localhost:5050/api/admin/ldap', () =>
     HttpResponse.json({ url: 'ldap://example.com', baseDn: 'dc=example,dc=com', bindDn: 'cn=admin,dc=example,dc=com' })),
   http.put('http://localhost:5050/api/admin/ldap', () =>
@@ -231,6 +243,8 @@ export const handlers = [
     HttpResponse.json({ imported: 3, errors: 0 })),
   http.post('http://localhost:5050/api/admin/forms/import', () =>
     HttpResponse.json({ success: true, formId: 'form-imported' })),
+  http.post('http://localhost:5050/api/forms/import', () =>
+    HttpResponse.json({ imported: 1, errors: [] })),
 
   // Org
   http.get('http://localhost:5050/api/org/chart', () =>

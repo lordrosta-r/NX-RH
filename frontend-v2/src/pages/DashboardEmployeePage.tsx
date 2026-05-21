@@ -104,7 +104,7 @@ export default function DashboardEmployeePage() {
             <line x1="28" y1="60" x2="15" y2="75" stroke="currentColor" strokeWidth="4" strokeLinecap="round" opacity="0.7" />
             <line x1="72" y1="60" x2="85" y2="75" stroke="currentColor" strokeWidth="4" strokeLinecap="round" opacity="0.7" />
           </svg>
-          <h2 className="text-xl font-bold mb-2">Bonjour, {user?.firstName} 👋</h2>
+          <h2 className="text-xl font-bold mb-2">Bonjour, {user?.firstName}</h2>
           <p className="text-white/70 text-sm">{user?.position ?? 'Votre espace personnel NX-RH'}</p>
           <p className="text-white/50 text-xs mt-4">{user?.department ?? ''}</p>
         </div>

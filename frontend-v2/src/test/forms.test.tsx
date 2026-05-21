@@ -128,7 +128,6 @@ describe('FormsPage', () => {
 
   it('supprime un formulaire après confirmation', async () => {
     const deleted = vi.fn()
-    vi.spyOn(window, 'confirm').mockReturnValue(true)
 
     server.use(
       formsListHandler([formFixtures[0]]),
@@ -142,6 +141,8 @@ describe('FormsPage', () => {
 
     await screen.findByRole('heading', { name: 'Bilan manager' })
     await userEvent.click(screen.getByTitle('Supprimer'))
+    const dialog = screen.getByRole('dialog')
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Supprimer' }))
 
     await waitFor(() => expect(deleted).toHaveBeenCalledWith('form-manager'))
   })

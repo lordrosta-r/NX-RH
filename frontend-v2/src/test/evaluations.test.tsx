@@ -473,11 +473,11 @@ describe('EvaluationDetailPage', () => {
 describe('EvaluationHistoryPage', () => {
   it('affiche les évaluations validées en cards et filtre par année', async () => {
     server.use(
-      http.get('http://localhost:5050/api/evaluations/me', ({ request }) => {
+      http.get('http://localhost:5050/api/evaluations/history', ({ request }) => {
         const url = new URL(request.url)
         const year = url.searchParams.get('year')
-        const data = historyEvaluations.filter(e => matchesFilters(e, { year, status: 'validated' }))
-        return paginated(data)
+        const data = historyEvaluations.filter(e => matchesFilters(e, { year }))
+        return HttpResponse.json(data)
       })
     )
 

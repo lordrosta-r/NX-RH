@@ -2,6 +2,7 @@ import { useState, useRef } from 'react'
 import type { ChangeEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useMutation, useQuery } from '@tanstack/react-query'
+import { User, Camera, Users, MonitorCheck, PartyPopper } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { usersApi } from '../api/users'
 import { campaignsApi } from '../api/campaigns'
@@ -122,7 +123,8 @@ export default function OnboardingPage() {
     'Bienvenue !',
   ]
 
-  const stepEmojis = ['👤', '📸', '👥', '✅', '🎉']
+  const stepIcons = [User, Camera, Users, MonitorCheck, PartyPopper]
+  const StepIcon = stepIcons[step]
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-slate-100 flex flex-col items-center px-4 py-8">
@@ -161,7 +163,11 @@ export default function OnboardingPage() {
       {/* Card */}
       <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-lg">
         {/* Illustration */}
-        <div className="text-center text-7xl mb-6">{stepEmojis[step]}</div>
+        <div className="flex justify-center mb-6">
+          <div className="w-16 h-16 rounded-2xl bg-primary-100 text-primary-600 flex items-center justify-center">
+            <StepIcon size={32} strokeWidth={1.5} />
+          </div>
+        </div>
 
         <h2 className="text-xl font-bold text-slate-900 text-center mb-2">{stepTitles[step]}</h2>
 

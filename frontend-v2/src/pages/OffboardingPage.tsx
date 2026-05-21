@@ -98,7 +98,7 @@ function SlideOverForm({
       <div className="relative bg-white w-full max-w-md h-full overflow-y-auto shadow-xl flex flex-col">
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
           <h2 className="text-lg font-semibold text-slate-900">Nouvelle demande de départ</h2>
-          <button onClick={onClose} className="p-1 rounded-lg hover:bg-slate-100 transition-colors">
+          <button onClick={onClose} className="p-1 rounded-md hover:bg-slate-100 transition-colors">
             <X className="w-5 h-5 text-slate-500" />
           </button>
         </div>
@@ -156,11 +156,11 @@ function SlideOverForm({
             <button
               type="submit"
               disabled={isPending}
-              className="flex-1 px-4 py-2 bg-primary-500 text-white text-sm font-medium rounded-lg hover:bg-primary-600 disabled:opacity-50 transition-colors"
+              className="flex-1 px-4 py-2 bg-primary-500 text-white text-sm font-medium rounded-md hover:bg-primary-600 disabled:opacity-50 transition-colors"
             >
               {isPending ? 'Création…' : 'Créer la demande'}
             </button>
-            <button type="button" onClick={onClose} className="px-4 py-2 border border-slate-300 text-sm font-medium rounded-lg text-slate-700 hover:bg-slate-50 transition-colors">
+            <button type="button" onClick={onClose} className="px-4 py-2 border border-slate-300 text-sm font-medium rounded-md text-slate-700 hover:bg-slate-50 transition-colors">
               Annuler
             </button>
           </div>
@@ -230,7 +230,7 @@ export default function OffboardingPage() {
         </div>
         <button
           onClick={() => setShowForm(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-primary-500 text-white text-sm font-semibold rounded-xl hover:bg-primary-600 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-primary-500 text-white text-sm font-semibold rounded-md hover:bg-primary-600 transition-colors"
         >
           + Nouvelle demande
         </button>
@@ -327,7 +327,7 @@ export default function OffboardingPage() {
                         <div className="relative inline-block">
                           <button
                             onClick={() => setOpenMenu(openMenu === rec.id ? null : rec.id)}
-                            className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors text-slate-400"
+                            className="p-1.5 rounded-md hover:bg-slate-100 transition-colors text-slate-400"
                           >
                             <MoreVertical className="w-4 h-4" />
                           </button>
@@ -428,13 +428,13 @@ export default function OffboardingPage() {
               <button
                 onClick={() => deleteMutation.mutate(deleteConfirm)}
                 disabled={deleteMutation.isPending}
-                className="flex-1 px-4 py-2 bg-error-600 text-white text-sm font-medium rounded-lg hover:bg-error-700 disabled:opacity-50 transition-colors"
+                className="flex-1 px-4 py-2 bg-error-600 text-white text-sm font-medium rounded-md hover:bg-error-700 disabled:opacity-50 transition-colors"
               >
                 {deleteMutation.isPending ? 'Suppression…' : 'Supprimer'}
               </button>
               <button
                 onClick={() => setDeleteConfirm(null)}
-                className="px-4 py-2 border border-slate-300 text-sm font-medium rounded-lg text-slate-700 hover:bg-slate-50 transition-colors"
+                className="px-4 py-2 border border-slate-300 text-sm font-medium rounded-md text-slate-700 hover:bg-slate-50 transition-colors"
               >
                 Annuler
               </button>
@@ -462,13 +462,13 @@ export default function OffboardingPage() {
               <button
                 onClick={() => changeStatusMutation.mutate({ id: statusTarget.id, status: newStatus })}
                 disabled={changeStatusMutation.isPending || newStatus === statusTarget.current}
-                className="flex-1 px-4 py-2 bg-primary-500 text-white text-sm font-medium rounded-lg hover:bg-primary-600 disabled:opacity-50 transition-colors"
+                className="flex-1 px-4 py-2 bg-primary-500 text-white text-sm font-medium rounded-md hover:bg-primary-600 disabled:opacity-50 transition-colors"
               >
                 {changeStatusMutation.isPending ? 'Enregistrement…' : 'Enregistrer'}
               </button>
               <button
                 onClick={() => setStatusTarget(null)}
-                className="px-4 py-2 border border-slate-300 text-sm font-medium rounded-lg text-slate-700 hover:bg-slate-50 transition-colors"
+                className="px-4 py-2 border border-slate-300 text-sm font-medium rounded-md text-slate-700 hover:bg-slate-50 transition-colors"
               >
                 Annuler
               </button>

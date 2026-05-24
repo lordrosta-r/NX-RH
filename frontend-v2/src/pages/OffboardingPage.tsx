@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useDebounce } from '../hooks/useDebounce'
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { LogOut, MoreVertical, X } from 'lucide-react'
@@ -144,8 +145,8 @@ function SlideOverForm({
           <div className="pt-4">
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Checklist par défaut</p>
             <ul className="space-y-1">
-              {DEFAULT_CHECKLIST_ITEMS.map((item, i) => (
-                <li key={i} className="text-sm text-slate-600 flex items-center gap-2">
+              {DEFAULT_CHECKLIST_ITEMS.map((item) => (
+                <li key={item} className="text-sm text-slate-600 flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-slate-300 shrink-0" />
                   {item}
                 </li>
@@ -174,11 +175,18 @@ export default function OffboardingPage() {
   const { user } = useAuth()
   const queryClient = useQueryClient()
   const [filters, setFilters] = useState<OffboardingFilters>({ page: 1, limit: 20 })
+  const [searchInput, setSearchInput] = useState('')
+  const debouncedSearch = useDebounce(searchInput, 400)
   const [showForm, setShowForm] = useState(false)
   const [openMenu, setOpenMenu] = useState<string | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
   const [statusTarget, setStatusTarget] = useState<{ id: string; current: string } | null>(null)
   const [newStatus, setNewStatus] = useState('')
+
+  // Sync debounced search into filters
+  useEffect(() => {
+    setFilters(f => ({ ...f, q: debouncedSearch || undefined, page: 1 }))
+  }, [debouncedSearch])
 
   const { data, isLoading } = useQuery({
     queryKey: ['offboardings', filters],
@@ -241,8 +249,8 @@ export default function OffboardingPage() {
         <input
           type="search"
           placeholder="Rechercher un collaborateur…"
-          value={filters.q ?? ''}
-          onChange={(e) => setFilters((f) => ({ ...f, q: e.target.value, page: 1 }))}
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
           className="border border-slate-300 rounded-lg px-3 py-2 text-sm flex-1 min-w-40 focus:outline-none focus:ring-2 focus:ring-primary-400"
         />
         <select

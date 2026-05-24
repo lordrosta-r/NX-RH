@@ -84,8 +84,8 @@ export default function ActionMenu({ items, align = 'right' }: ActionMenuProps) 
             align === 'right' ? 'right-0' : 'left-0'
           )}
         >
-          {items.map((item, i) => (
-            <React.Fragment key={i}>
+          {items.map((item) => (
+            <React.Fragment key={item.label}>
               {item.separator && <hr className="my-1 border-slate-100" />}
               <button
                 type="button"

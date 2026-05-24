@@ -15,7 +15,7 @@ export default function Stepper({ steps, currentStep }: StepperProps) {
         const done = i < currentStep
         const active = i === currentStep
         return (
-          <div key={i} className="flex items-center flex-1">
+          <div key={step.label} className="flex items-center flex-1">
             <div className="flex flex-col items-center">
               <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${
                 done ? 'bg-primary-600 text-white' : active ? 'bg-primary-100 text-primary-700 ring-2 ring-primary-600' : 'bg-slate-100 text-slate-400'

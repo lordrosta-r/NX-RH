@@ -177,7 +177,7 @@ export default function AdminLdapPage() {
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {(previewData as Record<string, string>[]).slice(0, 50).map((u, i) => (
-                    <tr key={i} className="hover:bg-slate-50">
+                    <tr key={u.dn ?? u.mail ?? `row-${i}`} className="hover:bg-slate-50">
                       <td className="px-4 py-3">{u.cn ?? u.name ?? u.displayName ?? '—'}</td>
                       <td className="px-4 py-3">{u.mail ?? u.email ?? '—'}</td>
                       <td className="px-4 py-3 font-mono text-xs text-slate-500 truncate max-w-xs">{u.dn ?? '—'}</td>

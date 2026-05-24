@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { Search, X, Users, Target, FileText, ClipboardList } from 'lucide-react'
 import client from '../../api/client'
+import { useDebounce } from '../../hooks/useDebounce'
 
 type SearchResult = {
   id: string
@@ -33,6 +34,7 @@ const TYPE_LABELS: Record<string, string> = {
 
 export default function SearchOverlay({ open, onClose }: SearchOverlayProps) {
   const [q, setQ] = useState('')
+  const debouncedQ = useDebounce(q, 400)
   const inputRef = useRef<HTMLInputElement>(null)
   const navigate = useNavigate()
 
@@ -53,11 +55,13 @@ export default function SearchOverlay({ open, onClose }: SearchOverlayProps) {
   }, [onClose])
 
   const { data: results = [], isFetching } = useQuery<SearchResult[]>({
-    queryKey: ['global-search', q],
-    queryFn: () => client.get(`/api/search?q=${encodeURIComponent(q)}`).then(r => r.data),
-    enabled: q.trim().length >= 2,
+    queryKey: ['global-search', debouncedQ],
+    queryFn: () => client.get(`/api/search?q=${encodeURIComponent(debouncedQ)}`).then(r => r.data),
+    enabled: debouncedQ.trim().length >= 2,
     staleTime: 10000,
   })
+
+  const isSearching = q !== debouncedQ
 
   const handleSelect = (result: SearchResult) => {
     navigate(result.href)
@@ -82,7 +86,7 @@ export default function SearchOverlay({ open, onClose }: SearchOverlayProps) {
             value={q}
             onChange={e => setQ(e.target.value)}
           />
-          {isFetching && <div className="w-4 h-4 border-2 border-primary-400 border-t-transparent rounded-full animate-spin flex-shrink-0" />}
+          {(isFetching || isSearching) && <div className="w-4 h-4 border-2 border-primary-400 border-t-transparent rounded-full animate-spin flex-shrink-0" />}
           <button onClick={onClose} className="p-1 text-slate-400 hover:text-slate-600 rounded-lg flex-shrink-0">
             <X size={20} />
           </button>
@@ -95,7 +99,7 @@ export default function SearchOverlay({ open, onClose }: SearchOverlayProps) {
               Tapez au moins 2 caractères pour rechercher
               <p className="mt-2 text-xs text-slate-300">Raccourci : <kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-500 font-mono text-xs">Ctrl</kbd> + <kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-500 font-mono text-xs">K</kbd></p>
             </div>
-          ) : results.length === 0 && !isFetching ? (
+          ) : results.length === 0 && !isFetching && !isSearching ? (
             <div className="p-6 text-center text-slate-400 text-sm">Aucun résultat pour "{q}"</div>
           ) : (
             <ul className="py-2">

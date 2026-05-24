@@ -34,14 +34,14 @@ function DonutChart({ data }: { data: DonutSegment[] }) {
     <div className="flex items-center gap-6 flex-wrap">
       <svg width="160" height="160" viewBox="0 0 160 160" className="flex-shrink-0">
         <circle cx="80" cy="80" r={radius} fill="none" strokeWidth="20" stroke={CHART_COLORS.track} />
-        {total > 0 && data.map((segment, i) => {
+        {total > 0 && data.map((segment) => {
           const dash   = (segment.value / total) * circumference
           const gap    = circumference - dash
           const offset = circumference - accumulated
           accumulated += dash
           return (
             <circle
-              key={i}
+              key={segment.label}
               cx="80" cy="80" r={radius}
               fill="none" strokeWidth="20"
               stroke={segment.color}
@@ -56,8 +56,8 @@ function DonutChart({ data }: { data: DonutSegment[] }) {
         </text>
       </svg>
       <div className="space-y-2">
-        {data.map((d, i) => (
-          <div key={i} className="flex items-center gap-2 text-sm min-w-[140px]">
+        {data.map((d) => (
+          <div key={d.label} className="flex items-center gap-2 text-sm min-w-[140px]">
             <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: d.color }} />
             <span className="text-slate-600">{d.label}</span>
             <span className="font-semibold text-slate-900 ml-auto pl-4">{d.value}</span>

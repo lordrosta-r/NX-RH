@@ -24,7 +24,7 @@ export default function AvatarGroup({ avatars, max = 4, size = 'md', className }
     <div className={clsx('flex items-center', overlapClass, className)}>
       {visible.map((a, i) => (
         <Avatar
-          key={i}
+          key={`${a.name}-${i}`}
           name={a.name}
           src={a.src}
           size={size}

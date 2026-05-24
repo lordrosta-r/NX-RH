@@ -143,7 +143,7 @@ export default function AdminUsersImportPage() {
             <div className="mb-4 p-4 bg-red-50 rounded-xl">
               <div className="flex items-center gap-2 mb-2"><AlertCircle size={16} className="text-red-500" /><p className="text-sm font-semibold text-red-700">Erreurs de validation ({errors.length})</p></div>
               <ul className="text-sm text-red-600 list-disc list-inside space-y-1">
-                {errors.slice(0, 10).map((e, i) => <li key={i}>{e}</li>)}
+                {errors.slice(0, 10).map((e, i) => <li key={`${e}-${i}`}>{e}</li>)}
               </ul>
             </div>
           )}
@@ -184,7 +184,7 @@ export default function AdminUsersImportPage() {
           <div>
             {dryRun && <p className="text-xs font-medium text-amber-700 mb-1">Mode simulation — aucune donnée modifiée</p>}
             <p className="font-semibold text-sm">{result.success} importés, {result.errors} erreurs</p>
-            {result.details?.map((d, i) => <p key={i} className="text-xs text-slate-600 mt-1">Ligne {d.row}: {d.error}</p>)}
+            {result.details?.map((d, i) => <p key={d.row ?? i} className="text-xs text-slate-600 mt-1">Ligne {d.row}: {d.error}</p>)}
           </div>
         </div>
       )}

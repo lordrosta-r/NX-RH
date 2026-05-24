@@ -264,7 +264,7 @@ export default function FormDetailPage() {
                     {q.options && q.options.length > 0 && (
                       <ul className="mt-2 space-y-1">
                         {q.options.map((opt, i) => (
-                          <li key={i} className="text-xs text-slate-500 flex items-center gap-1">
+                          <li key={`${opt}-${i}`} className="text-xs text-slate-500 flex items-center gap-1">
                             <span className="w-1.5 h-1.5 rounded-full bg-slate-300 flex-shrink-0" />
                             {opt}
                           </li>

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useDebounce } from '../hooks/useDebounce'
 import { Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import { ClipboardList, Download, MoreHorizontal } from 'lucide-react'
@@ -31,7 +32,7 @@ export default function EvaluationsPage() {
   const [statusFilter, setStatusFilter] = useState<string[]>([])
   const [deptFilter, setDeptFilter] = useState('')
   const [search, setSearch] = useState('')
-  const [searchDebounced, setSearchDebounced] = useState('')
+  const searchDebounced = useDebounce(search, 400)
   const [page, setPage] = useState(1)
   const [selected, setSelected] = useState<string[]>([])
   const [bulkModal, setBulkModal] = useState<'archive' | 'sign' | null>(null)
@@ -40,10 +41,8 @@ export default function EvaluationsPage() {
   const [expireConfirm, setExpireConfirm] = useState<string | null>(null)
   const queryClient = useQueryClient()
 
-  useEffect(() => {
-    const t = setTimeout(() => { setSearchDebounced(search); setPage(1) }, 300)
-    return () => clearTimeout(t)
-  }, [search])
+  // Reset page when debounced search changes
+  useEffect(() => setPage(1), [searchDebounced])
 
   const { data, isLoading } = useQuery({
     queryKey: ['evaluations', campaignFilter, statusFilter, deptFilter, searchDebounced, page],

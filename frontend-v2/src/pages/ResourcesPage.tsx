@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { useDebounce } from '../hooks/useDebounce'
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import type { LucideIcon } from 'lucide-react'
 import {
@@ -375,14 +376,8 @@ export default function ResourcesPage() {
   const [typeFilter, setTypeFilter] = useState<string>('all')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [search, setSearch] = useState('')
-  const [debouncedSearch, setDebouncedSearch] = useState('')
+  const debouncedSearch = useDebounce(search, 400)
   const [showNewSlideOver, setShowNewSlideOver] = useState(false)
-
-  // Debounce search input
-  useEffect(() => {
-    const timer = setTimeout(() => setDebouncedSearch(search), 300)
-    return () => clearTimeout(timer)
-  }, [search])
 
   const { data, isLoading } = useQuery({
     queryKey: ['resources', { typeFilter, statusFilter, search: debouncedSearch, isAdminHr }],

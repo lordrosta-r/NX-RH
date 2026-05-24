@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { useDebounce } from '../hooks/useDebounce'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Users, Plus, MoreVertical, Trash2, Edit2, UserPlus, Search, X } from 'lucide-react'
 import { groupsApi } from '../api/groups'
@@ -177,12 +178,7 @@ function ManageMembersModal({
   onRemoveMember: (userId: string) => void
 }) {
   const [search, setSearch] = useState('')
-  const [debouncedSearch, setDebouncedSearch] = useState('')
-
-  useEffect(() => {
-    const t = setTimeout(() => setDebouncedSearch(search), 300)
-    return () => clearTimeout(t)
-  }, [search])
+  const debouncedSearch = useDebounce(search, 400)
 
   const { data: searchResults, isLoading: searching } = useQuery({
     queryKey: ['users-search', debouncedSearch],

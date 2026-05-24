@@ -409,7 +409,7 @@ export default function UserDetailPage() {
           {/* Steps */}
           <ul className="space-y-3 mb-6">
             {ONBOARDING_STEPS.map((step, i) => (
-              <li key={i} className="flex items-center gap-3">
+              <li key={step} className="flex items-center gap-3">
                 <button
                   onClick={() => setCheckedSteps(prev => prev.map((v, j) => j === i ? !v : v))}
                   className="shrink-0 text-primary-500 hover:text-primary-600"

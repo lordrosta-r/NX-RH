@@ -5,7 +5,7 @@ import { groupsApi } from '../api/groups'
 import { usersApi } from '../api/users'
 import { useAuth } from '../contexts/AuthContext'
 import { toast } from '../hooks/useToast'
-import type { UserGroup, User } from '../types'
+import type { UserGroup } from '../types'
 
 const GROUP_COLORS = [
   'bg-blue-100 text-blue-700',
@@ -165,8 +165,6 @@ function GroupFormModal({
   )
 }
 
-type GroupMember = Pick<User, '_id' | 'firstName' | 'lastName' | 'email' | 'role'>
-
 function ManageMembersModal({
   group,
   onClose,
@@ -232,7 +230,7 @@ function ManageMembersModal({
                     </div>
                   </div>
                   <button
-                    onClick={() => onRemoveMember(m._id)}
+                    onClick={() => onRemoveMember(m._id ?? '')}
                     className="text-slate-400 hover:text-red-500 transition p-1"
                     aria-label={`Retirer ${m.firstName}`}
                   >

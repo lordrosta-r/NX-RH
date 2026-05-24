@@ -117,7 +117,7 @@ export const handlers = [
     HttpResponse.json({ ...mockCampaign, _id: params.id as string, status: 'closed' })),
   http.post('http://localhost:5050/api/campaigns/:id/archive', ({ params }) =>
     HttpResponse.json({ ...mockCampaign, _id: params.id as string, status: 'archived' })),
-  http.post('http://localhost:5050/api/campaigns/:id/clone', ({ params }) =>
+  http.post('http://localhost:5050/api/campaigns/:id/clone', () =>
     HttpResponse.json({ ...mockCampaign, _id: 'camp-clone', id: 'camp-clone', name: `Copie campagne` })),
   http.delete('http://localhost:5050/api/campaigns/:id', () =>
     new HttpResponse(null, { status: 204 })),

@@ -209,7 +209,7 @@ describe('POST /api/auth/login — JWT payload avec firstName/lastName', () => {
       .send({ email: 'alice@corp.com', password: 'correct-secret' })
 
     expect(res.status).toBe(200)
-    expect(res.body.user.firstName).toBe('Alice')
-    expect(res.body.user.lastName).toBe('Martin')
+    expect(res.body.data.user.firstName).toBe('Alice')
+    expect(res.body.data.user.lastName).toBe('Martin')
   })
 })

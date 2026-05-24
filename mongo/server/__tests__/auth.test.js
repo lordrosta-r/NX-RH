@@ -52,11 +52,11 @@ describe('Auth Routes — /api/auth', () => {
         .send({ email: 'john.doe@nanoxplore.com', password: 'password123' })
         .expect(200)
 
-      expect(response.body).toHaveProperty('user')
-      expect(response.body.user.email).toBe('john.doe@nanoxplore.com')
-      expect(response.body.user.firstName).toBe('John')
-      expect(response.body.user.role).toBe('employee')
-      expect(response.body.user).not.toHaveProperty('passwordHash')
+      expect(response.body).toHaveProperty('data')
+      expect(response.body.data.user.email).toBe('john.doe@nanoxplore.com')
+      expect(response.body.data.user.firstName).toBe('John')
+      expect(response.body.data.user.role).toBe('employee')
+      expect(response.body.data.user).not.toHaveProperty('passwordHash')
       
       // Vérifier la présence du cookie
       const cookies = response.headers['set-cookie']

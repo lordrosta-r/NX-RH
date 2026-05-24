@@ -8,6 +8,7 @@ const validate = require('../middleware/validate')
 const { createUser: createUserValidator, updateUser: updateUserValidator } = require('../validators/userValidators')
 const userService = require('../services/userService')
 const { filterNotifPrefsByRole } = require('../services/authService')
+const respond = require('../utils/response')
 
 // GET /api/users — Liste les utilisateurs (scope par rôle)
 router.get('/', async (req, res, next) => {
@@ -79,7 +80,7 @@ router.get('/me', async (req, res, next) => {
 router.get('/:id', async (req, res, next) => {
   try {
     const user = await userService.getUserById(req.params.id, req.user)
-    res.json(user)
+    respond.item(res, user)
   } catch (err) {
     next(err)
   }
@@ -93,7 +94,7 @@ router.post('/', validate(createUserValidator), async (req, res, next) => {
     }
 
     const result = await userService.createUser(req.body)
-    res.status(201).json(result)
+    respond.created(res, result)
   } catch (err) {
     if (err.code === 11000) return res.status(409).json({ error: 'Email déjà utilisé' })
     next(err)
@@ -104,7 +105,7 @@ router.post('/', validate(createUserValidator), async (req, res, next) => {
 router.patch('/:id', validate(updateUserValidator), async (req, res, next) => {
   try {
     const result = await userService.updateUser(req.params.id, req.body, req.user)
-    res.json(result)
+    respond.item(res, result)
   } catch (err) {
     next(err)
   }

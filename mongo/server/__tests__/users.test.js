@@ -197,8 +197,8 @@ describe('User Routes — /api/users', () => {
         .set('Cookie', `token=${adminToken}`)
         .expect(200)
 
-      expect(response.body.email).toBe('employee@nanoxplore.com')
-      expect(response.body).not.toHaveProperty('passwordHash')
+      expect(response.body.data.email).toBe('employee@nanoxplore.com')
+      expect(response.body.data).not.toHaveProperty('passwordHash')
     })
 
     test('devrait permettre à un utilisateur de voir son propre profil', async () => {
@@ -207,7 +207,7 @@ describe('User Routes — /api/users', () => {
         .set('Cookie', `token=${employeeToken}`)
         .expect(200)
 
-      expect(response.body.email).toBe('employee@nanoxplore.com')
+      expect(response.body.data.email).toBe('employee@nanoxplore.com')
     })
 
     test('devrait refuser l\'accès à un employee qui veut voir un autre utilisateur (403)', async () => {
@@ -255,10 +255,10 @@ describe('User Routes — /api/users', () => {
         .send(newUser)
         .expect(201)
 
-      expect(response.body.email).toBe('new.user@nanoxplore.com')
-      expect(response.body.firstName).toBe('New')
-      expect(response.body).toHaveProperty('tempPassword') // Mot de passe temporaire
-      expect(response.body).not.toHaveProperty('passwordHash')
+      expect(response.body.data.email).toBe('new.user@nanoxplore.com')
+      expect(response.body.data.firstName).toBe('New')
+      expect(response.body.data).toHaveProperty('tempPassword') // Mot de passe temporaire
+      expect(response.body.data).not.toHaveProperty('passwordHash')
       
       // Vérifier que l'utilisateur existe en DB
       const dbUser = await User.findOne({ email: 'new.user@nanoxplore.com' })
@@ -280,7 +280,7 @@ describe('User Routes — /api/users', () => {
         .send(newUser)
         .expect(201)
 
-      expect(response.body.email).toBe('another.user@nanoxplore.com')
+      expect(response.body.data.email).toBe('another.user@nanoxplore.com')
     })
 
     test('devrait refuser à un employee de créer un utilisateur (403)', async () => {
@@ -360,7 +360,7 @@ describe('User Routes — /api/users', () => {
         .send({ role: 'manager' })
         .expect(200)
 
-      expect(response.body.role).toBe('manager')
+      expect(response.body.data.role).toBe('manager')
       
       // Vérifier en DB
       const dbUser = await User.findById(employeeUser._id)
@@ -374,7 +374,7 @@ describe('User Routes — /api/users', () => {
         .send({ phone: '+33612345678', avatar: 'https://example.com/avatar.jpg' })
         .expect(200)
 
-      expect(response.body.phone).toBe('+33612345678')
+      expect(response.body.data.phone).toBe('+33612345678')
     })
 
     test('devrait refuser à un employee de modifier son rôle (403)', async () => {

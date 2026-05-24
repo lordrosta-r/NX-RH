@@ -46,6 +46,10 @@ function buildApp() {
   app.use(express.json())
   app.use(cookieParser())
   app.use('/api/auth', authRouter)
+  // eslint-disable-next-line no-unused-vars
+  app.use((err, _req, res, _next) => {
+    res.status(err.status || 500).json({ error: err.message || 'Internal server error' })
+  })
   return app
 }
 

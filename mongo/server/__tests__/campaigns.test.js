@@ -229,9 +229,9 @@ describe('Campaign Routes — /api/campaigns', () => {
         .set('Cookie', `token=${adminToken}`)
         .expect(200)
 
-      expect(response.body.name).toBe('Évaluation annuelle 2024')
-      expect(response.body.status).toBe('active')
-      expect(response.body).toHaveProperty('stats')
+      expect(response.body.data.name).toBe('Évaluation annuelle 2024')
+      expect(response.body.data.status).toBe('active')
+      expect(response.body.data).toHaveProperty('stats')
     })
 
     test('devrait retourner 404 si la campagne n\'existe pas', async () => {
@@ -276,9 +276,9 @@ describe('Campaign Routes — /api/campaigns', () => {
         .send(newCampaign)
         .expect(201)
 
-      expect(response.body.name).toBe('Nouvelle campagne Q1 2025')
-      expect(response.body.status).toBe('draft')
-      expect(response.body.createdBy._id.toString()).toBe(adminUser._id.toString())
+      expect(response.body.data.name).toBe('Nouvelle campagne Q1 2025')
+      expect(response.body.data.status).toBe('draft')
+      expect(response.body.data.createdBy._id.toString()).toBe(adminUser._id.toString())
     })
 
     test('devrait permettre à un hr de créer une campagne', async () => {
@@ -302,7 +302,7 @@ describe('Campaign Routes — /api/campaigns', () => {
         .send(newCampaign)
         .expect(201)
 
-      expect(response.body.name).toBe('Campagne HR 2025')
+      expect(response.body.data.name).toBe('Campagne HR 2025')
     })
 
     test('devrait refuser à un employee de créer une campagne (403)', async () => {
@@ -367,7 +367,7 @@ describe('Campaign Routes — /api/campaigns', () => {
         .send(newCampaign)
         .expect(201)
 
-      expect(response.body.name).toBe('Campagne département IT')
+      expect(response.body.data.name).toBe('Campagne département IT')
     })
   })
 
@@ -379,7 +379,7 @@ describe('Campaign Routes — /api/campaigns', () => {
         .send({ description: 'Description mise à jour' })
         .expect(200)
 
-      expect(response.body.description).toBe('Description mise à jour')
+      expect(response.body.data.description).toBe('Description mise à jour')
     })
 
     test('devrait permettre de changer le statut d\'une campagne', async () => {
@@ -389,7 +389,7 @@ describe('Campaign Routes — /api/campaigns', () => {
         .send({ status: 'active' })
         .expect(200)
 
-      expect(response.body.status).toBe('active')
+      expect(response.body.data.status).toBe('active')
     })
 
     test('devrait refuser à un employee de modifier une campagne (403)', async () => {
@@ -507,8 +507,8 @@ describe('Campaign Routes — /api/campaigns', () => {
         .set('Cookie', `token=${adminToken}`)
         .expect(200)
 
-      expect(response.body.name).toBe('Campagne RBAC Test')
-      expect(response.body).toHaveProperty('stats')
+      expect(response.body.data.name).toBe('Campagne RBAC Test')
+      expect(response.body.data).toHaveProperty('stats')
     })
 
     test('devrait retourner 200 quand un hr accède à une campagne', async () => {
@@ -517,8 +517,8 @@ describe('Campaign Routes — /api/campaigns', () => {
         .set('Cookie', `token=${hrToken}`)
         .expect(200)
 
-      expect(response.body.name).toBe('Campagne RBAC Test')
-      expect(response.body).toHaveProperty('stats')
+      expect(response.body.data.name).toBe('Campagne RBAC Test')
+      expect(response.body.data).toHaveProperty('stats')
     })
   })
 

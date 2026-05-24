@@ -24,6 +24,7 @@ const {
   updateCampaign: updateCampaignValidator,
 } = require('../validators/campaignValidators')
 const campaignService = require('../services/campaignService')
+const respond = require('../utils/response')
 
 // GET /api/campaigns — Liste des campagnes (scopée par rôle)
 router.get('/', async (req, res, next) => {
@@ -99,7 +100,7 @@ router.get('/', async (req, res, next) => {
 router.get('/:id', async (req, res, next) => {
   try {
     const result = await campaignService.getCampaignById(req.params.id, req.user)
-    res.json(result)
+    respond.item(res, result)
   } catch (err) {
     next(err)
   }
@@ -128,7 +129,7 @@ router.post(
         meta:       { name: campaign.name },
       }).catch(() => {})
 
-      res.status(201).json(campaign)
+      respond.created(res, campaign)
     } catch (err) {
       next(err)
     }
@@ -162,7 +163,7 @@ router.patch('/:id', validate(updateCampaignValidator), async (req, res, next) =
 
     const payload = campaign.toObject()
     if (warning) payload.warning = warning
-    res.json(payload)
+    respond.item(res, payload)
   } catch (err) {
     next(err)
   }

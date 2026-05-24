@@ -158,12 +158,12 @@ describe('POST /api/auth/login', () => {
       .send({ email: 'alice@corp.com', password: 'correct-secret' })
 
     expect(res.status).toBe(200)
-    expect(res.body.user).toMatchObject({
+    expect(res.body.data.user).toMatchObject({
       email:     'alice@corp.com',
       firstName: 'Alice',
       role:      'employee',
     })
-    expect(res.body.user).not.toHaveProperty('passwordHash')
+    expect(res.body.data.user).not.toHaveProperty('passwordHash')
 
     // Cookie token présent
     const setCookie = res.headers['set-cookie']

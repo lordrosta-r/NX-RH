@@ -137,11 +137,11 @@ describe('API contracts', () => {
       })
     })
 
-    it('updateUser appelle PUT /api/users/user-1', async () => {
+    it('updateUser appelle PATCH /api/users/user-1', async () => {
       let capturedBody: unknown
 
       server.use(
-        http.put('http://localhost:5050/api/users/:id', async ({ request }) => {
+        http.patch('http://localhost:5050/api/users/:id', async ({ request }) => {
           capturedBody = await request.json()
           return HttpResponse.json({ id: 'user-1' })
         })

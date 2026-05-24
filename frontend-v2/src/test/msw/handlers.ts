@@ -83,7 +83,7 @@ export const handlers = [
     HttpResponse.json(mockUser)),
   http.get('http://localhost:5050/api/users/:id', ({ params }) =>
     HttpResponse.json({ data: { ...mockUser, _id: params.id as string, id: params.id as string } })),
-  http.put('http://localhost:5050/api/users/:id', async ({ request, params }) => {
+  http.patch('http://localhost:5050/api/users/:id', async ({ request, params }) => {
     const body = await request.json() as Record<string, unknown>
     return HttpResponse.json({ data: { ...mockUser, _id: params.id as string, id: params.id as string, ...body } })
   }),
@@ -107,7 +107,7 @@ export const handlers = [
     const body = await request.json() as Record<string, unknown>
     return HttpResponse.json({ data: { ...mockCampaign, ...body, _id: 'camp-new' } }, { status: 201 })
   }),
-  http.put('http://localhost:5050/api/campaigns/:id', async ({ request, params }) => {
+  http.patch('http://localhost:5050/api/campaigns/:id', async ({ request, params }) => {
     const body = await request.json() as Record<string, unknown>
     return HttpResponse.json({ data: { ...mockCampaign, _id: params.id as string, ...body } })
   }),

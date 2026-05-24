@@ -145,6 +145,8 @@ export default function DashboardEmployeePage() {
                     </p>
                     <div className="flex items-center gap-2 mt-1">
                       <EvalStatusBadge status={evaluation.status} />
+                    </div>
+                  </div>
                   <Link
                     to={`/evaluations/${evaluation.id}`}
                     className="text-sm text-primary-600 hover:text-primary-700 font-medium hover:underline flex-shrink-0 ml-4"

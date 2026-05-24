@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { NavLink, Link, useNavigate } from 'react-router-dom'
 import nxLogo from '../../assets/nx-logo.png'
-import { Bell, ChevronDown, LogOut, User, Menu, X } from 'lucide-react'
+import { Bell, ChevronDown, LogOut, User, Menu, X, Search } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '../../contexts/AuthContext'
 import type { Role } from '../../types'
@@ -64,6 +64,7 @@ function getNavItems(role: Role): NavItem[] {
         { label: 'Portail admin', href: '/admin' },
         { label: "Journal d'audit", href: '/admin/audit' },
         { label: 'Paramètres RH', href: '/admin/settings', separator: true },
+        { label: 'Demandes RH', href: '/hr/flags' },
       ],
     },
   ]
@@ -90,7 +91,7 @@ function getNavItems(role: Role): NavItem[] {
       dropdown: [
         { label: 'Toutes les évaluations', href: '/evaluations' },
         { label: 'Historique', href: '/evaluations/history' },
-        { label: 'Signalements RH', href: '/hr/flags', separator: true },
+        { label: 'Demandes RH', href: '/hr/flags', separator: true },
       ],
     },
     pilotage,
@@ -185,7 +186,7 @@ function NavDropdown({ item }: { item: NavItem }) {
   )
 }
 
-export default function Navbar() {
+export default function Navbar({ onSearchClick }: { onSearchClick?: () => void }) {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -249,6 +250,15 @@ export default function Navbar() {
 
         {/* Zone droite */}
         <div className="flex items-center gap-3">
+          {/* Search */}
+          <button
+            onClick={() => onSearchClick?.()}
+            className="p-2 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-300 text-slate-500 hover:text-slate-700 hover:bg-slate-100"
+            aria-label="Rechercher"
+          >
+            <Search className="w-5 h-5" />
+          </button>
+
           {/* Notifications */}
           <button
             onClick={() => navigate('/notifications')}

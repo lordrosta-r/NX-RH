@@ -61,6 +61,9 @@ const AdminHubPage = lazy(() => import('../pages/AdminHubPage'))
 const AdminUsersPage = lazy(() => import('../pages/AdminUsersPage'))
 const HrSettingsPage = lazy(() => import('../pages/HrSettingsPage'))
 const NotFoundPage = lazy(() => import('../pages/NotFoundPage'))
+const UserGroupsPage = lazy(() => import('../pages/UserGroupsPage'))
+const AdminStatusPage = lazy(() => import('../pages/AdminStatusPage'))
+const AdminSetupWizardPage = lazy(() => import('../pages/AdminSetupWizardPage'))
 
 function S({ children }: { children: React.ReactNode }) {
   return <Suspense fallback={<PageLoader />}>{children}</Suspense>
@@ -91,6 +94,7 @@ export const router = createBrowserRouter([
       { path: '/users/:id', element: <AuthGuard roles={['admin', 'hr', 'manager']}><S><UserDetailPage /></S></AuthGuard> },
       { path: '/users/:id/edit', element: <AuthGuard roles={['admin', 'hr']}><S><UserEditPage /></S></AuthGuard> },
       { path: '/users/:id/offboarding', element: <AuthGuard roles={['admin', 'hr']}><S><UserOffboardingPage /></S></AuthGuard> },
+      { path: '/users/groups', element: <AuthGuard roles={['admin', 'hr']}><S><UserGroupsPage /></S></AuthGuard> },
       // Campagnes
       { path: '/campaigns', element: <S><CampaignsPage /></S> },
       { path: '/campaigns/new', element: <AuthGuard roles={['admin', 'hr']}><S><CampaignNewPage /></S></AuthGuard> },
@@ -136,6 +140,8 @@ export const router = createBrowserRouter([
       { path: '/admin/audit', element: <AuthGuard roles={['admin', 'hr']}><S><AdminAuditPage /></S></AuthGuard> },
       { path: '/admin/config', element: <AuthGuard roles={['admin']}><S><AdminConfigPage /></S></AuthGuard> },
       { path: '/admin/mail-templates', element: <AuthGuard roles={['admin', 'hr']}><S><AdminMailTemplatesPage /></S></AuthGuard> },
+      { path: '/admin/status', element: <AuthGuard roles={['admin']}><S><AdminStatusPage /></S></AuthGuard> },
+      { path: '/admin/setup', element: <AuthGuard roles={['admin']}><S><AdminSetupWizardPage /></S></AuthGuard> },
     ],
   },
   // Organigramme — plein écran (OrgLayout sans container max-w)

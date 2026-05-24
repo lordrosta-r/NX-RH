@@ -3,7 +3,8 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { campaignsApi } from '../api/campaigns'
 import { orgApi } from '../api/org'
-import type { Campaign, CampaignStatus } from '../types'
+import { groupsApi } from '../api/groups'
+import type { Campaign, CampaignStatus, UserGroup } from '../types'
 import Button from '../components/ui/Button'
 
 // ─── Shared sub-components ────────────────────────────────────────────────────
@@ -142,9 +143,10 @@ type FormState = {
   enableN1Context: boolean
   n1VisibleToEmployee: boolean
   previousCampaignId: string
-  targetScope: 'all' | 'department' | 'sector' | 'users'
+  targetScope: 'all' | 'department' | 'sector' | 'users' | 'group'
   targetSectorIds: string[]
   targetUserIds: string[]
+  targetGroupId: string
 }
 
 const initialForm: FormState = {
@@ -162,6 +164,7 @@ const initialForm: FormState = {
   targetScope: 'all',
   targetSectorIds: [],
   targetUserIds: [],
+  targetGroupId: '',
 }
 
 function buildPayload(form: FormState, status?: CampaignStatus): Partial<Campaign> {
@@ -181,6 +184,7 @@ function buildPayload(form: FormState, status?: CampaignStatus): Partial<Campaig
     targetScope: form.targetScope,
     targetSectorIds: form.targetScope === 'sector' ? form.targetSectorIds : undefined,
     targetUserIds: form.targetScope === 'users' ? form.targetUserIds : undefined,
+    targetGroupIds: form.targetScope === 'group' && form.targetGroupId ? [form.targetGroupId] : undefined,
   }
 }
 
@@ -218,6 +222,7 @@ export default function CampaignEditPage() {
         targetScope: campaign.targetScope ?? 'all',
         targetSectorIds: campaign.targetSectorIds ?? [],
         targetUserIds: campaign.targetUserIds ?? [],
+        targetGroupId: campaign.targetGroupIds?.[0] ?? '',
       })
     }
   }, [campaign])
@@ -247,6 +252,12 @@ export default function CampaignEditPage() {
     queryKey: ['org-sectors'],
     queryFn: () => orgApi.getSectors().then(r => r.data),
     enabled: form.targetScope === 'sector',
+  })
+
+  const { data: groupsData } = useQuery({
+    queryKey: ['admin-groups'],
+    queryFn: () => groupsApi.list().then(r => r.data as UserGroup[]),
+    enabled: form.targetScope === 'group',
   })
 
   const updateMutation = useMutation({
@@ -427,6 +438,7 @@ export default function CampaignEditPage() {
               { value: 'department', label: 'Par département' },
               { value: 'sector', label: 'Par secteur' },
               { value: 'users', label: 'Sélection manuelle' },
+              { value: 'group', label: 'Par groupe' },
             ] as const
           ).map(opt => (
             <label key={opt.value} className="flex items-center gap-2 cursor-pointer">
@@ -494,6 +506,23 @@ export default function CampaignEditPage() {
                 onChange={v => set('targetUserIds', v)}
                 placeholder="Identifiant ou nom d'utilisateur…"
               />
+            </Field>
+          </div>
+        )}
+
+        {form.targetScope === 'group' && (
+          <div className="mt-4 pl-6">
+            <Field label="Groupe cible">
+              <select
+                value={form.targetGroupId}
+                onChange={e => set('targetGroupId', e.target.value)}
+                className={inputCls}
+              >
+                <option value="">Sélectionner un groupe…</option>
+                {Array.isArray(groupsData) && groupsData.map((g: UserGroup) => (
+                  <option key={g._id} value={g._id}>{g.name}</option>
+                ))}
+              </select>
             </Field>
           </div>
         )}

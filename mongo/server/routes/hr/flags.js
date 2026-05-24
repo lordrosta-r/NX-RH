@@ -17,12 +17,16 @@ const { User, Form, Evaluation } = require('../../models')
 const { REQUEST_FORM_TYPES } = require('../../config/constants')
 const { notify: notifyInApp } = require('../../services/notificationHelper')
 const notificationService     = require('../../services/notificationService')
+const { authGuard }           = require('../../middleware/authGuard')
+
+const ADMIN_HR        = authGuard(['admin', 'hr'])
+const BROAD_GUARD     = authGuard(['admin', 'hr', 'manager', 'employee'])
 
 const VALID_HR_STATUSES = ['assigned', 'in_progress', 'submitted', 'reviewed', 'validated', 'rejected']
 
 // ─── GET /api/hr/flags/count — badge navbar polling ──────────────────────────
 
-router.get('/count', async (req, res) => {
+router.get('/count', ADMIN_HR, async (req, res) => {
   try {
     const requestForms = await Form.find({ formType: { $in: REQUEST_FORM_TYPES } }).select('_id formType').lean()
     const formIdToType = {}
@@ -49,7 +53,7 @@ router.get('/count', async (req, res) => {
 
 // ─── GET /api/hr/flags ────────────────────────────────────────────────────────
 
-router.get('/', async (req, res, next) => {
+router.get('/', ADMIN_HR, async (req, res, next) => {
   try {
     const { type, status, from, to, department, sectorId } = req.query
     const page  = Math.max(1, parseInt(req.query.page)  || 1)
@@ -101,7 +105,7 @@ router.get('/', async (req, res, next) => {
 
 // ─── GET /api/hr/flags/:id ────────────────────────────────────────────────────
 
-router.get('/:id', async (req, res, next) => {
+router.get('/:id', ADMIN_HR, async (req, res, next) => {
   try {
     const { id } = req.params
     if (!mongoose.isValidObjectId(id)) {
@@ -141,7 +145,7 @@ router.get('/:id', async (req, res, next) => {
 
 // ─── PATCH /api/hr/flags/:evalId/status ──────────────────────────────────────
 
-router.patch('/:evalId/status', async (req, res, next) => {
+router.patch('/:evalId/status', ADMIN_HR, async (req, res, next) => {
   try {
     const { evalId } = req.params
     if (!mongoose.isValidObjectId(evalId)) {
@@ -211,6 +215,36 @@ router.patch('/:evalId/status', async (req, res, next) => {
     }
 
     res.json(evaluation.toObject())
+  } catch (err) {
+    next(err)
+  }
+})
+
+// ─── POST /api/hr/flags — Soumettre une demande RH (employee/manager/hr/admin) ─
+
+router.post('/', BROAD_GUARD, async (req, res, next) => {
+  try {
+    const { formId, answers } = req.body
+
+    if (!formId || !mongoose.isValidObjectId(formId)) {
+      return res.status(400).json({ error: 'formId invalide ou manquant' })
+    }
+
+    const form = await Form.findOne({ _id: formId, formType: { $in: REQUEST_FORM_TYPES } }).lean()
+    if (!form) {
+      return res.status(404).json({ error: 'Formulaire de demande introuvable ou type invalide' })
+    }
+
+    const evaluation = await Evaluation.create({
+      campaignId:   null,
+      formId:       form._id,
+      evaluateeId:  req.user.id,
+      evaluatorId:  req.user.id,
+      status:       'assigned',
+      answers:      answers || {},
+    })
+
+    res.status(201).json(evaluation.toObject())
   } catch (err) {
     next(err)
   }

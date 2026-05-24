@@ -8,6 +8,7 @@ import { campaignsApi } from '../api/campaigns'
 import { toast } from '../hooks/useToast'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
 import type { Form } from '../types'
+import PageGuide from '../components/shared/PageGuide'
 
 const FORM_TYPE_CONFIG: Record<string, { label: string; color: string }> = {
   self_evaluation:      { label: 'Auto-évaluation',        color: 'bg-primary-50 text-primary-700' },
@@ -70,6 +71,16 @@ export default function FormsPage() {
 
   return (
     <div>
+      <PageGuide
+        id="forms"
+        title="Les formulaires d'évaluation"
+        color="teal"
+        steps={[
+          "Les formulaires définissent les questions posées lors des évaluations",
+          "Créez différents types : auto-évaluation, évaluation manager, évaluation N+1",
+          "Une fois créé, associez le formulaire à une campagne lors de sa création",
+        ]}
+      />
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-slate-900">Formulaires</h1>

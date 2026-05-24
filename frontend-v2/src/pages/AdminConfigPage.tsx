@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Plus, Pencil, Trash2 } from 'lucide-react'
+import { Plus, Pencil, Trash2, X, CheckCircle2, XCircle } from 'lucide-react'
 import { adminApi } from '../api/admin'
 
 type ConfigKey = { key: string; value: string }
+
+type EnvVar = { key: string; set: boolean; required: boolean; description: string }
 
 function SkeletonRow() {
   return (
@@ -12,6 +14,73 @@ function SkeletonRow() {
       <td className="px-4 py-3"><div className="h-4 bg-slate-200 rounded w-48 animate-pulse" /></td>
       <td className="px-4 py-3"><div className="h-4 bg-slate-200 rounded w-16 animate-pulse" /></td>
     </tr>
+  )
+}
+
+function EnvCheckSection() {
+  const { data: envVars, isLoading, isError } = useQuery<EnvVar[]>({
+    queryKey: ['admin-env-check'],
+    queryFn: () => adminApi.getEnvCheck().then(r => r.data as EnvVar[]),
+    retry: false,
+  })
+
+  return (
+    <div className="mt-8">
+      <h2 className="text-xl font-bold text-slate-900 mb-4">Variables d'environnement</h2>
+      <div className="bg-white rounded-2xl shadow overflow-hidden">
+        {isLoading && (
+          <div className="p-6 space-y-3">
+            {Array.from({ length: 7 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-3">
+                <div className="h-5 w-5 bg-slate-200 rounded-full animate-pulse" />
+                <div className="h-4 bg-slate-200 rounded w-40 animate-pulse" />
+                <div className="h-4 bg-slate-200 rounded w-64 animate-pulse ml-4" />
+              </div>
+            ))}
+          </div>
+        )}
+        {isError && (
+          <div className="p-6 text-sm text-slate-400 text-center">
+            Endpoint non disponible — les variables d'environnement ne peuvent pas être vérifiées pour l'instant.
+          </div>
+        )}
+        {envVars && (
+          <table className="w-full text-sm">
+            <thead className="bg-slate-50 border-b border-slate-100">
+              <tr>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Variable</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Description</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Statut</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {envVars.map(v => (
+                <tr key={v.key} className="hover:bg-slate-50 transition">
+                  <td className="px-4 py-3">
+                    <span className={`font-mono text-slate-800 ${v.required ? 'font-bold' : ''}`}>{v.key}</span>
+                    {v.required && <span className="ml-2 text-[10px] text-slate-400 uppercase">requis</span>}
+                  </td>
+                  <td className="px-4 py-3 text-slate-500">{v.description}</td>
+                  <td className="px-4 py-3">
+                    {v.set ? (
+                      <span className="inline-flex items-center gap-1.5 text-green-600">
+                        <CheckCircle2 className="w-4 h-4" />
+                        <span className="text-xs font-medium">Définie</span>
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 text-red-600">
+                        <XCircle className="w-4 h-4" />
+                        <span className="text-xs font-medium">Manquante</span>
+                      </span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </div>
   )
 }
 
@@ -91,6 +160,9 @@ export default function AdminConfigPage() {
           </tbody>
         </table>
       </div>
+
+      {/* Variables d'environnement */}
+      <EnvCheckSection />
 
       {/* Modal nouvelle/modifier clé */}
       {showKeyModal && (

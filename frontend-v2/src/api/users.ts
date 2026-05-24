@@ -54,4 +54,7 @@ export const usersApi = {
 
   exportGdpr: (id: string) =>
     client.get(`/api/users/${id}/gdpr-export`, { responseType: 'blob' }),
+
+  bulkAction: (data: { action: string; userIds: string[]; payload?: unknown }) =>
+    client.post('/api/users/bulk', data),
 }

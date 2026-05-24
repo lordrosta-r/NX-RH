@@ -269,7 +269,7 @@ export default function OnboardingPage() {
               Cochez les accès que vous avez reçus.
             </p>
             {DEFAULT_CHECKLIST.map((item, i) => (
-              <label key={i} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 cursor-pointer hover:bg-slate-100 transition-colors">
+              <label key={item} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 cursor-pointer hover:bg-slate-100 transition-colors">
                 <input
                   type="checkbox"
                   checked={checklist[i]}

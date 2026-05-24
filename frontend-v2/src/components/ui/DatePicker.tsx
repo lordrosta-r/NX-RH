@@ -119,7 +119,7 @@ export default function DatePicker({ value, onChange, minDate, maxDate, placehol
             ))}
           </div>
           <div className="grid grid-cols-7 gap-0.5">
-            {days.map((date, i) => {
+            {days.map((date) => {
               const isCurrentMonth = date.getMonth() === viewDate.getMonth()
               const isSelected = value ? isSameDay(date, value) : false
               const today = isToday(date)
@@ -127,7 +127,7 @@ export default function DatePicker({ value, onChange, minDate, maxDate, placehol
 
               return (
                 <button
-                  key={i}
+                  key={date.getTime()}
                   type="button"
                   disabled={outOfRange || !isCurrentMonth}
                   onClick={() => {

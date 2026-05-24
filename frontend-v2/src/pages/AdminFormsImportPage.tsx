@@ -169,7 +169,7 @@ export default function AdminFormsImportPage() {
       {errors.length > 0 && (
         <div className="mt-4 p-4 bg-red-50 rounded-xl">
           <div className="flex items-center gap-2 mb-2"><AlertCircle size={16} className="text-red-500" /><p className="text-sm font-semibold text-red-700">Erreurs de validation</p></div>
-          <ul className="text-sm text-red-600 list-disc list-inside space-y-1">{errors.map((e, i) => <li key={i}>{e}</li>)}</ul>
+          <ul className="text-sm text-red-600 list-disc list-inside space-y-1">{errors.map((e, i) => <li key={`${e}-${i}`}>{e}</li>)}</ul>
         </div>
       )}
 
@@ -199,7 +199,7 @@ export default function AdminFormsImportPage() {
               <p className="text-xs text-slate-500 uppercase tracking-wider mb-2 font-semibold">Questions ({questions.length})</p>
               <ul className="space-y-1">
                 {questions.slice(0, 5).map((q, i) => (
-                  <li key={i} className="flex items-center gap-2 text-sm">
+                  <li key={q.id ?? `q-${i}`} className="flex items-center gap-2 text-sm">
                     <span className="text-xs bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded font-mono">{q.type}</span>
                     <span className="text-slate-700 truncate">{q.text}</span>
                   </li>

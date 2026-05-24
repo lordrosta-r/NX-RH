@@ -159,7 +159,7 @@ export default function OffboardingDetailPage() {
             </div>
             <div className="space-y-3">
               {record.checklist.map((item, i) => (
-                <div key={i} className="group relative">
+                <div key={item.label} className="group relative">
                   <button
                     onClick={() => toggleMutation.mutate(i)}
                     disabled={toggleMutation.isPending}

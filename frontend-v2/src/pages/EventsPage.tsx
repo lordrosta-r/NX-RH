@@ -115,10 +115,10 @@ function CalendarGrid({ year, month, events, selectedDay, onDayClick }: Calendar
       <div className="grid grid-cols-7 gap-px">
         {cells.map((day, i) =>
           day === null ? (
-            <div key={i} className="h-20 bg-slate-50/30 rounded-lg" />
+            <div key={`cell-${i}`} className="h-20 bg-slate-50/30 rounded-lg" />
           ) : (
             <button
-              key={i}
+              key={`cell-${i}`}
               onClick={() => onDayClick(day)}
               className={`h-20 p-1.5 rounded-md text-left transition-colors hover:bg-slate-50 ${
                 selectedDay === day ? 'ring-2 ring-primary-500 bg-primary-50' : ''

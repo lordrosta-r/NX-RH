@@ -23,7 +23,7 @@ export default function ProgressSteps({ steps, currentStep, className }: Progres
         const isLast = i === steps.length - 1
 
         return (
-          <React.Fragment key={i}>
+          <React.Fragment key={step.label}>
             <div className="flex flex-col items-center">
               <div
                 className={clsx(

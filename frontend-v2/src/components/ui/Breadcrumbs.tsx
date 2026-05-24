@@ -20,7 +20,7 @@ export default function Breadcrumbs({ items, className }: BreadcrumbsProps) {
         {items.map((item, i) => {
           const isLast = i === items.length - 1
           return (
-            <React.Fragment key={i}>
+            <React.Fragment key={item.label}>
               <li>
                 {isLast || !item.href ? (
                   <span

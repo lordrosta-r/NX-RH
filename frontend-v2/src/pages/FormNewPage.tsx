@@ -114,7 +114,7 @@ function QuestionCard({
             <div className="mb-3">
               <p className="text-xs font-medium text-slate-500 mb-2">Options :</p>
               {(question.options ?? []).map((opt, i) => (
-                <div key={i} className="flex gap-2 mb-2">
+                <div key={`${opt}-${i}`} className="flex gap-2 mb-2">
                   <input
                     value={opt}
                     onChange={e => {

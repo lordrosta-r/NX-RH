@@ -169,7 +169,7 @@ export default function DashboardEmployeePage() {
             <div className="space-y-2">
               {['Profil complété', 'Premier entretien planifié', 'Documents signés'].map(
                 (step, i) => (
-                  <div key={i} className="flex items-center gap-3">
+                  <div key={step} className="flex items-center gap-3">
                     <div
                       className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${
                         i < 1 ? 'bg-success-500' : 'bg-slate-200'

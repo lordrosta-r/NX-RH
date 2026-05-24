@@ -39,7 +39,7 @@ export default function PageGuide({ id, title, steps, color = 'blue' }: PageGuid
           {title && <p className={`font-semibold text-sm ${c.text} mb-1`}>{title}</p>}
           <ol className="space-y-1">
             {steps.map((step, i) => (
-              <li key={i} className={`text-sm ${c.subtext}`}>
+              <li key={step} className={`text-sm ${c.subtext}`}>
                 <span className="font-medium">{i + 1}.</span> {step}
               </li>
             ))}

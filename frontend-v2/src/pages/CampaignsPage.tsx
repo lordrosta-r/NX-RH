@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { useDebounce } from '../hooks/useDebounce'
 import { Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { BarChart2, Search, Plus, MoreVertical, Download } from 'lucide-react'
@@ -136,18 +137,20 @@ function ActionMenu({
 export default function CampaignsPage() {
   const [statusTab, setStatusTab] = useState('all')
   const [search, setSearch] = useState('')
+  const debouncedSearch = useDebounce(search, 400)
   const { user } = useAuth()
   const queryClient = useQueryClient()
 
   const canManage = user?.role === 'admin' || user?.role === 'hr'
+  const isSearching = search !== debouncedSearch
 
   const { data, isLoading } = useQuery({
-    queryKey: ['campaigns', statusTab, search],
+    queryKey: ['campaigns', statusTab, debouncedSearch],
     queryFn: () =>
       campaignsApi
         .getCampaigns({
           status: statusTab === 'all' ? undefined : statusTab,
-          q: search || undefined,
+          q: debouncedSearch || undefined,
           limit: 50,
         })
         .then(r => r.data),
@@ -243,15 +246,18 @@ export default function CampaignsPage() {
 
         {/* Search bar */}
         <div className="p-4 border-b border-slate-50">
-          <div className="relative max-w-xs">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Rechercher une campagne…"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-            />
+          <div className="flex items-center gap-2">
+            <div className="relative max-w-xs">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Rechercher une campagne…"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              />
+            </div>
+            {isSearching && <span className="text-xs text-slate-400">…</span>}
           </div>
         </div>
 

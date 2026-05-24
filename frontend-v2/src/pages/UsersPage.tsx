@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { useDebounce } from '../hooks/useDebounce'
 import { Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import { Search, UserPlus, MoreVertical, Users, Plus, ChevronLeft, ChevronRight, X, AlertTriangle, Upload } from 'lucide-react'
@@ -154,7 +155,7 @@ export default function UsersPage() {
   const queryClient = useQueryClient()
 
   const [searchInput, setSearchInput] = useState('')
-  const [search, setSearch] = useState('')
+  const search = useDebounce(searchInput, 400)
   const [roleFilter, setRoleFilter] = useState('')
   const [deptFilter, setDeptFilter] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
@@ -164,14 +165,8 @@ export default function UsersPage() {
   const [confirmText, setConfirmText] = useState('')
   const [selected, setSelected] = useState<Set<string>>(new Set())
 
-  // Debounce search
-  useEffect(() => {
-    const t = setTimeout(() => {
-      setSearch(searchInput)
-      setPage(1)
-    }, 300)
-    return () => clearTimeout(t)
-  }, [searchInput])
+  // Reset page when debounced search changes
+  useEffect(() => { setPage(1) }, [search])
 
   // Reset page on filter change
   useEffect(() => { setPage(1) }, [roleFilter, deptFilter, statusFilter])
@@ -262,7 +257,6 @@ export default function UsersPage() {
 
   function resetFilters() {
     setSearchInput('')
-    setSearch('')
     setRoleFilter('')
     setDeptFilter('')
     setStatusFilter('')

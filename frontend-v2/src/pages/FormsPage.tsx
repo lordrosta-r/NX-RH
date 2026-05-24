@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useDebounce } from '../hooks/useDebounce'
 import { Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, Copy, Trash2, FileText } from 'lucide-react'
@@ -27,12 +28,14 @@ export default function FormsPage() {
   const [typeFilter, setTypeFilter] = useState('')
   const [campaignFilter, setCampaignFilter] = useState('')
   const [search, setSearch] = useState('')
+  const debouncedSearch = useDebounce(search, 400)
   const { user } = useAuth()
   const [cloneTarget, setCloneTarget] = useState<Form | null>(null)
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
   const queryClient = useQueryClient()
 
   const isAdminOrHr = user?.role === 'admin' || user?.role === 'hr'
+  const isSearching = search !== debouncedSearch
 
   const { data: campaignsData } = useQuery({
     queryKey: ['campaigns', 'active'],
@@ -41,10 +44,10 @@ export default function FormsPage() {
   const campaigns = campaignsData?.data ?? []
 
   const { data, isLoading } = useQuery({
-    queryKey: ['forms', typeFilter, campaignFilter, search],
+    queryKey: ['forms', typeFilter, campaignFilter, debouncedSearch],
     queryFn: () =>
       formsApi
-        .getForms({ formType: typeFilter || undefined, campaignId: campaignFilter || undefined, q: search || undefined, limit: 50 })
+        .getForms({ formType: typeFilter || undefined, campaignId: campaignFilter || undefined, q: debouncedSearch || undefined, limit: 50 })
         .then(r => r.data),
   })
 
@@ -123,6 +126,7 @@ export default function FormsPage() {
           value={search}
           onChange={e => setSearch(e.target.value)}
         />
+        {isSearching && <span className="text-xs text-slate-400 self-center">…</span>}
       </div>
 
       {/* Loading */}

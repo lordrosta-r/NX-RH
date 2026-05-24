@@ -209,11 +209,17 @@ router.get('/:id', async (req, res, next) => {
 })
 
 // POST /api/campaigns — Créer une campagne (admin/hr)
-router.post('/', validate(createCampaign), async (req, res, next) => {
-  try {
-    if (!ADMIN_ROLES.includes(req.user.role)) {
+router.post(
+  '/',
+  (req, res, next) => {
+    if (!ADMIN_ROLES.includes(req.user?.role)) {
       return res.status(403).json({ error: 'Réservé aux admins et RH' })
     }
+    next()
+  },
+  validate(createCampaign),
+  async (req, res, next) => {
+  try {
 
     const { name, description, startDate, endDate, targetDepartments, extendedVisibility,
       deadlineEmployee, deadlineManager, status, targetScope, objectivesFormId } = req.body

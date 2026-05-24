@@ -47,6 +47,7 @@ jest.mock('../../models', () => {
     find:       jest.fn(),
     findById:   jest.fn(),
     insertMany: jest.fn(),
+    bulkWrite:  jest.fn().mockResolvedValue({ modifiedCount: 1 }),
   }
 
   const Form = {
@@ -170,8 +171,13 @@ function makeLeanChain(result) {
   return { lean: jest.fn().mockResolvedValue(result) }
 }
 
+/** Sets up Evaluation.find to return docs via a .lean() chain (PATCH /bulk uses .lean()). */
+function mockEvalFind(docs) {
+  Evaluation.find.mockReturnValue(makeLeanChain(docs))
+}
+
 /**
- * Returns a Mongoose-document-like object usable by PATCH /bulk handlers.
+ * Returns a plain document-like object usable by PATCH /bulk handlers.
  * _id is a plain string so that .toString() works naturally.
  */
 function mockEvalDoc(overrides = {}) {
@@ -180,7 +186,6 @@ function mockEvalDoc(overrides = {}) {
     status:      'assigned',
     evaluatorId: MANAGER_ID,
     evaluateeId: EMPLOYEE_ID,
-    save:        jest.fn().mockResolvedValue(undefined),
     ...overrides,
   }
 }
@@ -656,7 +661,7 @@ describe('PATCH /bulk — input validation', () => {
 
   it('accepts exactly 200 ids (boundary — returns 200 OK)', async () => {
     const ids = Array.from({ length: 200 }, () => EVAL_ID)
-    Evaluation.find.mockResolvedValue([])
+    mockEvalFind([])
     const res = await request(app)
       .patch('/bulk')
       .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
@@ -802,11 +807,14 @@ describe('PATCH /bulk — action: sign_hr', () => {
 describe('PATCH /bulk — action: archive', () => {
   const app = buildApp()
 
-  beforeEach(() => jest.clearAllMocks())
+  beforeEach(() => {
+    jest.clearAllMocks()
+    Evaluation.bulkWrite.mockResolvedValue({ modifiedCount: 1 })
+  })
 
   it('archives evaluation and sets reviewerComment (admin uses VALID_TRANSITIONS)', async () => {
     const ev = mockEvalDoc({ status: 'assigned' }) // assigned → in_progress per VALID_TRANSITIONS
-    Evaluation.find.mockResolvedValue([ev])
+    mockEvalFind([ev])
 
     const res = await request(app)
       .patch('/bulk')
@@ -815,13 +823,22 @@ describe('PATCH /bulk — action: archive', () => {
 
     expect(res.status).toBe(200)
     expect(res.body.success).toBe(1)
-    expect(ev.reviewerComment).toBe('Archivé en masse par RH')
-    expect(ev.save).toHaveBeenCalled()
+    expect(Evaluation.bulkWrite).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        expect.objectContaining({
+          updateOne: {
+            filter: { _id: EVAL_ID },
+            update: { $set: expect.objectContaining({ reviewerComment: 'Archivé en masse par RH' }) },
+          },
+        }),
+      ]),
+      { ordered: false }
+    )
   })
 
   it('still saves when no valid transition exists (terminal status)', async () => {
     const ev = mockEvalDoc({ status: 'archived' }) // archived → [] in VALID_TRANSITIONS
-    Evaluation.find.mockResolvedValue([ev])
+    mockEvalFind([ev])
 
     const res = await request(app)
       .patch('/bulk')
@@ -830,13 +847,12 @@ describe('PATCH /bulk — action: archive', () => {
 
     expect(res.status).toBe(200)
     expect(res.body.success).toBe(1)
-    expect(ev.save).toHaveBeenCalled()
-    expect(ev.reviewerComment).toBe('Archivé en masse par RH')
+    expect(Evaluation.bulkWrite).toHaveBeenCalled()
   })
 
   it('hr uses ROLE_TRANSITIONS — reviewed → signed_hr sets signedByHrAt', async () => {
     const ev = mockEvalDoc({ status: 'reviewed' })
-    Evaluation.find.mockResolvedValue([ev])
+    mockEvalFind([ev])
 
     const res = await request(app)
       .patch('/bulk')
@@ -845,14 +861,27 @@ describe('PATCH /bulk — action: archive', () => {
 
     expect(res.status).toBe(200)
     expect(res.body.success).toBe(1)
-    expect(ev.status).toBe('signed_hr')
-    expect(ev.signedByHrAt).toBeInstanceOf(Date)
+    expect(Evaluation.bulkWrite).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        expect.objectContaining({
+          updateOne: {
+            filter: { _id: EVAL_ID },
+            update: { $set: expect.objectContaining({ status: 'signed_hr', signedByHrAt: expect.any(Date) }) },
+          },
+        }),
+      ]),
+      { ordered: false }
+    )
   })
 
-  it('adds to errors array when ev.save() throws', async () => {
+  it('adds to errors array when bulkWrite fails', async () => {
     const ev = mockEvalDoc({ status: 'assigned' })
-    ev.save.mockRejectedValueOnce(new Error('disk full'))
-    Evaluation.find.mockResolvedValue([ev])
+    mockEvalFind([ev])
+    Evaluation.bulkWrite.mockRejectedValueOnce(
+      Object.assign(new Error('write failed'), {
+        writeErrors: [{ index: 0, errmsg: 'disk full' }],
+      })
+    )
 
     const res = await request(app)
       .patch('/bulk')
@@ -871,11 +900,14 @@ describe('PATCH /bulk — action: archive', () => {
 describe('PATCH /bulk — action: assign_reviewer', () => {
   const app = buildApp()
 
-  beforeEach(() => jest.clearAllMocks())
+  beforeEach(() => {
+    jest.clearAllMocks()
+    Evaluation.bulkWrite.mockResolvedValue({ modifiedCount: 1 })
+  })
 
   it('assigns reviewer to evaluation in "assigned" status → success=1', async () => {
     const ev = mockEvalDoc({ status: 'assigned' })
-    Evaluation.find.mockResolvedValue([ev])
+    mockEvalFind([ev])
 
     const res = await request(app)
       .patch('/bulk')
@@ -884,13 +916,22 @@ describe('PATCH /bulk — action: assign_reviewer', () => {
 
     expect(res.status).toBe(200)
     expect(res.body.success).toBe(1)
-    expect(ev.evaluatorId).toBe(REVIEWER_ID)
-    expect(ev.save).toHaveBeenCalled()
+    expect(Evaluation.bulkWrite).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        expect.objectContaining({
+          updateOne: {
+            filter: { _id: EVAL_ID },
+            update: { $set: { evaluatorId: REVIEWER_ID } },
+          },
+        }),
+      ]),
+      { ordered: false }
+    )
   })
 
   it('assigns reviewer to evaluation in "in_progress" status → success=1', async () => {
     const ev = mockEvalDoc({ status: 'in_progress' })
-    Evaluation.find.mockResolvedValue([ev])
+    mockEvalFind([ev])
 
     const res = await request(app)
       .patch('/bulk')
@@ -899,12 +940,11 @@ describe('PATCH /bulk — action: assign_reviewer', () => {
 
     expect(res.status).toBe(200)
     expect(res.body.success).toBe(1)
-    expect(ev.evaluatorId).toBe(REVIEWER_ID)
   })
 
   it('skips evaluations in "submitted" status (not in ASSIGNABLE)', async () => {
     const ev = mockEvalDoc({ status: 'submitted' })
-    Evaluation.find.mockResolvedValue([ev])
+    mockEvalFind([ev])
 
     const res = await request(app)
       .patch('/bulk')
@@ -914,12 +954,12 @@ describe('PATCH /bulk — action: assign_reviewer', () => {
     expect(res.status).toBe(200)
     expect(res.body.success).toBe(0)
     expect(res.body.skipped).toBe(1)
-    expect(ev.save).not.toHaveBeenCalled()
+    expect(Evaluation.bulkWrite).not.toHaveBeenCalled()
   })
 
   it('skips evaluations in "reviewed" status', async () => {
     const ev = mockEvalDoc({ status: 'reviewed' })
-    Evaluation.find.mockResolvedValue([ev])
+    mockEvalFind([ev])
 
     const res = await request(app)
       .patch('/bulk')
@@ -930,10 +970,14 @@ describe('PATCH /bulk — action: assign_reviewer', () => {
     expect(res.body.skipped).toBe(1)
   })
 
-  it('records save errors in the errors array without crashing', async () => {
+  it('records bulkWrite errors in the errors array without crashing', async () => {
     const ev = mockEvalDoc({ status: 'assigned' })
-    ev.save.mockRejectedValueOnce(new Error('save failed'))
-    Evaluation.find.mockResolvedValue([ev])
+    mockEvalFind([ev])
+    Evaluation.bulkWrite.mockRejectedValueOnce(
+      Object.assign(new Error('write failed'), {
+        writeErrors: [{ index: 0, errmsg: 'save failed' }],
+      })
+    )
 
     const res = await request(app)
       .patch('/bulk')
@@ -946,9 +990,9 @@ describe('PATCH /bulk — action: assign_reviewer', () => {
     expect(res.body.errors[0].reason).toBe('save failed')
   })
 
-  it('creates an AuditLog entry when at least one save succeeds', async () => {
+  it('creates an AuditLog entry when at least one operation succeeds', async () => {
     const ev = mockEvalDoc({ status: 'assigned' })
-    Evaluation.find.mockResolvedValue([ev])
+    mockEvalFind([ev])
 
     await request(app)
       .patch('/bulk')
@@ -962,7 +1006,7 @@ describe('PATCH /bulk — action: assign_reviewer', () => {
 
   it('does NOT create an AuditLog when success=0 (all skipped)', async () => {
     const ev = mockEvalDoc({ status: 'submitted' }) // ineligible
-    Evaluation.find.mockResolvedValue([ev])
+    mockEvalFind([ev])
 
     await request(app)
       .patch('/bulk')
@@ -974,7 +1018,7 @@ describe('PATCH /bulk — action: assign_reviewer', () => {
   })
 
   it('response always contains success, skipped, and errors fields', async () => {
-    Evaluation.find.mockResolvedValue([])
+    mockEvalFind([])
 
     const res = await request(app)
       .patch('/bulk')

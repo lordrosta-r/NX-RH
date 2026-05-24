@@ -115,39 +115,62 @@ async function handleBulkAction(req, res, next) {
       return res.status(400).json({ error: 'reviewerId valide requis pour assign_reviewer' })
     }
 
-    const evaluations = await Evaluation.find({ _id: { $in: ids } })
+    const evaluations = await Evaluation.find({ _id: { $in: ids } }).lean()
     const role = req.user.role
     let success = 0, skipped = 0
     const errors = []
+    const bulkOps = []
+    const now = new Date()
 
     for (const ev of evaluations) {
-      try {
-        if (action === 'sign_hr') {
-          const HR_CAN_SIGN = ['reviewed', 'signed_evaluatee', 'signed_manager']
-          if (!HR_CAN_SIGN.includes(ev.status)) { skipped++; continue }
-          ev.status = 'signed_hr'
-          ev.signedByHrAt = new Date()
-          await ev.save()
-          success++
-        } else if (action === 'archive') {
-          const roleTransitions = role === 'admin' ? VALID_TRANSITIONS : (ROLE_TRANSITIONS[role] || {})
-          const allowed = roleTransitions[ev.status] || []
-          if (allowed.length > 0) {
-            ev.status = allowed[0]
-            if (ev.status === 'signed_hr') ev.signedByHrAt = new Date()
-          }
-          ev.reviewerComment = 'Archivé en masse par RH'
-          await ev.save()
-          success++
-        } else if (action === 'assign_reviewer') {
-          const ASSIGNABLE = ['assigned', 'in_progress']
-          if (!ASSIGNABLE.includes(ev.status)) { skipped++; continue }
-          ev.evaluatorId = reviewerId
-          await ev.save()
-          success++
+      if (action === 'sign_hr') {
+        const HR_CAN_SIGN = ['reviewed', 'signed_evaluatee', 'signed_manager']
+        if (!HR_CAN_SIGN.includes(ev.status)) { skipped++; continue }
+        bulkOps.push({
+          updateOne: {
+            filter: { _id: ev._id },
+            update: { $set: { status: 'signed_hr', signedByHrAt: now } },
+          },
+        })
+        success++
+      } else if (action === 'archive') {
+        const roleTransitions = role === 'admin' ? VALID_TRANSITIONS : (ROLE_TRANSITIONS[role] || {})
+        const allowed = roleTransitions[ev.status] || []
+        const $set = { reviewerComment: 'Archivé en masse par RH' }
+        if (allowed.length > 0) {
+          $set.status = allowed[0]
+          if ($set.status === 'signed_hr') $set.signedByHrAt = now
         }
+        bulkOps.push({
+          updateOne: { filter: { _id: ev._id }, update: { $set } },
+        })
+        success++
+      } else if (action === 'assign_reviewer') {
+        const ASSIGNABLE = ['assigned', 'in_progress']
+        if (!ASSIGNABLE.includes(ev.status)) { skipped++; continue }
+        bulkOps.push({
+          updateOne: {
+            filter: { _id: ev._id },
+            update: { $set: { evaluatorId: reviewerId } },
+          },
+        })
+        success++
+      }
+    }
+
+    if (bulkOps.length > 0) {
+      try {
+        await Evaluation.bulkWrite(bulkOps, { ordered: false })
       } catch (err) {
-        errors.push({ id: ev._id.toString(), reason: err.message })
+        if (err.writeErrors) {
+          for (const we of err.writeErrors) {
+            const op = bulkOps[we.index]
+            errors.push({ id: op?.updateOne?.filter?._id?.toString(), reason: we.errmsg })
+            success--
+          }
+        } else {
+          throw err
+        }
       }
     }
 

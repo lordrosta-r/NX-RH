@@ -18,6 +18,8 @@ function getModel() {
   return _Notification
 }
 
+const logger = require('../utils/logger')
+
 /**
  * Crée une notification in-app pour un utilisateur.
  * Non-bloquant : ne throw jamais, les erreurs sont loggées silencieusement.
@@ -34,7 +36,7 @@ async function notify(userId, type, title, body = '', link = null, priority = 'm
     const Notification = getModel()
     await Notification.create({ userId, type, title, body, link, priority })
   } catch (err) {
-    console.error('[notify] Failed to create notification:', err.message)
+    logger.error('[notify] Failed to create notification', { error: err.message, userId, type })
   }
 }
 

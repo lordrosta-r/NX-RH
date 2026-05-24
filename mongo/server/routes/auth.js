@@ -17,6 +17,7 @@ const { authGuard } = require('../middleware/authGuard')
 const authService = require('../services/authService')
 const { filterNotifPrefsByRole } = authService
 const respond = require('../utils/response')
+const logger  = require('../utils/logger')
 
 // ─── Rate limiters — POST /login ─────────────────────────────────────────────
 // Deux limiters distincts : un par email (anti brute-force), un par IP (anti spray)
@@ -85,9 +86,9 @@ router.post('/login', loginByEmailLimiter, loginByIPLimiter, async (req, res, ne
 
     // Mise à jour de lastLoginAt — fire-and-forget, n'échoue jamais le login.
     User.updateOne({ _id: user._id }, { $set: { lastLoginAt: new Date() } })
-      .catch(err => console.error('[auth] lastLoginAt update failed', err.message))
+      .catch(err => logger.error('[auth] lastLoginAt update failed', { error: err.message }))
 
-    AuditLog.create({ action: 'login', userId: user._id, targetId: user._id, targetType: 'User', details: { ip: req.ip } }).catch(console.error)
+    AuditLog.create({ action: 'login', userId: user._id, targetId: user._id, targetType: 'User', details: { ip: req.ip } }).catch(err => logger.error('[auth] AuditLog create failed', { error: err.message }))
 
     respond.item(res, {
       user: {
@@ -100,7 +101,7 @@ router.post('/login', loginByEmailLimiter, loginByIPLimiter, async (req, res, ne
     })
   } catch (err) {
     if (err.loginFailed) {
-      AuditLog.create({ action: 'login_failed', details: { email: req.body.email, ip: req.ip } }).catch(console.error)
+      AuditLog.create({ action: 'login_failed', details: { email: req.body.email, ip: req.ip } }).catch(err => logger.error('[auth] AuditLog create failed', { error: err.message }))
       return res.status(401).json({ error: err.message })
     }
     next(err)

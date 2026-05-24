@@ -316,8 +316,6 @@ export default function DashboardEmployeePage() {
           )}
         </div>
       </div>
-    </div>
-    </div>
 
       {/* ── Row 4 — Mes demandes ──────────────────────────────────────── */}
 

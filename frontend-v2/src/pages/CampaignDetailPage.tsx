@@ -86,7 +86,7 @@ export default function CampaignDetailPage() {
 
   const { data: analytics, isLoading: analyticsLoading } = useQuery({
     queryKey: ['campaign-analytics', campaign?._id],
-    queryFn:  () => campaignsApi.getCampaignAnalytics(campaign!._id).then(r => r.data),
+    queryFn:  () => campaignsApi.getCampaignAnalytics(id!).then(r => r.data),
     enabled:  !!campaign?._id && isAdminOrHr,
     staleTime: 2 * 60 * 1000,
   })

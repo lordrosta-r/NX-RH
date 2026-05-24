@@ -56,6 +56,7 @@ const AdminFormsImportPage = lazy(() => import('../pages/AdminFormsImportPage'))
 const AdminLdapPage = lazy(() => import('../pages/AdminLdapPage'))
 const AdminAuditPage = lazy(() => import('../pages/AdminAuditPage'))
 const AdminConfigPage = lazy(() => import('../pages/AdminConfigPage'))
+const AdminMailConfigPage = lazy(() => import('../pages/AdminMailConfigPage'))
 const AdminMailTemplatesPage = lazy(() => import('../pages/AdminMailTemplatesPage'))
 const AdminHubPage = lazy(() => import('../pages/AdminHubPage'))
 const AdminUsersPage = lazy(() => import('../pages/AdminUsersPage'))
@@ -139,6 +140,7 @@ export const router = createBrowserRouter([
       { path: '/admin/ldap', element: <AuthGuard roles={['admin']}><S><AdminLdapPage /></S></AuthGuard> },
       { path: '/admin/audit', element: <AuthGuard roles={['admin', 'hr']}><S><AdminAuditPage /></S></AuthGuard> },
       { path: '/admin/config', element: <AuthGuard roles={['admin']}><S><AdminConfigPage /></S></AuthGuard> },
+      { path: '/admin/mail-config', element: <AuthGuard roles={['admin']}><S><AdminMailConfigPage /></S></AuthGuard> },
       { path: '/admin/mail-templates', element: <AuthGuard roles={['admin', 'hr']}><S><AdminMailTemplatesPage /></S></AuthGuard> },
       { path: '/admin/status', element: <AuthGuard roles={['admin']}><S><AdminStatusPage /></S></AuthGuard> },
       { path: '/admin/setup', element: <AuthGuard roles={['admin']}><S><AdminSetupWizardPage /></S></AuthGuard> },

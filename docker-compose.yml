@@ -46,7 +46,7 @@ services:
     env_file: .env
     environment:
       NODE_ENV: production
-      COOKIE_SECURE: 'false'
+      COOKIE_SECURE: 'true'
     depends_on:
       mongo:
         condition: service_healthy

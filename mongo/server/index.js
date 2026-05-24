@@ -198,6 +198,16 @@ app.use((req, res) => {
 
 app.use(errorHandler)
 
+// ─── Process-level error handlers ────────────────────────────────────────────
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('[UnhandledRejection] Promesse non gérée :', reason)
+})
+
+process.on('uncaughtException', (err) => {
+  console.error('[UncaughtException] Erreur fatale :', err.message)
+  process.exit(1)
+})
+
 // ─── Start ───────────────────────────────────────────────────────────────────
 
 async function start() {

@@ -50,19 +50,8 @@ function TestAuthShell({
       isAuthenticated: !!user,
       login: async (email: string, password: string, remember?: boolean) => {
         const { data } = await authApi.login(email, password, remember)
-        setUser(data.user)
+        setUser(data.data.user)
       },
-      loginLdap: async (login: string, password: string) => {
-        const { data } = await authApi.loginLdap(login, password)
-        setUser(data.user)
-      },
-      logout: async () => {
-        await authApi.logout()
-        setUser(null)
-        navigate('/login', { replace: true })
-      },
-      refreshUser: async () => {},
-    }),
     [navigate, user],
   )
 

@@ -33,7 +33,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string, remember?: boolean) => {
     const { data } = await authApi.login(email, password, remember)
-    setUser(data.user)
+    setUser(data.data.user)
   }
 
   const loginLdap = async (login: string, password: string) => {

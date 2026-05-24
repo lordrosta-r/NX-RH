@@ -117,7 +117,7 @@ export default function ProfilePage() {
   // ── Manager (lecture seule) ───────────────────────────────────────────────
   const { data: managerData } = useQuery({
     queryKey: ['manager', user?.managerId],
-    queryFn: () => usersApi.getUser(user!.managerId!).then((r) => r.data),
+    queryFn: () => usersApi.getUser(user!.managerId!).then((r) => r.data.data),
     enabled: !!user?.managerId,
   })
 

@@ -245,7 +245,7 @@ export default function CampaignNewPage() {
 
   const createMutation = useMutation({
     mutationFn: (data: Partial<Campaign>) =>
-      campaignsApi.createCampaign(data).then(r => r.data),
+      campaignsApi.createCampaign(data).then(r => r.data.data),
     onSuccess: (campaign: Campaign) => {
       queryClient.invalidateQueries({ queryKey: ['campaigns'] })
       navigate(`/campaigns/${campaign.id}`)

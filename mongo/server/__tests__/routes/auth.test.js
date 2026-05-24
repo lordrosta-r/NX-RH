@@ -146,8 +146,8 @@ describe('POST /api/auth/login', () => {
       .post('/api/auth/login')
       .send({ email: 'alice@corp.com', password: 'secret123' })
     expect(res.status).toBe(200)
-    expect(res.body.user).toBeDefined()
-    expect(res.body.user.email).toBe('alice@corp.com')
+    expect(res.body.data.user).toBeDefined()
+    expect(res.body.data.user.email).toBe('alice@corp.com')
     // Token must NOT appear in response body
     expect(res.body.token).toBeUndefined()
     // Cookie must be set
@@ -177,7 +177,7 @@ describe('POST /api/auth/login', () => {
       .post('/api/auth/login')
       .send({ email: 'alice@corp.com', password: 'secret123' })
     expect(res.status).toBe(200)
-    expect(res.body.user.passwordHash).toBeUndefined()
+    expect(res.body.data.user.passwordHash).toBeUndefined()
   })
 
   it('sets longer maxAge when remember=true', async () => {

@@ -294,8 +294,8 @@ describe('GET /api/campaigns/:id', () => {
       .get(`/api/campaigns/${CAMPAIGN_ID}`)
       .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(res.status).toBe(200)
-    expect(res.body.stats).toBeDefined()
-    expect(res.body.stats.total).toBe(10)
+    expect(res.body.data.stats).toBeDefined()
+    expect(res.body.data.stats.total).toBe(10)
   })
 
   it('returns default zero stats when no evaluations exist', async () => {
@@ -307,7 +307,7 @@ describe('GET /api/campaigns/:id', () => {
       .get(`/api/campaigns/${CAMPAIGN_ID}`)
       .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(res.status).toBe(200)
-    expect(res.body.stats).toEqual({ total: 0, started: 0, submitted: 0, validated: 0 })
+    expect(res.body.data.stats).toEqual({ total: 0, started: 0, submitted: 0, validated: 0 })
   })
 })
 
@@ -399,7 +399,7 @@ describe('POST /api/campaigns', () => {
       .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ name: 'Q1', startDate: '2025-01-01', endDate: '2025-03-31', formId: FORM_ID })
     expect(res.status).toBe(201)
-    expect(res.body.name).toBe('Q1')
+    expect(res.body.data.name).toBe('Q1')
   })
 
   it('hr creates a campaign and receives 201', async () => {
@@ -411,7 +411,7 @@ describe('POST /api/campaigns', () => {
       .set('Cookie', `token=${tokenFor({ id: HR_ID, role: 'hr' })}`)
       .send({ name: 'HR Camp', startDate: '2025-01-01', endDate: '2025-03-31', formId: FORM_ID })
     expect(res.status).toBe(201)
-    expect(res.body.name).toBe('HR Camp')
+    expect(res.body.data.name).toBe('HR Camp')
   })
 
   it('allows initial status "active"', async () => {

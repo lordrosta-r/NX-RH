@@ -66,7 +66,7 @@ export const mockNotification = {
 export const handlers = [
   // Auth
   http.post('http://localhost:5050/api/auth/login', () =>
-    HttpResponse.json({ user: mockUser })),
+    HttpResponse.json({ data: { user: mockUser } })),
   http.post('http://localhost:5050/api/auth/login/ldap', () =>
     HttpResponse.json({ user: mockUser })),
   http.post('http://localhost:5050/api/auth/logout', () =>
@@ -82,10 +82,10 @@ export const handlers = [
   http.get('http://localhost:5050/api/users/me', () =>
     HttpResponse.json(mockUser)),
   http.get('http://localhost:5050/api/users/:id', ({ params }) =>
-    HttpResponse.json({ ...mockUser, _id: params.id as string, id: params.id as string })),
+    HttpResponse.json({ data: { ...mockUser, _id: params.id as string, id: params.id as string } })),
   http.put('http://localhost:5050/api/users/:id', async ({ request, params }) => {
     const body = await request.json() as Record<string, unknown>
-    return HttpResponse.json({ ...mockUser, _id: params.id as string, id: params.id as string, ...body })
+    return HttpResponse.json({ data: { ...mockUser, _id: params.id as string, id: params.id as string, ...body } })
   }),
   http.patch('http://localhost:5050/api/users/:id/avatar', () =>
     HttpResponse.json({ ...mockUser, avatarUrl: 'data:image/png;base64,abc' })),
@@ -102,14 +102,14 @@ export const handlers = [
   http.get('http://localhost:5050/api/campaigns', () =>
     HttpResponse.json({ data: [mockCampaign], total: 1, page: 1, limit: 20 })),
   http.get('http://localhost:5050/api/campaigns/:id', ({ params }) =>
-    HttpResponse.json({ ...mockCampaign, _id: params.id as string })),
+    HttpResponse.json({ data: { ...mockCampaign, _id: params.id as string } })),
   http.post('http://localhost:5050/api/campaigns', async ({ request }) => {
     const body = await request.json() as Record<string, unknown>
-    return HttpResponse.json({ ...mockCampaign, ...body, _id: 'camp-new' })
+    return HttpResponse.json({ data: { ...mockCampaign, ...body, _id: 'camp-new' } }, { status: 201 })
   }),
   http.put('http://localhost:5050/api/campaigns/:id', async ({ request, params }) => {
     const body = await request.json() as Record<string, unknown>
-    return HttpResponse.json({ ...mockCampaign, _id: params.id as string, ...body })
+    return HttpResponse.json({ data: { ...mockCampaign, _id: params.id as string, ...body } })
   }),
   http.post('http://localhost:5050/api/campaigns/:id/activate', ({ params }) =>
     HttpResponse.json({ ...mockCampaign, _id: params.id as string, status: 'active' })),

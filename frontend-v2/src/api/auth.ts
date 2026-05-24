@@ -1,9 +1,9 @@
 import client from './client'
-import type { User, UserPreferences } from '../types'
+import type { User, UserPreferences, ItemResponse } from '../types'
 
 export const authApi = {
   login: (email: string, password: string, remember?: boolean) =>
-    client.post<{ user: User }>('/api/auth/login', { email, password, remember }),
+    client.post<ItemResponse<{ user: User }>>('/api/auth/login', { email, password, remember }),
 
   loginLdap: (login: string, password: string) =>
     client.post<{ user: User }>('/api/auth/login/ldap', { login, password }),

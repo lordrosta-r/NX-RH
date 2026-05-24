@@ -201,7 +201,7 @@ export default function CampaignEditPage() {
 
   const { data: campaign, isLoading: campaignLoading } = useQuery({
     queryKey: ['campaign', id],
-    queryFn: () => campaignsApi.getCampaign(id!).then(r => r.data),
+    queryFn: () => campaignsApi.getCampaign(id!).then(r => r.data.data),
     enabled: !!id,
   })
 
@@ -262,7 +262,7 @@ export default function CampaignEditPage() {
 
   const updateMutation = useMutation({
     mutationFn: (data: Partial<Campaign>) =>
-      campaignsApi.updateCampaign(id!, data).then(r => r.data),
+      campaignsApi.updateCampaign(id!, data).then(r => r.data.data),
     onSuccess: (updated: Campaign) => {
       queryClient.invalidateQueries({ queryKey: ['campaigns'] })
       queryClient.invalidateQueries({ queryKey: ['campaign', id] })

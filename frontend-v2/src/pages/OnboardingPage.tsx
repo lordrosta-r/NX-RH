@@ -39,7 +39,7 @@ export default function OnboardingPage() {
   // Manager direct
   const { data: managerData } = useQuery({
     queryKey: ['onboarding-manager', user?.managerId],
-    queryFn: () => usersApi.getUser(user!.managerId!).then((r) => r.data),
+    queryFn: () => usersApi.getUser(user!.managerId!).then((r) => r.data.data),
     enabled: step === 2 && !!user?.managerId,
   })
 

@@ -212,7 +212,7 @@ describe('GET /api/users/:id', () => {
       .get(`/api/users/${EMPLOYEE_ID}`)
       .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(res.status).toBe(200)
-    expect(res.body.email).toBe('emp@corp.com')
+    expect(res.body.data.email).toBe('emp@corp.com')
   })
 
   it('employee can fetch their own profile', async () => {
@@ -259,7 +259,7 @@ describe('GET /api/users/:id', () => {
       .get(`/api/users/${ADMIN_ID}`)
       .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(res.status).toBe(200)
-    expect(res.body.passwordHash).toBeUndefined()
+    expect(res.body.data.passwordHash).toBeUndefined()
   })
 })
 
@@ -309,9 +309,9 @@ describe('POST /api/users', () => {
       .set('Cookie', `token=${tokenFor({ id: HR_ID, role: 'hr' })}`)
       .send({ firstName: 'Bob', lastName: 'Smith', email: 'bob@corp.com', role: 'employee' })
     expect(res.status).toBe(201)
-    expect(res.body.tempPassword).toBeDefined()
-    expect(typeof res.body.tempPassword).toBe('string')
-    expect(res.body.tempPassword.length).toBeGreaterThan(0)
+    expect(res.body.data.tempPassword).toBeDefined()
+    expect(typeof res.body.data.tempPassword).toBe('string')
+    expect(res.body.data.tempPassword.length).toBeGreaterThan(0)
   })
 
   it('admin can create a user and the response never includes passwordHash', async () => {
@@ -320,7 +320,7 @@ describe('POST /api/users', () => {
       .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ firstName: 'Carol', lastName: 'White', email: 'carol@corp.com', role: 'employee' })
     expect(res.status).toBe(201)
-    expect(res.body.passwordHash).toBeUndefined()
+    expect(res.body.data.passwordHash).toBeUndefined()
   })
 
   it('returns 409 on duplicate email (MongoDB code 11000)', async () => {

@@ -3,6 +3,7 @@ import { Users, CheckSquare, Eye, TrendingUp } from 'lucide-react'
 import { useDashboardDirector } from '../hooks/useDashboardByRole'
 import { StatusBadge } from '../components/ui'
 import type { Evaluation, Campaign } from '../types'
+import { getCampaignName } from '../types'
 
 function getInitials(id: string): string {
   return id.slice(0, 2).toUpperCase()
@@ -77,7 +78,7 @@ function EvaluationsTable({ evaluations }: { evaluations: Evaluation[] }) {
                 </div>
               </td>
               <td className="px-4 py-3">
-                <span className="text-sm text-slate-500">{ev.campaignId}</span>
+                <span className="text-sm text-slate-500">{getCampaignName(ev.campaignId)}</span>
               </td>
               <td className="px-4 py-3">
                 <StatusBadge status={ev.status} />

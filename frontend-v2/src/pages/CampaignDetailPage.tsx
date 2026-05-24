@@ -35,7 +35,7 @@ export default function CampaignDetailPage() {
 
   const { data: campaign, isLoading } = useQuery({
     queryKey: ['campaign', id],
-    queryFn:  () => campaignsApi.getCampaign(id!).then(r => r.data),
+    queryFn:  () => campaignsApi.getCampaign(id!).then(r => r.data.data),
     enabled:  !!id,
   })
 

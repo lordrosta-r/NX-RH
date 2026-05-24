@@ -6,6 +6,7 @@ import { StatusBadge } from '../components/ui'
 import { eventsApi } from '../api/events'
 import { campaignsApi } from '../api/campaigns'
 import type { Evaluation, Campaign } from '../types'
+import { getCampaignName } from '../types'
 
 interface KpiCardProps {
   label: string
@@ -66,7 +67,7 @@ function EvalsToComplete({ evaluations }: { evaluations: Evaluation[] }) {
           <div className="flex items-start justify-between">
             <div>
               <p className="font-semibold text-slate-900 text-sm">{ev.evaluateeId}</p>
-              <p className="text-xs text-slate-500 mt-0.5">Campagne : {ev.campaignId}</p>
+              <p className="text-xs text-slate-500 mt-0.5">Campagne : {getCampaignName(ev.campaignId)}</p>
             </div>
             <StatusBadge status={ev.status} />
           </div>

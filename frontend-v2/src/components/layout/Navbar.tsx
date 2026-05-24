@@ -1,11 +1,10 @@
 import { useState, useRef, useEffect } from 'react'
-import { NavLink, Link, useNavigate } from 'react-router-dom'
+import { NavLink, Link } from 'react-router-dom'
 import nxLogo from '../../assets/nx-logo.png'
-import { Bell, ChevronDown, LogOut, User, Menu, X, Search } from 'lucide-react'
-import { useQuery } from '@tanstack/react-query'
+import { ChevronDown, LogOut, User, Menu, X, Search } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import type { Role } from '../../types'
-import { notificationsApi } from '../../api/notifications'
+import { NotificationBell } from '../NotificationBell'
 import clsx from 'clsx'
 
 interface NavItem {
@@ -188,7 +187,6 @@ function NavDropdown({ item }: { item: NavItem }) {
 
 export default function Navbar({ onSearchClick }: { onSearchClick?: () => void }) {
   const { user, logout } = useAuth()
-  const navigate = useNavigate()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [avatarOpen, setAvatarOpen] = useState(false)
   const avatarRef = useRef<HTMLDivElement>(null)
@@ -200,13 +198,6 @@ export default function Navbar({ onSearchClick }: { onSearchClick?: () => void }
     document.addEventListener('mousedown', handle)
     return () => document.removeEventListener('mousedown', handle)
   }, [])
-
-  const { data: notifCount } = useQuery({
-    queryKey: ['notifications-count'],
-    queryFn: () => notificationsApi.getNotificationCount().then((r) => r.data),
-    refetchInterval: 30000,
-  })
-  const unreadCount = notifCount?.count ?? 0
 
   const navItems = user ? getNavItems(user.role) : []
   const initials = user
@@ -260,18 +251,7 @@ export default function Navbar({ onSearchClick }: { onSearchClick?: () => void }
           </button>
 
           {/* Notifications */}
-          <button
-            onClick={() => navigate('/notifications')}
-            className="relative p-2 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-300"
-            aria-label="Notifications"
-          >
-            <Bell className="w-5 h-5" />
-            {unreadCount > 0 && (
-              <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-                {unreadCount > 9 ? '9+' : unreadCount}
-              </span>
-            )}
-          </button>
+          <NotificationBell />
 
           {/* Avatar + menu */}
           <div ref={avatarRef} className="relative">

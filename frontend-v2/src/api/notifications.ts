@@ -6,14 +6,13 @@ export const notificationsApi = {
     client.get<PaginatedResponse<Notification>>('/api/notifications', { params }),
 
   getNotificationCount: () =>
-    client.get<{ unreadCount: number }>('/api/notifications', { params: { limit: 1 } })
-      .then(r => ({ data: { count: r.data.unreadCount } })),
+    client.get<{ total: number; unreadCount: number }>('/api/notifications/count'),
 
   markRead: (id: string) =>
     client.patch(`/api/notifications/${id}/read`),
 
   markAllRead: () =>
-    client.post('/api/notifications/read-all'),
+    client.patch('/api/notifications/read-all'),
 
   globalRemind: (data: { campaignId?: string; targetStatuses?: string[] }) =>
     client.post('/api/notifications/remind', data),

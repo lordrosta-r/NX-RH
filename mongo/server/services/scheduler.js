@@ -4,10 +4,11 @@
 // services/scheduler.js — Periodic background tasks
 //
 // Currently runs (every hour):
-//   • deadlineReminder — sends an email to evaluatees whose campaign is closing
-//     within REMINDER_WINDOW_DAYS days and whose evaluation is still in
-//     'assigned' or 'in_progress'. Idempotent: one reminder per
-//     REMINDER_COOLDOWN_HOURS window (tracked via Evaluation.lastReminderAt).
+//   • deadlineReminder — sends an email + in-app notification to evaluatees
+//     whose campaign is closing within REMINDER_WINDOW_DAYS days and whose
+//     evaluation is still in 'assigned' or 'in_progress'. Idempotent: one
+//     reminder per REMINDER_COOLDOWN_HOURS window (tracked via
+//     Evaluation.lastReminderAt).
 //
 //   • expiryCheck — expires evaluations past their expiresAt date (→ 'expired'),
 //     and flags evaluations within 7 days of expiry with nearExpiry=true.
@@ -17,6 +18,8 @@
 
 const { Evaluation, Campaign, User } = require('../models')
 const { notify } = require('./notificationService')
+const logger     = require('../utils/logger')
+const { notify: notifyInApp } = require('./notificationHelper')
 
 const HOUR_MS = 60 * 60 * 1000
 const DAY_MS  = 24 * HOUR_MS
@@ -70,11 +73,20 @@ async function runDeadlineReminders() {
         await ev.save()
         sentCount += 1
       }
+      // Always create the in-app notification (non-blocking, even if email failed)
+      await notifyInApp(
+        ev.evaluateeId,
+        'eval_reminder_deadline',
+        `Rappel : évaluation à compléter`,
+        `La campagne "${c.name}" se termine le ${deadline}. Pensez à finaliser votre évaluation.`,
+        `/evaluations/${ev._id}`,
+        'high',
+      )
     }
   }
 
   if (sentCount > 0) {
-    console.log(`[Scheduler] Sent ${sentCount} deadline reminder(s)`)
+    logger.info('[Scheduler] Deadline reminders envoyés', { count: sentCount })
   }
   return sentCount
 }
@@ -118,9 +130,7 @@ async function runExpiryCheck() {
   )
 
   if (expired.modifiedCount > 0 || warned.modifiedCount > 0) {
-    console.log(
-      `[Scheduler] Expiry check — expired: ${expired.modifiedCount}, nearExpiry flagged: ${warned.modifiedCount}`,
-    )
+    logger.info('[Scheduler] Expiry check', { expired: expired.modifiedCount, nearExpiry: warned.modifiedCount })
   }
   return { expired: expired.modifiedCount, warned: warned.modifiedCount }
 }
@@ -130,7 +140,7 @@ async function tick() {
     await runDeadlineReminders()
     await runExpiryCheck()
   } catch (err) {
-    console.error('[Scheduler] tick error:', err.message)
+    logger.error('[Scheduler] tick error', { error: err.message })
   }
 }
 
@@ -142,7 +152,7 @@ function start() {
   // Defer the first run by 1 minute to avoid bombarding right after restart
   timer = setInterval(tick, TICK_INTERVAL_MS)
   setTimeout(tick, 60 * 1000)
-  console.log(`[Scheduler] Started — deadline reminders + expiry check every ${TICK_INTERVAL_MS / HOUR_MS}h`)
+  logger.info('[Scheduler] Démarré', { interval: `${TICK_INTERVAL_MS / HOUR_MS}h`, tasks: 'deadline reminders + expiry check' })
 }
 
 function stop() {

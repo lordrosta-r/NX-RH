@@ -70,7 +70,7 @@ export default function CampaignDetailPage() {
 
   const { data: allFormsData } = useQuery({
     queryKey: ['forms-library'],
-    queryFn:  () => formsApi.getForms({ limit: 200 } as any).then(r => r.data),
+    queryFn:  () => formsApi.getForms({ limit: 200 }).then(r => r.data),
     enabled:  addFormModal,
   })
 
@@ -321,7 +321,7 @@ export default function CampaignDetailPage() {
           isAdminOrHr={isAdminOrHr}
           addFormModal={addFormModal}
           setAddFormModal={setAddFormModal}
-          allForms={(allFormsData as any)?.data ?? []}
+          allForms={allFormsData?.data ?? []}
           formIds={campaign?.formIds ?? []}
           linkFormMutation={linkFormMutation}
           unlinkFormMutation={unlinkFormMutation}

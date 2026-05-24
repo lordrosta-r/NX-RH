@@ -78,9 +78,15 @@ export type EvaluationStatus =
   | 'expired'
   | 'archived'
 
+export interface SystemStatus {
+  smtp: { ok: boolean; error?: string }
+  version?: string
+  uptime?: number
+}
+
 export interface Evaluation {
   id: string
-  campaignId: string
+  campaignId: string | Campaign
   evaluateeId: string
   evaluatorId: string
   formId: string

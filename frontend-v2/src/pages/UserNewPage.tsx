@@ -76,7 +76,7 @@ export default function UserNewPage() {
       usersApi.createUser(data).then(r => r.data as User & { temporaryPassword?: string }),
     onSuccess: (newUser) => {
       setCreatedUserId(newUser.id)
-      setTempPassword((newUser as any).temporaryPassword || '••••••••')
+      setTempPassword(newUser.temporaryPassword || '••••••••')
       setShowPasswordModal(true)
     },
     onError: () => {

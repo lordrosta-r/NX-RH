@@ -187,17 +187,18 @@ router.post(
           try {
             await newUser.save()
             results.created++
-            // Email de bienvenue — non-bloquant
-            notificationService.sendToUser(newUser._id, 'welcome_import', {
-              firstName:   newUser.firstName,
-              email:       newUser.email,
-              tempPassword,
-              loginUrl:    process.env.FRONTEND_URL || 'http://localhost:5173',
-            }).catch(err => console.error('[import welcome email]', err))
           } catch (e) {
             results.errors.push({ row: rowNum, field: null, message: e.message })
             results.skipped++
+            continue
           }
+          // Email de bienvenue — non-bloquant, isolé du résultat d'import
+          notificationService.sendToUser(newUser._id, 'welcome_import', {
+            firstName:   newUser.firstName,
+            email:       newUser.email,
+            tempPassword,
+            loginUrl:    process.env.FRONTEND_URL || 'http://localhost:5173',
+          }).catch(err => console.error('[import welcome email]', err))
         }
       }
 

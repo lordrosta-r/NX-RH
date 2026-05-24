@@ -299,7 +299,7 @@ export default function EvaluationsPage() {
                   <td className="px-4 py-3 text-slate-600">
                     {ev.evaluator?.firstName} {ev.evaluator?.lastName}
                   </td>
-                  <td className="px-4 py-3 text-slate-600">{(ev.campaignId as any)?.name ?? (typeof ev.campaignId === 'string' ? ev.campaignId : '')}</td>
+                  <td className="px-4 py-3 text-slate-600">{typeof ev.campaignId === 'string' ? ev.campaignId : ev.campaignId.name}</td>
                   <td className="px-4 py-3">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${EVAL_STATUS_CONFIG[ev.status]?.color ?? 'bg-slate-100 text-slate-600'}`}>
                       {EVAL_STATUS_CONFIG[ev.status]?.label ?? ev.status}
@@ -369,7 +369,7 @@ export default function EvaluationsPage() {
           ) : evaluations.map(ev => (
             <div key={ev.id} className="bg-white rounded-xl border border-slate-200 p-4 flex items-center justify-between">
               <div>
-                <p className="font-medium text-slate-900">{(ev.campaignId as any)?.name ?? (typeof ev.campaignId === 'string' ? ev.campaignId : '')}</p>
+                <p className="font-medium text-slate-900">{typeof ev.campaignId === 'string' ? ev.campaignId : ev.campaignId.name}</p>
                 <p className="text-sm text-slate-500 mt-0.5">{ev.form?.title ?? ev.formId}</p>
                 {ev.deadline && (
                   <p className="text-xs text-slate-400 mt-0.5">Deadline : {new Date(ev.deadline).toLocaleDateString('fr-FR')}</p>

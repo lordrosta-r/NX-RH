@@ -1,5 +1,5 @@
 import client from './client'
-import type { AppConfig, LdapConfig, MailTemplate, AuditLogEntry, PaginatedResponse, PaginationParams, User, OrgTreeNode } from '../types'
+import type { AppConfig, LdapConfig, MailTemplate, AuditLogEntry, PaginatedResponse, PaginationParams, User, OrgTreeNode, SystemStatus } from '../types'
 
 export const adminApi = {
   // Configuration
@@ -64,7 +64,7 @@ export const adminApi = {
   updateHrSettings: (data: unknown) => client.put('/api/hr/settings', data),
   bulkRemind: (data: { campaignId?: string; targetStatuses?: string[] }) => client.post('/api/hr/notifications/bulk-remind', data),
   // System health
-  getSystemStatus: () => client.get('/api/admin/status'),
+  getSystemStatus: () => client.get<SystemStatus>('/api/admin/status'),
   getEnvCheck: () => client.get('/api/admin/env-check'),
   getUsers: (params?: Record<string, unknown>) => client.get('/api/admin/users', { params }),
 }

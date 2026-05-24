@@ -62,16 +62,16 @@ export default function AdminSetupWizardPage() {
 
   const { data: usersPage, isLoading: usersLoading } = useQuery({
     queryKey: ['users-setup-check'],
-    queryFn: () => adminApi.getUsers({ page: 1, limit: 20 }).then(r => r.data),
+    queryFn: () => adminApi.getAdminUsers({ page: 1, limit: 20 }).then(r => r.data),
   })
 
   const isLoading = envLoading || statusLoading || usersLoading
 
-  const users = (usersPage as any)?.users ?? (usersPage as any) ?? []
+  const users = usersPage?.data ?? []
   const checkData: SetupCheckData = {
     envVars: envVars as { key: string; set: boolean; required: boolean }[],
-    hasNonAdminUsers: users.some((u: any) => u.role !== 'admin'),
-    smtpConfigured: (statusData as any)?.smtp?.ok ?? false,
+    hasNonAdminUsers: users.some(u => u.role !== 'admin'),
+    smtpConfigured: statusData?.smtp?.ok ?? false,
   }
 
   const completedCount = STEPS.filter(s => s.checkFn(checkData)).length

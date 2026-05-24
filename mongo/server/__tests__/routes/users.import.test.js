@@ -10,6 +10,9 @@
 jest.mock('../../models/User')
 jest.mock('../../models/Sector')
 jest.mock('bcrypt')
+jest.mock('../../services/notificationService', () => ({
+  sendToUser: jest.fn().mockResolvedValue(undefined),
+}))
 
 jest.mock('../../middleware/authGuard', () => ({
   authGuard: (roles = []) => (req, res, next) => {

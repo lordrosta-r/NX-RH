@@ -194,7 +194,7 @@ describe('Auth Routes — /api/auth', () => {
         .expect(401)
 
       expect(response.body).toHaveProperty('error')
-      expect(response.body.error).toBe('Session invalide')
+      expect(response.body.error).toBe('Compte désactivé')
     })
   })
 

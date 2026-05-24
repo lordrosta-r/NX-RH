@@ -85,7 +85,7 @@ export default function UserDetailPage() {
   // Fetch user
   const { data: userData, isLoading } = useQuery({
     queryKey: ['user', id],
-    queryFn: () => usersApi.getUser(id!).then(r => r.data as User & { offboardingStatus?: string }),
+    queryFn: () => usersApi.getUser(id!).then(r => r.data),
     enabled: !!id,
   })
 
@@ -168,7 +168,7 @@ export default function UserDetailPage() {
       />
 
       {/* Offboarding banner */}
-      {(userData as any).offboardingStatus === 'offboarding' && (
+      {userData.offboardingStatus === 'offboarding' && (
         <div className="border-l-4 border-warning-500 bg-warning-50 p-4 rounded-lg mb-6">
           <p className="text-sm font-medium text-warning-700">
             <AlertTriangle className="inline w-4 h-4 mr-1 shrink-0" />

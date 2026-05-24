@@ -50,6 +50,7 @@ const adminEnvCheckRoutes = require('./routes/admin/envCheck')
 const userBulkRoutes          = require('./routes/users/bulk')
 const evaluationBulkRoutes    = require('./routes/evaluations/bulk')
 const searchRoutes        = require('./routes/search')
+const mobilityRoutes      = require('./routes/mobility')
 
 // ─── App setup ───────────────────────────────────────────────────────────────
 
@@ -202,6 +203,7 @@ app.use('/api/org',              mutationLimiter, authGuard(['admin', 'hr', 'man
 app.use('/api/notifications',    apiLimiter, authenticated, notificationsRouter)
 app.use('/api/dashboard',        apiLimiter, authenticated, dashboardRouter)
 app.use('/api/search',           apiLimiter, authGuard(['admin', 'hr', 'manager', 'employee']), searchRoutes)
+app.use('/api/mobility',         mutationLimiter, authenticated, mobilityRoutes)
 
 // ─── 404 Fallback ────────────────────────────────────────────────────────────
 

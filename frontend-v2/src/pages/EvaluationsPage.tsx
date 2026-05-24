@@ -8,6 +8,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { evaluationsApi } from '../api/evaluations'
 import { usersApi } from '../api/users'
 import { toast } from '../hooks/useToast'
+import { usePdfExport } from '../hooks/usePdfExport'
 import type { Evaluation } from '../types'
 import PageGuide from '../components/shared/PageGuide'
 
@@ -28,6 +29,7 @@ export default function EvaluationsPage() {
   const { user } = useAuth()
   const isAdminOrHr = user?.role === 'admin' || user?.role === 'hr'
   const isEmployee = user?.role === 'employee'
+  const { exportListPdf } = usePdfExport()
 
   const [campaignFilter, setCampaignFilter] = useState('')
   const [statusFilter, setStatusFilter] = useState<string[]>([])
@@ -188,13 +190,22 @@ export default function EvaluationsPage() {
             </div>
           )}
           {isAdminOrHr && (
-            <button
-              onClick={() => exportToCSV(evaluations)}
-              disabled={isLoading}
-              className="inline-flex items-center gap-2 border border-slate-200 hover:bg-slate-50 px-3 py-1.5 rounded-md text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              <Download className="w-4 h-4" /> Exporter CSV
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => exportToCSV(evaluations)}
+                disabled={isLoading}
+                className="inline-flex items-center gap-2 border border-slate-200 hover:bg-slate-50 px-3 py-1.5 rounded-md text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <Download className="w-4 h-4" /> Exporter CSV
+              </button>
+              <button
+                onClick={() => exportListPdf(evaluations)}
+                disabled={isLoading}
+                className="inline-flex items-center gap-2 border border-slate-200 hover:bg-slate-50 px-3 py-1.5 rounded-md text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <Download className="w-4 h-4" /> Exporter PDF
+              </button>
+            </div>
           )}
         </div>
       </div>

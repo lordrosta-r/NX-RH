@@ -5,12 +5,14 @@ import { Download, AlertTriangle } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { evaluationsApi } from '../api/evaluations'
 import Breadcrumbs from '../components/ui/Breadcrumbs'
+import { usePdfExport } from '../hooks/usePdfExport'
 
 export default function EvaluationDetailPage() {
   const { id } = useParams<{ id: string }>()
   const { user } = useAuth()
   const queryClient = useQueryClient()
   const navigate = useNavigate()
+  const { exportEvaluationPdf } = usePdfExport()
 
   const { data: evaluation, isLoading } = useQuery({
     queryKey: ['evaluation', id],
@@ -323,7 +325,7 @@ export default function EvaluationDetailPage() {
             <div className="flex items-center gap-2">
               <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-warning-50 text-warning-700">Soumise</span>
               <button
-                onClick={() => window.open(`/api/evaluations/${id}/pdf`, '_blank')}
+                onClick={() => exportEvaluationPdf(evaluation)}
                 className="inline-flex items-center gap-2 border border-slate-200 hover:bg-slate-50 px-3 py-1.5 rounded-md text-sm"
               >
                 <Download className="w-4 h-4" /> PDF
@@ -546,7 +548,7 @@ export default function EvaluationDetailPage() {
               Compte-rendu — {evaluation.evaluatee?.firstName} {evaluation.evaluatee?.lastName}
             </h1>
             <button
-              onClick={() => window.open(`/api/evaluations/${id}/pdf`, '_blank')}
+              onClick={() => exportEvaluationPdf(evaluation)}
               className="inline-flex items-center gap-2 border border-slate-200 hover:bg-slate-50 px-4 py-2 rounded-md text-sm font-medium"
             >
               <Download className="w-4 h-4" /> Télécharger PDF

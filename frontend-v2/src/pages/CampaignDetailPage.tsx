@@ -84,11 +84,18 @@ export default function CampaignDetailPage() {
     )
   }
 
-  // KPI placeholders (S5 — données réelles en S6)
-  const kpiTotal      = 0
-  const kpiInProgress = 0
-  const kpiSubmitted  = 0
-  const kpiValidated  = 0
+  const { data: analytics, isLoading: analyticsLoading } = useQuery({
+    queryKey: ['campaign-analytics', campaign?._id],
+    queryFn:  () => campaignsApi.getCampaignAnalytics(campaign!._id).then(r => r.data),
+    enabled:  !!campaign?._id && isAdminOrHr,
+    staleTime: 2 * 60 * 1000,
+  })
+
+  const statusDist    = (analytics as any)?.statusDistribution ?? {}
+  const kpiTotal      = (analytics as any)?.totalEvaluations ?? 0
+  const kpiInProgress = statusDist.in_progress ?? 0
+  const kpiSubmitted  = statusDist.submitted   ?? 0
+  const kpiValidated  = (analytics as any)?.completedEvaluations ?? statusDist.validated ?? 0
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-6">
@@ -214,22 +221,30 @@ export default function CampaignDetailPage() {
       {tab === 'overview' && (
         <div className="space-y-6">
           {/* KPI cards */}
-          <div className="grid grid-cols-12 gap-4">
-            {[
-              { label: 'Total',     value: kpiTotal },
-              { label: 'En cours',  value: kpiInProgress },
-              { label: 'Soumis',    value: kpiSubmitted },
-              { label: 'Validés',   value: kpiValidated },
-            ].map(kpi => (
-              <div
-                key={kpi.label}
-                className="col-span-6 sm:col-span-3 bg-white rounded-xl shadow-sm border border-slate-100 p-6 text-center"
-              >
-                <p className="text-3xl font-bold text-slate-900">{kpi.value}</p>
-                <p className="text-sm text-slate-500 mt-1">{kpi.label}</p>
-              </div>
-            ))}
-          </div>
+          {analyticsLoading ? (
+            <div className="grid grid-cols-12 gap-4">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="col-span-6 sm:col-span-3 h-24 bg-gray-200 animate-pulse rounded-xl" />
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-12 gap-4">
+              {[
+                { label: 'Total',     value: kpiTotal },
+                { label: 'En cours',  value: kpiInProgress },
+                { label: 'Soumis',    value: kpiSubmitted },
+                { label: 'Validés',   value: kpiValidated },
+              ].map(kpi => (
+                <div
+                  key={kpi.label}
+                  className="col-span-6 sm:col-span-3 bg-white rounded-xl shadow-sm border border-slate-100 p-6 text-center"
+                >
+                  <p className="text-3xl font-bold text-slate-900">{kpi.value}</p>
+                  <p className="text-sm text-slate-500 mt-1">{kpi.label}</p>
+                </div>
+              ))}
+            </div>
+          )}
 
           {/* Progression + répartition */}
           <div className="grid grid-cols-12 gap-4">

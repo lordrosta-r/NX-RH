@@ -1,6 +1,8 @@
 node_modules/
 dist/
 .env
+.env.local
+.env.production
 mongo/server/public/
 server/public/
 uploads/

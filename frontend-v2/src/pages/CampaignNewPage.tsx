@@ -571,7 +571,7 @@ export default function CampaignNewPage() {
             {form.enableN1Context && (
               <div className="flex justify-between text-sm">
                 <dt className="text-slate-500 font-medium">Contexte N-1</dt>
-                <dd className="text-slate-800">Activé{form.n1VisibleToEmployee ? ', visible par l'employé' : ''}</dd>
+                <dd className="text-slate-800">Activé{form.n1VisibleToEmployee ? ", visible par l'employé" : ''}</dd>
               </div>
             )}
             {form.extendedVisibility && (

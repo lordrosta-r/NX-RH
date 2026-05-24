@@ -357,8 +357,7 @@ async function handleUpdate(req, res, next) {
   }
 }
 
-// POST /:id/expire — Expiration manuelle (admin/hr)
-async function handleExpire(req, res, next) {
+// POST /:id/expire — Expiration manuelle (admin/hr)(req, res, next) {
   try {
     if (!ADMIN_ROLES.includes(req.user.role)) {
       return res.status(403).json({ error: 'Réservé aux admins et RH' })

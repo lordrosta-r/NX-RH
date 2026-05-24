@@ -64,6 +64,7 @@ function getNavItems(role: Role): NavItem[] {
         { label: "Journal d'audit", href: '/admin/audit' },
         { label: 'Paramètres RH', href: '/admin/settings', separator: true },
         { label: 'Demandes RH', href: '/hr/flags' },
+        { label: 'Mobilité interne', href: '/mobility' },
       ],
     },
   ]
@@ -91,6 +92,7 @@ function getNavItems(role: Role): NavItem[] {
         { label: 'Toutes les évaluations', href: '/evaluations' },
         { label: 'Historique', href: '/evaluations/history' },
         { label: 'Demandes RH', href: '/hr/flags', separator: true },
+        { label: 'Mobilité interne', href: '/mobility' },
       ],
     },
     pilotage,
@@ -130,6 +132,7 @@ function getNavItems(role: Role): NavItem[] {
   return [
     dashboard,
     { label: 'Mes Évaluations', href: '/evaluations' },
+    { label: 'Mobilité', href: '/mobility' },
     pilotageNoAnalytics,
   ]
 }

@@ -67,6 +67,14 @@ const answerSchema = new Schema({
   value:      { type: Schema.Types.Mixed },
 }, { _id: false })
 
+// Sous-schema d'une signature électronique
+const signatureSchema = new Schema({
+  userId:    { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  role:      { type: String, enum: ['evaluator', 'evaluatee', 'hr', 'manager'], required: true },
+  signedAt:  { type: Date, default: Date.now },
+  ipAddress: { type: String },
+}, { _id: false })
+
 const evaluationSchema = new Schema({
   campaignId:  { type: Schema.Types.ObjectId, ref: 'Campaign', required: true, index: true },
   formId:      { type: Schema.Types.ObjectId, ref: 'Form',     required: true, index: true },
@@ -112,10 +120,20 @@ const evaluationSchema = new Schema({
   evaluateeComment: { type: String, default: '', maxlength: 5000 },
   disagreementFlag: { type: Boolean, default: false },
 
-  // Horodatages des signatures
+  // Horodatages des signatures (legacy — conservés pour la rétrocompatibilité)
   signedByEvaluateeAt: { type: Date, default: null },
   signedByManagerAt:   { type: Date, default: null },
   signedByHrAt:        { type: Date, default: null },
+
+  // Journal détaillé des signatures électroniques (userId + rôle + IP + timestamp)
+  signatures: { type: [signatureSchema], default: [] },
+
+  // Statut de signature simplifié (évalué + évaluateur, hors RH)
+  signatureStatus: {
+    type: String,
+    enum: ['none', 'pending_evaluatee', 'pending_evaluator', 'complete'],
+    default: 'none',
+  },
 
   // Dernier rappel d'échéance envoyé (utilisé par le scheduler pour éviter les
   // doublons d'emails — on ne renvoie pas si un rappel a déjà été envoyé dans

@@ -670,11 +670,14 @@ describe('PATCH /bulk — input validation', () => {
 describe('PATCH /bulk — action: sign_hr', () => {
   const app = buildApp()
 
-  beforeEach(() => jest.clearAllMocks())
+  beforeEach(() => {
+    jest.clearAllMocks()
+    Evaluation.bulkWrite.mockResolvedValue({ modifiedCount: 1 })
+  })
 
   it('signs an evaluation in "reviewed" status → success=1', async () => {
     const ev = mockEvalDoc({ status: 'reviewed' })
-    Evaluation.find.mockResolvedValue([ev])
+    mockEvalFind([ev])
 
     const res = await request(app)
       .patch('/bulk')
@@ -684,14 +687,22 @@ describe('PATCH /bulk — action: sign_hr', () => {
     expect(res.status).toBe(200)
     expect(res.body.success).toBe(1)
     expect(res.body.skipped).toBe(0)
-    expect(ev.save).toHaveBeenCalled()
-    expect(ev.status).toBe('signed_hr')
-    expect(ev.signedByHrAt).toBeInstanceOf(Date)
+    expect(Evaluation.bulkWrite).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        expect.objectContaining({
+          updateOne: {
+            filter: { _id: EVAL_ID },
+            update: { $set: expect.objectContaining({ status: 'signed_hr', signedByHrAt: expect.any(Date) }) },
+          },
+        }),
+      ]),
+      { ordered: false }
+    )
   })
 
   it('signs an evaluation in "signed_evaluatee" status → success=1', async () => {
     const ev = mockEvalDoc({ status: 'signed_evaluatee' })
-    Evaluation.find.mockResolvedValue([ev])
+    mockEvalFind([ev])
 
     const res = await request(app)
       .patch('/bulk')
@@ -704,7 +715,7 @@ describe('PATCH /bulk — action: sign_hr', () => {
 
   it('signs an evaluation in "signed_manager" status → success=1', async () => {
     const ev = mockEvalDoc({ status: 'signed_manager' })
-    Evaluation.find.mockResolvedValue([ev])
+    mockEvalFind([ev])
 
     const res = await request(app)
       .patch('/bulk')
@@ -717,7 +728,7 @@ describe('PATCH /bulk — action: sign_hr', () => {
 
   it('skips evaluations in "assigned" status (not in HR_CAN_SIGN)', async () => {
     const ev = mockEvalDoc({ status: 'assigned' })
-    Evaluation.find.mockResolvedValue([ev])
+    mockEvalFind([ev])
 
     const res = await request(app)
       .patch('/bulk')
@@ -727,12 +738,12 @@ describe('PATCH /bulk — action: sign_hr', () => {
     expect(res.status).toBe(200)
     expect(res.body.success).toBe(0)
     expect(res.body.skipped).toBe(1)
-    expect(ev.save).not.toHaveBeenCalled()
+    expect(Evaluation.bulkWrite).not.toHaveBeenCalled()
   })
 
   it('skips evaluations in "in_progress" status', async () => {
     const ev = mockEvalDoc({ status: 'in_progress' })
-    Evaluation.find.mockResolvedValue([ev])
+    mockEvalFind([ev])
 
     const res = await request(app)
       .patch('/bulk')
@@ -746,7 +757,7 @@ describe('PATCH /bulk — action: sign_hr', () => {
 
   it('skips evaluations in "submitted" status', async () => {
     const ev = mockEvalDoc({ status: 'submitted' })
-    Evaluation.find.mockResolvedValue([ev])
+    mockEvalFind([ev])
 
     const res = await request(app)
       .patch('/bulk')
@@ -758,7 +769,7 @@ describe('PATCH /bulk — action: sign_hr', () => {
   })
 
   it('counts IDs not found in DB as skipped', async () => {
-    Evaluation.find.mockResolvedValue([]) // DB returns nothing
+    mockEvalFind([]) // DB returns nothing
 
     const res = await request(app)
       .patch('/bulk')
@@ -772,8 +783,8 @@ describe('PATCH /bulk — action: sign_hr', () => {
 
   it('mixes success and skipped correctly with multiple evaluations', async () => {
     const ev1 = mockEvalDoc({ _id: EVAL_ID,   status: 'reviewed' })
-    const ev2 = mockEvalDoc({ _id: EVAL_ID_2, status: 'assigned', save: jest.fn().mockResolvedValue(undefined) })
-    Evaluation.find.mockResolvedValue([ev1, ev2])
+    const ev2 = mockEvalDoc({ _id: EVAL_ID_2, status: 'assigned' })
+    mockEvalFind([ev1, ev2])
 
     const res = await request(app)
       .patch('/bulk')

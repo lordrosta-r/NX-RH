@@ -5,9 +5,18 @@ import {
   ClipboardList,
   LogOut,
   AlertCircle,
+  Inbox,
+  UserX,
+  PlayCircle,
+  PlusCircle,
+  UserPlus,
+  Upload,
+  SlidersHorizontal,
 } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '../contexts/AuthContext'
 import { useDashboardAdmin } from '../hooks/useDashboard'
+import { adminApi } from '../api/admin'
 import type { Campaign } from '../types'
 
 // ─── KPI Card ────────────────────────────────────────────────────────────────
@@ -125,6 +134,11 @@ export default function DashboardAdminPage() {
   const { user } = useAuth()
   const { campaigns, evaluations, users } = useDashboardAdmin()
 
+  const { data: pendingFlagsCount } = useQuery({
+    queryKey: ['hr-flags-pending-count'],
+    queryFn: () => adminApi.getFlags({ status: 'pending' }).then(r => (r.data as { total?: number })?.total ?? 0),
+  })
+
   const isLoading = campaigns.isLoading || evaluations.isLoading || users.isLoading
   const isError = campaigns.isError || evaluations.isError || users.isError
 
@@ -169,6 +183,79 @@ export default function DashboardAdminPage() {
 
   return (
     <div className="bg-slate-50 min-h-full">
+      {/* Actions requises */}
+      <div className="bg-white rounded-xl shadow-sm border border-orange-100 p-6 mb-6">
+        <div className="flex items-center gap-2 mb-4">
+          <AlertCircle className="w-5 h-5 text-orange-500" />
+          <h2 className="text-lg font-semibold text-slate-900">Actions requises</h2>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <Link
+            to="/hr/flags?status=pending"
+            className="flex items-center justify-between p-4 bg-orange-50 rounded-xl border border-orange-100 hover:bg-orange-100 transition-colors group"
+          >
+            <div className="flex items-center gap-3">
+              <Inbox className="w-5 h-5 text-orange-500" />
+              <span className="text-sm font-medium text-slate-800">Demandes RH en attente</span>
+            </div>
+            {pendingFlagsCount != null && pendingFlagsCount > 0 && (
+              <span className="inline-flex items-center justify-center min-w-[1.5rem] h-6 px-2 bg-orange-500 text-white text-xs font-bold rounded-full">
+                {pendingFlagsCount}
+              </span>
+            )}
+          </Link>
+          <Link
+            to="/users"
+            className="flex items-center gap-3 p-4 bg-slate-50 rounded-xl border border-slate-100 hover:bg-slate-100 transition-colors"
+          >
+            <UserX className="w-5 h-5 text-slate-500" />
+            <span className="text-sm font-medium text-slate-800">Utilisateurs sans manager</span>
+          </Link>
+          <Link
+            to="/campaigns?status=active"
+            className="flex items-center gap-3 p-4 bg-blue-50 rounded-xl border border-blue-100 hover:bg-blue-100 transition-colors"
+          >
+            <PlayCircle className="w-5 h-5 text-blue-500" />
+            <span className="text-sm font-medium text-slate-800">Campagnes actives</span>
+          </Link>
+        </div>
+      </div>
+
+      {/* Raccourcis */}
+      <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6 mb-6">
+        <h2 className="text-lg font-semibold text-slate-900 mb-4">Raccourcis</h2>
+        <div className="flex flex-wrap gap-3">
+          <Link
+            to="/campaigns/new"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-primary-500 text-white text-sm font-medium rounded-lg hover:bg-primary-600 transition-colors"
+          >
+            <PlusCircle className="w-4 h-4" />
+            Nouvelle campagne
+          </Link>
+          <Link
+            to="/users/new"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-colors"
+          >
+            <UserPlus className="w-4 h-4" />
+            Ajouter un utilisateur
+          </Link>
+          <Link
+            to="/admin/users/import"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-colors"
+          >
+            <Upload className="w-4 h-4" />
+            Importer CSV
+          </Link>
+          <Link
+            to="/admin/settings"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-colors"
+          >
+            <SlidersHorizontal className="w-4 h-4" />
+            Paramètres RH
+          </Link>
+        </div>
+      </div>
+
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-2xl font-bold text-slate-900">

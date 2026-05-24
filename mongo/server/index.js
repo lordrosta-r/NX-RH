@@ -42,6 +42,12 @@ const hrFlagsRoutes     = require('./routes/hr/flags')
 const mailTemplateRoutes = require('./routes/admin/mailTemplates')
 const notificationsRouter = require('./routes/notifications')
 const dashboardRouter     = require('./routes/dashboard')
+const hrSettingsRoutes    = require('./routes/hr/settings')
+const groupsRoutes        = require('./routes/admin/groups')
+const adminStatusRoutes   = require('./routes/admin/status')
+const adminEnvCheckRoutes = require('./routes/admin/envCheck')
+const userBulkRoutes      = require('./routes/users/bulk')
+const searchRoutes        = require('./routes/search')
 
 // ─── App setup ───────────────────────────────────────────────────────────────
 
@@ -145,8 +151,9 @@ app.use('/api/', apiLimiter)
 
 app.use('/api/auth',        authRoutes)
 
-// ⚠️ /api/users/import AVANT /api/users (évite capture par la route paramétrée)
+// ⚠️ /api/users/import et /api/users/bulk AVANT /api/users (évite capture par la route paramétrée)
 app.use('/api/users/import', mutationLimiter, authGuard(['admin', 'hr']), userImportRoutes)
+app.use('/api/users/bulk',   mutationLimiter, authGuard(['admin', 'hr']), userBulkRoutes)
 app.use('/api/users',       mutationLimiter, authenticated, userRoutes)
 app.use('/api/campaigns',   mutationLimiter, authenticated, campaignRoutes)
 // ⚠️ /api/forms/template et /api/forms/import AVANT /api/forms (routes spécifiques d'abord)
@@ -164,13 +171,19 @@ app.use('/api/admin/ldap',  mutationLimiter, authGuard(['admin']), ldapRoutes)
 //    pour éviter que authGuard(['admin']) bloque les utilisateurs HR.
 app.use('/api/admin/audit',          apiLimiter,      authGuard(['admin', 'hr']), auditRoutes)
 app.use('/api/admin/mail-templates', mutationLimiter, authGuard(['admin', 'hr']), mailTemplateRoutes)
-app.use('/api/admin',                mutationLimiter, authGuard(['admin']),        adminRoutes)
+app.use('/api/admin/groups',     mutationLimiter, authGuard(['admin', 'hr']),  groupsRoutes)
+app.use('/api/admin/status',     apiLimiter,      authGuard(['admin']),          adminStatusRoutes)
+app.use('/api/admin/env-check',  apiLimiter,      authGuard(['admin']),          adminEnvCheckRoutes)
+app.use('/api/admin',            mutationLimiter, authGuard(['admin']),          adminRoutes)
 app.use('/api/offboarding', mutationLimiter, authenticated, offboardingRoutes)
 app.use('/api/hr/notifications', mutationLimiter, authGuard(['admin', 'hr']), hrNotifRoutes)
-app.use('/api/hr/flags',         mutationLimiter, authGuard(['admin', 'hr']), hrFlagsRoutes)
+// hr/flags : authGuard inline par route (POST accessible aux employees/managers)
+app.use('/api/hr/flags',         mutationLimiter, hrFlagsRoutes)
+app.use('/api/hr/settings',      apiLimiter,      authGuard(['admin', 'hr']), hrSettingsRoutes)
 app.use('/api/org',              mutationLimiter, authGuard(['admin', 'hr', 'manager', 'director']), orgRoutes)
 app.use('/api/notifications',    apiLimiter, authenticated, notificationsRouter)
 app.use('/api/dashboard',        apiLimiter, authenticated, dashboardRouter)
+app.use('/api/search',           apiLimiter, authGuard(['admin', 'hr', 'manager', 'employee']), searchRoutes)
 
 // ─── 404 Fallback ────────────────────────────────────────────────────────────
 

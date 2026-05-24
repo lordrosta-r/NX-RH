@@ -1,11 +1,13 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { BarChart2, Search, Plus, MoreVertical } from 'lucide-react'
+import { BarChart2, Search, Plus, MoreVertical, Download } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { campaignsApi } from '../api/campaigns'
 import { toast } from '../hooks/useToast'
 import type { Campaign } from '../types'
+import PageGuide from '../components/shared/PageGuide'
+import { exportToCsv } from '../utils/export'
 
 const STATUS_TABS = ['all', 'draft', 'active', 'closed', 'archived'] as const
 
@@ -172,8 +174,28 @@ export default function CampaignsPage() {
   const campaigns = data?.data ?? []
   const isEmpty = !isLoading && campaigns.length === 0
 
+  const handleExport = () => {
+    exportToCsv('campagnes.csv', (campaigns ?? []).map(c => ({
+      nom: c.name,
+      statut: c.status,
+      dateDebut: c.startDate,
+      dateFin: c.endDate,
+    })))
+  }
+
   return (
     <div className="space-y-6">
+      <PageGuide
+        id="campaigns"
+        title="Comment créer une campagne d'évaluation ?"
+        color="blue"
+        steps={[
+          "Créez d'abord vos formulaires d'évaluation dans la section Formulaires",
+          "Créez une campagne, définissez les dates et associez vos formulaires",
+          "Définissez le public cible (tous les utilisateurs, département, secteur ou groupe)",
+          "Activez la campagne — les évaluations sont générées automatiquement",
+        ]}
+      />
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -184,15 +206,20 @@ export default function CampaignsPage() {
           </nav>
           <h1 className="text-2xl font-bold text-slate-900">Campagnes</h1>
         </div>
-        {canManage && (
-          <Link
-            to="/campaigns/new"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            Nouvelle campagne
-          </Link>
-        )}
+        <div className="flex items-center gap-2">
+          <button onClick={handleExport} className="flex items-center gap-2 px-4 py-2 border border-slate-200 text-slate-700 rounded-md text-sm hover:bg-slate-50">
+            <Download size={16} /> Exporter
+          </button>
+          {canManage && (
+            <Link
+              to="/campaigns/new"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              Nouvelle campagne
+            </Link>
+          )}
+        </div>
       </div>
 
       {/* Card with filters + content */}

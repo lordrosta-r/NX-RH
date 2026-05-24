@@ -48,9 +48,10 @@ export interface Campaign {
   enableN1Context?: boolean
   n1VisibleToEmployee?: boolean
   previousCampaignId?: string
-  targetScope?: 'all' | 'department' | 'sector' | 'users'
+  targetScope?: 'all' | 'department' | 'sector' | 'users' | 'group'
   targetSectorIds?: string[]
   targetUserIds?: string[]
+  targetGroupIds?: string[]
   formIds?: string[]
   completionPct?: number
   stats?: {
@@ -382,4 +383,15 @@ export interface ImportResult {
   errors: number
   skipped?: number
   details?: Array<{ row: number; error: string }>
+}
+
+// ─── Groupes utilisateurs ──────────────────────────────────────────────────────
+export interface UserGroup {
+  _id: string
+  name: string
+  description?: string
+  members: Pick<User, '_id' | 'firstName' | 'lastName' | 'email' | 'role'>[]
+  createdBy?: string
+  createdAt: string
+  updatedAt: string
 }

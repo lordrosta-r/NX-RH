@@ -1,21 +1,37 @@
-import { useState } from 'react'
-import { useQuery, useMutation } from '@tanstack/react-query'
+import { useState, useEffect } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Bell, X } from 'lucide-react'
 import { adminApi } from '../api/admin'
+
+type CampaignSettings = {
+  allow_self_evaluation: boolean
+  require_manager_signature: boolean
+  send_completion_email: boolean
+  auto_close_days: number
+}
 
 export default function HrSettingsPage() {
   const [showConfirm, setShowConfirm] = useState(false)
   const [campaignId, setCampaignId] = useState('')
   const [targetStatuses, setTargetStatuses] = useState<string[]>(['assigned', 'in_progress'])
   const [remindResult, setRemindResult] = useState<string | null>(null)
+  const [autoCloseDays, setAutoCloseDays] = useState<number>(0)
+  const qc = useQueryClient()
 
-  const { data: settings, isLoading } = useQuery({
-    queryKey: ['hr-settings'],
-    queryFn: () => adminApi.getHrSettings().then(r => r.data),
+  const { data: campaignSettings, isLoading: settingsLoading } = useQuery<CampaignSettings>({
+    queryKey: ['campaign-settings'],
+    queryFn: () => adminApi.getHrSettings().then(r => r.data as CampaignSettings),
   })
 
-  const updateSettingsMut = useMutation({
-    mutationFn: (data: unknown) => adminApi.updateHrSettings(data),
+  useEffect(() => {
+    if (campaignSettings?.auto_close_days != null) {
+      setAutoCloseDays(campaignSettings.auto_close_days)
+    }
+  }, [campaignSettings?.auto_close_days])
+
+  const updateSettings = useMutation({
+    mutationFn: (data: Partial<CampaignSettings>) => adminApi.updateHrSettings(data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['campaign-settings'] }),
   })
 
   const bulkRemindMut = useMutation({
@@ -84,24 +100,52 @@ export default function HrSettingsPage() {
         {/* Card feature flags */}
         <div className="bg-white rounded-2xl shadow p-6">
           <h2 className="text-lg font-bold text-slate-900 mb-4">Paramètres campagnes</h2>
-          {isLoading ? (
-            <div className="space-y-3">{Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-8 bg-slate-100 rounded-xl animate-pulse" />)}</div>
+          {settingsLoading ? (
+            <div className="space-y-3">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-8 bg-slate-100 rounded-xl animate-pulse" />)}</div>
           ) : (
             <div className="space-y-3">
-              {settings && typeof settings === 'object' && Object.entries(settings as Record<string, unknown>)
-                .filter(([, v]) => typeof v === 'boolean')
-                .map(([k, v]) => (
-                  <label key={k} className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 cursor-pointer">
-                    <span className="text-sm font-medium text-slate-700">{k}</span>
+              {(
+                [
+                  { key: 'allow_self_evaluation',      label: 'Auto-évaluation autorisée' },
+                  { key: 'require_manager_signature',  label: 'Signature manager obligatoire' },
+                  { key: 'send_completion_email',      label: 'Email de clôture automatique' },
+                ] as const
+              ).map(({ key, label }) => {
+                const val = campaignSettings?.[key] ?? false
+                return (
+                  <div key={key} className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50">
+                    <span className="text-sm font-medium text-slate-700">{label}</span>
                     <div
-                      className={`w-11 h-6 rounded-full transition-colors cursor-pointer ${v ? 'bg-primary-500' : 'bg-slate-200'}`}
-                      onClick={() => updateSettingsMut.mutate({ ...settings as Record<string, unknown>, [k]: !v })}
+                      className={`w-11 h-6 rounded-full transition-colors cursor-pointer flex items-center px-0.5 ${val ? 'bg-teal-500' : 'bg-slate-200'}`}
+                      onClick={() => updateSettings.mutate({ [key]: !val })}
                     >
-                      <div className={`w-5 h-5 bg-white rounded-full shadow mt-0.5 transition-transform ${v ? 'translate-x-5.5' : 'translate-x-0.5'}`} />
+                      <div className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${val ? 'translate-x-5' : 'translate-x-0'}`} />
                     </div>
-                  </label>
-                ))
-              }
+                  </div>
+                )
+              })}
+
+              <div className="p-3 rounded-xl hover:bg-slate-50">
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Clôture auto après N jours (0 = désactivé)
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    min={0}
+                    value={autoCloseDays}
+                    onChange={e => setAutoCloseDays(Number(e.target.value))}
+                    className="w-24 px-3 py-1.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
+                  />
+                  <button
+                    onClick={() => updateSettings.mutate({ auto_close_days: autoCloseDays })}
+                    disabled={updateSettings.isPending}
+                    className="px-3 py-1.5 bg-teal-500 text-white rounded-lg text-sm hover:bg-teal-600 disabled:opacity-50 transition"
+                  >
+                    Sauvegarder
+                  </button>
+                </div>
+              </div>
             </div>
           )}
         </div>

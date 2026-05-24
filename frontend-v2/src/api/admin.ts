@@ -63,4 +63,8 @@ export const adminApi = {
   getHrSettings: () => client.get('/api/hr/settings'),
   updateHrSettings: (data: unknown) => client.put('/api/hr/settings', data),
   bulkRemind: (data: { campaignId?: string; targetStatuses?: string[] }) => client.post('/api/hr/notifications/bulk-remind', data),
+  // System health
+  getSystemStatus: () => client.get('/api/admin/status'),
+  getEnvCheck: () => client.get('/api/admin/env-check'),
+  getUsers: (params?: Record<string, unknown>) => client.get('/api/admin/users', { params }),
 }

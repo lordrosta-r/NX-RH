@@ -7,6 +7,7 @@ import { evaluationsApi } from '../api/evaluations'
 import { usersApi } from '../api/users'
 import { toast } from '../hooks/useToast'
 import type { Evaluation } from '../types'
+import PageGuide from '../components/shared/PageGuide'
 
 const EVAL_STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   assigned:         { label: 'Assignée',         color: 'bg-slate-100 text-slate-600' },
@@ -151,6 +152,16 @@ export default function EvaluationsPage() {
 
   return (
     <div>
+      <PageGuide
+        id="evaluations"
+        title="Les évaluations"
+        color="teal"
+        steps={[
+          "Les évaluations sont générées automatiquement à l'activation d'une campagne",
+          "Chaque collaborateur reçoit une notification par email pour compléter son évaluation",
+          "Vous pouvez suivre l'avancement ici et envoyer des rappels groupés",
+        ]}
+      />
       {/* Header */}
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <h1 className="text-2xl font-bold text-slate-900">

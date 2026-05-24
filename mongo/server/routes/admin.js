@@ -19,12 +19,59 @@
 
 const express    = require('express')
 const nodemailer = require('nodemailer')
+const mongoose   = require('mongoose')
 const { sendMail } = require('../services/mailer')
 const Config = require('../models/Config')
 
 const router = express.Router()
 
-// POST /api/admin/email/test — Envoie un email de test
+// GET /api/admin/status — Vérification de l'état du système
+router.get('/status', async (req, res, next) => {
+  try {
+    // MongoDB
+    const mongoOk = mongoose.connection.readyState === 1
+
+    // SMTP — lire config depuis Config ou process.env, vérifier avec timeout 3s
+    let smtpOk = false
+    let smtpError
+    try {
+      const cfgEntries = await Config.find({
+        key: { $in: ['smtp.host', 'smtp.port', 'smtp.user', 'smtp.password', 'smtp.secure'] }
+      }).lean()
+      const cfg = Object.fromEntries(cfgEntries.map(c => [c.key, c.value]))
+      const host     = cfg['smtp.host']     || process.env.MAIL_HOST     || ''
+      const port     = parseInt(cfg['smtp.port'] || process.env.MAIL_PORT || '587', 10)
+      const user     = cfg['smtp.user']     || process.env.MAIL_USER     || ''
+      const password = cfg['smtp.password'] || process.env.MAIL_PASSWORD || ''
+      const secure   = cfg['smtp.secure'] != null ? Boolean(cfg['smtp.secure']) : (process.env.MAIL_SECURE === 'true' || port === 465)
+
+      if (host) {
+        const transport = nodemailer.createTransport({ host, port, secure, auth: user ? { user, pass: password } : undefined })
+        await Promise.race([
+          transport.verify(),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000)),
+        ])
+        smtpOk = true
+      } else {
+        smtpError = 'SMTP non configuré'
+      }
+    } catch (err) {
+      smtpError = err.message
+    }
+
+    // LDAP — vérifier si la variable d'environnement est définie
+    const ldapConfigured = !!(process.env.LDAP_URL && process.env.LDAP_URL.trim())
+
+    res.json({
+      mongo:  { ok: mongoOk },
+      smtp:   smtpOk ? { ok: true } : { ok: false, error: smtpError },
+      ldap:   { configured: ldapConfigured },
+      uptime: process.uptime(),
+    })
+  } catch (err) {
+    next(err)
+  }
+})
 router.post('/email/test', async (req, res, next) => {
   const { to } = req.body
   if (!to || typeof to !== 'string' || !to.includes('@')) {

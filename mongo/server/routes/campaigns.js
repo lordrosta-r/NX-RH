@@ -32,6 +32,14 @@ async function generateEvaluationsForCampaign(campaign) {
     userFilter.sectorId = { $in: ids }
   } else if (scopeType === 'users' && ids?.length) {
     userFilter._id = { $in: ids }
+  } else if (scopeType === 'group') {
+    const UserGroup = require('../models/UserGroup')
+    const group = await UserGroup.findById(ids[0]).populate('members', '_id')
+    if (group) {
+      userFilter._id = { $in: group.members.map(m => m._id) }
+    } else {
+      userFilter._id = { $in: [] }
+    }
   }
   // 'all' → pas de filtre supplémentaire
 

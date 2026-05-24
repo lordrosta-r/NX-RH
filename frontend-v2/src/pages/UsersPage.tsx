@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
-import { Search, UserPlus, MoreVertical, Users, Plus, ChevronLeft, ChevronRight, X, AlertTriangle } from 'lucide-react'
+import { Search, UserPlus, MoreVertical, Users, Plus, ChevronLeft, ChevronRight, X, AlertTriangle, Upload } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { usersApi } from '../api/users'
 import { toast } from '../hooks/useToast'
+import { exportToCsv } from '../utils/export'
 import type { User } from '../types'
 
 const PER_PAGE = 20
@@ -130,6 +131,7 @@ function SkeletonRows() {
     <>
       {Array.from({ length: 5 }).map((_, i) => (
         <tr key={i} className="border-b border-slate-50">
+          <td className="px-4 py-4"><div className="w-4 h-4 bg-slate-200 rounded animate-pulse" /></td>
           <td className="px-6 py-4">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-full bg-slate-200 animate-pulse" />
@@ -160,6 +162,7 @@ export default function UsersPage() {
 
   const [anonymizeModal, setAnonymizeModal] = useState<User | null>(null)
   const [confirmText, setConfirmText] = useState('')
+  const [selected, setSelected] = useState<Set<string>>(new Set())
 
   // Debounce search
   useEffect(() => {
@@ -213,6 +216,48 @@ export default function UsersPage() {
     if (anonymizeModal) anonymizeMutation.mutate(anonymizeModal.id)
   }
 
+  function handleBulkDeactivate() {
+    usersApi.bulkAction({ action: 'deactivate', userIds: [...selected] })
+      .then(() => {
+        queryClient.invalidateQueries({ queryKey: ['users'] })
+        setSelected(new Set())
+        toast.success('Utilisateurs désactivés', `${selected.size} utilisateur(s) désactivé(s).`)
+      })
+      .catch(() => toast.error('Erreur', 'Impossible de désactiver les utilisateurs.'))
+  }
+
+  function handleBulkExport() {
+    const allUsers = data?.data ?? []
+    const selectedUsers = allUsers.filter(u => selected.has(u.id ?? ''))
+    exportToCsv('users-export.csv', selectedUsers.map(u => ({
+      id: u.id,
+      firstName: u.firstName,
+      lastName: u.lastName,
+      email: u.email,
+      role: u.role,
+      department: u.department ?? '',
+      isActive: u.isActive,
+    })))
+  }
+
+  function toggleSelectAll() {
+    const allIds = (data?.data ?? []).map(u => u.id ?? '')
+    if (allIds.every(id => selected.has(id))) {
+      setSelected(new Set())
+    } else {
+      setSelected(new Set(allIds))
+    }
+  }
+
+  function toggleSelect(id: string) {
+    setSelected(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
   const hasFilters = !!(search || roleFilter || deptFilter || statusFilter)
 
   function resetFilters() {
@@ -248,13 +293,27 @@ export default function UsersPage() {
           )}
         </div>
         {(user?.role === 'admin' || user?.role === 'hr') && (
-          <Link
-            to="/users/new"
-            className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-          >
-            <UserPlus className="w-4 h-4" />
-            Nouvel utilisateur
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              to="/users/groups"
+              className="flex items-center gap-2 px-4 py-2 border border-slate-200 text-slate-700 rounded-md text-sm hover:bg-slate-50 transition"
+            >
+              <Users size={16} /> Groupes
+            </Link>
+            <Link
+              to="/admin/users/import"
+              className="flex items-center gap-2 px-4 py-2 border border-slate-200 text-slate-700 rounded-md text-sm hover:bg-slate-50 transition"
+            >
+              <Upload size={16} /> Importer CSV
+            </Link>
+            <Link
+              to="/users/new"
+              className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+            >
+              <UserPlus className="w-4 h-4" />
+              Nouvel utilisateur
+            </Link>
+          </div>
         )}
       </div>
 
@@ -334,6 +393,15 @@ export default function UsersPage() {
           <table className="w-full">
             <thead>
               <tr className="bg-slate-50">
+                <th className="px-4 py-3 w-10">
+                  <input
+                    type="checkbox"
+                    checked={(data?.data ?? []).length > 0 && (data?.data ?? []).every(u => selected.has(u.id ?? ''))}
+                    onChange={toggleSelectAll}
+                    className="rounded border-slate-300 text-primary-500 focus:ring-primary-500"
+                    aria-label="Tout sélectionner"
+                  />
+                </th>
                 <th className="text-left text-xs font-medium text-slate-500 uppercase tracking-wider px-6 py-3">Nom</th>
                 <th className="text-left text-xs font-medium text-slate-500 uppercase tracking-wider px-6 py-3">Rôle</th>
                 <th className="text-left text-xs font-medium text-slate-500 uppercase tracking-wider px-6 py-3">Département</th>
@@ -347,7 +415,7 @@ export default function UsersPage() {
                 <SkeletonRows />
               ) : data?.data?.length === 0 ? (
                 <tr>
-                  <td colSpan={6}>
+                  <td colSpan={7}>
                     <div className="text-center py-16">
                       <Users className="w-12 h-12 text-slate-300 mx-auto mb-4" />
                       <p className="text-slate-500 font-medium">Aucun collaborateur trouvé</p>
@@ -368,7 +436,15 @@ export default function UsersPage() {
                     key={u.id ?? u.email}
                     className="hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0"
                   >
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-4">
+                      <input
+                        type="checkbox"
+                        checked={selected.has(u.id ?? '')}
+                        onChange={() => toggleSelect(u.id ?? '')}
+                        className="rounded border-slate-300 text-primary-500 focus:ring-primary-500"
+                        aria-label={`Sélectionner ${u.firstName} ${u.lastName}`}
+                      />
+                    </td>
                       <Link to={`/users/${u.id}`} className="flex items-center gap-3 group">
                         <Avatar user={u} />
                         <div>
@@ -446,6 +522,16 @@ export default function UsersPage() {
           </div>
         )}
       </div>
+
+      {/* Bulk Action Bar */}
+      {selected.size > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white rounded-xl px-6 py-3 flex items-center gap-4 shadow-xl z-50">
+          <span className="text-sm">{selected.size} sélectionné(s)</span>
+          <button onClick={handleBulkDeactivate} className="text-sm bg-red-500 hover:bg-red-600 px-3 py-1.5 rounded-md">Désactiver</button>
+          <button onClick={handleBulkExport} className="text-sm bg-blue-500 hover:bg-blue-600 px-3 py-1.5 rounded-md">Exporter CSV</button>
+          <button onClick={() => setSelected(new Set())} className="text-slate-400 hover:text-white ml-2"><X size={16} /></button>
+        </div>
+      )}
 
       {/* Anonymize Modal */}
       {anonymizeModal && (

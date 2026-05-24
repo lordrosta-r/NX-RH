@@ -58,7 +58,7 @@ export default function HrFlagsPage() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-slate-900 mb-6">Signaux RH</h1>
+      <h1 className="text-3xl font-bold text-slate-900 mb-6">Demandes RH</h1>
 
       {/* Filtres */}
       <div className="bg-white rounded-2xl shadow p-4 mb-6 flex flex-wrap gap-3">

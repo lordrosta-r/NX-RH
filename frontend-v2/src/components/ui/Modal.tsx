@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react'
 import { X } from 'lucide-react'
 import clsx from 'clsx'
+import { useFocusTrap } from '../../hooks/useFocusTrap'
 
 export interface ModalProps {
   isOpen: boolean
@@ -21,6 +22,8 @@ const SIZE_CLASSES = {
 export default function Modal({ isOpen, onClose, title, size = 'md', children, footer }: ModalProps) {
   const dialogRef = useRef<HTMLDivElement>(null)
 
+  useFocusTrap(dialogRef, isOpen)
+
   useEffect(() => {
     if (!isOpen) return
 
@@ -28,32 +31,9 @@ export default function Modal({ isOpen, onClose, title, size = 'md', children, f
 
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === 'Escape') onClose()
-
-      if (e.key === 'Tab' && dialogRef.current) {
-        const focusable = dialogRef.current.querySelectorAll<HTMLElement>(
-          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-        )
-        const first = focusable[0]
-        const last = focusable[focusable.length - 1]
-        if (e.shiftKey) {
-          if (document.activeElement === first) {
-            e.preventDefault()
-            last?.focus()
-          }
-        } else {
-          if (document.activeElement === last) {
-            e.preventDefault()
-            first?.focus()
-          }
-        }
-      }
     }
 
     document.addEventListener('keydown', handleKeyDown)
-    const firstFocusable = dialogRef.current?.querySelector<HTMLElement>(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-    )
-    firstFocusable?.focus()
 
     return () => {
       document.body.style.overflow = ''

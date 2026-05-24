@@ -758,7 +758,7 @@ describe('GET /api/forms — search filter', () => {
 
   beforeEach(() => jest.clearAllMocks())
 
-  it('applies ?search filter as case-insensitive regex on title', async () => {
+  it('applies ?search filter as $text search on title', async () => {
     Form.find           = jest.fn(() => makeChain([]))
     Form.countDocuments = jest.fn().mockResolvedValue(0)
     const res = await request(app)
@@ -766,7 +766,7 @@ describe('GET /api/forms — search filter', () => {
       .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(res.status).toBe(200)
     const [filter] = Form.find.mock.calls[0]
-    expect(filter.title).toEqual({ $regex: 'annuel', $options: 'i' })
+    expect(filter.$text).toEqual({ $search: 'annuel' })
   })
 
   it('returns results when ?search matches form titles', async () => {

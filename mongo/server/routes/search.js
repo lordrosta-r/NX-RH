@@ -18,20 +18,18 @@ router.get('/', async (req, res, next) => {
       return res.status(400).json({ error: 'Le paramètre q doit contenir au moins 2 caractères' })
     }
 
-    // Échapper les caractères spéciaux regex pour éviter ReDoS
-    const escaped = q.trim().slice(0, 100).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-    const regex = { $regex: escaped, $options: 'i' }
+    const textFilter = { $text: { $search: q.trim().slice(0, 100) } }
 
     const [users, campaigns, forms] = await Promise.all([
-      User.find({ $or: [{ firstName: regex }, { lastName: regex }, { email: regex }] })
+      User.find(textFilter)
         .limit(5)
         .select('firstName lastName email role')
         .lean(),
-      Campaign.find({ $or: [{ name: regex }, { description: regex }] })
+      Campaign.find(textFilter)
         .limit(5)
         .select('name status startDate')
         .lean(),
-      Form.find({ $or: [{ title: regex }, { description: regex }] })
+      Form.find(textFilter)
         .limit(5)
         .select('title formType')
         .lean(),

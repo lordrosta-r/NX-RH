@@ -3,6 +3,8 @@
 // routes/resources.js — CRUD ressources documentaires (admin/hr only pour écriture)
 // =============================================================================
 
+const path     = require('path')
+const fs       = require('fs')
 const router   = require('express').Router()
 const mongoose = require('mongoose')
 const { Resource }    = require('../models')
@@ -69,6 +71,28 @@ router.patch('/:id', async (req, res, next) => {
     Object.assign(resource, updates)
     await resource.save()
     res.json(resource)
+  } catch (err) { next(err) }
+})
+
+// GET /api/resources/:id/download — Télécharger le fichier associé à une ressource
+router.get('/:id/download', async (req, res, next) => {
+  try {
+    if (!mongoose.isValidObjectId(req.params.id)) return res.status(400).json({ error: 'ID invalide' })
+    const resource = await Resource.findById(req.params.id).lean()
+    if (!resource) return res.status(404).json({ error: 'Ressource introuvable' })
+    if (!ADMIN_ROLES.includes(req.user.role)) {
+      if (resource.status !== 'published' || !resource.visibleTo.includes(req.user.role)) {
+        return res.status(403).json({ error: 'Accès refusé' })
+      }
+    }
+    const uploadsDir = process.env.UPLOADS_DIR || path.join(__dirname, '..', 'uploads')
+    const filePath   = path.resolve(uploadsDir, resource.filename)
+    // Prevent directory traversal
+    if (!filePath.startsWith(path.resolve(uploadsDir))) {
+      return res.status(400).json({ error: 'Chemin invalide' })
+    }
+    if (!fs.existsSync(filePath)) return res.status(404).json({ error: 'Fichier introuvable sur le serveur' })
+    res.download(filePath, resource.filename)
   } catch (err) { next(err) }
 })
 

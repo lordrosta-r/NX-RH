@@ -3,6 +3,7 @@
 const mongoose = require('mongoose')
 const router = require('express').Router()
 const { User, Evaluation, AuditLog } = require('../models')
+const { OffboardingRequest } = require('../models/OffboardingRequest')
 const { ROLES, ADMIN_ROLES } = require('../config/constants')
 const validate = require('../middleware/validate')
 const { createUser: createUserValidator, updateUser: updateUserValidator } = require('../validators/userValidators')
@@ -331,6 +332,23 @@ router.delete('/:id/gdpr-anonymize', async (req, res, next) => {
   } catch (err) {
     next(err)
   }
+})
+
+// GET /api/users/:id/offboarding-record — Retourne la demande d'offboarding liée à l'utilisateur (admin/hr)
+router.get('/:id/offboarding-record', async (req, res, next) => {
+  try {
+    if (!ADMIN_ROLES.includes(req.user.role)) {
+      return res.status(403).json({ error: 'Permissions insuffisantes' })
+    }
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({ error: 'ID invalide' })
+    }
+    const record = await OffboardingRequest.findOne({ userId: req.params.id })
+      .sort({ createdAt: -1 })
+      .lean()
+    if (!record) return res.status(404).json({ error: "Aucune demande d'offboarding trouvée" })
+    res.json({ ...record, id: record._id })
+  } catch (err) { next(err) }
 })
 
 module.exports = router

@@ -1,24 +1,13 @@
 ﻿'use strict'
 
 const mongoose = require('mongoose')
-const bcrypt = require('bcrypt')
 const router = require('express').Router()
 const { User, Evaluation, AuditLog } = require('../models')
-const { ROLES, ADMIN_ROLES, NOTIF_KEYS_BY_ROLE } = require('../config/constants')
+const { ROLES, ADMIN_ROLES } = require('../config/constants')
 const validate = require('../middleware/validate')
-const { createUser, updateUser } = require('../validators/userValidators')
-
-function allowedNotifKeysFor(role) {
-  return NOTIF_KEYS_BY_ROLE[role] || NOTIF_KEYS_BY_ROLE.employee
-}
-function filterNotifPrefsByRole(prefs, role) {
-  const allowed = allowedNotifKeysFor(role)
-  const out = {}
-  for (const k of allowed) {
-    if (prefs && Object.prototype.hasOwnProperty.call(prefs, k)) out[k] = !!prefs[k]
-  }
-  return out
-}
+const { createUser: createUserValidator, updateUser: updateUserValidator } = require('../validators/userValidators')
+const userService = require('../services/userService')
+const { filterNotifPrefsByRole } = require('../services/authService')
 
 // GET /api/users — Liste les utilisateurs (scope par rôle)
 router.get('/', async (req, res, next) => {
@@ -89,34 +78,7 @@ router.get('/me', async (req, res, next) => {
 // GET /api/users/:id — Retourne un utilisateur par son ID
 router.get('/:id', async (req, res, next) => {
   try {
-    if (!mongoose.isValidObjectId(req.params.id)) {
-      return res.status(400).json({ error: 'ID invalide' })
-    }
-
-    const user = await User.findById(req.params.id)
-      .select('-passwordHash -ldapDn')
-      .lean()
-
-    if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' })
-
-    // Scope RBAC : manager voit lui-même ou ses subordonnés directs
-    if (req.user.role === 'manager') {
-      const isSubordinate = user.managerId?.toString() === req.user.id
-      const isSelf = req.user.id === req.params.id
-      if (!isSubordinate && !isSelf) {
-        return res.status(403).json({ error: 'Permissions insuffisantes' })
-      }
-    }
-    // director, admin, hr : accès complet
-    // employee : seulement lui-même ou son manager direct (pour afficher le nom dans les paramètres)
-    if (req.user.role === 'employee' && req.user.id !== req.params.id) {
-      const self = await User.findById(req.user.id, 'managerId').lean()
-      const isDirectManager = self?.managerId?.toString() === req.params.id
-      if (!isDirectManager) {
-        return res.status(403).json({ error: 'Permissions insuffisantes' })
-      }
-    }
-
+    const user = await userService.getUserById(req.params.id, req.user)
     res.json(user)
   } catch (err) {
     next(err)
@@ -124,43 +86,14 @@ router.get('/:id', async (req, res, next) => {
 })
 
 // POST /api/users — Crée un utilisateur (admin/hr seulement)
-router.post('/', validate(createUser), async (req, res, next) => {
+router.post('/', validate(createUserValidator), async (req, res, next) => {
   try {
     if (!ADMIN_ROLES.includes(req.user.role)) {
       return res.status(403).json({ error: 'Permissions insuffisantes' })
     }
 
-    const { firstName, lastName, email, role, department, position, managerId } = req.body
-    const tempPassword = require('crypto').randomBytes(16).toString('hex')
-    const passwordHash = await bcrypt.hash(tempPassword, 12)
-
-    if (!firstName || !lastName || !email) {
-      return res.status(400).json({ error: 'firstName, lastName et email sont requis' })
-    }
-    if (role && !ROLES.includes(role)) {
-      return res.status(400).json({ error: `Rôle invalide : ${role}` })
-    }
-
-    const user = new User({
-      email,
-      firstName,
-      lastName,
-      department:   department  || null,
-      position:     position    || null,
-      role:         ROLES.includes(role) ? role : 'employee',
-      managerId:    managerId   || null,
-      authSource:   'local',
-      isActive:     true,
-      passwordHash,
-    })
-    await user.save()
-
-    const result = user.toObject()
-    delete result.passwordHash
-    delete result.ldapDn
-
-    // tempPassword exposé une seule fois à la création
-    res.status(201).json({ ...result, tempPassword })
+    const result = await userService.createUser(req.body)
+    res.status(201).json(result)
   } catch (err) {
     if (err.code === 11000) return res.status(409).json({ error: 'Email déjà utilisé' })
     next(err)
@@ -168,42 +101,9 @@ router.post('/', validate(createUser), async (req, res, next) => {
 })
 
 // PATCH /api/users/:id — Modifie un utilisateur
-router.patch('/:id', validate(updateUser), async (req, res, next) => {
+router.patch('/:id', validate(updateUserValidator), async (req, res, next) => {
   try {
-    if (!mongoose.isValidObjectId(req.params.id)) {
-      return res.status(400).json({ error: 'ID invalide' })
-    }
-
-    const isAdmin = ADMIN_ROLES.includes(req.user.role)
-    const isSelf = req.user.id === req.params.id
-
-    if (!isAdmin && !isSelf) {
-      return res.status(403).json({ error: 'Permissions insuffisantes' })
-    }
-
-    // Whitelist des champs modifiables — authSource, passwordHash, ldapDn ne peuvent jamais être modifiés ici
-    const ALLOWED = ['email', 'firstName', 'lastName', 'department', 'position', 'role', 'managerId', 'isActive', 'avatar', 'phone']
-    const updates = {}
-    for (const key of ALLOWED) {
-      if (req.body[key] !== undefined) updates[key] = req.body[key]
-    }
-
-    // Les non-admins ne peuvent pas changer leur rôle, manager, statut, département ni poste
-    if (!isAdmin) {
-      const protectedFields = ['role', 'managerId', 'isActive', 'department', 'position', 'email']
-      const forbidden = protectedFields.filter(f => req.body[f] !== undefined)
-      if (forbidden.length > 0) {
-        return res.status(403).json({ error: `Champs protégés non modifiables : ${forbidden.join(', ')}` })
-      }
-    }
-
-    const user = await User.findById(req.params.id)
-    if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' })
-    Object.assign(user, updates)
-    await user.save()
-    const result = user.toObject()
-    delete result.passwordHash
-    delete result.ldapDn
+    const result = await userService.updateUser(req.params.id, req.body, req.user)
     res.json(result)
   } catch (err) {
     next(err)
@@ -226,7 +126,7 @@ router.patch('/:id/avatar', async (req, res, next) => {
     // null = supprimer l'avatar (retour aux initiales)
     if (avatarUrl !== null && avatarUrl !== undefined) {
       if (typeof avatarUrl !== 'string' || avatarUrl.length > 500) {
-        return res.status(400).json({ error: 'URL d\'avatar invalide (max 500 car)' })
+        return res.status(400).json({ error: "URL d'avatar invalide (max 500 car)" })
       }
     }
 
@@ -249,35 +149,9 @@ router.get('/:id/offboard-preview', async (req, res, next) => {
     if (!ADMIN_ROLES.includes(req.user.role)) {
       return res.status(403).json({ error: 'Permissions insuffisantes' })
     }
-    if (!mongoose.isValidObjectId(req.params.id)) {
-      return res.status(400).json({ error: 'ID invalide' })
-    }
-    const userId = req.params.id
 
-    const user = await User.findById(userId).select('-passwordHash -ldapDn').lean()
-    if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' })
-
-    const pendingFilter = {
-      $or: [{ evaluateeId: userId }, { evaluatorId: userId }],
-      status: { $nin: ['validated', 'archived'] },
-    }
-
-    const [pendingEvaluations, evals] = await Promise.all([
-      Evaluation.countDocuments(pendingFilter),
-      Evaluation.find(pendingFilter).populate('campaignId', 'name').lean(),
-    ])
-
-    const seen = new Set()
-    const activeCampaigns = []
-    for (const ev of evals) {
-      const name = ev.campaignId?.name
-      if (name && !seen.has(name)) {
-        seen.add(name)
-        activeCampaigns.push(name)
-      }
-    }
-
-    res.json({ user, pendingEvaluations, activeCampaigns })
+    const result = await userService.getOffboardPreview(req.params.id)
+    res.json(result)
   } catch (err) {
     next(err)
   }
@@ -289,61 +163,18 @@ router.patch('/:id/offboard', async (req, res, next) => {
     if (!ADMIN_ROLES.includes(req.user.role)) {
       return res.status(403).json({ error: 'Permissions insuffisantes' })
     }
-    if (!mongoose.isValidObjectId(req.params.id)) {
-      return res.status(400).json({ error: 'ID invalide' })
-    }
 
-    const { reason, effectiveDate } = req.body
-    if (!reason || typeof reason !== 'string' || !reason.trim()) {
-      return res.status(400).json({ error: 'Le champ reason est requis' })
-    }
-    if (!effectiveDate) {
-      return res.status(400).json({ error: 'Le champ effectiveDate est requis' })
-    }
-
-    const userId = req.params.id
-    const user = await User.findById(userId)
-    if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' })
-
-    user.offboardingStatus = 'offboarding'
-    user.offboardingReason = reason.trim()
-    user.offboardingDate   = new Date(effectiveDate)
-
-    const evalFilter = {
-      $or: [{ evaluateeId: userId }, { evaluatorId: userId }],
-      status: { $nin: ['validated', 'archived'] },
-    }
-
-    const session = await mongoose.startSession()
-    try {
-      await session.withTransaction(async () => {
-        await user.save({ session })
-        await Evaluation.updateMany(evalFilter, { $set: { status: 'archived' } }, { session })
-      })
-    } catch (err) {
-      if (err.code === 20 || err.message?.includes('Transaction') || err.message?.includes('replica')) {
-        console.warn('[offboard] Transactions non disponibles, exécution séquentielle')
-        await user.save()
-        await Evaluation.updateMany(evalFilter, { $set: { status: 'archived' } })
-      } else {
-        throw err
-      }
-    } finally {
-      await session.endSession()
-    }
+    const result = await userService.offboardUser(req.params.id, req.body)
 
     AuditLog.create({
       userId:     req.user.id,
       userRole:   req.user.role,
       action:     'offboard',
       targetType: 'User',
-      targetId:   userId,
-      meta:       { reason: reason.trim(), effectiveDate },
+      targetId:   req.params.id,
+      meta:       { reason: req.body.reason?.trim(), effectiveDate: req.body.effectiveDate },
     }).catch(() => {})
 
-    const result = user.toObject()
-    delete result.passwordHash
-    delete result.ldapDn
     res.json(result)
   } catch (err) {
     next(err)
@@ -445,19 +276,10 @@ router.get('/:id/gdpr-export', async (req, res, next) => {
       return res.status(403).json({ error: 'Permissions insuffisantes' })
     }
 
-    const [user, evaluations] = await Promise.all([
-      User.findById(userId).select('-passwordHash -ldapDn').lean(),
-      Evaluation.find({ evaluateeId: userId })
-        .populate('campaignId', 'name')
-        .populate('formId', 'title formType')
-        .lean(),
-    ])
-
-    if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' })
-
+    const result = await userService.gdprExportUser(userId)
     res.setHeader('Content-Type', 'application/json; charset=utf-8')
     res.setHeader('Content-Disposition', `attachment; filename="gdpr-export-${userId}.json"`)
-    res.json({ user, evaluations, exportedAt: new Date() })
+    res.json(result)
   } catch (err) {
     next(err)
   }
@@ -470,21 +292,10 @@ router.get('/:id/gdpr-export', async (req, res, next) => {
 router.delete('/:id', async (req, res, next) => {
   try {
     if (req.user.role !== 'admin') {
-      return res.status(403).json({ error: 'Réservé à l\'administrateur' })
-    }
-    if (!mongoose.isValidObjectId(req.params.id)) {
-      return res.status(400).json({ error: 'ID invalide' })
-    }
-    if (req.user.id === req.params.id) {
-      return res.status(403).json({ error: 'Impossible de se supprimer soi-même' })
+      return res.status(403).json({ error: "Réservé à l'administrateur" })
     }
 
-    const user = await User.findById(req.params.id)
-    if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' })
-
-    user.isActive = false
-    await user.save()
-
+    await userService.deleteUser(req.params.id, req.user.id)
     res.status(204).end()
   } catch (err) {
     next(err)
@@ -498,42 +309,20 @@ router.delete('/:id', async (req, res, next) => {
 router.delete('/:id/gdpr-anonymize', async (req, res, next) => {
   try {
     if (req.user.role !== 'admin') {
-      return res.status(403).json({ error: 'Réservé à l\'administrateur' })
+      return res.status(403).json({ error: "Réservé à l'administrateur" })
     }
     if (!mongoose.isValidObjectId(req.params.id)) {
       return res.status(400).json({ error: 'ID invalide' })
     }
 
-    const userId = req.params.id
-    const user = await User.findById(userId)
-    if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' })
-
-    const ACTIVE_STATUSES = ['assigned', 'in_progress', 'submitted']
-    const activeCount = await Evaluation.countDocuments({
-      evaluateeId: userId,
-      status: { $in: ACTIVE_STATUSES },
-    })
-    if (activeCount > 0) {
-      return res.status(409).json({
-        error: `Impossible d'anonymiser : ${activeCount} évaluation(s) en cours`,
-      })
-    }
-
-    user.firstName       = 'Anonyme'
-    user.lastName        = 'Anonyme'
-    user.email           = `anonyme-${userId}@deleted.local`
-    user.phone           = null
-    user.avatar          = null
-    user.isActive        = false
-    user.offboardingStatus = 'offboarded'
-    await user.save()
+    await userService.gdprAnonymizeUser(req.params.id)
 
     AuditLog.create({
       userId:     req.user.id,
       userRole:   req.user.role,
       action:     'gdpr_anonymize',
       targetType: 'User',
-      targetId:   userId,
+      targetId:   req.params.id,
       meta:       { anonymizedAt: new Date() },
     }).catch(() => {})
 

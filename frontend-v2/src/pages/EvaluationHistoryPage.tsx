@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { History, Download } from 'lucide-react'
 import { evaluationsApi } from '../api/evaluations'
+import { getCampaignName } from '../types'
 
 const EVAL_STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   assigned:         { label: 'Assignée',         color: 'bg-slate-100 text-slate-600' },
@@ -91,7 +92,7 @@ export default function EvaluationHistoryPage() {
             <div key={ev.id} className="bg-white rounded-xl border border-slate-200 p-5 hover:shadow-sm transition-shadow">
               <div className="flex items-start justify-between mb-3">
                 <div>
-                  <p className="font-semibold text-slate-900">{ev.campaign?.name ?? ev.campaignId}</p>
+                  <p className="font-semibold text-slate-900">{ev.campaign?.name ?? getCampaignName(ev.campaignId)}</p>
                   <p className="text-sm text-slate-500 mt-0.5">{ev.form?.title ?? ev.formId}</p>
                 </div>
                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${EVAL_STATUS_CONFIG[ev.status]?.color ?? 'bg-slate-100 text-slate-600'}`}>

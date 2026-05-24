@@ -1,5 +1,5 @@
 import client from './client'
-import type { User, PaginatedResponse, PaginationParams, ImportResult } from '../types'
+import type { User, PaginatedResponse, PaginationParams, ImportResult, ItemResponse } from '../types'
 
 export interface UserFilters extends PaginationParams {
   q?: string
@@ -15,13 +15,13 @@ export const usersApi = {
     client.get<PaginatedResponse<User>>('/api/users', { params }),
 
   getUser: (id: string) =>
-    client.get<User>(`/api/users/${id}`),
+    client.get<ItemResponse<User>>(`/api/users/${id}`),
 
   createUser: (data: Partial<User>) =>
-    client.post<User>('/api/users', data),
+    client.post<ItemResponse<User>>('/api/users', data),
 
   updateUser: (id: string, data: Partial<User>) =>
-    client.put<User>(`/api/users/${id}`, data),
+    client.patch<ItemResponse<User>>(`/api/users/${id}`, data),
 
   deleteUser: (id: string) =>
     client.delete(`/api/users/${id}`),

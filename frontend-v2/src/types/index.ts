@@ -309,6 +309,10 @@ export interface PaginatedResponse<T> {
   totalPages?: number
 }
 
+export interface ItemResponse<T> {
+  data: T
+}
+
 export interface PaginationParams {
   page?: number
   limit?: number
@@ -400,4 +404,11 @@ export interface UserGroup {
   createdBy?: string
   createdAt: string
   updatedAt: string
+}
+
+// ─── Utilities ────────────────────────────────────────────────────────────────
+
+/** Extracts the campaign name from a campaignId field that may be a string ID or a populated Campaign object. */
+export function getCampaignName(campaignId: string | Campaign): string {
+  return typeof campaignId === 'string' ? campaignId : campaignId.name
 }

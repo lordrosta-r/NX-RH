@@ -9,33 +9,13 @@
 // =============================================================================
 
 const router    = require('express').Router()
-const bcrypt    = require('bcrypt')
-const crypto    = require('crypto')
-const jwt       = require('jsonwebtoken')
 const rateLimit    = require('express-rate-limit')
 const { ipKeyGenerator } = require('express-rate-limit')
 const User      = require('../models/User')
 const { AuditLog } = require('../models')
 const { authGuard } = require('../middleware/authGuard')
-const { LOCALES, THEMES, NOTIF_PREF_KEYS, NOTIF_KEYS_BY_ROLE } = require('../config/constants')
-const notificationService = require('../services/notificationService')
-
-// Renvoie les clés de notifications autorisées pour un rôle.
-// Source de vérité unique : NOTIF_KEYS_BY_ROLE dans config/constants.js.
-function allowedNotifKeysFor(role) {
-  return NOTIF_KEYS_BY_ROLE[role] || NOTIF_KEYS_BY_ROLE.employee
-}
-
-// Filtre un objet notificationPrefs pour ne conserver que les clés
-// autorisées pour le rôle donné.
-function filterNotifPrefsByRole(prefs, role) {
-  const allowed = allowedNotifKeysFor(role)
-  const out = {}
-  for (const k of allowed) {
-    if (prefs && Object.prototype.hasOwnProperty.call(prefs, k)) out[k] = !!prefs[k]
-  }
-  return out
-}
+const authService = require('../services/authService')
+const { filterNotifPrefsByRole } = authService
 
 // ─── Rate limiters — POST /login ─────────────────────────────────────────────
 // Deux limiters distincts : un par email (anti brute-force), un par IP (anti spray)
@@ -82,46 +62,24 @@ router.post('/login', loginByEmailLimiter, loginByIPLimiter, async (req, res, ne
       return res.status(400).json({ error: 'Email invalide' })
     }
 
-    // select: false sur passwordHash — on le force ici
-    const user = await User.findOne({ email: email.toLowerCase().trim(), isActive: true })
-      .select('+passwordHash +authSource')
-      .lean()
+    const result = await authService.login(email, password, remember)
 
-    if (!user || user.authSource !== 'local' || !user.passwordHash) {
-      console.warn('[auth] Login failed — user not found or wrong authSource:', email.toLowerCase())
-      AuditLog.create({ action: 'login_failed', details: { email: req.body.email, ip: req.ip } }).catch(console.error)
-      return res.status(401).json({ error: 'Identifiants invalides' })
-    }
-
-    const valid = await bcrypt.compare(password, user.passwordHash)
-    if (!valid) {
-      console.warn('[auth] Login failed — wrong password for:', email.toLowerCase())
-      AuditLog.create({ action: 'login_failed', details: { email: req.body.email, ip: req.ip } }).catch(console.error)
-      return res.status(401).json({ error: 'Identifiants invalides' })
-    }
-
-    // Forcer le changement de mot de passe (utilisateurs importés)
-    if (user.mustChangePassword) {
+    if (result.mustChangePassword) {
       return res.status(200).json({
         mustChangePassword: true,
         message: 'Vous devez changer votre mot de passe avant de continuer.',
-        userId: user._id,
+        userId: result.userId,
       })
     }
 
-    const jwtExpiry = remember ? '30d' : (process.env.JWT_EXPIRES_IN || '8h')
-    const token = jwt.sign(
-      { id: user._id, email: user.email, role: user.role, firstName: user.firstName, lastName: user.lastName },
-      process.env.JWT_SECRET,
-      { algorithm: 'HS256', expiresIn: jwtExpiry }
-    )
+    const { user, token, maxAge } = result
 
     res.cookie('token', token, {
       httpOnly: true,
       secure:   process.env.COOKIE_SECURE !== undefined ? process.env.COOKIE_SECURE === 'true' : process.env.NODE_ENV === 'production',
       sameSite: 'strict',
       path:     '/',
-      maxAge:   remember ? 30 * 24 * 60 * 60 * 1000 : 8 * 60 * 60 * 1000,
+      maxAge,
     })
 
     // Mise à jour de lastLoginAt — fire-and-forget, n'échoue jamais le login.
@@ -140,6 +98,10 @@ router.post('/login', loginByEmailLimiter, loginByIPLimiter, async (req, res, ne
       },
     })
   } catch (err) {
+    if (err.loginFailed) {
+      AuditLog.create({ action: 'login_failed', details: { email: req.body.email, ip: req.ip } }).catch(console.error)
+      return res.status(401).json({ error: err.message })
+    }
     next(err)
   }
 })
@@ -196,57 +158,8 @@ router.get('/me', authGuard(), async (req, res, next) => {
 // PATCH /api/auth/preferences — Met à jour les préférences de l'utilisateur courant
 router.patch('/preferences', authGuard(), async (req, res, next) => {
   try {
-    const { locale, theme, notificationPrefs } = req.body || {}
-    const updates = {}
-
-    if (locale !== undefined) {
-      if (!LOCALES.includes(locale)) {
-        return res.status(400).json({ error: `Locale invalide. Valeurs autorisées : ${LOCALES.join(', ')}` })
-      }
-      updates.locale = locale
-    }
-
-    if (theme !== undefined) {
-      if (!THEMES.includes(theme)) {
-        return res.status(400).json({ error: `Thème invalide. Valeurs autorisées : ${THEMES.join(', ')}` })
-      }
-      updates.theme = theme
-    }
-
-    if (notificationPrefs !== undefined) {
-      if (!notificationPrefs || typeof notificationPrefs !== 'object' || Array.isArray(notificationPrefs)) {
-        return res.status(400).json({ error: 'notificationPrefs doit être un objet' })
-      }
-      const allowedForRole = allowedNotifKeysFor(req.user.role)
-      const cleaned = {}
-      for (const [key, val] of Object.entries(notificationPrefs)) {
-        if (!NOTIF_PREF_KEYS.includes(key)) {
-          return res.status(400).json({ error: `Clé de notification inconnue : ${key}` })
-        }
-        if (!allowedForRole.includes(key)) {
-          return res.status(403).json({ error: `Clé de notification non autorisée pour votre rôle : ${key}` })
-        }
-        if (typeof val !== 'boolean') {
-          return res.status(400).json({ error: `notificationPrefs.${key} doit être booléen` })
-        }
-        cleaned[key] = val
-      }
-      // Merge avec l'existant (ne pas écraser les autres clés)
-      const current = await User.findById(req.user.id).select('notificationPrefs').lean()
-      updates.notificationPrefs = { ...(current?.notificationPrefs || {}), ...cleaned }
-    }
-
-    if (Object.keys(updates).length === 0) {
-      return res.status(400).json({ error: 'Aucune préférence à mettre à jour' })
-    }
-
-    await User.updateOne({ _id: req.user.id }, { $set: updates })
-    const fresh = await User.findById(req.user.id)
-      .select('locale theme notificationPrefs')
-      .lean()
-    // Ne renvoyer que les clés autorisées pour le rôle
-    fresh.notificationPrefs = filterNotifPrefsByRole(fresh.notificationPrefs, req.user.role)
-    res.json(fresh)
+    const result = await authService.updatePreferences(req.user.id, req.user.role, req.body)
+    res.json(result)
   } catch (err) {
     next(err)
   }

@@ -7,6 +7,7 @@ import {
 import { usersApi } from '../api/users'
 import client from '../api/client'
 import type { User, Evaluation, PaginatedResponse } from '../types'
+import { getCampaignName } from '../types'
 import { useAuth } from '../contexts/AuthContext'
 import Breadcrumbs from '../components/ui/Breadcrumbs'
 
@@ -85,14 +86,14 @@ export default function UserDetailPage() {
   // Fetch user
   const { data: userData, isLoading } = useQuery({
     queryKey: ['user', id],
-    queryFn: () => usersApi.getUser(id!).then(r => r.data),
+    queryFn: () => usersApi.getUser(id!).then(r => r.data.data),
     enabled: !!id,
   })
 
   // Fetch manager
   const { data: managerData } = useQuery({
     queryKey: ['user', userData?.managerId],
-    queryFn: () => usersApi.getUser(userData!.managerId!).then(r => r.data),
+    queryFn: () => usersApi.getUser(userData!.managerId!).then(r => r.data.data),
     enabled: !!userData?.managerId,
   })
 
@@ -371,7 +372,7 @@ export default function UserDetailPage() {
                 <tbody>
                   {evaluationsData?.data?.map((ev: Evaluation) => (
                     <tr key={ev.id} className="border-b border-slate-50 hover:bg-slate-50">
-                      <td className="py-2 text-slate-900">{ev.campaign?.name ?? ev.campaignId}</td>
+                      <td className="py-2 text-slate-900">{ev.campaign?.name ?? getCampaignName(ev.campaignId)}</td>
                       <td className="py-2 text-slate-600">
                         {ev.evaluator ? `${ev.evaluator.firstName} ${ev.evaluator.lastName}` : ev.evaluatorId}
                       </td>

@@ -43,7 +43,7 @@ export default function UserEditPage() {
   // Fetch current user data
   const { data: userData, isLoading } = useQuery({
     queryKey: ['user', id],
-    queryFn: () => usersApi.getUser(id!).then(r => r.data),
+    queryFn: () => usersApi.getUser(id!).then(r => r.data.data),
     enabled: !!id,
   })
 
@@ -90,7 +90,7 @@ export default function UserEditPage() {
   }
 
   const updateMutation = useMutation({
-    mutationFn: (data: Partial<User>) => usersApi.updateUser(id!, data).then(r => r.data),
+    mutationFn: (data: Partial<User>) => usersApi.updateUser(id!, data).then(r => r.data.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user', id] })
       toast.show('Modifications enregistrées.')

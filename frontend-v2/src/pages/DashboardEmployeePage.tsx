@@ -6,6 +6,7 @@ import client from '../api/client'
 import { eventsApi } from '../api/events'
 import { resourcesApi } from '../api/resources'
 import type { Evaluation, EvaluationStatus } from '../types'
+import { getCampaignName } from '../types'
 
 // ─── StatusBadge (inline) ────────────────────────────────────────────────────
 
@@ -140,12 +141,10 @@ export default function DashboardEmployeePage() {
                 >
                   <div>
                     <p className="font-medium text-slate-900 text-sm">
-                      Campagne : {evaluation.campaignId}
+                      Campagne : {getCampaignName(evaluation.campaignId)}
                     </p>
                     <div className="flex items-center gap-2 mt-1">
                       <EvalStatusBadge status={evaluation.status} />
-                    </div>
-                  </div>
                   <Link
                     to={`/evaluations/${evaluation.id}`}
                     className="text-sm text-primary-600 hover:text-primary-700 font-medium hover:underline flex-shrink-0 ml-4"
@@ -286,7 +285,7 @@ export default function DashboardEmployeePage() {
                 <div key={evaluation.id} className="py-3 flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-slate-700">
-                      Campagne : {evaluation.campaignId}
+                      Campagne : {getCampaignName(evaluation.campaignId)}
                     </p>
                     <p className="text-xs text-slate-400 mt-0.5">
                       Validée le{' '}

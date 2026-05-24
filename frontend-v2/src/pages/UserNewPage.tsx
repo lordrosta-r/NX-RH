@@ -73,7 +73,7 @@ export default function UserNewPage() {
 
   const createMutation = useMutation({
     mutationFn: (data: Partial<User>) =>
-      usersApi.createUser(data).then(r => r.data as User & { temporaryPassword?: string }),
+      usersApi.createUser(data).then(r => r.data.data as User & { temporaryPassword?: string }),
     onSuccess: (newUser) => {
       setCreatedUserId(newUser.id)
       setTempPassword(newUser.temporaryPassword || '••••••••')

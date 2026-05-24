@@ -1,5 +1,5 @@
 import client from './client'
-import type { Campaign, PaginatedResponse, PaginationParams, CampaignAnalytics } from '../types'
+import type { Campaign, PaginatedResponse, PaginationParams, CampaignAnalytics, ItemResponse } from '../types'
 
 export interface CampaignFilters extends PaginationParams {
   status?: string
@@ -11,13 +11,13 @@ export const campaignsApi = {
     client.get<PaginatedResponse<Campaign>>('/api/campaigns', { params }),
 
   getCampaign: (id: string) =>
-    client.get<Campaign>(`/api/campaigns/${id}`),
+    client.get<ItemResponse<Campaign>>(`/api/campaigns/${id}`),
 
   createCampaign: (data: Partial<Campaign>) =>
-    client.post<Campaign>('/api/campaigns', data),
+    client.post<ItemResponse<Campaign>>('/api/campaigns', data),
 
   updateCampaign: (id: string, data: Partial<Campaign>) =>
-    client.put<Campaign>(`/api/campaigns/${id}`, data),
+    client.patch<ItemResponse<Campaign>>(`/api/campaigns/${id}`, data),
 
   deleteCampaign: (id: string) =>
     client.delete(`/api/campaigns/${id}`),

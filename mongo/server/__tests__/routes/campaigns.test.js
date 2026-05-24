@@ -327,7 +327,7 @@ describe('POST /api/campaigns', () => {
     const res = await request(app)
       .post('/api/campaigns')
       .set('Cookie', `token=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
-      .send({ name: 'X', startDate: '2025-01-01', endDate: '2025-03-31', formId: FORM_ID })
+      .send({ name: 'Camp', startDate: '2025-01-01', endDate: '2025-03-31', formId: FORM_ID })
     expect(res.status).toBe(403)
   })
 
@@ -335,7 +335,7 @@ describe('POST /api/campaigns', () => {
     const res = await request(app)
       .post('/api/campaigns')
       .set('Cookie', `token=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
-      .send({ name: 'X', startDate: '2025-01-01', endDate: '2025-03-31', formId: FORM_ID })
+      .send({ name: 'Camp', startDate: '2025-01-01', endDate: '2025-03-31', formId: FORM_ID })
     expect(res.status).toBe(403)
   })
 
@@ -343,7 +343,7 @@ describe('POST /api/campaigns', () => {
     const res = await request(app)
       .post('/api/campaigns')
       .set('Cookie', `token=${tokenFor({ id: DIRECTOR_ID, role: 'director' })}`)
-      .send({ name: 'X', startDate: '2025-01-01', endDate: '2025-03-31', formId: FORM_ID })
+      .send({ name: 'Camp', startDate: '2025-01-01', endDate: '2025-03-31', formId: FORM_ID })
     expect(res.status).toBe(403)
   })
 
@@ -450,7 +450,7 @@ describe('PATCH /api/campaigns/:id', () => {
     const res = await request(app)
       .patch('/api/campaigns/bad-id')
       .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
-      .send({ name: 'x' })
+      .send({ name: 'Updated' })
     expect(res.status).toBe(400)
     expect(res.body.error).toMatch(/invalide/i)
   })
@@ -460,7 +460,7 @@ describe('PATCH /api/campaigns/:id', () => {
     const res = await request(app)
       .patch(`/api/campaigns/${CAMPAIGN_ID}`)
       .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
-      .send({ name: 'x' })
+      .send({ name: 'Updated' })
     expect(res.status).toBe(404)
   })
 

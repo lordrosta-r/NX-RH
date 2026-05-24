@@ -198,4 +198,12 @@ async function handleBulkAction(req, res, next) {
   }
 }
 
-module.exports = { handleBulkCreate, handleBulkAction }
+const router = require('express').Router()
+router.post('/',  handleBulkCreate)
+router.patch('/', handleBulkAction)
+
+// Named exports kept for use in routes/evaluations/index.js
+router.handleBulkCreate = handleBulkCreate
+router.handleBulkAction = handleBulkAction
+
+module.exports = router

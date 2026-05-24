@@ -65,6 +65,7 @@ const NotFoundPage = lazy(() => import('../pages/NotFoundPage'))
 const UserGroupsPage = lazy(() => import('../pages/UserGroupsPage'))
 const AdminStatusPage = lazy(() => import('../pages/AdminStatusPage'))
 const AdminSetupWizardPage = lazy(() => import('../pages/AdminSetupWizardPage'))
+const MobilityPage = lazy(() => import('../pages/MobilityPage'))
 
 function S({ children }: { children: React.ReactNode }) {
   return <Suspense fallback={<PageLoader />}>{children}</Suspense>
@@ -120,6 +121,8 @@ export const router = createBrowserRouter([
       // Offboarding
       { path: '/offboarding', element: <AuthGuard roles={['admin', 'hr', 'manager']}><S><OffboardingPage /></S></AuthGuard> },
       { path: '/offboarding/:id', element: <AuthGuard roles={['admin', 'hr', 'manager']}><S><OffboardingDetailPage /></S></AuthGuard> },
+      // Mobilité interne
+      { path: '/mobility', element: <S><MobilityPage /></S> },
       // RH
       { path: '/hr/flags', element: <AuthGuard roles={['admin', 'hr']}><S><HrFlagsPage /></S></AuthGuard> },
       { path: '/hr/flags/:id', element: <AuthGuard roles={['admin', 'hr']}><S><HrFlagDetailPage /></S></AuthGuard> },

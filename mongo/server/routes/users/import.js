@@ -20,6 +20,7 @@ const User   = require('../../models/User')
 const Sector = require('../../models/Sector')
 const { ROLES, DEPARTMENTS, BCRYPT_ROUNDS } = require('../../config/constants')
 const notificationService = require('../../services/notificationService')
+const logger              = require('../../utils/logger')
 
 // ── Utilitaires ───────────────────────────────────────────────────────────────
 
@@ -198,7 +199,7 @@ router.post(
             email:       newUser.email,
             tempPassword,
             loginUrl:    process.env.FRONTEND_URL || 'http://localhost:5173',
-          }).catch(err => console.error('[import welcome email]', err))
+          }).catch(err => logger.error('[import welcome email]', { error: err.message }))
         }
       }
 

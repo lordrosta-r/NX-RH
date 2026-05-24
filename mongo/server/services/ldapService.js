@@ -19,6 +19,7 @@ const bcrypt  = require('bcrypt')
 const { randomUUID }    = require('crypto')
 const User              = require('../models/User')
 const { BCRYPT_ROUNDS } = require('../config/constants')
+const logger            = require('../utils/logger')
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -42,7 +43,7 @@ function makeClient(config) {
     tlsOptions:     { rejectUnauthorized },
   })
   // Prevent unhandled 'error' event from crashing the process
-  client.on('error', (err) => console.warn('[LDAP] Erreur client:', err.message))
+  client.on('error', (err) => logger.warn('[LDAP] Erreur client', { error: err.message }))
   return client
 }
 
@@ -59,7 +60,7 @@ function unbindAsync(client) {
   return new Promise((resolve) => {
     try {
       client.unbind((err) => {
-        if (err) console.warn('[LDAP] Erreur unbind:', err.message)
+        if (err) logger.warn('[LDAP] Erreur unbind', { error: err.message })
         resolve()
       })
     } catch (_) {

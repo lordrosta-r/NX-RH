@@ -5,6 +5,7 @@ import { Download, AlertTriangle } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { evaluationsApi } from '../api/evaluations'
 import Breadcrumbs from '../components/ui/Breadcrumbs'
+import { SignatureSection } from '../components/SignatureSection'
 import { usePdfExport } from '../hooks/usePdfExport'
 
 export default function EvaluationDetailPage() {
@@ -537,6 +538,14 @@ export default function EvaluationDetailPage() {
               </button>
             </div>
           )}
+          <SignatureSection
+            evaluationId={id!}
+            signatures={evaluation.signatures ?? []}
+            status={status}
+            evaluatorId={evaluation.evaluatorId}
+            evaluateeId={evaluation.evaluateeId}
+            onSigned={() => queryClient.invalidateQueries({ queryKey: ['evaluation', id] })}
+          />
         </div>
       )}
 
@@ -608,22 +617,13 @@ export default function EvaluationDetailPage() {
             )}
 
             {/* Signatures */}
-            <div className="bg-white rounded-xl border border-slate-200 p-5">
-              <h2 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-4">Signatures</h2>
-              <div className="space-y-3 text-sm">
-                {[
-                  { label: 'Évalué', date: evaluation.signedByEvaluateeAt },
-                  { label: 'Manager', date: evaluation.signedByManagerAt },
-                  { label: 'RH', date: evaluation.signedByHrAt },
-                ].map(sig => (
-                  <div key={sig.label} className="flex items-center gap-2">
-                    <span className={`text-sm ${sig.date ? 'text-success-600' : 'text-slate-400'}`}>{sig.date ? '✓' : '○'}</span>
-                    <span className="text-slate-700 font-medium w-20">{sig.label}</span>
-                    <span className="text-slate-500">{sig.date ? new Date(sig.date).toLocaleDateString('fr-FR') : 'En attente'}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <SignatureSection
+              evaluationId={id!}
+              signatures={evaluation.signatures ?? []}
+              status={status}
+              evaluatorId={evaluation.evaluatorId}
+              evaluateeId={evaluation.evaluateeId}
+            />
           </div>
         </div>
       )}

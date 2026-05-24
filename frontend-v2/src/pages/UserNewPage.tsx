@@ -2,7 +2,11 @@ import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { CheckCircle, Copy, X } from 'lucide-react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { usersApi } from '../api/users'
+import { userCreateSchema, type UserCreateFormValues } from '@/schemas'
+import { ErrorMessage } from '@/components/ui/ErrorMessage'
 import type { User } from '../types'
 import Button from '../components/ui/Button'
 
@@ -29,47 +33,40 @@ export default function UserNewPage() {
   const navigate = useNavigate()
   const toast = useToast()
 
-  // Form state
-  const [firstName, setFirstName]   = useState('')
-  const [lastName, setLastName]     = useState('')
-  const [email, setEmail]           = useState('')
-  const [role, setRole]             = useState('')
-  const [department, setDepartment] = useState('')
-  const [position, setPosition]     = useState('')
-  const [managerId, setManagerId]   = useState('')
-  const [errors, setErrors]         = useState<Record<string, string>>({})
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors, isSubmitting },
+  } = useForm<UserCreateFormValues>({
+    resolver: zodResolver(userCreateSchema),
+    defaultValues: { firstName: '', lastName: '', email: '', department: '', position: '' },
+  })
 
-  // Password modal
+  // managerId is not part of the schema — kept as local state
+  const [managerId, setManagerId] = useState('')
+
+  // Password modal state
   const [showPasswordModal, setShowPasswordModal] = useState(false)
   const [tempPassword, setTempPassword]           = useState('')
   const [createdUserId, setCreatedUserId]         = useState('')
 
   // Email debounce uniqueness check (UI-only)
+  const watchedEmail = watch('email')
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   useEffect(() => {
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return
+    if (!watchedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(watchedEmail)) return
     if (debounceRef.current) clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(() => {
       // Intentionally a lightweight background check — errors handled server-side
     }, 500)
-  }, [email])
+  }, [watchedEmail])
 
   // Active users for manager select
   const { data: activeUsers } = useQuery({
     queryKey: ['users-active'],
     queryFn: () => usersApi.getUsers({ isActive: true, limit: 100 }).then(r => r.data),
   })
-
-  function validate() {
-    const e: Record<string, string> = {}
-    if (!firstName.trim()) e.firstName = 'Le prénom est requis'
-    if (!lastName.trim()) e.lastName = 'Le nom est requis'
-    if (!email.trim()) e.email = "L'email est requis"
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) e.email = 'Email invalide'
-    if (!role) e.role = 'Le rôle est requis'
-    setErrors(e)
-    return Object.keys(e).length === 0
-  }
 
   const createMutation = useMutation({
     mutationFn: (data: Partial<User>) =>
@@ -79,24 +76,21 @@ export default function UserNewPage() {
       setTempPassword(newUser.temporaryPassword || '••••••••')
       setShowPasswordModal(true)
     },
-    onError: () => {
-      setErrors({ submit: 'Une erreur est survenue. Veuillez réessayer.' })
-    },
   })
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    if (!validate()) return
+  const onSubmit = async (data: UserCreateFormValues) => {
     createMutation.mutate({
-      firstName, lastName, email,
-      role: role as User['role'],
-      department: department || undefined,
-      position: position || undefined,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      email: data.email,
+      role: data.role as User['role'],
+      department: data.department || undefined,
+      position: data.position || undefined,
       managerId: managerId || undefined,
     })
   }
 
-  const inputCls = (field: string) =>
+  const inputCls = (field: keyof UserCreateFormValues) =>
     `w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
       errors[field] ? 'border-error-500' : 'border-slate-200'
     }`
@@ -126,21 +120,21 @@ export default function UserNewPage() {
             type="submit"
             form="user-form"
             variant="primary"
-            loading={createMutation.isPending}
-            disabled={createMutation.isPending}
+            loading={createMutation.isPending || isSubmitting}
+            disabled={createMutation.isPending || isSubmitting}
           >
             {createMutation.isPending ? 'Création…' : 'Créer →'}
           </Button>
         </div>
       </div>
 
-      {errors.submit && (
+      {createMutation.isError && (
         <div className="border-l-4 border-error-500 bg-error-50 p-4 rounded-lg mb-4 text-sm text-error-700">
-          {errors.submit}
+          Une erreur est survenue. Veuillez réessayer.
         </div>
       )}
 
-      <form id="user-form" onSubmit={handleSubmit} noValidate>
+      <form id="user-form" onSubmit={handleSubmit(onSubmit)} noValidate>
         {/* Card 1 — Informations personnelles */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6 mb-4">
           <h2 className="text-base font-semibold text-slate-900 mb-4">Informations personnelles</h2>
@@ -151,12 +145,13 @@ export default function UserNewPage() {
               </label>
               <input
                 type="text"
-                value={firstName}
-                onChange={e => setFirstName(e.target.value)}
+                {...register('firstName')}
+                aria-invalid={!!errors.firstName}
+                aria-describedby={errors.firstName ? 'firstName-error' : undefined}
                 className={inputCls('firstName')}
                 placeholder="Jean"
               />
-              {errors.firstName && <p className="text-xs text-error-500 mt-1">{errors.firstName}</p>}
+              <ErrorMessage id="firstName-error" message={errors.firstName?.message} />
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">
@@ -164,12 +159,13 @@ export default function UserNewPage() {
               </label>
               <input
                 type="text"
-                value={lastName}
-                onChange={e => setLastName(e.target.value)}
+                {...register('lastName')}
+                aria-invalid={!!errors.lastName}
+                aria-describedby={errors.lastName ? 'lastName-error' : undefined}
                 className={inputCls('lastName')}
                 placeholder="Dupont"
               />
-              {errors.lastName && <p className="text-xs text-error-500 mt-1">{errors.lastName}</p>}
+              <ErrorMessage id="lastName-error" message={errors.lastName?.message} />
             </div>
           </div>
           <div className="mt-4">
@@ -178,12 +174,13 @@ export default function UserNewPage() {
             </label>
             <input
               type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
+              {...register('email')}
+              aria-invalid={!!errors.email}
+              aria-describedby={errors.email ? 'email-error' : undefined}
               className={inputCls('email')}
               placeholder="jean.dupont@exemple.com"
             />
-            {errors.email && <p className="text-xs text-error-500 mt-1">{errors.email}</p>}
+            <ErrorMessage id="email-error" message={errors.email?.message} />
           </div>
         </div>
 
@@ -195,8 +192,9 @@ export default function UserNewPage() {
               Rôle <span className="text-error-500">*</span>
             </label>
             <select
-              value={role}
-              onChange={e => setRole(e.target.value)}
+              {...register('role')}
+              aria-invalid={!!errors.role}
+              aria-describedby={errors.role ? 'role-error' : undefined}
               className={inputCls('role')}
             >
               <option value="">Sélectionner un rôle…</option>
@@ -204,15 +202,14 @@ export default function UserNewPage() {
                 <option key={v} value={v}>{l}</option>
               ))}
             </select>
-            {errors.role && <p className="text-xs text-error-500 mt-1">{errors.role}</p>}
+            <ErrorMessage id="role-error" message={errors.role?.message} />
           </div>
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">Département</label>
               <input
                 type="text"
-                value={department}
-                onChange={e => setDepartment(e.target.value)}
+                {...register('department')}
                 className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 placeholder="Ingénierie"
               />
@@ -221,8 +218,7 @@ export default function UserNewPage() {
               <label className="block text-sm font-medium text-slate-700 mb-1">Poste</label>
               <input
                 type="text"
-                value={position}
-                onChange={e => setPosition(e.target.value)}
+                {...register('position')}
                 className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 placeholder="Développeur senior"
               />

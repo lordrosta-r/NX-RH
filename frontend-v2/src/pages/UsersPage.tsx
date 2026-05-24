@@ -445,6 +445,7 @@ export default function UsersPage() {
                         aria-label={`Sélectionner ${u.firstName} ${u.lastName}`}
                       />
                     </td>
+                    <td className="px-6 py-4">
                       <Link to={`/users/${u.id}`} className="flex items-center gap-3 group">
                         <Avatar user={u} />
                         <div>

@@ -18,6 +18,7 @@ const { REQUEST_FORM_TYPES } = require('../../config/constants')
 const { notify: notifyInApp } = require('../../services/notificationHelper')
 const notificationService     = require('../../services/notificationService')
 const { authGuard }           = require('../../middleware/authGuard')
+const logger                  = require('../../utils/logger')
 
 const ADMIN_HR        = authGuard(['admin', 'hr'])
 const BROAD_GUARD     = authGuard(['admin', 'hr', 'manager', 'employee'])
@@ -46,7 +47,7 @@ router.get('/count', ADMIN_HR, async (req, res) => {
 
     return res.json({ count: evals.length, byType })
   } catch (err) {
-    console.error('[flags/count]', err)
+    logger.error('[flags/count]', { error: err.message })
     return res.status(500).json({ error: 'Erreur serveur' })
   }
 })

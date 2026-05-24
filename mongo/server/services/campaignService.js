@@ -237,9 +237,9 @@ async function updateCampaign(id, data) {
   // Fire-and-forget: generate evaluations when campaign goes active
   if (data.status === 'active') {
     generateEvaluationsForCampaign(campaign).then(count => {
-      console.log(`[campaign-scope] ${count} évaluation(s) créée(s) pour la campagne ${campaign._id}`)
+      logger.info('[campaign-scope] Évaluations créées', { count, campaignId: campaign._id })
     }).catch(err => {
-      console.error('[campaign-scope] Erreur génération évaluations:', err)
+      logger.error('[campaign-scope] Erreur génération évaluations', { error: err.message, campaignId: campaign._id })
     })
   }
 
@@ -288,7 +288,7 @@ async function deleteCampaign(id) {
     })
   } catch (err) {
     if (err.code === 20 || err.message?.includes('Transaction') || err.message?.includes('replica')) {
-      console.warn('[delete-campaign] Transactions non disponibles, exécution séquentielle')
+      logger.warn('[delete-campaign] Transactions non disponibles, exécution séquentielle')
       await Evaluation.deleteMany({ campaignId: campaign._id })
       await Form.deleteMany({ _id: { $in: campaign.formIds || [] } })
       await campaign.deleteOne()

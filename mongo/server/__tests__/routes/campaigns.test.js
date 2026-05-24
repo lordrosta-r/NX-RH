@@ -110,6 +110,7 @@ const DIRECTOR_ID = '507f1f77bcf86cd799439003'
 const MANAGER_ID  = '507f1f77bcf86cd799439004'
 const EMPLOYEE_ID = '507f1f77bcf86cd799439005'
 const CAMPAIGN_ID = '507f1f77bcf86cd799439010'
+const FORM_ID     = '507f1f77bcf86cd799439011'
 
 function tokenFor({ id, role }) {
   return jwt.sign({ id, email: `${role}@corp.com`, role }, SECRET, {
@@ -326,7 +327,7 @@ describe('POST /api/campaigns', () => {
     const res = await request(app)
       .post('/api/campaigns')
       .set('Cookie', `token=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
-      .send({ name: 'X', startDate: '2025-01-01', endDate: '2025-03-31' })
+      .send({ name: 'X', startDate: '2025-01-01', endDate: '2025-03-31', formId: FORM_ID })
     expect(res.status).toBe(403)
   })
 
@@ -334,7 +335,7 @@ describe('POST /api/campaigns', () => {
     const res = await request(app)
       .post('/api/campaigns')
       .set('Cookie', `token=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
-      .send({ name: 'X', startDate: '2025-01-01', endDate: '2025-03-31' })
+      .send({ name: 'X', startDate: '2025-01-01', endDate: '2025-03-31', formId: FORM_ID })
     expect(res.status).toBe(403)
   })
 
@@ -342,49 +343,49 @@ describe('POST /api/campaigns', () => {
     const res = await request(app)
       .post('/api/campaigns')
       .set('Cookie', `token=${tokenFor({ id: DIRECTOR_ID, role: 'director' })}`)
-      .send({ name: 'X', startDate: '2025-01-01', endDate: '2025-03-31' })
+      .send({ name: 'X', startDate: '2025-01-01', endDate: '2025-03-31', formId: FORM_ID })
     expect(res.status).toBe(403)
   })
 
-  it('returns 400 when name is missing', async () => {
+  it('returns 422 when name is missing', async () => {
     const res = await request(app)
       .post('/api/campaigns')
       .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
-      .send({ startDate: '2025-01-01', endDate: '2025-03-31' })
-    expect(res.status).toBe(400)
-    expect(res.body.error).toMatch(/requis/i)
+      .send({ startDate: '2025-01-01', endDate: '2025-03-31', formId: FORM_ID })
+    expect(res.status).toBe(422)
+    expect(res.body.error).toBe('Données invalides')
   })
 
-  it('returns 400 when startDate is missing', async () => {
+  it('returns 422 when startDate is missing', async () => {
     const res = await request(app)
       .post('/api/campaigns')
       .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
-      .send({ name: 'Camp', endDate: '2025-03-31' })
-    expect(res.status).toBe(400)
+      .send({ name: 'Camp', endDate: '2025-03-31', formId: FORM_ID })
+    expect(res.status).toBe(422)
   })
 
-  it('returns 400 when endDate is missing', async () => {
+  it('returns 422 when endDate is missing', async () => {
     const res = await request(app)
       .post('/api/campaigns')
       .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
-      .send({ name: 'Camp', startDate: '2025-01-01' })
-    expect(res.status).toBe(400)
+      .send({ name: 'Camp', startDate: '2025-01-01', formId: FORM_ID })
+    expect(res.status).toBe(422)
   })
 
-  it('returns 400 when endDate is before startDate', async () => {
+  it('returns 422 when endDate is before startDate', async () => {
     const res = await request(app)
       .post('/api/campaigns')
       .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
-      .send({ name: 'Camp', startDate: '2025-06-01', endDate: '2025-01-01' })
-    expect(res.status).toBe(400)
-    expect(res.body.error).toMatch(/endDate/i)
+      .send({ name: 'Camp', startDate: '2025-06-01', endDate: '2025-01-01', formId: FORM_ID })
+    expect(res.status).toBe(422)
+    expect(res.body.details[0].message).toMatch(/endDate/i)
   })
 
   it('returns 400 for an invalid initial status (e.g. "closed")', async () => {
     const res = await request(app)
       .post('/api/campaigns')
       .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
-      .send({ name: 'Camp', startDate: '2025-01-01', endDate: '2025-03-31', status: 'closed' })
+      .send({ name: 'Camp', startDate: '2025-01-01', endDate: '2025-03-31', formId: FORM_ID, status: 'closed' })
     expect(res.status).toBe(400)
     expect(res.body.error).toMatch(/statut initial/i)
   })
@@ -396,7 +397,7 @@ describe('POST /api/campaigns', () => {
     const res = await request(app)
       .post('/api/campaigns')
       .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
-      .send({ name: 'Q1', startDate: '2025-01-01', endDate: '2025-03-31' })
+      .send({ name: 'Q1', startDate: '2025-01-01', endDate: '2025-03-31', formId: FORM_ID })
     expect(res.status).toBe(201)
     expect(res.body.name).toBe('Q1')
   })
@@ -408,7 +409,7 @@ describe('POST /api/campaigns', () => {
     const res = await request(app)
       .post('/api/campaigns')
       .set('Cookie', `token=${tokenFor({ id: HR_ID, role: 'hr' })}`)
-      .send({ name: 'HR Camp', startDate: '2025-01-01', endDate: '2025-03-31' })
+      .send({ name: 'HR Camp', startDate: '2025-01-01', endDate: '2025-03-31', formId: FORM_ID })
     expect(res.status).toBe(201)
     expect(res.body.name).toBe('HR Camp')
   })
@@ -420,7 +421,7 @@ describe('POST /api/campaigns', () => {
     const res = await request(app)
       .post('/api/campaigns')
       .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
-      .send({ name: 'Launched', startDate: '2025-01-01', endDate: '2025-03-31', status: 'active' })
+      .send({ name: 'Launched', startDate: '2025-01-01', endDate: '2025-03-31', formId: FORM_ID, status: 'active' })
     expect(res.status).toBe(201)
   })
 })

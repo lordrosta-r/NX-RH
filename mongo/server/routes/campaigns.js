@@ -19,6 +19,8 @@ const mongoose   = require('mongoose')
 const { Campaign, Evaluation, Form, User, AuditLog, CAMPAIGN_TRANSITIONS: VALID_TRANSITIONS } = require('../models')
 const { ADMIN_ROLES, MANAGER_ROLES } = require('../config/constants')
 const { notifyMany }  = require('../services/notificationService')
+const validate = require('../middleware/validate')
+const { createCampaign, updateCampaign } = require('../validators/campaignValidators')
 
 // Génère des évaluations pour tous les utilisateurs ciblés par campaign.targetScope.
 // Appelée en fire-and-forget lors du passage en statut 'active'.
@@ -207,7 +209,7 @@ router.get('/:id', async (req, res, next) => {
 })
 
 // POST /api/campaigns — Créer une campagne (admin/hr)
-router.post('/', async (req, res, next) => {
+router.post('/', validate(createCampaign), async (req, res, next) => {
   try {
     if (!ADMIN_ROLES.includes(req.user.role)) {
       return res.status(403).json({ error: 'Réservé aux admins et RH' })
@@ -259,7 +261,7 @@ router.post('/', async (req, res, next) => {
 })
 
 // PATCH /api/campaigns/:id — Modifier ou changer le statut d'une campagne (admin/hr)
-router.patch('/:id', async (req, res, next) => {
+router.patch('/:id', validate(updateCampaign), async (req, res, next) => {
   try {
     if (!ADMIN_ROLES.includes(req.user.role)) {
       return res.status(403).json({ error: 'Réservé aux admins et RH' })
@@ -408,6 +410,26 @@ router.delete('/:id', async (req, res, next) => {
     }).catch(() => {})
 
     res.status(204).end()
+  } catch (err) {
+    next(err)
+  }
+})
+
+// POST /api/campaigns/:id/generate-evaluations — Générer les évaluations d'une campagne (admin/hr)
+router.post('/:id/generate-evaluations', async (req, res, next) => {
+  try {
+    if (!ADMIN_ROLES.includes(req.user.role)) {
+      return res.status(403).json({ error: 'Réservé aux admins et RH' })
+    }
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({ error: 'ID invalide' })
+    }
+
+    const campaign = await Campaign.findById(req.params.id)
+    if (!campaign) return res.status(404).json({ error: 'Campagne introuvable' })
+
+    const generated = await generateEvaluationsForCampaign(campaign)
+    res.json({ generated })
   } catch (err) {
     next(err)
   }

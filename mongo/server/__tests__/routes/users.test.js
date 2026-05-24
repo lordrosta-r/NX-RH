@@ -281,26 +281,26 @@ describe('POST /api/users', () => {
     const res = await request(app)
       .post('/api/users')
       .set('Cookie', `token=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
-      .send({ firstName: 'Bob', lastName: 'Smith', email: 'bob@corp.com' })
+      .send({ firstName: 'Bob', lastName: 'Smith', email: 'bob@corp.com', role: 'employee' })
     expect(res.status).toBe(403)
   })
 
-  it('returns 400 when required fields are missing', async () => {
+  it('returns 422 when required fields are missing', async () => {
     const res = await request(app)
       .post('/api/users')
       .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
-      .send({ firstName: 'Bob' })  // missing lastName + email
-    expect(res.status).toBe(400)
-    expect(res.body.error).toMatch(/requis/i)
+      .send({ firstName: 'Bob' })  // missing lastName + email + role
+    expect(res.status).toBe(422)
+    expect(res.body.error).toBe('Données invalides')
   })
 
-  it('returns 400 for an invalid role value', async () => {
+  it('returns 422 for an invalid role value', async () => {
     const res = await request(app)
       .post('/api/users')
       .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ firstName: 'Bob', lastName: 'Smith', email: 'bob@corp.com', role: 'superadmin' })
-    expect(res.status).toBe(400)
-    expect(res.body.error).toMatch(/r.le invalide/i)
+    expect(res.status).toBe(422)
+    expect(res.body.error).toBe('Données invalides')
   })
 
   it('hr can create a user and receives 201 + tempPassword', async () => {
@@ -318,7 +318,7 @@ describe('POST /api/users', () => {
     const res = await request(app)
       .post('/api/users')
       .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
-      .send({ firstName: 'Carol', lastName: 'White', email: 'carol@corp.com' })
+      .send({ firstName: 'Carol', lastName: 'White', email: 'carol@corp.com', role: 'employee' })
     expect(res.status).toBe(201)
     expect(res.body.passwordHash).toBeUndefined()
   })
@@ -329,7 +329,7 @@ describe('POST /api/users', () => {
     const res = await request(app)
       .post('/api/users')
       .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
-      .send({ firstName: 'Bob', lastName: 'Smith', email: 'existing@corp.com' })
+      .send({ firstName: 'Bob', lastName: 'Smith', email: 'existing@corp.com', role: 'employee' })
     expect(res.status).toBe(409)
     expect(res.body.error).toMatch(/déjà utilisé/i)
   })

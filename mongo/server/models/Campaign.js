@@ -151,5 +151,6 @@ campaignSchema.statics.VALID_TRANSITIONS = VALID_TRANSITIONS
 // Index sur createdBy (dashboard RH "mes campagnes") et sur les dates (scheduler)
 campaignSchema.index({ createdBy: 1 })
 campaignSchema.index({ startDate: 1, endDate: 1 })
+campaignSchema.index({ name: 'text', description: 'text' })
 
 module.exports = { Campaign: model('Campaign', campaignSchema), VALID_TRANSITIONS }

@@ -109,5 +109,6 @@ formSchema.pre('save', function (next) {
 })
 
 formSchema.statics.VALID_FORM_TYPES = FORM_TYPES
+formSchema.index({ title: 'text', description: 'text' })
 
 module.exports = model('Form', formSchema)

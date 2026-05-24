@@ -39,7 +39,7 @@ router.get('/', async (req, res, next) => {
     }
 
     if (req.query.search) {
-      filter.title = { $regex: req.query.search, $options: 'i' }
+      filter.$text = { $search: req.query.search.slice(0, 100) }
     }
 
     const page  = Math.max(1, parseInt(req.query.page)  || 1)

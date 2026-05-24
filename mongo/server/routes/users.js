@@ -44,14 +44,7 @@ router.get('/', async (req, res, next) => {
     }
     if (sector && mongoose.isValidObjectId(sector)) filter.sectorId = sector
     if (search) {
-      // Échapper les caractères spéciaux regex pour éviter ReDoS
-      const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-      const safeSearch = escapeRegex(search.slice(0, 100)) // limiter à 100 chars aussi
-      filter.$or = [
-        { firstName: { $regex: safeSearch, $options: 'i' } },
-        { lastName:  { $regex: safeSearch, $options: 'i' } },
-        { email:     { $regex: safeSearch, $options: 'i' } },
-      ]
+      filter.$text = { $search: search.slice(0, 100) }
     }
 
     const page  = Math.max(1, parseInt(req.query.page)  || 1)

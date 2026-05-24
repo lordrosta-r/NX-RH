@@ -169,6 +169,7 @@ userSchema.index({ department: 1 })
 userSchema.index({ managerId: 1, isActive: 1 })
 userSchema.index({ managerId: 1, role: 1, isActive: 1 })
 userSchema.index({ isActive: 1, role: 1 })
+userSchema.index({ firstName: 'text', lastName: 'text', email: 'text', position: 'text' })
 
 // Hash le mot de passe avant sauvegarde si modifié et pas déjà hashé
 userSchema.pre('save', async function (next) {

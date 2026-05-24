@@ -167,7 +167,7 @@ describe('GET /api/users', () => {
       .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(res.status).toBe(200)
     const [filter] = User.find.mock.calls[0]
-    expect(filter.$or).toBeDefined()
+    expect(filter.$text).toEqual({ $search: 'alice' })
   })
 
   it('paginates when ?page=1 is passed', async () => {

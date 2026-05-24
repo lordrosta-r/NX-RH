@@ -10,7 +10,6 @@ import { groupsApi } from '../api/groups'
 import type { Campaign, CampaignStatus, UserGroup } from '../types'
 import Button from '../components/ui/Button'
 import Stepper from '../components/shared/Stepper'
-import { ErrorMessage } from '@/components/ui/ErrorMessage'
 
 // ─── Shared sub-components ────────────────────────────────────────────────────
 
@@ -251,7 +250,7 @@ export default function CampaignNewPage() {
   })
 
   const form = watch()
-  const set = <K extends keyof WizardFormValues>(key: K, value: WizardFormValues[K]) => setValue(key, value)
+  const set = <K extends keyof WizardFormValues>(key: K, value: WizardFormValues[K]) => setValue(key as never, value as never)
 
   const [currentStep, setCurrentStep] = useState(0)
 

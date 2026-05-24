@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { Eye, EyeOff, Loader2 } from 'lucide-react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { useAuth } from '../contexts/AuthContext'
 import type { AxiosError } from 'axios'
-
-function FieldError({ message }: { message?: string }) {
-  if (!message) return null
-  return <p className="mt-1 text-xs text-error-600">{message}</p>
-}
+import { loginSchema, type LoginFormValues } from '../schemas'
+import { ErrorMessage } from '../components/ui/ErrorMessage'
 
 function InlineAlert({ type, message }: { type: 'error' | 'warning'; message: string }) {
   const styles = {
@@ -26,13 +25,17 @@ export default function LoginPage() {
   const [searchParams] = useSearchParams()
   const { login, isAuthenticated } = useAuth()
 
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
   const [remember, setRemember] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({})
   const [alertError, setAlertError] = useState<{ type: 'error' | 'warning'; message: string } | null>(null)
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+  })
 
   const ldapEnabled = import.meta.env.VITE_LDAP_ENABLED === 'true'
   const redirect = searchParams.get('redirect') || '/'
@@ -41,23 +44,10 @@ export default function LoginPage() {
     if (isAuthenticated) navigate(redirect, { replace: true })
   }, [isAuthenticated, navigate, redirect])
 
-  function validate(): boolean {
-    const errors: typeof fieldErrors = {}
-    if (!email.trim()) errors.email = 'Ce champ est requis'
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.email = "Format d'e-mail invalide"
-    if (!password) errors.password = 'Ce champ est requis'
-    setFieldErrors(errors)
-    return Object.keys(errors).length === 0
-  }
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
+  async function onSubmit(data: LoginFormValues) {
     setAlertError(null)
-    if (!validate()) return
-
-    setIsLoading(true)
     try {
-      await login(email, password, remember)
+      await login(data.email, data.password, remember)
       navigate(redirect, { replace: true })
     } catch (err) {
       const status = (err as AxiosError)?.response?.status
@@ -65,8 +55,6 @@ export default function LoginPage() {
       else if (status === 429) setAlertError({ type: 'warning', message: 'Trop de tentatives. Réessayez dans quelques minutes.' })
       else if (status === 403) setAlertError({ type: 'error', message: 'Votre compte est désactivé. Contactez votre RH.' })
       else setAlertError({ type: 'error', message: 'Une erreur est survenue. Réessayez.' })
-    } finally {
-      setIsLoading(false)
     }
   }
 
@@ -81,7 +69,7 @@ export default function LoginPage() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="mt-6 space-y-4" noValidate>
+      <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-4" noValidate>
         {/* Email */}
         <div>
           <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-1">
@@ -92,17 +80,18 @@ export default function LoginPage() {
             type="email"
             autoFocus
             autoComplete="username"
-            value={email}
-            onChange={e => { setEmail(e.target.value); setFieldErrors(p => ({ ...p, email: undefined })) }}
-            disabled={isLoading}
+            {...register('email')}
+            aria-invalid={!!errors.email}
+            aria-describedby={errors.email ? 'email-error' : undefined}
+            disabled={isSubmitting}
             className={`w-full h-10 px-3 rounded-lg border bg-white text-slate-900 text-sm transition-colors placeholder:text-slate-400 focus:outline-none focus:ring-2 ${
-              fieldErrors.email
+              errors.email
                 ? 'border-error-500 ring-error-200 focus:ring-error-200'
                 : 'border-slate-300 focus:border-primary-500 focus:ring-primary-200'
             } disabled:opacity-60 disabled:cursor-not-allowed`}
             placeholder="prenom.nom@nanoxplore.com"
           />
-          <FieldError message={fieldErrors.email} />
+          <ErrorMessage id="email-error" message={errors.email?.message} />
         </div>
 
         {/* Mot de passe */}
@@ -115,11 +104,12 @@ export default function LoginPage() {
               id="password"
               type={showPassword ? 'text' : 'password'}
               autoComplete="current-password"
-              value={password}
-              onChange={e => { setPassword(e.target.value); setFieldErrors(p => ({ ...p, password: undefined })) }}
-              disabled={isLoading}
+              {...register('password')}
+              aria-invalid={!!errors.password}
+              aria-describedby={errors.password ? 'password-error' : undefined}
+              disabled={isSubmitting}
               className={`w-full h-10 px-3 pr-10 rounded-lg border bg-white text-slate-900 text-sm transition-colors placeholder:text-slate-400 focus:outline-none focus:ring-2 ${
-                fieldErrors.password
+                errors.password
                   ? 'border-error-500 ring-error-200 focus:ring-error-200'
                   : 'border-slate-300 focus:border-primary-500 focus:ring-primary-200'
               } disabled:opacity-60 disabled:cursor-not-allowed`}
@@ -134,7 +124,7 @@ export default function LoginPage() {
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
           </div>
-          <FieldError message={fieldErrors.password} />
+          <ErrorMessage id="password-error" message={errors.password?.message} />
         </div>
 
         {/* Remember me */}
@@ -144,7 +134,7 @@ export default function LoginPage() {
             type="checkbox"
             checked={remember}
             onChange={e => setRemember(e.target.checked)}
-            disabled={isLoading}
+            disabled={isSubmitting}
             className="h-4 w-4 rounded border-slate-300 text-primary-500 focus:ring-primary-200"
           />
           <label htmlFor="remember" className="text-sm text-slate-600">
@@ -155,10 +145,10 @@ export default function LoginPage() {
         {/* Submit */}
         <button
           type="submit"
-          disabled={isLoading}
+          disabled={isSubmitting}
           className="w-full h-11 flex items-center justify-center gap-2 rounded-lg bg-primary-600 text-white font-medium text-sm hover:bg-primary-700 active:bg-primary-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed"
         >
-          {isLoading ? (
+          {isSubmitting ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
               Connexion…

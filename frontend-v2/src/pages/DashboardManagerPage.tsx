@@ -207,7 +207,7 @@ export default function DashboardManagerPage() {
     queryKey: ['dashboard-manager-events'],
     queryFn: () => eventsApi.getEvents({ limit: 3 }),
   })
-  const upcomingEvents = eventsData?.data?.items ?? []
+  const upcomingEvents = eventsData?.data?.data ?? []
 
   if (evaluations.isLoading) {
     return (

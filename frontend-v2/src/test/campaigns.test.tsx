@@ -26,7 +26,7 @@ const campaignFixtures: Campaign[] = [
     startDate: '2025-02-01',
     endDate: '2025-03-01',
     description: 'Active campaign',
-    formId: 'form-1',
+    formIds: ['form-1'],
   },
   {
     id: 'camp-closed',

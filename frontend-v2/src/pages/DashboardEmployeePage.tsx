@@ -81,13 +81,13 @@ export default function DashboardEmployeePage() {
     queryKey: ['dashboard-employee-events'],
     queryFn: () => eventsApi.getEvents({ limit: 3 }),
   })
-  const upcomingEvents = eventsData?.data?.items ?? []
+  const upcomingEvents = eventsData?.data?.data ?? []
 
   const { data: resourcesData } = useQuery({
     queryKey: ['dashboard-employee-resources'],
     queryFn: () => resourcesApi.getResources({ limit: 3, publishedOnly: true }),
   })
-  const recentResources = resourcesData?.data?.items ?? []
+  const recentResources = resourcesData?.data?.data ?? []
 
   const showOnboarding = !!(user?.isActive && !user?.managerId)
 

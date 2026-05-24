@@ -1,12 +1,16 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { z } from 'zod'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { campaignsApi } from '../api/campaigns'
 import { orgApi } from '../api/org'
 import { groupsApi } from '../api/groups'
 import type { Campaign, CampaignStatus, UserGroup } from '../types'
 import Button from '../components/ui/Button'
 import Stepper from '../components/shared/Stepper'
+import { ErrorMessage } from '@/components/ui/ErrorMessage'
 
 // ─── Shared sub-components ────────────────────────────────────────────────────
 
@@ -25,11 +29,13 @@ function Field({
   label,
   required,
   error,
+  errorId,
   children,
 }: {
   label: string
   required?: boolean
   error?: string
+  errorId?: string
   children: React.ReactNode
 }) {
   return (
@@ -39,7 +45,7 @@ function Field({
         {required && <span className="text-red-500 ml-0.5">*</span>}
       </label>
       {children}
-      {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+      {error && <p id={errorId} className="mt-1 text-xs text-red-600" role="alert">{error}</p>}
     </div>
   )
 }
@@ -131,6 +137,34 @@ function ChipInput({
 const inputCls =
   'w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500'
 
+// ─── Validation schema for wizard step 1 ─────────────────────────────────────
+
+const campaignWizardSchema = z.object({
+  name: z.string().min(2, 'Le nom doit contenir au moins 2 caractères').max(100, 'Nom trop long'),
+  description: z.string().max(500, 'Description trop longue'),
+  startDate: z.string().min(1, 'La date de début est requise'),
+  endDate: z.string().min(1, 'La date de fin est requise'),
+  deadlineEmployee: z.string(),
+  deadlineManager: z.string(),
+  status: z.enum(['draft', 'active', 'closed', 'archived'] as const),
+  targetDepartments: z.array(z.string()),
+  extendedVisibility: z.boolean(),
+  enableN1Context: z.boolean(),
+  n1VisibleToEmployee: z.boolean(),
+  previousCampaignId: z.string(),
+  targetScope: z.enum(['all', 'department', 'sector', 'users', 'group'] as const),
+  targetSectorIds: z.array(z.string()),
+  targetUserIds: z.array(z.string()),
+  targetGroupId: z.string(),
+}).refine(data => {
+  if (data.startDate && data.endDate) {
+    return new Date(data.endDate) > new Date(data.startDate)
+  }
+  return true
+}, { message: 'La date de fin doit être après la date de début', path: ['endDate'] })
+
+type WizardFormValues = z.infer<typeof campaignWizardSchema>
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 type FormState = {
@@ -203,22 +237,38 @@ export default function CampaignNewPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
-  const [form, setForm] = useState<FormState>(initialForm)
-  const [errors, setErrors] = useState<Record<string, string>>({})
+  const {
+    register,
+    trigger,
+    watch,
+    setValue,
+    getValues,
+    formState: { errors },
+  } = useForm<WizardFormValues>({
+    resolver: zodResolver(campaignWizardSchema),
+    defaultValues: initialForm as WizardFormValues,
+    mode: 'onTouched',
+  })
+
+  const form = watch()
+  const set = <K extends keyof WizardFormValues>(key: K, value: WizardFormValues[K]) => setValue(key, value)
+
   const [currentStep, setCurrentStep] = useState(0)
 
-  const set = <K extends keyof FormState>(key: K, value: FormState[K]) =>
-    setForm(f => ({ ...f, [key]: value }))
+  async function handleNext() {
+    if (currentStep === 0) {
+      const valid = await trigger(['name', 'startDate', 'endDate'])
+      if (!valid) return
+    }
+    setCurrentStep(s => s + 1)
+  }
 
-  function validateStep1() {
-    const e: Record<string, string> = {}
-    if (!form.name.trim()) e.name = 'Le nom est requis'
-    if (!form.startDate) e.startDate = 'La date de début est requise'
-    if (!form.endDate) e.endDate = 'La date de fin est requise'
-    if (form.startDate && form.endDate && form.endDate <= form.startDate)
-      e.endDate = 'La date de fin doit être après la date de début'
-    setErrors(e)
-    return Object.keys(e).length === 0
+  function handlePrev() {
+    setCurrentStep(s => s - 1)
+  }
+
+  function handleSubmit() {
+    createMutation.mutate(buildPayload(getValues() as FormState))
   }
 
   const { data: prevCampaigns } = useQuery({
@@ -252,19 +302,6 @@ export default function CampaignNewPage() {
     },
   })
 
-  function handleNext() {
-    if (currentStep === 0 && !validateStep1()) return
-    setCurrentStep(s => s + 1)
-  }
-
-  function handlePrev() {
-    setCurrentStep(s => s - 1)
-  }
-
-  function handleSubmit() {
-    createMutation.mutate(buildPayload(form))
-  }
-
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       {/* Header */}
@@ -285,19 +322,19 @@ export default function CampaignNewPage() {
       {currentStep === 0 && (
         <div className="space-y-6">
           <Card title="Informations générales">
-            <Field label="Nom" required error={errors.name}>
+            <Field label="Nom" required error={errors.name?.message} errorId="campaign-name-error">
               <input
                 type="text"
-                value={form.name}
-                onChange={e => set('name', e.target.value)}
+                {...register('name')}
+                aria-invalid={!!errors.name}
+                aria-describedby={errors.name ? 'campaign-name-error' : undefined}
                 placeholder="Ex: Entretiens annuels 2025"
                 className={inputCls}
               />
             </Field>
-            <Field label="Description">
+            <Field label="Description" error={errors.description?.message} errorId="campaign-desc-error">
               <textarea
-                value={form.description}
-                onChange={e => set('description', e.target.value)}
+                {...register('description')}
                 rows={3}
                 placeholder="Description de la campagne (optionnel)"
                 className={inputCls}
@@ -326,35 +363,35 @@ export default function CampaignNewPage() {
 
           <Card title="Calendrier">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Field label="Date de début" required error={errors.startDate}>
+              <Field label="Date de début" required error={errors.startDate?.message} errorId="campaign-start-error">
                 <input
                   type="date"
-                  value={form.startDate}
-                  onChange={e => set('startDate', e.target.value)}
+                  {...register('startDate')}
+                  aria-invalid={!!errors.startDate}
+                  aria-describedby={errors.startDate ? 'campaign-start-error' : undefined}
                   className={inputCls}
                 />
               </Field>
-              <Field label="Date de fin" required error={errors.endDate}>
+              <Field label="Date de fin" required error={errors.endDate?.message} errorId="campaign-end-error">
                 <input
                   type="date"
-                  value={form.endDate}
-                  onChange={e => set('endDate', e.target.value)}
+                  {...register('endDate')}
+                  aria-invalid={!!errors.endDate}
+                  aria-describedby={errors.endDate ? 'campaign-end-error' : undefined}
                   className={inputCls}
                 />
               </Field>
               <Field label="Deadline employé">
                 <input
                   type="date"
-                  value={form.deadlineEmployee}
-                  onChange={e => set('deadlineEmployee', e.target.value)}
+                  {...register('deadlineEmployee')}
                   className={inputCls}
                 />
               </Field>
               <Field label="Deadline manager">
                 <input
                   type="date"
-                  value={form.deadlineManager}
-                  onChange={e => set('deadlineManager', e.target.value)}
+                  {...register('deadlineManager')}
                   className={inputCls}
                 />
               </Field>

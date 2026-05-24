@@ -84,6 +84,13 @@ export interface SystemStatus {
   uptime?: number
 }
 
+export interface EvaluationSignature {
+  userId: string
+  role: 'evaluator' | 'evaluatee' | 'hr' | 'manager'
+  signedAt: string
+  ipAddress?: string
+}
+
 export interface Evaluation {
   id: string
   campaignId: string | Campaign
@@ -101,6 +108,8 @@ export interface Evaluation {
   signedByEvaluateeAt?: string
   signedByManagerAt?: string
   signedByHrAt?: string
+  signatures?: EvaluationSignature[]
+  signatureStatus?: 'none' | 'pending_evaluatee' | 'pending_evaluator' | 'complete'
   createdAt?: string
   updatedAt?: string
   // Relations peuplées

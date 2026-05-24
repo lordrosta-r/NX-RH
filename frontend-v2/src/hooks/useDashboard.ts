@@ -1,7 +1,19 @@
 import { useQuery } from '@tanstack/react-query'
+import client from '../api/client'
 import { campaignsApi } from '../api/campaigns'
 import { evaluationsApi } from '../api/evaluations'
 import { usersApi } from '../api/users'
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+export interface DashboardHrStats {
+  users: { total: number; active: number }
+  campaigns: { active: number; draft: number }
+  evaluations: { total: number; completed: number; pending: number; completionRate: number }
+  recentCampaigns: Array<{ _id: string; name: string; status: string; createdAt: string }>
+}
+
+// ─── Hooks ───────────────────────────────────────────────────────────────────
 
 export function useDashboardAdmin() {
   const campaigns = useQuery({
@@ -29,4 +41,13 @@ export function useDashboardHr() {
     queryFn: () => evaluationsApi.getEvaluations({ status: 'submitted', limit: 5 }),
   })
   return { campaigns, flags }
+}
+
+export function useDashboardHrStats() {
+  return useQuery<DashboardHrStats>({
+    queryKey: ['dashboard', 'hr', 'stats'],
+    queryFn: () =>
+      client.get<{ data: DashboardHrStats }>('/api/dashboard/hr').then(r => r.data.data),
+    staleTime: 5 * 60 * 1000,
+  })
 }

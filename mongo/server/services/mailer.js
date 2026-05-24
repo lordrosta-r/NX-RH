@@ -14,6 +14,7 @@
 // =============================================================================
 
 const nodemailer = require('nodemailer')
+const logger     = require('../utils/logger')
 
 let _mailFrom    = process.env.MAIL_FROM || 'noreply@nanoxplore.com'
 let _transporter = null
@@ -50,7 +51,7 @@ async function _initTransporter() {
       secure,
       auth: user ? { user, pass: password } : undefined,
     })
-    console.log(`[Mailer] SMTP configured → ${host}:${port}`)
+    logger.info('[Mailer] SMTP configuré', { host, port })
   } else {
     const testAccount = await nodemailer.createTestAccount()
     _transporter = nodemailer.createTransport({
@@ -58,7 +59,7 @@ async function _initTransporter() {
       port: 587,
       auth: { user: testAccount.user, pass: testAccount.pass },
     })
-    console.log('[Mailer] Dev mode — Ethereal test account ready. Preview URLs logged per message.')
+    logger.info('[Mailer] Dev mode — Ethereal test account ready')
   }
 
   return _transporter
@@ -82,7 +83,7 @@ async function sendMail({ to, subject, text, html }) {
   const info = await transport.sendMail({ from: _mailFrom, to, subject, text, html })
 
   const previewUrl = nodemailer.getTestMessageUrl(info)
-  if (previewUrl) console.log(`[Mailer] Preview: ${previewUrl}`)
+  if (previewUrl) logger.debug('[Mailer] Preview URL', { url: previewUrl })
 
   return info
 }

@@ -3,6 +3,7 @@ import { useDebounce } from '../hooks/useDebounce'
 import { Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import { Search, UserPlus, MoreVertical, Users, Plus, ChevronLeft, ChevronRight, X, AlertTriangle, Upload } from 'lucide-react'
+import EmptyState from '../components/ui/EmptyState'
 import { useAuth } from '../contexts/AuthContext'
 import { usersApi } from '../api/users'
 import { toast } from '../hooks/useToast'
@@ -410,18 +411,15 @@ export default function UsersPage() {
               ) : data?.data?.length === 0 ? (
                 <tr>
                   <td colSpan={7}>
-                    <div className="text-center py-16">
-                      <Users className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-                      <p className="text-slate-500 font-medium">Aucun collaborateur trouvé</p>
-                      {(user?.role === 'admin' || user?.role === 'hr') && (
-                        <Link
-                          to="/users/new"
-                          className="mt-4 inline-flex items-center gap-2 text-primary-600 hover:underline text-sm"
-                        >
-                          <Plus className="w-4 h-4" /> Créer le premier collaborateur
-                        </Link>
-                      )}
-                    </div>
+                    <EmptyState
+                      icon={<Users className="w-8 h-8" />}
+                      title="Aucun collaborateur trouvé"
+                      description="Aucun utilisateur ne correspond à vos critères de recherche."
+                      action={(user?.role === 'admin' || user?.role === 'hr') ? {
+                        label: 'Créer le premier collaborateur',
+                        onClick: () => window.location.assign('/users/new'),
+                      } : undefined}
+                    />
                   </td>
                 </tr>
               ) : (

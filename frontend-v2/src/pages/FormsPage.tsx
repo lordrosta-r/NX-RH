@@ -3,6 +3,7 @@ import { useDebounce } from '../hooks/useDebounce'
 import { Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, Copy, Trash2, FileText } from 'lucide-react'
+import EmptyState from '../components/ui/EmptyState'
 import { useAuth } from '../contexts/AuthContext'
 import { formsApi } from '../api/forms'
 import { campaignsApi } from '../api/campaigns'
@@ -136,15 +137,12 @@ export default function FormsPage() {
 
       {/* Empty state */}
       {!isLoading && forms.length === 0 && (
-        <div className="text-center py-16 border-2 border-dashed border-slate-200 rounded-xl">
-          <FileText className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-          <p className="text-slate-500 text-sm mb-2">Aucun formulaire</p>
-          {isAdminOrHr && (
-            <Link to="/forms/new" className="text-sm text-primary-600 hover:underline">
-              + Créer le premier formulaire
-            </Link>
-          )}
-        </div>
+        <EmptyState
+          icon={<FileText className="w-8 h-8" />}
+          title="Aucun formulaire"
+          description="Aucun formulaire ne correspond à vos critères."
+          action={isAdminOrHr ? { label: 'Créer le premier formulaire', onClick: () => window.location.assign('/forms/new') } : undefined}
+        />
       )}
 
       {/* Grille */}

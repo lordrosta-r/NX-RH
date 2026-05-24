@@ -7,6 +7,7 @@
 const bcrypt = require('bcrypt')
 const jwt    = require('jsonwebtoken')
 const User   = require('../models/User')
+const logger = require('../utils/logger')
 const { LOCALES, THEMES, NOTIF_PREF_KEYS, NOTIF_KEYS_BY_ROLE } = require('../config/constants')
 
 // ── Helper ────────────────────────────────────────────────────────────────────
@@ -62,7 +63,7 @@ async function login(email, password, remember) {
     .lean()
 
   if (!user || user.authSource !== 'local' || !user.passwordHash) {
-    console.warn('[auth] Login failed — user not found or wrong authSource:', email.toLowerCase())
+    logger.warn('[auth] Login failed — user not found or wrong authSource', { email: email.toLowerCase() })
     const err = makeError('Identifiants invalides', 401)
     err.loginFailed = true
     throw err
@@ -70,7 +71,7 @@ async function login(email, password, remember) {
 
   const valid = await bcrypt.compare(password, user.passwordHash)
   if (!valid) {
-    console.warn('[auth] Login failed — wrong password for:', email.toLowerCase())
+    logger.warn('[auth] Login failed — wrong password', { email: email.toLowerCase() })
     const err = makeError('Identifiants invalides', 401)
     err.loginFailed = true
     throw err

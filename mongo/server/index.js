@@ -11,6 +11,7 @@
 
 require('dotenv').config()
 
+const logger       = require('./utils/logger')
 const express      = require('express')
 const path         = require('path')
 const cookieParser = require('cookie-parser')
@@ -102,6 +103,22 @@ const mongoSanitize = require('express-mongo-sanitize')
 app.use(mongoSanitize())
 app.use(express.urlencoded({ extended: false, limit: '100kb' }))
 app.use(cookieParser())
+
+// ─── HTTP request logging ─────────────────────────────────────────────────────
+app.use((req, res, next) => {
+  const start = Date.now()
+  res.on('finish', () => {
+    const duration = Date.now() - start
+    logger.info('HTTP', {
+      method:   req.method,
+      path:     req.path,
+      status:   res.statusCode,
+      duration: `${duration}ms`,
+      ip:       req.ip,
+    })
+  })
+  next()
+})
 // Redirect /page.html → /page (strip .html extension)
 app.use((req, res, next) => {
   if (req.path.endsWith('.html')) {
@@ -200,11 +217,11 @@ app.use(errorHandler)
 
 // ─── Process-level error handlers ────────────────────────────────────────────
 process.on('unhandledRejection', (reason, promise) => {
-  console.error('[UnhandledRejection] Promesse non gérée :', reason)
+  logger.error('UnhandledRejection — Promesse non gérée', { reason: String(reason) })
 })
 
 process.on('uncaughtException', (err) => {
-  console.error('[UncaughtException] Erreur fatale :', err.message)
+  logger.error('UncaughtException — Erreur fatale', { error: err.message, stack: err.stack })
   process.exit(1)
 })
 
@@ -214,19 +231,19 @@ async function start() {
   const required = ['JWT_SECRET', 'MONGO_URI']
   for (const v of required) {
     if (!process.env[v]) {
-      console.error(`[Startup] Variable d'environnement manquante: ${v}`)
+      logger.error(`Variable d'environnement manquante: ${v}`)
       process.exit(1)
     }
   }
   if (process.env.JWT_SECRET.length < 32) {
-    console.error('[Startup] JWT_SECRET trop courte (minimum 32 caractères)')
+    logger.error('JWT_SECRET trop courte (minimum 32 caractères)')
     process.exit(1)
   }
 
   await connect()
   require('./services/scheduler').start()
   app.listen(PORT, () => {
-    console.log(`NanoXplore RH (MongoDB) → http://localhost:${PORT}`)
+    logger.info('NanoXplore RH démarré', { port: PORT, url: `http://localhost:${PORT}` })
   })
 }
 

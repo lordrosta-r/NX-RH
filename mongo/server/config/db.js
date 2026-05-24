@@ -5,11 +5,12 @@
 // =============================================================================
 
 const mongoose = require('mongoose')
+const logger   = require('../utils/logger')
 
 const MONGO_URI = process.env.MONGO_URI
 
 if (!MONGO_URI) {
-  console.error('[DB] MONGO_URI manquante — vérifiez votre fichier .env')
+  logger.error('[DB] MONGO_URI manquante — vérifiez votre fichier .env')
   process.exit(1)
 }
 
@@ -22,9 +23,9 @@ const OPTIONS = {
 async function connect() {
   try {
     await mongoose.connect(MONGO_URI, OPTIONS)
-    console.log('[DB] Connecté à MongoDB')
+    logger.info('[DB] Connecté à MongoDB')
   } catch (err) {
-    console.error('[DB] Connexion échouée :', err.message)
+    logger.error('[DB] Connexion échouée', { error: err.message })
     process.exit(1)
   }
 }
@@ -33,7 +34,7 @@ async function connect() {
 function gracefulShutdown(signal) {
   mongoose.connection.close()
     .then(() => {
-      console.log(`[DB] Connexion fermée (${signal})`)
+      logger.info('[DB] Connexion fermée', { signal })
       process.exit(0)
     })
     .catch(() => process.exit(1))

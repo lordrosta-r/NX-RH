@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { ClipboardList, Check, Calendar, BookOpen } from 'lucide-react'
+import { ClipboardList, Check, Calendar, BookOpen, ArrowRight, User, Clipboard, Folder } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import client from '../api/client'
 import { eventsApi } from '../api/events'
@@ -314,6 +314,33 @@ export default function DashboardEmployeePage() {
               ))}
             </div>
           )}
+        </div>
+      </div>
+    </div>
+    </div>
+
+      {/* ── Row 4 — Mes demandes ──────────────────────────────────────── */}
+
+      <div className="col-span-12">
+        <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
+          <h2 className="text-lg font-semibold text-slate-900 mb-4">Mes demandes</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {[
+              { label: 'Demande de mobilité', icon: <ArrowRight className="w-4 h-4" />, href: '/mobility/new' },
+              { label: 'Mise à jour profil',  icon: <User className="w-4 h-4" />,        href: '/profile' },
+              { label: 'Mes évaluations',     icon: <Clipboard className="w-4 h-4" />,   href: '/evaluations' },
+              { label: 'Documents RH',        icon: <Folder className="w-4 h-4" />,      href: '/documents' },
+            ].map(action => (
+              <Link
+                key={action.href}
+                to={action.href}
+                className="flex items-center gap-2 p-3 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition text-sm text-gray-700"
+              >
+                <span className="text-blue-500 flex-shrink-0">{action.icon}</span>
+                {action.label}
+              </Link>
+            ))}
+          </div>
         </div>
       </div>
     </div>

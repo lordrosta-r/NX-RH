@@ -3,6 +3,7 @@ import { useDebounce } from '../hooks/useDebounce'
 import { Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import { ClipboardList, Download, MoreHorizontal } from 'lucide-react'
+import EmptyState from '../components/ui/EmptyState'
 import { useAuth } from '../contexts/AuthContext'
 import { evaluationsApi } from '../api/evaluations'
 import { usersApi } from '../api/users'
@@ -274,9 +275,12 @@ export default function EvaluationsPage() {
                 ))
               ) : evaluations.length === 0 ? (
                 <tr>
-                  <td colSpan={isAdminOrHr ? 7 : 6} className="px-4 py-12 text-center">
-                    <ClipboardList className="w-10 h-10 text-slate-300 mx-auto mb-2" />
-                    <p className="text-slate-500">Aucune évaluation</p>
+                  <td colSpan={isAdminOrHr ? 7 : 6} className="px-4 py-4">
+                    <EmptyState
+                      icon={<ClipboardList className="w-8 h-8" />}
+                      title="Aucune évaluation"
+                      description="Aucune évaluation ne correspond aux critères sélectionnés."
+                    />
                   </td>
                 </tr>
               ) : evaluations.map(ev => (
@@ -362,10 +366,11 @@ export default function EvaluationsPage() {
           {isLoading ? (
             [...Array(3)].map((_, i) => <div key={i} className="h-20 bg-slate-100 rounded-xl animate-pulse" />)
           ) : evaluations.length === 0 ? (
-            <div className="text-center py-16">
-              <ClipboardList className="w-12 h-12 text-slate-200 mx-auto mb-3" />
-              <p className="text-slate-500">Aucune évaluation en cours.</p>
-            </div>
+            <EmptyState
+              icon={<ClipboardList className="w-8 h-8" />}
+              title="Aucune évaluation en cours"
+              description="Vous n'avez pas d'évaluation active pour le moment."
+            />
           ) : evaluations.map(ev => (
             <div key={ev.id} className="bg-white rounded-xl border border-slate-200 p-4 flex items-center justify-between">
               <div>

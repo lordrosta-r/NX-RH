@@ -12,6 +12,7 @@
 // =============================================================================
 
 const { sendMail }    = require('./mailer')
+const logger          = require('../utils/logger')
 const { NOTIF_KEYS_BY_ROLE } = require('../config/constants')
 // MailTemplate chargé dynamiquement pour éviter les dépendances circulaires au démarrage
 let _MailTemplate = null
@@ -127,7 +128,7 @@ async function notify(key, user, data = {}) {
     await sendMail({ to: user.email, subject, text, html })
     return true
   } catch (err) {
-    console.error(`[NotificationService] Failed to send "${key}" to ${user.email}:`, err.message)
+    logger.error('[NotificationService] Failed to send notification', { key, email: user.email, error: err.message })
     return false
   }
 }
@@ -187,7 +188,7 @@ async function sendToUser(userId, key, data = {}) {
     await sendMail({ to: user.email, subject, text, html })
     return true
   } catch (err) {
-    console.error(`[NotificationService] sendToUser failed "${key}" to ${user.email}:`, err.message)
+    logger.error('[NotificationService] sendToUser failed', { key, email: user.email, error: err.message })
     return false
   }
 }

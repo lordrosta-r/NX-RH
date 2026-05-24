@@ -1,39 +1,15 @@
 import { Link } from 'react-router-dom'
-import { ClipboardList, Users, Bell, Calendar } from 'lucide-react'
+import { ClipboardList, Users, Calendar, TrendingUp, AlertTriangle } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
-import { useDashboardManager } from '../hooks/useDashboardByRole'
+import { useDashboardManager, useDashboardManagerStats } from '../hooks/useDashboardByRole'
+import { KpiCard } from '../components/KpiCard'
 import { StatusBadge } from '../components/ui'
 import { eventsApi } from '../api/events'
 import { campaignsApi } from '../api/campaigns'
 import type { Evaluation, Campaign } from '../types'
 import { getCampaignName } from '../types'
 
-interface KpiCardProps {
-  label: string
-  value: string | number
-  icon: React.ReactNode
-  color: 'primary' | 'success' | 'warning' | 'error'
-}
 
-function KpiCard({ label, value, icon, color }: KpiCardProps) {
-  const colorMap = {
-    primary: 'bg-primary-50 text-primary-600',
-    success: 'bg-success-50 text-success-600',
-    warning: 'bg-warning-50 text-warning-600',
-    error:   'bg-error-50 text-error-600',
-  }
-  return (
-    <div className="col-span-4 bg-white rounded-xl shadow-sm border border-slate-100 p-6">
-      <div className="flex items-center justify-between mb-3">
-        <span className="text-sm font-medium text-slate-500">{label}</span>
-        <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${colorMap[color]}`}>
-          {icon}
-        </div>
-      </div>
-      <p className="text-3xl font-bold text-slate-900">{value}</p>
-    </div>
-  )
-}
 
 function progressWidth(ev: Evaluation): string {
   switch (ev.status) {
@@ -203,6 +179,7 @@ function ActiveCampaigns() {
 
 export default function DashboardManagerPage() {
   const { evaluations } = useDashboardManager()
+  const stats = useDashboardManagerStats()
 
   const { data: eventsData } = useQuery({
     queryKey: ['dashboard-manager-events'],
@@ -247,25 +224,47 @@ export default function DashboardManagerPage() {
       </div>
 
       {/* KPI row */}
-      <div className="grid grid-cols-12 gap-6 mb-6">
-        <KpiCard
-          label="Évals à compléter"
-          value={toCompleteCount}
-          icon={<ClipboardList size={18} />}
-          color="warning"
-        />
-        <KpiCard
-          label="Équipe en attente"
-          value={waitingCount}
-          icon={<Users size={18} />}
-          color="primary"
-        />
-        <KpiCard
-          label="Rappels deadline"
-          value={0}
-          icon={<Bell size={18} />}
-          color="error"
-        />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {stats.isLoading ? (
+          Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-28 bg-gray-200 animate-pulse rounded-xl" />
+          ))
+        ) : (
+          <>
+            <KpiCard
+              title="Évals à compléter"
+              value={stats.data?.evaluations?.pending ?? toCompleteCount}
+              icon={<ClipboardList size={18} />}
+              color="orange"
+              isLoading={stats.isLoading}
+            />
+            <KpiCard
+              title="Taux de complétion"
+              value={
+                stats.data?.completionRate != null
+                  ? `${stats.data.completionRate}%`
+                  : '—'
+              }
+              icon={<TrendingUp size={18} />}
+              color="green"
+              isLoading={stats.isLoading}
+            />
+            <KpiCard
+              title="Taille de l'équipe"
+              value={stats.data?.teamSize ?? waitingCount}
+              icon={<Users size={18} />}
+              color="blue"
+              isLoading={stats.isLoading}
+            />
+            <KpiCard
+              title="En retard"
+              value={stats.data?.evaluations?.overdue ?? 0}
+              icon={<AlertTriangle size={18} />}
+              color="red"
+              isLoading={stats.isLoading}
+            />
+          </>
+        )}
       </div>
 
       {/* Middle row: evals to complete + my team */}

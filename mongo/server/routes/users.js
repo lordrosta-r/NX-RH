@@ -5,6 +5,8 @@ const bcrypt = require('bcrypt')
 const router = require('express').Router()
 const { User, Evaluation, AuditLog } = require('../models')
 const { ROLES, ADMIN_ROLES, NOTIF_KEYS_BY_ROLE } = require('../config/constants')
+const validate = require('../middleware/validate')
+const { createUser, updateUser } = require('../validators/userValidators')
 
 function allowedNotifKeysFor(role) {
   return NOTIF_KEYS_BY_ROLE[role] || NOTIF_KEYS_BY_ROLE.employee
@@ -129,7 +131,7 @@ router.get('/:id', async (req, res, next) => {
 })
 
 // POST /api/users — Crée un utilisateur (admin/hr seulement)
-router.post('/', async (req, res, next) => {
+router.post('/', validate(createUser), async (req, res, next) => {
   try {
     if (!ADMIN_ROLES.includes(req.user.role)) {
       return res.status(403).json({ error: 'Permissions insuffisantes' })
@@ -173,7 +175,7 @@ router.post('/', async (req, res, next) => {
 })
 
 // PATCH /api/users/:id — Modifie un utilisateur
-router.patch('/:id', async (req, res, next) => {
+router.patch('/:id', validate(updateUser), async (req, res, next) => {
   try {
     if (!mongoose.isValidObjectId(req.params.id)) {
       return res.status(400).json({ error: 'ID invalide' })

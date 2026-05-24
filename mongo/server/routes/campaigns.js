@@ -99,6 +99,23 @@ router.get('/', async (req, res, next) => {
       filter.status = 'active'
     }
 
+    // ── RBAC : restriction de visibilité par rôle ───────────────────────────
+    if (!ADMIN_ROLES.includes(req.user.role)) {
+      const uid = req.user._id
+      if (req.user.role === 'employee') {
+        const evals = await Evaluation.find({ evaluateeId: uid }, 'campaignId').lean()
+        filter._id = { $in: evals.map(e => e.campaignId) }
+      } else {
+        // manager, director
+        const evals = await Evaluation.find({ evaluatorId: uid }, 'campaignId').lean()
+        filter.$or = [
+          { createdBy: uid },
+          { 'extendedVisibility.managerId': uid },
+          { _id: { $in: evals.map(e => e.campaignId) } },
+        ]
+      }
+    }
+
     const page  = Math.max(1, parseInt(req.query.page)  || 1)
     const limit = Math.min(100, parseInt(req.query.limit) || 50)
     const skip  = (page - 1) * limit
@@ -148,6 +165,26 @@ router.get('/:id', async (req, res, next) => {
       .lean()
 
     if (!campaign) return res.status(404).json({ error: 'Campagne introuvable' })
+
+    // ── RBAC filtre visibilité ──────────────────────────────────────────
+    const { role, _id: userId } = req.user
+    if (role !== 'admin' && role !== 'hr') {
+      const isCreator = campaign.createdBy && campaign.createdBy._id
+        ? campaign.createdBy._id.toString() === userId.toString()
+        : campaign.createdBy?.toString() === userId.toString()
+      const hasExtendedVisibility = campaign.extendedVisibility?.some(
+        ev => ev.managerId?.toString() === userId.toString()
+      )
+      let hasEvaluation = false
+      if (role === 'employee') {
+        hasEvaluation = await Evaluation.exists({ campaignId: campaign._id, evaluateeId: userId })
+      } else if (role === 'manager' || role === 'director') {
+        hasEvaluation = await Evaluation.exists({ campaignId: campaign._id, evaluatorId: userId })
+      }
+      if (!isCreator && !hasExtendedVisibility && !hasEvaluation) {
+        return res.status(403).json({ error: 'Accès non autorisé à cette campagne' })
+      }
+    }
 
     // Stats de complétion
     const stats = await Evaluation.aggregate([
@@ -536,6 +573,26 @@ router.get('/:id/analytics', async (req, res, next) => {
     const campaignId = new mongoose.Types.ObjectId(req.params.id)
     const campaign = await Campaign.findById(campaignId).lean()
     if (!campaign) return res.status(404).json({ error: 'Campagne introuvable' })
+
+    // ── RBAC filtre visibilité ──────────────────────────────────────────
+    const { role, _id: userId } = req.user
+    if (role !== 'admin' && role !== 'hr') {
+      const isCreator = campaign.createdBy && campaign.createdBy._id
+        ? campaign.createdBy._id.toString() === userId.toString()
+        : campaign.createdBy?.toString() === userId.toString()
+      const hasExtendedVisibility = campaign.extendedVisibility?.some(
+        ev => ev.managerId?.toString() === userId.toString()
+      )
+      let hasEvaluation = false
+      if (role === 'employee') {
+        hasEvaluation = await Evaluation.exists({ campaignId: campaign._id, evaluateeId: userId })
+      } else if (role === 'manager' || role === 'director') {
+        hasEvaluation = await Evaluation.exists({ campaignId: campaign._id, evaluatorId: userId })
+      }
+      if (!isCreator && !hasExtendedVisibility && !hasEvaluation) {
+        return res.status(403).json({ error: 'Accès non autorisé à cette campagne' })
+      }
+    }
 
     const COMPLETED = ['submitted', 'reviewed', 'signed_evaluatee', 'signed_manager', 'signed_hr', 'validated']
 

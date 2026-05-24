@@ -91,7 +91,7 @@ export default function OrgSidePanel({
             </span>
           </div>
         </div>
-        <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-slate-600 rounded-md hover:bg-slate-100 mt-0.5">
+        <button onClick={onClose} aria-label="Fermer" className="p-1.5 text-slate-400 hover:text-slate-600 rounded-md hover:bg-slate-100 mt-0.5">
           <X size={16} />
         </button>
       </div>

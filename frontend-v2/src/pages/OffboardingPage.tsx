@@ -98,7 +98,7 @@ function SlideOverForm({
       <div className="relative bg-white w-full max-w-md h-full overflow-y-auto shadow-xl flex flex-col">
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
           <h2 className="text-lg font-semibold text-slate-900">Nouvelle demande de départ</h2>
-          <button onClick={onClose} className="p-1 rounded-md hover:bg-slate-100 transition-colors">
+          <button onClick={onClose} aria-label="Fermer" className="p-1 rounded-md hover:bg-slate-100 transition-colors">
             <X className="w-5 h-5 text-slate-500" />
           </button>
         </div>
@@ -327,6 +327,7 @@ export default function OffboardingPage() {
                         <div className="relative inline-block">
                           <button
                             onClick={() => setOpenMenu(openMenu === rec.id ? null : rec.id)}
+                            aria-label="Afficher les actions"
                             className="p-1.5 rounded-md hover:bg-slate-100 transition-colors text-slate-400"
                           >
                             <MoreVertical className="w-4 h-4" />

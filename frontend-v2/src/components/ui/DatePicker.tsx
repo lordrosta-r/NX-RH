@@ -97,6 +97,7 @@ export default function DatePicker({ value, onChange, minDate, maxDate, placehol
               type="button"
               onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1))}
               className="p-1 rounded hover:bg-slate-100 text-slate-600"
+              aria-label="Mois précédent"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
@@ -107,6 +108,7 @@ export default function DatePicker({ value, onChange, minDate, maxDate, placehol
               type="button"
               onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1))}
               className="p-1 rounded hover:bg-slate-100 text-slate-600"
+              aria-label="Mois suivant"
             >
               <ChevronRight className="w-4 h-4" />
             </button>

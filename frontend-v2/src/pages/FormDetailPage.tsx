@@ -283,6 +283,7 @@ export default function FormDetailPage() {
                             setQuestions(qs => { const a = [...qs]; [a[idx - 1], a[idx]] = [a[idx], a[idx - 1]]; return a })
                             setIsDirty(true)
                           }}
+                          aria-label="Déplacer vers le haut"
                           className="text-slate-300 hover:text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed"
                         >
                           <ChevronUp className="w-4 h-4" />
@@ -294,6 +295,7 @@ export default function FormDetailPage() {
                             setQuestions(qs => { const a = [...qs]; [a[idx], a[idx + 1]] = [a[idx + 1], a[idx]]; return a })
                             setIsDirty(true)
                           }}
+                          aria-label="Déplacer vers le bas"
                           className="text-slate-300 hover:text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed"
                         >
                           <ChevronDown className="w-4 h-4" />
@@ -344,6 +346,7 @@ export default function FormDetailPage() {
                         onClick={() => { setQuestions(qs => qs.filter(x => x.id !== q.id)); setIsDirty(true) }}
                         className="text-slate-300 hover:text-error-500 transition-colors p-1"
                         title="Supprimer la question"
+                        aria-label="Supprimer la question"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>

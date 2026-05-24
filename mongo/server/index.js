@@ -47,7 +47,8 @@ const hrSettingsRoutes    = require('./routes/hr/settings')
 const groupsRoutes        = require('./routes/admin/groups')
 const adminStatusRoutes   = require('./routes/admin/status')
 const adminEnvCheckRoutes = require('./routes/admin/envCheck')
-const userBulkRoutes      = require('./routes/users/bulk')
+const userBulkRoutes          = require('./routes/users/bulk')
+const evaluationBulkRoutes    = require('./routes/evaluations/bulk')
 const searchRoutes        = require('./routes/search')
 
 // ─── App setup ───────────────────────────────────────────────────────────────
@@ -178,7 +179,7 @@ app.use('/api/forms/template',   mutationLimiter, authGuard(['admin', 'hr']), fo
 app.use('/api/forms/import',     mutationLimiter, authGuard(['admin', 'hr']), formImportRoutes)
 app.use('/api/forms/:id/export', mutationLimiter, authGuard(['admin', 'hr']), formImportRoutes)
 app.use('/api/forms',       mutationLimiter, authenticated, formRoutes)
-app.use('/api/evaluations/bulk', mutationLimiter, authGuard(['admin', 'hr']))
+app.use('/api/evaluations/bulk', mutationLimiter, authGuard(['admin', 'hr']), evaluationBulkRoutes)
 app.use('/api/evaluations', authenticated, evaluationRoutes)
 app.use('/api/analytics',   apiLimiter, authenticated, analyticsRoutes)
 app.use('/api/events',      mutationLimiter, authenticated, eventRoutes)

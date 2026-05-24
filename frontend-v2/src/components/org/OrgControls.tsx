@@ -14,6 +14,7 @@ export default function OrgControls() {
         onClick={() => zoomIn({ duration: 200 })}
         className="w-9 h-9 bg-white rounded-lg shadow-md border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
         title="Zoom avant"
+        aria-label="Zoom avant"
       >
         <ZoomIn size={16} />
       </button>
@@ -21,6 +22,7 @@ export default function OrgControls() {
         onClick={() => zoomOut({ duration: 200 })}
         className="w-9 h-9 bg-white rounded-lg shadow-md border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
         title="Zoom arrière"
+        aria-label="Zoom arrière"
       >
         <ZoomOut size={16} />
       </button>
@@ -28,6 +30,7 @@ export default function OrgControls() {
         onClick={handleCenter}
         className="w-9 h-9 bg-white rounded-lg shadow-md border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
         title="Centrer"
+        aria-label="Centrer"
       >
         <Crosshair size={16} />
       </button>
@@ -35,6 +38,7 @@ export default function OrgControls() {
         onClick={() => fitView({ padding: 0.15, duration: 400 })}
         className="w-9 h-9 bg-white rounded-lg shadow-md border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
         title="Ajuster à l'écran"
+        aria-label="Ajuster à l'écran"
       >
         <Maximize2 size={16} />
       </button>

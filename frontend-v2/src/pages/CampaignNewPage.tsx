@@ -115,6 +115,7 @@ function ChipInput({
               <button
                 type="button"
                 onClick={() => onChange(values.filter(x => x !== v))}
+                aria-label={`Supprimer ${v}`}
                 className="ml-0.5 hover:text-primary-900 font-bold"
               >
                 ×

@@ -4,6 +4,7 @@ const express    = require('express')
 const router     = express.Router()
 const { authGuard }                     = require('../middleware/authGuard')
 const { Campaign, Evaluation, User }    = require('../models')
+const logger                            = require('../utils/logger')
 
 const authenticated = authGuard(['admin', 'hr', 'director', 'manager', 'employee'])
 
@@ -104,7 +105,7 @@ router.get('/', authenticated, async (req, res) => {
 
     return res.json({ role, ...data })
   } catch (err) {
-    console.error('[dashboard]', err)
+    logger.error('[dashboard]', { error: err.message })
     return res.status(500).json({ error: 'Erreur serveur' })
   }
 })

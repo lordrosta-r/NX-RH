@@ -197,7 +197,7 @@ router.patch('/:evalId/status', ADMIN_HR, async (req, res, next) => {
       )
       User.findById(evaluateeId).lean()
         .then(u => u && notificationService.notify('request_treated', u, { formTitle, evalId: evaluation._id.toString() }))
-        .catch(err => console.error('[flag-notify email]', err))
+        .catch(err => logger.error('[flag-notify email]', { error: err.message }))
     }
 
     // ── Notification : demande refusée ou note ajoutée ────────────────────────
@@ -212,7 +212,7 @@ router.patch('/:evalId/status', ADMIN_HR, async (req, res, next) => {
       )
       User.findById(evaluateeId).lean()
         .then(u => u && notificationService.notify('request_rejected', u, { formTitle, note: note || '', evalId: evaluation._id.toString() }))
-        .catch(err => console.error('[flag-reject email]', err))
+        .catch(err => logger.error('[flag-reject email]', { error: err.message }))
     }
 
     res.json(evaluation.toObject())

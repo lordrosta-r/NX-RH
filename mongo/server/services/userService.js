@@ -9,6 +9,7 @@ const bcrypt   = require('bcrypt')
 const crypto   = require('crypto')
 const { User, Evaluation, AuditLog } = require('../models')
 const { ROLES } = require('../config/constants')
+const logger   = require('../utils/logger')
 
 // ── Helper ────────────────────────────────────────────────────────────────────
 
@@ -220,7 +221,7 @@ async function offboardUser(userId, body) {
     })
   } catch (err) {
     if (err.code === 20 || err.message?.includes('Transaction') || err.message?.includes('replica')) {
-      console.warn('[offboard] Transactions non disponibles, exécution séquentielle')
+      logger.warn('[offboard] Transactions non disponibles, exécution séquentielle')
       await user.save()
       await Evaluation.updateMany(evalFilter, { $set: { status: 'archived' } })
     } else {

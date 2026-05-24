@@ -1,40 +1,106 @@
 import { Link } from 'react-router-dom'
-import { Settings, Server, Shield, Users, SlidersHorizontal, Network, Mail, Wrench, Inbox, UsersRound, Activity, Rocket } from 'lucide-react'
+import { Users, ClipboardList, Briefcase, Mail, Settings } from 'lucide-react'
 
-const cards = [
-  { icon: Settings, color: 'bg-primary-100 text-primary-600', title: 'Config système', desc: 'Clés de configuration, SMTP, feature flags', to: '/admin/config' },
-  { icon: Server, color: 'bg-blue-100 text-blue-600', title: 'LDAP', desc: "Annuaire d'entreprise, synchronisation", to: '/admin/ldap' },
-  { icon: Shield, color: 'bg-amber-100 text-amber-600', title: "Journal d'audit", desc: "Piste d'audit complète des actions", to: '/admin/audit' },
-  { icon: Users, color: 'bg-purple-100 text-purple-600', title: 'Utilisateurs', desc: 'Gestion des comptes, rôles, import CSV', to: '/admin/users' },
-  { icon: SlidersHorizontal, color: 'bg-green-100 text-green-600', title: 'Paramètres RH', desc: 'Branding, notifications, politiques RH', to: '/admin/settings' },
-  { icon: Network, color: 'bg-rose-100 text-rose-600', title: 'Organigramme', desc: 'Visualiser et gérer la hiérarchie', to: '/admin/orgchart' },
-  { icon: Mail, color: 'bg-indigo-100 text-indigo-600', title: 'Email templates', desc: 'Personnaliser les emails envoyés aux utilisateurs', to: '/admin/mail-templates' },
-  { icon: Wrench, color: 'bg-slate-100 text-slate-600', title: 'Import formulaires', desc: 'Importer des templates de formulaires JSON/CSV', to: '/admin/forms/import' },
-  { icon: Inbox, color: 'bg-orange-100 text-orange-600', title: 'Demandes RH', desc: 'Mobilité, augmentation, promotion, formation', to: '/hr/flags' },
-  { icon: UsersRound, color: 'bg-teal-100 text-teal-600', title: "Groupes d'utilisateurs", desc: 'Créer et gérer des groupes pour cibler les campagnes', to: '/users/groups' },
-  { icon: Activity, color: 'bg-emerald-100 text-emerald-600', title: 'Santé système', desc: 'Statut MongoDB, SMTP, LDAP en temps réel', to: '/admin/status' },
-  { icon: Rocket, color: 'bg-violet-100 text-violet-600', title: 'Configuration initiale', desc: 'Wizard de premier démarrage', to: '/admin/setup' },
+// ─── Palette helpers (full class names for Tailwind JIT) ──────────────────────
+
+const iconBg: Record<string, string> = {
+  blue:   'bg-blue-100 text-blue-600',
+  green:  'bg-green-100 text-green-600',
+  purple: 'bg-purple-100 text-purple-600',
+  orange: 'bg-orange-100 text-orange-600',
+  gray:   'bg-gray-100 text-gray-600',
+}
+
+// ─── Data ─────────────────────────────────────────────────────────────────────
+
+const adminFamilies = [
+  {
+    id: 'users',
+    title: 'Utilisateurs',
+    icon: <Users className="w-5 h-5" />,
+    color: 'blue',
+    items: [
+      { label: 'Gestion des utilisateurs', href: '/admin/users',        desc: 'Créer, modifier, désactiver' },
+      { label: 'Import CSV',               href: '/admin/users/import', desc: 'Importer en masse' },
+      { label: 'Groupes & équipes',        href: '/admin/groups',       desc: 'Organiser par équipe' },
+      { label: 'Organigramme',             href: '/org',                desc: 'Visualiser la hiérarchie' },
+    ],
+  },
+  {
+    id: 'campaigns',
+    title: 'Campagnes & Évaluations',
+    icon: <ClipboardList className="w-5 h-5" />,
+    color: 'green',
+    items: [
+      { label: 'Campagnes',           href: '/campaigns',   desc: 'Créer et gérer les campagnes' },
+      { label: 'Formulaires',         href: '/forms',       desc: "Templates d'évaluation" },
+      { label: 'Suivi des évaluations', href: '/evaluations', desc: 'Toutes les évaluations' },
+    ],
+  },
+  {
+    id: 'hr',
+    title: 'RH & Mobilité',
+    icon: <Briefcase className="w-5 h-5" />,
+    color: 'purple',
+    items: [
+      { label: 'Demandes de mobilité', href: '/admin/mobility', desc: 'Suivre les demandes' },
+      { label: 'Onboarding',           href: '/onboarding',     desc: 'Nouveaux arrivants' },
+      { label: 'Offboarding',          href: '/offboarding',    desc: 'Départs' },
+    ],
+  },
+  {
+    id: 'communication',
+    title: 'Communication',
+    icon: <Mail className="w-5 h-5" />,
+    color: 'orange',
+    items: [
+      { label: 'Templates email',      href: '/admin/mail-templates', desc: 'Personnaliser les emails' },
+      { label: "Test d'envoi",         href: '/admin/mail-test',      desc: 'Tester la configuration' },
+      { label: 'Configuration SMTP',   href: '/admin/mail-config',    desc: 'Paramètres serveur mail' },
+    ],
+  },
+  {
+    id: 'system',
+    title: 'Système',
+    icon: <Settings className="w-5 h-5" />,
+    color: 'gray',
+    items: [
+      { label: 'Configuration LDAP',  href: '/admin/ldap',      desc: 'Synchronisation annuaire' },
+      { label: 'Journaux système',    href: '/admin/logs',      desc: 'Logs et audits' },
+      { label: 'Paramètres généraux', href: '/admin/settings',  desc: 'Configuration globale' },
+    ],
+  },
 ]
+
+// ─── Component ────────────────────────────────────────────────────────────────
 
 export default function AdminHubPage() {
   return (
     <div>
       <h1 className="text-3xl font-bold text-slate-900 mb-8">Administration</h1>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {cards.map(({ icon: Icon, color, title, desc, to }) => (
-          <Link
-            key={to}
-            to={to}
-            className="bg-white rounded-2xl shadow p-6 flex flex-col gap-4 hover:shadow-lg hover:scale-[1.01] transition-all duration-150"
-          >
-            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${color}`}>
-              <Icon size={24} />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {adminFamilies.map(family => (
+          <div key={family.id} className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+            <div className="flex items-center gap-3 mb-4">
+              <div className={`p-2 rounded-lg ${iconBg[family.color]}`}>
+                {family.icon}
+              </div>
+              <h2 className="font-semibold text-gray-800">{family.title}</h2>
             </div>
-            <div>
-              <p className="font-bold text-slate-900">{title}</p>
-              <p className="text-sm text-slate-500 mt-1">{desc}</p>
-            </div>
-          </Link>
+            <ul className="space-y-1">
+              {family.items.map(item => (
+                <li key={item.href}>
+                  <Link
+                    to={item.href}
+                    className="flex flex-col hover:bg-gray-50 rounded-lg p-2 -mx-2 transition"
+                  >
+                    <span className="text-sm font-medium text-gray-700">{item.label}</span>
+                    <span className="text-xs text-gray-400">{item.desc}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
         ))}
       </div>
     </div>

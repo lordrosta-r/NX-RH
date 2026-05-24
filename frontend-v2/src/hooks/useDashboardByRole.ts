@@ -12,6 +12,13 @@ interface CampaignListResponse {
   total: number
 }
 
+export interface DashboardManagerStats {
+  evaluations: { total: number; completed: number; pending: number; overdue: number }
+  campaigns: { total: number }
+  completionRate: number
+  teamSize: number
+}
+
 export function useDashboardDirector() {
   const evaluations = useQuery({
     queryKey: ['dashboard-director', 'evaluations'],
@@ -42,4 +49,15 @@ export function useDashboardManager() {
   })
 
   return { evaluations }
+}
+
+export function useDashboardManagerStats() {
+  return useQuery<DashboardManagerStats>({
+    queryKey: ['dashboard', 'manager', 'stats'],
+    queryFn: () =>
+      client
+        .get<{ data: DashboardManagerStats }>('/api/dashboard/manager')
+        .then(r => r.data.data),
+    staleTime: 5 * 60 * 1000,
+  })
 }

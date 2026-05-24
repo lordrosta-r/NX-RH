@@ -3,6 +3,7 @@ import { useDebounce } from '../hooks/useDebounce'
 import { Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { BarChart2, Search, Plus, MoreVertical, Download } from 'lucide-react'
+import EmptyState from '../components/ui/EmptyState'
 import { useAuth } from '../contexts/AuthContext'
 import { campaignsApi } from '../api/campaigns'
 import { toast } from '../hooks/useToast'
@@ -265,19 +266,12 @@ export default function CampaignsPage() {
         {isLoading ? (
           <div className="p-10 text-center text-slate-400 text-sm">Chargement…</div>
         ) : isEmpty ? (
-          <div className="p-12 text-center">
-            <BarChart2 className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-            <p className="text-slate-500 font-medium mb-2">Aucune campagne</p>
-            {canManage && (
-              <Link
-                to="/campaigns/new"
-                className="inline-flex items-center gap-1 text-sm text-primary-600 hover:text-primary-700 font-medium"
-              >
-                <Plus className="w-4 h-4" />
-                Créer la première campagne
-              </Link>
-            )}
-          </div>
+          <EmptyState
+            icon={<BarChart2 className="w-8 h-8" />}
+            title="Aucune campagne"
+            description="Aucune campagne ne correspond à vos critères."
+            action={canManage ? { label: 'Créer la première campagne', onClick: () => window.location.assign('/campaigns/new') } : undefined}
+          />
         ) : (
           <>
             {/* Desktop table */}

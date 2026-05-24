@@ -109,4 +109,83 @@ router.get('/', authenticated, async (req, res) => {
   }
 })
 
+// ─── GET /api/dashboard/hr ────────────────────────────────────────────────────
+const hrOnly      = authGuard(['admin', 'hr'])
+const managerOnly = authGuard(['admin', 'hr', 'manager'])
+
+router.get('/hr', hrOnly, async (req, res, next) => {
+  try {
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+    const completedStatuses = ['submitted', 'reviewed', 'signed_evaluatee', 'signed_manager', 'signed_hr', 'validated']
+
+    const [
+      totalUsers,
+      activeUsers,
+      campaignsActive,
+      campaignsDraft,
+      evaluationsTotal,
+      evaluationsCompleted,
+      evaluationsPending,
+      recentCampaigns,
+    ] = await Promise.all([
+      User.countDocuments({ isActive: true }),
+      User.countDocuments({ isActive: true, lastLoginAt: { $gte: thirtyDaysAgo } }),
+      Campaign.countDocuments({ status: 'active' }),
+      Campaign.countDocuments({ status: 'draft' }),
+      Evaluation.countDocuments({}),
+      Evaluation.countDocuments({ status: { $in: completedStatuses } }),
+      Evaluation.countDocuments({ status: { $in: ['assigned', 'in_progress'] } }),
+      Campaign.find({ status: 'active' }).sort({ createdAt: -1 }).limit(5).select('name status createdAt').lean(),
+    ])
+
+    res.json({
+      data: {
+        users: { total: totalUsers, active: activeUsers },
+        campaigns: { active: campaignsActive, draft: campaignsDraft },
+        evaluations: {
+          total: evaluationsTotal,
+          completed: evaluationsCompleted,
+          pending: evaluationsPending,
+          completionRate: evaluationsTotal
+            ? Math.round((evaluationsCompleted / evaluationsTotal) * 100)
+            : 0,
+        },
+        recentCampaigns,
+      },
+    })
+  } catch (err) { next(err) }
+})
+
+// ─── GET /api/dashboard/manager ───────────────────────────────────────────────
+router.get('/manager', managerOnly, async (req, res, next) => {
+  try {
+    const managerId        = req.user.id
+    const completedStatuses = ['submitted', 'reviewed', 'signed_evaluatee', 'signed_manager', 'signed_hr', 'validated']
+
+    const teamMembers = await User.find({ managerId, isActive: true }).select('_id').lean()
+    const teamIds     = teamMembers.map(u => u._id)
+
+    const [myTeamEvals, completed, pending, overdue, activeCampaigns] = await Promise.all([
+      Evaluation.countDocuments({ evaluateeId: { $in: teamIds } }),
+      Evaluation.countDocuments({ evaluateeId: { $in: teamIds }, status: { $in: completedStatuses } }),
+      Evaluation.countDocuments({ evaluateeId: { $in: teamIds }, status: { $in: ['assigned', 'in_progress'] } }),
+      Evaluation.countDocuments({
+        evaluateeId: { $in: teamIds },
+        status: { $in: ['assigned', 'in_progress'] },
+        expiresAt: { $lt: new Date() },
+      }),
+      Campaign.countDocuments({ status: 'active' }),
+    ])
+
+    res.json({
+      data: {
+        evaluations: { total: myTeamEvals, completed, pending, overdue },
+        campaigns: { total: activeCampaigns },
+        completionRate: myTeamEvals ? Math.round((completed / myTeamEvals) * 100) : 0,
+        teamSize: teamIds.length,
+      },
+    })
+  } catch (err) { next(err) }
+})
+
 module.exports = router

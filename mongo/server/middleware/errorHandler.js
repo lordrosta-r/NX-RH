@@ -16,7 +16,8 @@
 //  - Toutes les autres        → 500 (message masqué en prod)
 // =============================================================================
 
-const jwt = require('jsonwebtoken')
+const jwt    = require('jsonwebtoken')
+const logger = require('../utils/logger')
 
 // eslint-disable-next-line no-unused-vars
 function errorHandler(err, _req, res, _next) {
@@ -53,10 +54,10 @@ function errorHandler(err, _req, res, _next) {
 
   // ─── Masquer les détails 500 en production ────────────────────────────────
   if (status === 500 && process.env.NODE_ENV === 'production') {
-    console.error('[Error 500]', err)
+    logger.error('Error 500', { error: err.message, stack: err.stack })
     message = 'Internal server error'
   } else {
-    console.error(`[Error ${status}]`, err.message)
+    logger.error(`Error ${status}`, { error: err.message })
   }
 
   res.status(status).json({ error: message })

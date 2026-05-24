@@ -1,39 +1,8 @@
 import { Link } from 'react-router-dom'
-import { BarChart2, CheckSquare, ClipboardList, AlertCircle } from 'lucide-react'
-import { useDashboardHr } from '../hooks/useDashboard'
+import { BarChart2, AlertCircle, Users, TrendingUp, Clock } from 'lucide-react'
+import { useDashboardHr, useDashboardHrStats } from '../hooks/useDashboard'
+import { KpiCard } from '../components/KpiCard'
 import type { Campaign } from '../types'
-
-// ─── KPI Card ────────────────────────────────────────────────────────────────
-
-function KpiCard({
-  label,
-  value,
-  icon: Icon,
-  colorClass,
-  isLoading,
-}: {
-  label: string
-  value: number | string
-  icon: React.ComponentType<{ className?: string }>
-  colorClass: string
-  isLoading?: boolean
-}) {
-  return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
-      <div className="flex items-center justify-between mb-4">
-        <span className="text-sm font-medium text-slate-500">{label}</span>
-        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${colorClass}`}>
-          <Icon className="w-5 h-5" />
-        </div>
-      </div>
-      {isLoading ? (
-        <div className="h-8 bg-slate-200 rounded animate-pulse w-16" />
-      ) : (
-        <p className="text-3xl font-bold text-slate-900">{value ?? '—'}</p>
-      )}
-    </div>
-  )
-}
 
 // ─── Campaign mini-card ───────────────────────────────────────────────────────
 
@@ -64,7 +33,8 @@ function CampaignCard({ campaign }: { campaign: Campaign }) {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function DashboardHrPage() {
-  const { campaigns, flags } = useDashboardHr()
+  const { campaigns } = useDashboardHr()
+  const stats = useDashboardHrStats()
 
   const isLoading = campaigns.isLoading
   const isError = campaigns.isError
@@ -99,8 +69,6 @@ export default function DashboardHrPage() {
     )
   }
 
-  const totalCampaigns = campaigns.data?.data?.total ?? 0
-  const flagsCount = flags.data?.data?.total ?? 0
   const campaignList = campaigns.data?.data?.data ?? []
 
   return (
@@ -124,32 +92,49 @@ export default function DashboardHrPage() {
         </div>
       </div>
 
-      {/* KPI Grid — 3 cols */}
-      <div className="grid grid-cols-12 gap-6 mb-6">
-        <div className="col-span-4">
-          <KpiCard
-            label="Campagnes actives"
-            value={totalCampaigns}
-            icon={BarChart2}
-            colorClass="bg-primary-50 text-primary-500"
-          />
-        </div>
-        <div className="col-span-4">
-          <KpiCard
-            label="Évals à signer"
-            value={0}
-            icon={CheckSquare}
-            colorClass="bg-warning-50 text-warning-500"
-          />
-        </div>
-        <div className="col-span-4">
-          <KpiCard
-            label="Évals soumises"
-            value={flagsCount}
-            icon={ClipboardList}
-            colorClass="bg-success-50 text-success-500"
-          />
-        </div>
+      {/* KPI Grid — 4 cols */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {stats.isLoading ? (
+          Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-28 bg-gray-200 animate-pulse rounded-xl" />
+          ))
+        ) : (
+          <>
+            <KpiCard
+              title="Utilisateurs actifs"
+              value={stats.data?.users?.active}
+              total={stats.data?.users?.total}
+              icon={<Users className="w-5 h-5" />}
+              color="blue"
+              isLoading={stats.isLoading}
+            />
+            <KpiCard
+              title="Campagnes actives"
+              value={stats.data?.campaigns?.active}
+              icon={<BarChart2 className="w-5 h-5" />}
+              color="green"
+              isLoading={stats.isLoading}
+            />
+            <KpiCard
+              title="Taux de complétion"
+              value={
+                stats.data?.evaluations?.completionRate != null
+                  ? `${stats.data.evaluations.completionRate}%`
+                  : undefined
+              }
+              icon={<TrendingUp className="w-5 h-5" />}
+              color="purple"
+              isLoading={stats.isLoading}
+            />
+            <KpiCard
+              title="Évaluations en attente"
+              value={stats.data?.evaluations?.pending}
+              icon={<Clock className="w-5 h-5" />}
+              color="orange"
+              isLoading={stats.isLoading}
+            />
+          </>
+        )}
       </div>
 
       {/* Middle row */}

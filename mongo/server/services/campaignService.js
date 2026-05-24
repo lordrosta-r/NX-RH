@@ -7,6 +7,7 @@
 const mongoose = require('mongoose')
 const { Campaign, Evaluation, Form, CAMPAIGN_TRANSITIONS: VALID_TRANSITIONS } = require('../models')
 const { notifyMany } = require('./notificationService')
+const logger         = require('../utils/logger')
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -79,7 +80,7 @@ async function generateEvaluationsForCampaign(campaign) {
   ])
 
   if (!forms.length) {
-    console.warn(`[campaign-scope] Aucun formulaire pour la campagne ${campaign._id}`)
+    logger.warn('[campaign-scope] Aucun formulaire pour la campagne', { campaignId: campaign._id })
     return 0
   }
 

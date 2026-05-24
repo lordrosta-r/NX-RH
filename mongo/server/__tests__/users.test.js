@@ -246,7 +246,7 @@ describe('User Routes — /api/users', () => {
         lastName: 'User',
         email: 'new.user@nanoxplore.com',
         role: 'employee',
-        department: 'IT',
+        department: 'Engineering',
       }
 
       const response = await request(app)
@@ -310,10 +310,10 @@ describe('User Routes — /api/users', () => {
         .post('/api/users')
         .set('Cookie', `token=${adminToken}`)
         .send(newUser)
-        .expect(400)
+        .expect(422)
 
       expect(response.body).toHaveProperty('error')
-      expect(response.body.error).toContain('requis')
+      expect(response.body).toHaveProperty('details')
     })
 
     test('devrait échouer si email existe déjà (409)', async () => {
@@ -346,7 +346,7 @@ describe('User Routes — /api/users', () => {
         .post('/api/users')
         .set('Cookie', `token=${adminToken}`)
         .send(newUser)
-        .expect(400)
+        .expect(422)
 
       expect(response.body).toHaveProperty('error')
     })

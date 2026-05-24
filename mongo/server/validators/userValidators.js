@@ -28,9 +28,12 @@ const updateUser = Joi.object({
   lastName:   Joi.string().min(1).max(80).optional(),
   email:      Joi.string().email().optional(),
   role:       Joi.string().valid(...ROLES).optional(),
-  department: Joi.string().max(120).optional().allow(''),
+  department: Joi.string().max(120).optional().allow('', null),
+  position:   Joi.string().max(150).optional().allow('', null),
   managerId:  objectId.optional().allow(null),
   isActive:   Joi.boolean().optional(),
+  phone:      Joi.string().max(30).optional().allow('', null),
+  avatar:     Joi.string().max(500).optional().allow('', null),
 }).min(1)
 
 const changePassword = Joi.object({

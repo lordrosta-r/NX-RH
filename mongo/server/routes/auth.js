@@ -16,6 +16,7 @@ const { AuditLog } = require('../models')
 const { authGuard } = require('../middleware/authGuard')
 const authService = require('../services/authService')
 const { filterNotifPrefsByRole } = authService
+const respond = require('../utils/response')
 
 // ─── Rate limiters — POST /login ─────────────────────────────────────────────
 // Deux limiters distincts : un par email (anti brute-force), un par IP (anti spray)
@@ -88,7 +89,7 @@ router.post('/login', loginByEmailLimiter, loginByIPLimiter, async (req, res, ne
 
     AuditLog.create({ action: 'login', userId: user._id, targetId: user._id, targetType: 'User', details: { ip: req.ip } }).catch(console.error)
 
-    res.json({
+    respond.item(res, {
       user: {
         id:        user._id,
         email:     user.email,

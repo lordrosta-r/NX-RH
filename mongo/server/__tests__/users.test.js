@@ -103,7 +103,7 @@ describe('User Routes — /api/users', () => {
       expect(response.body).toHaveProperty('data')
       expect(Array.isArray(response.body.data)).toBe(true)
       expect(response.body.data.length).toBeGreaterThanOrEqual(4)
-      expect(response.body).toHaveProperty('total')
+      expect(response.body).toHaveProperty('meta.total')
       
       // Vérifier qu'aucun passwordHash n'est retourné
       response.body.data.forEach(user => {
@@ -185,8 +185,8 @@ describe('User Routes — /api/users', () => {
         .expect(200)
 
       expect(response.body.data.length).toBeLessThanOrEqual(2)
-      expect(response.body).toHaveProperty('page', 1)
-      expect(response.body).toHaveProperty('limit', 2)
+      expect(response.body).toHaveProperty('meta.page', 1)
+      expect(response.body).toHaveProperty('meta.limit', 2)
     })
   })
 

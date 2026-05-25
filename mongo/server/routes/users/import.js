@@ -77,6 +77,26 @@ router.post(
 
       const results = { created: 0, updated: 0, skipped: 0, errors: [], warnings: [], preview: [] }
 
+      // ── Batch pre-fetch (1 query per collection instead of N per row) ──────
+      const rowEmails     = [...new Set(rows.map(r => (r.email || '').toLowerCase().trim()).filter(Boolean))]
+      const managerEmails = [...new Set(rows.map(r => (r.managerEmail || '').toLowerCase().trim()).filter(Boolean))]
+      const sectorNames   = [...new Set(rows.map(r => ((r.sectorName || r.sector) || '').trim()).filter(Boolean))]
+
+      const allEmailsToFetch = [...new Set([...rowEmails, ...managerEmails])]
+
+      const [fetchedUsers, fetchedSectors] = await Promise.all([
+        allEmailsToFetch.length
+          ? User.find({ email: { $in: allEmailsToFetch } }, '_id email').lean()
+          : Promise.resolve([]),
+        sectorNames.length
+          ? Sector.find({ name: { $in: sectorNames } }, '_id name').lean()
+          : Promise.resolve([]),
+      ])
+
+      const userByEmail   = new Map(fetchedUsers.map(u => [u.email.toLowerCase(), u]))
+      const sectorByName  = new Map(fetchedSectors.map(s => [s.name, s._id]))
+      // ──────────────────────────────────────────────────────────────────────
+
       for (let i = 0; i < rows.length; i++) {
         const row    = rows[i]
         const rowNum = i + 1
@@ -105,13 +125,11 @@ router.post(
           continue
         }
 
-        // Résoudre managerEmail → managerId
+        // Résoudre managerEmail → managerId (map lookup, sans query)
         let managerId = null
         if (row.managerEmail && row.managerEmail.trim()) {
-          const mgr = await User.findOne(
-            { email: row.managerEmail.toLowerCase().trim() },
-            '_id',
-          ).lean()
+          const mgrKey = row.managerEmail.toLowerCase().trim()
+          const mgr    = userByEmail.get(mgrKey)
           if (mgr) {
             managerId = mgr._id
           } else {
@@ -119,12 +137,11 @@ router.post(
           }
         }
 
-        // Résoudre sector / sectorName → sectorId
+        // Résoudre sector / sectorName → sectorId (map lookup, sans query)
         let sectorId = null
         const sectorName = (row.sectorName || row.sector || '').trim()
         if (sectorName) {
-          const sec = await Sector.findOne({ name: sectorName }, '_id').lean()
-          if (sec) sectorId = sec._id
+          sectorId = sectorByName.get(sectorName) || null
         }
 
         const preview = {
@@ -138,23 +155,23 @@ router.post(
         }
 
         if (dryRun) {
-          const existing   = await User.findOne({ email }, '_id').lean()
-          preview.action   = existing ? 'update' : 'create'
+          preview.action = userByEmail.has(email) ? 'update' : 'create'
           results.preview.push(preview)
           continue
         }
 
         // Upsert
-        const existing = await User.findOne({ email })
-        if (existing) {
-          if (row.firstName && row.firstName.trim()) existing.firstName = row.firstName.trim()
-          if (row.lastName  && row.lastName.trim())  existing.lastName  = row.lastName.trim()
-          if (row.role      && ROLES.includes(role)) existing.role      = role
-          if (department !== null)                   existing.department = department
-          if (managerId !== null)                    existing.managerId  = managerId
-          if (sectorId !== null)                     existing.sectorId   = sectorId
+        const existingDoc = userByEmail.get(email)
+        if (existingDoc) {
+          const updates = {}
+          if (row.firstName && row.firstName.trim()) updates.firstName  = row.firstName.trim()
+          if (row.lastName  && row.lastName.trim())  updates.lastName   = row.lastName.trim()
+          if (row.role      && ROLES.includes(role)) updates.role       = role
+          if (department !== null)                   updates.department = department
+          if (managerId !== null)                    updates.managerId  = managerId
+          if (sectorId !== null)                     updates.sectorId   = sectorId
           try {
-            await existing.save()
+            await User.updateOne({ email }, { $set: updates })
             results.updated++
           } catch (e) {
             results.errors.push({ row: rowNum, field: null, message: e.message })

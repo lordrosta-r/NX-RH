@@ -429,7 +429,7 @@ async function getCampaignAnalytics(campaign, user) {
 
   const COMPLETED = ['submitted', 'reviewed', 'signed_evaluatee', 'signed_manager', 'signed_hr', 'validated']
 
-  const [statusAgg, scoreAgg, deptAgg] = await Promise.all([
+  const [statusAgg, scoreAgg, deptAgg, allScores] = await Promise.all([
     Evaluation.aggregate([
       { $match: { campaignId } },
       { $group: { _id: '$status', count: { $sum: 1 } } },
@@ -460,6 +460,10 @@ async function getCampaignAnalytics(campaign, user) {
       },
       { $sort: { _id: 1 } },
     ]),
+    Evaluation.aggregate([
+      { $match: { campaignId, score: { $ne: null } } },
+      { $group: { _id: null, avg: { $avg: '$score' }, count: { $sum: 1 } } },
+    ]),
   ])
 
   const statusDistribution = statusAgg.reduce((acc, x) => {
@@ -477,10 +481,6 @@ async function getCampaignAnalytics(campaign, user) {
     .filter(b => b._id !== 'other')
     .map(b => ({ from: b._id, to: b._id + 9, count: b.count }))
 
-  const allScores = await Evaluation.aggregate([
-    { $match: { campaignId, score: { $ne: null } } },
-    { $group: { _id: null, avg: { $avg: '$score' }, count: { $sum: 1 } } },
-  ])
   const avgScore = allScores[0]?.avg !== undefined && allScores[0]?.avg !== null
     ? Math.round(allScores[0].avg * 10) / 10
     : null

@@ -181,9 +181,9 @@ describe('GET /api/users', () => {
       .get('/api/users?page=1&limit=10')
       .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(res.status).toBe(200)
-    expect(res.body.total).toBe(42)
-    expect(res.body.page).toBe(1)
-    expect(res.body.limit).toBe(10)
+    expect(res.body.meta.total).toBe(42)
+    expect(res.body.meta.page).toBe(1)
+    expect(res.body.meta.limit).toBe(10)
   })
 })
 

@@ -217,8 +217,8 @@ describe('Campaign Routes — /api/campaigns', () => {
         .expect(200)
 
       expect(response.body.data.length).toBeLessThanOrEqual(1)
-      expect(response.body).toHaveProperty('page', 1)
-      expect(response.body).toHaveProperty('limit', 1)
+      expect(response.body).toHaveProperty('meta.page', 1)
+      expect(response.body).toHaveProperty('meta.limit', 1)
     })
   })
 
@@ -413,8 +413,8 @@ describe('Campaign Routes — /api/campaigns', () => {
         .set('Cookie', `accessToken=${adminToken}`)
         .expect(200)
 
-      expect(response.body).toHaveProperty('generated')
-      expect(response.body.generated).toBeGreaterThanOrEqual(0)
+      expect(response.body.data).toHaveProperty('generated')
+      expect(response.body.data.generated).toBeGreaterThanOrEqual(0)
 
       // Vérifier que des évaluations ont été créées
       const evaluations = await Evaluation.find({ campaignId: draftCampaign._id })

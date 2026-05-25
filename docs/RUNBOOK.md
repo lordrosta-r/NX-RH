@@ -4,6 +4,51 @@ Procédures opérationnelles pour la production.
 
 ---
 
+## API Versioning
+
+### Version courante
+`v1`
+
+### URLs
+| Environnement | Base URL |
+|---|---|
+| Développement | `http://localhost:5001/api/v1` |
+| Production | `https://<host>/api/v1` |
+
+L'alias `/api/` (sans version) est maintenu pour la compatibilité ascendante ; il pointe vers la même version que `/api/v1/`.
+
+### Format de réponse standard
+
+Toutes les réponses passent par `utils/apiResponse.js` :
+
+**Succès — ressource unique**
+```json
+{ "success": true, "data": { ... } }
+```
+
+**Succès — liste paginée**
+```json
+{
+  "success": true,
+  "data": [ ... ],
+  "meta": { "total": 42, "page": 1, "limit": 20, "pages": 3, "hasNext": true, "hasPrev": false }
+}
+```
+
+**Création (201)**
+```json
+{ "success": true, "message": "Created", "data": { ... } }
+```
+
+**No Content (204)** — corps vide.
+
+### Ajouter une nouvelle version (v2)
+1. Créer `routes/v2/` avec les nouveaux handlers.
+2. Dans `index.js`, monter `v2Router` sur `/api/v2`.
+3. Conserver le montage `/api` sur la dernière version stable.
+
+---
+
 ## Backup
 
 ### Lancement manuel

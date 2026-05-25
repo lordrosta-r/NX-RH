@@ -25,6 +25,7 @@ const {
 } = require('../validators/campaignValidators')
 const campaignService = require('../services/campaignService')
 const respond = require('../utils/response')
+const apiResponse = require('../utils/apiResponse')
 const { paginate } = require('../utils/paginate')
 
 // GET /api/campaigns — Liste des campagnes (scopée par rôle)
@@ -90,7 +91,7 @@ router.get('/', async (req, res, next) => {
       }
     }
 
-    res.json(result)
+    apiResponse.paginated(res, result)
   } catch (err) {
     next(err)
   }
@@ -207,7 +208,7 @@ router.post('/:id/generate-evaluations', async (req, res, next) => {
     if (!campaign) return res.status(404).json({ error: 'Campagne introuvable' })
 
     const generated = await campaignService.generateEvaluationsForCampaign(campaign)
-    res.json({ generated })
+    apiResponse.success(res, { generated })
   } catch (err) {
     next(err)
   }
@@ -221,7 +222,7 @@ router.post('/:id/clone', async (req, res, next) => {
     }
 
     const result = await campaignService.cloneCampaign(req.params.id, req.body, req.user.id)
-    res.status(201).json(result)
+    apiResponse.created(res, result)
   } catch (err) {
     next(err)
   }
@@ -245,7 +246,7 @@ router.post('/:id/forms', async (req, res, next) => {
       meta:       { formId, formTitle: form.title, formType: form.formType },
     }).catch(() => {})
 
-    res.status(201).json({ campaignId, formId })
+    apiResponse.created(res, { campaignId, formId })
   } catch (err) {
     next(err)
   }
@@ -289,7 +290,7 @@ router.get('/:id/analytics', async (req, res, next) => {
     if (!campaign) return res.status(404).json({ error: 'Campagne introuvable' })
 
     const analytics = await campaignService.getCampaignAnalytics(campaign, req.user)
-    res.json(analytics)
+    apiResponse.success(res, analytics)
   } catch (err) {
     next(err)
   }

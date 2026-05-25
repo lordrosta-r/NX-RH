@@ -10,6 +10,7 @@ const { createUser: createUserValidator, updateUser: updateUserValidator } = req
 const userService = require('../services/userService')
 const { filterNotifPrefsByRole } = require('../services/authService')
 const respond = require('../utils/response')
+const apiResponse = require('../utils/apiResponse')
 const { paginate } = require('../utils/paginate')
 
 // GET /api/users/stats — Statistiques utilisateurs (admin/hr uniquement)
@@ -19,13 +20,11 @@ router.get('/stats', async (req, res, next) => {
       return res.status(403).json({ error: 'Permissions insuffisantes' })
     }
     const stats = await userService.getUserStats()
-    res.json(stats)
+    apiResponse.success(res, stats)
   } catch (err) {
     next(err)
   }
 })
-
-// GET /api/users/search?q=... — Recherche full-text (admin/hr/manager)
 router.get('/search', async (req, res, next) => {
   try {
     const allowed = ['admin', 'hr', 'manager', 'director']
@@ -83,7 +82,7 @@ router.get('/', async (req, res, next) => {
       sort:   { lastName: 1, firstName: 1 },
       select: '-passwordHash -ldapDn',
     })
-    res.json(result)
+    apiResponse.paginated(res, result)
   } catch (err) {
     next(err)
   }
@@ -106,7 +105,7 @@ router.get('/me', async (req, res, next) => {
     user.notificationPrefs = filterNotifPrefsByRole(user.notificationPrefs, user.role)
 
     const { _id, ...rest } = user
-    res.json({ id: _id, ...rest })
+    apiResponse.success(res, { id: _id, ...rest })
   } catch (err) {
     next(err)
   }
@@ -175,7 +174,7 @@ router.patch('/:id/avatar', async (req, res, next) => {
     )
     if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' })
 
-    res.json({ _id: user._id, avatar: user.avatar })
+    apiResponse.success(res, { _id: user._id, avatar: user.avatar })
   } catch (err) {
     next(err)
   }
@@ -189,7 +188,7 @@ router.get('/:id/offboard-preview', async (req, res, next) => {
     }
 
     const result = await userService.getOffboardPreview(req.params.id)
-    res.json(result)
+    apiResponse.success(res, result)
   } catch (err) {
     next(err)
   }
@@ -213,7 +212,7 @@ router.patch('/:id/offboard', async (req, res, next) => {
       meta:       { reason: req.body.reason?.trim(), effectiveDate: req.body.effectiveDate },
     }).catch(() => {})
 
-    res.json(result)
+    apiResponse.success(res, result)
   } catch (err) {
     next(err)
   }
@@ -249,7 +248,7 @@ router.patch('/:id/onboarding/complete', async (req, res, next) => {
     const result = user.toObject()
     delete result.passwordHash
     delete result.ldapDn
-    res.json(result)
+    apiResponse.success(res, result)
   } catch (err) {
     next(err)
   }
@@ -293,7 +292,7 @@ router.patch('/:id/onboarding/:stepIndex', async (req, res, next) => {
     const result = user.toObject()
     delete result.passwordHash
     delete result.ldapDn
-    res.json(result)
+    apiResponse.success(res, result)
   } catch (err) {
     next(err)
   }
@@ -383,7 +382,7 @@ router.get('/:id/offboarding-record', async (req, res, next) => {
       .sort({ createdAt: -1 })
       .lean()
     if (!record) return res.status(404).json({ error: "Aucune demande d'offboarding trouvée" })
-    res.json({ ...record, id: record._id })
+    apiResponse.success(res, { ...record, id: record._id })
   } catch (err) { next(err) }
 })
 

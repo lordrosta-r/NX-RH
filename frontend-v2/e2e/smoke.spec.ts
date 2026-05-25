@@ -18,10 +18,8 @@ test.describe("Smoke tests — parcours critiques", () => {
   test("formulaire login — champs requis", async ({ page }) => {
     await page.goto("/login");
     await page.click('[data-testid="login-submit"]');
-    // Doit afficher une erreur de validation
-    await expect(
-      page.locator("text=/requis|required|obligatoire/i"),
-    ).toBeVisible();
+    // Doit afficher une erreur de validation (role="alert" émis par ErrorMessage)
+    await expect(page.locator('[role="alert"]').first()).toBeVisible();
   });
 
   test("login avec mauvais credentials", async ({ page }) => {

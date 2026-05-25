@@ -10,12 +10,14 @@ import {
   Search,
   Moon,
   Sun,
+  Globe,
 } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useDarkModeContext } from "../../contexts/DarkModeContext";
 import type { Role } from "../../types";
 import { NotificationBell } from "../NotificationBell";
 import clsx from "clsx";
+import { useTranslation } from "react-i18next";
 
 interface NavItem {
   label: string;
@@ -23,22 +25,22 @@ interface NavItem {
   dropdown?: { label: string; href: string; separator?: boolean }[];
 }
 
-function getNavItems(role: Role): NavItem[] {
-  const dashboard: NavItem = { label: "Tableau de bord", href: "/" };
+function getNavItems(role: Role, t: (key: string) => string): NavItem[] {
+  const dashboard: NavItem = { label: t("nav.dashboard"), href: "/" };
   const pilotage: NavItem = {
-    label: "Pilotage",
+    label: t("nav.pilotage"),
     dropdown: [
-      { label: "Calendrier", href: "/events" },
-      { label: "Ressources", href: "/resources" },
-      { label: "Analytics", href: "/analytics", separator: true },
+      { label: t("nav.calendar"), href: "/events" },
+      { label: t("nav.resources"), href: "/resources" },
+      { label: t("nav.analytics"), href: "/analytics", separator: true },
     ],
   };
 
   const pilotageNoAnalytics: NavItem = {
-    label: "Pilotage",
+    label: t("nav.pilotage"),
     dropdown: [
-      { label: "Calendrier", href: "/events" },
-      { label: "Ressources", href: "/resources" },
+      { label: t("nav.calendar"), href: "/events" },
+      { label: t("nav.resources"), href: "/resources" },
     ],
   };
 
@@ -46,37 +48,45 @@ function getNavItems(role: Role): NavItem[] {
     return [
       dashboard,
       {
-        label: "Collaborateurs",
+        label: t("nav.collaborateurs"),
         dropdown: [
-          { label: "Utilisateurs", href: "/users" },
-          { label: "Organigramme", href: "/org" },
-          { label: "Offboarding", href: "/offboarding", separator: true },
+          { label: t("nav.users"), href: "/users" },
+          { label: t("nav.org"), href: "/org" },
+          {
+            label: t("nav.offboarding"),
+            href: "/offboarding",
+            separator: true,
+          },
         ],
       },
       {
-        label: "Campagnes",
+        label: t("nav.campaigns"),
         dropdown: [
-          { label: "Campagnes", href: "/campaigns" },
-          { label: "Formulaires", href: "/forms" },
+          { label: t("nav.campaigns"), href: "/campaigns" },
+          { label: t("nav.forms"), href: "/forms" },
         ],
       },
       {
-        label: "Évaluations",
+        label: t("nav.evaluations"),
         dropdown: [
-          { label: "Toutes les évaluations", href: "/evaluations" },
-          { label: "Historique", href: "/evaluations/history" },
+          { label: t("nav.allEvaluations"), href: "/evaluations" },
+          { label: t("nav.history"), href: "/evaluations/history" },
         ],
       },
       pilotage,
       {
-        label: "Administration",
+        label: t("nav.administration"),
         dropdown: [
-          { label: "Portail admin", href: "/admin" },
-          { label: "Journal d'audit", href: "/admin/audit" },
-          { label: "Paramètres RH", href: "/admin/settings", separator: true },
-          { label: "Demandes RH", href: "/hr/flags" },
-          { label: "Mobilité interne", href: "/mobility" },
-          { label: "PDI", href: "/pdi" },
+          { label: t("nav.adminPortal"), href: "/admin" },
+          { label: t("nav.auditLog"), href: "/admin/audit" },
+          {
+            label: t("nav.hrSettings"),
+            href: "/admin/settings",
+            separator: true,
+          },
+          { label: t("nav.hrFlags"), href: "/hr/flags" },
+          { label: t("nav.mobilityInternal"), href: "/mobility" },
+          { label: t("nav.pdi"), href: "/pdi" },
         ],
       },
     ];
@@ -85,40 +95,48 @@ function getNavItems(role: Role): NavItem[] {
     return [
       dashboard,
       {
-        label: "Collaborateurs",
+        label: t("nav.collaborateurs"),
         dropdown: [
-          { label: "Utilisateurs", href: "/users" },
-          { label: "Organigramme", href: "/org" },
-          { label: "Offboarding", href: "/offboarding", separator: true },
+          { label: t("nav.users"), href: "/users" },
+          { label: t("nav.org"), href: "/org" },
+          {
+            label: t("nav.offboarding"),
+            href: "/offboarding",
+            separator: true,
+          },
         ],
       },
       {
-        label: "Campagnes",
+        label: t("nav.campaigns"),
         dropdown: [
-          { label: "Campagnes", href: "/campaigns" },
-          { label: "Formulaires", href: "/forms" },
+          { label: t("nav.campaigns"), href: "/campaigns" },
+          { label: t("nav.forms"), href: "/forms" },
         ],
       },
       {
-        label: "Évaluations",
+        label: t("nav.evaluations"),
         dropdown: [
-          { label: "Toutes les évaluations", href: "/evaluations" },
-          { label: "Historique", href: "/evaluations/history" },
-          { label: "Demandes RH", href: "/hr/flags", separator: true },
-          { label: "Mobilité interne", href: "/mobility" },
-          { label: "PDI", href: "/pdi" },
+          { label: t("nav.allEvaluations"), href: "/evaluations" },
+          { label: t("nav.history"), href: "/evaluations/history" },
+          { label: t("nav.hrFlags"), href: "/hr/flags", separator: true },
+          { label: t("nav.mobilityInternal"), href: "/mobility" },
+          { label: t("nav.pdi"), href: "/pdi" },
         ],
       },
       pilotage,
       {
-        label: "Administration",
+        label: t("nav.administration"),
         dropdown: [
-          { label: "Portail admin", href: "/admin" },
-          { label: "Paramètres RH", href: "/admin/settings", separator: true },
-          { label: "Journal d'audit", href: "/admin/audit" },
-          { label: "Utilisateurs (import)", href: "/admin/users/import" },
-          { label: "Import formulaires", href: "/admin/forms/import" },
-          { label: "Email templates", href: "/admin/mail-templates" },
+          { label: t("nav.adminPortal"), href: "/admin" },
+          {
+            label: t("nav.hrSettings"),
+            href: "/admin/settings",
+            separator: true,
+          },
+          { label: t("nav.auditLog"), href: "/admin/audit" },
+          { label: t("nav.usersImport"), href: "/admin/users/import" },
+          { label: t("nav.formsImport"), href: "/admin/forms/import" },
+          { label: t("nav.emailTemplates"), href: "/admin/mail-templates" },
         ],
       },
     ];
@@ -127,22 +145,22 @@ function getNavItems(role: Role): NavItem[] {
     return [
       dashboard,
       {
-        label: "Mon Équipe",
+        label: t("nav.myTeam"),
         dropdown: [
-          { label: "Mon équipe", href: "/users" },
-          { label: "Organigramme", href: "/org" },
+          { label: t("nav.myTeamLink"), href: "/users" },
+          { label: t("nav.org"), href: "/org" },
         ],
       },
-      { label: "Campagnes", href: "/campaigns" },
+      { label: t("nav.campaigns"), href: "/campaigns" },
       {
-        label: "Évaluations",
+        label: t("nav.evaluations"),
         dropdown: [
-          { label: "À traiter", href: "/evaluations" },
-          { label: "Historique", href: "/evaluations/history" },
+          { label: t("nav.toProcess"), href: "/evaluations" },
+          { label: t("nav.history"), href: "/evaluations/history" },
         ],
       },
-      { label: "Mobilité", href: "/mobility" },
-      { label: "PDI", href: "/pdi" },
+      { label: t("nav.mobility"), href: "/mobility" },
+      { label: t("nav.pdi"), href: "/pdi" },
       pilotageNoAnalytics,
     ];
 
@@ -150,16 +168,16 @@ function getNavItems(role: Role): NavItem[] {
   return [
     dashboard,
     {
-      label: "Mes Évaluations",
+      label: t("nav.myEvaluations"),
       dropdown: [
-        { label: "En cours", href: "/evaluations" },
-        { label: "Historique", href: "/evaluations/history" },
+        { label: t("nav.inProgress"), href: "/evaluations" },
+        { label: t("nav.history"), href: "/evaluations/history" },
       ],
     },
-    { label: "Mobilité", href: "/mobility" },
-    { label: "PDI", href: "/pdi" },
-    { label: "Mon profil", href: "/profile" },
-    { label: "Notifications", href: "/notifications" },
+    { label: t("nav.mobility"), href: "/mobility" },
+    { label: t("nav.pdi"), href: "/pdi" },
+    { label: t("nav.profile"), href: "/profile" },
+    { label: t("nav.notifications"), href: "/notifications" },
     pilotageNoAnalytics,
   ];
 }
@@ -232,6 +250,7 @@ export default function Navbar({
 }: {
   onSearchClick?: () => void;
 }) {
+  const { t, i18n } = useTranslation();
   const { user, logout } = useAuth();
   const { isDark, toggle: toggleDark } = useDarkModeContext();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -255,7 +274,7 @@ export default function Navbar({
     return () => document.removeEventListener("keydown", handleEscape);
   }, []);
 
-  const navItems = user ? getNavItems(user.role) : [];
+  const navItems = user ? getNavItems(user.role, t) : [];
   const initials = user
     ? `${user.firstName[0] ?? ""}${user.lastName[0] ?? ""}`.toUpperCase()
     : "??";
@@ -263,6 +282,10 @@ export default function Navbar({
   async function handleLogout() {
     setAvatarOpen(false);
     await logout();
+  }
+
+  function handleToggleLanguage() {
+    void i18n.changeLanguage(i18n.language === "fr" ? "en" : "fr");
   }
 
   return (
@@ -307,7 +330,7 @@ export default function Navbar({
           <button
             onClick={() => onSearchClick?.()}
             className="p-2 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-300 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
-            aria-label="Rechercher"
+            aria-label={t("nav.search")}
           >
             <Search className="w-5 h-5" />
           </button>
@@ -359,7 +382,7 @@ export default function Navbar({
                   className="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
                 >
                   <User className="w-4 h-4" />
-                  Mon profil
+                  {t("nav.profile")}
                 </NavLink>
 
                 <button
@@ -368,9 +391,7 @@ export default function Navbar({
                   }}
                   role="menuitem"
                   data-testid="dark-mode-toggle"
-                  aria-label={
-                    isDark ? "Passer en mode clair" : "Passer en mode sombre"
-                  }
+                  aria-label={isDark ? t("nav.lightMode") : t("nav.darkMode")}
                   className="w-full flex items-center gap-2 px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
                 >
                   {isDark ? (
@@ -378,7 +399,17 @@ export default function Navbar({
                   ) : (
                     <Moon className="w-4 h-4 text-slate-500" />
                   )}
-                  {isDark ? "Mode clair" : "Mode sombre"}
+                  {isDark ? t("nav.lightMode") : t("nav.darkMode")}
+                </button>
+
+                {/* Language toggle */}
+                <button
+                  onClick={handleToggleLanguage}
+                  role="menuitem"
+                  className="w-full flex items-center gap-2 px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                >
+                  <Globe className="w-4 h-4 text-slate-500" />
+                  {i18n.language === "fr" ? "🇬🇧 English" : "🇫🇷 Français"}
                 </button>
 
                 <div className="border-t border-slate-100 dark:border-slate-700 mt-1 pt-1">
@@ -388,7 +419,7 @@ export default function Navbar({
                     className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
                   >
                     <LogOut className="w-4 h-4" />
-                    Se déconnecter
+                    {t("nav.logout")}
                   </button>
                 </div>
               </div>
@@ -399,7 +430,7 @@ export default function Navbar({
           <button
             onClick={() => setMobileOpen((v) => !v)}
             className="md:hidden p-2 rounded-lg text-slate-500 hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-300"
-            aria-label={mobileOpen ? "Fermer le menu" : "Ouvrir le menu"}
+            aria-label={mobileOpen ? t("nav.closeMenu") : t("nav.openMenu")}
             aria-expanded={mobileOpen}
             aria-controls="mobile-nav-menu"
           >

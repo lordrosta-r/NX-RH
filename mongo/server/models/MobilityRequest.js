@@ -11,7 +11,10 @@ const mobilityRequestSchema = new mongoose.Schema({
   targetSite: { type: String },
   requestType: {
     type: String,
-    enum: ['internal_transfer', 'promotion', 'lateral_move', 'site_change', 'department_change'],
+    enum: [
+      'internal_transfer', 'promotion', 'lateral_move', 'role_change',
+      'department_change', 'site_change', 'international', 'secondment',
+    ],
     default: 'internal_transfer',
     required: true,
   },
@@ -21,11 +24,25 @@ const mobilityRequestSchema = new mongoose.Schema({
     enum: ['pending', 'under_review', 'approved', 'rejected', 'on_hold'],
     default: 'pending',
   },
-  priority: { type: String, enum: ['low', 'normal', 'high', 'urgent'], default: 'normal' },
+  priority: { type: String, enum: ['low', 'medium', 'normal', 'high', 'urgent'], default: 'normal' },
   hrComment: { type: String },
   reviewedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   reviewedAt: { type: Date },
   targetDate: { type: Date },
+  // Détails de la décision
+  decision: {
+    decidedAt: { type: Date },
+    decidedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    effectiveDate: { type: Date },
+    comment: { type: String },
+  },
+  // Suivi post-approbation
+  implementation: {
+    status: { type: String, enum: ['pending', 'in_progress', 'completed'], default: 'pending' },
+    startedAt: { type: Date },
+    completedAt: { type: Date },
+    notes: { type: String },
+  },
 }, { timestamps: true });
 
 mobilityRequestSchema.index({ employeeId: 1, status: 1 });

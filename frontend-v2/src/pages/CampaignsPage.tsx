@@ -11,16 +11,9 @@ import type { Campaign } from "../types";
 import PageGuide from "../components/shared/PageGuide";
 import { exportToCsv } from "../utils/export";
 import { queryKeys } from "../lib/queryKeys";
+import { useTranslation } from "react-i18next";
 
 const STATUS_TABS = ["all", "draft", "active", "closed", "archived"] as const;
-
-const STATUS_LABELS: Record<string, string> = {
-  all: "Tous",
-  draft: "Brouillon",
-  active: "Active",
-  closed: "Clôturée",
-  archived: "Archivée",
-};
 
 const STATUS_BADGE: Record<string, string> = {
   draft: "bg-slate-100 text-slate-700",
@@ -51,7 +44,7 @@ function formatDateRange(start: string, end: string) {
 /** Backend returns `_id` from lean() queries — this helper normalises to a string id */
 const cid = (c: Campaign): string => c.id ?? c._id ?? "";
 
-function StatusBadge({ status }: { status: string }) {
+function StatusBadge({ status, label }: { status: string; label: string }) {
   return (
     <span
       className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_BADGE[status] ?? "bg-slate-100 text-slate-700"}`}
@@ -59,7 +52,7 @@ function StatusBadge({ status }: { status: string }) {
       <span
         className={`w-1.5 h-1.5 rounded-full ${STATUS_DOT[status] ?? "bg-slate-400"}`}
       />
-      {STATUS_LABELS[status] ?? status}
+      {label}
     </span>
   );
 }
@@ -70,12 +63,20 @@ function ActionMenu({
   onClone,
   onArchive,
   onDelete,
+  labels,
 }: {
   campaign: Campaign;
   canManage: boolean;
   onClone: (id: string) => void;
   onArchive: (id: string) => void;
   onDelete: (id: string) => void;
+  labels: {
+    view: string;
+    edit: string;
+    clone: string;
+    archive: string;
+    delete: string;
+  };
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -112,14 +113,14 @@ function ActionMenu({
             className="flex items-center px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 w-full"
             onClick={() => setOpen(false)}
           >
-            Voir
+            {labels.view}
           </Link>
           <Link
             to={`/campaigns/${cid(campaign)}/edit`}
             className="flex items-center px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 w-full"
             onClick={() => setOpen(false)}
           >
-            Modifier
+            {labels.edit}
           </Link>
           <button
             className="flex items-center px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 w-full"
@@ -128,7 +129,7 @@ function ActionMenu({
               setOpen(false);
             }}
           >
-            Cloner
+            {labels.clone}
           </button>
           {canArchive && (
             <button
@@ -138,7 +139,7 @@ function ActionMenu({
                 setOpen(false);
               }}
             >
-              Archiver
+              {labels.archive}
             </button>
           )}
           {canDelete && (
@@ -149,7 +150,7 @@ function ActionMenu({
                 setOpen(false);
               }}
             >
-              Supprimer
+              {labels.delete}
             </button>
           )}
         </div>
@@ -159,6 +160,7 @@ function ActionMenu({
 }
 
 export default function CampaignsPage() {
+  const { t } = useTranslation();
   const [statusTab, setStatusTab] = useState("all");
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 400);
@@ -209,6 +211,14 @@ export default function CampaignsPage() {
   const campaigns = data?.data ?? [];
   const isEmpty = !isLoading && campaigns.length === 0;
 
+  const actionLabels = {
+    view: t("campaigns.actions.view"),
+    edit: t("campaigns.actions.edit"),
+    clone: t("campaigns.actions.clone"),
+    archive: t("campaigns.actions.archive"),
+    delete: t("campaigns.actions.delete"),
+  };
+
   const handleExport = () => {
     exportToCsv(
       "campagnes.csv",
@@ -243,19 +253,21 @@ export default function CampaignsPage() {
           >
             {" "}
             <Link to="/" className="hover:text-slate-700">
-              Accueil
+              {t("campaigns.home")}
             </Link>
             <span className="mx-1.5">›</span>
-            <span>Campagnes</span>
+            <span>{t("campaigns.title")}</span>
           </nav>
-          <h1 className="text-2xl font-bold text-slate-900">Campagnes</h1>
+          <h1 className="text-2xl font-bold text-slate-900">
+            {t("campaigns.title")}
+          </h1>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={handleExport}
             className="flex items-center gap-2 px-4 py-2 border border-slate-200 text-slate-700 rounded-md text-sm hover:bg-slate-50"
           >
-            <Download size={16} /> Exporter
+            <Download size={16} /> {t("campaigns.export")}
           </button>
           {canManage && (
             <Link
@@ -264,7 +276,7 @@ export default function CampaignsPage() {
               className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors"
             >
               <Plus className="w-4 h-4" />
-              Nouvelle campagne
+              {t("campaigns.new")}
             </Link>
           )}
         </div>
@@ -287,7 +299,7 @@ export default function CampaignsPage() {
                   : "text-slate-500 hover:text-slate-700 border-b-2 border-transparent"
               }`}
             >
-              {STATUS_LABELS[tab]}
+              {t(`campaigns.status.${tab}`)}
             </button>
           ))}
         </div>
@@ -299,7 +311,7 @@ export default function CampaignsPage() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input
                 type="text"
-                placeholder="Rechercher une campagne…"
+                placeholder={t("campaigns.search")}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
@@ -312,17 +324,17 @@ export default function CampaignsPage() {
         {/* Content */}
         {isLoading ? (
           <div className="p-10 text-center text-slate-600 text-sm">
-            Chargement…
+            {t("campaigns.loading")}
           </div>
         ) : isEmpty ? (
           <EmptyState
             icon={<BarChart2 className="w-8 h-8" />}
-            title="Aucune campagne"
-            description="Aucune campagne ne correspond à vos critères."
+            title={t("campaigns.empty")}
+            description={t("campaigns.emptyDescription")}
             action={
               canManage
                 ? {
-                    label: "Créer la première campagne",
+                    label: t("campaigns.createFirst"),
                     onClick: () => window.location.assign("/campaigns/new"),
                   }
                 : undefined
@@ -335,10 +347,18 @@ export default function CampaignsPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="text-xs text-slate-500 font-medium uppercase tracking-wide border-b border-slate-100">
-                    <th className="px-4 py-3 text-left">Nom</th>
-                    <th className="px-4 py-3 text-left">Statut</th>
-                    <th className="px-4 py-3 text-left">Période</th>
-                    <th className="px-4 py-3 text-left w-44">Progression</th>
+                    <th className="px-4 py-3 text-left">
+                      {t("campaigns.columns.name")}
+                    </th>
+                    <th className="px-4 py-3 text-left">
+                      {t("campaigns.columns.status")}
+                    </th>
+                    <th className="px-4 py-3 text-left">
+                      {t("campaigns.columns.period")}
+                    </th>
+                    <th className="px-4 py-3 text-left w-44">
+                      {t("campaigns.columns.progress")}
+                    </th>
                     <th className="px-4 py-3 w-12" />
                   </tr>
                 </thead>
@@ -361,7 +381,10 @@ export default function CampaignsPage() {
                           )}
                         </td>
                         <td className="px-4 py-3">
-                          <StatusBadge status={campaign.status} />
+                          <StatusBadge
+                            status={campaign.status}
+                            label={t(`campaigns.status.${campaign.status}`)}
+                          />
                         </td>
                         <td className="px-4 py-3 text-slate-600">
                           {formatDateRange(
@@ -389,6 +412,7 @@ export default function CampaignsPage() {
                             onClone={(id) => cloneMutation.mutate(id)}
                             onArchive={(id) => archiveMutation.mutate(id)}
                             onDelete={(id) => deleteMutation.mutate(id)}
+                            labels={actionLabels}
                           />
                         </td>
                       </tr>
@@ -415,7 +439,10 @@ export default function CampaignsPage() {
                         {campaign.name}
                       </Link>
                       <div className="flex items-center gap-2 mb-2">
-                        <StatusBadge status={campaign.status} />
+                        <StatusBadge
+                          status={campaign.status}
+                          label={t(`campaigns.status.${campaign.status}`)}
+                        />
                         <span className="text-xs text-slate-500">
                           {formatDateRange(
                             campaign.startDate,
@@ -441,6 +468,7 @@ export default function CampaignsPage() {
                       onClone={(id) => cloneMutation.mutate(id)}
                       onArchive={(id) => archiveMutation.mutate(id)}
                       onDelete={(id) => deleteMutation.mutate(id)}
+                      labels={actionLabels}
                     />
                   </div>
                 );

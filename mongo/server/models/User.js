@@ -118,6 +118,9 @@ const userSchema = new Schema({
   resetPasswordToken:  { type: String,  default: null, select: false },
   resetPasswordExpiry: { type: Date,    default: null, select: false },
 
+  // Refresh tokens valides — alimenté par login(), purgé par logout().
+  refreshTokens: { type: [String], select: false, default: [] },
+
   mustChangePassword: { type: Boolean, default: false },
 
   // Onboarding — suivi de l'intégration des nouveaux arrivants

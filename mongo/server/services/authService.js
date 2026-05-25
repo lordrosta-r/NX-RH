@@ -4,11 +4,12 @@
 // services/authService.js — Logique métier d'authentification et préférences
 // =============================================================================
 
-const bcrypt = require('bcrypt')
-const jwt    = require('jsonwebtoken')
-const User   = require('../models/User')
-const logger = require('../utils/logger')
-const { LOCALES, THEMES, NOTIF_PREF_KEYS, NOTIF_KEYS_BY_ROLE } = require('../config/constants')
+const bcrypt    = require('bcrypt')
+const jwt       = require('jsonwebtoken')
+const User      = require('../models/User')
+const AppError  = require('../utils/AppError')
+const logger    = require('../utils/logger')
+const { LOCALES, THEMES, NOTIF_PREF_KEYS, NOTIF_KEYS_BY_ROLE, BCRYPT_ROUNDS } = require('../config/constants')
 
 // ── Helper ────────────────────────────────────────────────────────────────────
 
@@ -118,7 +119,105 @@ async function login(email, password, remember) {
   const payload = { id: user._id, email: user.email, role: user.role, firstName: user.firstName, lastName: user.lastName }
   const { accessToken, refreshToken } = generateTokens(payload)
 
+  // Enregistre le refresh token pour pouvoir l'invalider au logout
+  User.updateOne({ _id: user._id }, { $push: { refreshTokens: refreshToken } })
+    .catch(err => logger.error('[auth] refreshToken push failed', { error: err.message }))
+
   return { user, accessToken, refreshToken }
+}
+
+// ── Déconnexion ───────────────────────────────────────────────────────────────
+
+/**
+ * Invalide un refresh token en le retirant de la liste des tokens valides.
+ * Silencieux si le token n'est pas en base (déjà révoqué ou login antérieur).
+ *
+ * @param {string|ObjectId} userId
+ * @param {string}          refreshToken
+ */
+async function logout(userId, refreshToken) {
+  if (!userId) return
+  try {
+    await User.updateOne(
+      { _id: userId },
+      { $pull: { refreshTokens: refreshToken } },
+    )
+  } catch (err) {
+    logger.error('[auth] logout token revocation failed', { userId, error: err.message })
+  }
+}
+
+// ── Inscription ───────────────────────────────────────────────────────────────
+
+/**
+ * Crée un nouvel utilisateur local.
+ *
+ * @param {{ email, password, firstName, lastName, role? }} userData
+ * @returns {Promise<object>} Utilisateur créé (sans passwordHash)
+ * @throws {AppError} 409 si l'email est déjà pris
+ */
+async function register({ email, password, firstName, lastName, role = 'employee' }) {
+  if (!email || !password || !firstName || !lastName) {
+    throw AppError.badRequest('email, password, firstName et lastName sont requis')
+  }
+
+  const existing = await User.findOne({ email: email.toLowerCase().trim() }).lean()
+  if (existing) {
+    throw AppError.conflict('Cet email est déjà utilisé', 'EMAIL_TAKEN')
+  }
+
+  const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS)
+
+  const user = await User.create({
+    email:       email.toLowerCase().trim(),
+    passwordHash,
+    firstName:   firstName.trim(),
+    lastName:    lastName.trim(),
+    role,
+    authSource:  'local',
+  })
+
+  const { passwordHash: _, ...userObj } = user.toObject()
+  return userObj
+}
+
+// ── Validation credentials ────────────────────────────────────────────────────
+
+/**
+ * Vérifie les identifiants email/password d'un utilisateur local.
+ *
+ * @param {string} email
+ * @param {string} password
+ * @returns {Promise<object>} Utilisateur lean (sans passwordHash)
+ * @throws {AppError} 401 si identifiants invalides ou compte inactif
+ */
+async function validateUser(email, password) {
+  if (!email || !password) {
+    throw AppError.unauthorized('Identifiants requis')
+  }
+
+  const user = await User.findOne({
+    email:      email.toLowerCase().trim(),
+    authSource: 'local',
+  })
+    .select('+passwordHash')
+    .lean()
+
+  if (!user || !user.passwordHash) {
+    throw AppError.unauthorized('Identifiants invalides', 'INVALID_CREDENTIALS')
+  }
+
+  const valid = await bcrypt.compare(password, user.passwordHash)
+  if (!valid) {
+    throw AppError.unauthorized('Identifiants invalides', 'INVALID_CREDENTIALS')
+  }
+
+  if (!user.isActive) {
+    throw AppError.unauthorized('Ce compte est désactivé', 'ACCOUNT_DISABLED')
+  }
+
+  const { passwordHash: _, ...userObj } = user
+  return userObj
 }
 
 // ── Préférences ────────────────────────────────────────────────────────────────
@@ -191,5 +290,8 @@ module.exports = {
   generateTokens,
   refreshAccessToken,
   login,
+  logout,
+  register,
+  validateUser,
   updatePreferences,
 }

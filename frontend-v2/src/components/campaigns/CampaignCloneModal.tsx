@@ -1,3 +1,5 @@
+import Modal from "../ui/Modal";
+
 interface CampaignCloneModalProps {
   campaignName: string | undefined;
   isPending: boolean;
@@ -12,15 +14,13 @@ export default function CampaignCloneModal({
   onConfirm,
 }: CampaignCloneModalProps) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-xl mx-4">
-        <h3 className="text-lg font-semibold text-slate-900 mb-2">
-          Cloner la campagne
-        </h3>
-        <p className="text-sm text-slate-600 mb-4">
-          Une copie de « {campaignName} » sera créée avec une nouvelle année.
-        </p>
-        <div className="flex gap-3 justify-end">
+    <Modal
+      isOpen={true}
+      onClose={onClose}
+      title="Cloner la campagne"
+      size="sm"
+      footer={
+        <>
           <button
             onClick={onClose}
             className="border border-slate-200 hover:bg-slate-50 px-4 py-2 rounded-lg text-sm font-medium"
@@ -34,8 +34,12 @@ export default function CampaignCloneModal({
           >
             {isPending ? "Clonage…" : "Cloner"}
           </button>
-        </div>
-      </div>
-    </div>
+        </>
+      }
+    >
+      <p className="text-sm text-slate-600">
+        Une copie de « {campaignName} » sera créée avec une nouvelle année.
+      </p>
+    </Modal>
   );
 }

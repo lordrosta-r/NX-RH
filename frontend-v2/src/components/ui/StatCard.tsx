@@ -19,27 +19,27 @@ export default function StatCard({ label, value, icon, iconColor = 'bg-primary-5
 
   if (loading) {
     return (
-      <div className={clsx('bg-white rounded-xl border border-slate-200 p-5 shadow-sm', className)}>
+      <div className={clsx('bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm', className)}>
         <div className="flex items-center justify-between mb-3">
-          <div className="h-3 w-24 bg-slate-200 rounded animate-pulse" />
-          <div className="h-10 w-10 bg-slate-200 rounded-xl animate-pulse" />
+          <div className="h-3 w-24 bg-slate-200 dark:bg-slate-700 rounded animate-pulse" />
+          <div className="h-10 w-10 bg-slate-200 dark:bg-slate-700 rounded-xl animate-pulse" />
         </div>
-        <div className="h-8 w-16 bg-slate-200 rounded animate-pulse" />
+        <div className="h-8 w-16 bg-slate-200 dark:bg-slate-700 rounded animate-pulse" />
       </div>
     )
   }
 
   return (
-    <div className={clsx('bg-white rounded-xl border border-slate-200 p-5 shadow-sm', className)}>
+    <div className={clsx('bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm', className)}>
       <div className="flex items-center justify-between mb-3">
-        <p className="text-sm font-medium text-slate-500">{label}</p>
+        <p className="text-sm font-medium text-slate-500 dark:text-slate-400">{label}</p>
         {icon && (
           <div className={clsx('p-2.5 rounded-xl', iconColor)}>
             {icon}
           </div>
         )}
       </div>
-      <p className="text-3xl font-bold text-slate-900">{value}</p>
+      <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">{value}</p>
       {(trend != null || trendLabel) && (
         <div className={clsx('flex items-center gap-1 mt-2 text-sm', trendColor)}>
           <TrendIcon className="w-4 h-4" />

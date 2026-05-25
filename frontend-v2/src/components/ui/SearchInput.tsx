@@ -51,9 +51,9 @@ export default function SearchInput({
         onChange={handleChange}
         placeholder={placeholder}
         className={clsx(
-          'w-full h-10 rounded-lg border border-slate-300 pl-9 pr-9 py-2 text-sm text-slate-700 placeholder:text-slate-500',
+          'w-full h-10 rounded-lg border border-slate-300 dark:border-slate-600 pl-9 pr-9 py-2 text-sm text-slate-700 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400',
           'focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-500 transition-colors',
-          'bg-white'
+          'bg-white dark:bg-slate-700'
         )}
       />
       {isLoading && (

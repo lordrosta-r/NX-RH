@@ -269,7 +269,7 @@ export default function ProfilePage() {
           {/* ── Onglet Informations ─────────────────────────────── */}
           {tab === 'info' && (
             <div className="space-y-5 max-w-lg">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Prénom</label>
                   {editMode ? (
@@ -299,7 +299,7 @@ export default function ProfilePage() {
                 <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
                 <p className="text-sm text-slate-500 px-3 py-2 bg-slate-50 rounded-lg">{user.email}</p>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Rôle</label>
                   <p className="text-sm text-slate-500 px-3 py-2 bg-slate-50 rounded-lg">{roleLabels[user.role] ?? user.role}</p>

@@ -39,7 +39,7 @@ export default function FilterBar({
         <SearchInput
           value={searchValue ?? ''}
           onChange={onSearchChange}
-          className="w-64"
+          className="w-full sm:w-64"
         />
       )}
 

@@ -192,7 +192,7 @@ export default function UserEditPage() {
         {/* Card 1 — Informations personnelles */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6 mb-4">
           <h2 className="text-base font-semibold text-slate-900 mb-4">Informations personnelles</h2>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">
                 Prénom <span className="text-error-500">*</span>
@@ -255,7 +255,7 @@ export default function UserEditPage() {
             </select>
             {errors.role && <p className="text-xs text-error-500 mt-1">{errors.role}</p>}
           </div>
-          <div className="grid grid-cols-2 gap-4 mb-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">Département</label>
               <input

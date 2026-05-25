@@ -145,8 +145,9 @@ export default function OrgSidePanel({
 
             {/* Role */}
             <div>
-              <label className="text-xs font-medium text-slate-600 block mb-1">Rôle</label>
+              <label htmlFor="edit-role" className="text-xs font-medium text-slate-600 block mb-1">Rôle</label>
               <select
+                id="edit-role"
                 value={editRole}
                 onChange={e => { setEditRole(e.target.value as Role); setDirty(true) }}
                 className="w-full text-sm border border-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-teal-200"
@@ -160,8 +161,9 @@ export default function OrgSidePanel({
             {/* Sector */}
             {sectors.length > 0 && (
               <div>
-                <label className="text-xs font-medium text-slate-600 block mb-1">Secteur</label>
+                <label htmlFor="edit-sector" className="text-xs font-medium text-slate-600 block mb-1">Secteur</label>
                 <select
+                  id="edit-sector"
                   value={editSectorId}
                   onChange={e => { setEditSectorId(e.target.value); setDirty(true) }}
                   className="w-full text-sm border border-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-teal-200"
@@ -176,8 +178,9 @@ export default function OrgSidePanel({
 
             {/* Manager */}
             <div>
-              <label className="text-xs font-medium text-slate-600 block mb-1">Manager direct</label>
+              <label htmlFor="manager-search" className="text-xs font-medium text-slate-600 block mb-1">Manager direct</label>
               <input
+                id="manager-search"
                 type="text"
                 placeholder="Rechercher un manager…"
                 value={managerSearch}

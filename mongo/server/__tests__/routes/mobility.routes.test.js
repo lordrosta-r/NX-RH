@@ -54,6 +54,7 @@ jest.mock('../../models/MobilityRequest', () => {
   MockMR.findById            = jest.fn()
   MockMR.find                = jest.fn(() => _chain([]))
   MockMR.countDocuments      = jest.fn().mockResolvedValue(0)
+  MockMR.aggregate           = jest.fn().mockResolvedValue([])
   return MockMR
 })
 
@@ -72,7 +73,8 @@ process.env.NODE_ENV   = 'test'
 const supertest        = require('supertest')
 const express          = require('express')
 const cookieParser     = require('cookie-parser')
-const { authGuard }    = require('../../middleware/authGuard')
+// authGuard is mocked above — required to ensure the mock is registered
+const { authGuard: _authGuard } = require('../../middleware/authGuard')   
 const MobilityRequest  = require('../../models/MobilityRequest')
 const { paginate }     = require('../../utils/paginate')
 const mobilityRouter   = require('../../routes/mobility')
@@ -96,7 +98,7 @@ function buildApp() {
   app.use(express.json())
   app.use(cookieParser())
   app.use('/api/mobility', mobilityRouter)
-  // eslint-disable-next-line no-unused-vars
+   
   app.use((err, _req, res, _next) => {
     res.status(err.status || 500).json({ error: err.message || 'Internal Server Error' })
   })
@@ -434,5 +436,171 @@ describe('Mobility workflow: create → validate → list by status', () => {
       expect.objectContaining({ status: 'approved' }),
       expect.any(Object),
     )
+  })
+})
+
+// ─── GET /api/mobility/stats ──────────────────────────────────────────────────
+
+describe('GET /api/mobility/stats', () => {
+  beforeEach(() => jest.clearAllMocks())
+
+  it('should return 401 when not authenticated', async () => {
+    const res = await supertest(app).get('/api/mobility/stats')
+    expect(res.status).toBe(401)
+  })
+
+  it('should return 403 for employee role', async () => {
+    const res = await supertest(app)
+      .get('/api/mobility/stats')
+      .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+    expect(res.status).toBe(403)
+  })
+
+  it('should return stats for HR with correct shape', async () => {
+    MobilityRequest.aggregate
+      .mockResolvedValueOnce([{ _id: 'approved', count: 5 }, { _id: 'pending', count: 3 }])
+      .mockResolvedValueOnce([{ _id: 'internal_transfer', count: 4 }, { _id: 'promotion', count: 4 }])
+      .mockResolvedValueOnce([{ _id: null, avgDays: 7.3 }])
+    MobilityRequest.countDocuments.mockResolvedValue(8)
+
+    const res = await supertest(app)
+      .get('/api/mobility/stats')
+      .set('Cookie', `accessToken=${tokenFor({ id: HR_ID, role: 'hr' })}`)
+
+    expect(res.status).toBe(200)
+    expect(res.body.data).toMatchObject({
+      total: 8,
+      approvalRate: 63,
+      avgProcessingDays: 7,
+      byStatus: expect.objectContaining({ approved: 5, pending: 3 }),
+      byType: expect.objectContaining({ internal_transfer: 4, promotion: 4 }),
+    })
+  })
+
+  it('should return stats for admin role', async () => {
+    MobilityRequest.aggregate.mockResolvedValue([])
+    MobilityRequest.countDocuments.mockResolvedValue(0)
+
+    const res = await supertest(app)
+      .get('/api/mobility/stats')
+      .set('Cookie', `accessToken=${tokenFor({ id: HR_ID, role: 'admin' })}`)
+
+    expect(res.status).toBe(200)
+    expect(res.body.data).toMatchObject({ total: 0, approvalRate: 0, byStatus: {}, byType: {} })
+  })
+})
+
+// ─── POST /api/mobility/:id/complete ─────────────────────────────────────────
+
+describe('POST /api/mobility/:id/complete', () => {
+  beforeEach(() => jest.clearAllMocks())
+
+  it('should return 401 when not authenticated', async () => {
+    const res = await supertest(app).post(`/api/mobility/${VALID_ID}/complete`)
+    expect(res.status).toBe(401)
+  })
+
+  it('should return 403 when employee tries to complete', async () => {
+    const doc = makePendingDoc({ status: 'approved', employeeId: EMPLOYEE_ID })
+    MobilityRequest.findById.mockResolvedValue(doc)
+
+    const res = await supertest(app)
+      .post(`/api/mobility/${VALID_ID}/complete`)
+      .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+      .send({ notes: 'Done' })
+
+    expect(res.status).toBe(403)
+  })
+
+  it('should allow HR to mark an approved request as completed', async () => {
+    const doc = makePendingDoc({ status: 'approved' })
+    MobilityRequest.findById.mockResolvedValue(doc)
+
+    const res = await supertest(app)
+      .post(`/api/mobility/${VALID_ID}/complete`)
+      .set('Cookie', `accessToken=${tokenFor({ id: HR_ID, role: 'hr' })}`)
+      .send({ notes: 'Transition effectuée' })
+
+    expect(res.status).toBe(200)
+    expect(doc.save).toHaveBeenCalled()
+    expect(doc.implementation).toMatchObject({ status: 'completed', notes: 'Transition effectuée' })
+  })
+
+  it('should return 400 when trying to complete a non-approved request', async () => {
+    const doc = makePendingDoc({ status: 'pending' })
+    MobilityRequest.findById.mockResolvedValue(doc)
+
+    const res = await supertest(app)
+      .post(`/api/mobility/${VALID_ID}/complete`)
+      .set('Cookie', `accessToken=${tokenFor({ id: HR_ID, role: 'hr' })}`)
+
+    expect(res.status).toBe(400)
+  })
+
+  it('should return 404 for non-existent request', async () => {
+    MobilityRequest.findById.mockResolvedValue(null)
+
+    const res = await supertest(app)
+      .post(`/api/mobility/${VALID_ID}/complete`)
+      .set('Cookie', `accessToken=${tokenFor({ id: HR_ID, role: 'hr' })}`)
+
+    expect(res.status).toBe(404)
+  })
+})
+
+// ─── GET /api/mobility/history/:employeeId ────────────────────────────────────
+
+describe('GET /api/mobility/history/:employeeId', () => {
+  beforeEach(() => jest.clearAllMocks())
+
+  it('should return 401 when not authenticated', async () => {
+    const res = await supertest(app).get(`/api/mobility/history/${EMPLOYEE_ID}`)
+    expect(res.status).toBe(401)
+  })
+
+  it('should allow HR to view any employee history', async () => {
+    const fakeHistory = [
+      { _id: VALID_ID, status: 'approved', createdAt: new Date().toISOString() },
+    ]
+    const chain = {
+      populate: jest.fn().mockReturnThis(),
+      sort:     jest.fn().mockReturnThis(),
+      lean:     jest.fn().mockResolvedValue(fakeHistory),
+    }
+    MobilityRequest.find.mockReturnValue(chain)
+
+    const res = await supertest(app)
+      .get(`/api/mobility/history/${EMPLOYEE_ID}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: HR_ID, role: 'hr' })}`)
+
+    expect(res.status).toBe(200)
+    expect(Array.isArray(res.body.data)).toBe(true)
+    expect(res.body.data).toHaveLength(1)
+  })
+
+  it('should allow employee to view their own history', async () => {
+    const chain = {
+      populate: jest.fn().mockReturnThis(),
+      sort:     jest.fn().mockReturnThis(),
+      lean:     jest.fn().mockResolvedValue([]),
+    }
+    MobilityRequest.find.mockReturnValue(chain)
+
+    const res = await supertest(app)
+      .get(`/api/mobility/history/${EMPLOYEE_ID}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+
+    expect(res.status).toBe(200)
+    expect(Array.isArray(res.body.data)).toBe(true)
+  })
+
+  it('should return 403 when employee tries to view another employee history', async () => {
+    const OTHER_EMPLOYEE = '507f1f77bcf86cd799439099'
+
+    const res = await supertest(app)
+      .get(`/api/mobility/history/${OTHER_EMPLOYEE}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+
+    expect(res.status).toBe(403)
   })
 })

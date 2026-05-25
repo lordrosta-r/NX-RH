@@ -7,6 +7,7 @@ import { useAuth } from "../contexts/AuthContext";
 import type { AxiosError } from "axios";
 import { loginSchema, type LoginFormValues } from "../schemas";
 import { ErrorMessage } from "../components/ui/ErrorMessage";
+import { useTranslation } from "react-i18next";
 
 function InlineAlert({
   type,
@@ -27,6 +28,7 @@ function InlineAlert({
 }
 
 export default function LoginPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { login, isAuthenticated } = useAuth();
@@ -61,34 +63,19 @@ export default function LoginPage() {
     } catch (err) {
       const status = (err as AxiosError)?.response?.status;
       if (status === 401)
-        setAlertError({
-          type: "error",
-          message: "E-mail ou mot de passe incorrect",
-        });
+        setAlertError({ type: "error", message: t("auth.loginError") });
       else if (status === 429)
-        setAlertError({
-          type: "warning",
-          message: "Trop de tentatives. Réessayez dans quelques minutes.",
-        });
+        setAlertError({ type: "warning", message: t("auth.tooManyAttempts") });
       else if (status === 403)
-        setAlertError({
-          type: "error",
-          message: "Votre compte est désactivé. Contactez votre RH.",
-        });
-      else
-        setAlertError({
-          type: "error",
-          message: "Une erreur est survenue. Réessayez.",
-        });
+        setAlertError({ type: "error", message: t("auth.accountDisabled") });
+      else setAlertError({ type: "error", message: t("auth.genericError") });
     }
   }
 
   return (
     <div className="bg-white rounded-2xl shadow-xl p-8">
-      <h1 className="text-2xl font-bold text-slate-900">Connexion</h1>
-      <p className="text-sm text-slate-500 mt-1">
-        Bienvenue sur NX-RH NanoXplore
-      </p>
+      <h1 className="text-2xl font-bold text-slate-900">{t("auth.login")}</h1>
+      <p className="text-sm text-slate-500 mt-1">{t("auth.welcome")}</p>
 
       {alertError && (
         <div className="mt-4">
@@ -107,7 +94,7 @@ export default function LoginPage() {
             htmlFor="email"
             className="block text-sm font-medium text-slate-700 mb-1"
           >
-            Adresse e-mail
+            {t("auth.email")}
           </label>
           <input
             id="email"
@@ -135,7 +122,7 @@ export default function LoginPage() {
             htmlFor="password"
             className="block text-sm font-medium text-slate-700 mb-1"
           >
-            Mot de passe
+            {t("auth.password")}
           </label>
           <div className="relative">
             <input
@@ -159,9 +146,7 @@ export default function LoginPage() {
               onClick={() => setShowPassword((v) => !v)}
               className="absolute inset-y-0 right-0 flex items-center px-3 text-slate-400 hover:text-slate-600"
               aria-label={
-                showPassword
-                  ? "Masquer le mot de passe"
-                  : "Afficher le mot de passe"
+                showPassword ? t("auth.hidePassword") : t("auth.showPassword")
               }
             >
               {showPassword ? (
@@ -188,7 +173,7 @@ export default function LoginPage() {
             className="h-4 w-4 rounded border-slate-300 text-primary-500 focus:ring-primary-200"
           />
           <label htmlFor="remember" className="text-sm text-slate-600">
-            Se souvenir de moi
+            {t("auth.remember")}
           </label>
         </div>
 
@@ -202,10 +187,10 @@ export default function LoginPage() {
           {isSubmitting ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
-              Connexion…
+              {t("auth.loginLoading")}
             </>
           ) : (
-            "Se connecter"
+            t("auth.loginButton")
           )}
         </button>
 
@@ -224,7 +209,7 @@ export default function LoginPage() {
               to="/login/ldap"
               className="w-full h-11 flex items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-700 font-medium text-sm hover:bg-slate-50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-300"
             >
-              Connexion via LDAP
+              {t("auth.ldapLogin")}
             </Link>
           </>
         )}

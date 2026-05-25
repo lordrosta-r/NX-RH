@@ -23,6 +23,26 @@ router.post('/', authenticate, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+// ── Routes spécifiques — AVANT /:id pour éviter les conflits ─────────────────
+
+// GET /api/mobility/stats — statistiques globales (HR/admin uniquement)
+router.get('/stats', authGuard(['admin', 'hr']), async (req, res, next) => {
+  try {
+    const stats = await mobilityService.getMobilityStats();
+    return respond.item(res, stats);
+  } catch (err) { next(err); }
+});
+
+// GET /api/mobility/history/:employeeId — historique des mobilités d'un employé
+router.get('/history/:employeeId', authenticate, async (req, res, next) => {
+  try {
+    const history = await mobilityService.getMobilityHistory(req.params.employeeId, req.user);
+    return respond.item(res, history);
+  } catch (err) { next(err); }
+});
+
+// ── Routes paramétrées ───────────────────────────────────────────────────────
+
 // GET /api/mobility/:id
 router.get('/:id', authenticate, async (req, res, next) => {
   try {
@@ -44,6 +64,22 @@ router.delete('/:id', authenticate, async (req, res, next) => {
   try {
     await mobilityService.deleteRequest(req.params.id, req.user);
     return respond.deleted(res);
+  } catch (err) { next(err); }
+});
+
+// POST /api/mobility/:id/complete — marquer l'implémentation comme terminée
+router.post('/:id/complete', authenticate, async (req, res, next) => {
+  try {
+    const request = await mobilityService.completeImplementation(req.params.id, req.body, req.user);
+    return respond.item(res, request);
+  } catch (err) { next(err); }
+});
+
+// POST /api/mobility/:id/reopen — relancer une demande rejetée
+router.post('/:id/reopen', authenticate, async (req, res, next) => {
+  try {
+    const newRequest = await mobilityService.reopenRequest(req.params.id, req.user);
+    return respond.created(res, newRequest);
   } catch (err) { next(err); }
 });
 

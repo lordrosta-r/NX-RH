@@ -102,6 +102,11 @@ async function updateRequest(id, body, user) {
       request.status = status;
       request.reviewedBy = user._id;
       request.reviewedAt = new Date();
+      request.decision = {
+        decidedAt: new Date(),
+        decidedBy: user._id,
+        comment: hrComment || request.hrComment,
+      };
     }
     if (hrComment !== undefined) request.hrComment = hrComment;
     if (priority) request.priority = priority;
@@ -137,6 +142,136 @@ async function deleteRequest(id, user) {
   await request.deleteOne();
 }
 
+// ── Post-décision ─────────────────────────────────────────────────────────────
+
+/**
+ * Marque une demande approuvée comme entièrement implémentée (mobilité effective).
+ * Réservé aux HR/admin.
+ */
+async function completeImplementation(requestId, data, user) {
+  if (!['admin', 'hr'].includes(user.role)) throw AppError.forbidden('Accès refusé');
+
+  const request = await MobilityRequest.findById(requestId);
+  if (!request) throw AppError.notFound('Demande introuvable');
+  if (request.status !== 'approved') {
+    throw AppError.badRequest("Seules les demandes approuvées peuvent être marquées implémentées");
+  }
+
+  const now = new Date();
+  request.implementation = {
+    status: 'completed',
+    startedAt: request.implementation?.startedAt || now,
+    completedAt: now,
+    notes: data?.notes || request.implementation?.notes,
+  };
+
+  if (data?.effectiveDate) {
+    if (!request.decision) request.decision = {};
+    request.decision.effectiveDate = new Date(data.effectiveDate);
+  }
+
+  await request.save();
+  return request;
+}
+
+/**
+ * Historique de toutes les demandes d'un employé (triées par date).
+ * Un employé ne peut voir que ses propres demandes.
+ */
+async function getMobilityHistory(employeeId, user) {
+  if (user.role === 'employee' && user._id.toString() !== employeeId) {
+    throw AppError.forbidden('Accès refusé');
+  }
+
+  return MobilityRequest.find({ employeeId })
+    .populate('employeeId', 'firstName lastName email department position')
+    .populate('reviewedBy', 'firstName lastName')
+    .populate('decision.decidedBy', 'firstName lastName')
+    .sort({ createdAt: -1 })
+    .lean();
+}
+
+/**
+ * Statistiques globales de mobilité : répartition par type/statut,
+ * délai moyen de traitement, taux d'approbation.
+ * Accès réservé aux HR/admin (garanti par la route).
+ */
+async function getMobilityStats() {
+  const [byStatus, byType, total, avgProcessing] = await Promise.all([
+    MobilityRequest.aggregate([{ $group: { _id: '$status', count: { $sum: 1 } } }]),
+    MobilityRequest.aggregate([{ $group: { _id: '$requestType', count: { $sum: 1 } } }]),
+    MobilityRequest.countDocuments(),
+    MobilityRequest.aggregate([
+      { $match: { reviewedAt: { $exists: true } } },
+      {
+        $project: {
+          processingDays: {
+            $divide: [{ $subtract: ['$reviewedAt', '$createdAt'] }, 86400000],
+          },
+        },
+      },
+      { $group: { _id: null, avgDays: { $avg: '$processingDays' } } },
+    ]),
+  ]);
+
+  const approvedCount = byStatus.find(s => s._id === 'approved')?.count || 0;
+  const approvalRate = total > 0 ? Math.round((approvedCount / total) * 100) : 0;
+
+  return {
+    total,
+    byStatus: Object.fromEntries(byStatus.map(s => [s._id, s.count])),
+    byType: Object.fromEntries(byType.map(t => [t._id, t.count])),
+    approvalRate,
+    avgProcessingDays: avgProcessing.length > 0 && avgProcessing[0].avgDays !== null && avgProcessing[0].avgDays !== undefined
+      ? Math.round(avgProcessing[0].avgDays)
+      : null,
+  };
+}
+
+/**
+ * Relance une demande rejetée en créant un nouveau brouillon (pending).
+ * Accessible par le propriétaire ou HR/admin.
+ */
+async function reopenRequest(requestId, user) {
+  const original = await MobilityRequest.findById(requestId);
+  if (!original) throw AppError.notFound('Demande introuvable');
+
+  if (original.status !== 'rejected') {
+    throw AppError.badRequest('Seules les demandes rejetées peuvent être relancées');
+  }
+
+  const isOwner = original.employeeId.toString() === user._id.toString();
+  if (!isOwner && !['admin', 'hr'].includes(user.role)) {
+    throw AppError.forbidden('Accès refusé');
+  }
+
+  const newRequest = await MobilityRequest.create({
+    employeeId: original.employeeId,
+    currentPosition: original.currentPosition,
+    currentDepartment: original.currentDepartment,
+    targetPosition: original.targetPosition,
+    targetDepartment: original.targetDepartment,
+    targetSite: original.targetSite,
+    requestType: original.requestType,
+    motivation: original.motivation,
+    priority: original.priority,
+    targetDate: original.targetDate,
+    status: 'pending',
+  });
+
+  return newRequest.populate('employeeId', 'firstName lastName email');
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 
-module.exports = { listRequests, getRequestById, createRequest, updateRequest, deleteRequest };
+module.exports = {
+  listRequests,
+  getRequestById,
+  createRequest,
+  updateRequest,
+  deleteRequest,
+  completeImplementation,
+  getMobilityHistory,
+  getMobilityStats,
+  reopenRequest,
+};

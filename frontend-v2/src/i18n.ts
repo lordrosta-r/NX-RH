@@ -1,27 +1,25 @@
-import i18n from 'i18next'
-import { initReactI18next } from 'react-i18next'
-import HttpBackend from 'i18next-http-backend'
-import LanguageDetector from 'i18next-browser-languagedetector'
+import i18n from "i18next";
+import { initReactI18next } from "react-i18next";
+import LanguageDetector from "i18next-browser-languagedetector";
+import fr from "./i18n/locales/fr.json";
+import en from "./i18n/locales/en.json";
 
 i18n
-  .use(HttpBackend)
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
-    fallbackLng: 'fr',
-    supportedLngs: ['fr'],
-    ns: ['common', 'evaluations', 'campaigns', 'forms', 'users', 'notifications', 'dashboard'],
-    defaultNS: 'common',
-    backend: {
-      loadPath: '/locales/{{lng}}/{{ns}}.json',
+    resources: {
+      fr: { translation: fr },
+      en: { translation: en },
     },
-    interpolation: {
-      escapeValue: false,
-    },
+    fallbackLng: "fr",
+    supportedLngs: ["fr", "en"],
+    defaultNS: "translation",
+    interpolation: { escapeValue: false },
     detection: {
-      order: ['localStorage', 'navigator'],
-      caches: ['localStorage'],
+      order: ["localStorage", "navigator"],
+      caches: ["localStorage"],
     },
-  })
+  });
 
-export default i18n
+export default i18n;

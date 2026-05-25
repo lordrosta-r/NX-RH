@@ -55,4 +55,14 @@ export default [
   {
     ignores: ['node_modules/**', 'public/**', 'uploads/**', '../database/seed.js'],
   },
+  {
+    files: ['**/__tests__/**/*.js', '**/*.test.js', '**/*.spec.js'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        ...globals.es2022,
+        ...globals.jest,
+      },
+    },
+  },
 ]

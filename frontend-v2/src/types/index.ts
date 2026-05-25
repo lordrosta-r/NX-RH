@@ -340,6 +340,44 @@ export interface AnalyticsSummary {
   }>;
 }
 
+export interface MonthlyTrendPoint {
+  month: string;
+  total: number;
+  completed: number;
+}
+
+// ─── Dashboard HR Stats ────────────────────────────────────────────────────────
+export interface DashboardHrStats {
+  users: { total: number; active: number; inactive: number };
+  campaigns: { active: number; draft: number; completed: number; overdue: number };
+  evaluations: {
+    total: number;
+    completed: number;
+    pending: number;
+    signedBoth: number;
+    signedBothRate: number;
+    avgCompletionDays: number | null;
+    completionRate: number;
+  };
+  mobility: { pending: number };
+  recentCampaigns: Array<{ _id: string; name: string; status: string; createdAt: string }>;
+}
+
+// ─── Dashboard Manager Stats ───────────────────────────────────────────────────
+export interface DashboardManagerStats {
+  evaluations: { total: number; completed: number; pending: number; overdue: number; signedByManager: number };
+  campaigns: { total: number };
+  completionRate: number;
+  teamSize: number;
+  pendingSignatures: Array<{
+    _id: string;
+    id: string;
+    evaluateeId: { _id: string; firstName: string; lastName: string } | string;
+    campaignId: { _id: string; name: string } | string;
+    signedByEvaluateeAt: string;
+  }>;
+}
+
 export interface CampaignAnalytics {
   campaignId: string;
   campaignName?: string;

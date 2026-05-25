@@ -76,6 +76,7 @@ function getNavItems(role: Role): NavItem[] {
           { label: "Paramètres RH", href: "/admin/settings", separator: true },
           { label: "Demandes RH", href: "/hr/flags" },
           { label: "Mobilité interne", href: "/mobility" },
+          { label: "PDI", href: "/pdi" },
         ],
       },
     ];
@@ -105,6 +106,7 @@ function getNavItems(role: Role): NavItem[] {
           { label: "Historique", href: "/evaluations/history" },
           { label: "Demandes RH", href: "/hr/flags", separator: true },
           { label: "Mobilité interne", href: "/mobility" },
+          { label: "PDI", href: "/pdi" },
         ],
       },
       pilotage,
@@ -140,6 +142,7 @@ function getNavItems(role: Role): NavItem[] {
         ],
       },
       { label: "Mobilité", href: "/mobility" },
+      { label: "PDI", href: "/pdi" },
       pilotageNoAnalytics,
     ];
 
@@ -154,6 +157,7 @@ function getNavItems(role: Role): NavItem[] {
       ],
     },
     { label: "Mobilité", href: "/mobility" },
+    { label: "PDI", href: "/pdi" },
     { label: "Mon profil", href: "/profile" },
     { label: "Notifications", href: "/notifications" },
     pilotageNoAnalytics,

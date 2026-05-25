@@ -98,4 +98,11 @@ export const queryKeys = {
   campaignSettings: {
     all: ['campaign-settings'] as const,
   },
+  pdi: {
+    all: ['pdi'] as const,
+    lists: () => [...queryKeys.pdi.all, 'list'] as const,
+    list: (filters: object) => [...queryKeys.pdi.lists(), filters] as const,
+    details: () => [...queryKeys.pdi.all, 'detail'] as const,
+    detail: (id: string) => [...queryKeys.pdi.details(), id] as const,
+  },
 } as const

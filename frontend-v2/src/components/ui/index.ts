@@ -82,3 +82,6 @@ export type { EmptyStateProps } from './EmptyState'
 export { ErrorBoundary, default as ErrorBoundaryDefault } from './ErrorBoundary'
 export { default as LoadingPage } from './LoadingPage'
 export type { LoadingPageProps } from './LoadingPage'
+
+export { KPICard } from './KPICard'
+export type { KPICardProps } from './KPICard'

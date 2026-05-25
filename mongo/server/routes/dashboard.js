@@ -4,6 +4,7 @@ const express    = require('express')
 const router     = express.Router()
 const { authGuard }                     = require('../middleware/authGuard')
 const { Campaign, Evaluation, User }    = require('../models')
+const MobilityRequest                   = require('../models/MobilityRequest')
 const logger                            = require('../utils/logger')
 const { cacheResponse }                 = require('../middleware/cacheMiddleware')
 
@@ -119,39 +120,69 @@ router.get('/hr', hrOnly, cacheResponse(300), async (req, res, next) => {
   try {
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
     const completedStatuses = ['submitted', 'reviewed', 'signed_evaluatee', 'signed_manager', 'signed_hr', 'validated']
+    const now = new Date()
 
     const [
       totalUsers,
       activeUsers,
       campaignsActive,
       campaignsDraft,
+      campaignsCompleted,
+      campaignsOverdue,
       evaluationsTotal,
       evaluationsCompleted,
       evaluationsPending,
+      evaluationsSignedBoth,
       recentCampaigns,
+      mobilityPending,
+      avgResult,
     ] = await Promise.all([
       User.countDocuments({ isActive: true }),
       User.countDocuments({ isActive: true, lastLoginAt: { $gte: thirtyDaysAgo } }),
       Campaign.countDocuments({ status: 'active' }),
       Campaign.countDocuments({ status: 'draft' }),
+      Campaign.countDocuments({ status: { $in: ['closed', 'archived'] } }),
+      Campaign.countDocuments({ status: 'active', endDate: { $lt: now } }),
       Evaluation.countDocuments({}),
       Evaluation.countDocuments({ status: { $in: completedStatuses } }),
       Evaluation.countDocuments({ status: { $in: ['assigned', 'in_progress'] } }),
+      Evaluation.countDocuments({
+        signedByEvaluateeAt: { $exists: true, $ne: null },
+        signedByManagerAt:   { $exists: true, $ne: null },
+      }),
       Campaign.find({ status: 'active' }).sort({ createdAt: -1 }).limit(5).select('name status createdAt').lean(),
+      MobilityRequest.countDocuments({ status: { $in: ['pending', 'under_review'] } }),
+      Evaluation.aggregate([
+        { $match: { signedByEvaluateeAt: { $exists: true, $ne: null } } },
+        {
+          $project: {
+            completionDays: {
+              $divide: [{ $subtract: ['$signedByEvaluateeAt', '$createdAt'] }, 86400000],
+            },
+          },
+        },
+        { $group: { _id: null, avg: { $avg: '$completionDays' } } },
+      ]),
     ])
+
+    const avgCompletionDays = avgResult.length > 0 ? Math.round(avgResult[0].avg) : null
 
     res.json({
       data: {
-        users: { total: totalUsers, active: activeUsers },
-        campaigns: { active: campaignsActive, draft: campaignsDraft },
+        users: { total: totalUsers, active: activeUsers, inactive: totalUsers - activeUsers },
+        campaigns: { active: campaignsActive, draft: campaignsDraft, completed: campaignsCompleted, overdue: campaignsOverdue },
         evaluations: {
           total: evaluationsTotal,
           completed: evaluationsCompleted,
           pending: evaluationsPending,
+          signedBoth: evaluationsSignedBoth,
+          signedBothRate: evaluationsTotal ? Math.round((evaluationsSignedBoth / evaluationsTotal) * 100) : 0,
+          avgCompletionDays,
           completionRate: evaluationsTotal
             ? Math.round((evaluationsCompleted / evaluationsTotal) * 100)
             : 0,
         },
+        mobility: { pending: mobilityPending },
         recentCampaigns,
       },
     })
@@ -167,7 +198,7 @@ router.get('/manager', managerOnly, cacheResponse(300, req => `GET:/api/dashboar
     const teamMembers = await User.find({ managerId, isActive: true }).select('_id').lean()
     const teamIds     = teamMembers.map(u => u._id)
 
-    const [myTeamEvals, completed, pending, overdue, activeCampaigns] = await Promise.all([
+    const [myTeamEvals, completed, pending, overdue, signedByManager, activeCampaigns, pendingSignatures] = await Promise.all([
       Evaluation.countDocuments({ evaluateeId: { $in: teamIds } }),
       Evaluation.countDocuments({ evaluateeId: { $in: teamIds }, status: { $in: completedStatuses } }),
       Evaluation.countDocuments({ evaluateeId: { $in: teamIds }, status: { $in: ['assigned', 'in_progress'] } }),
@@ -176,15 +207,30 @@ router.get('/manager', managerOnly, cacheResponse(300, req => `GET:/api/dashboar
         status: { $in: ['assigned', 'in_progress'] },
         expiresAt: { $lt: new Date() },
       }),
+      Evaluation.countDocuments({
+        evaluateeId: { $in: teamIds },
+        signedByManagerAt: { $exists: true, $ne: null },
+      }),
       Campaign.countDocuments({ status: 'active' }),
+      Evaluation.find({
+        evaluateeId: { $in: teamIds },
+        signedByEvaluateeAt: { $exists: true, $ne: null },
+        signedByManagerAt: { $exists: true, $eq: null },
+      })
+        .populate('evaluateeId', 'firstName lastName')
+        .populate('campaignId', 'name')
+        .sort({ signedByEvaluateeAt: 1 })
+        .limit(5)
+        .lean(),
     ])
 
     res.json({
       data: {
-        evaluations: { total: myTeamEvals, completed, pending, overdue },
+        evaluations: { total: myTeamEvals, completed, pending, overdue, signedByManager },
         campaigns: { total: activeCampaigns },
         completionRate: myTeamEvals ? Math.round((completed / myTeamEvals) * 100) : 0,
         teamSize: teamIds.length,
+        pendingSignatures,
       },
     })
   } catch (err) { next(err) }

@@ -11,6 +11,7 @@ import { toast } from '../hooks/useToast'
 import { usePdfExport } from '../hooks/usePdfExport'
 import type { Evaluation } from '../types'
 import PageGuide from '../components/shared/PageGuide'
+import { queryKeys } from '../lib/queryKeys'
 
 const EVAL_STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   assigned:         { label: 'Assignée',         color: 'bg-slate-100 text-slate-600' },
@@ -48,7 +49,7 @@ export default function EvaluationsPage() {
   useEffect(() => setPage(1), [searchDebounced])
 
   const { data, isLoading } = useQuery({
-    queryKey: ['evaluations', campaignFilter, statusFilter, deptFilter, searchDebounced, page],
+    queryKey: queryKeys.evaluations.list({ campaignFilter, statusFilter, deptFilter, q: searchDebounced, page }),
     queryFn: () => (isEmployee
       ? evaluationsApi.getMyEvaluations({ page, limit: 20, campaignId: campaignFilter || undefined, status: statusFilter.length === 1 ? statusFilter[0] : undefined })
       : evaluationsApi.getEvaluations({ page, limit: 20, campaignId: campaignFilter || undefined, status: statusFilter.length === 1 ? statusFilter[0] : undefined, department: deptFilter || undefined, q: searchDebounced || undefined })
@@ -57,7 +58,7 @@ export default function EvaluationsPage() {
   })
 
   const { data: usersData } = useQuery({
-    queryKey: ['users', 'evaluators'],
+    queryKey: queryKeys.users.evaluators(),
     queryFn: () => usersApi.getUsers({ limit: 200 }).then(r => r.data),
     enabled: isAdminOrHr,
   })
@@ -67,7 +68,7 @@ export default function EvaluationsPage() {
     mutationFn: ({ id, evaluatorId }: { id: string; evaluatorId: string }) =>
       evaluationsApi.updateEvaluation(id, { evaluatorId }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['evaluations'] })
+      queryClient.invalidateQueries({ queryKey: queryKeys.evaluations.lists() })
       setReassignTarget(null)
       setReassignUserId('')
     },
@@ -76,17 +77,30 @@ export default function EvaluationsPage() {
 
   const expireMutation = useMutation({
     mutationFn: (id: string) => evaluationsApi.updateEvaluation(id, { status: 'expired' }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['evaluations'] })
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.evaluations.lists() })
+      const listKey = queryKeys.evaluations.list({ campaignFilter, statusFilter, deptFilter, q: searchDebounced, page })
+      const previous = queryClient.getQueryData<{ data: Evaluation[]; total: number; totalPages: number }>(listKey)
+      queryClient.setQueryData<{ data: Evaluation[]; total: number; totalPages: number }>(
+        listKey,
+        (old) => old ? { ...old, data: old.data.map(e => e.id === id ? { ...e, status: 'expired' as const } : e) } : old
+      )
+      return { previous, listKey }
+    },
+    onError: (_err, _id, context) => {
+      if (context?.previous) queryClient.setQueryData(context.listKey, context.previous)
+      toast.error('Erreur lors de l\'expiration', 'Veuillez réessayer.')
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.evaluations.lists() })
       setExpireConfirm(null)
     },
-    onError: () => toast.error('Erreur lors de l\'expiration', 'Veuillez réessayer.'),
   })
 
   const bulkArchiveMutation = useMutation({
     mutationFn: (ids: string[]) => evaluationsApi.bulkAction({ ids, action: 'archive' }),
     onSuccess: (res) => {
-      queryClient.invalidateQueries({ queryKey: ['evaluations'] })
+      queryClient.invalidateQueries({ queryKey: queryKeys.evaluations.lists() })
       setBulkModal(null)
       setSelected([])
       toast.success(
@@ -102,7 +116,7 @@ export default function EvaluationsPage() {
   const bulkSignHrMutation = useMutation({
     mutationFn: (ids: string[]) => evaluationsApi.bulkAction({ ids, action: 'sign_hr' }),
     onSuccess: (res) => {
-      queryClient.invalidateQueries({ queryKey: ['evaluations'] })
+      queryClient.invalidateQueries({ queryKey: queryKeys.evaluations.lists() })
       setBulkModal(null)
       setSelected([])
       toast.success(

@@ -9,6 +9,7 @@ import {
 import { eventsApi } from '../api/events'
 import { useAuth } from '../contexts/AuthContext'
 import type { CalendarEvent, EventType, Role } from '../types'
+import { queryKeys } from '../lib/queryKeys'
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 
@@ -323,7 +324,7 @@ export default function EventDetailPage() {
 
   // ── Query ──
   const { data: event, isLoading, isError } = useQuery({
-    queryKey: ['events', id],
+    queryKey: queryKeys.events.detail(id ?? ''),
     queryFn: () => eventsApi.getEvent(id!).then(r => r.data),
     enabled: !!id,
   })
@@ -348,8 +349,8 @@ export default function EventDetailPage() {
   const updateMutation = useMutation({
     mutationFn: (data: Partial<CalendarEvent>) => eventsApi.updateEvent(id!, data).then(r => r.data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['events'] })
-      queryClient.invalidateQueries({ queryKey: ['events', id] })
+      queryClient.invalidateQueries({ queryKey: queryKeys.events.lists() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.events.detail(id ?? '') })
       setIsEditOpen(false)
     },
   })
@@ -357,7 +358,7 @@ export default function EventDetailPage() {
   const deleteMutation = useMutation({
     mutationFn: () => eventsApi.deleteEvent(id!),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['events'] })
+      queryClient.invalidateQueries({ queryKey: queryKeys.events.lists() })
       navigate('/events')
     },
   })

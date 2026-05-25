@@ -6,6 +6,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { toast } from '../hooks/useToast'
 import { UserGroupsList, UserGroupFormModal, UserGroupMembersPanel, UserGroupDeleteModal } from '../components/users'
 import type { UserGroup } from '../types'
+import { queryKeys } from '../lib/queryKeys'
 
 export default function UserGroupsPage() {
   const { user } = useAuth()
@@ -17,32 +18,32 @@ export default function UserGroupsPage() {
   const [deleteConfirm, setDeleteConfirm] = useState<UserGroup | null>(null)
 
   const { data: groups, isLoading, isError, refetch } = useQuery<UserGroup[]>({
-    queryKey: ['groups'],
+    queryKey: queryKeys.groups.all,
     queryFn: () => groupsApi.list().then(r => r.data),
   })
 
   const createMutation = useMutation({
     mutationFn: (data: { name: string; description?: string }) => groupsApi.create(data),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['groups'] }); setFormModal({ open: false }); toast.success('Groupe créé', 'Le groupe a été créé avec succès.') },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: queryKeys.groups.all }); setFormModal({ open: false }); toast.success('Groupe créé', 'Le groupe a été créé avec succès.') },
     onError: () => toast.error('Erreur', 'Impossible de créer le groupe.'),
   })
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: { name?: string; description?: string } }) => groupsApi.update(id, data),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['groups'] }); setFormModal({ open: false }); toast.success('Groupe modifié', 'Le groupe a été mis à jour.') },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: queryKeys.groups.all }); setFormModal({ open: false }); toast.success('Groupe modifié', 'Le groupe a été mis à jour.') },
     onError: () => toast.error('Erreur', 'Impossible de modifier le groupe.'),
   })
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => groupsApi.delete(id),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['groups'] }); setDeleteConfirm(null); toast.success('Groupe supprimé', 'Le groupe a été supprimé.') },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: queryKeys.groups.all }); setDeleteConfirm(null); toast.success('Groupe supprimé', 'Le groupe a été supprimé.') },
     onError: () => toast.error('Erreur', 'Impossible de supprimer le groupe.'),
   })
 
   const membersMutation = useMutation({
     mutationFn: ({ id, action, userIds }: { id: string; action: 'add' | 'remove'; userIds: string[] }) =>
       groupsApi.updateMembers(id, action, userIds),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['groups'] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.groups.all }),
     onError: () => toast.error('Erreur', 'Impossible de modifier les membres.'),
   })
 

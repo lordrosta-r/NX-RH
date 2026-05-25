@@ -10,6 +10,7 @@ import {
 import { useAuth } from '../contexts/AuthContext'
 import { resourcesApi } from '../api/resources'
 import type { Resource, ResourceType, Role } from '../types'
+import { queryKeys } from '../lib/queryKeys'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function formatFileSize(bytes: number): string {
@@ -86,8 +87,8 @@ function EditResourceSlideOver({ resource, open, onClose }: EditResourceSlideOve
     mutationFn: (data: Partial<Resource>) =>
       resourcesApi.updateResource(resource.id, data).then(r => r.data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['resources', resource.id] })
-      queryClient.invalidateQueries({ queryKey: ['resources'] })
+      queryClient.invalidateQueries({ queryKey: queryKeys.resources.detail(resource.id) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.resources.lists() })
       onClose()
     },
   })
@@ -214,7 +215,7 @@ export default function ResourceDetailPage() {
   const [showEditSlideOver, setShowEditSlideOver] = useState(false)
 
   const { data: resource, isLoading, isError } = useQuery({
-    queryKey: ['resources', id],
+    queryKey: queryKeys.resources.detail(id ?? ''),
     queryFn: () => resourcesApi.getResource(id!).then(r => r.data),
     enabled: !!id,
     placeholderData: keepPreviousData,
@@ -222,12 +223,12 @@ export default function ResourceDetailPage() {
 
   const { mutate: publishResource, isPending: isPublishing } = useMutation({
     mutationFn: () => resourcesApi.publishResource(id!),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['resources', id] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.resources.detail(id ?? '') }),
   })
 
   const { mutate: unpublishResource, isPending: isUnpublishing } = useMutation({
     mutationFn: () => resourcesApi.unpublishResource(id!),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['resources', id] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.resources.detail(id ?? '') }),
   })
 
   if (isLoading) return <DetailSkeleton />

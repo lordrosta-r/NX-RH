@@ -23,6 +23,7 @@ import type {
 } from "../types";
 import type { OrgView } from "../components/org/OrgToolbar";
 import type { DragTarget } from "../components/org/OrgDragConfirmDialog";
+import { queryKeys } from "../lib/queryKeys";
 
 // ─── Tree traversal helpers ──────────────────────────────────────────────────
 
@@ -301,7 +302,7 @@ export function useOrgChart(): UseOrgChartReturn {
     mutationFn: ({ nodeId, newManagerId }: DragTarget) =>
       orgApi.patchOrgUser(nodeId, { managerId: newManagerId }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["org"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.org.all });
       setDragTarget(null);
     },
   });

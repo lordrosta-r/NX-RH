@@ -11,6 +11,7 @@ import { toast } from '../hooks/useToast'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
 import type { Form } from '../types'
 import PageGuide from '../components/shared/PageGuide'
+import { queryKeys } from '../lib/queryKeys'
 
 const FORM_TYPE_CONFIG: Record<string, { label: string; color: string }> = {
   self_evaluation:      { label: 'Auto-évaluation',        color: 'bg-primary-50 text-primary-700' },
@@ -45,7 +46,7 @@ export default function FormsPage() {
   const campaigns = campaignsData?.data ?? []
 
   const { data, isLoading } = useQuery({
-    queryKey: ['forms', typeFilter, campaignFilter, debouncedSearch],
+    queryKey: queryKeys.forms.lists(),
     queryFn: () =>
       formsApi
         .getForms({ formType: typeFilter || undefined, campaignId: campaignFilter || undefined, q: debouncedSearch || undefined, limit: 50 })
@@ -54,14 +55,14 @@ export default function FormsPage() {
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => formsApi.deleteForm(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['forms'] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.forms.lists() }),
     onError: () => toast.error('Erreur lors de la suppression', 'Veuillez réessayer.'),
   })
 
   const cloneMutation = useMutation({
     mutationFn: (id: string) => formsApi.cloneForm(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['forms'] })
+      queryClient.invalidateQueries({ queryKey: queryKeys.forms.lists() })
       setCloneTarget(null)
     },
     onError: () => toast.error('Erreur lors de la duplication', 'Veuillez réessayer.'),

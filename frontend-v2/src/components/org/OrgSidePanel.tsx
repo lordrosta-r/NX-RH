@@ -5,6 +5,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { orgApi } from '../../api/org'
 import type { OrgNodeData } from '../../hooks/useOrgLayout'
 import type { Role } from '../../types'
+import { queryKeys } from '../../lib/queryKeys'
 
 const ROLE_OPTIONS: { value: Role; label: string; color: string }[] = [
   { value: 'admin',    label: 'Admin',      color: '#0D9488' },
@@ -55,7 +56,7 @@ export default function OrgSidePanel({
         managerId: editManagerId !== (person.managerId ?? '') ? editManagerId || null : undefined,
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['org'] })
+      queryClient.invalidateQueries({ queryKey: queryKeys.org.all })
       setDirty(false)
     },
   })

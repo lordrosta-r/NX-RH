@@ -11,6 +11,7 @@ import type { CalendarEvent, EventType, Role } from '../types'
 import { CalendarGrid, EventTypeChip, EVENT_CONFIG, evDate, sameDay } from './events/CalendarGrid'
 import { EventSlideOver, EMPTY_FORM } from './events/EventSlideOver'
 import type { EventFormState } from './events/EventSlideOver'
+import { queryKeys } from '../lib/queryKeys'
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 
@@ -111,7 +112,7 @@ export default function EventsPage() {
 
   // ── Query ──
   const { data, isLoading } = useQuery({
-    queryKey: ['events', { typeFilter }],
+    queryKey: queryKeys.events.lists(),
     queryFn: () =>
       eventsApi.getEvents({ type: typeFilter || undefined, limit: 200 }).then(r => r.data),
     placeholderData: keepPreviousData,
@@ -133,7 +134,7 @@ export default function EventsPage() {
     mutationFn: (payload: Partial<CalendarEvent>) =>
       eventsApi.createEvent(payload).then(r => r.data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['events'] })
+      queryClient.invalidateQueries({ queryKey: queryKeys.events.lists() })
       setIsSlideOverOpen(false)
       setForm(EMPTY_FORM)
       setFormError(null)
@@ -148,7 +149,7 @@ export default function EventsPage() {
   const deleteMutation = useMutation({
     mutationFn: (id: string) => eventsApi.deleteEvent(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['events'] })
+      queryClient.invalidateQueries({ queryKey: queryKeys.events.lists() })
       setDeleteId(null)
     },
   })

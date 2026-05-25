@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { evaluationsApi } from "../api/evaluations";
 import type { Evaluation, FormQuestion } from "../types";
 import type { EvalMutationHandle } from "../types/evaluation";
+import { queryKeys } from "../lib/queryKeys";
 
 export interface UseEvaluationFormResult {
   answers: Record<string, unknown>;
@@ -110,7 +111,7 @@ export function useEvaluationForm(
   }
 
   const invalidate = () =>
-    queryClient.invalidateQueries({ queryKey: ["evaluation", id] });
+    queryClient.invalidateQueries({ queryKey: queryKeys.evaluations.detail(id) });
 
   const _submitMutation = useMutation({
     mutationFn: () => evaluationsApi.submitEvaluation(id),

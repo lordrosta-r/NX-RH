@@ -9,6 +9,7 @@ import type { User } from '../types'
 import { useAuth } from '../contexts/AuthContext'
 import { cn } from '../utils/cn'
 import { formatDate } from '../utils/formatDate'
+import { queryKeys } from '../lib/queryKeys'
 
 const REASON_LABELS: Record<OffboardingRecord['reason'], string> = {
   resignation: 'Démission',
@@ -192,7 +193,7 @@ export default function OffboardingPage() {
   }, [debouncedSearch])
 
   const { data, isLoading } = useQuery({
-    queryKey: ['offboardings', filters],
+    queryKey: queryKeys.offboarding.lists(),
     queryFn: () => offboardingApi.getOffboardings(filters).then((r) => r.data),
     placeholderData: keepPreviousData,
   })
@@ -205,7 +206,7 @@ export default function OffboardingPage() {
   const createMutation = useMutation({
     mutationFn: (d: Partial<OffboardingRecord>) => offboardingApi.createOffboarding(d),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['offboardings'] })
+      queryClient.invalidateQueries({ queryKey: queryKeys.offboarding.lists() })
       setShowForm(false)
     },
   })
@@ -213,7 +214,7 @@ export default function OffboardingPage() {
   const deleteMutation = useMutation({
     mutationFn: (id: string) => offboardingApi.deleteOffboarding(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['offboardings'] })
+      queryClient.invalidateQueries({ queryKey: queryKeys.offboarding.lists() })
       setDeleteConfirm(null)
     },
   })
@@ -222,7 +223,7 @@ export default function OffboardingPage() {
     mutationFn: ({ id, status }: { id: string; status: string }) =>
       offboardingApi.changeStatus(id, status),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['offboardings'] })
+      queryClient.invalidateQueries({ queryKey: queryKeys.offboarding.lists() })
       setStatusTarget(null)
       setNewStatus('')
     },

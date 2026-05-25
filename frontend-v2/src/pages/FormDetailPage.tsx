@@ -6,6 +6,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { formsApi } from '../api/forms'
 import type { FormQuestion } from '../types'
 import Breadcrumbs from '../components/ui/Breadcrumbs'
+import { queryKeys } from '../lib/queryKeys'
 
 const FORM_TYPE_CONFIG: Record<string, { label: string; color: string }> = {
   self_evaluation:      { label: 'Auto-évaluation',       color: 'bg-primary-50 text-primary-700' },
@@ -27,7 +28,7 @@ export default function FormDetailPage() {
   const queryClient = useQueryClient()
 
   const { data: form, isLoading } = useQuery({
-    queryKey: ['form', id],
+    queryKey: queryKeys.forms.detail(id ?? ''),
     queryFn: () => formsApi.getForm(id!).then(r => r.data),
     enabled: !!id,
   })
@@ -56,7 +57,7 @@ export default function FormDetailPage() {
   const saveMutation = useMutation({
     mutationFn: () => formsApi.updateForm(id!, { title: meta.title, description: meta.description, questions }).then(r => r.data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['form', id] })
+      queryClient.invalidateQueries({ queryKey: queryKeys.forms.detail(id ?? '') })
       setIsDirty(false)
     },
   })
@@ -68,12 +69,12 @@ export default function FormDetailPage() {
 
   const freezeMutation = useMutation({
     mutationFn: () => formsApi.freezeForm(id!),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['form', id] }); setFreezeModal(false) },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: queryKeys.forms.detail(id ?? '') }); setFreezeModal(false) },
   })
 
   const unfreezeMutation = useMutation({
     mutationFn: () => formsApi.unfreezeForm(id!),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['form', id] }); setUnfreezeModal(false) },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: queryKeys.forms.detail(id ?? '') }); setUnfreezeModal(false) },
   })
 
   function handleExport() {

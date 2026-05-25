@@ -4,6 +4,7 @@ import { AlertTriangle } from "lucide-react";
 import { SignatureSection } from "../SignatureSection";
 import type { Evaluation, EvaluationStatus } from "../../types";
 import type { EvalMutationHandle } from "../../types/evaluation";
+import { queryKeys } from "../../lib/queryKeys";
 
 const SIGN_STATUSES = [
   "submitted",
@@ -249,7 +250,7 @@ export function EvaluationCommentsSection({
         evaluatorId={evaluation.evaluatorId}
         evaluateeId={evaluation.evaluateeId}
         onSigned={() =>
-          queryClient.invalidateQueries({ queryKey: ["evaluation", id] })
+          queryClient.invalidateQueries({ queryKey: queryKeys.evaluations.detail(id) })
         }
       />
     </div>

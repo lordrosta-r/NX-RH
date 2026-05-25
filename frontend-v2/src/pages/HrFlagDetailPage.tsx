@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { ArrowLeft, User, Clock, FileText, CheckCircle, XCircle, RefreshCw, AlertCircle } from 'lucide-react'
 import { hrApi } from '../api/hr'
 import type { HrFlag, HrFlagStatus, HrFlagType } from '../types'
+import { queryKeys } from '../lib/queryKeys'
 
 const TYPE_LABELS: Record<HrFlagType, string> = {
   mobility_request: 'Mobilité',
@@ -57,7 +58,7 @@ export default function HrFlagDetailPage() {
   const [targetStatus, setTargetStatus] = useState<HrFlagStatus | ''>('')
 
   const { data: flag, isLoading, isError } = useQuery<HrFlag>({
-    queryKey: ['hr-flag', id],
+    queryKey: queryKeys.hrFlags.detail(id ?? ''),
     queryFn: () => hrApi.getFlag(id!).then(r => r.data),
     enabled: !!id,
   })
@@ -66,8 +67,8 @@ export default function HrFlagDetailPage() {
     mutationFn: ({ status, note }: { status: string; note?: string }) =>
       hrApi.updateFlagStatus(id!, status, note),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['hr-flag', id] })
-      qc.invalidateQueries({ queryKey: ['hr-flags'] })
+      qc.invalidateQueries({ queryKey: queryKeys.hrFlags.detail(id ?? '') })
+      qc.invalidateQueries({ queryKey: queryKeys.hrFlags.lists() })
       setNote('')
       setTargetStatus('')
     },

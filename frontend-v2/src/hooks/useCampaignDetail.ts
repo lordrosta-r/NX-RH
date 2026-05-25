@@ -5,6 +5,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { campaignsApi } from "../api/campaigns";
 import { formsApi } from "../api/forms";
 import type { Campaign, Form } from "../types";
+import { queryKeys } from "../lib/queryKeys";
 
 export interface CampaignAnalytics {
   statusDistribution?: {
@@ -53,10 +54,10 @@ export function useCampaignDetail(
   const [addFormModal, setAddFormModal] = useState(false);
 
   const invalidate = () =>
-    queryClient.invalidateQueries({ queryKey: ["campaign", id] });
+    queryClient.invalidateQueries({ queryKey: queryKeys.campaigns.detail(id ?? '') });
 
   const { data: campaign, isLoading } = useQuery({
-    queryKey: ["campaign", id],
+    queryKey: queryKeys.campaigns.detail(id ?? ''),
     queryFn: () => campaignsApi.getCampaign(id!).then((r) => r.data.data),
     enabled: !!id,
   });
@@ -65,14 +66,14 @@ export function useCampaignDetail(
 
   const { data: analytics, isLoading: analyticsLoading } =
     useQuery<CampaignAnalytics>({
-      queryKey: ["campaign-analytics", campaign?._id],
+      queryKey: queryKeys.campaigns.analytics(id ?? ''),
       queryFn: () => campaignsApi.getCampaignAnalytics(id!).then((r) => r.data),
       enabled: !!campaign?._id && isAdminOrHr,
       staleTime: 2 * 60 * 1000,
     });
 
   const { data: allFormsData } = useQuery({
-    queryKey: ["forms-library"],
+    queryKey: queryKeys.forms.library(),
     queryFn: () => formsApi.getForms({ limit: 200 }).then((r) => r.data),
     enabled: addFormModal,
   });

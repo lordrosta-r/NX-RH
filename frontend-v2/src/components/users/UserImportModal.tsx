@@ -5,6 +5,7 @@ import { usersApi } from '../../api/users'
 import { toast } from '../../hooks/useToast'
 import type { ImportResult } from '../../types'
 import Modal from '../ui/Modal'
+import { queryKeys } from '../../lib/queryKeys'
 
 interface CsvRow {
   [key: string]: string
@@ -38,7 +39,7 @@ export function UserImportModal({ onClose }: Props) {
     mutationFn: (f: File) => usersApi.importUsers(f).then(r => r.data),
     onSuccess: (data) => {
       setResult(data)
-      queryClient.invalidateQueries({ queryKey: ['users'] })
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.lists() })
       toast.success(
         'Import terminé',
         `${data.success} créé(s)${data.skipped ? `, ${data.skipped} ignoré(s)` : ''}, ${data.errors} erreur(s).`

@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { CheckCircle, XCircle, RefreshCw, Eye } from 'lucide-react'
 import { adminApi } from '../api/admin'
 import type { LdapConfig } from '../types'
+import { queryKeys } from '../lib/queryKeys'
 
 type Tab = 'config' | 'test' | 'preview' | 'sync'
 
@@ -16,7 +17,7 @@ export default function AdminLdapPage() {
   const [syncResult, setSyncResult] = useState<{ synced: number; errors: number } | null>(null)
 
   const { data: config, isLoading } = useQuery({
-    queryKey: ['ldap-config'],
+    queryKey: queryKeys.ldapConfig.all,
     queryFn: () => adminApi.getLdapConfig().then(r => r.data),
   })
 
@@ -26,7 +27,7 @@ export default function AdminLdapPage() {
 
   const saveMut = useMutation({
     mutationFn: (data: Partial<LdapConfig> & { bindPassword?: string }) => adminApi.updateLdapConfig(data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['ldap-config'] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.ldapConfig.all }),
   })
 
   const testMut = useMutation({

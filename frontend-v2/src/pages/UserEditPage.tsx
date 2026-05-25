@@ -5,6 +5,7 @@ import { usersApi } from '../api/users'
 import type { User } from '../types'
 import { useAuth } from '../contexts/AuthContext'
 import Button from '../components/ui/Button'
+import { queryKeys } from '../lib/queryKeys'
 
 const ROLE_LABELS: Record<string, string> = {
   admin: 'Admin', hr: 'RH', manager: 'Responsable', employee: 'Collaborateur',
@@ -42,7 +43,7 @@ export default function UserEditPage() {
 
   // Fetch current user data
   const { data: userData, isLoading } = useQuery({
-    queryKey: ['user', id],
+    queryKey: queryKeys.users.detail(id ?? ''),
     queryFn: () => usersApi.getUser(id!).then(r => r.data.data),
     enabled: !!id,
   })
@@ -92,7 +93,7 @@ export default function UserEditPage() {
   const updateMutation = useMutation({
     mutationFn: (data: Partial<User>) => usersApi.updateUser(id!, data).then(r => r.data.data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user', id] })
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.detail(id ?? '') })
       toast.show('Modifications enregistrées.')
       setTimeout(() => navigate(`/users/${id}`), 800)
     },

@@ -13,6 +13,7 @@ import { campaignsApi } from "../api/campaigns";
 import { orgApi } from "../api/org";
 import { groupsApi } from "../api/groups";
 import type { Campaign, CampaignStatus, UserGroup, Sector } from "../types";
+import { queryKeys } from "../lib/queryKeys";
 
 export const campaignWizardSchema = z
   .object({
@@ -189,7 +190,7 @@ export function useCampaignForm(): UseCampaignFormReturn {
     mutationFn: (data: Partial<Campaign>) =>
       campaignsApi.createCampaign(data).then((r) => r.data.data),
     onSuccess: (campaign: Campaign) => {
-      queryClient.invalidateQueries({ queryKey: ["campaigns"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.campaigns.lists() });
       navigate(`/campaigns/${campaign.id}`);
     },
   });

@@ -10,6 +10,7 @@ import { toast } from '../hooks/useToast'
 import type { Campaign } from '../types'
 import PageGuide from '../components/shared/PageGuide'
 import { exportToCsv } from '../utils/export'
+import { queryKeys } from '../lib/queryKeys'
 
 const STATUS_TABS = ['all', 'draft', 'active', 'closed', 'archived'] as const
 
@@ -146,7 +147,7 @@ export default function CampaignsPage() {
   const isSearching = search !== debouncedSearch
 
   const { data, isLoading } = useQuery({
-    queryKey: ['campaigns', statusTab, debouncedSearch],
+    queryKey: queryKeys.campaigns.list({ status: statusTab, q: debouncedSearch }),
     queryFn: () =>
       campaignsApi
         .getCampaigns({
@@ -159,19 +160,19 @@ export default function CampaignsPage() {
 
   const cloneMutation = useMutation({
     mutationFn: (id: string) => campaignsApi.cloneCampaign(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['campaigns'] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.campaigns.lists() }),
     onError: () => toast.error('Erreur lors du clonage', 'Veuillez réessayer.'),
   })
 
   const archiveMutation = useMutation({
     mutationFn: (id: string) => campaignsApi.archiveCampaign(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['campaigns'] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.campaigns.lists() }),
     onError: () => toast.error('Erreur lors de l\'archivage', 'Veuillez réessayer.'),
   })
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => campaignsApi.deleteCampaign(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['campaigns'] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.campaigns.lists() }),
     onError: () => toast.error('Erreur lors de la suppression', 'Veuillez réessayer.'),
   })
 

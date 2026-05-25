@@ -10,6 +10,7 @@ import type { User, Evaluation, PaginatedResponse } from '../types'
 import { getCampaignName } from '../types'
 import { useAuth } from '../contexts/AuthContext'
 import Breadcrumbs from '../components/ui/Breadcrumbs'
+import { queryKeys } from '../lib/queryKeys'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const ROLE_BADGES: Record<string, string> = {
@@ -85,14 +86,14 @@ export default function UserDetailPage() {
 
   // Fetch user
   const { data: userData, isLoading } = useQuery({
-    queryKey: ['user', id],
+    queryKey: queryKeys.users.detail(id ?? ''),
     queryFn: () => usersApi.getUser(id!).then(r => r.data.data),
     enabled: !!id,
   })
 
   // Fetch manager
   const { data: managerData } = useQuery({
-    queryKey: ['user', userData?.managerId],
+    queryKey: ['manager', userData?.managerId],
     queryFn: () => usersApi.getUser(userData!.managerId!).then(r => r.data.data),
     enabled: !!userData?.managerId,
   })
@@ -117,7 +118,7 @@ export default function UserDetailPage() {
   const offboardMutation = useMutation({
     mutationFn: () => usersApi.offboard(id!),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user', id] })
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.detail(id ?? '') })
       setOffboardModal(false)
       toast.show('Offboarding déclenché avec succès.')
     },
@@ -128,7 +129,7 @@ export default function UserDetailPage() {
   const anonymizeMutation = useMutation({
     mutationFn: () => usersApi.anonymize(id!),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user', id] })
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.detail(id ?? '') })
       setAnonymizeModal(false)
       toast.show('Données anonymisées.')
     },

@@ -5,6 +5,7 @@ import { adminApi } from '../api/admin'
 import type { User, PaginatedResponse } from '../types'
 import { useAuth } from '../contexts/AuthContext'
 import ActionMenu from '../components/ui/ActionMenu'
+import { queryKeys } from '../lib/queryKeys'
 
 function SkeletonRow() {
   return (
@@ -41,18 +42,18 @@ export default function AdminUsersPage() {
   const isAdminOrHr = currentUser?.role === 'admin' || currentUser?.role === 'hr'
 
   const { data, isLoading } = useQuery<PaginatedResponse<User>>({
-    queryKey: ['admin-users', q, authSourceFilter],
+    queryKey: queryKeys.adminUsers.all,
     queryFn: () => adminApi.getAdminUsers({ q, ...(authSourceFilter ? { authSource: authSourceFilter } : {}) }).then(r => r.data),
   })
 
   const anonymizeMut = useMutation({
     mutationFn: (id: string) => adminApi.anonymizeUser(id),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-users'] }); setConfirmUser(null); setConfirmText('') },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: queryKeys.adminUsers.all }); setConfirmUser(null); setConfirmText('') },
   })
 
   const forceDeactivateMut = useMutation({
     mutationFn: (id: string) => adminApi.forceDeactivateUser(id),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-users'] }); setDeactivateTarget(null) },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: queryKeys.adminUsers.all }); setDeactivateTarget(null) },
   })
 
   async function exportGdpr(user: User) {

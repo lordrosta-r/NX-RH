@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { evaluationsApi } from '../api/evaluations'
 import { useAuth } from '../contexts/AuthContext'
 import type { EvaluationSignature } from '../types'
+import { queryKeys } from '../lib/queryKeys'
 
 interface SignatureSectionProps {
   evaluationId: string
@@ -36,7 +37,7 @@ export function SignatureSection({
   const signMutation = useMutation({
     mutationFn: () => evaluationsApi.signEvaluation(evaluationId).then(r => r.data),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['evaluation', evaluationId] })
+      qc.invalidateQueries({ queryKey: queryKeys.evaluations.detail(evaluationId) })
       onSigned?.()
     },
   })

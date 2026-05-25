@@ -15,6 +15,7 @@ const { getVisibleUserIds }    = require('../../services/managerVisibility')
 const { ADMIN_ROLES }          = require('../../config/constants')
 const { EVALUATION_STATUSES }  = require('../../config/constants')
 const { COMPLETED_STATUSES, sanitizeAnonymity } = require('./helpers')
+const { paginate } = require('../../utils/paginate')
 
 // GET /history — Historique des entretiens (évaluations terminées, limité à 200)
 async function handleHistory(req, res, next) {
@@ -88,21 +89,18 @@ async function handleList(req, res, next) {
       filter.evaluateeId = new mongoose.Types.ObjectId(req.query.evaluateeId)
     }
 
-    const page  = Math.max(1, parseInt(req.query.page)  || 1)
-    const limit = Math.min(100, parseInt(req.query.limit) || 50)
-    const skip  = (page - 1) * limit
-
-    const [items, total] = await Promise.all([
-      Evaluation.find(filter)
-        .populate('formId', 'title formType isAnonymous')
-        .populate('evaluatorId', 'firstName lastName')
-        .populate('evaluateeId', 'firstName lastName department')
-        .populate('campaignId', 'name status')
-        .sort({ createdAt: -1 })
-        .skip(skip).limit(limit).lean(),
-      Evaluation.countDocuments(filter),
-    ])
-    res.json({ data: items.map(sanitizeAnonymity), total, page, limit })
+    const result = await paginate(Evaluation, filter, {
+      page:  req.query.page  || 1,
+      limit: req.query.limit || 50,
+      sort:  { createdAt: -1 },
+      populate: [
+        { path: 'formId',      select: 'title formType isAnonymous' },
+        { path: 'evaluatorId', select: 'firstName lastName' },
+        { path: 'evaluateeId', select: 'firstName lastName department' },
+        { path: 'campaignId',  select: 'name status' },
+      ],
+    })
+    res.json({ ...result, data: result.data.map(sanitizeAnonymity) })
   } catch (err) {
     next(err)
   }

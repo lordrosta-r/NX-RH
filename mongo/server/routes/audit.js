@@ -11,6 +11,7 @@
 const router   = require('express').Router()
 const mongoose = require('mongoose')
 const { AuditLog } = require('../models')
+const { paginate }  = require('../utils/paginate')
 
 // Whitelist des valeurs acceptées — empêche tout probing arbitraire sur la piste d'audit
 const VALID_ACTIONS = [
@@ -65,10 +66,6 @@ router.get('/export', async (req, res, next) => {
 // GET /api/admin/audit — Liste les entrées de la piste d'audit (paginé)
 router.get('/', async (req, res, next) => {
   try {
-    const page  = Math.max(1, parseInt(req.query.page)  || 1)
-    const limit = Math.min(100, parseInt(req.query.limit) || 20)
-    const skip  = (page - 1) * limit
-
     const filter = {}
 
     if (req.query.action) {
@@ -92,17 +89,13 @@ router.get('/', async (req, res, next) => {
       if (req.query.to)   filter.createdAt.$lte = new Date(req.query.to)
     }
 
-    const [data, total] = await Promise.all([
-      AuditLog.find(filter)
-        .populate('userId', 'firstName lastName role')
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
-        .lean(),
-      AuditLog.countDocuments(filter),
-    ])
-
-    res.json({ data, total, page, limit })
+    const result = await paginate(AuditLog, filter, {
+      page:  req.query.page  || 1,
+      limit: req.query.limit || 20,
+      sort:  { createdAt: -1 },
+      populate: { path: 'userId', select: 'firstName lastName role' },
+    })
+    res.json(result)
   } catch (err) {
     next(err)
   }

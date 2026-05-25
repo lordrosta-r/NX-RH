@@ -7,6 +7,7 @@ const router   = require('express').Router()
 const mongoose = require('mongoose')
 const { Event }      = require('../models')
 const { ADMIN_ROLES, ROLES } = require('../config/constants')
+const { paginate } = require('../utils/paginate')
 
 // GET /api/events — Liste des événements calendrier (filtrée par rôle)
 router.get('/', async (req, res, next) => {
@@ -19,14 +20,12 @@ router.get('/', async (req, res, next) => {
         { targetRoles: req.user.role },     // ciblé ce rôle spécifiquement
       ]
     }
-    const page  = Math.max(1, parseInt(req.query.page)  || 1)
-    const limit = Math.min(100, parseInt(req.query.limit) || 50)
-    const skip  = (page - 1) * limit
-    const [data, total] = await Promise.all([
-      Event.find(query).sort({ date: 1 }).skip(skip).limit(limit).lean(),
-      Event.countDocuments(query),
-    ])
-    res.json({ data, total, page, limit })
+    const result = await paginate(Event, query, {
+      page:  req.query.page  || 1,
+      limit: req.query.limit || 50,
+      sort:  { date: 1 },
+    })
+    res.json(result)
   } catch (err) { next(err) }
 })
 

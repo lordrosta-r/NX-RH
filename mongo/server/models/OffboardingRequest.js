@@ -64,5 +64,7 @@ const offboardingRequestSchema = new Schema({
 
 offboardingRequestSchema.index({ status: 1 })
 offboardingRequestSchema.index({ lastDay: 1 })
+// Lookup "demandes que j'ai créées" (hr dashboard)
+offboardingRequestSchema.index({ requestedBy: 1, createdAt: -1 })
 
 module.exports = { OffboardingRequest: model('OffboardingRequest', offboardingRequestSchema), DEFAULT_CHECKLIST }

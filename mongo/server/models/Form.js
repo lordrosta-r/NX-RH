@@ -110,5 +110,9 @@ formSchema.pre('save', function (next) {
 
 formSchema.statics.VALID_FORM_TYPES = FORM_TYPES
 formSchema.index({ title: 'text', description: 'text' })
+// Filtre par type (hr/flags : Form.find({ formType: { $in: REQUEST_FORM_TYPES } }))
+formSchema.index({ formType: 1 })
+// Dashboard "mes formulaires"
+formSchema.index({ createdBy: 1 })
 
 module.exports = model('Form', formSchema)

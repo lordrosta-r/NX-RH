@@ -18,6 +18,7 @@ const { REQUEST_FORM_TYPES } = require('../../config/constants')
 const { notify: notifyInApp } = require('../../services/notificationHelper')
 const notificationService     = require('../../services/notificationService')
 const { authGuard }           = require('../../middleware/authGuard')
+const { paginate }            = require('../../utils/paginate')
 const logger                  = require('../../utils/logger')
 
 const ADMIN_HR        = authGuard(['admin', 'hr'])
@@ -57,8 +58,6 @@ router.get('/count', ADMIN_HR, async (req, res) => {
 router.get('/', ADMIN_HR, async (req, res, next) => {
   try {
     const { type, status, from, to, department, sectorId } = req.query
-    const page  = Math.max(1, parseInt(req.query.page)  || 1)
-    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 20))
 
     // Formes de type "request"
     const formFilter = { formType: { $in: REQUEST_FORM_TYPES } }
@@ -89,16 +88,17 @@ router.get('/', ADMIN_HR, async (req, res, next) => {
       evalFilter.evaluateeId = { $in: matchingUsers.map(u => u._id) }
     }
 
-    const total = await Evaluation.countDocuments(evalFilter)
-    const data  = await Evaluation.find(evalFilter)
-      .sort({ createdAt: -1 })
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .populate('evaluateeId', 'firstName lastName email department sectorId')
-      .populate('formId',      'title formType')
-      .lean()
+    const result = await paginate(Evaluation, evalFilter, {
+      page:  req.query.page  || 1,
+      limit: req.query.limit || 20,
+      sort:  { createdAt: -1 },
+      populate: [
+        { path: 'evaluateeId', select: 'firstName lastName email department sectorId' },
+        { path: 'formId',      select: 'title formType' },
+      ],
+    })
 
-    res.json({ data, total, page, limit, totalPages: Math.ceil(total / limit) })
+    res.json({ ...result, totalPages: result.pages })
   } catch (err) {
     next(err)
   }

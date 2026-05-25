@@ -10,6 +10,7 @@ const { createUser: createUserValidator, updateUser: updateUserValidator } = req
 const userService = require('../services/userService')
 const { filterNotifPrefsByRole } = require('../services/authService')
 const respond = require('../utils/response')
+const { paginate } = require('../utils/paginate')
 
 // GET /api/users/stats — Statistiques utilisateurs (admin/hr uniquement)
 router.get('/stats', async (req, res, next) => {
@@ -76,14 +77,13 @@ router.get('/', async (req, res, next) => {
       filter.$text = { $search: search.slice(0, 100) }
     }
 
-    const page  = Math.max(1, parseInt(req.query.page)  || 1)
-    const limit = Math.min(100, parseInt(req.query.limit) || 50)
-    const skip  = (page - 1) * limit
-    const [users, total] = await Promise.all([
-      User.find(filter).select('-passwordHash -ldapDn').sort({ lastName: 1, firstName: 1 }).skip(skip).limit(limit).lean(),
-      User.countDocuments(filter),
-    ])
-    res.json({ data: users, total, page, limit })
+    const result = await paginate(User, filter, {
+      page:   req.query.page  || 1,
+      limit:  req.query.limit || 50,
+      sort:   { lastName: 1, firstName: 1 },
+      select: '-passwordHash -ldapDn',
+    })
+    res.json(result)
   } catch (err) {
     next(err)
   }

@@ -1,37 +1,52 @@
-import { memo, useState } from 'react'
-import { Handle, Position } from '@xyflow/react'
-import type { NodeProps, Node } from '@xyflow/react'
-import type { OrgNodeData } from '../../hooks/useOrgLayout'
-import OrgTooltip from './OrgTooltip'
+import { memo, useState, useRef, useEffect } from "react";
+import { Handle, Position } from "@xyflow/react";
+import type { NodeProps, Node } from "@xyflow/react";
+import type { OrgNodeData } from "../../hooks/useOrgLayout";
+import OrgTooltip from "./OrgTooltip";
 
 const ROLE_LABELS: Record<string, string> = {
-  admin:    'Admin',
-  hr:       'RH',
-  manager:  'Manager',
-  employee: 'Employé',
-}
+  admin: "Admin",
+  hr: "RH",
+  manager: "Manager",
+  employee: "Employé",
+};
 
 function OrgCircleNode({ data, selected }: NodeProps<Node<OrgNodeData>>) {
-  const [showTooltip, setShowTooltip] = useState(false)
-  const [tooltipTimer, setTooltipTimer] = useState<ReturnType<typeof setTimeout> | null>(null)
+  const [showTooltip, setShowTooltip] = useState(false);
+  const tooltipTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const { size, color, initials, firstName, lastName, role, hasNoManager, reportCount } = data
+  useEffect(() => {
+    return () => {
+      if (tooltipTimerRef.current) clearTimeout(tooltipTimerRef.current);
+    };
+  }, []);
 
-  const fullName = `${firstName} ${lastName}`
-  const truncatedName = fullName.length > 14 ? fullName.slice(0, 13) + '…' : fullName
+  const {
+    size,
+    color,
+    initials,
+    firstName,
+    lastName,
+    role,
+    hasNoManager,
+    reportCount,
+  } = data;
+
+  const fullName = `${firstName} ${lastName}`;
+  const truncatedName =
+    fullName.length > 14 ? fullName.slice(0, 13) + "…" : fullName;
 
   const handleMouseEnter = () => {
-    const timer = setTimeout(() => setShowTooltip(true), 300)
-    setTooltipTimer(timer)
-  }
+    tooltipTimerRef.current = setTimeout(() => setShowTooltip(true), 300);
+  };
 
   const handleMouseLeave = () => {
-    if (tooltipTimer) clearTimeout(tooltipTimer)
-    setTooltipTimer(null)
-    setShowTooltip(false)
-  }
+    if (tooltipTimerRef.current) clearTimeout(tooltipTimerRef.current);
+    tooltipTimerRef.current = null;
+    setShowTooltip(false);
+  };
 
-  const fontSize = size >= 72 ? 18 : size >= 64 ? 16 : size >= 56 ? 14 : 12
+  const fontSize = size >= 72 ? 18 : size >= 64 ? 16 : size >= 56 ? 14 : 12;
 
   return (
     <div
@@ -44,7 +59,10 @@ function OrgCircleNode({ data, selected }: NodeProps<Node<OrgNodeData>>) {
       <Handle type="source" position={Position.Bottom} style={{ opacity: 0 }} />
 
       {/* Circle */}
-      <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
+      <div
+        className="relative flex items-center justify-center"
+        style={{ width: size, height: size }}
+      >
         {/* Orange dashed ring for no-manager (admin/hr view) */}
         {hasNoManager && (
           <div
@@ -63,8 +81,8 @@ function OrgCircleNode({ data, selected }: NodeProps<Node<OrgNodeData>>) {
             fontSize,
             boxShadow: selected
               ? `0 0 0 3px white, 0 0 0 5px ${color}`
-              : '0 1px 4px rgba(0,0,0,0.15)',
-            transform: showTooltip ? 'scale(1.05)' : 'scale(1)',
+              : "0 1px 4px rgba(0,0,0,0.15)",
+            transform: showTooltip ? "scale(1.05)" : "scale(1)",
           }}
         >
           {initials}
@@ -72,7 +90,10 @@ function OrgCircleNode({ data, selected }: NodeProps<Node<OrgNodeData>>) {
       </div>
 
       {/* Name */}
-      <span className="mt-1.5 text-xs font-medium text-slate-700 text-center leading-tight" style={{ maxWidth: size + 40 }}>
+      <span
+        className="mt-1.5 text-xs font-medium text-slate-700 text-center leading-tight"
+        style={{ maxWidth: size + 40 }}
+      >
         {truncatedName}
       </span>
 
@@ -97,7 +118,7 @@ function OrgCircleNode({ data, selected }: NodeProps<Node<OrgNodeData>>) {
         />
       )}
     </div>
-  )
+  );
 }
 
-export default memo(OrgCircleNode)
+export default memo(OrgCircleNode);

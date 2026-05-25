@@ -6,6 +6,7 @@
 
 const MobilityRequest = require('../models/MobilityRequest');
 const AppError = require('../utils/AppError');
+const { paginate } = require('../utils/paginate');
 
 // ── Lecture ───────────────────────────────────────────────────────────────────
 
@@ -19,18 +20,15 @@ async function listRequests(user, { page = 1, limit = 20, status, type } = {}) {
   if (status) filter.status = status;
   if (type) filter.requestType = type;
 
-  const [data, total] = await Promise.all([
-    MobilityRequest.find(filter)
-      .populate('employeeId', 'firstName lastName email department position')
-      .populate('reviewedBy', 'firstName lastName')
-      .sort({ createdAt: -1 })
-      .skip((page - 1) * limit)
-      .limit(+limit)
-      .lean(),
-    MobilityRequest.countDocuments(filter),
-  ]);
-
-  return { data, total, page: +page, limit: +limit };
+  return paginate(MobilityRequest, filter, {
+    page,
+    limit,
+    sort: { createdAt: -1 },
+    populate: [
+      { path: 'employeeId', select: 'firstName lastName email department position' },
+      { path: 'reviewedBy', select: 'firstName lastName' },
+    ],
+  });
 }
 
 /**

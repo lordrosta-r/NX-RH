@@ -12,6 +12,7 @@ const router   = require('express').Router()
 const { OffboardingRequest } = require('../models/OffboardingRequest')
 const User     = require('../models/User')
 const AuditLog = require('../models/AuditLog')
+const { paginate } = require('../utils/paginate')
 
 const { ADMIN_ROLES: HR_ROLES } = require('../config/constants')
 const ADMIN_ROLES = ['admin'] // admin-only — pas de constante équivalente dans constants.js
@@ -78,22 +79,16 @@ router.get('/', async (req, res, next) => {
       filter.status = req.query.status
     }
 
-    const page  = Math.max(1, parseInt(req.query.page)  || 1)
-    const limit = Math.min(100, parseInt(req.query.limit) || 50)
-    const skip  = (page - 1) * limit
-
-    const [data, total] = await Promise.all([
-      OffboardingRequest.find(filter)
-        .populate('userId',      'firstName lastName email department position role')
-        .populate('requestedBy', 'firstName lastName')
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
-        .lean(),
-      OffboardingRequest.countDocuments(filter),
-    ])
-
-    res.json({ data, total, page, limit })
+    const result = await paginate(OffboardingRequest, filter, {
+      page:  req.query.page  || 1,
+      limit: req.query.limit || 50,
+      sort:  { createdAt: -1 },
+      populate: [
+        { path: 'userId',      select: 'firstName lastName email department position role' },
+        { path: 'requestedBy', select: 'firstName lastName' },
+      ],
+    })
+    res.json(result)
   } catch (err) {
     next(err)
   }

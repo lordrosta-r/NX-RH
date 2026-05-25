@@ -43,16 +43,16 @@ export default function DashboardHrPage() {
     return (
       <div>
         <div className="h-8 w-64 bg-slate-200 rounded animate-pulse mb-8" />
-        <div className="grid grid-cols-3 gap-6 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-6">
           {[...Array(3)].map((_, i) => (
             <div key={i} className="h-32 bg-slate-200 rounded-xl animate-pulse" />
           ))}
         </div>
-        <div className="grid grid-cols-12 gap-6">
-          <div className="col-span-8 h-64 bg-slate-200 rounded-xl animate-pulse" />
-          <div className="col-span-4 h-64 bg-slate-200 rounded-xl animate-pulse" />
-          <div className="col-span-6 h-40 bg-slate-200 rounded-xl animate-pulse" />
-          <div className="col-span-6 h-40 bg-slate-200 rounded-xl animate-pulse" />
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div className="lg:col-span-8 h-64 bg-slate-200 rounded-xl animate-pulse" />
+          <div className="lg:col-span-4 h-64 bg-slate-200 rounded-xl animate-pulse" />
+          <div className="lg:col-span-6 h-40 bg-slate-200 rounded-xl animate-pulse" />
+          <div className="lg:col-span-6 h-40 bg-slate-200 rounded-xl animate-pulse" />
         </div>
       </div>
     )
@@ -74,8 +74,8 @@ export default function DashboardHrPage() {
   return (
     <div className="bg-slate-50 min-h-full">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="text-2xl font-bold text-slate-900">Tableau de bord RH</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+        <h1 className="text-xl sm:text-2xl font-bold text-slate-900">Tableau de bord RH</h1>
         <div className="flex items-center gap-3">
           <Link
             to="/campaigns/new"
@@ -154,7 +154,7 @@ export default function DashboardHrPage() {
         </div>
 
         {/* Alertes */}
-        <div className="col-span-4 bg-white rounded-xl shadow-sm border border-slate-100 p-6">
+        <div className="lg:col-span-4 bg-white rounded-xl shadow-sm border border-slate-100 p-6">
           <h2 className="text-lg font-semibold text-slate-900 mb-4">Alertes</h2>
           <div className="space-y-3">
             <div className="flex items-start gap-3 p-3 bg-warning-50 rounded-lg border border-warning-100">
@@ -195,9 +195,9 @@ export default function DashboardHrPage() {
       </div>
 
       {/* Bottom row */}
-      <div className="grid grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Stats rapides */}
-        <div className="col-span-6 bg-white rounded-xl shadow-sm border border-slate-100 p-6">
+        <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
           <h2 className="text-lg font-semibold text-slate-900 mb-4">Stats rapides</h2>
           <div className="space-y-3">
             <div className="flex items-center justify-between py-2 border-b border-slate-50">
@@ -212,7 +212,7 @@ export default function DashboardHrPage() {
         </div>
 
         {/* Prochains événements */}
-        <div className="col-span-6 bg-white rounded-xl shadow-sm border border-slate-100 p-6">
+        <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-slate-900">Prochains événements</h2>
             <Link to="/events" className="text-sm text-primary-600 hover:underline">

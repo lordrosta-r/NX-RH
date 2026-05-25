@@ -66,6 +66,8 @@ const UserGroupsPage = lazy(() => import('../pages/UserGroupsPage'))
 const AdminStatusPage = lazy(() => import('../pages/AdminStatusPage'))
 const AdminSetupWizardPage = lazy(() => import('../pages/AdminSetupWizardPage'))
 const MobilityPage = lazy(() => import('../pages/MobilityPage'))
+const AdminMailTestPage = lazy(() => import('../pages/AdminMailTestPage'))
+const AdminStatsPage = lazy(() => import('../pages/AdminStatsPage'))
 
 function S({ children }: { children: React.ReactNode }) {
   return <Suspense fallback={<PageLoader />}>{children}</Suspense>
@@ -147,6 +149,8 @@ export const router = createBrowserRouter([
       { path: '/admin/mail-templates', element: <AuthGuard roles={['admin', 'hr']}><S><AdminMailTemplatesPage /></S></AuthGuard> },
       { path: '/admin/status', element: <AuthGuard roles={['admin']}><S><AdminStatusPage /></S></AuthGuard> },
       { path: '/admin/setup', element: <AuthGuard roles={['admin']}><S><AdminSetupWizardPage /></S></AuthGuard> },
+      { path: '/admin/test-mail', element: <AuthGuard roles={['admin']}><S><AdminMailTestPage /></S></AuthGuard> },
+      { path: '/admin/stats', element: <AuthGuard roles={['admin', 'hr']}><S><AdminStatsPage /></S></AuthGuard> },
     ],
   },
   // Organigramme — plein écran (OrgLayout sans container max-w)

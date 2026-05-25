@@ -46,13 +46,14 @@ const Input = forwardRef<HTMLInputElement, InputProps>(({
           className={clsx(
             'w-full rounded-lg border text-sm text-slate-700 placeholder:text-slate-500 transition-colors',
             'focus:outline-none focus:ring-2 focus:ring-offset-0',
+            'dark:bg-slate-700 dark:text-slate-100 dark:placeholder:text-slate-400',
             inputSize === 'md' ? 'h-10 px-3 py-2' : 'h-8 px-3 py-1',
             leftIcon && 'pl-9',
             rightIcon && 'pr-9',
             hasError
               ? 'border-error-500 ring-2 ring-error-200 bg-error-50 focus:ring-error-200 focus:border-error-500'
-              : 'border-slate-300 focus:border-primary-500 focus:ring-primary-200',
-            props.disabled && 'bg-slate-100 text-slate-400 cursor-not-allowed',
+              : 'border-slate-300 focus:border-primary-500 focus:ring-primary-200 dark:border-slate-600 dark:focus:border-primary-400',
+            props.disabled && 'bg-slate-100 text-slate-400 cursor-not-allowed dark:bg-slate-800 dark:text-slate-500',
             className
           )}
           aria-invalid={hasError}
@@ -69,7 +70,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(({
         <p id={`${id}-error`} className="mt-1 text-xs text-error-600">{errorMsg}</p>
       )}
       {hint && !errorMsg && (
-        <p id={`${id}-hint`} className="mt-1 text-xs text-slate-500">{hint}</p>
+        <p id={`${id}-hint`} className="mt-1 text-xs text-slate-500 dark:text-slate-400">{hint}</p>
       )}
     </div>
   )

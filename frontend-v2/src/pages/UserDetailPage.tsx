@@ -20,7 +20,7 @@ const ROLE_BADGES: Record<string, string> = {
 }
 
 const ROLE_LABELS: Record<string, string> = {
-  admin: 'Admin', hr: 'RH', manager: 'Manager', employee: 'Employé',
+  admin: 'Admin', hr: 'RH', manager: 'Responsable', employee: 'Collaborateur',
 }
 
 const EVAL_STATUS_LABELS: Record<string, string> = {
@@ -306,7 +306,7 @@ export default function UserDetailPage() {
           <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
             <h2 className="text-base font-semibold text-slate-900 mb-4">Hiérarchie</h2>
             <div className="mb-5">
-              <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">Manager direct</p>
+              <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">Responsable direct</p>
               {managerData ? (
                 <Link
                   to={`/users/${managerData.id}`}

@@ -210,7 +210,7 @@ export default function OffboardingDetailPage() {
               )}
               {record.managerName && (
                 <div className="flex justify-between">
-                  <span className="text-slate-500">Manager</span>
+                  <span className="text-slate-500">Responsable</span>
                   <span className="text-slate-700">{record.managerName}</span>
                 </div>
               )}

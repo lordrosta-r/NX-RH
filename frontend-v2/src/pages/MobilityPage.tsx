@@ -161,7 +161,7 @@ export default function MobilityPage() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Employé</th>
+                <th className="text-left px-4 py-3 font-medium text-gray-600">Collaborateur</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-600">Poste visé</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-600">Type</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-600">Statut</th>
@@ -280,7 +280,7 @@ export default function MobilityPage() {
             <h2 className="text-lg font-bold text-gray-800">Traiter la demande</h2>
             <div>
               <p className="text-sm text-gray-600">
-                <span className="font-medium">Employé : </span>
+                <span className="font-medium">Collaborateur : </span>
                 {selectedRequest.employeeId.firstName} {selectedRequest.employeeId.lastName}
               </p>
               <p className="text-sm text-gray-600">

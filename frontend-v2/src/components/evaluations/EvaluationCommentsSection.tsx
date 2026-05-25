@@ -23,7 +23,7 @@ const STEPS: StepConfig[] = [
   { key: "submitted", label: "Soumis" },
   { key: "reviewed", label: "Révisé" },
   { key: "signed_evaluatee", label: "Signé (évalué)" },
-  { key: "signed_manager", label: "Signé (manager)" },
+  { key: "signed_manager", label: "Signé (responsable)" },
   { key: "signed_hr", label: "Signé (RH)" },
 ];
 

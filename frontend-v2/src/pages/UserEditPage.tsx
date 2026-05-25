@@ -7,7 +7,7 @@ import { useAuth } from '../contexts/AuthContext'
 import Button from '../components/ui/Button'
 
 const ROLE_LABELS: Record<string, string> = {
-  admin: 'Admin', hr: 'RH', manager: 'Manager', employee: 'Employé',
+  admin: 'Admin', hr: 'RH', manager: 'Responsable', employee: 'Collaborateur',
 }
 
 function useToast() {
@@ -278,7 +278,7 @@ export default function UserEditPage() {
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Manager direct</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Responsable direct</label>
             <select
               value={managerId}
               onChange={e => setManagerId(e.target.value)}

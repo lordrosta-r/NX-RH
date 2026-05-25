@@ -187,7 +187,7 @@ export default function ProfilePage() {
 
   const roleLabels: Record<string, string> = {
     admin: 'Administrateur', hr: 'RH',
-    manager: 'Manager', employee: 'Employé',
+    manager: 'Responsable', employee: 'Collaborateur',
   }
 
   return (
@@ -316,7 +316,7 @@ export default function ProfilePage() {
                 <p className="text-sm text-slate-500 px-3 py-2 bg-slate-50 rounded-lg">{user.position ?? '—'}</p>
               </div>
               <div>
-                <p className="block text-sm font-medium text-slate-700 mb-1">Manager</p>
+                <p className="block text-sm font-medium text-slate-700 mb-1">Responsable</p>
                 <p className="text-sm text-slate-500 px-3 py-2 bg-slate-50 rounded-lg">
                   {managerData ? `${managerData.firstName} ${managerData.lastName}` : '—'}
                 </p>

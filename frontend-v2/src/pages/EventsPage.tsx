@@ -19,7 +19,7 @@ const MONTHS_FR = [
   'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre',
 ]
 const ROLE_LABELS: Record<Role, string> = {
-  admin: 'Admin', hr: 'RH', manager: 'Manager', employee: 'Employé',
+  admin: 'Admin', hr: 'RH', manager: 'Responsable', employee: 'Collaborateur',
 }
 
 function formatDateFR(s: string | undefined): string {

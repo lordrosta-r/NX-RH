@@ -36,7 +36,7 @@ const STATUS_LABELS: Record<EvaluationStatus, string> = {
   submitted:        'Soumis',
   reviewed:         'Révisé',
   signed_evaluatee: 'Signé (évalué)',
-  signed_manager:   'Signé (manager)',
+  signed_manager:   'Signé (responsable)',
   signed_hr:        'Signé (RH)',
   validated:        'Validé',
   expired:          'Expiré',

@@ -228,7 +228,7 @@ export default function OnboardingPage() {
             </p>
             {managerData && (
               <div className="mb-2">
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 px-1">Manager direct</p>
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 px-1">Responsable direct</p>
                 <div className="flex items-center gap-3 p-3 rounded-xl bg-primary-50 border border-primary-100">
                   <div className="w-9 h-9 rounded-full bg-primary-200 text-primary-800 flex items-center justify-center text-sm font-bold shrink-0">
                     {managerData.firstName[0]}{managerData.lastName[0]}

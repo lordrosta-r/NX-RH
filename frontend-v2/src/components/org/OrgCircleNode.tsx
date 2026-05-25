@@ -7,8 +7,8 @@ import OrgTooltip from "./OrgTooltip";
 const ROLE_LABELS: Record<string, string> = {
   admin: "Admin",
   hr: "RH",
-  manager: "Manager",
-  employee: "Employé",
+  manager: "Responsable",
+  employee: "Collaborateur",
 };
 
 function OrgCircleNode({ data, selected }: NodeProps<Node<OrgNodeData>>) {

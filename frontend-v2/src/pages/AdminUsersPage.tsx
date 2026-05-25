@@ -105,6 +105,7 @@ export default function AdminUsersPage() {
       </div>
 
       <div className="bg-white rounded-2xl shadow overflow-hidden">
+        <div className="overflow-x-auto hidden sm:block">
         <table className="w-full text-sm">
           <thead className="bg-slate-50 border-b border-slate-100">
             <tr>

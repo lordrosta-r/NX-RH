@@ -18,6 +18,7 @@ import {
 import type { LucideIcon } from 'lucide-react'
 import type { Notification } from '../types'
 import { notificationsApi } from '../api/notifications'
+import EmptyState from '../components/ui/EmptyState'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -262,10 +263,11 @@ export default function NotificationsPage() {
 
       {/* Empty state */}
       {isEmpty && (
-        <div className="flex flex-col items-center gap-4 py-16 text-center">
-          <BellOff className="w-12 h-12 text-slate-300" />
-          <p className="text-slate-500">Pas de notifications pour le moment</p>
-        </div>
+        <EmptyState
+          icon={<BellOff className="w-8 h-8" />}
+          title="Vous êtes à jour 🎉"
+          description="Aucune notification pour le moment."
+        />
       )}
 
       {/* Notifications list */}

@@ -88,7 +88,7 @@ export default function AdminAuditPage() {
       </div>
 
       <div className="bg-white rounded-2xl shadow overflow-hidden">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto hidden sm:block">
         <table className="w-full text-sm">
           <thead className="bg-slate-50 border-b border-slate-100">
             <tr>
@@ -118,6 +118,32 @@ export default function AdminAuditPage() {
           </tbody>
         </table>
         </div>
+
+        {/* Mobile cards */}
+        <div className="sm:hidden divide-y divide-slate-100">
+          {isLoading ? Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="p-4"><div className="h-12 bg-slate-200 rounded animate-pulse" /></div>
+          )) : !data?.data?.length ? (
+            <p className="px-4 py-8 text-center text-slate-600">Aucune entrée dans le journal d'audit.</p>
+          ) : data.data.map(entry => (
+            <div key={entry.id} className="p-4">
+              <div className="flex items-start justify-between mb-1">
+                <span className="font-medium text-slate-800">{entry.actorName ?? entry.actorEmail ?? entry.actorId}</span>
+                <ActionBadge action={entry.action} />
+              </div>
+              <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm mt-2">
+                <dt className="text-slate-500">Date</dt>
+                <dd className="text-slate-500 text-xs whitespace-nowrap">{new Date(entry.createdAt).toLocaleString('fr-FR')}</dd>
+                <dt className="text-slate-500">Cible</dt>
+                <dd className="text-slate-600 truncate">
+                  {entry.targetLabel ?? entry.targetId ?? '—'}
+                  {entry.targetType && <span className="ml-1 text-xs text-slate-500">({entry.targetType})</span>}
+                </dd>
+              </dl>
+            </div>
+          ))}
+        </div>
+
         {data && data.totalPages && data.totalPages > 1 && (
           <div className="flex items-center justify-between px-4 py-3 border-t border-slate-100">
             <p className="text-xs text-slate-500">Page {page} sur {data.totalPages}</p>

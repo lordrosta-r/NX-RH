@@ -1,0 +1,42 @@
+/* Design tokens — NX-RH
+ * Propriétés CSS personnalisées synchronisées avec tailwind.config.ts.
+ * Utiliser les classes Tailwind en priorité ; ces variables sont disponibles
+ * pour les cas où Tailwind ne suffit pas (inline styles, calculs CSS, etc.).
+ */
+:root {
+  /* Couleur primaire (teal) */
+  --color-primary: #17a8d4;
+  --color-primary-hover: #1290b5;
+  --color-primary-active: #0e7090;
+
+  /* Danger / Erreur */
+  --color-danger: #ef4444;
+  --color-danger-hover: #dc2626;
+
+  /* Succès */
+  --color-success: #22c55e;
+  --color-success-hover: #16a34a;
+
+  /* Avertissement */
+  --color-warning: #f59e0b;
+  --color-warning-hover: #d97706;
+
+  /* Info */
+  --color-info: #3b82f6;
+  --color-info-hover: #2563eb;
+
+  /* Surface */
+  --color-surface: #ffffff;
+  --color-surface-subtle: #f9fafb;
+  --color-surface-muted: #f3f4f6;
+
+  /* Bordure */
+  --color-border: #e5e7eb;
+  --color-border-strong: #d1d5db;
+
+  /* Texte */
+  --color-text: #111827;
+  --color-text-secondary: #374151;
+  --color-text-muted: #6b7280;
+  --color-text-disabled: #9ca3af;
+}

@@ -3,6 +3,13 @@ import type { Config } from "tailwindcss";
 const config: Config = {
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
   darkMode: "class",
+  safelist: [
+    // Status badges and design token classes built via object maps (e.g. StatusBadge, variants.ts)
+    {
+      pattern:
+        /^(bg|text|border)-(primary|danger|success|warning|info|error|slate)-(50|100|200|300|400|500|600|700|800|900)$/,
+    },
+  ],
   theme: {
     extend: {
       fontFamily: {

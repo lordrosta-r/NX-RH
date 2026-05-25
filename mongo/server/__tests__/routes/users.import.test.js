@@ -17,7 +17,7 @@ jest.mock('../../services/notificationService', () => ({
 jest.mock('../../middleware/authGuard', () => ({
   authGuard: (roles = []) => (req, res, next) => {
     const jwt   = require('jsonwebtoken')
-    const token = req.cookies?.token
+    const token = req.cookies?.accessToken
     if (!token) return res.status(401).json({ error: 'Authentication required' })
     try {
       const payload = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] })
@@ -114,7 +114,7 @@ describe('POST /api/users/import', () => {
   it('403 — rôle insuffisant (employee)', async () => {
     const res = await request(app)
       .post('/api/users/import')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'employee' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'employee' })}`)
       .send([])
     expect(res.status).toBe(403)
   })
@@ -124,7 +124,7 @@ describe('POST /api/users/import', () => {
   it('400 — body JSON non-tableau', async () => {
     const res = await request(app)
       .post('/api/users/import')
-      .set('Cookie', `token=${ADMIN_TOKEN}`)
+      .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
       .set('Content-Type', 'application/json')
       .send({ email: 'test@corp.com' })
 
@@ -135,7 +135,7 @@ describe('POST /api/users/import', () => {
   it('400 — tableau vide → aucune donnée', async () => {
     const res = await request(app)
       .post('/api/users/import')
-      .set('Cookie', `token=${ADMIN_TOKEN}`)
+      .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
       .send([])
 
     expect(res.status).toBe(400)
@@ -145,7 +145,7 @@ describe('POST /api/users/import', () => {
   it('400 — CSV body vide', async () => {
     const res = await request(app)
       .post('/api/users/import')
-      .set('Cookie', `token=${ADMIN_TOKEN}`)
+      .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
       .set('Content-Type', 'text/csv')
       .send('   ')
 
@@ -161,7 +161,7 @@ describe('POST /api/users/import', () => {
 
     const res = await request(app)
       .post('/api/users/import?dryRun=true')
-      .set('Cookie', `token=${ADMIN_TOKEN}`)
+      .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
       .send([{
         email:      'new@corp.com',
         firstName:  'Nouveau',
@@ -185,7 +185,7 @@ describe('POST /api/users/import', () => {
 
     const res = await request(app)
       .post('/api/users/import?dryRun=true')
-      .set('Cookie', `token=${ADMIN_TOKEN}`)
+      .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
       .send([{
         email:      'existing@corp.com',
         firstName:  'Existing',
@@ -213,7 +213,7 @@ describe('POST /api/users/import', () => {
 
     const res = await request(app)
       .post('/api/users/import')
-      .set('Cookie', `token=${ADMIN_TOKEN}`)
+      .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
       .send([{
         email:      'newuser@corp.com',
         firstName:  'New',
@@ -243,7 +243,7 @@ describe('POST /api/users/import', () => {
 
     const res = await request(app)
       .post('/api/users/import')
-      .set('Cookie', `token=${ADMIN_TOKEN}`)
+      .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
       .send([{
         email:      'existing@corp.com',
         firstName:  'Updated',
@@ -263,7 +263,7 @@ describe('POST /api/users/import', () => {
   it('200 — email invalide → erreur dans errors[], skipped++', async () => {
     const res = await request(app)
       .post('/api/users/import')
-      .set('Cookie', `token=${ADMIN_TOKEN}`)
+      .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
       .send([{ email: 'not-valid-email', firstName: 'X', lastName: 'Y', role: 'employee' }])
 
     expect(res.status).toBe(200)
@@ -275,7 +275,7 @@ describe('POST /api/users/import', () => {
   it('200 — rôle invalide → erreur dans errors[], skipped++', async () => {
     const res = await request(app)
       .post('/api/users/import')
-      .set('Cookie', `token=${ADMIN_TOKEN}`)
+      .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
       .send([{ email: 'user@corp.com', firstName: 'X', lastName: 'Y', role: 'superadmin' }])
 
     expect(res.status).toBe(200)
@@ -289,7 +289,7 @@ describe('POST /api/users/import', () => {
 
     const res = await request(app)
       .post('/api/users/import')
-      .set('Cookie', `token=${ADMIN_TOKEN}`)
+      .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
       .send([{ email: 'noname@corp.com', role: 'employee' }])
 
     expect(res.status).toBe(200)
@@ -312,7 +312,7 @@ describe('POST /api/users/import', () => {
 
     const res = await request(app)
       .post('/api/users/import')
-      .set('Cookie', `token=${ADMIN_TOKEN}`)
+      .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
       .send([{
         email:        'emp@corp.com',
         firstName:    'Emp',
@@ -345,7 +345,7 @@ describe('POST /api/users/import', () => {
 
     const res = await request(app)
       .post('/api/users/import')
-      .set('Cookie', `token=${ADMIN_TOKEN}`)
+      .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
       .set('Content-Type', 'text/csv')
       .send(csv)
 
@@ -367,7 +367,7 @@ describe('POST /api/users/import', () => {
 
     const res = await request(app)
       .post('/api/users/import')
-      .set('Cookie', `token=${HR_TOKEN}`)
+      .set('Cookie', `accessToken=${HR_TOKEN}`)
       .set('Content-Type', 'text/csv')
       .send(csv)
 
@@ -389,7 +389,7 @@ describe('POST /api/users/import', () => {
 
     await request(app)
       .post('/api/users/import')
-      .set('Cookie', `token=${ADMIN_TOKEN}`)
+      .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
       .send([{
         email:      'withsector@corp.com',
         firstName:  'Sec',

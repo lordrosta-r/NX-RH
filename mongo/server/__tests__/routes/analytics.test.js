@@ -48,7 +48,7 @@ jest.mock('../../models', () => ({
 jest.mock('../../middleware/authGuard', () => ({
   authGuard: (roles = []) => (req, res, next) => {
     const _jwt = require('jsonwebtoken')
-    const token = req.cookies?.token
+    const token = req.cookies?.accessToken
     if (!token) return res.status(401).json({ error: 'Authentication required' })
     try {
       const payload = _jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] })
@@ -134,7 +134,7 @@ describe('GET /api/analytics/export/pdf', () => {
   it('returns 401 for an expired / invalid token', async () => {
     const res = await request(app)
       .get('/api/analytics/export/pdf')
-      .set('Cookie', 'token=thisisnotavalidjwt')
+      .set('Cookie', 'accessToken=thisisnotavalidjwt')
     expect(res.status).toBe(401)
   })
 
@@ -142,7 +142,7 @@ describe('GET /api/analytics/export/pdf', () => {
     Evaluation.find = jest.fn(() => makeEvalChain([]))
     const res = await request(app)
       .get('/api/analytics/export/pdf')
-      .set('Cookie', `token=${tokenFor({ id: DIRECTOR_ID, role: 'director' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: DIRECTOR_ID, role: 'director' })}`)
     expect(res.status).toBe(403)
     expect(res.body.error).toMatch(/admin|RH/i)
   })
@@ -151,7 +151,7 @@ describe('GET /api/analytics/export/pdf', () => {
     Evaluation.find = jest.fn(() => makeEvalChain([]))
     const res = await request(app)
       .get('/api/analytics/export/pdf')
-      .set('Cookie', `token=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
     expect(res.status).toBe(403)
   })
 
@@ -159,7 +159,7 @@ describe('GET /api/analytics/export/pdf', () => {
     Evaluation.find = jest.fn(() => makeEvalChain([]))
     const res = await request(app)
       .get('/api/analytics/export/pdf')
-      .set('Cookie', `token=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
     expect(res.status).toBe(403)
   })
 
@@ -169,7 +169,7 @@ describe('GET /api/analytics/export/pdf', () => {
     Evaluation.find = jest.fn(() => makeEvalChain([]))
     const res = await request(app)
       .get('/api/analytics/export/pdf')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(res.status).toBe(200)
     expect(res.headers['content-type']).toMatch(/pdf/)
   })
@@ -178,7 +178,7 @@ describe('GET /api/analytics/export/pdf', () => {
     Evaluation.find = jest.fn(() => makeEvalChain([]))
     const res = await request(app)
       .get('/api/analytics/export/pdf')
-      .set('Cookie', `token=${tokenFor({ id: HR_ID, role: 'hr' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: HR_ID, role: 'hr' })}`)
     expect(res.status).toBe(200)
     expect(res.headers['content-type']).toMatch(/pdf/)
   })
@@ -187,7 +187,7 @@ describe('GET /api/analytics/export/pdf', () => {
     Evaluation.find = jest.fn(() => makeEvalChain([]))
     const res = await request(app)
       .get('/api/analytics/export/pdf')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(res.status).toBe(200)
     expect(res.headers['content-disposition']).toMatch(/attachment/)
     expect(res.headers['content-disposition']).toMatch(/\.pdf"/)
@@ -198,7 +198,7 @@ describe('GET /api/analytics/export/pdf', () => {
   it('returns 400 for an invalid campaignId', async () => {
     const res = await request(app)
       .get('/api/analytics/export/pdf?campaignId=bad-id')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(res.status).toBe(400)
     expect(res.body.error).toMatch(/invalide/i)
   })
@@ -206,7 +206,7 @@ describe('GET /api/analytics/export/pdf', () => {
   it('returns 400 for a short but non-ObjectId campaignId', async () => {
     const res = await request(app)
       .get('/api/analytics/export/pdf?campaignId=123')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(res.status).toBe(400)
   })
 
@@ -214,7 +214,7 @@ describe('GET /api/analytics/export/pdf', () => {
     Evaluation.find = jest.fn(() => makeEvalChain([]))
     const res = await request(app)
       .get(`/api/analytics/export/pdf?campaignId=${CAMPAIGN_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(res.status).toBe(200)
     expect(res.headers['content-type']).toMatch(/pdf/)
   })
@@ -223,7 +223,7 @@ describe('GET /api/analytics/export/pdf', () => {
     Evaluation.find = jest.fn(() => makeEvalChain([]))
     await request(app)
       .get(`/api/analytics/export/pdf?campaignId=${CAMPAIGN_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(Evaluation.find).toHaveBeenCalledWith({ campaignId: CAMPAIGN_ID })
   })
 
@@ -231,7 +231,7 @@ describe('GET /api/analytics/export/pdf', () => {
     Evaluation.find = jest.fn(() => makeEvalChain([]))
     await request(app)
       .get('/api/analytics/export/pdf')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(Evaluation.find).toHaveBeenCalledWith({})
   })
 
@@ -245,7 +245,7 @@ describe('GET /api/analytics/export/pdf', () => {
     Evaluation.find = jest.fn(() => makeEvalChain(evals))
     const res = await request(app)
       .get('/api/analytics/export/pdf')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(res.status).toBe(200)
     // PDFKit.text was called (mocked) — doc.text mock should have been invoked
     const PDFKit = require('pdfkit')
@@ -260,7 +260,7 @@ describe('GET /api/analytics/export/pdf', () => {
     Evaluation.find = jest.fn(() => makeEvalChain(evals))
     const res = await request(app)
       .get('/api/analytics/export/pdf')
-      .set('Cookie', `token=${tokenFor({ id: HR_ID, role: 'hr' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: HR_ID, role: 'hr' })}`)
     expect(res.status).toBe(200)
     expect(res.headers['content-type']).toMatch(/pdf/)
   })
@@ -276,7 +276,7 @@ describe('GET /api/analytics/export/pdf', () => {
     Evaluation.find = jest.fn(() => makeEvalChain(evals))
     const res = await request(app)
       .get('/api/analytics/export/pdf')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     // 2/3 validated → completionRate = 67%
     expect(res.status).toBe(200)
     expect(res.headers['content-type']).toMatch(/pdf/)
@@ -289,7 +289,7 @@ describe('GET /api/analytics/export/pdf', () => {
     Evaluation.find = jest.fn(() => makeEvalChain(evals))
     const res = await request(app)
       .get('/api/analytics/export/pdf')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(res.status).toBe(200)
   })
 
@@ -305,7 +305,7 @@ describe('GET /api/analytics/export/pdf', () => {
     Evaluation.find = jest.fn(() => makeEvalChain(evals))
     const res = await request(app)
       .get('/api/analytics/export/pdf')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(res.status).toBe(200)
     // The PDF is generated — we verify doc.text was called with user names
     const PDFKit = require('pdfkit')
@@ -321,7 +321,7 @@ describe('GET /api/analytics/export/pdf', () => {
     ]))
     const res = await request(app)
       .get('/api/analytics/export/pdf')
-      .set('Cookie', `token=${tokenFor({ id: HR_ID, role: 'hr' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: HR_ID, role: 'hr' })}`)
     expect(res.status).toBe(200)
     const PDFKit = require('pdfkit')
     const mockInstance = PDFKit.mock.results[PDFKit.mock.results.length - 1].value
@@ -336,7 +336,7 @@ describe('GET /api/analytics/export/pdf', () => {
     Evaluation.find = jest.fn(() => makeEvalChain([]))
     const res = await request(app)
       .get(`/api/analytics/export/pdf?campaignId=${CAMPAIGN_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(res.status).toBe(200)
     expect(res.headers['content-disposition']).toContain(CAMPAIGN_ID)
   })
@@ -345,7 +345,7 @@ describe('GET /api/analytics/export/pdf', () => {
     Evaluation.find = jest.fn(() => makeEvalChain([]))
     const res = await request(app)
       .get('/api/analytics/export/pdf')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(res.status).toBe(200)
     // filename should be analytics-rh-<date>.pdf with no extra segment
     expect(res.headers['content-disposition']).toMatch(/analytics-rh-\d{4}-\d{2}-\d{2}\.pdf/)
@@ -360,7 +360,7 @@ describe('GET /api/analytics/export/pdf', () => {
     Evaluation.find = jest.fn(() => makeEvalChain(evals))
     const res = await request(app)
       .get('/api/analytics/export/pdf')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(res.status).toBe(200)
     const PDFKit = require('pdfkit')
     const mockInstance = PDFKit.mock.results[PDFKit.mock.results.length - 1].value

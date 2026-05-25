@@ -71,7 +71,7 @@ describe('POST /api/auth/login', () => {
       .send({ password: 'secret' })
 
     expect(res.status).toBe(400)
-    expect(res.body.error).toMatch(/requis/i)
+    expect(res.body.error).toMatch(/invalide/i)
   })
 
   it('400 — password manquant', async () => {
@@ -80,7 +80,7 @@ describe('POST /api/auth/login', () => {
       .send({ email: 'alice@corp.com' })
 
     expect(res.status).toBe(400)
-    expect(res.body.error).toMatch(/requis/i)
+    expect(res.body.error).toMatch(/invalide/i)
   })
 
   it('400 — email invalide (format incorrect)', async () => {
@@ -168,7 +168,7 @@ describe('POST /api/auth/login', () => {
     // Cookie token présent
     const setCookie = res.headers['set-cookie']
     expect(setCookie).toBeDefined()
-    expect(setCookie.join(',')).toMatch(/token=/)
+    expect(setCookie.join(',')).toMatch(/accessToken=/)
     expect(setCookie.join(',')).toMatch(/HttpOnly/i)
   })
 
@@ -182,7 +182,7 @@ describe('POST /api/auth/login', () => {
 
     expect(res.status).toBe(200)
     const cookieHeader = res.headers['set-cookie']?.join(',') || ''
-    const match = cookieHeader.match(/token=([^;]+)/)
+    const match = cookieHeader.match(/accessToken=([^;]+)/)
     expect(match).toBeTruthy()
 
     const payload = jwt.verify(match[1], SECRET)
@@ -200,8 +200,9 @@ describe('POST /api/auth/login', () => {
       .send({ email: 'alice@corp.com', password: 'correct-secret', remember: true })
 
     expect(res.status).toBe(200)
-    const setCookie = res.headers['set-cookie']?.join(',') || ''
-    // Max-Age for 30 days ≈ 2592000 seconds
-    expect(setCookie).toMatch(/Max-Age=2592000/i)
+    const setCookieArr = res.headers['set-cookie'] || []
+    // With refresh tokens, both accessToken and refreshToken cookies must be present
+    expect(setCookieArr.some(c => c.startsWith('accessToken='))).toBe(true)
+    expect(setCookieArr.some(c => c.startsWith('refreshToken='))).toBe(true)
   })
 })

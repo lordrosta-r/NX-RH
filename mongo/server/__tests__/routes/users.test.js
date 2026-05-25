@@ -51,7 +51,7 @@ jest.mock('../../middleware/authGuard', () => ({
   authGuard: (roles = []) => (req, res, next) => {
     const _jwt   = require('jsonwebtoken')
     const secret = process.env.JWT_SECRET
-    const token  = req.cookies?.token
+    const token  = req.cookies?.accessToken
     if (!token) return res.status(401).json({ error: 'Authentication required' })
     try {
       const payload = _jwt.verify(token, secret, { algorithms: ['HS256'] })
@@ -120,7 +120,7 @@ describe('GET /api/users', () => {
     User.find = jest.fn(() => makeChain([{ _id: EMPLOYEE_ID, role: 'employee' }]))
     const res = await request(app)
       .get('/api/users')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(res.status).toBe(200)
     expect(Array.isArray(res.body.data)).toBe(true)
     const [filter] = User.find.mock.calls[0]
@@ -131,7 +131,7 @@ describe('GET /api/users', () => {
     User.find = jest.fn(() => makeChain([]))
     const res = await request(app)
       .get('/api/users')
-      .set('Cookie', `token=${tokenFor({ id: HR_ID, role: 'hr' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: HR_ID, role: 'hr' })}`)
     expect(res.status).toBe(200)
     const [filter] = User.find.mock.calls[0]
     expect(filter.managerId).toBeUndefined()
@@ -141,7 +141,7 @@ describe('GET /api/users', () => {
     User.find = jest.fn(() => makeChain([{ _id: EMPLOYEE_ID, managerId: MANAGER_ID }]))
     const res = await request(app)
       .get('/api/users')
-      .set('Cookie', `token=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
     expect(res.status).toBe(200)
     const [filter] = User.find.mock.calls[0]
     expect(filter.managerId).toBe(MANAGER_ID)
@@ -150,7 +150,7 @@ describe('GET /api/users', () => {
   it('employee gets 403 (cannot list users)', async () => {
     const res = await request(app)
       .get('/api/users')
-      .set('Cookie', `token=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
     expect(res.status).toBe(403)
   })
 
@@ -158,7 +158,7 @@ describe('GET /api/users', () => {
     User.find = jest.fn(() => makeChain([]))
     const res = await request(app)
       .get('/api/users?role=manager')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(res.status).toBe(200)
     const [filter] = User.find.mock.calls[0]
     expect(filter.role).toBe('manager')
@@ -168,7 +168,7 @@ describe('GET /api/users', () => {
     User.find = jest.fn(() => makeChain([]))
     const res = await request(app)
       .get('/api/users?search=alice')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(res.status).toBe(200)
     const [filter] = User.find.mock.calls[0]
     expect(filter.$text).toEqual({ $search: 'alice' })
@@ -179,7 +179,7 @@ describe('GET /api/users', () => {
     User.countDocuments = jest.fn().mockResolvedValue(42)
     const res = await request(app)
       .get('/api/users?page=1&limit=10')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(res.status).toBe(200)
     expect(res.body.total).toBe(42)
     expect(res.body.page).toBe(1)
@@ -197,7 +197,7 @@ describe('GET /api/users/:id', () => {
   it('returns 400 for an invalid ObjectId', async () => {
     const res = await request(app)
       .get('/api/users/not-a-valid-id')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(res.status).toBe(400)
     expect(res.body.error).toMatch(/invalide/i)
   })
@@ -206,7 +206,7 @@ describe('GET /api/users/:id', () => {
     User.findById = jest.fn(() => makeChain(null))
     const res = await request(app)
       .get(`/api/users/${OTHER_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(res.status).toBe(404)
   })
 
@@ -214,7 +214,7 @@ describe('GET /api/users/:id', () => {
     User.findById = jest.fn(() => makeChain({ _id: EMPLOYEE_ID, email: 'emp@corp.com' }))
     const res = await request(app)
       .get(`/api/users/${EMPLOYEE_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(res.status).toBe(200)
     expect(res.body.data.email).toBe('emp@corp.com')
   })
@@ -223,7 +223,7 @@ describe('GET /api/users/:id', () => {
     User.findById = jest.fn(() => makeChain({ _id: EMPLOYEE_ID, email: 'emp@corp.com' }))
     const res = await request(app)
       .get(`/api/users/${EMPLOYEE_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
     expect(res.status).toBe(200)
   })
 
@@ -231,7 +231,7 @@ describe('GET /api/users/:id', () => {
     User.findById = jest.fn(() => makeChain({ _id: OTHER_ID, email: 'other@corp.com' }))
     const res = await request(app)
       .get(`/api/users/${OTHER_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
     expect(res.status).toBe(403)
   })
 
@@ -241,7 +241,7 @@ describe('GET /api/users/:id', () => {
     )
     const res = await request(app)
       .get(`/api/users/${EMPLOYEE_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
     expect(res.status).toBe(200)
   })
 
@@ -251,7 +251,7 @@ describe('GET /api/users/:id', () => {
     )
     const res = await request(app)
       .get(`/api/users/${OTHER_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
     expect(res.status).toBe(403)
   })
 
@@ -261,7 +261,7 @@ describe('GET /api/users/:id', () => {
     User.findById = jest.fn(() => makeChain({ _id: ADMIN_ID, email: 'admin@corp.com' }))
     const res = await request(app)
       .get(`/api/users/${ADMIN_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(res.status).toBe(200)
     expect(res.body.data.passwordHash).toBeUndefined()
   })
@@ -284,7 +284,7 @@ describe('POST /api/users', () => {
   it('returns 403 for a non-admin/hr caller (manager)', async () => {
     const res = await request(app)
       .post('/api/users')
-      .set('Cookie', `token=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
       .send({ firstName: 'Bob', lastName: 'Smith', email: 'bob@corp.com', role: 'employee' })
     expect(res.status).toBe(403)
   })
@@ -292,7 +292,7 @@ describe('POST /api/users', () => {
   it('returns 422 when required fields are missing', async () => {
     const res = await request(app)
       .post('/api/users')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ firstName: 'Bob' })  // missing lastName + email + role
     expect(res.status).toBe(422)
     expect(res.body.error).toBe('Données invalides')
@@ -301,7 +301,7 @@ describe('POST /api/users', () => {
   it('returns 422 for an invalid role value', async () => {
     const res = await request(app)
       .post('/api/users')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ firstName: 'Bob', lastName: 'Smith', email: 'bob@corp.com', role: 'superadmin' })
     expect(res.status).toBe(422)
     expect(res.body.error).toBe('Données invalides')
@@ -310,7 +310,7 @@ describe('POST /api/users', () => {
   it('hr can create a user and receives 201 + tempPassword', async () => {
     const res = await request(app)
       .post('/api/users')
-      .set('Cookie', `token=${tokenFor({ id: HR_ID, role: 'hr' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: HR_ID, role: 'hr' })}`)
       .send({ firstName: 'Bob', lastName: 'Smith', email: 'bob@corp.com', role: 'employee' })
     expect(res.status).toBe(201)
     expect(res.body.data.tempPassword).toBeDefined()
@@ -321,7 +321,7 @@ describe('POST /api/users', () => {
   it('admin can create a user and the response never includes passwordHash', async () => {
     const res = await request(app)
       .post('/api/users')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ firstName: 'Carol', lastName: 'White', email: 'carol@corp.com', role: 'employee' })
     expect(res.status).toBe(201)
     expect(res.body.data.passwordHash).toBeUndefined()
@@ -332,7 +332,7 @@ describe('POST /api/users', () => {
     User.prototype.save.mockRejectedValueOnce(dupErr)
     const res = await request(app)
       .post('/api/users')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ firstName: 'Bob', lastName: 'Smith', email: 'existing@corp.com', role: 'employee' })
     expect(res.status).toBe(409)
     expect(res.body.error).toMatch(/déjà utilisé/i)
@@ -371,7 +371,7 @@ describe('PATCH /api/users/:id', () => {
     // Employee tries to patch a different user's profile
     const res = await request(app)
       .patch(`/api/users/${OTHER_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
       .send({ firstName: 'Hacked' })
     expect(res.status).toBe(403)
   })
@@ -380,7 +380,7 @@ describe('PATCH /api/users/:id', () => {
     mockFindByIdUser()
     const res = await request(app)
       .patch(`/api/users/${EMPLOYEE_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
       .send({ role: 'admin' })
     expect(res.status).toBe(403)
     expect(res.body.error).toMatch(/role/i)
@@ -390,7 +390,7 @@ describe('PATCH /api/users/:id', () => {
     mockFindByIdUser()
     const res = await request(app)
       .patch(`/api/users/${EMPLOYEE_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
       .send({ department: 'Engineering' })
     expect(res.status).toBe(403)
     expect(res.body.error).toMatch(/department/i)
@@ -400,7 +400,7 @@ describe('PATCH /api/users/:id', () => {
     mockFindByIdUser()
     const res = await request(app)
       .patch(`/api/users/${EMPLOYEE_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ role: 'manager', isActive: false })
     expect(res.status).toBe(200)
   })
@@ -409,7 +409,7 @@ describe('PATCH /api/users/:id', () => {
     User.findById = jest.fn().mockResolvedValue(null)
     const res = await request(app)
       .patch(`/api/users/${OTHER_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ role: 'hr' })
     expect(res.status).toBe(404)
   })
@@ -417,7 +417,7 @@ describe('PATCH /api/users/:id', () => {
   it('returns 400 for an invalid ObjectId', async () => {
     const res = await request(app)
       .patch('/api/users/bad-id')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ role: 'hr' })
     expect(res.status).toBe(400)
   })

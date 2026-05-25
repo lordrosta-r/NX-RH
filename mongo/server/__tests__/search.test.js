@@ -63,7 +63,7 @@ describe('Search Routes — /api/search', () => {
     test('devrait retourner 401 avec un token invalide', async () => {
       await request(app)
         .get('/api/search?q=test')
-        .set('Cookie', 'token=invalid.token.here')
+        .set('Cookie', 'accessToken=invalid.token.here')
         .expect(401)
     })
   })
@@ -72,7 +72,7 @@ describe('Search Routes — /api/search', () => {
     test('devrait retourner 400 sans paramètre q', async () => {
       const response = await request(app)
         .get('/api/search')
-        .set('Cookie', `token=${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .expect(400)
 
       expect(response.body).toHaveProperty('error')
@@ -81,7 +81,7 @@ describe('Search Routes — /api/search', () => {
     test('devrait retourner 400 si q est vide', async () => {
       const response = await request(app)
         .get('/api/search?q=')
-        .set('Cookie', `token=${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .expect(400)
 
       expect(response.body).toHaveProperty('error')
@@ -90,7 +90,7 @@ describe('Search Routes — /api/search', () => {
     test('devrait retourner 400 si q fait moins de 2 caractères', async () => {
       const response = await request(app)
         .get('/api/search?q=a')
-        .set('Cookie', `token=${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .expect(400)
 
       expect(response.body).toHaveProperty('error')
@@ -101,7 +101,7 @@ describe('Search Routes — /api/search', () => {
     test('devrait retourner 200 avec users/campaigns/forms avec un token admin', async () => {
       const response = await request(app)
         .get('/api/search?q=test')
-        .set('Cookie', `token=${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .expect(200)
 
       expect(response.body).toHaveProperty('users')
@@ -115,7 +115,7 @@ describe('Search Routes — /api/search', () => {
     test('devrait retourner 200 avec des tableaux vides pour une requête sans résultat', async () => {
       const response = await request(app)
         .get('/api/search?q=ZZZNORESULTXYZ')
-        .set('Cookie', `token=${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .expect(200)
 
       expect(response.body.users).toEqual([])
@@ -138,7 +138,7 @@ describe('Search Routes — /api/search', () => {
 
       const response = await request(app)
         .get('/api/search?q=test')
-        .set('Cookie', `token=${employeeToken}`)
+        .set('Cookie', `accessToken=${employeeToken}`)
         .expect(200)
 
       expect(response.body).toHaveProperty('users')

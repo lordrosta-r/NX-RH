@@ -36,7 +36,7 @@ jest.mock('../../models/User', () => ({
 jest.mock('../../middleware/authGuard', () => ({
   authGuard: (roles = []) => (req, res, next) => {
     const _jwt  = require('jsonwebtoken')
-    const token = req.cookies?.token
+    const token = req.cookies?.accessToken
     if (!token) return res.status(401).json({ error: 'Authentication required' })
     try {
       const payload = _jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] })
@@ -125,7 +125,7 @@ describe('GET /api/notifications', () => {
 
     const res = await request(app)
       .get('/api/notifications')
-      .set('Cookie', `token=${tokenFor({ id: USER_ID, role: 'employee' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: USER_ID, role: 'employee' })}`)
 
     expect(res.status).toBe(200)
     expect(Array.isArray(res.body.data)).toBe(true)
@@ -148,7 +148,7 @@ describe('GET /api/notifications', () => {
 
     const res = await request(app)
       .get('/api/notifications?page=3&limit=10')
-      .set('Cookie', `token=${tokenFor({ id: USER_ID, role: 'employee' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: USER_ID, role: 'employee' })}`)
 
     expect(res.status).toBe(200)
     expect(res.body.page).toBe(3)
@@ -166,7 +166,7 @@ describe('GET /api/notifications', () => {
 
     const res = await request(app)
       .get('/api/notifications?limit=9999')
-      .set('Cookie', `token=${tokenFor({ id: USER_ID, role: 'employee' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: USER_ID, role: 'employee' })}`)
 
     expect(res.status).toBe(200)
     expect(res.body.limit).toBe(100)
@@ -192,7 +192,7 @@ describe('GET /api/notifications/count', () => {
 
     const res = await request(app)
       .get('/api/notifications/count')
-      .set('Cookie', `token=${tokenFor({ id: USER_ID, role: 'employee' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: USER_ID, role: 'employee' })}`)
 
     expect(res.status).toBe(200)
     expect(res.body).toHaveProperty('total', 10)
@@ -217,7 +217,7 @@ describe('PATCH /api/notifications/read-all', () => {
 
     const res = await request(app)
       .patch('/api/notifications/read-all')
-      .set('Cookie', `token=${tokenFor({ id: USER_ID, role: 'employee' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: USER_ID, role: 'employee' })}`)
 
     expect(res.status).toBe(200)
     expect(res.body).toHaveProperty('modifiedCount', 7)
@@ -234,7 +234,7 @@ describe('PATCH /api/notifications/:id/read', () => {
   it('returns 400 for an invalid ObjectId', async () => {
     const res = await request(app)
       .patch('/api/notifications/not-a-valid-id/read')
-      .set('Cookie', `token=${tokenFor({ id: USER_ID, role: 'employee' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: USER_ID, role: 'employee' })}`)
 
     expect(res.status).toBe(400)
     expect(res.body.error).toMatch(/invalide/i)
@@ -245,7 +245,7 @@ describe('PATCH /api/notifications/:id/read', () => {
 
     const res = await request(app)
       .patch(`/api/notifications/${NOTIF_ID}/read`)
-      .set('Cookie', `token=${tokenFor({ id: USER_ID, role: 'employee' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: USER_ID, role: 'employee' })}`)
 
     expect(res.status).toBe(404)
   })
@@ -260,7 +260,7 @@ describe('PATCH /api/notifications/:id/read', () => {
 
     const res = await request(app)
       .patch(`/api/notifications/${NOTIF_ID}/read`)
-      .set('Cookie', `token=${tokenFor({ id: USER_ID, role: 'employee' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: USER_ID, role: 'employee' })}`)
 
     expect(res.status).toBe(403)
   })
@@ -276,7 +276,7 @@ describe('PATCH /api/notifications/:id/read', () => {
 
     const res = await request(app)
       .patch(`/api/notifications/${NOTIF_ID}/read`)
-      .set('Cookie', `token=${tokenFor({ id: USER_ID, role: 'employee' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: USER_ID, role: 'employee' })}`)
 
     expect(res.status).toBe(200)
     expect(res.body).toHaveProperty('id')
@@ -300,7 +300,7 @@ describe('POST /api/notifications/global-remind', () => {
   it('returns 403 for an employee', async () => {
     const res = await request(app)
       .post('/api/notifications/global-remind')
-      .set('Cookie', `token=${tokenFor({ id: USER_ID, role: 'employee' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: USER_ID, role: 'employee' })}`)
       .send({ message: 'Rappel' })
 
     expect(res.status).toBe(403)
@@ -309,7 +309,7 @@ describe('POST /api/notifications/global-remind', () => {
   it('returns 403 for a manager', async () => {
     const res = await request(app)
       .post('/api/notifications/global-remind')
-      .set('Cookie', `token=${tokenFor({ id: USER_ID, role: 'manager' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: USER_ID, role: 'manager' })}`)
       .send({ message: 'Rappel' })
 
     expect(res.status).toBe(403)
@@ -325,7 +325,7 @@ describe('POST /api/notifications/global-remind', () => {
 
     const res = await request(app)
       .post('/api/notifications/global-remind')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ message: 'Action requise de votre part' })
 
     expect(res.status).toBe(200)
@@ -339,7 +339,7 @@ describe('POST /api/notifications/global-remind', () => {
 
     const res = await request(app)
       .post('/api/notifications/global-remind')
-      .set('Cookie', `token=${tokenFor({ id: HR_ID, role: 'hr' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: HR_ID, role: 'hr' })}`)
       .send({ campaignId: 'camp1', message: 'Merci de compléter votre évaluation' })
 
     expect(res.status).toBe(200)
@@ -351,7 +351,7 @@ describe('POST /api/notifications/global-remind', () => {
 
     const res = await request(app)
       .post('/api/notifications/global-remind')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ message: 'Personne à notifier' })
 
     expect(res.status).toBe(200)

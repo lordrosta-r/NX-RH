@@ -44,7 +44,7 @@ jest.mock('../../models', () => {
 jest.mock('../../middleware/authGuard', () => ({
   authGuard: (roles = []) => (req, res, next) => {
     const _jwt = require('jsonwebtoken')
-    const token = req.cookies?.token
+    const token = req.cookies?.accessToken
     if (!token) return res.status(401).json({ error: 'Authentication required' })
     try {
       const payload = _jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] })
@@ -150,7 +150,7 @@ describe('GET /api/events', () => {
 
     const res = await request(app)
       .get('/api/events')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
 
     expect(res.status).toBe(200)
     expect(Event.find).toHaveBeenCalledWith({})
@@ -168,7 +168,7 @@ describe('GET /api/events', () => {
 
     const res = await request(app)
       .get('/api/events')
-      .set('Cookie', `token=${tokenFor({ id: HR_ID, role: 'hr' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: HR_ID, role: 'hr' })}`)
 
     expect(res.status).toBe(200)
     expect(Event.find).toHaveBeenCalledWith({})
@@ -185,7 +185,7 @@ describe('GET /api/events', () => {
 
     const res = await request(app)
       .get('/api/events')
-      .set('Cookie', `token=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
 
     expect(res.status).toBe(200)
     expect(Event.find).toHaveBeenCalledWith({
@@ -207,7 +207,7 @@ describe('GET /api/events', () => {
 
     const res = await request(app)
       .get('/api/events')
-      .set('Cookie', `token=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
 
     expect(res.status).toBe(200)
     expect(Event.find).toHaveBeenCalledWith({
@@ -229,7 +229,7 @@ describe('GET /api/events', () => {
 
     const res = await request(app)
       .get('/api/events')
-      .set('Cookie', `token=${tokenFor({ id: DIRECTOR_ID, role: 'director' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: DIRECTOR_ID, role: 'director' })}`)
 
     expect(res.status).toBe(200)
     expect(Event.find).toHaveBeenCalledWith({
@@ -251,7 +251,7 @@ describe('GET /api/events', () => {
 
     const res = await request(app)
       .get('/api/events?page=2&limit=10')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
 
     expect(res.status).toBe(200)
     expect(res.body.page).toBe(2)
@@ -268,7 +268,7 @@ describe('GET /api/events/:id', () => {
   it('returns 400 for a non-ObjectId id', async () => {
     const res = await request(app)
       .get('/api/events/not-a-valid-id')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(res.status).toBe(400)
     expect(res.body.error).toMatch(/invalide/i)
   })
@@ -277,7 +277,7 @@ describe('GET /api/events/:id', () => {
     Event.findById = jest.fn().mockReturnValue(makeThenable(null))
     const res = await request(app)
       .get(`/api/events/${EVENT_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(res.status).toBe(404)
     expect(res.body.error).toMatch(/introuvable/i)
   })
@@ -288,7 +288,7 @@ describe('GET /api/events/:id', () => {
     )
     const res = await request(app)
       .get(`/api/events/${EVENT_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
     expect(res.status).toBe(403)
     expect(res.body.error).toMatch(/refus/i)
   })
@@ -299,7 +299,7 @@ describe('GET /api/events/:id', () => {
     )
     const res = await request(app)
       .get(`/api/events/${EVENT_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: DIRECTOR_ID, role: 'director' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: DIRECTOR_ID, role: 'director' })}`)
     expect(res.status).toBe(403)
   })
 
@@ -309,7 +309,7 @@ describe('GET /api/events/:id', () => {
     )
     const res = await request(app)
       .get(`/api/events/${EVENT_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
     expect(res.status).toBe(200)
     expect(res.body.title).toBe('Open Event')
   })
@@ -320,7 +320,7 @@ describe('GET /api/events/:id', () => {
     )
     const res = await request(app)
       .get(`/api/events/${EVENT_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
     expect(res.status).toBe(200)
   })
 
@@ -330,7 +330,7 @@ describe('GET /api/events/:id', () => {
     )
     const res = await request(app)
       .get(`/api/events/${EVENT_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(res.status).toBe(200)
     expect(res.body.title).toBe('HR Internal')
   })
@@ -341,7 +341,7 @@ describe('GET /api/events/:id', () => {
     )
     const res = await request(app)
       .get(`/api/events/${EVENT_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: HR_ID, role: 'hr' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: HR_ID, role: 'hr' })}`)
     expect(res.status).toBe(200)
   })
 })
@@ -354,7 +354,7 @@ describe('POST /api/events', () => {
   it('returns 403 for an employee', async () => {
     const res = await request(app)
       .post('/api/events')
-      .set('Cookie', `token=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
       .send({ title: 'New Event', date: '2025-06-01' })
     expect(res.status).toBe(403)
     expect(res.body.error).toMatch(/refus/i)
@@ -363,7 +363,7 @@ describe('POST /api/events', () => {
   it('returns 403 for a manager', async () => {
     const res = await request(app)
       .post('/api/events')
-      .set('Cookie', `token=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
       .send({ title: 'New Event', date: '2025-06-01' })
     expect(res.status).toBe(403)
   })
@@ -371,7 +371,7 @@ describe('POST /api/events', () => {
   it('returns 403 for a director', async () => {
     const res = await request(app)
       .post('/api/events')
-      .set('Cookie', `token=${tokenFor({ id: DIRECTOR_ID, role: 'director' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: DIRECTOR_ID, role: 'director' })}`)
       .send({ title: 'New Event', date: '2025-06-01' })
     expect(res.status).toBe(403)
   })
@@ -379,7 +379,7 @@ describe('POST /api/events', () => {
   it('returns 400 when title is missing', async () => {
     const res = await request(app)
       .post('/api/events')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ date: '2025-06-01' })
     expect(res.status).toBe(400)
     expect(res.body.error).toMatch(/title/i)
@@ -388,7 +388,7 @@ describe('POST /api/events', () => {
   it('returns 400 when date is missing', async () => {
     const res = await request(app)
       .post('/api/events')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ title: 'Test' })
     expect(res.status).toBe(400)
     expect(res.body.error).toMatch(/date/i)
@@ -397,7 +397,7 @@ describe('POST /api/events', () => {
   it('returns 400 when both title and date are missing', async () => {
     const res = await request(app)
       .post('/api/events')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({})
     expect(res.status).toBe(400)
   })
@@ -408,7 +408,7 @@ describe('POST /api/events', () => {
 
     const res = await request(app)
       .post('/api/events')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ title: 'Launch', date: '2025-06-01', type: 'campaign' })
 
     expect(res.status).toBe(201)
@@ -422,7 +422,7 @@ describe('POST /api/events', () => {
 
     const res = await request(app)
       .post('/api/events')
-      .set('Cookie', `token=${tokenFor({ id: HR_ID, role: 'hr' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: HR_ID, role: 'hr' })}`)
       .send({ title: 'HR Meeting', date: '2025-07-15', type: 'other' })
 
     expect(res.status).toBe(201)
@@ -434,7 +434,7 @@ describe('POST /api/events', () => {
 
     await request(app)
       .post('/api/events')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ title: 'Check', date: '2025-01-01', type: 'other' })
 
     expect(Event.create).toHaveBeenCalledWith(
@@ -451,7 +451,7 @@ describe('PATCH /api/events/:id', () => {
   it('returns 403 for an employee', async () => {
     const res = await request(app)
       .patch(`/api/events/${EVENT_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
       .send({ title: 'New Title' })
     expect(res.status).toBe(403)
   })
@@ -459,7 +459,7 @@ describe('PATCH /api/events/:id', () => {
   it('returns 403 for a manager', async () => {
     const res = await request(app)
       .patch(`/api/events/${EVENT_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
       .send({ title: 'New Title' })
     expect(res.status).toBe(403)
   })
@@ -467,7 +467,7 @@ describe('PATCH /api/events/:id', () => {
   it('returns 403 for a director', async () => {
     const res = await request(app)
       .patch(`/api/events/${EVENT_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: DIRECTOR_ID, role: 'director' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: DIRECTOR_ID, role: 'director' })}`)
       .send({ title: 'New Title' })
     expect(res.status).toBe(403)
   })
@@ -475,7 +475,7 @@ describe('PATCH /api/events/:id', () => {
   it('returns 400 for a non-ObjectId id', async () => {
     const res = await request(app)
       .patch('/api/events/not-a-valid-id')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ title: 'New' })
     expect(res.status).toBe(400)
     expect(res.body.error).toMatch(/invalide/i)
@@ -485,7 +485,7 @@ describe('PATCH /api/events/:id', () => {
     Event.findById = jest.fn().mockReturnValue(makeThenable(null))
     const res = await request(app)
       .patch(`/api/events/${EVENT_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ title: 'Updated' })
     expect(res.status).toBe(404)
     expect(res.body.error).toMatch(/introuvable/i)
@@ -497,7 +497,7 @@ describe('PATCH /api/events/:id', () => {
 
     const res = await request(app)
       .patch(`/api/events/${EVENT_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ title: 'New Title' })
 
     expect(res.status).toBe(200)
@@ -511,7 +511,7 @@ describe('PATCH /api/events/:id', () => {
 
     const res = await request(app)
       .patch(`/api/events/${EVENT_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: HR_ID, role: 'hr' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: HR_ID, role: 'hr' })}`)
       .send({ targetRoles: ['manager', 'director'] })
 
     expect(res.status).toBe(200)
@@ -525,7 +525,7 @@ describe('PATCH /api/events/:id', () => {
 
     await request(app)
       .patch(`/api/events/${EVENT_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ description: 'updated desc' })
 
     // title and date unchanged
@@ -543,28 +543,28 @@ describe('DELETE /api/events/:id', () => {
   it('returns 403 for an employee', async () => {
     const res = await request(app)
       .delete(`/api/events/${EVENT_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
     expect(res.status).toBe(403)
   })
 
   it('returns 403 for a manager', async () => {
     const res = await request(app)
       .delete(`/api/events/${EVENT_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
     expect(res.status).toBe(403)
   })
 
   it('returns 403 for a director', async () => {
     const res = await request(app)
       .delete(`/api/events/${EVENT_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: DIRECTOR_ID, role: 'director' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: DIRECTOR_ID, role: 'director' })}`)
     expect(res.status).toBe(403)
   })
 
   it('returns 400 for a non-ObjectId id', async () => {
     const res = await request(app)
       .delete('/api/events/bad-id')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(res.status).toBe(400)
     expect(res.body.error).toMatch(/invalide/i)
   })
@@ -573,7 +573,7 @@ describe('DELETE /api/events/:id', () => {
     Event.findByIdAndDelete = jest.fn().mockResolvedValue(null)
     const res = await request(app)
       .delete(`/api/events/${EVENT_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(res.status).toBe(404)
     expect(res.body.error).toMatch(/introuvable/i)
   })
@@ -582,7 +582,7 @@ describe('DELETE /api/events/:id', () => {
     Event.findByIdAndDelete = jest.fn().mockResolvedValue({ _id: EVENT_ID })
     const res = await request(app)
       .delete(`/api/events/${EVENT_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(res.status).toBe(204)
     expect(res.text).toBe('')
   })
@@ -591,7 +591,7 @@ describe('DELETE /api/events/:id', () => {
     Event.findByIdAndDelete = jest.fn().mockResolvedValue({ _id: EVENT_ID })
     const res = await request(app)
       .delete(`/api/events/${EVENT_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: HR_ID, role: 'hr' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: HR_ID, role: 'hr' })}`)
     expect(res.status).toBe(204)
   })
 
@@ -599,7 +599,7 @@ describe('DELETE /api/events/:id', () => {
     Event.findByIdAndDelete = jest.fn().mockResolvedValue({ _id: EVENT_ID })
     await request(app)
       .delete(`/api/events/${EVENT_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(Event.findByIdAndDelete).toHaveBeenCalledWith(EVENT_ID)
   })
 })

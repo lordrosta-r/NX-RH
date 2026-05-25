@@ -61,7 +61,7 @@ describe('Auth Routes — /api/auth', () => {
       // Vérifier la présence du cookie
       const cookies = response.headers['set-cookie']
       expect(cookies).toBeDefined()
-      expect(cookies.some(c => c.startsWith('token='))).toBe(true)
+      expect(cookies.some(c => c.startsWith('accessToken='))).toBe(true)
     })
 
     test('devrait échouer avec un mauvais mot de passe (401)', async () => {
@@ -91,7 +91,7 @@ describe('Auth Routes — /api/auth', () => {
         .expect(400)
 
       expect(response.body).toHaveProperty('error')
-      expect(response.body.error).toBe('Email et mot de passe requis')
+      expect(response.body.error).toBe('Données invalides')
     })
 
     test('devrait échouer sans mot de passe (400)', async () => {
@@ -110,7 +110,7 @@ describe('Auth Routes — /api/auth', () => {
         .expect(400)
 
       expect(response.body).toHaveProperty('error')
-      expect(response.body.error).toBe('Email invalide')
+      expect(response.body.error).toBe('Données invalides')
     })
 
     test('devrait échouer si l\'utilisateur est inactif (401)', async () => {
@@ -171,7 +171,7 @@ describe('Auth Routes — /api/auth', () => {
     test('devrait échouer avec un token invalide (401)', async () => {
       const response = await request(app)
         .get('/api/auth/me')
-        .set('Cookie', 'token=invalid-token')
+        .set('Cookie', 'accessToken=invalid-token')
         .expect(401)
 
       expect(response.body).toHaveProperty('error')
@@ -210,7 +210,7 @@ describe('Auth Routes — /api/auth', () => {
       // Vérifier que le cookie est supprimé
       const cookies = response.headers['set-cookie']
       expect(cookies).toBeDefined()
-      expect(cookies.some(c => c.includes('token=;'))).toBe(true)
+      expect(cookies.some(c => c.startsWith('accessToken=;') || c.startsWith('refreshToken=;'))).toBe(true)
     })
   })
 

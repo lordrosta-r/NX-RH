@@ -13,7 +13,7 @@ jest.mock('../../models/Form')
 jest.mock('../../middleware/authGuard', () => ({
   authGuard: (roles = []) => (req, res, next) => {
     const jwt   = require('jsonwebtoken')
-    const token = req.cookies?.token
+    const token = req.cookies?.accessToken
     if (!token) return res.status(401).json({ error: 'Authentication required' })
     try {
       const payload = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] })
@@ -104,7 +104,7 @@ describe('POST /api/forms/import', () => {
   it('should return 403 for employee role', async () => {
     const res = await request(app)
       .post('/api/forms/import')
-      .set('Cookie', `token=${token('employee')}`)
+      .set('Cookie', `accessToken=${token('employee')}`)
       .send(validForm())
     expect(res.status).toBe(403)
   })
@@ -112,7 +112,7 @@ describe('POST /api/forms/import', () => {
   it('should import a valid form and return 201', async () => {
     const res = await request(app)
       .post('/api/forms/import')
-      .set('Cookie', `token=${token('hr')}`)
+      .set('Cookie', `accessToken=${token('hr')}`)
       .send(validForm())
     expect(res.status).toBe(201)
     expect(res.body).toHaveProperty('imported', 1)
@@ -126,7 +126,7 @@ describe('POST /api/forms/import', () => {
     const body = { ...validForm(), title: '' }
     const res = await request(app)
       .post('/api/forms/import')
-      .set('Cookie', `token=${token('hr')}`)
+      .set('Cookie', `accessToken=${token('hr')}`)
       .send(body)
     expect(res.status).toBe(400)
     expect(res.body.errors).toEqual(
@@ -138,7 +138,7 @@ describe('POST /api/forms/import', () => {
     const body = { ...validForm(), formType: 'invalid_type' }
     const res = await request(app)
       .post('/api/forms/import')
-      .set('Cookie', `token=${token('hr')}`)
+      .set('Cookie', `accessToken=${token('hr')}`)
       .send(body)
     expect(res.status).toBe(400)
     expect(res.body.errors).toEqual(
@@ -150,7 +150,7 @@ describe('POST /api/forms/import', () => {
     const body = { ...validForm(), questions: 'not-an-array' }
     const res = await request(app)
       .post('/api/forms/import')
-      .set('Cookie', `token=${token('hr')}`)
+      .set('Cookie', `accessToken=${token('hr')}`)
       .send(body)
     expect(res.status).toBe(400)
     expect(res.body.errors).toEqual(
@@ -165,7 +165,7 @@ describe('POST /api/forms/import', () => {
     }
     const res = await request(app)
       .post('/api/forms/import')
-      .set('Cookie', `token=${token('hr')}`)
+      .set('Cookie', `accessToken=${token('hr')}`)
       .send(body)
     expect(res.status).toBe(400)
     expect(res.body.errors).toEqual(
@@ -180,7 +180,7 @@ describe('POST /api/forms/import', () => {
     }
     const res = await request(app)
       .post('/api/forms/import')
-      .set('Cookie', `token=${token('hr')}`)
+      .set('Cookie', `accessToken=${token('hr')}`)
       .send(body)
     expect(res.status).toBe(400)
     expect(res.body.errors).toEqual(
@@ -195,7 +195,7 @@ describe('POST /api/forms/import', () => {
     }
     const res = await request(app)
       .post('/api/forms/import')
-      .set('Cookie', `token=${token('hr')}`)
+      .set('Cookie', `accessToken=${token('hr')}`)
       .send(body)
     expect(res.status).toBe(400)
     expect(res.body.errors).toEqual(
@@ -206,7 +206,7 @@ describe('POST /api/forms/import', () => {
   it('should return 400 when body is an array', async () => {
     const res = await request(app)
       .post('/api/forms/import')
-      .set('Cookie', `token=${token('hr')}`)
+      .set('Cookie', `accessToken=${token('hr')}`)
       .send([validForm()])
     expect(res.status).toBe(400)
   })
@@ -214,7 +214,7 @@ describe('POST /api/forms/import', () => {
   it('should work for admin role too', async () => {
     const res = await request(app)
       .post('/api/forms/import')
-      .set('Cookie', `token=${token('admin')}`)
+      .set('Cookie', `accessToken=${token('admin')}`)
       .send(validForm())
     expect(res.status).toBe(201)
   })
@@ -233,7 +233,7 @@ describe('GET /api/forms/template', () => {
   it('should return template JSON with correct Content-Disposition', async () => {
     const res = await request(app)
       .get('/api/forms/template')
-      .set('Cookie', `token=${token('hr')}`)
+      .set('Cookie', `accessToken=${token('hr')}`)
     expect(res.status).toBe(200)
     expect(res.headers['content-disposition']).toContain('form-template.json')
     expect(res.body).toHaveProperty('title')
@@ -245,7 +245,7 @@ describe('GET /api/forms/template', () => {
   it('should include questions covering all main types', async () => {
     const res = await request(app)
       .get('/api/forms/template')
-      .set('Cookie', `token=${token('hr')}`)
+      .set('Cookie', `accessToken=${token('hr')}`)
     const types = res.body.questions.map(q => q.type)
     expect(types).toContain('text')
     expect(types).toContain('rating')
@@ -270,7 +270,7 @@ describe('GET /api/forms/:id/export', () => {
   it('should return 400 for invalid ObjectId', async () => {
     const res = await request(app)
       .get('/api/forms/not-valid-id/export')
-      .set('Cookie', `token=${token('hr')}`)
+      .set('Cookie', `accessToken=${token('hr')}`)
     expect(res.status).toBe(400)
     expect(res.body).toHaveProperty('error', 'ID invalide')
   })
@@ -279,7 +279,7 @@ describe('GET /api/forms/:id/export', () => {
     Form.findById = jest.fn().mockReturnValue({ lean: jest.fn().mockResolvedValue(null) })
     const res = await request(app)
       .get(`/api/forms/${FAKE_ID}/export`)
-      .set('Cookie', `token=${token('hr')}`)
+      .set('Cookie', `accessToken=${token('hr')}`)
     expect(res.status).toBe(404)
     expect(res.body).toHaveProperty('error', 'Formulaire introuvable')
   })
@@ -302,7 +302,7 @@ describe('GET /api/forms/:id/export', () => {
 
     const res = await request(app)
       .get(`/api/forms/${FAKE_ID}/export`)
-      .set('Cookie', `token=${token('hr')}`)
+      .set('Cookie', `accessToken=${token('hr')}`)
 
     expect(res.status).toBe(200)
     expect(res.headers['content-disposition']).toContain('.json')

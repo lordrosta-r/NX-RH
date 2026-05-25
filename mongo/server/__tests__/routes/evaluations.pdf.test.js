@@ -46,7 +46,7 @@ jest.mock('../../middleware/authGuard', () => ({
   authGuard: (roles = []) => (req, res, next) => {
     const _jwt   = require('jsonwebtoken')
     const secret = process.env.JWT_SECRET
-    const token  = req.cookies?.token
+    const token  = req.cookies?.accessToken
     if (!token) return res.status(401).json({ error: 'Authentication required' })
     try {
       const payload = _jwt.verify(token, secret, { algorithms: ['HS256'] })
@@ -154,7 +154,7 @@ describe('GET /:id/pdf — authentication', () => {
   it('returns 401 for a malformed / invalid JWT', async () => {
     const res = await request(app)
       .get(`/${EVAL_ID}/pdf`)
-      .set('Cookie', 'token=this.is.not.a.valid.jwt')
+      .set('Cookie', 'accessToken=this.is.not.a.valid.jwt')
     expect(res.status).toBe(401)
   })
 
@@ -162,7 +162,7 @@ describe('GET /:id/pdf — authentication', () => {
     const badToken = jwt.sign({ id: ADMIN_ID, role: 'admin' }, 'wrong-secret', { algorithm: 'HS256' })
     const res = await request(app)
       .get(`/${EVAL_ID}/pdf`)
-      .set('Cookie', `token=${badToken}`)
+      .set('Cookie', `accessToken=${badToken}`)
     expect(res.status).toBe(401)
   })
 })
@@ -177,7 +177,7 @@ describe('GET /:id/pdf — ID validation', () => {
   it('returns 400 for a plain string that is not an ObjectId', async () => {
     const res = await request(app)
       .get('/not-a-valid-id/pdf')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(res.status).toBe(400)
     expect(res.body.error).toMatch(/invalide/i)
   })
@@ -185,7 +185,7 @@ describe('GET /:id/pdf — ID validation', () => {
   it('returns 400 for a hex string that is too short', async () => {
     const res = await request(app)
       .get('/507f1f77bcf86cd/pdf')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(res.status).toBe(400)
     expect(res.body.error).toMatch(/invalide/i)
   })
@@ -193,7 +193,7 @@ describe('GET /:id/pdf — ID validation', () => {
   it('returns 400 for a numeric id', async () => {
     const res = await request(app)
       .get('/12345/pdf')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(res.status).toBe(400)
   })
 })
@@ -210,7 +210,7 @@ describe('GET /:id/pdf — evaluation not found', () => {
 
     const res = await request(app)
       .get(`/${EVAL_ID}/pdf`)
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(res.status).toBe(404)
     expect(res.body.error).toMatch(/introuvable/i)
   })
@@ -233,7 +233,7 @@ describe('GET /:id/pdf — admin and hr bypass ownership checks', () => {
 
     const res = await request(app)
       .get(`/${EVAL_ID}/pdf`)
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(res.status).toBe(200)
   })
 
@@ -247,7 +247,7 @@ describe('GET /:id/pdf — admin and hr bypass ownership checks', () => {
 
     const res = await request(app)
       .get(`/${EVAL_ID}/pdf`)
-      .set('Cookie', `token=${tokenFor({ id: HR_ID, role: 'hr' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: HR_ID, role: 'hr' })}`)
     expect(res.status).toBe(200)
   })
 })
@@ -269,7 +269,7 @@ describe('GET /:id/pdf — evaluator can download their own evaluation', () => {
 
     const res = await request(app)
       .get(`/${EVAL_ID}/pdf`)
-      .set('Cookie', `token=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
     expect(res.status).toBe(200)
   })
 
@@ -283,7 +283,7 @@ describe('GET /:id/pdf — evaluator can download their own evaluation', () => {
 
     const res = await request(app)
       .get(`/${EVAL_ID}/pdf`)
-      .set('Cookie', `token=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
     expect(res.status).toBe(200)
   })
 })
@@ -305,7 +305,7 @@ describe('GET /:id/pdf — evaluatee can download their own evaluation', () => {
 
     const res = await request(app)
       .get(`/${EVAL_ID}/pdf`)
-      .set('Cookie', `token=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
     expect(res.status).toBe(200)
   })
 
@@ -319,7 +319,7 @@ describe('GET /:id/pdf — evaluatee can download their own evaluation', () => {
 
     const res = await request(app)
       .get(`/${EVAL_ID}/pdf`)
-      .set('Cookie', `token=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
     expect(res.status).toBe(403)
     expect(res.body.error).toMatch(/interdit/i)
   })
@@ -334,7 +334,7 @@ describe('GET /:id/pdf — evaluatee can download their own evaluation', () => {
 
     const res = await request(app)
       .get(`/${EVAL_ID}/pdf`)
-      .set('Cookie', `token=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
     expect(res.status).toBe(403)
     expect(res.body.error).toMatch(/interdit/i)
   })
@@ -350,7 +350,7 @@ describe('GET /:id/pdf — evaluatee can download their own evaluation', () => {
 
     const res = await request(app)
       .get(`/${EVAL_ID}/pdf`)
-      .set('Cookie', `token=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
     expect(res.status).toBe(200)
   })
 
@@ -364,7 +364,7 @@ describe('GET /:id/pdf — evaluatee can download their own evaluation', () => {
 
     const res = await request(app)
       .get(`/${EVAL_ID}/pdf`)
-      .set('Cookie', `token=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
     expect(res.status).toBe(200)
   })
 })
@@ -381,7 +381,7 @@ describe('GET /:id/pdf — HTTP response headers', () => {
 
     const res = await request(app)
       .get(`/${EVAL_ID}/pdf`)
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(res.headers['content-type']).toMatch(/application\/pdf/)
   })
 
@@ -390,7 +390,7 @@ describe('GET /:id/pdf — HTTP response headers', () => {
 
     const res = await request(app)
       .get(`/${EVAL_ID}/pdf`)
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(res.headers['content-disposition']).toContain(EVAL_ID)
   })
 
@@ -399,7 +399,7 @@ describe('GET /:id/pdf — HTTP response headers', () => {
 
     const res = await request(app)
       .get(`/${EVAL_ID}/pdf`)
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(res.headers['content-disposition']).toMatch(/^attachment;/)
   })
 
@@ -408,7 +408,7 @@ describe('GET /:id/pdf — HTTP response headers', () => {
 
     const res = await request(app)
       .get(`/${EVAL_ID}/pdf`)
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(res.headers['content-disposition'])
       .toMatch(new RegExp(`filename="evaluation-${EVAL_ID}\\.pdf"`))
   })
@@ -426,7 +426,7 @@ describe('GET /:id/pdf — Evaluation.findById query', () => {
 
     await request(app)
       .get(`/${EVAL_ID}/pdf`)
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(Evaluation.findById).toHaveBeenCalledWith(EVAL_ID)
   })
 
@@ -436,7 +436,7 @@ describe('GET /:id/pdf — Evaluation.findById query', () => {
 
     await request(app)
       .get(`/${EVAL_ID}/pdf`)
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(chain.populate).toHaveBeenCalledTimes(4)
   })
 
@@ -446,7 +446,7 @@ describe('GET /:id/pdf — Evaluation.findById query', () => {
 
     await request(app)
       .get(`/${EVAL_ID}/pdf`)
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(chain.lean).toHaveBeenCalled()
   })
 
@@ -458,7 +458,7 @@ describe('GET /:id/pdf — Evaluation.findById query', () => {
 
     const res = await request(app)
       .get(`/${EVAL_ID}/pdf`)
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(res.status).toBe(500)
   })
 })
@@ -481,7 +481,7 @@ describe('GET /:id/pdf — renders for every evaluation status', () => {
 
       const res = await request(app)
         .get(`/${EVAL_ID}/pdf`)
-        .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+        .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       expect(res.status).toBe(200)
     })
   }
@@ -499,7 +499,7 @@ describe('GET /:id/pdf — renders with various data shapes', () => {
 
     const res = await request(app)
       .get(`/${EVAL_ID}/pdf`)
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(res.status).toBe(200)
   })
 
@@ -508,7 +508,7 @@ describe('GET /:id/pdf — renders with various data shapes', () => {
 
     const res = await request(app)
       .get(`/${EVAL_ID}/pdf`)
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(res.status).toBe(200)
   })
 
@@ -519,7 +519,7 @@ describe('GET /:id/pdf — renders with various data shapes', () => {
 
     const res = await request(app)
       .get(`/${EVAL_ID}/pdf`)
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(res.status).toBe(200)
   })
 
@@ -530,7 +530,7 @@ describe('GET /:id/pdf — renders with various data shapes', () => {
 
     const res = await request(app)
       .get(`/${EVAL_ID}/pdf`)
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(res.status).toBe(200)
   })
 
@@ -544,7 +544,7 @@ describe('GET /:id/pdf — renders with various data shapes', () => {
 
     const res = await request(app)
       .get(`/${EVAL_ID}/pdf`)
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(res.status).toBe(200)
   })
 
@@ -560,7 +560,7 @@ describe('GET /:id/pdf — renders with various data shapes', () => {
 
     const res = await request(app)
       .get(`/${EVAL_ID}/pdf`)
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(res.status).toBe(200)
   })
 
@@ -586,7 +586,7 @@ describe('GET /:id/pdf — renders with various data shapes', () => {
 
     const res = await request(app)
       .get(`/${EVAL_ID}/pdf`)
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(res.status).toBe(200)
   })
 
@@ -599,7 +599,7 @@ describe('GET /:id/pdf — renders with various data shapes', () => {
 
     const res = await request(app)
       .get(`/${EVAL_ID}/pdf`)
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(res.status).toBe(200)
   })
 
@@ -617,7 +617,7 @@ describe('GET /:id/pdf — renders with various data shapes', () => {
 
     const res = await request(app)
       .get(`/${EVAL_ID}/pdf`)
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(res.status).toBe(200)
   })
 })

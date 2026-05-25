@@ -20,7 +20,7 @@ jest.mock('../../models', () => ({
 jest.mock('../../middleware/authGuard', () => ({
   authGuard: (roles = []) => (req, res, next) => {
     const _jwt  = require('jsonwebtoken')
-    const token = req.cookies?.token
+    const token = req.cookies?.accessToken
     if (!token) return res.status(401).json({ error: 'Authentication required' })
     try {
       const payload = _jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] })
@@ -107,7 +107,7 @@ describe('GET /api/dashboard', () => {
   it('returns 401 for an invalid / malformed token', async () => {
     const res = await request(app)
       .get('/api/dashboard')
-      .set('Cookie', 'token=this.is.not.valid')
+      .set('Cookie', 'accessToken=this.is.not.valid')
     expect(res.status).toBe(401)
   })
 
@@ -130,7 +130,7 @@ describe('GET /api/dashboard', () => {
 
     const res = await request(app)
       .get('/api/dashboard')
-      .set('Cookie', `token=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
 
     expect(res.status).toBe(200)
     expect(res.body.role).toBe('employee')
@@ -150,7 +150,7 @@ describe('GET /api/dashboard', () => {
 
     const res = await request(app)
       .get('/api/dashboard')
-      .set('Cookie', `token=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
 
     expect(res.status).toBe(200)
     expect(res.body.role).toBe('manager')
@@ -175,7 +175,7 @@ describe('GET /api/dashboard', () => {
 
     const res = await request(app)
       .get('/api/dashboard')
-      .set('Cookie', `token=${tokenFor({ id: DIRECTOR_ID, role: 'director' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: DIRECTOR_ID, role: 'director' })}`)
 
     expect(res.status).toBe(200)
     expect(res.body.role).toBe('director')
@@ -196,7 +196,7 @@ describe('GET /api/dashboard', () => {
 
     const res = await request(app)
       .get('/api/dashboard')
-      .set('Cookie', `token=${tokenFor({ id: HR_ID, role: 'hr' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: HR_ID, role: 'hr' })}`)
 
     expect(res.status).toBe(200)
     expect(res.body.role).toBe('hr')
@@ -233,7 +233,7 @@ describe('GET /api/dashboard', () => {
 
     const res = await request(app)
       .get('/api/dashboard')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
 
     expect(res.status).toBe(200)
     expect(res.body.role).toBe('admin')

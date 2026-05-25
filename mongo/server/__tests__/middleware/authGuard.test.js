@@ -26,7 +26,7 @@ const makeToken = (payload, opts = {}) =>
   jwt.sign(payload, SECRET, { algorithm: 'HS256', expiresIn: '1h', ...opts })
 
 const makeReq = (token, url = '/api/users') => ({
-  cookies: token ? { token } : {},
+  cookies: token ? { accessToken: token } : {},
   originalUrl: url,
 })
 
@@ -137,7 +137,7 @@ describe('authGuard middleware', () => {
       const res  = makeRes()
       const next = jest.fn()
       await authGuard()(req, res, next)
-      expect(res.clearCookie).toHaveBeenCalledWith('token', expect.objectContaining({ path: '/' }))
+      expect(res.clearCookie).toHaveBeenCalledWith('accessToken', expect.objectContaining({ path: '/' }))
       expect(res.status).toHaveBeenCalledWith(401)
       expect(res.json).toHaveBeenCalledWith({ error: 'Compte désactivé' })
     })

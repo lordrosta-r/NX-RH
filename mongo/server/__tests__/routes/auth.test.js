@@ -11,7 +11,7 @@ jest.mock('../../middleware/authGuard', () => ({
   authGuard: (roles = []) => (req, res, next) => {
     const _jwt   = require('jsonwebtoken')
     const secret = process.env.JWT_SECRET
-    const token  = req.cookies?.token
+    const token  = req.cookies?.accessToken
     if (!token) return res.status(401).json({ error: 'Authentication required' })
     try {
       const payload = _jwt.verify(token, secret, { algorithms: ['HS256'] })
@@ -99,7 +99,7 @@ describe('POST /api/auth/login', () => {
   it('returns 400 when email is missing', async () => {
     const res = await request(app).post('/api/auth/login').send({ password: 'secret' })
     expect(res.status).toBe(400)
-    expect(res.body.error).toMatch(/requis/)
+    expect(res.body.error).toMatch(/invalide/i)
   })
 
   it('returns 400 when password is missing', async () => {
@@ -121,7 +121,7 @@ describe('POST /api/auth/login', () => {
     })
     const res = await request(app)
       .post('/api/auth/login')
-      .send({ email: 'nobody@corp.com', password: 'wrong' })
+      .send({ email: 'nobody@corp.com', password: 'wrongpassword' })
     expect(res.status).toBe(401)
     expect(res.body.error).toMatch(/invalides/i)
   })
@@ -130,7 +130,7 @@ describe('POST /api/auth/login', () => {
     mockUserFind({ authSource: 'ldap', passwordHash: null })
     const res = await request(app)
       .post('/api/auth/login')
-      .send({ email: 'alice@corp.com', password: 'pass' })
+      .send({ email: 'alice@corp.com', password: 'passldap1' })
     expect(res.status).toBe(401)
   })
 
@@ -139,7 +139,7 @@ describe('POST /api/auth/login', () => {
     mockUserFind({ passwordHash: hash })
     const res = await request(app)
       .post('/api/auth/login')
-      .send({ email: 'alice@corp.com', password: 'wrong' })
+      .send({ email: 'alice@corp.com', password: 'wrongpassword' })
     expect(res.status).toBe(401)
   })
 
@@ -157,7 +157,7 @@ describe('POST /api/auth/login', () => {
     // Cookie must be set
     const cookie = res.headers['set-cookie']
     expect(cookie).toBeDefined()
-    expect(cookie[0]).toMatch(/token=/)
+    expect(cookie[0]).toMatch(/accessToken=/)
     expect(cookie[0]).toMatch(/HttpOnly/i)
   })
 
@@ -191,9 +191,10 @@ describe('POST /api/auth/login', () => {
       .post('/api/auth/login')
       .send({ email: 'alice@corp.com', password: 'secret123', remember: true })
     expect(res.status).toBe(200)
-    const cookie = res.headers['set-cookie'][0]
-    // Max-Age for 30 days = 2592000 seconds
-    expect(cookie).toMatch(/Max-Age=2592000/i)
+    const cookies = res.headers['set-cookie']
+    // With refresh tokens, both accessToken and refreshToken cookies must be present
+    expect(cookies.some(c => c.startsWith('accessToken='))).toBe(true)
+    expect(cookies.some(c => c.startsWith('refreshToken='))).toBe(true)
   })
 })
 
@@ -209,7 +210,7 @@ describe('POST /api/auth/logout', () => {
     const cookie = res.headers['set-cookie']
     expect(cookie).toBeDefined()
     // Clearing a cookie sets Max-Age=0 or Expires in the past
-    expect(cookie[0]).toMatch(/token=;|Max-Age=0/i)
+    expect(cookie[0]).toMatch(/accessToken=;|Max-Age=0/i)
   })
 })
 
@@ -232,7 +233,7 @@ describe('GET /api/auth/me', () => {
     mockUserFindById()
     const res = await request(app)
       .get('/api/auth/me')
-      .set('Cookie', `token=${token}`)
+      .set('Cookie', `accessToken=${token}`)
     expect(res.status).toBe(200)
     expect(res.body.email).toBe('alice@corp.com')
   })
@@ -246,7 +247,7 @@ describe('GET /api/auth/me', () => {
     mockUserFindById({ isActive: false })
     const res = await request(app)
       .get('/api/auth/me')
-      .set('Cookie', `token=${token}`)
+      .set('Cookie', `accessToken=${token}`)
     expect(res.status).toBe(401)
   })
 })
@@ -279,7 +280,7 @@ describe('PATCH /api/auth/preferences', () => {
   it('rejects unknown notification key', async () => {
     const res = await request(app)
       .patch('/api/auth/preferences')
-      .set('Cookie', `token=${tokenFor()}`)
+      .set('Cookie', `accessToken=${tokenFor()}`)
       .send({ notificationPrefs: { unknownKey: true } })
     expect(res.status).toBe(400)
     expect(res.body.error).toMatch(/inconnue/i)
@@ -288,7 +289,7 @@ describe('PATCH /api/auth/preferences', () => {
   it('rejects invalid locale enum', async () => {
     const res = await request(app)
       .patch('/api/auth/preferences')
-      .set('Cookie', `token=${tokenFor()}`)
+      .set('Cookie', `accessToken=${tokenFor()}`)
       .send({ locale: 'es' })
     expect(res.status).toBe(400)
     expect(res.body.error).toMatch(/locale/i)
@@ -297,7 +298,7 @@ describe('PATCH /api/auth/preferences', () => {
   it('rejects invalid theme enum', async () => {
     const res = await request(app)
       .patch('/api/auth/preferences')
-      .set('Cookie', `token=${tokenFor()}`)
+      .set('Cookie', `accessToken=${tokenFor()}`)
       .send({ theme: 'neon' })
     expect(res.status).toBe(400)
     expect(res.body.error).toMatch(/th[èe]me/i)
@@ -306,7 +307,7 @@ describe('PATCH /api/auth/preferences', () => {
   it('rejects non-boolean notification value', async () => {
     const res = await request(app)
       .patch('/api/auth/preferences')
-      .set('Cookie', `token=${tokenFor()}`)
+      .set('Cookie', `accessToken=${tokenFor()}`)
       .send({ notificationPrefs: { evaluationAssigned: 'yes' } })
     expect(res.status).toBe(400)
   })
@@ -314,7 +315,7 @@ describe('PATCH /api/auth/preferences', () => {
   it('returns 400 when no preference provided', async () => {
     const res = await request(app)
       .patch('/api/auth/preferences')
-      .set('Cookie', `token=${tokenFor()}`)
+      .set('Cookie', `accessToken=${tokenFor()}`)
       .send({})
     expect(res.status).toBe(400)
   })
@@ -332,7 +333,7 @@ describe('PATCH /api/auth/preferences', () => {
     })
     const res = await request(app)
       .patch('/api/auth/preferences')
-      .set('Cookie', `token=${tokenFor()}`)
+      .set('Cookie', `accessToken=${tokenFor()}`)
       .send({
         locale: 'en',
         theme:  'light',

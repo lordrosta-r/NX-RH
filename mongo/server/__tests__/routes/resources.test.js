@@ -58,7 +58,7 @@ jest.mock('../../models', () => {
 jest.mock('../../middleware/authGuard', () => ({
   authGuard: (roles = []) => (req, res, next) => {
     const _jwt = require('jsonwebtoken')
-    const token = req.cookies?.token
+    const token = req.cookies?.accessToken
     if (!token) return res.status(401).json({ error: 'Authentication required' })
     try {
       const payload = _jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] })
@@ -153,7 +153,7 @@ describe('GET /api/resources', () => {
 
     const res = await supertest(app)
       .get('/api/resources')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
 
     expect(res.status).toBe(200)
     const [filter] = Resource.find.mock.calls[0]
@@ -167,7 +167,7 @@ describe('GET /api/resources', () => {
 
     const res = await supertest(app)
       .get('/api/resources')
-      .set('Cookie', `token=${tokenFor({ id: HR_ID, role: 'hr' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: HR_ID, role: 'hr' })}`)
 
     expect(res.status).toBe(200)
     const [filter] = Resource.find.mock.calls[0]
@@ -181,7 +181,7 @@ describe('GET /api/resources', () => {
 
     await supertest(app)
       .get('/api/resources')
-      .set('Cookie', `token=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
 
     const [filter] = Resource.find.mock.calls[0]
     expect(filter.status).toBe('published')
@@ -194,7 +194,7 @@ describe('GET /api/resources', () => {
 
     await supertest(app)
       .get('/api/resources')
-      .set('Cookie', `token=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
 
     const [filter] = Resource.find.mock.calls[0]
     expect(filter.status).toBe('published')
@@ -207,7 +207,7 @@ describe('GET /api/resources', () => {
 
     await supertest(app)
       .get('/api/resources')
-      .set('Cookie', `token=${tokenFor({ id: DIRECTOR_ID, role: 'director' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: DIRECTOR_ID, role: 'director' })}`)
 
     const [filter] = Resource.find.mock.calls[0]
     expect(filter.status).toBe('published')
@@ -220,7 +220,7 @@ describe('GET /api/resources', () => {
 
     const res = await supertest(app)
       .get('/api/resources?page=2&limit=10')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
 
     expect(res.status).toBe(200)
     expect(res.body.total).toBe(42)
@@ -237,7 +237,7 @@ describe('GET /api/resources/:id', () => {
   it('400 for an invalid ObjectId', async () => {
     const res = await supertest(app)
       .get('/api/resources/not-a-valid-id')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
 
     expect(res.status).toBe(400)
     expect(res.body.error).toMatch(/invalide/i)
@@ -248,7 +248,7 @@ describe('GET /api/resources/:id', () => {
 
     const res = await supertest(app)
       .get(`/api/resources/${RESOURCE_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
 
     expect(res.status).toBe(404)
     expect(res.body.error).toMatch(/introuvable/i)
@@ -261,7 +261,7 @@ describe('GET /api/resources/:id', () => {
 
     const res = await supertest(app)
       .get(`/api/resources/${RESOURCE_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
 
     expect(res.status).toBe(403)
     expect(res.body.error).toMatch(/refusé/i)
@@ -274,7 +274,7 @@ describe('GET /api/resources/:id', () => {
 
     const res = await supertest(app)
       .get(`/api/resources/${RESOURCE_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
 
     expect(res.status).toBe(403)
   })
@@ -286,7 +286,7 @@ describe('GET /api/resources/:id', () => {
 
     const res = await supertest(app)
       .get(`/api/resources/${RESOURCE_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
 
     expect(res.status).toBe(403)
   })
@@ -298,7 +298,7 @@ describe('GET /api/resources/:id', () => {
 
     const res = await supertest(app)
       .get(`/api/resources/${RESOURCE_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
 
     expect(res.status).toBe(200)
     expect(res.body._id).toBe(RESOURCE_ID)
@@ -311,7 +311,7 @@ describe('GET /api/resources/:id', () => {
 
     const res = await supertest(app)
       .get(`/api/resources/${RESOURCE_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: HR_ID, role: 'hr' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: HR_ID, role: 'hr' })}`)
 
     expect(res.status).toBe(200)
   })
@@ -323,7 +323,7 @@ describe('GET /api/resources/:id', () => {
 
     const res = await supertest(app)
       .get(`/api/resources/${RESOURCE_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
 
     expect(res.status).toBe(200)
     expect(res.body.status).toBe('published')
@@ -338,7 +338,7 @@ describe('POST /api/resources', () => {
   it('403 for employee (not in ADMIN_ROLES)', async () => {
     const res = await supertest(app)
       .post('/api/resources')
-      .set('Cookie', `token=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
       .send({ title: 'Doc', type: 'pdf', filename: 'doc.pdf' })
 
     expect(res.status).toBe(403)
@@ -348,7 +348,7 @@ describe('POST /api/resources', () => {
   it('403 for manager (not in ADMIN_ROLES)', async () => {
     const res = await supertest(app)
       .post('/api/resources')
-      .set('Cookie', `token=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
       .send({ title: 'Doc', type: 'pdf', filename: 'doc.pdf' })
 
     expect(res.status).toBe(403)
@@ -357,7 +357,7 @@ describe('POST /api/resources', () => {
   it('403 for director (not in ADMIN_ROLES)', async () => {
     const res = await supertest(app)
       .post('/api/resources')
-      .set('Cookie', `token=${tokenFor({ id: DIRECTOR_ID, role: 'director' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: DIRECTOR_ID, role: 'director' })}`)
       .send({ title: 'Doc', type: 'pdf', filename: 'doc.pdf' })
 
     expect(res.status).toBe(403)
@@ -366,7 +366,7 @@ describe('POST /api/resources', () => {
   it('400 when title is missing', async () => {
     const res = await supertest(app)
       .post('/api/resources')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ type: 'pdf', filename: 'doc.pdf' })
 
     expect(res.status).toBe(400)
@@ -376,7 +376,7 @@ describe('POST /api/resources', () => {
   it('400 when type is missing', async () => {
     const res = await supertest(app)
       .post('/api/resources')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ title: 'Document', filename: 'doc.pdf' })
 
     expect(res.status).toBe(400)
@@ -386,7 +386,7 @@ describe('POST /api/resources', () => {
   it('400 when filename is missing', async () => {
     const res = await supertest(app)
       .post('/api/resources')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ title: 'Document', type: 'pdf' })
 
     expect(res.status).toBe(400)
@@ -396,7 +396,7 @@ describe('POST /api/resources', () => {
   it('400 — filename contains ".." (path traversal)', async () => {
     const res = await supertest(app)
       .post('/api/resources')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ title: 'Doc', type: 'pdf', filename: '../etc/passwd' })
 
     expect(res.status).toBe(400)
@@ -406,7 +406,7 @@ describe('POST /api/resources', () => {
   it('400 — filename with a space (fails /^[a-zA-Z0-9_\\-.]+$/ pattern)', async () => {
     const res = await supertest(app)
       .post('/api/resources')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ title: 'Doc', type: 'pdf', filename: 'file name.pdf' })
 
     expect(res.status).toBe(400)
@@ -416,7 +416,7 @@ describe('POST /api/resources', () => {
   it('400 — filename with special character @ (fails regex)', async () => {
     const res = await supertest(app)
       .post('/api/resources')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ title: 'Doc', type: 'pdf', filename: 'report@2025.pdf' })
 
     expect(res.status).toBe(400)
@@ -430,7 +430,7 @@ describe('POST /api/resources', () => {
 
     const res = await supertest(app)
       .post('/api/resources')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ title: 'Company Policy', type: 'pdf', filename: 'policy.pdf' })
 
     expect(res.status).toBe(201)
@@ -448,7 +448,7 @@ describe('POST /api/resources', () => {
 
     const res = await supertest(app)
       .post('/api/resources')
-      .set('Cookie', `token=${tokenFor({ id: HR_ID, role: 'hr' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: HR_ID, role: 'hr' })}`)
       .send({ title: 'HR Handbook', type: 'docx', filename: 'hr-handbook.docx' })
 
     expect(res.status).toBe(201)
@@ -466,7 +466,7 @@ describe('PATCH /api/resources/:id', () => {
   it('403 for employee', async () => {
     const res = await supertest(app)
       .patch(`/api/resources/${RESOURCE_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
       .send({ title: 'New Title' })
 
     expect(res.status).toBe(403)
@@ -475,7 +475,7 @@ describe('PATCH /api/resources/:id', () => {
   it('403 for manager', async () => {
     const res = await supertest(app)
       .patch(`/api/resources/${RESOURCE_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
       .send({ title: 'New Title' })
 
     expect(res.status).toBe(403)
@@ -484,7 +484,7 @@ describe('PATCH /api/resources/:id', () => {
   it('400 for an invalid ObjectId', async () => {
     const res = await supertest(app)
       .patch('/api/resources/not-valid')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ title: 'New Title' })
 
     expect(res.status).toBe(400)
@@ -496,7 +496,7 @@ describe('PATCH /api/resources/:id', () => {
 
     const res = await supertest(app)
       .patch(`/api/resources/${RESOURCE_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ title: 'New Title' })
 
     expect(res.status).toBe(404)
@@ -509,7 +509,7 @@ describe('PATCH /api/resources/:id', () => {
 
     const res = await supertest(app)
       .patch(`/api/resources/${RESOURCE_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ title: 'Updated Title' })
 
     expect(res.status).toBe(200)
@@ -523,7 +523,7 @@ describe('PATCH /api/resources/:id', () => {
 
     const res = await supertest(app)
       .patch(`/api/resources/${RESOURCE_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: HR_ID, role: 'hr' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: HR_ID, role: 'hr' })}`)
       .send({ status: 'published' })
 
     expect(res.status).toBe(200)
@@ -536,7 +536,7 @@ describe('PATCH /api/resources/:id', () => {
 
     await supertest(app)
       .patch(`/api/resources/${RESOURCE_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ title: 'New', filename: 'hacked.pdf' })
 
     // filename is not in the allowed list ['title','description','status','visibleTo']
@@ -550,7 +550,7 @@ describe('PATCH /api/resources/:id', () => {
 
     const res = await supertest(app)
       .patch(`/api/resources/${RESOURCE_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ visibleTo: ['employee', 'manager', 'director'] })
 
     expect(res.status).toBe(200)
@@ -566,7 +566,7 @@ describe('DELETE /api/resources/:id', () => {
   it('403 for employee', async () => {
     const res = await supertest(app)
       .delete(`/api/resources/${RESOURCE_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
 
     expect(res.status).toBe(403)
     expect(res.body.error).toMatch(/refusé/i)
@@ -575,7 +575,7 @@ describe('DELETE /api/resources/:id', () => {
   it('403 for manager', async () => {
     const res = await supertest(app)
       .delete(`/api/resources/${RESOURCE_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
 
     expect(res.status).toBe(403)
   })
@@ -583,7 +583,7 @@ describe('DELETE /api/resources/:id', () => {
   it('400 for an invalid ObjectId', async () => {
     const res = await supertest(app)
       .delete('/api/resources/not-valid')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
 
     expect(res.status).toBe(400)
     expect(res.body.error).toMatch(/invalide/i)
@@ -594,7 +594,7 @@ describe('DELETE /api/resources/:id', () => {
 
     const res = await supertest(app)
       .delete(`/api/resources/${RESOURCE_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
 
     expect(res.status).toBe(404)
     expect(res.body.error).toMatch(/introuvable/i)
@@ -605,7 +605,7 @@ describe('DELETE /api/resources/:id', () => {
 
     const res = await supertest(app)
       .delete(`/api/resources/${RESOURCE_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
 
     expect(res.status).toBe(204)
     expect(res.body).toEqual({})
@@ -616,7 +616,7 @@ describe('DELETE /api/resources/:id', () => {
 
     const res = await supertest(app)
       .delete(`/api/resources/${RESOURCE_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: HR_ID, role: 'hr' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: HR_ID, role: 'hr' })}`)
 
     expect(res.status).toBe(204)
     expect(Resource.findByIdAndDelete).toHaveBeenCalledWith(RESOURCE_ID)

@@ -12,7 +12,7 @@ const jwt = require('jsonwebtoken')
 jest.mock('../../middleware/authGuard', () => ({
   authGuard: (roles = []) => (req, res, next) => {
     const _jwt = require('jsonwebtoken')
-    const token = req.cookies?.token
+    const token = req.cookies?.accessToken
     if (!token) return res.status(401).json({ error: 'Authentication required' })
     try {
       const payload = _jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] })
@@ -137,28 +137,28 @@ describe('routes/admin.js', () => {
     it('hr → 403 on GET /config', async () => {
       const res = await request(app)
         .get('/api/admin/config')
-        .set('Cookie', `token=${HR_TOKEN}`)
+        .set('Cookie', `accessToken=${HR_TOKEN}`)
       expect(res.status).toBe(403)
     })
 
     it('manager → 403 on GET /config', async () => {
       const res = await request(app)
         .get('/api/admin/config')
-        .set('Cookie', `token=${MANAGER_TOKEN}`)
+        .set('Cookie', `accessToken=${MANAGER_TOKEN}`)
       expect(res.status).toBe(403)
     })
 
     it('employee → 403 on GET /config', async () => {
       const res = await request(app)
         .get('/api/admin/config')
-        .set('Cookie', `token=${EMPLOYEE_TOKEN}`)
+        .set('Cookie', `accessToken=${EMPLOYEE_TOKEN}`)
       expect(res.status).toBe(403)
     })
 
     it('hr → 403 on POST /email/test', async () => {
       const res = await request(app)
         .post('/api/admin/email/test')
-        .set('Cookie', `token=${HR_TOKEN}`)
+        .set('Cookie', `accessToken=${HR_TOKEN}`)
         .send({ to: 'test@corp.com' })
       expect(res.status).toBe(403)
     })
@@ -166,7 +166,7 @@ describe('routes/admin.js', () => {
     it('manager → 403 on DELETE /config/:key', async () => {
       const res = await request(app)
         .delete('/api/admin/config/KEY')
-        .set('Cookie', `token=${MANAGER_TOKEN}`)
+        .set('Cookie', `accessToken=${MANAGER_TOKEN}`)
       expect(res.status).toBe(403)
     })
   })
@@ -177,7 +177,7 @@ describe('routes/admin.js', () => {
     it('400 when body is empty', async () => {
       const res = await request(app)
         .post('/api/admin/email/test')
-        .set('Cookie', `token=${ADMIN_TOKEN}`)
+        .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
         .send({})
       expect(res.status).toBe(400)
       expect(res.body).toHaveProperty('error')
@@ -186,7 +186,7 @@ describe('routes/admin.js', () => {
     it('400 when "to" has no @ character', async () => {
       const res = await request(app)
         .post('/api/admin/email/test')
-        .set('Cookie', `token=${ADMIN_TOKEN}`)
+        .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
         .send({ to: 'notanemail' })
       expect(res.status).toBe(400)
       expect(res.body.error).toMatch(/email/i)
@@ -195,7 +195,7 @@ describe('routes/admin.js', () => {
     it('400 when "to" is a non-string value', async () => {
       const res = await request(app)
         .post('/api/admin/email/test')
-        .set('Cookie', `token=${ADMIN_TOKEN}`)
+        .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
         .send({ to: 42 })
       expect(res.status).toBe(400)
     })
@@ -203,7 +203,7 @@ describe('routes/admin.js', () => {
     it('200 when "to" is a valid email address', async () => {
       const res = await request(app)
         .post('/api/admin/email/test')
-        .set('Cookie', `token=${ADMIN_TOKEN}`)
+        .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
         .send({ to: 'user@example.com' })
       expect(res.status).toBe(200)
     })
@@ -211,7 +211,7 @@ describe('routes/admin.js', () => {
     it('response contains { sent: true, previewUrl }', async () => {
       const res = await request(app)
         .post('/api/admin/email/test')
-        .set('Cookie', `token=${ADMIN_TOKEN}`)
+        .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
         .send({ to: 'user@example.com' })
       expect(res.body.sent).toBe(true)
       expect(res.body).toHaveProperty('previewUrl')
@@ -220,7 +220,7 @@ describe('routes/admin.js', () => {
     it('previewUrl matches the Ethereal URL returned by nodemailer', async () => {
       const res = await request(app)
         .post('/api/admin/email/test')
-        .set('Cookie', `token=${ADMIN_TOKEN}`)
+        .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
         .send({ to: 'user@example.com' })
       expect(res.body.previewUrl).toBe('https://ethereal.email/message/test')
     })
@@ -228,7 +228,7 @@ describe('routes/admin.js', () => {
     it('calls sendMail with the provided "to" address', async () => {
       await request(app)
         .post('/api/admin/email/test')
-        .set('Cookie', `token=${ADMIN_TOKEN}`)
+        .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
         .send({ to: 'admin-check@corp.com' })
       expect(sendMail).toHaveBeenCalledWith(
         expect.objectContaining({ to: 'admin-check@corp.com' })
@@ -245,7 +245,7 @@ describe('routes/admin.js', () => {
 
       const res = await request(app)
         .get('/api/admin/config')
-        .set('Cookie', `token=${ADMIN_TOKEN}`)
+        .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
       expect(res.status).toBe(200)
       expect(res.body).toEqual(configs)
     })
@@ -255,7 +255,7 @@ describe('routes/admin.js', () => {
 
       const res = await request(app)
         .get('/api/admin/config')
-        .set('Cookie', `token=${ADMIN_TOKEN}`)
+        .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
       expect(res.status).toBe(200)
       expect(res.body).toEqual([])
     })
@@ -270,7 +270,7 @@ describe('routes/admin.js', () => {
 
       const res = await request(app)
         .get('/api/admin/config/SMTP_HOST')
-        .set('Cookie', `token=${ADMIN_TOKEN}`)
+        .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
       expect(res.status).toBe(200)
       expect(res.body).toEqual(entry)
     })
@@ -280,7 +280,7 @@ describe('routes/admin.js', () => {
 
       const res = await request(app)
         .get('/api/admin/config/MISSING_KEY')
-        .set('Cookie', `token=${ADMIN_TOKEN}`)
+        .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
       expect(res.status).toBe(404)
       expect(res.body.error).toMatch(/MISSING_KEY/)
     })
@@ -292,7 +292,7 @@ describe('routes/admin.js', () => {
     it('400 when "value" field is absent from body', async () => {
       const res = await request(app)
         .put('/api/admin/config/SOME_KEY')
-        .set('Cookie', `token=${ADMIN_TOKEN}`)
+        .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
         .send({ other: 'data' })
       expect(res.status).toBe(400)
       expect(res.body.error).toMatch(/value/i)
@@ -304,7 +304,7 @@ describe('routes/admin.js', () => {
 
       const res = await request(app)
         .put('/api/admin/config/NEW_KEY')
-        .set('Cookie', `token=${ADMIN_TOKEN}`)
+        .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
         .send({ value: 'new-value' })
       expect(res.status).toBe(200)
       expect(res.body).toEqual(entry)
@@ -316,7 +316,7 @@ describe('routes/admin.js', () => {
 
       const res = await request(app)
         .put('/api/admin/config/EXISTING_KEY')
-        .set('Cookie', `token=${ADMIN_TOKEN}`)
+        .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
         .send({ value: 'replaced' })
       expect(res.status).toBe(200)
       expect(res.body.value).toBe('replaced')
@@ -327,7 +327,7 @@ describe('routes/admin.js', () => {
 
       await request(app)
         .put('/api/admin/config/K')
-        .set('Cookie', `token=${ADMIN_TOKEN}`)
+        .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
         .send({ value: 'v' })
       expect(Config.findOneAndUpdate).toHaveBeenCalledWith(
         expect.objectContaining({ key: 'K' }),
@@ -343,7 +343,7 @@ describe('routes/admin.js', () => {
     it('400 when "value" field is absent from body', async () => {
       const res = await request(app)
         .patch('/api/admin/config/SOME_KEY')
-        .set('Cookie', `token=${ADMIN_TOKEN}`)
+        .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
         .send({})
       expect(res.status).toBe(400)
       expect(res.body.error).toMatch(/value/i)
@@ -355,7 +355,7 @@ describe('routes/admin.js', () => {
 
       const res = await request(app)
         .patch('/api/admin/config/PATCHME')
-        .set('Cookie', `token=${ADMIN_TOKEN}`)
+        .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
         .send({ value: 'patched-value' })
       expect(res.status).toBe(200)
       expect(res.body.value).toBe('patched-value')
@@ -366,7 +366,7 @@ describe('routes/admin.js', () => {
 
       const res = await request(app)
         .patch('/api/admin/config/GHOST_KEY')
-        .set('Cookie', `token=${ADMIN_TOKEN}`)
+        .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
         .send({ value: 'x' })
       expect(res.status).toBe(404)
       expect(res.body.error).toMatch(/GHOST_KEY/)
@@ -381,7 +381,7 @@ describe('routes/admin.js', () => {
 
       const res = await request(app)
         .delete('/api/admin/config/DEL_KEY')
-        .set('Cookie', `token=${ADMIN_TOKEN}`)
+        .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
       expect(res.status).toBe(204)
       expect(res.text).toBe('')
     })
@@ -391,7 +391,7 @@ describe('routes/admin.js', () => {
 
       const res = await request(app)
         .delete('/api/admin/config/GHOST_KEY')
-        .set('Cookie', `token=${ADMIN_TOKEN}`)
+        .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
       expect(res.status).toBe(404)
       expect(res.body.error).toMatch(/GHOST_KEY/)
     })
@@ -401,7 +401,7 @@ describe('routes/admin.js', () => {
 
       await request(app)
         .delete('/api/admin/config/TARGET_KEY')
-        .set('Cookie', `token=${ADMIN_TOKEN}`)
+        .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
       expect(Config.deleteOne).toHaveBeenCalledWith({ key: 'TARGET_KEY' })
     })
   })

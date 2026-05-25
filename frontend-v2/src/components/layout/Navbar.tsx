@@ -201,6 +201,7 @@ function NavDropdown({ item }: { item: NavItem }) {
 
 export default function Navbar({ onSearchClick }: { onSearchClick?: () => void }) {
   const { user, logout } = useAuth()
+  const { isDark, toggle: toggleDark } = useDarkModeContext()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [avatarOpen, setAvatarOpen] = useState(false)
   const avatarRef = useRef<HTMLDivElement>(null)

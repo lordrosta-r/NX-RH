@@ -105,8 +105,9 @@ function SlideOverForm({
         </div>
         <form onSubmit={handleSubmit} className="flex-1 p-6 space-y-5">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Collaborateur</label>
+            <label htmlFor="offboarding-user" className="block text-sm font-medium text-slate-700 mb-1">Collaborateur</label>
             <select
+              id="offboarding-user"
               required
               value={form.userId}
               onChange={(e) => setForm((f) => ({ ...f, userId: e.target.value }))}
@@ -121,8 +122,9 @@ function SlideOverForm({
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Motif</label>
+            <label htmlFor="offboarding-reason" className="block text-sm font-medium text-slate-700 mb-1">Motif</label>
             <select
+              id="offboarding-reason"
               value={form.reason}
               onChange={(e) => setForm((f) => ({ ...f, reason: e.target.value as OffboardingRecord['reason'] }))}
               className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
@@ -133,8 +135,9 @@ function SlideOverForm({
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Dernier jour</label>
+            <label htmlFor="offboarding-last-day" className="block text-sm font-medium text-slate-700 mb-1">Dernier jour</label>
             <input
+              id="offboarding-last-day"
               required
               type="date"
               value={form.lastDay}

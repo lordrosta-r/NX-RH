@@ -149,10 +149,11 @@ export function EvaluationSkillsForm({
 
           {currentQuestion.type === "rating" && (
             <div className="mt-4">
-              <label className="block text-xs text-slate-500 mb-1">
+              <label htmlFor={`${currentQuestion.id}-note`} className="block text-xs text-slate-500 mb-1">
                 Note (optionnelle)
               </label>
               <input
+                id={`${currentQuestion.id}-note`}
                 type="text"
                 value={String(answers[`${currentQuestion.id}_note`] ?? "")}
                 onChange={(e) =>

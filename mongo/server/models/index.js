@@ -15,11 +15,12 @@ const Sector       = require('./Sector')
 const MailTemplate = require('./MailTemplate')
 const Notification = require('./Notification')
 const UserGroup  = require('./UserGroup')
+const PDI        = require('./PDI')
 const { AUDIT_ACTIONS } = require('../config/constants')
 
 module.exports = {
   User, Config, Campaign, Form, Evaluation, Resource, Event, AuditLog, OffboardingRequest,
-  Sector, MailTemplate, Notification, UserGroup,
+  Sector, MailTemplate, Notification, UserGroup, PDI,
   CAMPAIGN_TRANSITIONS, EVAL_TRANSITIONS, EVALUATION_TRANSITIONS: EVAL_TRANSITIONS, ROLE_TRANSITIONS, LOCKED_STATUSES,
   VALID_TRANSITIONS: EVAL_TRANSITIONS,
   AUDIT_ACTIONS,

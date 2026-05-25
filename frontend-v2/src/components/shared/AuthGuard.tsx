@@ -1,14 +1,14 @@
-import { Navigate } from 'react-router-dom'
-import { useAuth } from '../../contexts/AuthContext'
-import type { Role } from '../../types'
+import { Navigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
+import type { Role } from "../../types";
 
 interface AuthGuardProps {
-  children: React.ReactNode
-  roles?: Role[]
+  children: React.ReactNode;
+  roles?: Role[];
 }
 
 export default function AuthGuard({ children, roles }: AuthGuardProps) {
-  const { user, isLoading, isAuthenticated } = useAuth()
+  const { user, isLoading, isAuthenticated } = useAuth();
 
   if (isLoading) {
     return (
@@ -18,16 +18,16 @@ export default function AuthGuard({ children, roles }: AuthGuardProps) {
           <span className="text-sm text-slate-500">Chargement...</span>
         </div>
       </div>
-    )
+    );
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />
+    return <Navigate to="/login" replace />;
   }
 
   if (roles && user && !roles.includes(user.role)) {
-    return <Navigate to="/" replace />
+    return <Navigate to="/unauthorized" replace />;
   }
 
-  return <>{children}</>
+  return <>{children}</>;
 }

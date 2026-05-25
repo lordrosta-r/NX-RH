@@ -9,6 +9,8 @@ const router   = require('express').Router()
 const mongoose = require('mongoose')
 const { Resource }    = require('../models')
 const { ADMIN_ROLES } = require('../config/constants')
+const { upload }       = require('../middleware/uploadMiddleware')
+const { uploadFile, deleteFile, getSignedUrl, USE_MINIO } = require('../services/storageService')
 
 // GET /api/resources — Documents publiés visibles par les utilisateurs authentifiés
 router.get('/', async (req, res, next) => {
@@ -86,6 +88,10 @@ router.get('/:id/download', async (req, res, next) => {
         return res.status(403).json({ error: 'Accès refusé' })
       }
     }
+    if (USE_MINIO) {
+      const url = await getSignedUrl(resource.filename)
+      return res.redirect(url)
+    }
     const uploadsDir = process.env.UPLOADS_DIR || path.join(__dirname, '..', 'uploads')
     const filePath   = path.resolve(uploadsDir, resource.filename)
     // Prevent directory traversal
@@ -95,6 +101,29 @@ router.get('/:id/download', async (req, res, next) => {
     if (!fs.existsSync(filePath)) return res.status(404).json({ error: 'Fichier introuvable sur le serveur' })
     res.download(filePath, resource.filename)
   } catch (err) { next(err) }
+})
+
+// POST /api/resources/:id/upload — Uploader le fichier associé à une ressource (admin/hr)
+router.post('/:id/upload', async (req, res, next) => {
+  if (!ADMIN_ROLES.includes(req.user.role)) return res.status(403).json({ error: 'Accès refusé' })
+  upload.single('file')(req, res, async (err) => {
+    if (err) return res.status(400).json({ error: err.message })
+    try {
+      if (!mongoose.isValidObjectId(req.params.id)) return res.status(400).json({ error: 'ID invalide' })
+      const resource = await Resource.findById(req.params.id)
+      if (!resource) return res.status(404).json({ error: 'Ressource introuvable' })
+      if (!req.file) return res.status(400).json({ error: 'Aucun fichier fourni' })
+
+      const safeName   = req.file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_')
+      const remoteName = `${req.user.id}/${Date.now()}-${safeName}`
+      const result     = await uploadFile(req.file.path, remoteName, req.file.mimetype)
+
+      resource.filename = remoteName
+      await resource.save()
+
+      res.status(201).json({ data: result })
+    } catch (uploadErr) { next(uploadErr) }
+  })
 })
 
 // DELETE /api/resources/:id — Supprimer une ressource (admin/hr)

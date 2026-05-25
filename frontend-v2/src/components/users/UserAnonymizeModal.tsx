@@ -1,5 +1,6 @@
 import { AlertTriangle } from 'lucide-react'
 import type { User } from '../../types'
+import Modal from '../ui/Modal'
 
 interface Props {
   user: User
@@ -19,27 +20,13 @@ export function UserAnonymizeModal({
   onClose,
 }: Props) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-xl">
-        <h3 className="text-lg font-semibold text-slate-900 mb-2">Anonymiser les données</h3>
-        <p className="text-sm text-slate-600 mb-4">
-          <span className="inline-flex items-center gap-1">
-            <AlertTriangle className="w-4 h-4 text-warning-500 shrink-0" /> Cette action est irréversible.
-          </span>{' '}
-          Les données personnelles de <strong>{user.firstName} {user.lastName}</strong> seront
-          définitivement anonymisées conformément au RGPD.
-        </p>
-        <p className="text-sm text-slate-600 mb-2">
-          Saisissez <strong>CONFIRMER</strong> pour valider :
-        </p>
-        <input
-          className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm mb-4 focus:ring-2 focus:ring-error-500 focus:border-error-500 outline-none"
-          value={confirmText}
-          onChange={e => onConfirmChange(e.target.value)}
-          placeholder="CONFIRMER"
-          autoFocus
-        />
-        <div className="flex gap-3 justify-end">
+    <Modal
+      isOpen={true}
+      onClose={onClose}
+      title="Anonymiser les données"
+      size="sm"
+      footer={
+        <>
           <button
             onClick={onClose}
             className="px-4 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
@@ -53,8 +40,31 @@ export function UserAnonymizeModal({
           >
             {isPending ? 'En cours...' : 'Anonymiser définitivement'}
           </button>
+        </>
+      }
+    >
+      <div className="space-y-4">
+        <p className="text-sm text-slate-600">
+          <span className="inline-flex items-center gap-1">
+            <AlertTriangle className="w-4 h-4 text-warning-500 shrink-0" /> Cette action est irréversible.
+          </span>{' '}
+          Les données personnelles de <strong>{user.firstName} {user.lastName}</strong> seront
+          définitivement anonymisées conformément au RGPD.
+        </p>
+        <div>
+          <label htmlFor="anonymize-confirm" className="block text-sm text-slate-600 mb-2">
+            Saisissez <strong>CONFIRMER</strong> pour valider :
+          </label>
+          <input
+            id="anonymize-confirm"
+            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-error-500 focus:border-error-500 outline-none"
+            value={confirmText}
+            onChange={e => onConfirmChange(e.target.value)}
+            placeholder="CONFIRMER"
+            autoFocus
+          />
         </div>
       </div>
-    </div>
+    </Modal>
   )
 }

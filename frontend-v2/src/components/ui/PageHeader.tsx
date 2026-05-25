@@ -26,15 +26,15 @@ export default function PageHeader({ title, subtitle, actions, backHref, onBack,
           <a
             href={backHref || '#'}
             onClick={handleBack}
-            className="mt-1 flex-shrink-0 text-slate-400 hover:text-slate-600 transition-colors rounded-lg p-1 focus-visible:ring-2 focus-visible:ring-primary-300"
+            className="mt-1 flex-shrink-0 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors rounded-lg p-1 focus-visible:ring-2 focus-visible:ring-primary-300"
             aria-label="Retour"
           >
             <ArrowLeft className="w-5 h-5" />
           </a>
         )}
         <div className="min-w-0">
-          <h1 className="text-3xl font-bold text-slate-900 leading-tight truncate">{title}</h1>
-          {subtitle && <p className="mt-1 text-sm text-slate-500">{subtitle}</p>}
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 leading-tight truncate">{title}</h1>
+          {subtitle && <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{subtitle}</p>}
         </div>
       </div>
       {actions && <div className="flex items-center gap-3 flex-shrink-0">{actions}</div>}

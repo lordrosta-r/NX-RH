@@ -117,11 +117,12 @@ export function EvaluationObjectivesForm({
         </h2>
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label htmlFor="reviewer-score" className="block text-sm font-medium text-slate-700 mb-1">
               Score global <span className="text-error-500">*</span>
             </label>
             <div className="flex items-center gap-3">
               <input
+                id="reviewer-score"
                 type="number"
                 min={0}
                 max={100}
@@ -137,10 +138,11 @@ export function EvaluationObjectivesForm({
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label htmlFor="reviewer-comment" className="block text-sm font-medium text-slate-700 mb-1">
               Commentaire
             </label>
             <textarea
+              id="reviewer-comment"
               rows={3}
               value={reviewerComment}
               onChange={(e) => setReviewerComment(e.target.value)}
@@ -148,10 +150,11 @@ export function EvaluationObjectivesForm({
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label htmlFor="next-year-objectives" className="block text-sm font-medium text-slate-700 mb-1">
               Objectifs N+1
             </label>
             <textarea
+              id="next-year-objectives"
               rows={3}
               value={nextYearObjectives}
               onChange={(e) => setNextYearObjectives(e.target.value)}

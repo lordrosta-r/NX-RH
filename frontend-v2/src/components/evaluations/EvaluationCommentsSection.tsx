@@ -153,10 +153,11 @@ export function EvaluationCommentsSection({
           </h2>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
+              <label htmlFor="evaluatee-comment" className="block text-sm font-medium text-slate-700 mb-1">
                 Mon commentaire (facultatif)
               </label>
               <textarea
+                id="evaluatee-comment"
                 rows={3}
                 value={evaluateeComment}
                 onChange={(e) => setEvaluateeComment(e.target.value)}

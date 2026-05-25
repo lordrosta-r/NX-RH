@@ -185,8 +185,9 @@ export default function FormDetailPage() {
             <h2 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-4">Métadonnées</h2>
 
             <div className="mb-4">
-              <label className="block text-sm font-medium text-slate-700 mb-1">Titre <span className="text-error-500">*</span></label>
+              <label htmlFor="form-title" className="block text-sm font-medium text-slate-700 mb-1">Titre <span className="text-error-500">*</span></label>
               <input
+                id="form-title"
                 type="text"
                 value={meta.title}
                 onChange={e => { setMeta(m => ({ ...m, title: e.target.value })); setIsDirty(true) }}
@@ -196,8 +197,9 @@ export default function FormDetailPage() {
             </div>
 
             <div className="mb-4">
-              <label className="block text-sm font-medium text-slate-700 mb-1">Description</label>
+              <label htmlFor="form-description" className="block text-sm font-medium text-slate-700 mb-1">Description</label>
               <textarea
+                id="form-description"
                 rows={3}
                 value={meta.description}
                 onChange={e => { setMeta(m => ({ ...m, description: e.target.value })); setIsDirty(true) }}
@@ -207,7 +209,7 @@ export default function FormDetailPage() {
             </div>
 
             <div className="mb-4">
-              <label className="block text-sm font-medium text-slate-700 mb-1">Type</label>
+              <p className="block text-sm font-medium text-slate-700 mb-1">Type</p>
               <div className={`inline-flex px-3 py-1.5 rounded-lg text-sm font-medium ${FORM_TYPE_CONFIG[form.formType]?.color ?? 'bg-slate-100 text-slate-700'}`}>
                 {FORM_TYPE_CONFIG[form.formType]?.label ?? form.formType}
               </div>

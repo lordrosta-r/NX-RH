@@ -8,6 +8,7 @@ export function DarkModeProvider({ children }: { children: ReactNode }) {
   return <DarkModeContext.Provider value={darkMode}>{children}</DarkModeContext.Provider>;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useDarkModeContext() {
   const ctx = useContext(DarkModeContext);
   if (!ctx) throw new Error('useDarkModeContext must be used within DarkModeProvider');

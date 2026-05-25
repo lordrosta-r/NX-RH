@@ -22,18 +22,20 @@ function Card({ title, children }: { title: string; children: React.ReactNode })
 
 function Field({
   label,
+  htmlFor,
   required,
   error,
   children,
 }: {
   label: string
+  htmlFor?: string
   required?: boolean
   error?: string
   children: React.ReactNode
 }) {
   return (
     <div>
-      <label className="block text-sm font-medium text-slate-700 mb-1">
+      <label htmlFor={htmlFor} className="block text-sm font-medium text-slate-700 mb-1">
         {label}
         {required && <span className="text-red-500 ml-0.5">*</span>}
       </label>
@@ -321,8 +323,9 @@ export default function CampaignEditPage() {
 
       {/* Card 1 — Identité */}
       <Card title="Identité de la campagne">
-        <Field label="Nom" required error={errors.name}>
+        <Field label="Nom" htmlFor="campaign-name" required error={errors.name}>
           <input
+            id="campaign-name"
             type="text"
             value={form.name}
             onChange={e => set('name', e.target.value)}
@@ -330,8 +333,9 @@ export default function CampaignEditPage() {
             className={inputCls}
           />
         </Field>
-        <Field label="Description">
+        <Field label="Description" htmlFor="campaign-description">
           <textarea
+            id="campaign-description"
             value={form.description}
             onChange={e => set('description', e.target.value)}
             rows={3}
@@ -344,32 +348,36 @@ export default function CampaignEditPage() {
       {/* Card 2 — Calendrier */}
       <Card title="Calendrier">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Field label="Date de début" required error={errors.startDate}>
+          <Field label="Date de début" htmlFor="campaign-start-date" required error={errors.startDate}>
             <input
+              id="campaign-start-date"
               type="date"
               value={form.startDate}
               onChange={e => set('startDate', e.target.value)}
               className={inputCls}
             />
           </Field>
-          <Field label="Date de fin" required error={errors.endDate}>
+          <Field label="Date de fin" htmlFor="campaign-end-date" required error={errors.endDate}>
             <input
+              id="campaign-end-date"
               type="date"
               value={form.endDate}
               onChange={e => set('endDate', e.target.value)}
               className={inputCls}
             />
           </Field>
-          <Field label="Deadline employé">
+          <Field label="Deadline employé" htmlFor="campaign-deadline-employee">
             <input
+              id="campaign-deadline-employee"
               type="date"
               value={form.deadlineEmployee}
               onChange={e => set('deadlineEmployee', e.target.value)}
               className={inputCls}
             />
           </Field>
-          <Field label="Deadline manager">
+          <Field label="Deadline manager" htmlFor="campaign-deadline-manager">
             <input
+              id="campaign-deadline-manager"
               type="date"
               value={form.deadlineManager}
               onChange={e => set('deadlineManager', e.target.value)}

@@ -1,29 +1,38 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # =============================================================================
-# database/backup.sh — Sauvegarde de la base MongoDB (mongodump)
+# database/backup.sh — Backup MongoDB NX-RH
 #
 # USAGE :
 #   chmod +x database/backup.sh
 #   ./database/backup.sh
 #
-# Crée un dump dans /backups/<date>/ (ex: /backups/2026-05-01/).
-# Configurez MONGO_URI dans votre .env ou passez-le en variable d'environnement.
+# Variables d'environnement configurables :
+#   BACKUP_DIR      Répertoire de destination  (défaut: /backups)
+#   MONGO_URI       URI MongoDB                (défaut: mongodb://localhost:27017/nxrh)
+#   DB_NAME         Nom de la base             (défaut: nxrh)
+#   RETENTION_DAYS  Rétention en jours         (défaut: 7)
 #
 # RESTORE :
-#   mongorestore --uri="$MONGO_URI" --db nanoxplore_rh /backups/2026-05-01/nanoxplore_rh/
+#   tar -xzf /backups/nxrh_<timestamp>.tar.gz -C /tmp
+#   mongorestore --uri="$MONGO_URI" --db nxrh /tmp/nxrh_<timestamp>/nxrh/
 # =============================================================================
 
 set -euo pipefail
 
-MONGO_URI="${MONGO_URI:?'MONGO_URI non défini — ajoutez-le dans votre .env'}"
-BACKUP_DIR="/backups/$(date +%Y-%m-%d)"
+BACKUP_DIR="${BACKUP_DIR:-/backups}"
+MONGO_URI="${MONGO_URI:-mongodb://localhost:27017/nxrh}"
+DB_NAME="${DB_NAME:-nxrh}"
+TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+BACKUP_PATH="$BACKUP_DIR/nxrh_$TIMESTAMP"
+RETENTION_DAYS="${RETENTION_DAYS:-7}"
 
-echo "[backup] Démarrage du dump → $BACKUP_DIR"
 mkdir -p "$BACKUP_DIR"
+echo "[backup] Démarrage backup $DB_NAME → $BACKUP_PATH"
+mongodump --uri="$MONGO_URI" --db="$DB_NAME" --out="$BACKUP_PATH"
+tar -czf "${BACKUP_PATH}.tar.gz" -C "$BACKUP_DIR" "nxrh_$TIMESTAMP"
+rm -rf "$BACKUP_PATH"
+echo "[backup] Backup créé : ${BACKUP_PATH}.tar.gz"
 
-mongodump \
-  --uri="$MONGO_URI" \
-  --db nanoxplore_rh \
-  --out="$BACKUP_DIR"
-
-echo "[backup] Terminé ✓ — dump dans $BACKUP_DIR/nanoxplore_rh/"
+# Purge anciens backups
+find "$BACKUP_DIR" -name "nxrh_*.tar.gz" -mtime +"$RETENTION_DAYS" -delete
+echo "[backup] Purge des backups > $RETENTION_DAYS jours terminée"

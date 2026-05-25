@@ -70,7 +70,7 @@ export function useEvaluationForm(
   const questions = evaluation.form?.questions ?? [];
   const phases = [
     ...new Set(
-      questions.map((q) => q.phase).filter((p): p is string => Boolean(p)),
+      questions.map((q) => q.phase).filter((p): p is NonNullable<typeof p> => Boolean(p)),
     ),
   ];
   const filteredQuestions = currentPhase

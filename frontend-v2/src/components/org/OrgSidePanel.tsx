@@ -9,8 +9,8 @@ import type { Role } from '../../types'
 const ROLE_OPTIONS: { value: Role; label: string; color: string }[] = [
   { value: 'admin',    label: 'Admin',      color: '#0D9488' },
   { value: 'hr',       label: 'RH',         color: '#059669' },
-  { value: 'manager',  label: 'Manager',    color: '#2563EB' },
-  { value: 'employee', label: 'Employé',    color: '#64748B' },
+  { value: 'manager',  label: 'Responsable',   color: '#2563EB' },
+  { value: 'employee', label: 'Collaborateur', color: '#64748B' },
 ]
 
 interface OrgSidePanelProps {
@@ -121,7 +121,7 @@ export default function OrgSidePanel({
         {/* Manager */}
         {currentManager && !canEdit && (
           <div>
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Manager direct</p>
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Responsable direct</p>
             <button
               onClick={() => onNavigateTo(currentManager.id)}
               className="flex items-center gap-2 w-full p-2 rounded-md hover:bg-slate-50 text-left group"
@@ -178,7 +178,7 @@ export default function OrgSidePanel({
 
             {/* Manager */}
             <div>
-              <label htmlFor="manager-search" className="text-xs font-medium text-slate-600 block mb-1">Manager direct</label>
+              <label htmlFor="manager-search" className="text-xs font-medium text-slate-600 block mb-1">Responsable direct</label>
               <input
                 id="manager-search"
                 type="text"

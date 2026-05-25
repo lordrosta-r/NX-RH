@@ -14,8 +14,8 @@ interface OrgTooltipProps {
 const ROLE_LABELS: Record<string, string> = {
   admin:    'Admin',
   hr:       'RH',
-  manager:  'Manager',
-  employee: 'Employé',
+  manager:  'Responsable',
+  employee: 'Collaborateur',
 }
 
 export default function OrgTooltip({

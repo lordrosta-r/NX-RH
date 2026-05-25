@@ -7,8 +7,8 @@ export type OrgView = 'all' | 'teams' | 'sector'
 const ROLES: { value: Role; label: string; color: string }[] = [
   { value: 'admin',    label: 'Admin',      color: '#0D9488' },
   { value: 'hr',       label: 'RH',         color: '#059669' },
-  { value: 'manager',  label: 'Manager',    color: '#2563EB' },
-  { value: 'employee', label: 'Employé',    color: '#64748B' },
+  { value: 'manager',  label: 'Responsable',   color: '#2563EB' },
+  { value: 'employee', label: 'Collaborateur', color: '#64748B' },
 ]
 
 interface OrgToolbarProps {

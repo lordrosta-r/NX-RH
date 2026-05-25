@@ -43,8 +43,8 @@ export function UsersFilterBar({
         <option value="">Tous les rôles</option>
         <option value="admin">Admin</option>
         <option value="hr">RH</option>
-        <option value="manager">Manager</option>
-        <option value="employee">Employé</option>
+        <option value="manager">Responsable</option>
+        <option value="employee">Collaborateur</option>
       </select>
 
       <select

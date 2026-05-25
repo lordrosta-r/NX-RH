@@ -14,7 +14,7 @@ import type { CalendarEvent, EventType, Role } from '../types'
 
 const ALL_ROLES: Role[] = ['admin', 'hr', 'manager', 'employee']
 const ROLE_LABELS: Record<Role, string> = {
-  admin: 'Admin', hr: 'RH', manager: 'Manager', employee: 'Employé',
+  admin: 'Admin', hr: 'RH', manager: 'Responsable', employee: 'Collaborateur',
 }
 
 interface EventConfigItem {

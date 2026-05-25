@@ -11,6 +11,8 @@ import {
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { resourcesApi } from '../api/resources'
+import EmptyState from '../components/ui/EmptyState'
+import { toast } from '../hooks/useToast'
 import type { Resource, ResourceType, Role } from '../types'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -405,17 +407,20 @@ export default function ResourcesPage() {
 
   const { mutate: publishResource } = useMutation({
     mutationFn: (id: string) => resourcesApi.publishResource(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['resources'] }),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['resources'] }); toast.success('Ressource publiée') },
+    onError: () => toast.error('Erreur lors de la publication', 'Veuillez réessayer.'),
   })
 
   const { mutate: unpublishResource } = useMutation({
     mutationFn: (id: string) => resourcesApi.unpublishResource(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['resources'] }),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['resources'] }); toast.success('Ressource dépubliée') },
+    onError: () => toast.error('Erreur lors de la dépublication', 'Veuillez réessayer.'),
   })
 
   const { mutate: deleteResource } = useMutation({
     mutationFn: (id: string) => resourcesApi.deleteResource(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['resources'] }),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['resources'] }); toast.success('Ressource supprimée') },
+    onError: () => toast.error('Erreur lors de la suppression', 'Veuillez réessayer.'),
   })
 
   return (
@@ -499,12 +504,12 @@ export default function ResourcesPage() {
           ))}
         </div>
       ) : resources.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 gap-4">
-          <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center">
-            <BookOpen className="w-8 h-8 text-slate-300" />
-          </div>
-          <p className="text-slate-500 text-sm">Aucune ressource disponible.</p>
-        </div>
+        <EmptyState
+          icon={<BookOpen className="w-8 h-8" />}
+          title="Aucune ressource"
+          description="Aucune ressource ne correspond à vos critères."
+          action={isAdminHr ? { label: 'Ajouter une ressource', onClick: () => setShowNewSlideOver(true) } : undefined}
+        />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {resources.map(resource => (

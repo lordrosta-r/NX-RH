@@ -14,8 +14,8 @@ const ROLE_BADGES: Record<string, string> = {
 const ROLE_LABELS: Record<string, string> = {
   admin: 'Admin',
   hr: 'RH',
-  manager: 'Manager',
-  employee: 'Employé',
+  manager: 'Responsable',
+  employee: 'Collaborateur',
 }
 
 function StatusBadge({ isActive, offboarding }: { isActive: boolean; offboarding?: boolean }) {
@@ -187,7 +187,7 @@ export function UsersTable({
   return (
     <>
       <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto hidden sm:block">
           <table className="w-full">
             <thead>
               <tr className="bg-slate-50">
@@ -277,6 +277,57 @@ export function UsersTable({
             </tbody>
           </table>
         </div>
+
+        {/* Mobile cards */}
+        {!isLoading && users.length > 0 && (
+          <div className="sm:hidden divide-y divide-slate-100">
+            {users.map(u => (
+              <div key={u.id ?? u.email} className="p-4">
+                <div className="flex items-center gap-3 mb-3">
+                  <input
+                    type="checkbox"
+                    checked={selected.has(u.id ?? '')}
+                    onChange={() => onToggleSelect(u.id ?? '')}
+                    className="rounded border-slate-300 text-primary-500 focus:ring-primary-500"
+                  />
+                  <Link to={`/users/${u.id}`} className="flex items-center gap-3 flex-1 min-w-0 group">
+                    <Avatar user={u} />
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-slate-900 group-hover:text-primary-600 truncate">
+                        {u.firstName} {u.lastName}
+                      </p>
+                      <p className="text-xs text-slate-500 truncate">{u.email}</p>
+                    </div>
+                  </Link>
+                  <ActionMenu user={u} currentRole={currentRole} onOffboard={onOffboard} onAnonymize={onAnonymize} />
+                </div>
+                <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm ml-7">
+                  <dt className="text-slate-500">Rôle</dt>
+                  <dd>
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${ROLE_BADGES[u.role] ?? 'bg-slate-100 text-slate-700'}`}>
+                      {ROLE_LABELS[u.role] ?? u.role}
+                    </span>
+                  </dd>
+                  <dt className="text-slate-500">Département</dt>
+                  <dd className="text-slate-700">{u.department ?? '—'}</dd>
+                  <dt className="text-slate-500">Statut</dt>
+                  <dd><StatusBadge isActive={u.isActive} offboarding={u.offboardingStatus === 'in_progress'} /></dd>
+                  <dt className="text-slate-500">Dernière connexion</dt>
+                  <dd><RelativeDate date={u.updatedAt} /></dd>
+                </dl>
+              </div>
+            ))}
+          </div>
+        )}
+        {!isLoading && users.length === 0 && (
+          <div className="sm:hidden px-4 py-6">
+            <EmptyState
+              icon={<Users className="w-8 h-8" />}
+              title="Aucun collaborateur trouvé"
+              description="Aucun utilisateur ne correspond à vos critères de recherche."
+            />
+          </div>
+        )}
 
         {totalPages > 1 && (
           <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100">

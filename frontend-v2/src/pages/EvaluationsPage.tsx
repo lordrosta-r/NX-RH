@@ -18,7 +18,7 @@ const EVAL_STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   submitted:        { label: 'Soumise',           color: 'bg-warning-50 text-warning-700' },
   reviewed:         { label: 'Révisée',           color: 'bg-info-50 text-info-700' },
   signed_evaluatee: { label: 'Signée (évalué)',   color: 'bg-purple-50 text-purple-700' },
-  signed_manager:   { label: 'Signée (mgr)',      color: 'bg-indigo-50 text-indigo-700' },
+  signed_manager:   { label: 'Signée (resp.)',      color: 'bg-indigo-50 text-indigo-700' },
   signed_hr:        { label: 'Signée (RH)',       color: 'bg-teal-50 text-teal-700' },
   validated:        { label: 'Validée ✓',         color: 'bg-success-50 text-success-700' },
   expired:          { label: 'Expirée',           color: 'bg-error-50 text-error-600' },
@@ -258,7 +258,7 @@ export default function EvaluationsPage() {
       {/* Table (admin / hr / manager) */}
       {!isEmployee && (
         <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto hidden sm:block">
           <table className="w-full text-sm">
             <thead className="bg-slate-50 border-b border-slate-200">
               <tr>
@@ -355,6 +355,53 @@ export default function EvaluationsPage() {
               ))}
             </tbody>
           </table>
+          </div>
+
+          {/* Mobile cards */}
+          <div className="sm:hidden divide-y divide-slate-100">
+            {isLoading ? (
+              [...Array(3)].map((_, i) => <div key={i} className="h-20 bg-slate-100 rounded m-3 animate-pulse" />)
+            ) : evaluations.length === 0 ? (
+              <div className="p-6">
+                <EmptyState icon={<ClipboardList className="w-8 h-8" />} title="Aucune évaluation" description="Aucune évaluation ne correspond aux critères sélectionnés." />
+              </div>
+            ) : evaluations.map(ev => (
+              <div key={ev.id} className={`p-4 ${selected.includes(ev.id) ? 'bg-primary-50' : ''}`}>
+                <div className="flex items-start justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    {isAdminOrHr && (
+                      <input type="checkbox" checked={selected.includes(ev.id)} onChange={() => toggleOne(ev.id)} className="rounded border-slate-300 mt-0.5" />
+                    )}
+                    <div className="w-7 h-7 rounded-full bg-primary-100 text-primary-700 text-xs font-semibold flex items-center justify-center flex-shrink-0">
+                      {ev.evaluatee?.firstName?.[0]}{ev.evaluatee?.lastName?.[0]}
+                    </div>
+                    <Link to={`/evaluations/${ev.id}`} className="font-medium text-slate-900 hover:text-primary-600 text-sm">
+                      {ev.evaluatee?.firstName} {ev.evaluatee?.lastName}
+                    </Link>
+                  </div>
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${EVAL_STATUS_CONFIG[ev.status]?.color ?? 'bg-slate-100 text-slate-600'}`}>
+                    {EVAL_STATUS_CONFIG[ev.status]?.label ?? ev.status}
+                  </span>
+                </div>
+                <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm mt-2">
+                  <dt className="text-slate-500">Évaluateur</dt>
+                  <dd className="text-slate-700">{ev.evaluator?.firstName} {ev.evaluator?.lastName}</dd>
+                  <dt className="text-slate-500">Campagne</dt>
+                  <dd className="text-slate-700 truncate">{typeof ev.campaignId === 'string' ? ev.campaignId : ev.campaignId.name}</dd>
+                  <dt className="text-slate-500">Date</dt>
+                  <dd className="text-slate-500 text-xs">{ev.updatedAt ? new Date(ev.updatedAt).toLocaleDateString('fr-FR') : '—'}</dd>
+                </dl>
+                <div className="flex gap-2 mt-3 pt-3 border-t border-slate-100">
+                  <Link to={`/evaluations/${ev.id}`} className="flex-1 text-center px-3 py-1.5 text-xs border border-slate-200 rounded-md hover:bg-slate-50 text-slate-700">Voir</Link>
+                  {isAdminOrHr && (
+                    <>
+                      <button onClick={() => { setReassignTarget(ev.id); setReassignUserId('') }} className="px-3 py-1.5 text-xs border border-slate-200 rounded-md hover:bg-slate-50 text-slate-700">Réaffecter</button>
+                      <button onClick={() => setExpireConfirm(ev.id)} className="px-3 py-1.5 text-xs border border-error-200 rounded-md hover:bg-error-50 text-error-600">Expirer</button>
+                    </>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
 
           {/* Pagination */}

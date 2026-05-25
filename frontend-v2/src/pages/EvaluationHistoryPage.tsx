@@ -11,7 +11,7 @@ const EVAL_STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   submitted:        { label: 'Soumise',           color: 'bg-warning-50 text-warning-700' },
   reviewed:         { label: 'Révisée',           color: 'bg-info-50 text-info-700' },
   signed_evaluatee: { label: 'Signée (évalué)',   color: 'bg-purple-50 text-purple-700' },
-  signed_manager:   { label: 'Signée (mgr)',      color: 'bg-indigo-50 text-indigo-700' },
+  signed_manager:   { label: 'Signée (resp.)',      color: 'bg-indigo-50 text-indigo-700' },
   signed_hr:        { label: 'Signée (RH)',       color: 'bg-teal-50 text-teal-700' },
   validated:        { label: 'Validée ✓',         color: 'bg-success-50 text-success-700' },
   expired:          { label: 'Expirée',           color: 'bg-error-50 text-error-600' },

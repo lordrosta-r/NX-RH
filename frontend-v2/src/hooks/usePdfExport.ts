@@ -169,7 +169,7 @@ export function usePdfExport() {
     if (evaluation.signedByEvaluateeAt)
       sigs.push({ role: "Évalué", date: fmt(evaluation.signedByEvaluateeAt) });
     if (evaluation.signedByManagerAt)
-      sigs.push({ role: "Manager", date: fmt(evaluation.signedByManagerAt) });
+      sigs.push({ role: "Responsable", date: fmt(evaluation.signedByManagerAt) });
     if (evaluation.signedByHrAt)
       sigs.push({ role: "RH", date: fmt(evaluation.signedByHrAt) });
 

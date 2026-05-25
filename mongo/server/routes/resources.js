@@ -51,9 +51,10 @@ router.post('/', async (req, res, next) => {
     if (!/^[a-zA-Z0-9_\-.]+$/.test(filename) || filename.includes('..')) {
       return res.status(400).json({ error: 'Nom de fichier invalide' })
     }
-    const resource = await Resource.create({
-      title, description, type, filename, status, visibleTo, createdBy: req.user.id,
-    })
+    const safeData = Object.fromEntries(
+      Object.entries({ title, description, type, filename, status, visibleTo }).filter(([, v]) => v !== undefined)
+    )
+    const resource = await Resource.create({ ...safeData, createdBy: req.user.id })
     res.status(201).json(resource)
   } catch (err) { next(err) }
 })

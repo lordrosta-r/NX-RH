@@ -8,6 +8,7 @@ const mongoose = require('mongoose')
 const { Evaluation, Form, Campaign } = require('../../../models')
 const { ADMIN_ROLES, REQUEST_FORM_TYPES } = require('../../../config/constants')
 const { notify: notifyInApp } = require('../../../services/notificationHelper')
+const cache = require('../../../utils/cache')
 
 /**
  * POST /
@@ -61,6 +62,12 @@ async function handleCreate(req, res, next) {
       : null
 
     const evaluation = await Evaluation.create({ campaignId: campaignId || null, formId, evaluatorId, evaluateeId, expiresAt })
+
+    cache.invalidatePattern('GET:/api/analytics')
+    cache.invalidatePattern('GET:/api/v1/analytics')
+    cache.invalidatePattern('GET:/api/dashboard')
+    cache.invalidatePattern('GET:/api/v1/dashboard')
+
     res.status(201).json({ id: evaluation._id })
 
     // Notification in-app (fire-and-forget)

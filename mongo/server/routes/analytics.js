@@ -14,6 +14,7 @@ const mongoose    = require('mongoose')
 const PDFDocument = require('pdfkit')
 const { Evaluation, Campaign } = require('../models')
 const { ADMIN_ROLES } = require('../config/constants')
+const { cacheResponse } = require('../middleware/cacheMiddleware')
 
 const SUMMARY_ROLES  = ['admin', 'hr', 'director']
 const CAMPAIGN_ROLES = ['admin', 'hr', 'director', 'manager']
@@ -21,7 +22,7 @@ const CAMPAIGN_ROLES = ['admin', 'hr', 'director', 'manager']
 // ── GET /api/analytics/summary ────────────────────────────────────────────────
 // Statistiques globales toutes campagnes confondues.
 // Auth : admin, hr, director
-router.get('/summary', async (req, res, next) => {
+router.get('/summary', cacheResponse(600), async (req, res, next) => {
   try {
     if (!SUMMARY_ROLES.includes(req.user.role)) {
       return res.status(403).json({ error: 'Accès réservé aux admins, RH et directeurs' })
@@ -72,7 +73,7 @@ router.get('/summary', async (req, res, next) => {
 // ── GET /api/analytics/campaigns/:id ─────────────────────────────────────────
 // Statistiques pour une campagne donnée.
 // Auth : admin, hr, director, manager
-router.get('/campaigns/:id', async (req, res, next) => {
+router.get('/campaigns/:id', cacheResponse(600), async (req, res, next) => {
   try {
     if (!CAMPAIGN_ROLES.includes(req.user.role)) {
       return res.status(403).json({ error: 'Accès réservé aux admins, RH, directeurs et managers' })

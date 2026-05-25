@@ -137,11 +137,19 @@ app.use(express.static(PUBLIC_DIR, { extensions: [] }))
 
 app.get('/api/health', async (_req, res) => {
   const mongoose = require('mongoose')
+  const cache = require('./utils/cache')
   const ok = mongoose.connection.readyState === 1
+  const body = {
+    status: ok ? 'ok' : 'error',
+    cache: { size: cache.size() },
+    uptime: process.uptime(),
+    memory: process.memoryUsage(),
+    timestamp: new Date().toISOString(),
+  }
   if (ok) {
-    res.json({ status: 'ok', timestamp: new Date().toISOString() })
+    res.json(body)
   } else {
-    res.status(503).json({ status: 'error', reason: 'database unreachable' })
+    res.status(503).json({ ...body, reason: 'database unreachable' })
   }
 })
 

@@ -8,6 +8,7 @@ const mongoose = require('mongoose')
 const { Evaluation, User, AuditLog, VALID_TRANSITIONS, ROLE_TRANSITIONS, LOCKED_STATUSES } = require('../../../models')
 const { sanitizeAnonymity } = require('../helpers')
 const { _sendStatusNotifications } = require('./notifications')
+const cache = require('../../../utils/cache')
 
 /**
  * PATCH /:id
@@ -188,6 +189,11 @@ async function handleUpdate(req, res, next) {
     }
 
     await evaluation.save()
+
+    cache.invalidatePattern('GET:/api/analytics')
+    cache.invalidatePattern('GET:/api/v1/analytics')
+    cache.invalidatePattern('GET:/api/dashboard')
+    cache.invalidatePattern('GET:/api/v1/dashboard')
 
     // Audit log (fire-and-forget — erreur loguée mais non bloquante)
     AuditLog.create({

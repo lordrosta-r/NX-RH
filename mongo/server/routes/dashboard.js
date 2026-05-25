@@ -5,10 +5,11 @@ const router     = express.Router()
 const { authGuard }                     = require('../middleware/authGuard')
 const { Campaign, Evaluation, User }    = require('../models')
 const logger                            = require('../utils/logger')
+const { cacheResponse }                 = require('../middleware/cacheMiddleware')
 
 const authenticated = authGuard(['admin', 'hr', 'director', 'manager', 'employee'])
 
-router.get('/', authenticated, async (req, res) => {
+router.get('/', authenticated, cacheResponse(300, req => `GET:/api/dashboard:${req.user.id}`), async (req, res) => {
   try {
     const userId = req.user.id
     const role   = req.user.role
@@ -114,7 +115,7 @@ router.get('/', authenticated, async (req, res) => {
 const hrOnly      = authGuard(['admin', 'hr'])
 const managerOnly = authGuard(['admin', 'hr', 'manager'])
 
-router.get('/hr', hrOnly, async (req, res, next) => {
+router.get('/hr', hrOnly, cacheResponse(300), async (req, res, next) => {
   try {
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
     const completedStatuses = ['submitted', 'reviewed', 'signed_evaluatee', 'signed_manager', 'signed_hr', 'validated']
@@ -158,7 +159,7 @@ router.get('/hr', hrOnly, async (req, res, next) => {
 })
 
 // ─── GET /api/dashboard/manager ───────────────────────────────────────────────
-router.get('/manager', managerOnly, async (req, res, next) => {
+router.get('/manager', managerOnly, cacheResponse(300, req => `GET:/api/dashboard/manager:${req.user.id}`), async (req, res, next) => {
   try {
     const managerId        = req.user.id
     const completedStatuses = ['submitted', 'reviewed', 'signed_evaluatee', 'signed_manager', 'signed_hr', 'validated']

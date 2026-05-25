@@ -20,6 +20,7 @@ const { Evaluation, Campaign, User } = require('../models')
 const { notify } = require('./notificationService')
 const logger     = require('../utils/logger')
 const { notify: notifyInApp } = require('./notificationHelper')
+const { withLock } = require('../utils/schedulerLock')
 
 const HOUR_MS = 60 * 60 * 1000
 const DAY_MS  = 24 * HOUR_MS
@@ -160,8 +161,8 @@ async function runExpiryCheck() {
 
 async function tick() {
   try {
-    await runDeadlineReminders()
-    await runExpiryCheck()
+    await withLock('deadline-reminders', 300, runDeadlineReminders)
+    await withLock('expire-evaluations', 600, runExpiryCheck)
   } catch (err) {
     logger.error('[Scheduler] tick error', { error: err.message })
   }

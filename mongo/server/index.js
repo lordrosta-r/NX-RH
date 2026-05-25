@@ -14,14 +14,17 @@ require('dotenv').config()
 const logger       = require('./utils/logger')
 const express      = require('express')
 const path         = require('path')
+const os           = require('os')
+const mongoose     = require('mongoose')
 const cookieParser = require('cookie-parser')
 const cors         = require('cors')
 const helmet       = require('helmet')
 const rateLimit    = require('express-rate-limit')
 
-const { connect }       = require('./config/db')
-const { authGuard }     = require('./middleware/authGuard')
-const { errorHandler }  = require('./middleware/errorHandler')
+const { connect }           = require('./config/db')
+const { authGuard }         = require('./middleware/authGuard')
+const { errorHandler }      = require('./middleware/errorHandler')
+const { metricsMiddleware } = require('./middleware/metricsMiddleware')
 
 const authRoutes        = require('./routes/auth')
 const eventRoutes       = require('./routes/events')
@@ -105,6 +108,7 @@ const mongoSanitize = require('express-mongo-sanitize')
 app.use(mongoSanitize())
 app.use(express.urlencoded({ extended: false, limit: '100kb' }))
 app.use(cookieParser())
+app.use(metricsMiddleware)
 
 // ─── HTTP request logging ─────────────────────────────────────────────────────
 app.use((req, res, next) => {
@@ -136,21 +140,68 @@ app.use(express.static(PUBLIC_DIR, { extensions: [] }))
 // ─── Health check ────────────────────────────────────────────────────────────
 
 app.get('/api/health', async (_req, res) => {
-  const mongoose = require('mongoose')
-  const cache = require('./utils/cache')
-  const ok = mongoose.connection.readyState === 1
-  const body = {
-    status: ok ? 'ok' : 'error',
-    cache: { size: cache.size() },
-    uptime: process.uptime(),
-    memory: process.memoryUsage(),
-    timestamp: new Date().toISOString(),
-  }
+  const mongoose            = require('mongoose')
+  const cache               = require('./utils/cache')
+  const { getMetrics }      = require('./utils/metrics')
+  const SchedulerLock       = require('./models/SchedulerLock')
+  const { INSTANCE_ID }     = require('./utils/schedulerLock')
+
+  const dbState  = mongoose.connection.readyState
+  const dbStatus = { 0: 'disconnected', 1: 'connected', 2: 'connecting', 3: 'disconnecting' }[dbState] || 'unknown'
+  const ok       = dbState === 1
+
+  let activeLocks = []
   if (ok) {
-    res.json(body)
-  } else {
-    res.status(503).json({ ...body, reason: 'database unreachable' })
+    try {
+      activeLocks = await SchedulerLock.find({ expiresAt: { $gt: new Date() } })
+        .select('jobName lockedBy lockedAt expiresAt')
+        .lean()
+    } catch (_) { /* non-blocking */ }
   }
+
+  let poolStats
+  try {
+    const admin        = mongoose.connection.db.admin()
+    const serverStatus = await admin.serverStatus()
+    poolStats = {
+      current:   serverStatus.connections?.current,
+      available: serverStatus.connections?.available,
+    }
+  } catch {
+    poolStats = { error: 'unavailable' }
+  }
+
+  const mem = process.memoryUsage()
+  res.json({
+    status:      ok ? 'ok' : 'degraded',
+    version:     process.env.npm_package_version || '1.0.0',
+    environment: process.env.NODE_ENV,
+    instanceId:  INSTANCE_ID,
+    uptime:      Math.round(process.uptime()),
+    memory: {
+      heapUsed:  Math.round(mem.heapUsed  / 1024 / 1024) + 'MB',
+      heapTotal: Math.round(mem.heapTotal / 1024 / 1024) + 'MB',
+      rss:       Math.round(mem.rss       / 1024 / 1024) + 'MB',
+    },
+    database: {
+      status: dbStatus,
+      pool:   poolStats,
+    },
+    scheduler: { activeLocks },
+    metrics:   getMetrics(),
+    cache:     { size: cache.size() },
+  })
+})
+
+// ─── Metrics (admin/hr) ──────────────────────────────────────────────────────
+
+app.get('/api/metrics', authGuard(['admin', 'hr']), (_req, res) => {
+  const { getMetrics } = require('./utils/metrics')
+  res.json({
+    ...getMetrics(),
+    timestamp:  new Date().toISOString(),
+    instanceId: process.env.HOSTNAME || os.hostname(),
+  })
 })
 
 // ─── SPA Page Routes ─────────────────────────────────────────────────────────
@@ -248,6 +299,8 @@ process.on('uncaughtException', (err) => {
 
 // ─── Start ───────────────────────────────────────────────────────────────────
 
+let server
+
 async function start() {
   const required = ['JWT_SECRET', 'MONGO_URI']
   for (const v of required) {
@@ -263,9 +316,29 @@ async function start() {
 
   await connect()
   require('./services/scheduler').start()
-  app.listen(PORT, () => {
+  server = app.listen(PORT, () => {
     logger.info('NanoXplore RH démarré', { port: PORT, url: `http://localhost:${PORT}` })
   })
 }
+
+// ─── Graceful shutdown ────────────────────────────────────────────────────────
+
+process.on('SIGTERM', async () => {
+  logger.info('[Server] SIGTERM received — graceful shutdown...')
+  if (server) {
+    server.close(async () => {
+      await mongoose.connection.close()
+      logger.info('[Server] MongoDB connection closed')
+      process.exit(0)
+    })
+  }
+  setTimeout(() => process.exit(1), 10000)
+})
+
+process.on('SIGINT', async () => {
+  logger.info('[Server] SIGINT received — shutting down...')
+  await mongoose.connection.close()
+  process.exit(0)
+})
 
 start()

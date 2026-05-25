@@ -1,0 +1,39 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug API (Node.js)",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/mongo/server",
+      "program": "${workspaceFolder}/mongo/server/index.js",
+      "env": {
+        "NODE_ENV": "development"
+      },
+      "envFile": "${workspaceFolder}/mongo/server/.env",
+      "console": "integratedTerminal",
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "name": "Debug Tests Backend",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/mongo/server",
+      "program": "${workspaceFolder}/mongo/server/node_modules/.bin/jest",
+      "args": ["--runInBand", "--no-coverage"],
+      "env": {
+        "NODE_ENV": "test"
+      },
+      "envFile": "${workspaceFolder}/mongo/server/.env.test",
+      "console": "integratedTerminal",
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "name": "Debug Frontend (Chrome)",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}/frontend-v2/src"
+    }
+  ]
+}

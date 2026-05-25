@@ -9,6 +9,7 @@
 // =============================================================================
 
 const router    = require('express').Router()
+const Joi       = require('joi')
 const rateLimit    = require('express-rate-limit')
 const { ipKeyGenerator } = require('express-rate-limit')
 const User      = require('../models/User')
@@ -45,24 +46,31 @@ const loginByIPLimiter = rateLimit({
 
 // ─── POST /api/auth/login ────────────────────────────────────────────────────
 
-// POST /api/auth/login — Vérifie les identifiants et émet un cookie httpOnly JWT
+const loginSchema = Joi.object({
+  email: Joi.string().email().max(254).required().messages({
+    'string.email': 'Email invalide',
+    'any.required': 'Email requis',
+  }),
+  password: Joi.string().min(6).max(128).required().messages({
+    'string.min': 'Mot de passe trop court',
+    'any.required': 'Mot de passe requis',
+  }),
+  remember: Joi.boolean(),
+})
+
+// POST /api/auth/login — Vérifie les identifiants et émet deux cookies httpOnly JWT
 router.post('/login', loginByEmailLimiter, loginByIPLimiter, async (req, res, next) => {
   try {
+    const { error } = loginSchema.validate(req.body, { abortEarly: false })
+    if (error) {
+      return res.status(400).json({
+        success: false,
+        error: 'Données invalides',
+        details: error.details.map(d => ({ field: d.path[0], message: d.message })),
+      })
+    }
+
     const { email, password, remember } = req.body
-
-    if (!email || !password) {
-      return res.status(400).json({ error: 'Email et mot de passe requis' })
-    }
-
-    // Vérification de longueur AVANT la regex pour éviter un ReDoS
-    if (email.length > 254 || password.length > 128) {
-      return res.status(400).json({ error: 'Email invalide' })
-    }
-
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
-    if (!emailRegex.test(email)) {
-      return res.status(400).json({ error: 'Email invalide' })
-    }
 
     const result = await authService.login(email, password, remember)
 
@@ -74,15 +82,16 @@ router.post('/login', loginByEmailLimiter, loginByIPLimiter, async (req, res, ne
       })
     }
 
-    const { user, token, maxAge } = result
-
-    res.cookie('token', token, {
+    const { user, accessToken, refreshToken } = result
+    const cookieBase = {
       httpOnly: true,
       secure:   process.env.COOKIE_SECURE !== undefined ? process.env.COOKIE_SECURE === 'true' : process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'Strict',
       path:     '/',
-      maxAge,
-    })
+    }
+
+    res.cookie('accessToken', accessToken, { ...cookieBase, maxAge: 60 * 60 * 1000 })
+    res.cookie('refreshToken', refreshToken, { ...cookieBase, maxAge: 7 * 24 * 60 * 60 * 1000 })
 
     // Mise à jour de lastLoginAt — fire-and-forget, n'échoue jamais le login.
     User.updateOne({ _id: user._id }, { $set: { lastLoginAt: new Date() } })
@@ -110,14 +119,16 @@ router.post('/login', loginByEmailLimiter, loginByIPLimiter, async (req, res, ne
 
 // ─── POST /api/auth/logout ───────────────────────────────────────────────────
 
-// POST /api/auth/logout — Supprime le cookie de session
+// POST /api/auth/logout — Supprime les cookies de session
 router.post('/logout', (_req, res) => {
-  res.clearCookie('token', {
+  const cookieBase = {
     httpOnly: true,
     secure:   process.env.COOKIE_SECURE !== undefined ? process.env.COOKIE_SECURE === 'true' : process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    sameSite: 'Strict',
     path:     '/',
-  })
+  }
+  res.clearCookie('accessToken', cookieBase)
+  res.clearCookie('refreshToken', cookieBase)
   res.json({ message: 'Déconnecté' })
 })
 
@@ -132,14 +143,17 @@ router.get('/me', authGuard(), async (req, res, next) => {
       .select('firstName lastName email role department position isActive locale theme notificationPrefs lastLoginAt authSource managerId onboarding createdAt')
       .lean()
 
-    if (!user || !user.isActive) {
-      res.clearCookie('token', {
-        httpOnly: true,
-        secure:   process.env.COOKIE_SECURE !== undefined ? process.env.COOKIE_SECURE === 'true' : process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        path:     '/',
-      })
-      return res.status(401).json({ error: 'Session invalide' })
+    if (!user) {
+      const cookieBase = { httpOnly: true, secure: process.env.COOKIE_SECURE !== undefined ? process.env.COOKIE_SECURE === 'true' : process.env.NODE_ENV === 'production', sameSite: 'Strict', path: '/' }
+      res.clearCookie('accessToken', cookieBase)
+      res.clearCookie('refreshToken', cookieBase)
+      return res.status(401).json({ success: false, error: 'Session invalide', code: 'SESSION_INVALID' })
+    }
+    if (!user.isActive) {
+      const cookieBase = { httpOnly: true, secure: process.env.COOKIE_SECURE !== undefined ? process.env.COOKIE_SECURE === 'true' : process.env.NODE_ENV === 'production', sameSite: 'Strict', path: '/' }
+      res.clearCookie('accessToken', cookieBase)
+      res.clearCookie('refreshToken', cookieBase)
+      return res.status(401).json({ success: false, error: 'Compte désactivé', code: 'ACCOUNT_DISABLED' })
     }
 
     // Filtre les préférences de notification selon le rôle pour
@@ -187,6 +201,30 @@ router.post('/forgot-password', (req, res) => {
 
 router.post('/reset-password', (req, res) => {
   return res.status(403).json({ message: 'La réinitialisation du mot de passe est gérée par le LDAP.' })
+})
+
+// ─── POST /api/auth/refresh ──────────────────────────────────────────────────
+// Émet un nouveau couple accessToken / refreshToken à partir du refreshToken courant.
+
+router.post('/refresh', async (req, res, next) => {
+  try {
+    const refreshToken = req.cookies?.refreshToken
+    if (!refreshToken) {
+      return res.status(401).json({ success: false, error: 'Refresh token manquant' })
+    }
+    const { accessToken, refreshToken: newRefreshToken } = await authService.refreshAccessToken(refreshToken)
+    const cookieBase = {
+      httpOnly: true,
+      secure:   process.env.COOKIE_SECURE !== undefined ? process.env.COOKIE_SECURE === 'true' : process.env.NODE_ENV === 'production',
+      sameSite: 'Strict',
+      path:     '/',
+    }
+    res.cookie('accessToken', accessToken, { ...cookieBase, maxAge: 60 * 60 * 1000 })
+    res.cookie('refreshToken', newRefreshToken, { ...cookieBase, maxAge: 7 * 24 * 60 * 60 * 1000 })
+    res.json({ success: true, message: 'Token rafraîchi' })
+  } catch (err) {
+    next(err)
+  }
 })
 
 module.exports = router

@@ -18,10 +18,32 @@
 [![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white)](https://docker.com)
 [![nginx](https://img.shields.io/badge/nginx-1.27-009639?logo=nginx&logoColor=white)](https://nginx.org)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![CI](https://github.com/nanoxplore/NX-RH/actions/workflows/ci.yml/badge.svg)](https://github.com/nanoxplore/NX-RH/actions/workflows/ci.yml)
 
 *Gérez vos entretiens annuels, campagnes d'évaluation et revues de performance en toute simplicité.*
 
 </div>
+
+---
+
+## 🚀 Démarrage rapide
+
+**Prérequis** : Node.js 20+, MongoDB 7+, Docker (optionnel)
+
+```bash
+# 1. Cloner le projet
+git clone https://github.com/nanoxplore/NX-RH.git && cd NX-RH
+
+# 2. Configurer les variables d'environnement
+cp mongo/server/.env.example mongo/server/.env
+cp frontend-v2/.env.example frontend-v2/.env.local  # si exists
+
+# 3. Installer et lancer
+npm install
+npm run dev   # Lance API (port 3000) + Frontend (port 5173) simultanément
+```
+
+Voir [docs/DEVELOPER.md](docs/DEVELOPER.md) pour la configuration complète.
 
 ---
 
@@ -119,8 +141,8 @@
 ### 1 — Clone & configure
 
 ```bash
-git clone https://github.com/nanoxplore/nanoxplore-rh.git
-cd nanoxplore-rh
+git clone https://github.com/nanoxplore/NX-RH.git
+cd NX-RH
 cp .env.example .env
 # Edit .env with your DB password, JWT secret, etc.
 ```
@@ -263,7 +285,7 @@ MAIL_PORT=2525
 ## Project Structure
 
 ```
-nanoxplore-rh/
+NX-RH/
 │
 ├── Dockerfile                    ← Multi-stage build (frontend-v2 + server)
 ├── docker-compose.yml            ← Production stack (nginx + app + db)

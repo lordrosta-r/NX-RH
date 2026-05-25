@@ -1,0 +1,4 @@
+#!/bin/sh
+# Run lint-staged for each package
+(cd frontend-v2 && npx lint-staged) || exit 1
+(cd mongo/server && npx lint-staged) || exit 1

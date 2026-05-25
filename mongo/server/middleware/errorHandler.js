@@ -4,63 +4,85 @@
 // middleware/errorHandler.js — Gestionnaire d'erreurs centralisé Express
 //
 // Intercepte toutes les erreurs passées via next(err).
-// Normalise les réponses API en { error: message }.
+// Normalise les réponses API en { success: false, error, code }.
 //
 // Erreurs gérées :
-//  - Mongoose ValidationError → 400
-//  - Mongoose CastError        → 400 (ObjectId malformé)
-//  - MongoDB duplicate key (11000) → 409
-//  - JWT TokenExpiredError    → 401
-//  - JWT JsonWebTokenError    → 401
-//  - Erreurs métier (err.status) → err.status
-//  - Toutes les autres        → 500 (message masqué en prod)
+//  - Mongoose ValidationError  → 400 VALIDATION_ERROR
+//  - Mongoose CastError         → 400 INVALID_ID
+//  - MongoDB duplicate key (11000) → 409 DUPLICATE_KEY
+//  - JWT TokenExpiredError     → 401 TOKEN_INVALID
+//  - JWT JsonWebTokenError     → 401 TOKEN_INVALID
+//  - AppError (isOperational)  → err.status + err.code
+//  - Toutes les autres         → 500 INTERNAL_ERROR (stack masqué en prod)
 // =============================================================================
 
-const jwt    = require('jsonwebtoken')
-const logger = require('../utils/logger')
+const jwt      = require('jsonwebtoken')
+const AppError = require('../utils/AppError')
+const logger   = require('../utils/logger')
 
-// eslint-disable-next-line no-unused-vars
-function errorHandler(err, _req, res, _next) {
-  let status  = err.status || err.statusCode || 500
-  let message = err.message || 'Internal server error'
-
-  // ─── Mongoose ─────────────────────────────────────────────────────────────
+ 
+function errorHandler(err, req, res, _next) {
+  // ─── Mongoose ValidationError ─────────────────────────────────────────────
   if (err.name === 'ValidationError') {
-    status = 400
-    // Extraire tous les messages de validation Mongoose
-    message = Object.values(err.errors || {}).map(e => e.message).join(', ') || message
+    const details = Object.values(err.errors || {}).map(e => e.message)
+    return res.status(400).json({
+      success: false,
+      error: 'Données invalides',
+      code: 'VALIDATION_ERROR',
+      details,
+    })
   }
 
+  // ─── Mongoose CastError ───────────────────────────────────────────────────
   if (err.name === 'CastError') {
-    status  = 400
-    message = `Valeur invalide pour le champ "${err.path}"`
+    return res.status(400).json({
+      success: false,
+      error: 'Identifiant invalide',
+      code: 'INVALID_ID',
+    })
   }
 
-  // MongoDB duplicate key error
+  // ─── MongoDB duplicate key ────────────────────────────────────────────────
   if (err.code === 11000) {
-    status = 409
-    const field = Object.keys(err.keyValue || {}).join(', ')
-    message = field ? `Doublon détecté : ${field}` : 'Ressource déjà existante'
+    const field = Object.keys(err.keyPattern || err.keyValue || {})[0] || 'champ'
+    return res.status(409).json({
+      success: false,
+      error: `Cette valeur existe déjà pour le champ "${field}"`,
+      code: 'DUPLICATE_KEY',
+    })
   }
 
   // ─── JWT ──────────────────────────────────────────────────────────────────
-  if (err instanceof jwt.TokenExpiredError) {
-    status  = 401
-    message = 'Session expirée'
-  } else if (err instanceof jwt.JsonWebTokenError) {
-    status  = 401
-    message = 'Token invalide'
+  if (err instanceof jwt.TokenExpiredError || err instanceof jwt.JsonWebTokenError) {
+    return res.status(401).json({
+      success: false,
+      error: 'Token invalide ou expiré',
+      code: 'TOKEN_INVALID',
+    })
   }
 
-  // ─── Masquer les détails 500 en production ────────────────────────────────
-  if (status === 500 && process.env.NODE_ENV === 'production') {
-    logger.error('Error 500', { error: err.message, stack: err.stack })
-    message = 'Internal server error'
-  } else {
-    logger.error(`Error ${status}`, { error: err.message })
+  // ─── AppError ou erreur avec statut HTTP explicite ────────────────────────
+  if (err instanceof AppError || err.isOperational || err.status || err.statusCode) {
+    const status = err.status || err.statusCode || 500
+    if (status >= 500) logger.error(`Error ${status}`, { error: err.message, stack: err.stack, method: req.method, url: req.url })
+    return res.status(status).json({
+      success: false,
+      error: err.message,
+      code: err.code || null,
+      ...(err.details && { details: err.details }),
+    })
   }
 
-  res.status(status).json({ error: message })
+  // ─── Erreur système inattendue ────────────────────────────────────────────
+  logger.error('Unexpected error', { error: err.message, stack: err.stack, method: req.method, url: req.url })
+  return res.status(500).json({
+    success: false,
+    error: process.env.NODE_ENV === 'production'
+      ? 'Une erreur interne est survenue'
+      : err.message,
+    code: 'INTERNAL_ERROR',
+    ...(process.env.NODE_ENV !== 'production' && { stack: err.stack }),
+  })
 }
 
 module.exports = { errorHandler }

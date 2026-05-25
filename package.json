@@ -1,0 +1,24 @@
+{
+  "name": "nx-rh",
+  "version": "1.0.0",
+  "private": true,
+  "description": "NanoXplore RH — monorepo root scripts",
+  "scripts": {
+    "dev": "concurrently --names \"API,FRONT\" --prefix-colors \"cyan,magenta\" \"npm run dev:api\" \"npm run dev:front\"",
+    "dev:api": "cd mongo/server && npm run dev",
+    "dev:front": "cd frontend-v2 && npm run dev",
+    "test": "npm run test:api",
+    "test:api": "cd mongo/server && npm test",
+    "test:front": "cd frontend-v2 && npm test -- --run",
+    "lint": "npm run lint:api && npm run lint:front",
+    "lint:api": "cd mongo/server && npm run lint",
+    "lint:front": "cd frontend-v2 && npm run lint",
+    "build": "cd frontend-v2 && npm run build",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.5"
+  }
+}

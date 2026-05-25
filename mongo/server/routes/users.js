@@ -59,12 +59,9 @@ router.get('/me', async (req, res, next) => {
       .lean()
 
     if (!user || !user.isActive) {
-      res.clearCookie('token', {
-        httpOnly: true,
-        secure:   process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        path:     '/',
-      })
+      const cookieBase = { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'Strict', path: '/' }
+      res.clearCookie('accessToken', cookieBase)
+      res.clearCookie('refreshToken', cookieBase)
       return res.status(401).json({ error: 'Session invalide' })
     }
 
@@ -97,7 +94,8 @@ router.post('/', validate(createUserValidator), async (req, res, next) => {
     const result = await userService.createUser(req.body)
     respond.created(res, result)
   } catch (err) {
-    if (err.code === 11000) return res.status(409).json({ error: 'Email déjà utilisé' })
+    if (err.code === 11000 && err.keyPattern?.email) return res.status(409).json({ success: false, error: 'Cet email est déjà utilisé', code: 'EMAIL_TAKEN' })
+    if (err.code === 11000) return res.status(409).json({ success: false, error: 'Cette valeur existe déjà', code: 'DUPLICATE_KEY' })
     next(err)
   }
 })

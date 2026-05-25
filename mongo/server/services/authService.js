@@ -18,6 +18,40 @@ function makeError(message, status) {
   return err
 }
 
+// ── JWT helpers ───────────────────────────────────────────────────────────────
+
+const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET + '_refresh'
+const REFRESH_EXPIRES = process.env.JWT_REFRESH_EXPIRES_IN || '7d'
+
+function generateTokens(payload) {
+  const accessToken = jwt.sign(payload, process.env.JWT_SECRET, {
+    algorithm: 'HS256',
+    expiresIn: process.env.JWT_EXPIRES_IN || '1h',
+  })
+  const refreshToken = jwt.sign(payload, REFRESH_SECRET, {
+    algorithm: 'HS256',
+    expiresIn: REFRESH_EXPIRES,
+  })
+  return { accessToken, refreshToken }
+}
+
+async function refreshAccessToken(refreshToken) {
+  try {
+    const decoded = jwt.verify(refreshToken, REFRESH_SECRET, { algorithms: ['HS256'] })
+    const user = await User.findById(decoded.id).select('+isActive').lean()
+    if (!user || !user.isActive) {
+      throw makeError('Utilisateur introuvable ou inactif', 401)
+    }
+    const payload = { id: user._id, email: user.email, role: user.role, firstName: user.firstName, lastName: user.lastName }
+    return generateTokens(payload)
+  } catch (err) {
+    if (err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
+      throw makeError('Refresh token invalide ou expiré', 401)
+    }
+    throw err
+  }
+}
+
 // ── Helpers notification (partagés avec routes/users.js) ─────────────────────
 
 /**
@@ -81,16 +115,10 @@ async function login(email, password, remember) {
     return { mustChangePassword: true, userId: user._id }
   }
 
-  const jwtExpiry = remember ? '30d' : (process.env.JWT_EXPIRES_IN || '8h')
-  const token = jwt.sign(
-    { id: user._id, email: user.email, role: user.role, firstName: user.firstName, lastName: user.lastName },
-    process.env.JWT_SECRET,
-    { algorithm: 'HS256', expiresIn: jwtExpiry }
-  )
+  const payload = { id: user._id, email: user.email, role: user.role, firstName: user.firstName, lastName: user.lastName }
+  const { accessToken, refreshToken } = generateTokens(payload)
 
-  const maxAge = remember ? 30 * 24 * 60 * 60 * 1000 : 8 * 60 * 60 * 1000
-
-  return { user, token, maxAge }
+  return { user, accessToken, refreshToken }
 }
 
 // ── Préférences ────────────────────────────────────────────────────────────────
@@ -160,6 +188,8 @@ async function updatePreferences(userId, role, body) {
 module.exports = {
   allowedNotifKeysFor,
   filterNotifPrefsByRole,
+  generateTokens,
+  refreshAccessToken,
   login,
   updatePreferences,
 }

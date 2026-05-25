@@ -118,6 +118,33 @@ export default function HrFlagsPage() {
             }
           </tbody>
         </table>
+        </div>
+
+        {/* Mobile cards */}
+        <div className="sm:hidden divide-y divide-slate-100">
+          {isLoading ? Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="p-4"><div className="h-14 bg-slate-200 rounded animate-pulse" /></div>
+          )) : !data?.data?.length ? (
+            <div className="p-8 text-center">
+              <Inbox size={36} className="mx-auto mb-2 text-slate-200" />
+              <p className="text-slate-600">Aucun signal RH</p>
+            </div>
+          ) : data.data.map(flag => (
+            <div key={flag.id} className="p-4">
+              <div className="flex items-start justify-between mb-2">
+                <span className="font-medium text-slate-800">{flag.userName ?? flag.userId}</span>
+                <button onClick={() => { setSelectedFlag(flag); setNote(flag.note ?? ''); setNewStatus(flag.status) }} className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-md transition">
+                  <MoreVertical size={15} />
+                </button>
+              </div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${TYPE_COLORS[flag.type]}`}>{TYPE_LABELS[flag.type]}</span>
+                <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[flag.status]}`}>{STATUS_LABELS[flag.status]}</span>
+                <span className="text-xs text-slate-500">{new Date(flag.createdAt).toLocaleDateString('fr-FR')}</span>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Slide-over détail */}

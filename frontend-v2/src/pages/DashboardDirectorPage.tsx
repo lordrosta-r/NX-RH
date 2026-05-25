@@ -45,64 +45,84 @@ function KpiCard({ label, value, icon, color }: KpiCardProps) {
 
 function EvaluationsTable({ evaluations }: { evaluations: Evaluation[] }) {
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full">
-        <thead>
-          <tr className="bg-slate-50">
-            <th className="text-xs font-medium text-slate-500 uppercase tracking-wider px-4 py-3 text-left">
-              Collaborateur
-            </th>
-            <th className="text-xs font-medium text-slate-500 uppercase tracking-wider px-4 py-3 text-left">
-              Campagne
-            </th>
-            <th className="text-xs font-medium text-slate-500 uppercase tracking-wider px-4 py-3 text-left">
-              Statut
-            </th>
-            <th className="text-xs font-medium text-slate-500 uppercase tracking-wider px-4 py-3 text-left">
-              Score
-            </th>
-            <th className="text-xs font-medium text-slate-500 uppercase tracking-wider px-4 py-3 text-left">
-              Action
-            </th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-slate-50">
-          {evaluations.map(ev => (
-            <tr key={ev.id} className="hover:bg-slate-50 transition-colors">
-              <td className="px-4 py-3">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-primary-100 text-primary-700 text-xs font-semibold flex items-center justify-center">
-                    {getInitials(ev.evaluateeId)}
-                  </div>
-                  <span className="text-sm text-slate-700">{ev.evaluateeId}</span>
-                </div>
-              </td>
-              <td className="px-4 py-3">
-                <span className="text-sm text-slate-500">{getCampaignName(ev.campaignId)}</span>
-              </td>
-              <td className="px-4 py-3">
-                <StatusBadge status={ev.status} />
-              </td>
-              <td className="px-4 py-3">
-                <span className="text-sm font-medium text-slate-900">
-                  {ev.reviewerScore !== undefined && ev.reviewerScore !== null
-                    ? `${(ev.reviewerScore / 10).toFixed(1)}/10`
-                    : '—'}
-                </span>
-              </td>
-              <td className="px-4 py-3">
-                <Link
-                  to={`/evaluations/${ev.id}`}
-                  className="text-sm text-primary-600 hover:underline"
-                >
-                  Voir →
-                </Link>
-              </td>
+    <>
+      <div className="overflow-x-auto hidden sm:block">
+        <table className="w-full">
+          <thead>
+            <tr className="bg-slate-50">
+              <th className="text-xs font-medium text-slate-500 uppercase tracking-wider px-4 py-3 text-left">
+                Collaborateur
+              </th>
+              <th className="text-xs font-medium text-slate-500 uppercase tracking-wider px-4 py-3 text-left">
+                Campagne
+              </th>
+              <th className="text-xs font-medium text-slate-500 uppercase tracking-wider px-4 py-3 text-left">
+                Statut
+              </th>
+              <th className="text-xs font-medium text-slate-500 uppercase tracking-wider px-4 py-3 text-left">
+                Score
+              </th>
+              <th className="text-xs font-medium text-slate-500 uppercase tracking-wider px-4 py-3 text-left">
+                Action
+              </th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody className="divide-y divide-slate-50">
+            {evaluations.map(ev => (
+              <tr key={ev.id} className="hover:bg-slate-50 transition-colors">
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-primary-100 text-primary-700 text-xs font-semibold flex items-center justify-center">
+                      {getInitials(ev.evaluateeId)}
+                    </div>
+                    <span className="text-sm text-slate-700">{ev.evaluateeId}</span>
+                  </div>
+                </td>
+                <td className="px-4 py-3">
+                  <span className="text-sm text-slate-500">{getCampaignName(ev.campaignId)}</span>
+                </td>
+                <td className="px-4 py-3">
+                  <StatusBadge status={ev.status} />
+                </td>
+                <td className="px-4 py-3">
+                  <span className="text-sm font-medium text-slate-900">
+                    {ev.reviewerScore !== undefined && ev.reviewerScore !== null
+                      ? `${(ev.reviewerScore / 10).toFixed(1)}/10`
+                      : '—'}
+                  </span>
+                </td>
+                <td className="px-4 py-3">
+                  <Link
+                    to={`/evaluations/${ev.id}`}
+                    className="text-sm text-primary-600 hover:underline"
+                  >
+                    Voir →
+                  </Link>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="sm:hidden space-y-2">
+        {evaluations.map(ev => (
+          <div key={ev.id} className="flex items-center justify-between py-2 border-b border-slate-50 last:border-0">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-primary-100 text-primary-700 text-xs font-semibold flex items-center justify-center flex-shrink-0">
+                {getInitials(ev.evaluateeId)}
+              </div>
+              <div>
+                <p className="text-sm font-medium text-slate-700 truncate">{ev.evaluateeId}</p>
+                <StatusBadge status={ev.status} />
+              </div>
+            </div>
+            <Link to={`/evaluations/${ev.id}`} className="text-xs text-primary-600 hover:underline shrink-0 ml-2">
+              Voir →
+            </Link>
+          </div>
+        ))}
+      </div>
+    </>
   )
 }
 

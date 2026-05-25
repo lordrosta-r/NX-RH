@@ -242,6 +242,7 @@ export default function CampaignAnalyticsPage() {
               <div className="p-4 border-b border-slate-100">
                 <p className="text-sm font-medium text-slate-700">Complétion par département</p>
               </div>
+              <div className="overflow-x-auto hidden sm:block">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-slate-50 text-xs text-slate-500 uppercase">
@@ -281,6 +282,7 @@ export default function CampaignAnalyticsPage() {
                   )}
                 </tbody>
               </table>
+              </div>
             </div>
           </div>
         </>

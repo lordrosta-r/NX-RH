@@ -158,6 +158,7 @@ export default function MobilityPage() {
         </div>
       ) : (
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <div className="overflow-x-auto hidden sm:block">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
@@ -204,6 +205,39 @@ export default function MobilityPage() {
               ))}
             </tbody>
           </table>
+          </div>
+
+          {/* Mobile cards */}
+          <div className="sm:hidden divide-y divide-gray-100">
+            {requests.map(r => (
+              <div key={r._id} className="p-4">
+                <div className="flex items-start justify-between mb-2">
+                  <div>
+                    <p className="font-medium text-gray-800">{r.employeeId.firstName} {r.employeeId.lastName}</p>
+                    <p className="text-xs text-gray-500">{r.employeeId.department ?? r.employeeId.position ?? r.employeeId.email}</p>
+                  </div>
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[r.status]}`}>
+                    {STATUS_LABELS[r.status]}
+                  </span>
+                </div>
+                <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                  <dt className="text-gray-500">Poste visé</dt>
+                  <dd className="text-gray-700 truncate">{r.targetPosition}</dd>
+                  <dt className="text-gray-500">Type</dt>
+                  <dd className="text-gray-500 text-xs">{TYPE_LABELS[r.requestType] ?? r.requestType}</dd>
+                  <dt className="text-gray-500">Date</dt>
+                  <dd className="text-gray-500 text-xs">{new Date(r.createdAt).toLocaleDateString('fr-FR')}</dd>
+                </dl>
+                {isHrAdmin && (
+                  <div className="mt-3 pt-3 border-t border-gray-100">
+                    <button onClick={() => { setSelectedRequest(r); setHrComment(r.hrComment ?? '') }} className="text-blue-600 hover:text-blue-800 text-xs font-medium">
+                      Traiter →
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
       )}
 

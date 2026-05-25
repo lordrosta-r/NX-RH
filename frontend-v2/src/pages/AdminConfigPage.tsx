@@ -45,6 +45,7 @@ function EnvCheckSection() {
           </div>
         )}
         {envVars && (
+          <div className="overflow-x-auto hidden sm:block">
           <table className="w-full text-sm">
             <thead className="bg-slate-50 border-b border-slate-100">
               <tr>
@@ -78,6 +79,7 @@ function EnvCheckSection() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
     </div>
@@ -130,6 +132,7 @@ export default function AdminConfigPage() {
       </div>
 
       <div className="bg-white rounded-2xl shadow overflow-hidden">
+        <div className="overflow-x-auto hidden sm:block">
         <table className="w-full text-sm">
           <thead className="bg-slate-50 border-b border-slate-100">
             <tr>
@@ -159,6 +162,7 @@ export default function AdminConfigPage() {
             }
           </tbody>
         </table>
+        </div>
       </div>
 
       {/* Variables d'environnement */}

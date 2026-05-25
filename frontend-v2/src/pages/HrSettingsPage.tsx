@@ -63,16 +63,17 @@ export default function HrSettingsPage() {
           </div>
           <div className="space-y-3 mb-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">ID Campagne (optionnel)</label>
+              <label htmlFor="hr-campaign-id" className="block text-sm font-medium text-slate-700 mb-1">ID Campagne (optionnel)</label>
               <input
+                id="hr-campaign-id"
                 className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
                 value={campaignId}
                 onChange={e => setCampaignId(e.target.value)}
                 placeholder="Toutes les campagnes actives"
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Statuts cibles</label>
+            <fieldset>
+              <legend className="block text-sm font-medium text-slate-700 mb-2">Statuts cibles</legend>
               <div className="flex flex-wrap gap-2">
                 {statuses.map(s => (
                   <label key={s} className="flex items-center gap-1.5 text-sm cursor-pointer">
@@ -86,7 +87,7 @@ export default function HrSettingsPage() {
                   </label>
                 ))}
               </div>
-            </div>
+            </fieldset>
           </div>
           {remindResult && <p className="text-sm text-green-600 mb-3">{remindResult}</p>}
           <button

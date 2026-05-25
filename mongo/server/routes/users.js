@@ -11,6 +11,44 @@ const userService = require('../services/userService')
 const { filterNotifPrefsByRole } = require('../services/authService')
 const respond = require('../utils/response')
 
+// GET /api/users/stats — Statistiques utilisateurs (admin/hr uniquement)
+router.get('/stats', async (req, res, next) => {
+  try {
+    if (!ADMIN_ROLES.includes(req.user.role)) {
+      return res.status(403).json({ error: 'Permissions insuffisantes' })
+    }
+    const stats = await userService.getUserStats()
+    res.json(stats)
+  } catch (err) {
+    next(err)
+  }
+})
+
+// GET /api/users/search?q=... — Recherche full-text (admin/hr/manager)
+router.get('/search', async (req, res, next) => {
+  try {
+    const allowed = ['admin', 'hr', 'manager', 'director']
+    if (!allowed.includes(req.user.role)) {
+      return res.status(403).json({ error: 'Permissions insuffisantes' })
+    }
+    const { q, page, limit, role, department, isActive } = req.query
+    if (!q || !q.trim()) {
+      return res.status(400).json({ error: 'Paramètre q requis' })
+    }
+    const options = {
+      page:       parseInt(page)  || 1,
+      limit:      Math.min(100, parseInt(limit) || 20),
+      role:       role       || undefined,
+      department: department || undefined,
+      isActive:   isActive === 'true' ? true : isActive === 'false' ? false : undefined,
+    }
+    const result = await userService.searchUsers(q, options)
+    respond.paginated(res, { data: result.users, total: result.total, page: result.page, limit: result.limit })
+  } catch (err) {
+    next(err)
+  }
+})
+
 // GET /api/users — Liste les utilisateurs (scope par rôle)
 router.get('/', async (req, res, next) => {
   try {
@@ -94,8 +132,8 @@ router.post('/', validate(createUserValidator), async (req, res, next) => {
     const result = await userService.createUser(req.body)
     respond.created(res, result)
   } catch (err) {
-    if (err.code === 11000 && err.keyPattern?.email) return res.status(409).json({ success: false, error: 'Cet email est déjà utilisé', code: 'EMAIL_TAKEN' })
-    if (err.code === 11000) return res.status(409).json({ success: false, error: 'Cette valeur existe déjà', code: 'DUPLICATE_KEY' })
+    if (err.code === 11000 && err.keyPattern?.email) return res.status(409).json({ success: false, error: 'Email déjà utilisé', code: 'EMAIL_TAKEN' })
+    if (err.code === 11000) return res.status(409).json({ success: false, error: 'Email déjà utilisé', code: 'DUPLICATE_KEY' })
     next(err)
   }
 })

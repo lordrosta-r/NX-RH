@@ -8,16 +8,9 @@ const mongoose = require('mongoose')
 const bcrypt   = require('bcrypt')
 const crypto   = require('crypto')
 const { User, Evaluation, AuditLog } = require('../models')
-const { ROLES } = require('../config/constants')
+const { ROLES, BCRYPT_ROUNDS } = require('../config/constants')
+const AppError = require('../utils/AppError')
 const logger   = require('../utils/logger')
-
-// ── Helper ────────────────────────────────────────────────────────────────────
-
-function makeError(message, status) {
-  const err = new Error(message)
-  err.status = status
-  return err
-}
 
 // ── Création ──────────────────────────────────────────────────────────────────
 
@@ -30,10 +23,10 @@ async function createUser(data) {
   const { firstName, lastName, email, role, department, position, managerId } = data
 
   if (!firstName || !lastName || !email) {
-    throw makeError('firstName, lastName et email sont requis', 400)
+    throw AppError.badRequest('firstName, lastName et email sont requis')
   }
   if (role && !ROLES.includes(role)) {
-    throw makeError(`Rôle invalide : ${role}`, 400)
+    throw AppError.badRequest(`Rôle invalide : ${role}`)
   }
 
   const tempPassword = crypto.randomBytes(16).toString('hex')
@@ -68,23 +61,23 @@ async function createUser(data) {
  * @throws {Error} 400 si ID invalide, 403 si accès refusé, 404 si introuvable
  */
 async function getUserById(id, requestingUser) {
-  if (!mongoose.isValidObjectId(id)) throw makeError('ID invalide', 400)
+  if (!mongoose.isValidObjectId(id)) throw AppError.badRequest('ID invalide')
 
   const user = await User.findById(id).select('-passwordHash -ldapDn').lean()
-  if (!user) throw makeError('Utilisateur introuvable', 404)
+  if (!user) throw AppError.notFound('Utilisateur introuvable')
 
   const { role, id: requesterId } = requestingUser
 
   if (role === 'manager') {
     const isSubordinate = user.managerId?.toString() === requesterId
     const isSelf = requesterId === id
-    if (!isSubordinate && !isSelf) throw makeError('Permissions insuffisantes', 403)
+    if (!isSubordinate && !isSelf) throw AppError.forbidden('Permissions insuffisantes')
   }
 
   if (role === 'employee' && requesterId !== id) {
     const self = await User.findById(requesterId, 'managerId').lean()
     const isDirectManager = self?.managerId?.toString() === id
-    if (!isDirectManager) throw makeError('Permissions insuffisantes', 403)
+    if (!isDirectManager) throw AppError.forbidden('Permissions insuffisantes')
   }
 
   return user
@@ -100,13 +93,13 @@ async function getUserById(id, requestingUser) {
  * @returns {Promise<object>} utilisateur mis à jour (sans passwordHash/ldapDn)
  */
 async function updateUser(id, data, requestingUser) {
-  if (!mongoose.isValidObjectId(id)) throw makeError('ID invalide', 400)
+  if (!mongoose.isValidObjectId(id)) throw AppError.badRequest('ID invalide')
 
   const { role, id: requesterId } = requestingUser
   const isAdmin = ['admin', 'hr'].includes(role)
   const isSelf  = requesterId === id
 
-  if (!isAdmin && !isSelf) throw makeError('Permissions insuffisantes', 403)
+  if (!isAdmin && !isSelf) throw AppError.forbidden('Permissions insuffisantes')
 
   const ALLOWED = ['email', 'firstName', 'lastName', 'department', 'position', 'role', 'managerId', 'isActive', 'avatar', 'phone']
   const updates = {}
@@ -118,12 +111,12 @@ async function updateUser(id, data, requestingUser) {
     const protectedFields = ['role', 'managerId', 'isActive', 'department', 'position', 'email']
     const forbidden = protectedFields.filter(f => data[f] !== undefined)
     if (forbidden.length > 0) {
-      throw makeError(`Champs protégés non modifiables : ${forbidden.join(', ')}`, 403)
+      throw AppError.forbidden(`Champs protégés non modifiables : ${forbidden.join(', ')}`)
     }
   }
 
   const user = await User.findById(id)
-  if (!user) throw makeError('Utilisateur introuvable', 404)
+  if (!user) throw AppError.notFound('Utilisateur introuvable')
 
   Object.assign(user, updates)
   await user.save()
@@ -140,11 +133,11 @@ async function updateUser(id, data, requestingUser) {
  * Désactive un utilisateur (soft delete). Admin uniquement, ne peut pas se supprimer soi-même.
  */
 async function deleteUser(id, requestingUserId) {
-  if (!mongoose.isValidObjectId(id)) throw makeError('ID invalide', 400)
-  if (requestingUserId === id) throw makeError('Impossible de se supprimer soi-même', 403)
+  if (!mongoose.isValidObjectId(id)) throw AppError.badRequest('ID invalide')
+  if (requestingUserId === id) throw AppError.forbidden('Impossible de se supprimer soi-même')
 
   const user = await User.findById(id)
-  if (!user) throw makeError('Utilisateur introuvable', 404)
+  if (!user) throw AppError.notFound('Utilisateur introuvable')
 
   user.isActive = false
   await user.save()
@@ -157,10 +150,10 @@ async function deleteUser(id, requestingUserId) {
  * @returns {Promise<{ user, pendingEvaluations, activeCampaigns }>}
  */
 async function getOffboardPreview(userId) {
-  if (!mongoose.isValidObjectId(userId)) throw makeError('ID invalide', 400)
+  if (!mongoose.isValidObjectId(userId)) throw AppError.badRequest('ID invalide')
 
   const user = await User.findById(userId).select('-passwordHash -ldapDn').lean()
-  if (!user) throw makeError('Utilisateur introuvable', 404)
+  if (!user) throw AppError.notFound('Utilisateur introuvable')
 
   const pendingFilter = {
     $or: [{ evaluateeId: userId }, { evaluatorId: userId }],
@@ -190,19 +183,19 @@ async function getOffboardPreview(userId) {
  * @returns {Promise<object>} utilisateur mis à jour (sans passwordHash/ldapDn)
  */
 async function offboardUser(userId, body) {
-  if (!mongoose.isValidObjectId(userId)) throw makeError('ID invalide', 400)
+  if (!mongoose.isValidObjectId(userId)) throw AppError.badRequest('ID invalide')
 
   const { reason, effectiveDate } = body || {}
 
   if (!reason || typeof reason !== 'string' || !reason.trim()) {
-    throw makeError('Le champ reason est requis', 400)
+    throw AppError.badRequest('Le champ reason est requis')
   }
   if (!effectiveDate) {
-    throw makeError('Le champ effectiveDate est requis', 400)
+    throw AppError.badRequest('Le champ effectiveDate est requis')
   }
 
   const user = await User.findById(userId)
-  if (!user) throw makeError('Utilisateur introuvable', 404)
+  if (!user) throw AppError.notFound('Utilisateur introuvable')
 
   user.offboardingStatus = 'offboarding'
   user.offboardingReason = reason.trim()
@@ -244,7 +237,7 @@ async function offboardUser(userId, body) {
  * @returns {Promise<{ user, evaluations, exportedAt }>}
  */
 async function gdprExportUser(userId) {
-  if (!mongoose.isValidObjectId(userId)) throw makeError('ID invalide', 400)
+  if (!mongoose.isValidObjectId(userId)) throw AppError.badRequest('ID invalide')
 
   const [user, evaluations] = await Promise.all([
     User.findById(userId).select('-passwordHash -ldapDn').lean(),
@@ -254,7 +247,7 @@ async function gdprExportUser(userId) {
       .lean(),
   ])
 
-  if (!user) throw makeError('Utilisateur introuvable', 404)
+  if (!user) throw AppError.notFound('Utilisateur introuvable')
 
   return { user, evaluations, exportedAt: new Date() }
 }
@@ -264,10 +257,10 @@ async function gdprExportUser(userId) {
  * Bloque si des évaluations actives existent encore.
  */
 async function gdprAnonymizeUser(userId) {
-  if (!mongoose.isValidObjectId(userId)) throw makeError('ID invalide', 400)
+  if (!mongoose.isValidObjectId(userId)) throw AppError.badRequest('ID invalide')
 
   const user = await User.findById(userId)
-  if (!user) throw makeError('Utilisateur introuvable', 404)
+  if (!user) throw AppError.notFound('Utilisateur introuvable')
 
   const ACTIVE_STATUSES = ['assigned', 'in_progress', 'submitted']
   const activeCount = await Evaluation.countDocuments({
@@ -275,7 +268,7 @@ async function gdprAnonymizeUser(userId) {
     status: { $in: ACTIVE_STATUSES },
   })
   if (activeCount > 0) {
-    throw makeError(`Impossible d'anonymiser : ${activeCount} évaluation(s) en cours`, 409)
+    throw AppError.conflict(`Impossible d'anonymiser : ${activeCount} évaluation(s) en cours`)
   }
 
   user.firstName       = 'Anonyme'
@@ -297,4 +290,104 @@ module.exports = {
   offboardUser,
   gdprExportUser,
   gdprAnonymizeUser,
+  searchUsers,
+  bulkUpsertUsers,
+  getUserStats,
+}
+
+// ── Recherche ─────────────────────────────────────────────────────────────────
+
+/**
+ * Recherche full-text par regex sur nom / prénom / email / département.
+ * @param {string} query — terme de recherche
+ * @param {object} options — { page, limit, role, department, isActive }
+ */
+async function searchUsers(query, options = {}) {
+  if (!query || typeof query !== 'string' || !query.trim()) {
+    throw AppError.badRequest('Paramètre de recherche requis')
+  }
+
+  const { page = 1, limit = 20, role, department, isActive } = options
+
+  const filter = {
+    $or: [
+      { firstName:  { $regex: query, $options: 'i' } },
+      { lastName:   { $regex: query, $options: 'i' } },
+      { email:      { $regex: query, $options: 'i' } },
+      { department: { $regex: query, $options: 'i' } },
+    ],
+  }
+
+  if (role)              filter.role       = role
+  if (department)        filter.department = department
+  if (isActive !== undefined) filter.isActive = isActive
+
+  const skip = (page - 1) * limit
+
+  const [users, total] = await Promise.all([
+    User.find(filter)
+      .select('-passwordHash -refreshTokens')
+      .sort({ lastName: 1, firstName: 1 })
+      .skip(skip)
+      .limit(limit)
+      .lean(),
+    User.countDocuments(filter),
+  ])
+
+  return { users, total, page, limit, pages: Math.ceil(total / limit) }
+}
+
+// ── Import en masse ───────────────────────────────────────────────────────────
+
+/**
+ * Crée ou met à jour des utilisateurs en masse (upsert par email).
+ * @param {Array<object>} usersData — tableau de { email, firstName, lastName, role, department, ... }
+ * @returns {Promise<{ created, updated, errors }>}
+ */
+async function bulkUpsertUsers(usersData) {
+  if (!Array.isArray(usersData) || usersData.length === 0) {
+    throw AppError.badRequest('usersData doit être un tableau non vide')
+  }
+
+  const results = { created: 0, updated: 0, errors: [] }
+
+  for (const userData of usersData) {
+    try {
+      const { email, ...rest } = userData
+
+      // Determine if new or existing before upsert to count correctly
+      const existing = await User.findOne({ email }, '_id').lean()
+
+      if (existing) {
+        await User.updateOne({ email }, { $set: rest }, { runValidators: true })
+        results.updated++
+      } else {
+        const passwordHash = await bcrypt.hash('ChangeMe123!', BCRYPT_ROUNDS)
+        const newUser = new User({ email, ...rest, passwordHash, authSource: 'local' })
+        await newUser.save()
+        results.created++
+      }
+    } catch (err) {
+      results.errors.push({ email: userData.email, error: err.message })
+    }
+  }
+
+  return results
+}
+
+// ── Statistiques ──────────────────────────────────────────────────────────────
+
+/**
+ * Retourne les statistiques utilisateurs pour le dashboard admin.
+ * @returns {Promise<{ total, byRole, byDept, inactive }>}
+ */
+async function getUserStats() {
+  const [total, byRole, byDept, inactive] = await Promise.all([
+    User.countDocuments(),
+    User.aggregate([{ $group: { _id: '$role', count: { $sum: 1 } } }]),
+    User.aggregate([{ $group: { _id: '$department', count: { $sum: 1 } } }]),
+    User.countDocuments({ isActive: false }),
+  ])
+
+  return { total, byRole, byDept, inactive }
 }

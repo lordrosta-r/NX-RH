@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import client from '../api/client'
-import type { Evaluation, Campaign } from '../types'
+import type { Evaluation, Campaign, DashboardManagerStats } from '../types'
 
 interface EvaluationListResponse {
   data: Evaluation[]
@@ -10,13 +10,6 @@ interface EvaluationListResponse {
 interface CampaignListResponse {
   data: Campaign[]
   total: number
-}
-
-export interface DashboardManagerStats {
-  evaluations: { total: number; completed: number; pending: number; overdue: number }
-  campaigns: { total: number }
-  completionRate: number
-  teamSize: number
 }
 
 export function useDashboardDirector() {

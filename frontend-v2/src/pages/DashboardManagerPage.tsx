@@ -1,13 +1,26 @@
 import { Link } from 'react-router-dom'
-import { ClipboardList, Users, Calendar, TrendingUp, AlertTriangle } from 'lucide-react'
+import { ClipboardList, Users, Calendar, TrendingUp, AlertTriangle, PenLine, CheckCircle2 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
+import {
+  PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend,
+} from 'recharts'
 import { useDashboardManager, useDashboardManagerStats } from '../hooks/useDashboardByRole'
 import { KpiCard } from '../components/KpiCard'
 import { StatusBadge } from '../components/ui'
 import { eventsApi } from '../api/events'
 import { campaignsApi } from '../api/campaigns'
-import type { Evaluation, Campaign } from '../types'
+import type { Evaluation, Campaign, DashboardManagerStats } from '../types'
 import { getCampaignName } from '../types'
+
+// ─── Design colours ───────────────────────────────────────────────────────────
+const EVAL_STATUS_COLORS: Record<string, string> = {
+  assigned:    '#d97706',
+  in_progress: '#2563eb',
+  submitted:   '#7c3aed',
+  reviewed:    '#0891b2',
+  validated:   '#16a34a',
+  overdue:     '#dc2626',
+}
 
 
 
@@ -177,6 +190,87 @@ function ActiveCampaigns() {
   )
 }
 
+// ─── Pending signatures list ──────────────────────────────────────────────────
+function PendingSignaturesList({ statsData }: { statsData: DashboardManagerStats | undefined }) {
+  const list = (statsData?.pendingSignatures ?? []).slice(0, 5)
+
+  if (list.length === 0) {
+    return (
+      <p className="text-sm text-slate-600 dark:text-slate-400 text-center py-4">
+        Aucune évaluation en attente de votre signature
+      </p>
+    )
+  }
+
+  return (
+    <div className="space-y-2">
+      {list.map(ev => {
+        const evaluatee = typeof ev.evaluateeId === 'object'
+          ? `${ev.evaluateeId.firstName} ${ev.evaluateeId.lastName}`
+          : ev.evaluateeId
+        const campaign = typeof ev.campaignId === 'object'
+          ? ev.campaignId.name
+          : ev.campaignId
+        const signedAt = ev.signedByEvaluateeAt
+          ? new Date(ev.signedByEvaluateeAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
+          : '—'
+
+        return (
+          <div
+            key={ev._id ?? ev.id}
+            className="flex items-center justify-between gap-3 p-3 rounded-lg border border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+          >
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">{evaluatee}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                {campaign} · signé le {signedAt}
+              </p>
+            </div>
+            <Link
+              to={`/evaluations/${ev._id ?? ev.id}`}
+              className="inline-flex items-center gap-1 text-xs text-primary-600 hover:text-primary-700 font-medium hover:underline flex-shrink-0"
+            >
+              <PenLine className="w-3 h-3" />
+              Signer
+            </Link>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+// ─── Team evaluation status pie chart ────────────────────────────────────────
+function TeamStatusChart({ statsData }: { statsData: DashboardManagerStats | undefined }) {
+  if (!statsData) return <div className="h-40 bg-slate-100 dark:bg-slate-700 rounded animate-pulse" />
+
+  const ev = statsData.evaluations
+  const data = [
+    { name: 'En attente',  value: ev.pending,        color: EVAL_STATUS_COLORS.assigned },
+    { name: 'Complétées',  value: ev.completed,       color: EVAL_STATUS_COLORS.validated },
+    { name: 'En retard',   value: ev.overdue,         color: EVAL_STATUS_COLORS.overdue },
+    { name: 'Signées',     value: ev.signedByManager, color: EVAL_STATUS_COLORS.signed_manager ?? '#1e40af' },
+  ].filter(d => d.value > 0)
+
+  if (data.length === 0) {
+    return <p className="text-sm text-slate-500 text-center py-8">Aucune donnée d'équipe</p>
+  }
+
+  return (
+    <ResponsiveContainer width="100%" height={180}>
+      <PieChart>
+        <Pie data={data} cx="50%" cy="50%" innerRadius={40} outerRadius={70} dataKey="value" nameKey="name">
+          {data.map(entry => (
+            <Cell key={entry.name} fill={entry.color} />
+          ))}
+        </Pie>
+        <Tooltip formatter={(v: number, name: string) => [v, name]} />
+        <Legend iconSize={10} />
+      </PieChart>
+    </ResponsiveContainer>
+  )
+}
+
 export default function DashboardManagerPage() {
   const { evaluations } = useDashboardManager()
   const stats = useDashboardManagerStats()
@@ -224,9 +318,9 @@ export default function DashboardManagerPage() {
       </div>
 
       {/* KPI row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
         {stats.isLoading ? (
-          Array.from({ length: 4 }).map((_, i) => (
+          Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="h-28 bg-gray-200 animate-pulse rounded-xl" />
           ))
         ) : (
@@ -263,6 +357,13 @@ export default function DashboardManagerPage() {
               color="red"
               isLoading={stats.isLoading}
             />
+            <KpiCard
+              title="Signées"
+              value={stats.data?.evaluations?.signedByManager ?? 0}
+              icon={<CheckCircle2 size={18} />}
+              color="green"
+              isLoading={stats.isLoading}
+            />
           </>
         )}
       </div>
@@ -290,6 +391,21 @@ export default function DashboardManagerPage() {
             </Link>
           </div>
           <ActiveCampaigns />
+        </div>
+      </div>
+
+      {/* En attente de signature */}
+      <div className="grid grid-cols-12 gap-6 mb-6">
+        <div className="col-span-12 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+              En attente de signature
+            </h2>
+            <Link to="/evaluations" className="text-xs text-primary-600 hover:underline">
+              Voir toutes →
+            </Link>
+          </div>
+          <PendingSignaturesList statsData={stats.data} />
         </div>
       </div>
 

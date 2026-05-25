@@ -4,6 +4,7 @@
 // /api/analytics — Exports analytiques RH
 //
 // GET  /api/analytics/summary            → stats globales (admin, hr, director)
+// GET  /api/analytics/monthly-trend      → évolution mensuelle 6 mois (admin, hr, director)
 // GET  /api/analytics/campaigns/:id      → stats par campagne (admin, hr, director, manager)
 // GET  /api/analytics/export/csv         → export CSV (admin, hr)
 // GET  /api/analytics/export/pdf         → rapport PDF (admin, hr)
@@ -343,6 +344,48 @@ router.get('/export/pdf', async (req, res, next) => {
   } catch (err) {
     next(err)
   }
+})
+
+// ── GET /api/analytics/monthly-trend ─────────────────────────────────────────
+// Évolution mensuelle des évaluations sur les 6 derniers mois.
+// Auth : admin, hr, director
+const MONTH_LABELS = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc']
+
+router.get('/monthly-trend', cacheResponse(300), async (req, res, next) => {
+  try {
+    if (!SUMMARY_ROLES.includes(req.user.role)) {
+      return res.status(403).json({ error: 'Accès réservé aux admins, RH et directeurs' })
+    }
+
+    const sixMonthsAgo = new Date()
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5)
+    sixMonthsAgo.setDate(1)
+    sixMonthsAgo.setHours(0, 0, 0, 0)
+
+    const completedStatuses = ['submitted', 'reviewed', 'signed_evaluatee', 'signed_manager', 'signed_hr', 'validated']
+
+    const raw = await Evaluation.aggregate([
+      { $match: { createdAt: { $gte: sixMonthsAgo } } },
+      {
+        $group: {
+          _id: { year: { $year: '$createdAt' }, month: { $month: '$createdAt' } },
+          total: { $sum: 1 },
+          completed: {
+            $sum: { $cond: [{ $in: ['$status', completedStatuses] }, 1, 0] },
+          },
+        },
+      },
+      { $sort: { '_id.year': 1, '_id.month': 1 } },
+    ])
+
+    const data = raw.map(d => ({
+      month: `${MONTH_LABELS[d._id.month - 1]} ${d._id.year}`,
+      total: d.total,
+      completed: d.completed,
+    }))
+
+    res.json({ data })
+  } catch (err) { next(err) }
 })
 
 module.exports = router

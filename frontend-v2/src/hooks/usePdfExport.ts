@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type jsPDF from "jspdf";
 import type { Evaluation } from "../types";
 
@@ -268,5 +269,79 @@ export function usePdfExport() {
     doc.save(`evaluations-${new Date().toISOString().split("T")[0]}.pdf`);
   };
 
-  return { exportEvaluationPdf, exportListPdf };
+  // ── Dashboard multi-section export ────────────────────────────────────────
+  const [isExporting, setIsExporting] = useState(false);
+
+  const exportDashboardPdf = async ({
+    title,
+    sections,
+  }: {
+    title: string;
+    sections: Array<{ title: string; data: Record<string, unknown>[] }>;
+  }): Promise<void> => {
+    setIsExporting(true);
+    try {
+      const [{ default: JsPDF }, { default: autoTable }] = await Promise.all([
+        import("jspdf"),
+        import("jspdf-autotable"),
+      ]);
+      const doc = new JsPDF();
+      let y = 20;
+
+      doc.setFontSize(18);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(...DARK_GRAY);
+      doc.text(title, 14, y);
+      y += 12;
+
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(100, 100, 100);
+      doc.text(`Généré le ${new Date().toLocaleString("fr-FR")}`, 14, y);
+      y += 14;
+
+      for (const section of sections) {
+        if (y > 250) { doc.addPage(); y = 20; }
+
+        doc.setFontSize(13);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(...DARK_GRAY);
+        doc.text(section.title, 14, y);
+        y += 8;
+
+        if (section.data && section.data.length > 0) {
+          autoTable(doc, {
+            startY: y,
+            head: [Object.keys(section.data[0])],
+            body: section.data.map((row) => Object.values(row) as string[]),
+            theme: "striped",
+            headStyles: { fillColor: PRIMARY },
+            styles: { fontSize: 9 },
+          });
+          y =
+            (doc as JsPDFInstance & { lastAutoTable: { finalY: number } })
+              .lastAutoTable.finalY + 12;
+        }
+      }
+
+      const pageCount = doc.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(150, 150, 150);
+        doc.text(
+          `NX-RH — Document confidentiel — Page ${i}/${pageCount}`,
+          105,
+          290,
+          { align: "center" },
+        );
+      }
+
+      doc.save(`${title.replace(/\s+/g, "-")}.pdf`);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  return { exportEvaluationPdf, exportListPdf, exportDashboardPdf, isExporting };
 }

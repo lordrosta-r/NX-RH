@@ -88,6 +88,8 @@ const MobilityPage = lazy(() => import("../pages/MobilityPage"));
 const AdminMailTestPage = lazy(() => import("../pages/AdminMailTestPage"));
 const AdminStatsPage = lazy(() => import("../pages/AdminStatsPage"));
 const UnauthorizedPage = lazy(() => import("../pages/UnauthorizedPage"));
+const PDIPage = lazy(() => import("../pages/PDIPage"));
+const PDIDetailPage = lazy(() => import("../pages/PDIDetailPage"));
 
 function S({ children }: { children: React.ReactNode }) {
   return <Suspense fallback={<PageLoader />}>{children}</Suspense>;
@@ -374,6 +376,23 @@ export const router = createBrowserRouter([
         element: (
           <S>
             <MobilityPage />
+          </S>
+        ),
+      },
+      // PDI — Plans de Développement Individuel
+      {
+        path: "/pdi",
+        element: (
+          <S>
+            <PDIPage />
+          </S>
+        ),
+      },
+      {
+        path: "/pdi/:id",
+        element: (
+          <S>
+            <PDIDetailPage />
           </S>
         ),
       },

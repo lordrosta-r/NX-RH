@@ -351,14 +351,19 @@ async function bulkUpsertUsers(usersData) {
 
   const results = { created: 0, updated: 0, errors: [] }
 
+  // Pre-fetch all existing emails in a single query (replaces N findOne calls)
+  const emails = usersData.map(u => (u.email || '').toLowerCase()).filter(Boolean)
+  const existingUsers = emails.length
+    ? await User.find({ email: { $in: emails } }, 'email').lean()
+    : []
+  const existingEmailSet = new Set(existingUsers.map(u => u.email.toLowerCase()))
+
   for (const userData of usersData) {
     try {
       const { email, ...rest } = userData
+      const emailLower = (email || '').toLowerCase()
 
-      // Determine if new or existing before upsert to count correctly
-      const existing = await User.findOne({ email }, '_id').lean()
-
-      if (existing) {
+      if (existingEmailSet.has(emailLower)) {
         await User.updateOne({ email }, { $set: rest }, { runValidators: true })
         results.updated++
       } else {

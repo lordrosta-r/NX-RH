@@ -129,10 +129,10 @@ describe('GET /api/notifications', () => {
 
     expect(res.status).toBe(200)
     expect(Array.isArray(res.body.data)).toBe(true)
-    expect(res.body).toHaveProperty('total', 1)
-    expect(res.body).toHaveProperty('page', 1)
-    expect(res.body).toHaveProperty('limit', 20)
-    expect(res.body).toHaveProperty('unreadCount', 1)
+    expect(res.body).toHaveProperty('meta.total', 1)
+    expect(res.body).toHaveProperty('meta.page', 1)
+    expect(res.body).toHaveProperty('meta.limit', 20)
+    expect(res.body).toHaveProperty('meta.unreadCount', 1)
     // Contract: key must be 'data', NOT 'notifications'
     expect(res.body).not.toHaveProperty('notifications')
   })
@@ -151,8 +151,8 @@ describe('GET /api/notifications', () => {
       .set('Cookie', `accessToken=${tokenFor({ id: USER_ID, role: 'employee' })}`)
 
     expect(res.status).toBe(200)
-    expect(res.body.page).toBe(3)
-    expect(res.body.limit).toBe(10)
+    expect(res.body.meta.page).toBe(3)
+    expect(res.body.meta.limit).toBe(10)
   })
 
   it('caps limit at 100 even if a higher value is requested', async () => {
@@ -169,7 +169,7 @@ describe('GET /api/notifications', () => {
       .set('Cookie', `accessToken=${tokenFor({ id: USER_ID, role: 'employee' })}`)
 
     expect(res.status).toBe(200)
-    expect(res.body.limit).toBe(100)
+    expect(res.body.meta.limit).toBe(100)
   })
 })
 
@@ -195,8 +195,8 @@ describe('GET /api/notifications/count', () => {
       .set('Cookie', `accessToken=${tokenFor({ id: USER_ID, role: 'employee' })}`)
 
     expect(res.status).toBe(200)
-    expect(res.body).toHaveProperty('total', 10)
-    expect(res.body).toHaveProperty('unreadCount', 3)
+    expect(res.body.data).toHaveProperty('total', 10)
+    expect(res.body.data).toHaveProperty('unreadCount', 3)
   })
 })
 
@@ -220,7 +220,7 @@ describe('PATCH /api/notifications/read-all', () => {
       .set('Cookie', `accessToken=${tokenFor({ id: USER_ID, role: 'employee' })}`)
 
     expect(res.status).toBe(200)
-    expect(res.body).toHaveProperty('modifiedCount', 7)
+    expect(res.body.data).toHaveProperty('modifiedCount', 7)
   })
 })
 
@@ -279,8 +279,8 @@ describe('PATCH /api/notifications/:id/read', () => {
       .set('Cookie', `accessToken=${tokenFor({ id: USER_ID, role: 'employee' })}`)
 
     expect(res.status).toBe(200)
-    expect(res.body).toHaveProperty('id')
-    expect(res.body).toHaveProperty('read', true)
+    expect(res.body.data).toHaveProperty('id')
+    expect(res.body.data).toHaveProperty('read', true)
     expect(mockNotif.save).toHaveBeenCalledTimes(1)
   })
 })
@@ -329,7 +329,7 @@ describe('POST /api/notifications/global-remind', () => {
       .send({ message: 'Action requise de votre part' })
 
     expect(res.status).toBe(200)
-    expect(res.body).toHaveProperty('sent', 2)
+    expect(res.body.data).toHaveProperty('sent', 2)
   })
 
   it('broadcasts a reminder for hr and returns { sent }', async () => {
@@ -343,7 +343,7 @@ describe('POST /api/notifications/global-remind', () => {
       .send({ campaignId: 'camp1', message: 'Merci de compléter votre évaluation' })
 
     expect(res.status).toBe(200)
-    expect(res.body).toHaveProperty('sent', 1)
+    expect(res.body.data).toHaveProperty('sent', 1)
   })
 
   it('returns { sent: 0 } when there are no active users', async () => {
@@ -355,6 +355,6 @@ describe('POST /api/notifications/global-remind', () => {
       .send({ message: 'Personne à notifier' })
 
     expect(res.status).toBe(200)
-    expect(res.body).toHaveProperty('sent', 0)
+    expect(res.body.data).toHaveProperty('sent', 0)
   })
 })

@@ -176,32 +176,40 @@ async function syncUsers(config) {
     })
     await unbindAsync(client)
 
+    // Batch pre-fetch all existing users (1 query replaces N findOne calls)
+    const allEmails = entries
+      .map(e => { const v = getVal(e, attrEmail); return v ? v.toLowerCase() : null })
+      .filter(Boolean)
+    const existingUsers = allEmails.length
+      ? await User.find({ email: { $in: allEmails } }, '_id email').lean()
+      : []
+    const existingByEmail = new Map(existingUsers.map(u => [u.email.toLowerCase(), u]))
+
     for (const entry of entries) {
       const email = getVal(entry, attrEmail)
       if (!email) { report.skipped++; continue }
 
-      const firstName = getVal(entry, attrFirst)  || 'Inconnu'
-      const lastName  = getVal(entry, attrLast)   || 'Inconnu'
-      const dept      = getVal(entry, attrDept)
-      const position  = getVal(entry, attrTitle)
-      const dn        = entry.dn || ''
+      const emailLower = email.toLowerCase()
+      const firstName  = getVal(entry, attrFirst)  || 'Inconnu'
+      const lastName   = getVal(entry, attrLast)   || 'Inconnu'
+      const dept       = getVal(entry, attrDept)
+      const position   = getVal(entry, attrTitle)
+      const dn         = entry.dn || ''
 
       try {
-        const existing = await User.findOne({ email: email.toLowerCase() })
-          .select('_id')
-          .lean()
+        const existing = existingByEmail.get(emailLower)
 
         if (existing) {
           const updates = { firstName, lastName, ldapDn: dn, authSource: 'ldap' }
           if (dept)     updates.department = dept
           if (position) updates.position   = position
-          await User.findByIdAndUpdate(existing._id, { $set: updates })
+          await User.updateOne({ _id: existing._id }, { $set: updates })
           report.updated++
         } else {
           // Mot de passe aléatoire — l'utilisateur s'authentifiera via LDAP
           const randomPwd = await bcrypt.hash(randomUUID(), BCRYPT_ROUNDS)
           await User.create({
-            email:        email.toLowerCase(),
+            email:        emailLower,
             firstName,
             lastName,
             passwordHash: randomPwd,

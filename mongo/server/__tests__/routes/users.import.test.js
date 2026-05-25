@@ -70,19 +70,6 @@ function tokenFor({ id, role }) {
   })
 }
 
-/**
- * Returns a Mongoose Query-like stub that supports both:
- *   await User.findOne()           → result (direct await)
- *   await User.findOne().lean()    → result (chained .lean())
- */
-function makeQuery(result) {
-  return {
-    lean: jest.fn().mockResolvedValue(result),
-    then: (resolve, reject) => Promise.resolve(result).then(resolve, reject),
-    catch: (fn) => Promise.resolve(result).catch(fn),
-  }
-}
-
 const ADMIN_ID   = '507f1f77bcf86cd799439001'
 const MGR_ID     = '507f1f77bcf86cd799439002'
 const SECTOR_ID  = '607f1f77bcf86cd799439001'
@@ -97,9 +84,10 @@ describe('POST /api/users/import', () => {
 
   beforeEach(() => {
     jest.clearAllMocks()
-    bcrypt.hash = jest.fn().mockResolvedValue('$2b$10$hashedPassword')
-    User.findOne   = jest.fn().mockReturnValue(makeQuery(null))
-    Sector.findOne = jest.fn().mockReturnValue(makeQuery(null))
+    bcrypt.hash    = jest.fn().mockResolvedValue('$2b$10$hashedPassword')
+    User.find      = jest.fn().mockReturnValue({ lean: jest.fn().mockResolvedValue([]) })
+    User.updateOne = jest.fn().mockResolvedValue({ modifiedCount: 1 })
+    Sector.find    = jest.fn().mockReturnValue({ lean: jest.fn().mockResolvedValue([]) })
   })
 
   // ── 1. Auth guard ────────────────────────────────────────────────────────────
@@ -156,9 +144,7 @@ describe('POST /api/users/import', () => {
   // ── 3. dryRun=true — preview sans écriture ───────────────────────────────────
 
   it('200 — dryRun: retourne preview avec action=create pour utilisateur inexistant', async () => {
-    // findOne → null (user n'existe pas) — dryRun uses .lean()
-    User.findOne = jest.fn().mockReturnValue(makeQuery(null))
-
+    // User.find returns [] → user does not exist → action=create
     const res = await request(app)
       .post('/api/users/import?dryRun=true')
       .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
@@ -180,8 +166,10 @@ describe('POST /api/users/import', () => {
   })
 
   it('200 — dryRun: action=update pour utilisateur existant', async () => {
-    // dryRun uses findOne({ email }, '_id').lean() → existing user found
-    User.findOne = jest.fn().mockReturnValue(makeQuery({ _id: MGR_ID }))
+    // User.find returns the existing user → action=update
+    User.find = jest.fn().mockReturnValue({
+      lean: jest.fn().mockResolvedValue([{ _id: MGR_ID, email: 'existing@corp.com' }]),
+    })
 
     const res = await request(app)
       .post('/api/users/import?dryRun=true')
@@ -202,8 +190,7 @@ describe('POST /api/users/import', () => {
   // ── 4. Création effective (dryRun=false) ─────────────────────────────────────
 
   it('200 — crée un nouvel utilisateur et incrémente created', async () => {
-    User.findOne   = jest.fn().mockReturnValue(makeQuery(null)) // no manager, no existing
-    Sector.findOne = jest.fn().mockReturnValue(makeQuery(null))
+    // beforeEach sets User.find → [] (no existing user)
 
     const savedUser = {
       email: 'newuser@corp.com',
@@ -229,17 +216,10 @@ describe('POST /api/users/import', () => {
   })
 
   it('200 — met à jour un utilisateur existant et incrémente updated', async () => {
-    const existingUser = {
-      _id:        MGR_ID,
-      email:      'existing@corp.com',
-      firstName:  'Old',
-      lastName:   'Name',
-      role:       'employee',
-      save:       jest.fn().mockResolvedValue(true),
-    }
-
-    // No managerEmail in data → only one findOne call (existing upsert check, no .lean())
-    User.findOne = jest.fn().mockReturnValue(makeQuery(existingUser))
+    // User.find returns the existing user → update path, no manager email in data
+    User.find = jest.fn().mockReturnValue({
+      lean: jest.fn().mockResolvedValue([{ _id: MGR_ID, email: 'existing@corp.com' }]),
+    })
 
     const res = await request(app)
       .post('/api/users/import')
@@ -255,7 +235,10 @@ describe('POST /api/users/import', () => {
     expect(res.status).toBe(200)
     expect(res.body.updated).toBe(1)
     expect(res.body.created).toBe(0)
-    expect(existingUser.firstName).toBe('Updated')
+    expect(User.updateOne).toHaveBeenCalledWith(
+      { email: 'existing@corp.com' },
+      { $set: expect.objectContaining({ firstName: 'Updated' }) },
+    )
   })
 
   // ── 5. Erreurs de validation ──────────────────────────────────────────────────
@@ -285,7 +268,7 @@ describe('POST /api/users/import', () => {
   })
 
   it('200 — firstName/lastName manquants pour création → erreur', async () => {
-    User.findOne = jest.fn().mockReturnValue(makeQuery(null)) // aucun existant
+    // beforeEach sets User.find → [] (no existing user)
 
     const res = await request(app)
       .post('/api/users/import')
@@ -301,8 +284,7 @@ describe('POST /api/users/import', () => {
   // ── 6. Warnings — manager introuvable ────────────────────────────────────────
 
   it('200 — managerEmail introuvable → warning ajouté, managerId=null', async () => {
-    // Manager lookup (with .lean()) → null; existing user check → null (new user)
-    User.findOne = jest.fn().mockReturnValue(makeQuery(null))
+    // User.find returns [] → neither emp@corp.com nor ghost@corp.com found
 
     const savedUser = {
       email: 'emp@corp.com',
@@ -333,7 +315,7 @@ describe('POST /api/users/import', () => {
   // ── 7. Parsing CSV ────────────────────────────────────────────────────────────
 
   it('200 — import CSV valide (séparateur virgule)', async () => {
-    User.findOne = jest.fn().mockReturnValue(makeQuery(null))
+    // beforeEach sets User.find → [] (no existing user)
 
     const savedUser = { email: 'csv@corp.com', save: jest.fn().mockResolvedValue(true) }
     User.mockImplementation(() => savedUser)
@@ -355,7 +337,7 @@ describe('POST /api/users/import', () => {
   })
 
   it('200 — import CSV valide (séparateur point-virgule)', async () => {
-    User.findOne = jest.fn().mockReturnValue(makeQuery(null))
+    // beforeEach sets User.find → [] (no existing user)
 
     const savedUser = { email: 'csv2@corp.com', save: jest.fn().mockResolvedValue(true) }
     User.mockImplementation(() => savedUser)
@@ -378,8 +360,10 @@ describe('POST /api/users/import', () => {
   // ── 8. Résolution sectorName → sectorId ─────────────────────────────────────
 
   it('200 — sectorName résolu correctement en sectorId', async () => {
-    Sector.findOne = jest.fn().mockReturnValue(makeQuery({ _id: SECTOR_ID }))
-    User.findOne   = jest.fn().mockReturnValue(makeQuery(null))
+    Sector.find = jest.fn().mockReturnValue({
+      lean: jest.fn().mockResolvedValue([{ _id: SECTOR_ID, name: 'Tech' }]),
+    })
+    // User.find → [] (no existing user) — already set by beforeEach
 
     let capturedUser = null
     User.mockImplementation((data) => {

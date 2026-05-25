@@ -17,6 +17,7 @@ const router               = require('express').Router()
 const User                 = require('../models/User')
 const Notification         = require('../models/Notification')
 const notificationsService = require('../services/notificationsService')
+const apiResponse          = require('../utils/apiResponse')
 
 // ─── GET /api/notifications ───────────────────────────────────────────────────
 
@@ -27,7 +28,7 @@ router.get('/', async (req, res, next) => {
       limit:      req.query.limit,
       unreadOnly: req.query.unreadOnly === 'true',
     })
-    res.json(result)
+    apiResponse.paginated(res, result)
   } catch (err) {
     next(err)
   }
@@ -43,7 +44,7 @@ router.get('/count', async (req, res, next) => {
       Notification.countDocuments({ userId }),
       notificationsService.getUnreadCount(userId),
     ])
-    res.json({ total, unreadCount })
+    apiResponse.success(res, { total, unreadCount })
   } catch (err) {
     next(err)
   }
@@ -55,7 +56,7 @@ router.get('/count', async (req, res, next) => {
 router.patch('/read-all', async (req, res, next) => {
   try {
     const result = await notificationsService.markAllAsRead(req.user._id)
-    res.json(result)
+    apiResponse.success(res, result)
   } catch (err) {
     next(err)
   }
@@ -77,7 +78,7 @@ router.post('/global-remind', async (req, res, next) => {
     const link  = campaignId ? `/campaigns/${campaignId}` : '/evaluations'
 
     const activeUsers = await User.find({ isActive: true }, '_id').lean()
-    if (activeUsers.length === 0) return res.json({ sent: 0 })
+    if (activeUsers.length === 0) return apiResponse.success(res, { sent: 0 })
 
     const docs = activeUsers.map(u => ({
       userId:   u._id,
@@ -89,7 +90,7 @@ router.post('/global-remind', async (req, res, next) => {
     }))
 
     const result = await Notification.insertMany(docs, { ordered: false })
-    return res.json({ sent: result.length })
+    return apiResponse.success(res, { sent: result.length })
   } catch (err) {
     next(err)
   }
@@ -100,7 +101,7 @@ router.post('/global-remind', async (req, res, next) => {
 router.patch('/:id/read', async (req, res, next) => {
   try {
     const result = await notificationsService.markAsRead(req.params.id, req.user._id)
-    res.json(result)
+    apiResponse.success(res, result)
   } catch (err) {
     next(err)
   }

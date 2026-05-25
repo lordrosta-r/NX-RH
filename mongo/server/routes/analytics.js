@@ -27,28 +27,33 @@ router.get('/summary', async (req, res, next) => {
       return res.status(403).json({ error: 'Accès réservé aux admins, RH et directeurs' })
     }
 
-    const [campaigns, evals] = await Promise.all([
-      Campaign.find({}, 'status').lean(),
-      Evaluation.find({}, 'status score campaignId').lean(),
+    const [campaignStats, evalStats] = await Promise.all([
+      Campaign.aggregate([{ $group: { _id: '$status', count: { $sum: 1 } } }]),
+      Evaluation.aggregate([{
+        $group: {
+          _id:        '$status',
+          count:      { $sum: 1 },
+          scoreSum:   { $sum: { $cond: [{ $ne: ['$score', null] }, '$score', 0] } },
+          scoreCount: { $sum: { $cond: [{ $ne: ['$score', null] }, 1, 0] } },
+        },
+      }]),
     ])
 
-    const totalCampaigns   = campaigns.length
-    const activeCampaigns  = campaigns.filter(c => c.status === 'active').length
-    const totalEvaluations = evals.length
+    const totalCampaigns  = campaignStats.reduce((s, x) => s + x.count, 0)
+    const activeCampaigns = (campaignStats.find(x => x._id === 'active') || {}).count || 0
 
-    const validatedEvals = evals.filter(e => e.status === 'validated')
-    const completionRate = totalEvaluations > 0
-      ? Math.round((validatedEvals.length / totalEvaluations) * 100)
+    const totalEvaluations = evalStats.reduce((s, x) => s + x.count, 0)
+    const validatedBucket  = evalStats.find(x => x._id === 'validated') || { count: 0, scoreSum: 0, scoreCount: 0 }
+    const completionRate   = totalEvaluations > 0
+      ? Math.round((validatedBucket.count / totalEvaluations) * 100)
       : 0
-
-    const scoredEvals = validatedEvals.filter(e => e.score !== null && e.score !== undefined)
-    const avgScore = scoredEvals.length > 0
-      ? Math.round(scoredEvals.reduce((sum, e) => sum + e.score, 0) / scoredEvals.length)
+    const avgScore = validatedBucket.scoreCount > 0
+      ? Math.round(validatedBucket.scoreSum / validatedBucket.scoreCount)
       : null
 
     const byStatus = {}
-    for (const ev of evals) {
-      byStatus[ev.status] = (byStatus[ev.status] || 0) + 1
+    for (const b of evalStats) {
+      byStatus[b._id] = b.count
     }
 
     return res.json({

@@ -87,7 +87,7 @@ const TEMPLATES = {
  * @param {object} data      Template data (campaignName, evaluatorName, etc.)
  * @returns {Promise<boolean>} true if sent, false if skipped
  */
-async function notify(key, user, data = {}) {
+async function notify(key, user, data = {}, _dbTemplate = undefined) {
   if (!user?.email || !key) return false
 
   // Check if this notification key is relevant for the user's role
@@ -101,24 +101,32 @@ async function notify(key, user, data = {}) {
   const templateFn = TEMPLATES[key]
   if (!templateFn) return false
 
-  // Tentative DB-first : charger le template depuis MongoDB
-  try {
-    const MailTemplate = getMailTemplate()
-    const dbTemplate   = await MailTemplate.findOne({ slug: key }).lean()
-    if (dbTemplate) {
+  // Tentative DB-first : charger le template depuis MongoDB (ou utiliser le pré-chargé)
+  let resolvedTemplate = _dbTemplate
+  if (resolvedTemplate === undefined) {
+    try {
+      const MailTemplate = getMailTemplate()
+      resolvedTemplate = await MailTemplate.findOne({ slug: key }).lean()
+    } catch (_e) {
+      resolvedTemplate = null
+    }
+  }
+
+  if (resolvedTemplate) {
+    try {
       const interpolate = (str, vars) =>
         str.replace(/\{\{\s*(\w+)\s*\}\}/g, (_, k) => vars[k] ?? '')
       const vars = { ...data, firstName: user.firstName }
       const interpolated = {
-        subject: interpolate(dbTemplate.subject,              vars),
-        text:    interpolate(dbTemplate.bodyText,             vars),
-        html:    interpolate(dbTemplate.bodyHtml || dbTemplate.bodyText, vars),
+        subject: interpolate(resolvedTemplate.subject,                           vars),
+        text:    interpolate(resolvedTemplate.bodyText,                          vars),
+        html:    interpolate(resolvedTemplate.bodyHtml || resolvedTemplate.bodyText, vars),
       }
       await sendMail({ to: user.email, ...interpolated })
       return true
+    } catch (_e) {
+      // Fallback silencieux vers le template hardcodé
     }
-  } catch (_e) {
-    // Fallback silencieux vers le template hardcodé
   }
 
   // Fallback : template hardcodé
@@ -141,8 +149,15 @@ async function notify(key, user, data = {}) {
  * @returns {Promise<number>} Number of emails sent
  */
 async function notifyMany(key, users, data = {}) {
+  // Pre-fetch the template once instead of once per user
+  let dbTemplate = null
+  try {
+    const MailTemplate = getMailTemplate()
+    dbTemplate = await MailTemplate.findOne({ slug: key }).lean()
+  } catch (_e) { /* fallback to hardcoded template */ }
+
   const results = await Promise.allSettled(
-    users.map(u => notify(key, u, data)),
+    users.map(u => notify(key, u, data, dbTemplate)),
   )
   return results.filter(r => r.status === 'fulfilled' && r.value === true).length
 }

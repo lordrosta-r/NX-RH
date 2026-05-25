@@ -251,9 +251,9 @@ describe('GET /api/campaigns', () => {
       .get('/api/campaigns?page=2&limit=10')
       .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(res.status).toBe(200)
-    expect(res.body.total).toBe(42)
-    expect(res.body.page).toBe(2)
-    expect(res.body.limit).toBe(10)
+    expect(res.body.meta.total).toBe(42)
+    expect(res.body.meta.page).toBe(2)
+    expect(res.body.meta.limit).toBe(10)
   })
 })
 
@@ -659,7 +659,7 @@ describe('POST /api/campaigns/:id/clone', () => {
       .post(`/api/campaigns/${CAMPAIGN_ID}/clone`)
       .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(res.status).toBe(201)
-    expect(res.body.formsCloned).toBe(0)
+    expect(res.body.data.formsCloned).toBe(0)
   })
 
   it('returns 201 and clones forms, reporting correct formsCloned count', async () => {
@@ -676,7 +676,7 @@ describe('POST /api/campaigns/:id/clone', () => {
       .post(`/api/campaigns/${CAMPAIGN_ID}/clone`)
       .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(res.status).toBe(201)
-    expect(res.body.formsCloned).toBe(2)
+    expect(res.body.data.formsCloned).toBe(2)
     expect(Form.insertMany).toHaveBeenCalledTimes(1)
   })
 

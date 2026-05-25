@@ -35,7 +35,11 @@
         "statements": 60
       }
     },
-    "coverageReporters": ["text", "lcov", "html"]
+    "coverageReporters": [
+      "text",
+      "lcov",
+      "html"
+    ]
   },
   "overrides": {
     "tar": "^7.5.11"
@@ -52,7 +56,9 @@
     "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.2",
     "ldapjs": "^3.0.7",
+    "minio": "^8.0.7",
     "mongoose": "^8.4.0",
+    "multer": "^2.1.1",
     "nodemailer": "^8.0.5",
     "pdfkit": "^0.18.0",
     "sanitize-html": "^2.17.3",

@@ -54,6 +54,7 @@ const userBulkRoutes          = require('./routes/users/bulk')
 const evaluationBulkRoutes    = require('./routes/evaluations/bulk')
 const searchRoutes        = require('./routes/search')
 const mobilityRoutes      = require('./routes/mobility')
+const pdiRoutes           = require('./routes/pdi')
 
 // ─── App setup ───────────────────────────────────────────────────────────────
 
@@ -269,6 +270,7 @@ v1Router.use('/notifications',    apiLimiter, authenticated, notificationsRouter
 v1Router.use('/dashboard',        apiLimiter, authenticated, dashboardRouter)
 v1Router.use('/search',           apiLimiter, authGuard(['admin', 'hr', 'manager', 'employee']), searchRoutes)
 v1Router.use('/mobility',         mutationLimiter, authenticated, mobilityRoutes)
+v1Router.use('/pdi',              mutationLimiter, authenticated, pdiRoutes)
 
 // Mount v1 at versioned path + legacy /api/ alias (backward compat)
 app.use('/api/v1', v1Router)

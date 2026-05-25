@@ -1,26 +1,31 @@
-import { Search, X } from 'lucide-react'
+import { Search, X } from "lucide-react";
 
 interface Props {
-  searchInput: string
-  onSearchChange: (v: string) => void
-  roleFilter: string
-  onRoleChange: (v: string) => void
-  deptFilter: string
-  onDeptChange: (v: string) => void
-  statusFilter: string
-  onStatusChange: (v: string) => void
-  departments: string[]
-  hasFilters: boolean
-  onReset: () => void
+  searchInput: string;
+  onSearchChange: (v: string) => void;
+  roleFilter: string;
+  onRoleChange: (v: string) => void;
+  deptFilter: string;
+  onDeptChange: (v: string) => void;
+  statusFilter: string;
+  onStatusChange: (v: string) => void;
+  departments: string[];
+  hasFilters: boolean;
+  onReset: () => void;
 }
 
 export function UsersFilterBar({
-  searchInput, onSearchChange,
-  roleFilter, onRoleChange,
-  deptFilter, onDeptChange,
-  statusFilter, onStatusChange,
+  searchInput,
+  onSearchChange,
+  roleFilter,
+  onRoleChange,
+  deptFilter,
+  onDeptChange,
+  statusFilter,
+  onStatusChange,
   departments,
-  hasFilters, onReset,
+  hasFilters,
+  onReset,
 }: Props) {
   return (
     <div className="flex items-center gap-3 mb-4 flex-wrap">
@@ -28,16 +33,17 @@ export function UsersFilterBar({
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
         <input
           type="text"
+          data-testid="users-search"
           placeholder="Rechercher..."
           value={searchInput}
-          onChange={e => onSearchChange(e.target.value)}
+          onChange={(e) => onSearchChange(e.target.value)}
           className="pl-10 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white w-full outline-none"
         />
       </div>
 
       <select
         value={roleFilter}
-        onChange={e => onRoleChange(e.target.value)}
+        onChange={(e) => onRoleChange(e.target.value)}
         className="border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-primary-500 outline-none"
       >
         <option value="">Tous les rôles</option>
@@ -49,18 +55,20 @@ export function UsersFilterBar({
 
       <select
         value={deptFilter}
-        onChange={e => onDeptChange(e.target.value)}
+        onChange={(e) => onDeptChange(e.target.value)}
         className="border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-primary-500 outline-none"
       >
         <option value="">Tous les départements</option>
-        {departments.map(d => (
-          <option key={d} value={d}>{d}</option>
+        {departments.map((d) => (
+          <option key={d} value={d}>
+            {d}
+          </option>
         ))}
       </select>
 
       <select
         value={statusFilter}
-        onChange={e => onStatusChange(e.target.value)}
+        onChange={(e) => onStatusChange(e.target.value)}
         className="border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-primary-500 outline-none"
       >
         <option value="">Tous les statuts</option>
@@ -78,5 +86,5 @@ export function UsersFilterBar({
         </button>
       )}
     </div>
-  )
+  );
 }

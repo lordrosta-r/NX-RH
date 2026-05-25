@@ -10,7 +10,8 @@
     "seed:rich": "node -e \"process.env.NODE_PATH = require('path').resolve('./node_modules'); require('module').Module._initPaths(); require('../database/seed-rich.js');\"",
     "seed:v2": "node -e \"process.env.NODE_PATH = require('path').resolve('./node_modules'); require('module').Module._initPaths(); require('../database/seed-rich-v2.js');\"",
     "seed:full": "cd .. && node database/seed-full.js",
-    "test": "jest --runInBand",
+    "test": "jest --runInBand --forceExit",
+    "test:coverage": "jest --runInBand --forceExit --coverage",
     "test:watch": "jest --watch",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
@@ -25,7 +26,16 @@
       "<rootDir>/__tests__/setup.js"
     ],
     "clearMocks": true,
-    "restoreMocks": true
+    "restoreMocks": true,
+    "coverageThreshold": {
+      "global": {
+        "branches": 50,
+        "functions": 60,
+        "lines": 60,
+        "statements": 60
+      }
+    },
+    "coverageReporters": ["text", "lcov", "html"]
   },
   "overrides": {
     "tar": "^7.5.11"

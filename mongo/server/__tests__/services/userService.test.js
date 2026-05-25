@@ -16,6 +16,7 @@ jest.mock('../../models', () => {
   MockUser.find          = jest.fn()
   MockUser.updateOne     = jest.fn()
   MockUser.countDocuments = jest.fn()
+  MockUser.aggregate     = jest.fn()
 
   return {
     User: MockUser,
@@ -41,6 +42,9 @@ const {
   updateUser,
   gdprExportUser,
   gdprAnonymizeUser,
+  searchUsers,
+  bulkUpsertUsers,
+  getUserStats,
 } = require('../../services/userService')
 
 const VALID_ID  = '507f1f77bcf86cd799439011'
@@ -242,5 +246,161 @@ describe('userService — gdprAnonymizeUser()', () => {
     expect(mockUserDoc.email).toContain('anonyme')
     expect(mockUserDoc.isActive).toBe(false)
     expect(mockUserDoc.save).toHaveBeenCalled()
+  })
+})
+
+// ── searchUsers ───────────────────────────────────────────────────────────────
+
+/** Minimal chainable stub for User.find(...).select().sort().skip().limit().lean() */
+function mockUserFindChain(result) {
+  return {
+    select: jest.fn().mockReturnThis(),
+    sort:   jest.fn().mockReturnThis(),
+    skip:   jest.fn().mockReturnThis(),
+    limit:  jest.fn().mockReturnThis(),
+    lean:   jest.fn().mockResolvedValue(result),
+  }
+}
+
+describe('userService — searchUsers()', () => {
+  test('throws 400 when query is empty', async () => {
+    await expect(searchUsers('', {})).rejects.toMatchObject({ status: 400 })
+  })
+
+  test('throws 400 when query is not a string', async () => {
+    await expect(searchUsers(null, {})).rejects.toMatchObject({ status: 400 })
+  })
+
+  test('returns paginated users matching the query', async () => {
+    const mockUsers = [{ _id: VALID_ID, firstName: 'Alice', email: 'alice@test.com' }]
+    User.find.mockReturnValue(mockUserFindChain(mockUsers))
+    User.countDocuments.mockResolvedValue(1)
+
+    const result = await searchUsers('Alice', {})
+    expect(result.users).toEqual(mockUsers)
+    expect(result.total).toBe(1)
+    expect(result).toHaveProperty('pages')
+    expect(result.pages).toBe(1)
+  })
+
+  test('applies role filter when provided', async () => {
+    User.find.mockReturnValue(mockUserFindChain([]))
+    User.countDocuments.mockResolvedValue(0)
+
+    await searchUsers('test', { role: 'manager' })
+
+    expect(User.find).toHaveBeenCalledWith(
+      expect.objectContaining({ role: 'manager' }),
+    )
+  })
+
+  test('applies department filter when provided', async () => {
+    User.find.mockReturnValue(mockUserFindChain([]))
+    User.countDocuments.mockResolvedValue(0)
+
+    await searchUsers('test', { department: 'Engineering' })
+
+    expect(User.find).toHaveBeenCalledWith(
+      expect.objectContaining({ department: 'Engineering' }),
+    )
+  })
+
+  test('returns correct page metadata', async () => {
+    User.find.mockReturnValue(mockUserFindChain([]))
+    User.countDocuments.mockResolvedValue(45)
+
+    const result = await searchUsers('test', { page: 2, limit: 20 })
+    expect(result.page).toBe(2)
+    expect(result.limit).toBe(20)
+    expect(result.pages).toBe(3)
+  })
+})
+
+// ── getUserStats ──────────────────────────────────────────────────────────────
+describe('userService — getUserStats()', () => {
+  test('returns total, byRole, byDept, inactive counts', async () => {
+    User.countDocuments
+      .mockResolvedValueOnce(100)  // total
+      .mockResolvedValueOnce(10)   // inactive
+    User.aggregate
+      .mockResolvedValueOnce([{ _id: 'employee', count: 80 }, { _id: 'manager', count: 20 }])
+      .mockResolvedValueOnce([{ _id: 'Engineering', count: 50 }])
+
+    const result = await getUserStats()
+    expect(result.total).toBe(100)
+    expect(result.inactive).toBe(10)
+    expect(Array.isArray(result.byRole)).toBe(true)
+    expect(result.byRole).toHaveLength(2)
+    expect(Array.isArray(result.byDept)).toBe(true)
+  })
+})
+
+// ── bulkUpsertUsers ───────────────────────────────────────────────────────────
+describe('userService — bulkUpsertUsers()', () => {
+  test('throws 400 for empty array', async () => {
+    await expect(bulkUpsertUsers([])).rejects.toMatchObject({ status: 400 })
+  })
+
+  test('throws 400 for non-array input', async () => {
+    await expect(bulkUpsertUsers(null)).rejects.toMatchObject({ status: 400 })
+  })
+
+  test('creates new users not already in DB', async () => {
+    User.find.mockReturnValue({ lean: jest.fn().mockResolvedValue([]) })
+    bcrypt.hash.mockResolvedValue('$2b$12$hashed')
+
+    const result = await bulkUpsertUsers([
+      { email: 'new@test.com', firstName: 'New', lastName: 'User' },
+    ])
+
+    expect(result.created).toBe(1)
+    expect(result.updated).toBe(0)
+    expect(result.errors).toHaveLength(0)
+  })
+
+  test('updates existing users matched by email', async () => {
+    User.find.mockReturnValue({ lean: jest.fn().mockResolvedValue([{ email: 'existing@test.com' }]) })
+    User.updateOne.mockResolvedValue({ modifiedCount: 1 })
+
+    const result = await bulkUpsertUsers([
+      { email: 'existing@test.com', firstName: 'Updated', lastName: 'User' },
+    ])
+
+    expect(result.updated).toBe(1)
+    expect(result.created).toBe(0)
+    expect(result.errors).toHaveLength(0)
+  })
+
+  test('returns { created, updated, errors } summary', async () => {
+    User.find.mockReturnValue({
+      lean: jest.fn().mockResolvedValue([{ email: 'existing@test.com' }]),
+    })
+    bcrypt.hash.mockResolvedValue('$2b$12$hashed')
+    User.updateOne.mockResolvedValue({ modifiedCount: 1 })
+
+    const result = await bulkUpsertUsers([
+      { email: 'existing@test.com', firstName: 'Updated' },
+      { email: 'new@test.com',      firstName: 'New', lastName: 'User' },
+    ])
+
+    expect(result).toHaveProperty('created')
+    expect(result).toHaveProperty('updated')
+    expect(result).toHaveProperty('errors')
+    expect(result.created + result.updated).toBe(2)
+  })
+
+  test('records errors for failed upserts without throwing', async () => {
+    User.find.mockReturnValue({ lean: jest.fn().mockResolvedValue([]) })
+    bcrypt.hash.mockResolvedValue('$2b$12$hashed')
+
+    User.mockImplementationOnce(function (data) {
+      Object.assign(this, data)
+      this.save     = jest.fn().mockRejectedValue(new Error('Validation error'))
+      this.toObject = jest.fn().mockReturnValue({ ...data })
+    })
+
+    const result = await bulkUpsertUsers([{ email: 'bad@test.com', firstName: 'Bad' }])
+    expect(result.errors).toHaveLength(1)
+    expect(result.errors[0].email).toBe('bad@test.com')
   })
 })

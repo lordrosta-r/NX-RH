@@ -437,3 +437,168 @@ describe('PATCH /api/evaluations/:id — input validation', () => {
     expect(res.body.error).toMatch(/tableau/i)
   })
 })
+
+// ─── GET /api/evaluations — paginated list ────────────────────────────────────
+
+/** Chainable Mongoose query stub for use in GET route tests */
+function makeQueryChain(result) {
+  return {
+    select:   jest.fn().mockReturnThis(),
+    sort:     jest.fn().mockReturnThis(),
+    skip:     jest.fn().mockReturnThis(),
+    limit:    jest.fn().mockReturnThis(),
+    populate: jest.fn().mockReturnThis(),
+    lean:     jest.fn().mockResolvedValue(result),
+  }
+}
+
+describe('GET /api/evaluations — paginated list', () => {
+  const app = buildApp()
+
+  const mockEvalItem = {
+    _id:          EVAL_ID,
+    campaignId:   { _id: CAMPAIGN_ID, name: 'Q1 2024', status: 'active' },
+    evaluatorId:  { _id: MANAGER_ID,  firstName: 'Manager',  lastName: 'One' },
+    evaluateeId:  { _id: EMPLOYEE_ID, firstName: 'Employee', lastName: 'One', department: 'Engineering' },
+    formId:       { _id: '507f1f77bcf86cd799439030', title: 'Annual', formType: 'annual', isAnonymous: false },
+    status:       'assigned',
+    isAnonymous:  false,
+  }
+
+  beforeEach(() => jest.clearAllMocks())
+
+  it('returns 200 with paginated data for an authenticated admin', async () => {
+    Evaluation.find.mockReturnValue(makeQueryChain([mockEvalItem]))
+    Evaluation.countDocuments.mockResolvedValue(1)
+
+    const res = await request(app)
+      .get('/api/evaluations')
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+
+    expect(res.status).toBe(200)
+    expect(Array.isArray(res.body.data)).toBe(true)
+    expect(res.body.total).toBe(1)
+  })
+
+  it('filters by campaignId when provided', async () => {
+    Evaluation.find.mockReturnValue(makeQueryChain([mockEvalItem]))
+    Evaluation.countDocuments.mockResolvedValue(1)
+
+    const res = await request(app)
+      .get(`/api/evaluations?campaignId=${CAMPAIGN_ID}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+
+    expect(res.status).toBe(200)
+    expect(Evaluation.find).toHaveBeenCalledWith(
+      expect.objectContaining({ campaignId: CAMPAIGN_ID }),
+    )
+  })
+
+  it('filters by status when provided', async () => {
+    Evaluation.find.mockReturnValue(makeQueryChain([mockEvalItem]))
+    Evaluation.countDocuments.mockResolvedValue(1)
+
+    const res = await request(app)
+      .get('/api/evaluations?status=assigned')
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+
+    expect(res.status).toBe(200)
+    expect(Evaluation.find).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 'assigned' }),
+    )
+  })
+
+  it('returns 401 for unauthenticated request', async () => {
+    const res = await request(app).get('/api/evaluations')
+    expect(res.status).toBe(401)
+  })
+
+  it('returns 400 for invalid campaignId query param', async () => {
+    const res = await request(app)
+      .get('/api/evaluations?campaignId=not-a-valid-id')
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+
+    expect(res.status).toBe(400)
+  })
+})
+
+// ─── GET /api/evaluations/:id — detail ───────────────────────────────────────
+
+describe('GET /api/evaluations/:id — detail', () => {
+  const app = buildApp()
+
+  const fullEval = {
+    _id:         EVAL_ID,
+    campaignId:  { _id: CAMPAIGN_ID, name: 'Q1 2024', status: 'active', extendedVisibility: false },
+    evaluatorId: { _id: MANAGER_ID,  firstName: 'Manager',  lastName: 'One' },
+    evaluateeId: { _id: EMPLOYEE_ID, firstName: 'Employee', lastName: 'One', department: 'Engineering', position: 'Dev' },
+    formId:      { _id: '507f1f77bcf86cd799439030', title: 'Annual', formType: 'annual', isAnonymous: false, questions: [] },
+    status:      'in_progress',
+    isAnonymous: false,
+    answers:     [],
+  }
+
+  beforeEach(() => jest.clearAllMocks())
+
+  it('returns 200 with evaluation detail for admin', async () => {
+    Evaluation.findById = jest.fn().mockReturnValue(makeThenable(fullEval))
+
+    const res = await request(app)
+      .get(`/api/evaluations/${EVAL_ID}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+
+    expect(res.status).toBe(200)
+    expect(res.body._id).toBe(EVAL_ID)
+  })
+
+  it('returns 404 for non-existent evaluation', async () => {
+    Evaluation.findById = jest.fn().mockReturnValue(makeThenable(null))
+
+    const res = await request(app)
+      .get(`/api/evaluations/${EVAL_ID}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+
+    expect(res.status).toBe(404)
+  })
+
+  it('returns 403 when employee is not a participant', async () => {
+    Evaluation.findById = jest.fn().mockReturnValue(makeThenable({
+      ...fullEval,
+      evaluatorId: { _id: OTHER_MANAGER_ID },
+      evaluateeId: { _id: OTHER_ID },
+    }))
+
+    const res = await request(app)
+      .get(`/api/evaluations/${EVAL_ID}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+
+    expect(res.status).toBe(403)
+  })
+
+  it('returns 200 when employee is the evaluatee', async () => {
+    Evaluation.findById = jest.fn().mockReturnValue(makeThenable({
+      ...fullEval,
+      evaluatorId: { _id: MANAGER_ID },
+      evaluateeId: { _id: EMPLOYEE_ID },
+    }))
+
+    const res = await request(app)
+      .get(`/api/evaluations/${EVAL_ID}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+
+    expect(res.status).toBe(200)
+  })
+
+  it('returns 400 for an invalid evaluation ObjectId', async () => {
+    const res = await request(app)
+      .get('/api/evaluations/not-a-valid-id')
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 401 for unauthenticated request', async () => {
+    const res = await request(app).get(`/api/evaluations/${EVAL_ID}`)
+    expect(res.status).toBe(401)
+  })
+})

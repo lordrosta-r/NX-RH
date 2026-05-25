@@ -5,6 +5,7 @@ import { exportToCsv } from '../utils/export'
 import { useDebounce } from './useDebounce'
 import { toast } from './useToast'
 import type { User } from '../types'
+import { queryKeys } from '../lib/queryKeys'
 
 const PER_PAGE = 20
 
@@ -29,7 +30,7 @@ export function useUsersPage() {
   const [selected, setSelected] = useState<Set<string>>(new Set())
 
   const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: ['users', search, roleFilter, deptFilter, statusFilter, page],
+    queryKey: queryKeys.users.list({ search, roleFilter, deptFilter, statusFilter, page }),
     queryFn: () =>
       usersApi.getUsers({
         q: search || undefined,
@@ -51,14 +52,14 @@ export function useUsersPage() {
 
   const offboardMutation = useMutation({
     mutationFn: (id: string) => usersApi.offboard(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['users'] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.users.lists() }),
     onError: () => toast.error("Erreur lors de l'offboarding", 'Veuillez réessayer.'),
   })
 
   const anonymizeMutation = useMutation({
     mutationFn: (id: string) => usersApi.anonymize(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] })
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.lists() })
       setAnonymizeTarget(null)
     },
     onError: () => toast.error("Erreur lors de l'anonymisation", 'Veuillez réessayer.'),
@@ -67,12 +68,34 @@ export function useUsersPage() {
   function handleBulkDeactivate() {
     usersApi.bulkAction({ action: 'deactivate', userIds: [...selected] })
       .then(() => {
-        queryClient.invalidateQueries({ queryKey: ['users'] })
+        queryClient.invalidateQueries({ queryKey: queryKeys.users.lists() })
         setSelected(new Set())
         toast.success('Utilisateurs désactivés', `${selected.size} utilisateur(s) désactivé(s).`)
       })
       .catch(() => toast.error('Erreur', 'Impossible de désactiver les utilisateurs.'))
   }
+
+  const updateUserRoleMutation = useMutation({
+    mutationFn: ({ userId, role }: { userId: string; role: User['role'] }) =>
+      usersApi.updateUser(userId, { role }).then(r => r.data.data),
+    onMutate: async ({ userId, role }) => {
+      const listKey = queryKeys.users.list({ search, roleFilter, deptFilter, statusFilter, page })
+      await queryClient.cancelQueries({ queryKey: queryKeys.users.lists() })
+      const previous = queryClient.getQueryData<{ data: User[]; total: number; totalPages: number }>(listKey)
+      queryClient.setQueryData<{ data: User[]; total: number; totalPages: number }>(
+        listKey,
+        (old) => old ? { ...old, data: old.data.map(u => u.id === userId ? { ...u, role } : u) } : old
+      )
+      return { previous, listKey }
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) queryClient.setQueryData(context.listKey, context.previous)
+      toast.error('Erreur lors du changement de rôle', 'Veuillez réessayer.')
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.lists() })
+    },
+  })
 
   function handleBulkExport() {
     const selectedUsers = (data?.data ?? []).filter(u => selected.has(u.id ?? ''))
@@ -144,6 +167,7 @@ export function useUsersPage() {
     importOpen, setImportOpen,
     offboardMutation,
     anonymizeMutation,
+    updateUserRoleMutation,
     handleBulkDeactivate,
     handleBulkExport,
   }

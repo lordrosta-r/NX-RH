@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Bell, X } from 'lucide-react'
 import { adminApi } from '../api/admin'
+import { queryKeys } from '../lib/queryKeys'
 
 type CampaignSettings = {
   allow_self_evaluation: boolean
@@ -19,7 +20,7 @@ export default function HrSettingsPage() {
   const qc = useQueryClient()
 
   const { data: campaignSettings, isLoading: settingsLoading } = useQuery<CampaignSettings>({
-    queryKey: ['campaign-settings'],
+    queryKey: queryKeys.campaignSettings.all,
     queryFn: () => adminApi.getHrSettings().then(r => r.data as CampaignSettings),
   })
 
@@ -31,7 +32,7 @@ export default function HrSettingsPage() {
 
   const updateSettings = useMutation({
     mutationFn: (data: Partial<CampaignSettings>) => adminApi.updateHrSettings(data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['campaign-settings'] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.campaignSettings.all }),
   })
 
   const bulkRemindMut = useMutation({

@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import PageHeader from '@/components/ui/PageHeader'
 import Button from '@/components/ui/Button'
 import client from '@/api/client'
+import { queryKeys } from '@/lib/queryKeys'
 
 interface MailConfig {
   smtpHost: string
@@ -18,7 +19,7 @@ export default function AdminMailConfigPage() {
   const qc = useQueryClient()
 
   const { data: config, isLoading } = useQuery<MailConfig>({
-    queryKey: ['admin', 'mail-config'],
+    queryKey: queryKeys.mailConfig.all,
     queryFn: () => client.get('/api/admin/config/mail').then(r => r.data?.data ?? r.data),
   })
 
@@ -27,7 +28,7 @@ export default function AdminMailConfigPage() {
 
   const saveMutation = useMutation({
     mutationFn: (data: Partial<MailConfig>) => client.put('/api/admin/config/mail', data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'mail-config'] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.mailConfig.all }),
   })
 
   const testMutation = useMutation({

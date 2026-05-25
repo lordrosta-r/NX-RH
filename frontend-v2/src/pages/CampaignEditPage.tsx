@@ -6,6 +6,7 @@ import { orgApi } from '../api/org'
 import { groupsApi } from '../api/groups'
 import type { Campaign, CampaignStatus, UserGroup } from '../types'
 import Button from '../components/ui/Button'
+import { queryKeys } from '../lib/queryKeys'
 
 // ─── Shared sub-components ────────────────────────────────────────────────────
 
@@ -202,7 +203,7 @@ export default function CampaignEditPage() {
     setForm(f => ({ ...f, [key]: value }))
 
   const { data: campaign, isLoading: campaignLoading } = useQuery({
-    queryKey: ['campaign', id],
+    queryKey: queryKeys.campaigns.detail(id ?? ''),
     queryFn: () => campaignsApi.getCampaign(id!).then(r => r.data.data),
     enabled: !!id,
   })
@@ -266,8 +267,8 @@ export default function CampaignEditPage() {
     mutationFn: (data: Partial<Campaign>) =>
       campaignsApi.updateCampaign(id!, data).then(r => r.data.data),
     onSuccess: (updated: Campaign) => {
-      queryClient.invalidateQueries({ queryKey: ['campaigns'] })
-      queryClient.invalidateQueries({ queryKey: ['campaign', id] })
+      queryClient.invalidateQueries({ queryKey: queryKeys.campaigns.lists() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.campaigns.detail(id ?? '') })
       navigate(`/campaigns/${updated.id}`)
     },
   })

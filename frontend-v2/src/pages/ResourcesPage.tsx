@@ -13,6 +13,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { resourcesApi } from '../api/resources'
 import EmptyState from '../components/ui/EmptyState'
 import { toast } from '../hooks/useToast'
+import { queryKeys } from '../lib/queryKeys'
 import type { Resource, ResourceType, Role } from '../types'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -204,7 +205,7 @@ function NewResourceSlideOver({ open, onClose }: NewResourceSlideOverProps) {
     mutationFn: (data: Partial<Resource>) =>
       resourcesApi.createResource(data).then(r => r.data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['resources'] })
+      queryClient.invalidateQueries({ queryKey: queryKeys.resources.lists() })
       handleReset()
       onClose()
     },
@@ -387,7 +388,7 @@ export default function ResourcesPage() {
   const [showNewSlideOver, setShowNewSlideOver] = useState(false)
 
   const { data, isLoading } = useQuery({
-    queryKey: ['resources', { typeFilter, statusFilter, search: debouncedSearch, isAdminHr }],
+    queryKey: queryKeys.resources.lists(),
     queryFn: () =>
       resourcesApi.getResources({
         category: typeFilter !== 'all' ? typeFilter : undefined,
@@ -407,19 +408,19 @@ export default function ResourcesPage() {
 
   const { mutate: publishResource } = useMutation({
     mutationFn: (id: string) => resourcesApi.publishResource(id),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['resources'] }); toast.success('Ressource publiée') },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: queryKeys.resources.lists() }); toast.success('Ressource publiée') },
     onError: () => toast.error('Erreur lors de la publication', 'Veuillez réessayer.'),
   })
 
   const { mutate: unpublishResource } = useMutation({
     mutationFn: (id: string) => resourcesApi.unpublishResource(id),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['resources'] }); toast.success('Ressource dépubliée') },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: queryKeys.resources.lists() }); toast.success('Ressource dépubliée') },
     onError: () => toast.error('Erreur lors de la dépublication', 'Veuillez réessayer.'),
   })
 
   const { mutate: deleteResource } = useMutation({
     mutationFn: (id: string) => resourcesApi.deleteResource(id),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['resources'] }); toast.success('Ressource supprimée') },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: queryKeys.resources.lists() }); toast.success('Ressource supprimée') },
     onError: () => toast.error('Erreur lors de la suppression', 'Veuillez réessayer.'),
   })
 

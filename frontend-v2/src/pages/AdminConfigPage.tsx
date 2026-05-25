@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, Pencil, Trash2, X, CheckCircle2, XCircle } from 'lucide-react'
 import { adminApi } from '../api/admin'
+import { queryKeys } from '../lib/queryKeys'
 
 type ConfigKey = { key: string; value: string }
 
@@ -94,18 +95,18 @@ export default function AdminConfigPage() {
   const [keyForm, setKeyForm] = useState({ key: '', value: '' })
 
   const { data: keys, isLoading } = useQuery({
-    queryKey: ['config-keys'],
+    queryKey: queryKeys.configKeys.all,
     queryFn: () => adminApi.getConfigKeys().then(r => r.data),
   })
 
   const setKeyMut = useMutation({
     mutationFn: ({ key, value }: ConfigKey) => adminApi.setConfigKey(key, value),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['config-keys'] }); setShowKeyModal(false); setEditingKey(null) },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: queryKeys.configKeys.all }); setShowKeyModal(false); setEditingKey(null) },
   })
 
   const deleteKeyMut = useMutation({
     mutationFn: (key: string) => adminApi.deleteConfigKey(key),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['config-keys'] }); setDeleteTarget(null) },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: queryKeys.configKeys.all }); setDeleteTarget(null) },
   })
 
   function openNew() {

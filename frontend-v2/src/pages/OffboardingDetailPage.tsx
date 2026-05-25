@@ -6,6 +6,7 @@ import { offboardingApi, type OffboardingRecord } from '../api/offboarding'
 import { useAuth } from '../contexts/AuthContext'
 import { cn } from '../utils/cn'
 import { formatDate, formatDateTime } from '../utils/formatDate'
+import { queryKeys } from '../lib/queryKeys'
 
 const REASON_LABELS: Record<OffboardingRecord['reason'], string> = {
   resignation: 'Démission',
@@ -38,7 +39,7 @@ export default function OffboardingDetailPage() {
   const [notesReady, setNotesReady] = useState(false)
 
   const { data: record, isLoading } = useQuery({
-    queryKey: ['offboarding', id],
+    queryKey: queryKeys.offboarding.detail(id ?? ''),
     queryFn: () => offboardingApi.getOffboarding(id!).then((r) => r.data),
     enabled: !!id,
     select: (d) => {
@@ -52,19 +53,19 @@ export default function OffboardingDetailPage() {
 
   const toggleMutation = useMutation({
     mutationFn: (index: number) => offboardingApi.toggleChecklistItem(id!, index),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['offboarding', id] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.offboarding.detail(id ?? '') }),
   })
 
   const notesMutation = useMutation({
     mutationFn: () => offboardingApi.updateNotes(id!, notes),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['offboarding', id] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.offboarding.detail(id ?? '') }),
   })
 
   const statusMutation = useMutation({
     mutationFn: (newStatus: string) => offboardingApi.changeStatus(id!, newStatus),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['offboarding', id] })
-      queryClient.invalidateQueries({ queryKey: ['offboardings'] })
+      queryClient.invalidateQueries({ queryKey: queryKeys.offboarding.detail(id ?? '') })
+      queryClient.invalidateQueries({ queryKey: queryKeys.offboarding.lists() })
       setStatusConfirm(false)
     },
   })

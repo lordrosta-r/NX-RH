@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/AuthContext'
 import api from '@/api/client'
+import { queryKeys } from '../lib/queryKeys'
 
 type MobilityStatus = 'pending' | 'under_review' | 'approved' | 'rejected' | 'on_hold'
 type RequestType = 'internal_transfer' | 'promotion' | 'lateral_move' | 'site_change' | 'department_change'
@@ -64,7 +65,7 @@ export default function MobilityPage() {
   const [newRequest, setNewRequest] = useState(EMPTY_FORM)
 
   const { data, isLoading } = useQuery({
-    queryKey: ['mobility', statusFilter],
+    queryKey: queryKeys.mobility.lists(),
     queryFn: () =>
       api.get('/mobility', { params: { status: statusFilter || undefined, limit: 50 } }).then(r => r.data),
   })
@@ -75,7 +76,7 @@ export default function MobilityPage() {
   const createMutation = useMutation({
     mutationFn: (req: typeof newRequest) => api.post('/mobility', req),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['mobility'] })
+      qc.invalidateQueries({ queryKey: queryKeys.mobility.lists() })
       setShowNewForm(false)
       setNewRequest(EMPTY_FORM)
     },
@@ -85,7 +86,7 @@ export default function MobilityPage() {
     mutationFn: ({ id, status, hrComment: comment }: { id: string; status: string; hrComment?: string }) =>
       api.patch(`/mobility/${id}`, { status, hrComment: comment }),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['mobility'] })
+      qc.invalidateQueries({ queryKey: queryKeys.mobility.lists() })
       setSelectedRequest(null)
     },
   })

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Bell } from 'lucide-react'
 import { notificationsApi } from '@/api/notifications'
+import { queryKeys } from '@/lib/queryKeys'
 import type { Notification } from '@/types'
 
 function formatRelativeTime(date: string): string {
@@ -29,25 +30,48 @@ export function NotificationBell() {
   }, [])
 
   const { data: countData } = useQuery({
-    queryKey: ['notifications', 'count'],
+    queryKey: queryKeys.notifications.count(),
     queryFn: () => notificationsApi.getNotificationCount().then(r => r.data),
     refetchInterval: 60_000,
   })
 
   const { data: listData } = useQuery({
-    queryKey: ['notifications', 'list', 'preview'],
+    queryKey: queryKeys.notifications.preview(),
     queryFn: () => notificationsApi.getNotifications({ limit: 10, page: 1 }).then(r => r.data),
     enabled: open,
   })
 
   const markRead = useMutation({
     mutationFn: (id: string) => notificationsApi.markRead(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['notifications'] }),
+    onMutate: async (id) => {
+      await qc.cancelQueries({ queryKey: queryKeys.notifications.preview() })
+      const previous = qc.getQueryData<{ data: Notification[]; total: number; totalPages: number; page: number }>(queryKeys.notifications.preview())
+      qc.setQueryData<{ data: Notification[]; total: number; totalPages: number; page: number }>(
+        queryKeys.notifications.preview(),
+        (old) => old ? { ...old, data: old.data.map(n => n.id === id ? { ...n, read: true } : n) } : old
+      )
+      const previousCount = qc.getQueryData<{ unreadCount: number }>(queryKeys.notifications.count())
+      if (previousCount) {
+        qc.setQueryData<{ unreadCount: number }>(queryKeys.notifications.count(), { unreadCount: Math.max(0, previousCount.unreadCount - 1) })
+      }
+      return { previous, previousCount }
+    },
+    onError: (_err, _id, context) => {
+      if (context?.previous) qc.setQueryData(queryKeys.notifications.preview(), context.previous)
+      if (context?.previousCount) qc.setQueryData(queryKeys.notifications.count(), context.previousCount)
+    },
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.notifications.count() })
+      qc.invalidateQueries({ queryKey: queryKeys.notifications.preview() })
+    },
   })
 
   const markAll = useMutation({
     mutationFn: () => notificationsApi.markAllRead(),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['notifications'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.notifications.count() })
+      qc.invalidateQueries({ queryKey: queryKeys.notifications.preview() })
+    },
   })
 
   const unread = countData?.unreadCount ?? 0

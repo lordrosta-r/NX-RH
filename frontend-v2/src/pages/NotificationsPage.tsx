@@ -19,6 +19,7 @@ import type { LucideIcon } from 'lucide-react'
 import type { Notification } from '../types'
 import { notificationsApi } from '../api/notifications'
 import EmptyState from '../components/ui/EmptyState'
+import { queryKeys } from '../lib/queryKeys'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -180,7 +181,7 @@ export default function NotificationsPage() {
   const [allNotifications, setAllNotifications] = useState<Notification[]>([])
 
   const { data, isLoading, isFetching, isError, refetch } = useQuery({
-    queryKey: ['notifications', page],
+    queryKey: queryKeys.notifications.list({ page }),
     queryFn: () =>
       notificationsApi.getNotifications({ page, limit: 20 }).then((r) => r.data),
     placeholderData: keepPreviousData,
@@ -213,7 +214,7 @@ export default function NotificationsPage() {
     mutationFn: () => notificationsApi.markAllRead(),
     onSuccess: () => {
       setPage(1)
-      queryClient.invalidateQueries({ queryKey: ['notifications'] })
+      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.lists() })
     },
   })
 

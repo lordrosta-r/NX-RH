@@ -4,6 +4,7 @@ import { Mail, ChevronDown, ChevronUp, RefreshCw, Save, AlertCircle, Send, Check
 import { adminApi } from '../api/admin'
 import { useAuth } from '../contexts/AuthContext'
 import type { MailTemplate } from '../types'
+import { queryKeys } from '../lib/queryKeys'
 
 const SLUG_LABELS: Record<string, string> = {
   campaignLaunch: 'Campagne lancée',
@@ -33,7 +34,7 @@ function TemplateEditor({ template, onClose }: { template: MailTemplate; onClose
     mutationFn: (data: { subject: string; bodyText: string }) =>
       adminApi.updateMailTemplate(template.slug, data),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['mail-templates'] })
+      qc.invalidateQueries({ queryKey: queryKeys.mailTemplates.all })
       onClose()
     },
   })
@@ -41,7 +42,7 @@ function TemplateEditor({ template, onClose }: { template: MailTemplate; onClose
   const resetMut = useMutation({
     mutationFn: () => adminApi.updateMailTemplate(template.slug, { reset: true }),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['mail-templates'] })
+      qc.invalidateQueries({ queryKey: queryKeys.mailTemplates.all })
       onClose()
     },
   })
@@ -169,7 +170,7 @@ export default function AdminMailTemplatesPage() {
   const [smtpResult, setSmtpResult] = useState<{ ok: boolean; msg: string } | null>(null)
 
   const { data: templates, isLoading, isError } = useQuery<MailTemplate[]>({
-    queryKey: ['mail-templates'],
+    queryKey: queryKeys.mailTemplates.all,
     queryFn: () => adminApi.getMailTemplates().then(r => r.data),
   })
 

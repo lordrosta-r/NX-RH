@@ -8,6 +8,7 @@ import type {
   HrFlagType,
   PaginatedResponse,
 } from "../types";
+import { queryKeys } from "../lib/queryKeys";
 
 const TYPE_LABELS: Record<HrFlagType, string> = {
   mobility_request: "Mobilité",
@@ -57,7 +58,7 @@ export default function HrFlagsPage() {
   const [newStatus, setNewStatus] = useState<HrFlagStatus | "">("");
 
   const { data, isLoading } = useQuery<PaginatedResponse<HrFlag>>({
-    queryKey: ["hr-flags", statusFilter, typeFilter],
+    queryKey: queryKeys.hrFlags.lists(),
     queryFn: () =>
       adminApi
         .getFlags({
@@ -78,7 +79,7 @@ export default function HrFlagsPage() {
       note?: string;
     }) => adminApi.updateFlagStatus(id, status, note),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["hr-flags"] });
+      qc.invalidateQueries({ queryKey: queryKeys.hrFlags.lists() });
       setSelectedFlag(null);
     },
   });

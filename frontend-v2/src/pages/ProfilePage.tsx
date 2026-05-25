@@ -13,6 +13,7 @@ import { formsApi } from '../api/forms'
 import { evaluationsApi } from '../api/evaluations'
 import type { User, Form, Evaluation } from '../types'
 import { cn } from '../utils/cn'
+import { queryKeys } from '../lib/queryKeys'
 
 type TabId = 'info' | 'avatar' | 'prefs' | 'data' | 'requests'
 
@@ -71,7 +72,7 @@ export default function ProfilePage() {
   const saveInfoMutation = useMutation({
     mutationFn: () => usersApi.updateUser(user!.id, { firstName, lastName }),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['me'] })
+      await queryClient.invalidateQueries({ queryKey: queryKeys.me.all })
       await refreshUser()
       setEditMode(false)
     },
@@ -86,7 +87,7 @@ export default function ProfilePage() {
   const avatarMutation = useMutation({
     mutationFn: (base64: string) => usersApi.updateAvatar(user!.id, base64),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['me'] })
+      await queryClient.invalidateQueries({ queryKey: queryKeys.me.all })
       await refreshUser()
       setAvatarPreview('')
       setAvatarBase64('')

@@ -121,7 +121,7 @@ export default function OrgSidePanel({
         {/* Manager */}
         {currentManager && !canEdit && (
           <div>
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Manager direct</p>
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Manager direct</p>
             <button
               onClick={() => onNavigateTo(currentManager.id)}
               className="flex items-center gap-2 w-full p-2 rounded-md hover:bg-slate-50 text-left group"
@@ -141,7 +141,7 @@ export default function OrgSidePanel({
         {/* Edit section (admin/hr only) */}
         {canEdit && (
           <div className="space-y-3">
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Modifier</p>
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Modifier</p>
 
             {/* Role */}
             <div>

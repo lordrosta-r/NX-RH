@@ -282,7 +282,7 @@ export default function OffboardingPage() {
           <div className="w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
         </div>
       ) : records.length === 0 ? (
-        <div className="bg-white rounded-2xl shadow p-12 flex flex-col items-center gap-3 text-slate-400">
+        <div className="bg-white rounded-2xl shadow p-12 flex flex-col items-center gap-3 text-slate-600">
           <LogOut className="w-12 h-12 opacity-30" />
           <p className="text-base font-medium">Aucune demande de départ en cours.</p>
         </div>

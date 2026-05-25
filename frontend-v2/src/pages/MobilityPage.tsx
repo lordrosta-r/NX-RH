@@ -151,7 +151,7 @@ export default function MobilityPage() {
           ))}
         </div>
       ) : requests.length === 0 ? (
-        <div className="text-center py-16 text-gray-400">
+        <div className="text-center py-16 text-gray-600">
           <p className="text-4xl mb-3">📋</p>
           <p className="font-medium">Aucune demande de mobilité</p>
           <p className="text-sm mt-1">Les demandes apparaîtront ici</p>

@@ -86,7 +86,7 @@ export default function CampaignDetailPage() {
       {tab === "evaluations" && (
         <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-8 text-center">
           {detail.campaign.status === "draft" ? (
-            <p className="text-slate-400 text-sm">
+            <p className="text-slate-600 text-sm">
               Aucune évaluation disponible — la campagne est en brouillon.
             </p>
           ) : (

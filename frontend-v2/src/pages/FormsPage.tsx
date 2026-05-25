@@ -127,12 +127,12 @@ export default function FormsPage() {
           value={search}
           onChange={e => setSearch(e.target.value)}
         />
-        {isSearching && <span className="text-xs text-slate-400 self-center">…</span>}
+        {isSearching && <span className="text-xs text-slate-500 self-center">…</span>}
       </div>
 
       {/* Loading */}
       {isLoading && (
-        <div className="text-center py-12 text-slate-400 text-sm">Chargement…</div>
+        <div className="text-center py-12 text-slate-600 text-sm">Chargement…</div>
       )}
 
       {/* Empty state */}

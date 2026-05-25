@@ -117,7 +117,7 @@ function EditSlideOver({
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
           <h2 className="text-lg font-semibold text-slate-900">Modifier l'événement</h2>
-          <button onClick={onClose} className="p-2 rounded-md hover:bg-slate-100 text-slate-400 transition-colors">
+          <button onClick={onClose} className="p-2 rounded-md hover:bg-slate-100 text-slate-400 transition-colors" aria-label="Fermer">
             <X size={20} />
           </button>
         </div>
@@ -174,7 +174,7 @@ function EditSlideOver({
                 rows={3} value={form.description}
                 onChange={e => onChange('description', e.target.value)}
                 placeholder="Description de l'événement..."
-                className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 placeholder:text-slate-400 resize-none"
+                className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 placeholder:text-slate-500 resize-none"
               />
             </div>
             <div>
@@ -183,7 +183,7 @@ function EditSlideOver({
                 type="text" value={form.location}
                 onChange={e => onChange('location', e.target.value)}
                 placeholder="Salle, ville, lien visio..."
-                className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 placeholder:text-slate-400"
+                className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 placeholder:text-slate-500"
               />
             </div>
             <div>
@@ -192,7 +192,7 @@ function EditSlideOver({
                 type="text" value={form.campaignId}
                 onChange={e => onChange('campaignId', e.target.value)}
                 placeholder="Optionnel"
-                className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 placeholder:text-slate-400"
+                className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 placeholder:text-slate-500"
               />
             </div>
             <div>
@@ -475,7 +475,7 @@ export default function EventDetailPage() {
             <cfg.Icon size={16} className={cfg.text} />
           </div>
           <div>
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-0.5">Date</p>
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-0.5">Date</p>
             <p className="text-sm font-medium text-slate-800">{dateDisplay}</p>
           </div>
         </div>
@@ -487,7 +487,7 @@ export default function EventDetailPage() {
               <MapPin size={16} className="text-slate-500" />
             </div>
             <div>
-              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-0.5">Lieu</p>
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-0.5">Lieu</p>
               <p className="text-sm font-medium text-slate-800">{event.location}</p>
             </div>
           </div>
@@ -500,7 +500,7 @@ export default function EventDetailPage() {
               <Users size={16} className="text-slate-500" />
             </div>
             <div>
-              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1.5">Rôles ciblés</p>
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Rôles ciblés</p>
               <div className="flex flex-wrap gap-1.5">
                 {event.targetRoles.map(r => (
                   <span
@@ -522,7 +522,7 @@ export default function EventDetailPage() {
               <Link2 size={16} className="text-amber-600" />
             </div>
             <div>
-              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-0.5">Campagne liée</p>
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-0.5">Campagne liée</p>
               <Link
                 to={`/campaigns/${event.campaignId}`}
                 className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors inline-flex items-center gap-1"
@@ -538,7 +538,7 @@ export default function EventDetailPage() {
           <>
             <hr className="border-slate-100" />
             <div>
-              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Description</p>
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Description</p>
               <p className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">
                 {event.description}
               </p>

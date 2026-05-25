@@ -18,7 +18,7 @@ export default function AuthLayout() {
       </div>
 
       {/* Footer */}
-      <p className="mt-8 text-xs text-slate-400">
+      <p className="mt-8 text-xs text-slate-500">
         © {new Date().getFullYear()} NX-RH · Tous droits réservés
       </p>
     </div>

@@ -228,21 +228,21 @@ export default function OnboardingPage() {
             </p>
             {managerData && (
               <div className="mb-2">
-                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1 px-1">Manager direct</p>
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 px-1">Manager direct</p>
                 <div className="flex items-center gap-3 p-3 rounded-xl bg-primary-50 border border-primary-100">
                   <div className="w-9 h-9 rounded-full bg-primary-200 text-primary-800 flex items-center justify-center text-sm font-bold shrink-0">
                     {managerData.firstName[0]}{managerData.lastName[0]}
                   </div>
                   <div>
                     <p className="text-sm font-medium text-slate-800">{managerData.firstName} {managerData.lastName}</p>
-                    <p className="text-xs text-slate-400">{managerData.position ?? managerData.role}</p>
+                    <p className="text-xs text-slate-500">{managerData.position ?? managerData.role}</p>
                   </div>
                 </div>
               </div>
             )}
             {(teammates?.data?.filter((m) => m.id !== user.id) ?? []).length > 0 && (
               <div>
-                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1 px-1">Équipe</p>
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 px-1">Équipe</p>
                 {teammates?.data?.filter((m) => m.id !== user.id).slice(0, 4).map((member) => (
                   <div key={member.id} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 mb-1">
                     <div className="w-9 h-9 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center text-sm font-bold shrink-0">
@@ -250,14 +250,14 @@ export default function OnboardingPage() {
                     </div>
                     <div>
                       <p className="text-sm font-medium text-slate-800">{member.firstName} {member.lastName}</p>
-                      <p className="text-xs text-slate-400">{member.position ?? member.role}</p>
+                      <p className="text-xs text-slate-500">{member.position ?? member.role}</p>
                     </div>
                   </div>
                 ))}
               </div>
             )}
             {!managerData && (!teammates?.data?.length || teammates.data.filter((m) => m.id !== user.id).length === 0) && (
-              <p className="text-sm text-slate-400 text-center py-4">Aucun membre d'équipe trouvé.</p>
+              <p className="text-sm text-slate-600 text-center py-4">Aucun membre d'équipe trouvé.</p>
             )}
           </div>
         )}

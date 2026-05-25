@@ -81,13 +81,13 @@ export default function SearchOverlay({ open, onClose }: SearchOverlayProps) {
           <Search size={20} className="text-slate-400 flex-shrink-0" />
           <input
             ref={inputRef}
-            className="flex-1 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none"
+            className="flex-1 text-base text-slate-900 placeholder:text-slate-500 focus:outline-none"
             placeholder="Rechercher utilisateurs, campagnes, formulaires..."
             value={q}
             onChange={e => setQ(e.target.value)}
           />
           {(isFetching || isSearching) && <div className="w-4 h-4 border-2 border-primary-400 border-t-transparent rounded-full animate-spin flex-shrink-0" />}
-          <button onClick={onClose} className="p-1 text-slate-400 hover:text-slate-600 rounded-lg flex-shrink-0">
+          <button onClick={onClose} aria-label="Fermer la recherche" className="p-1 text-slate-400 hover:text-slate-600 rounded-lg flex-shrink-0">
             <X size={20} />
           </button>
         </div>
@@ -95,12 +95,12 @@ export default function SearchOverlay({ open, onClose }: SearchOverlayProps) {
         {/* Results */}
         <div className="max-h-96 overflow-y-auto">
           {q.trim().length < 2 ? (
-            <div className="p-6 text-center text-slate-400 text-sm">
+            <div className="p-6 text-center text-slate-600 text-sm">
               Tapez au moins 2 caractères pour rechercher
               <p className="mt-2 text-xs text-slate-300">Raccourci : <kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-500 font-mono text-xs">Ctrl</kbd> + <kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-500 font-mono text-xs">K</kbd></p>
             </div>
           ) : results.length === 0 && !isFetching && !isSearching ? (
-            <div className="p-6 text-center text-slate-400 text-sm">Aucun résultat pour "{q}"</div>
+            <div className="p-6 text-center text-slate-600 text-sm">Aucun résultat pour "{q}"</div>
           ) : (
             <ul className="py-2">
               {results.map(result => (
@@ -112,7 +112,7 @@ export default function SearchOverlay({ open, onClose }: SearchOverlayProps) {
                     <span className="text-slate-400">{TYPE_ICONS[result.type]}</span>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-slate-900 truncate">{result.title}</p>
-                      {result.subtitle && <p className="text-xs text-slate-400 truncate">{result.subtitle}</p>}
+                      {result.subtitle && <p className="text-xs text-slate-500 truncate">{result.subtitle}</p>}
                     </div>
                     <span className="text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full flex-shrink-0">
                       {TYPE_LABELS[result.type]}

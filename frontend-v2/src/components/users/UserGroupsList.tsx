@@ -122,7 +122,7 @@ function GroupCard({
           <Users className="w-3.5 h-3.5" />
           {group.members.length} membre{group.members.length !== 1 ? 's' : ''}
         </span>
-        <span className="text-xs text-slate-400">
+        <span className="text-xs text-slate-500">
           {new Date(group.createdAt).toLocaleDateString('fr-FR')}
         </span>
       </div>
@@ -191,7 +191,7 @@ export function UserGroupsList({
       <div className="text-center py-20">
         <Users className="w-14 h-14 text-slate-300 mx-auto mb-4" />
         <p className="text-slate-500 font-medium text-lg">Aucun groupe créé</p>
-        <p className="text-slate-400 text-sm mt-1">Créez votre premier groupe pour organiser vos utilisateurs.</p>
+        <p className="text-slate-600 text-sm mt-1">Créez votre premier groupe pour organiser vos utilisateurs.</p>
         {canManage && (
           <button
             onClick={onCreateFirst}

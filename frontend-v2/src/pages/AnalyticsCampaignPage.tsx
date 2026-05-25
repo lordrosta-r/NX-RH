@@ -88,7 +88,7 @@ export default function AnalyticsCampaignPage() {
           <ArrowLeft className="h-4 w-4" />
           Retour à l'analytique
         </Link>
-        <nav className="mb-1 text-xs text-slate-400">
+        <nav aria-label="Fil d'ariane" className="mb-1 text-xs text-slate-500">
           Accueil &rsaquo; Analytique &rsaquo; Campagne
         </nav>
         <h1 className="text-3xl font-bold text-slate-900">
@@ -152,7 +152,7 @@ export default function AnalyticsCampaignPage() {
           {isLoading ? (
             <div className="h-72 animate-pulse rounded-xl bg-slate-200" />
           ) : statusData.length === 0 ? (
-            <div className="flex h-72 items-center justify-center text-sm text-slate-400">
+            <div className="flex h-72 items-center justify-center text-sm text-slate-600">
               Aucune donnée disponible
             </div>
           ) : (
@@ -184,7 +184,7 @@ export default function AnalyticsCampaignPage() {
           {isLoading ? (
             <div className="h-72 animate-pulse rounded-xl bg-slate-200" />
           ) : scoreData.length === 0 ? (
-            <div className="flex h-72 items-center justify-center text-sm text-slate-400">
+            <div className="flex h-72 items-center justify-center text-sm text-slate-600">
               Aucune donnée de score disponible
             </div>
           ) : (
@@ -216,7 +216,7 @@ export default function AnalyticsCampaignPage() {
         {isLoading ? (
           <div className="h-40 animate-pulse rounded-xl bg-slate-200" />
         ) : !data?.byDepartment?.length ? (
-          <p className="py-8 text-center text-sm text-slate-400">Aucune donnée disponible</p>
+          <p className="py-8 text-center text-sm text-slate-600">Aucune donnée disponible</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">

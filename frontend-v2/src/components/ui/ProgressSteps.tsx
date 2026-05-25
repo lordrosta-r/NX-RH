@@ -30,7 +30,7 @@ export default function ProgressSteps({ steps, currentStep, className }: Progres
                   'w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-colors',
                   completed && 'bg-primary-500 text-white',
                   active && 'bg-primary-500 text-white ring-4 ring-primary-100',
-                  upcoming && 'bg-white border-2 border-slate-300 text-slate-400'
+                  upcoming && 'bg-white border-2 border-slate-300 text-slate-500'
                 )}
                 aria-current={active ? 'step' : undefined}
               >
@@ -41,7 +41,7 @@ export default function ProgressSteps({ steps, currentStep, className }: Progres
                   'mt-1 text-xs font-medium whitespace-nowrap',
                   active && 'text-primary-700',
                   completed && 'text-slate-600',
-                  upcoming && 'text-slate-400'
+                  upcoming && 'text-slate-500'
                 )}
               >
                 {step.label}

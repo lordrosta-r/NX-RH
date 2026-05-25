@@ -324,7 +324,7 @@ export default function EventsPage() {
                     <EventTypeChip type={ev.type} />
                     <span className="font-medium text-slate-800 text-sm flex-1 truncate">{ev.title}</span>
                     {ev.location && (
-                      <span className="text-xs text-slate-400 hidden sm:block">{ev.location}</span>
+                      <span className="text-xs text-slate-500 hidden sm:block">{ev.location}</span>
                     )}
                   </div>
                 ))}
@@ -348,7 +348,7 @@ export default function EventsPage() {
               ))}
             </div>
           ) : allEvents.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 gap-3 text-slate-400">
+            <div className="flex flex-col items-center justify-center py-16 gap-3 text-slate-600">
               <Calendar size={48} strokeWidth={1.5} />
               <p className="text-base">Aucun événement à venir.</p>
             </div>
@@ -403,7 +403,7 @@ export default function EventsPage() {
                               ))}
                             </div>
                           ) : (
-                            <span className="text-xs text-slate-400">Tous</span>
+                            <span className="text-xs text-slate-500">Tous</span>
                           )}
                         </td>
                         {canEdit && (
@@ -453,7 +453,7 @@ export default function EventsPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <EventTypeChip type={ev.type} />
-                        <span className="text-xs text-slate-400">{formatDateFR(evDate(ev))}</span>
+                        <span className="text-xs text-slate-500">{formatDateFR(evDate(ev))}</span>
                       </div>
                       <button
                         onClick={() => navigate(`/events/${ev.id}`)}
@@ -462,7 +462,7 @@ export default function EventsPage() {
                         {ev.title}
                       </button>
                       {ev.targetRoles && ev.targetRoles.length > 0 && (
-                        <p className="text-xs text-slate-400 mt-0.5">
+                        <p className="text-xs text-slate-500 mt-0.5">
                           {ev.targetRoles.map(r => ROLE_LABELS[r as Role] ?? r).join(', ')}
                         </p>
                       )}

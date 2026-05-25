@@ -26,7 +26,7 @@ export default function Breadcrumbs({ items, className }: BreadcrumbsProps) {
                   <span
                     className={clsx(
                       'text-sm',
-                      isLast ? 'text-slate-700 font-medium' : 'text-slate-400'
+                      isLast ? 'text-slate-700 font-medium' : 'text-slate-500'
                     )}
                     aria-current={isLast ? 'page' : undefined}
                   >
@@ -36,7 +36,7 @@ export default function Breadcrumbs({ items, className }: BreadcrumbsProps) {
                   <a
                     href={item.href}
                     onClick={item.onClick ? (e) => { e.preventDefault(); item.onClick?.() } : undefined}
-                    className="text-sm text-slate-400 hover:text-slate-600 transition-colors"
+                    className="text-sm text-slate-500 hover:text-slate-700 transition-colors"
                   >
                     {item.label}
                   </a>

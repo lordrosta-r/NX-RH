@@ -116,7 +116,7 @@ export default function AdminUsersImportPage() {
         </div>
         <div>
           <span className="text-sm font-medium text-slate-700">Mode simulation</span>
-          <p className="text-xs text-slate-400">{dryRun ? 'Aperçu uniquement — aucune donnée ne sera modifiée' : 'Import réel — les utilisateurs seront créés/mis à jour'}</p>
+          <p className="text-xs text-slate-500">{dryRun ? 'Aperçu uniquement — aucune donnée ne sera modifiée' : 'Import réel — les utilisateurs seront créés/mis à jour'}</p>
         </div>
       </label>
 
@@ -130,7 +130,7 @@ export default function AdminUsersImportPage() {
       >
         <Upload size={40} className="mx-auto mb-3 text-slate-300" />
         <p className="font-medium text-slate-700">Glissez-déposez un fichier CSV ou JSON</p>
-        <p className="text-sm text-slate-400 mt-1">ou cliquez pour sélectionner</p>
+        <p className="text-sm text-slate-500 mt-1">ou cliquez pour sélectionner</p>
         <input ref={inputRef} type="file" accept=".csv,.json" className="hidden" onChange={e => { if (e.target.files?.[0]) processFile(e.target.files[0]) }} />
       </div>
 

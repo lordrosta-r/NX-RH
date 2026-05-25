@@ -82,7 +82,7 @@ export function EvaluationCommentsSection({
                       ? "text-success-600"
                       : isCurrent
                         ? "text-primary-600 font-semibold"
-                        : "text-slate-400"
+                        : "text-slate-500"
                   }`}
                 >
                   {isDone ? "✓" : isCurrent ? "→" : "○"} {step.label}
@@ -116,7 +116,7 @@ export function EvaluationCommentsSection({
               </p>
               <p className="text-2xl font-bold text-slate-900">
                 {evaluation.reviewerScore}
-                <span className="text-base font-normal text-slate-400">
+                <span className="text-base font-normal text-slate-500">
                   /100
                 </span>
               </p>

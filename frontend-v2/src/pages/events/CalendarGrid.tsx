@@ -85,7 +85,7 @@ export function CalendarGrid({ year, month, events, selectedDay, onDayClick }: C
     <div className="bg-white rounded-2xl shadow p-4">
       <div className="grid grid-cols-7 mb-2">
         {DAYS_SHORT.map(d => (
-          <div key={d} className="text-center text-xs font-semibold text-slate-400 py-1">{d}</div>
+          <div key={d} className="text-center text-xs font-semibold text-slate-500 py-1">{d}</div>
         ))}
       </div>
       <div className="grid grid-cols-7 gap-px">
@@ -119,7 +119,7 @@ export function CalendarGrid({ year, month, events, selectedDay, onDayClick }: C
                     )
                   })}
                 {events.filter(e => sameDay(evDate(e), year, month, day)).length > 2 && (
-                  <div className="text-xs text-slate-400 pl-1">
+                  <div className="text-xs text-slate-500 pl-1">
                     +{events.filter(e => sameDay(evDate(e), year, month, day)).length - 2}
                   </div>
                 )}

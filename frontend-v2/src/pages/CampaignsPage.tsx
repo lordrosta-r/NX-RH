@@ -25,7 +25,7 @@ const STATUS_BADGE: Record<string, string> = {
   draft: 'bg-slate-100 text-slate-700',
   active: 'bg-success-50 text-success-700',
   closed: 'bg-warning-50 text-warning-700',
-  archived: 'bg-slate-50 text-slate-400',
+  archived: 'bg-slate-50 text-slate-500',
 }
 
 const STATUS_DOT: Record<string, string> = {
@@ -203,8 +203,7 @@ export default function CampaignsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <nav className="text-sm text-slate-500 mb-1">
-            <Link to="/" className="hover:text-slate-700">Accueil</Link>
+          <nav aria-label="Fil d'ariane" className="text-sm text-slate-500 mb-1">            <Link to="/" className="hover:text-slate-700">Accueil</Link>
             <span className="mx-1.5">›</span>
             <span>Campagnes</span>
           </nav>
@@ -258,13 +257,13 @@ export default function CampaignsPage() {
                 className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               />
             </div>
-            {isSearching && <span className="text-xs text-slate-400">…</span>}
+            {isSearching && <span className="text-xs text-slate-500">…</span>}
           </div>
         </div>
 
         {/* Content */}
         {isLoading ? (
-          <div className="p-10 text-center text-slate-400 text-sm">Chargement…</div>
+          <div className="p-10 text-center text-slate-600 text-sm">Chargement…</div>
         ) : isEmpty ? (
           <EmptyState
             icon={<BarChart2 className="w-8 h-8" />}
@@ -299,7 +298,7 @@ export default function CampaignsPage() {
                             {campaign.name}
                           </Link>
                           {campaign.description && (
-                            <p className="text-xs text-slate-400 truncate max-w-xs mt-0.5">
+                            <p className="text-xs text-slate-500 truncate max-w-xs mt-0.5">
                               {campaign.description}
                             </p>
                           )}
@@ -352,7 +351,7 @@ export default function CampaignsPage() {
                       </Link>
                       <div className="flex items-center gap-2 mb-2">
                         <StatusBadge status={campaign.status} />
-                        <span className="text-xs text-slate-400">
+                        <span className="text-xs text-slate-500">
                           {formatDateRange(campaign.startDate, campaign.endDate)}
                         </span>
                       </div>

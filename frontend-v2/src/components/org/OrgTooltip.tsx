@@ -73,7 +73,7 @@ export default function OrgTooltip({
         )}
         {managerName && (
           <div className="flex items-center gap-1.5 text-xs text-slate-600">
-            <span className="text-slate-400 text-[10px]">N+1</span>
+            <span className="text-slate-500 text-[10px]">N+1</span>
             <span>{managerName}</span>
           </div>
         )}

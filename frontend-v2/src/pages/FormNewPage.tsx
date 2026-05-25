@@ -343,7 +343,7 @@ export default function FormNewPage() {
                 />
                 <span className="text-sm font-medium text-slate-700">Formulaire anonyme</span>
               </label>
-              <p className="text-xs text-slate-400 mt-1 ml-6">Les réponses ne seront pas attribuées nominativement</p>
+              <p className="text-xs text-slate-500 mt-1 ml-6">Les réponses ne seront pas attribuées nominativement</p>
             </div>
 
             {/* Objectifs N-1 (si type = objectives) */}

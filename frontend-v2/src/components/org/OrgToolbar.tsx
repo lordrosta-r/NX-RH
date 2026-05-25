@@ -112,7 +112,7 @@ export default function OrgToolbar({
 
         {showRoleFilter && (
           <div className="absolute top-full right-0 mt-2 bg-white border border-slate-200 rounded-xl shadow-xl p-3 z-50 min-w-[160px]">
-            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-2">Filtrer par rôle</p>
+            <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide mb-2">Filtrer par rôle</p>
             {ROLES.map(({ value, label, color }) => (
               <label key={value} className="flex items-center gap-2 py-1 cursor-pointer hover:bg-slate-50 rounded px-1">
                 <input

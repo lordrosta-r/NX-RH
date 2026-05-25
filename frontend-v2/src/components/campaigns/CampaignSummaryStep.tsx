@@ -39,7 +39,7 @@ export default function CampaignSummaryStep({
       <dl className="space-y-3">
         <SummaryRow label="Nom">
           <span className="font-semibold">
-            {form.name || <em className="text-slate-400">—</em>}
+            {form.name || <em className="text-slate-500">—</em>}
           </span>
         </SummaryRow>
 
@@ -54,11 +54,11 @@ export default function CampaignSummaryStep({
         </SummaryRow>
 
         <SummaryRow label="Début">
-          {form.startDate || <em className="text-slate-400">—</em>}
+          {form.startDate || <em className="text-slate-500">—</em>}
         </SummaryRow>
 
         <SummaryRow label="Fin">
-          {form.endDate || <em className="text-slate-400">—</em>}
+          {form.endDate || <em className="text-slate-500">—</em>}
         </SummaryRow>
 
         {form.deadlineEmployee && (

@@ -84,7 +84,7 @@ export default function LoginPage() {
             aria-invalid={!!errors.email}
             aria-describedby={errors.email ? 'email-error' : undefined}
             disabled={isSubmitting}
-            className={`w-full h-10 px-3 rounded-lg border bg-white text-slate-900 text-sm transition-colors placeholder:text-slate-400 focus:outline-none focus:ring-2 ${
+            className={`w-full h-10 px-3 rounded-lg border bg-white text-slate-900 text-sm transition-colors placeholder:text-slate-500 focus:outline-none focus:ring-2 ${
               errors.email
                 ? 'border-error-500 ring-error-200 focus:ring-error-200'
                 : 'border-slate-300 focus:border-primary-500 focus:ring-primary-200'
@@ -108,7 +108,7 @@ export default function LoginPage() {
               aria-invalid={!!errors.password}
               aria-describedby={errors.password ? 'password-error' : undefined}
               disabled={isSubmitting}
-              className={`w-full h-10 px-3 pr-10 rounded-lg border bg-white text-slate-900 text-sm transition-colors placeholder:text-slate-400 focus:outline-none focus:ring-2 ${
+              className={`w-full h-10 px-3 pr-10 rounded-lg border bg-white text-slate-900 text-sm transition-colors placeholder:text-slate-500 focus:outline-none focus:ring-2 ${
                 errors.password
                   ? 'border-error-500 ring-error-200 focus:ring-error-200'
                   : 'border-slate-300 focus:border-primary-500 focus:ring-primary-200'
@@ -165,7 +165,7 @@ export default function LoginPage() {
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-slate-200" />
               </div>
-              <div className="relative flex justify-center text-xs text-slate-400">
+              <div className="relative flex justify-center text-xs text-slate-500">
                 <span className="bg-white px-3">ou</span>
               </div>
             </div>

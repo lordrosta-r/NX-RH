@@ -98,6 +98,7 @@ export default function DataTable<T extends { id: string }>({
                   checked={allSelected}
                   ref={el => { if (el) el.indeterminate = someSelected }}
                   onChange={toggleAll}
+                  aria-label="Tout sélectionner"
                   className="h-4 w-4 rounded border-slate-300 text-primary-500 focus:ring-primary-200"
                 />
               </th>
@@ -146,7 +147,7 @@ export default function DataTable<T extends { id: string }>({
             <tr>
               <td
                 colSpan={columns.length + (selectable ? 1 : 0) + (rowActions ? 1 : 0)}
-                className="px-4 py-16 text-center text-sm text-slate-400"
+                className="px-4 py-16 text-center text-sm text-slate-600"
               >
                 {emptyState ?? 'Aucun résultat.'}
               </td>
@@ -168,6 +169,7 @@ export default function DataTable<T extends { id: string }>({
                       type="checkbox"
                       checked={selectedIds.includes(rowId)}
                       onChange={() => toggleRow(rowId)}
+                      aria-label="Sélectionner la ligne"
                       className="h-4 w-4 rounded border-slate-300 text-primary-500 focus:ring-primary-200"
                     />
                   </td>

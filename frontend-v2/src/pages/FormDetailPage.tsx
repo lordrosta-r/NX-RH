@@ -232,7 +232,7 @@ export default function FormDetailPage() {
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-sm font-semibold text-slate-700 uppercase tracking-wider">
                 Questions ({questions.length})
-                {isFrozen && <span className="ml-2 text-xs text-slate-400 font-normal normal-case">(lecture seule)</span>}
+                {isFrozen && <span className="ml-2 text-xs text-slate-500 font-normal normal-case">(lecture seule)</span>}
               </h2>
               {!isFrozen && isAdminOrHr && (
                 <button onClick={addQuestion} className="inline-flex items-center gap-1 text-sm text-primary-600 hover:text-primary-700 font-medium">
@@ -242,7 +242,7 @@ export default function FormDetailPage() {
             </div>
 
             {questions.length === 0 && (
-              <div className="text-center py-10 text-slate-400">
+              <div className="text-center py-10 text-slate-600">
                 <p className="text-sm">Aucune question dans ce formulaire.</p>
                 {!isFrozen && isAdminOrHr && (
                   <button onClick={addQuestion} className="mt-2 text-sm text-primary-600 hover:underline">+ Ajouter une question</button>
@@ -257,10 +257,10 @@ export default function FormDetailPage() {
                     <div className="flex items-center gap-2 mb-2 flex-wrap">
                       <span className="w-6 h-6 rounded-full bg-slate-200 text-slate-600 text-xs font-medium flex items-center justify-center flex-shrink-0">{idx + 1}</span>
                       <span className="text-xs px-2 py-0.5 bg-white border border-slate-200 rounded text-slate-500">{q.type}</span>
-                      {q.phase && <span className="text-xs text-slate-400">{q.phase}</span>}
+                      {q.phase && <span className="text-xs text-slate-500">{q.phase}</span>}
                       {q.required && <span className="text-xs text-primary-600 font-medium">Requis</span>}
                     </div>
-                    <p className="text-sm text-slate-700">{q.text || <em className="text-slate-400">Sans texte</em>}</p>
+                    <p className="text-sm text-slate-700">{q.text || <em className="text-slate-500">Sans texte</em>}</p>
                     {q.options && q.options.length > 0 && (
                       <ul className="mt-2 space-y-1">
                         {q.options.map((opt, i) => (

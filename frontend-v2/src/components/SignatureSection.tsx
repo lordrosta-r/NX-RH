@@ -60,7 +60,7 @@ export function SignatureSection({
       </div>
     ) : (
       <div className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg border border-dashed border-gray-300">
-        <span className="text-gray-400 text-sm">&#9201;</span>
+        <span className="text-gray-600 text-sm">&#9201;</span>
         <span className="text-sm text-gray-500">{label} — En attente</span>
       </div>
     )

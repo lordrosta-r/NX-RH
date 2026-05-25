@@ -88,7 +88,7 @@ export function UserImportModal({ onClose }: Props) {
           ) : (
             <>
               <p className="text-sm font-medium text-slate-600">Cliquez pour sélectionner un fichier CSV</p>
-              <p className="text-xs text-slate-400 mt-1">Format attendu : prénom, nom, email, rôle, département</p>
+              <p className="text-xs text-slate-500 mt-1">Format attendu : prénom, nom, email, rôle, département</p>
             </>
           )}
           <input

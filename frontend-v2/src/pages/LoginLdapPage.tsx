@@ -112,7 +112,7 @@ export default function LoginLdapPage() {
             value={login}
             onChange={e => { setLogin(e.target.value); setFieldErrors(p => ({ ...p, login: undefined })) }}
             disabled={isLoading}
-            className={`w-full h-10 px-3 rounded-lg border bg-white text-slate-900 text-sm transition-colors placeholder:text-slate-400 focus:outline-none focus:ring-2 ${
+            className={`w-full h-10 px-3 rounded-lg border bg-white text-slate-900 text-sm transition-colors placeholder:text-slate-500 focus:outline-none focus:ring-2 ${
               fieldErrors.login
                 ? 'border-error-500 ring-error-200 focus:ring-error-200'
                 : 'border-slate-300 focus:border-primary-500 focus:ring-primary-200'
@@ -135,7 +135,7 @@ export default function LoginLdapPage() {
               value={password}
               onChange={e => { setPassword(e.target.value); setFieldErrors(p => ({ ...p, password: undefined })) }}
               disabled={isLoading}
-              className={`w-full h-10 px-3 pr-10 rounded-lg border bg-white text-slate-900 text-sm transition-colors placeholder:text-slate-400 focus:outline-none focus:ring-2 ${
+              className={`w-full h-10 px-3 pr-10 rounded-lg border bg-white text-slate-900 text-sm transition-colors placeholder:text-slate-500 focus:outline-none focus:ring-2 ${
                 fieldErrors.password
                   ? 'border-error-500 ring-error-200 focus:ring-error-200'
                   : 'border-slate-300 focus:border-primary-500 focus:ring-primary-200'

@@ -42,7 +42,7 @@ export default function Pagination({ total, page, limit, onPageChange, className
 
         {getPages().map((p, i) =>
           p === 'ellipsis' ? (
-            <span key={`e${i}`} className="h-8 w-8 flex items-center justify-center text-slate-400 text-sm">…</span>
+            <span key={`e${i}`} className="h-8 w-8 flex items-center justify-center text-slate-500 text-sm">…</span>
           ) : (
             <button
               key={p}

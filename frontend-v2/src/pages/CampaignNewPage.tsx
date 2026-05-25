@@ -29,7 +29,7 @@ export default function CampaignNewPage() {
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div>
-        <nav className="text-sm text-slate-500 mb-1">
+        <nav aria-label="Fil d'ariane" className="text-sm text-slate-500 mb-1">
           <Link to="/" className="hover:text-slate-700">
             Accueil
           </Link>

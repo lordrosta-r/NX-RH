@@ -75,7 +75,7 @@ export default function CampaignFormsTab({
       </div>
 
       {formIds.length === 0 ? (
-        <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-8 text-center text-slate-400 text-sm">
+        <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-8 text-center text-slate-600 text-sm">
           <FileText className="w-10 h-10 mx-auto mb-3 text-slate-200" />
           Aucun formulaire associé à cette campagne.
           {isAdminOrHr && campaign?.status !== "archived" && (
@@ -108,7 +108,7 @@ export default function CampaignFormsTab({
                       {form?.title ?? `Formulaire #${fid.slice(-6)}`}
                     </p>
                     {form?.formType && (
-                      <p className="text-xs text-slate-400">
+                      <p className="text-xs text-slate-500">
                         {FORM_TYPE_LABELS[form.formType] ?? form.formType}
                       </p>
                     )}
@@ -154,7 +154,7 @@ export default function CampaignFormsTab({
             </div>
             <div className="overflow-y-auto flex-1 divide-y divide-slate-100">
               {availableForms.length === 0 ? (
-                <p className="p-6 text-center text-slate-400 text-sm">
+                <p className="p-6 text-center text-slate-600 text-sm">
                   Tous les formulaires disponibles sont déjà liés à cette
                   campagne.
                 </p>
@@ -170,7 +170,7 @@ export default function CampaignFormsTab({
                       <p className="font-medium text-slate-700 truncate">
                         {f.title}
                       </p>
-                      <p className="text-xs text-slate-400">
+                      <p className="text-xs text-slate-500">
                         {FORM_TYPE_LABELS[f.formType] ?? f.formType}
                       </p>
                     </div>

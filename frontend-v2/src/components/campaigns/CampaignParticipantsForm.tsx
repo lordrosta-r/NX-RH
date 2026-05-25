@@ -103,7 +103,7 @@ export default function CampaignParticipantsForm({
                   })}
                 </div>
               ) : (
-                <p className="text-xs text-slate-400 italic">
+                <p className="text-xs text-slate-500 italic">
                   Chargement des secteurs…
                 </p>
               )}

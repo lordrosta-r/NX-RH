@@ -33,13 +33,13 @@ export default function OrgSectorsView({ data, toolbar }: OrgSectorsViewProps) {
                   <h3 className="text-sm font-semibold text-slate-900 truncate">
                     {sector ? sector.name : "Sans secteur"}
                   </h3>
-                  <span className="ml-auto text-xs font-medium text-slate-400">
+                  <span className="ml-auto text-xs font-medium text-slate-500">
                     {users.length}
                   </span>
                 </div>
                 <div className="space-y-1.5">
                   {users.length === 0 ? (
-                    <p className="text-xs text-slate-400 italic">
+                    <p className="text-xs text-slate-500 italic">
                       Aucun utilisateur
                     </p>
                   ) : (
@@ -57,7 +57,7 @@ export default function OrgSectorsView({ data, toolbar }: OrgSectorsViewProps) {
                         <span className="text-xs text-slate-700 truncate">
                           {u.firstName} {u.lastName}
                         </span>
-                        <span className="text-[10px] text-slate-400 ml-auto capitalize">
+                        <span className="text-[10px] text-slate-500 ml-auto capitalize">
                           {u.role}
                         </span>
                       </div>

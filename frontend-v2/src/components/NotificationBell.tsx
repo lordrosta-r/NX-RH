@@ -100,9 +100,9 @@ export function NotificationBell() {
           </div>
 
           {/* List */}
-          <div className="max-h-80 overflow-y-auto divide-y divide-slate-100">
+          <div className="max-h-80 overflow-y-auto divide-y divide-slate-100" aria-live="polite">
             {notifications.length === 0 ? (
-              <p className="p-5 text-sm text-slate-400 text-center">Aucune notification</p>
+              <p className="p-5 text-sm text-slate-600 text-center">Aucune notification</p>
             ) : (
               notifications.map((n) => {
                 const id = (n as any)._id ?? n.id
@@ -121,7 +121,7 @@ export function NotificationBell() {
                         {n.body && (
                           <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{n.body}</p>
                         )}
-                        <p className="text-[11px] text-slate-400 mt-1">{formatRelativeTime(n.createdAt)}</p>
+                        <p className="text-[11px] text-slate-500 mt-1">{formatRelativeTime(n.createdAt)}</p>
                       </div>
                     </div>
                   </div>

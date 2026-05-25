@@ -15,7 +15,7 @@ const EVAL_STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   signed_hr:        { label: 'Signée (RH)',       color: 'bg-teal-50 text-teal-700' },
   validated:        { label: 'Validée ✓',         color: 'bg-success-50 text-success-700' },
   expired:          { label: 'Expirée',           color: 'bg-error-50 text-error-600' },
-  archived:         { label: 'Archivée',          color: 'bg-slate-50 text-slate-400' },
+  archived:         { label: 'Archivée',          color: 'bg-slate-50 text-slate-500' },
 }
 
 export default function EvaluationHistoryPage() {
@@ -40,7 +40,7 @@ export default function EvaluationHistoryPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <nav className="text-sm text-slate-500 mb-1">
+          <nav aria-label="Fil d'ariane" className="text-sm text-slate-500 mb-1">
             <Link to="/" className="hover:text-slate-700">Accueil</Link>
             {' › '}
             <Link to="/evaluations" className="hover:text-slate-700">Évaluations</Link>
@@ -84,7 +84,7 @@ export default function EvaluationHistoryPage() {
         <div className="text-center py-16">
           <History className="w-12 h-12 text-slate-200 mx-auto mb-3" />
           <p className="text-slate-500 font-medium">Aucun entretien terminé pour l'instant.</p>
-          <p className="text-sm text-slate-400 mt-1">Vos évaluations validées apparaîtront ici.</p>
+          <p className="text-sm text-slate-500 mt-1">Vos évaluations validées apparaîtront ici.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -109,7 +109,7 @@ export default function EvaluationHistoryPage() {
                 </div>
               )}
 
-              <p className="text-xs text-slate-400 mb-4">
+              <p className="text-xs text-slate-500 mb-4">
                 Validée le {ev.signedByHrAt ? new Date(ev.signedByHrAt).toLocaleDateString('fr-FR') : '—'}
               </p>
 

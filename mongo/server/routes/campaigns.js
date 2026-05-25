@@ -25,6 +25,7 @@ const {
 } = require('../validators/campaignValidators')
 const campaignService = require('../services/campaignService')
 const respond = require('../utils/response')
+const { paginate } = require('../utils/paginate')
 
 // GET /api/campaigns — Liste des campagnes (scopée par rôle)
 router.get('/', async (req, res, next) => {
@@ -59,18 +60,17 @@ router.get('/', async (req, res, next) => {
       }
     }
 
-    const page  = Math.max(1, parseInt(req.query.page)  || 1)
-    const limit = Math.min(100, parseInt(req.query.limit) || 50)
-    const skip  = (page - 1) * limit
-    const [campaigns, total] = await Promise.all([
-      Campaign.find(filter).populate('createdBy', 'firstName lastName email').sort({ startDate: -1 }).skip(skip).limit(limit).lean(),
-      Campaign.countDocuments(filter),
-    ])
+    const result = await paginate(Campaign, filter, {
+      page:  req.query.page  || 1,
+      limit: req.query.limit || 50,
+      sort:  { startDate: -1 },
+      populate: { path: 'createdBy', select: 'firstName lastName email' },
+    })
 
     // Enrich with completionPct from evaluations
-    if (campaigns.length > 0) {
+    if (result.data.length > 0) {
       const COMPLETED = ['submitted', 'validated']
-      const campaignIds = campaigns.map(c => c._id)
+      const campaignIds = result.data.map(c => c._id)
       const stats = await Evaluation.aggregate([
         { $match: { campaignId: { $in: campaignIds } } },
         {
@@ -85,12 +85,12 @@ router.get('/', async (req, res, next) => {
       for (const s of stats) {
         statsMap[s._id.toString()] = s.total > 0 ? Math.round((s.completed / s.total) * 100) : 0
       }
-      for (const c of campaigns) {
+      for (const c of result.data) {
         c.completionPct = statsMap[c._id.toString()] ?? 0
       }
     }
 
-    res.json({ data: campaigns, total, page, limit })
+    res.json(result)
   } catch (err) {
     next(err)
   }

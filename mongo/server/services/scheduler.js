@@ -32,7 +32,7 @@ const EXPIRY_WARNING_DAYS     = 7
 let timer = null
 
 async function runDeadlineReminders() {
-  const now      = new Date()
+  const now       = new Date()
   const windowEnd = new Date(now.getTime() + REMINDER_WINDOW_DAYS * DAY_MS)
 
   // Find active campaigns whose endDate is within the next N days
@@ -43,21 +43,37 @@ async function runDeadlineReminders() {
 
   if (!campaigns.length) return 0
 
-  const cutoff = new Date(now.getTime() - REMINDER_COOLDOWN_HOURS * HOUR_MS)
+  const cutoff     = new Date(now.getTime() - REMINDER_COOLDOWN_HOURS * HOUR_MS)
+  const campaignIds = campaigns.map(c => c._id)
+
+  // Fetch ALL pending evaluations for all matching campaigns in a single query (fix N+1)
+  const allEvals = await Evaluation.find({
+    campaignId: { $in: campaignIds },
+    status:     { $in: ['assigned', 'in_progress'] },
+    $or: [{ lastReminderAt: null }, { lastReminderAt: { $lt: cutoff } }],
+  }).lean()
+
+  if (!allEvals.length) return 0
+
+  // Group evaluations by campaign for enrichment
+  const evalsByCampaign = new Map()
+  for (const ev of allEvals) {
+    const key = ev.campaignId.toString()
+    if (!evalsByCampaign.has(key)) evalsByCampaign.set(key, [])
+    evalsByCampaign.get(key).push(ev)
+  }
+
+  // Fetch all required users in a single query (fix second N+1)
+  const evaluateeIds = [...new Set(allEvals.map(e => e.evaluateeId.toString()))]
+  const users    = await User.find({ _id: { $in: evaluateeIds }, isActive: true }).lean()
+  const userById = new Map(users.map(u => [u._id.toString(), u]))
+
   let sentCount = 0
+  const sentEvalIds = []
 
   for (const c of campaigns) {
-    const evals = await Evaluation.find({
-      campaignId: c._id,
-      status:     { $in: ['assigned', 'in_progress'] },
-      $or: [{ lastReminderAt: null }, { lastReminderAt: { $lt: cutoff } }],
-    })
-
+    const evals = evalsByCampaign.get(c._id.toString()) || []
     if (!evals.length) continue
-
-    const evaluateeIds = [...new Set(evals.map(e => e.evaluateeId.toString()))]
-    const users = await User.find({ _id: { $in: evaluateeIds }, isActive: true }).lean()
-    const userById = new Map(users.map(u => [u._id.toString(), u]))
 
     const deadline = new Date(c.endDate).toLocaleDateString('fr-FR')
 
@@ -69,8 +85,7 @@ async function runDeadlineReminders() {
         deadline,
       })
       if (ok) {
-        ev.lastReminderAt = now
-        await ev.save()
+        sentEvalIds.push(ev._id)
         sentCount += 1
       }
       // Always create the in-app notification (non-blocking, even if email failed)
@@ -83,6 +98,14 @@ async function runDeadlineReminders() {
         'high',
       )
     }
+  }
+
+  // Batch update lastReminderAt for all sent evaluations (replaces N individual saves)
+  if (sentEvalIds.length > 0) {
+    await Evaluation.updateMany(
+      { _id: { $in: sentEvalIds } },
+      { $set: { lastReminderAt: now } },
+    )
   }
 
   if (sentCount > 0) {

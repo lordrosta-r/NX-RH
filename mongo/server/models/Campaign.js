@@ -152,5 +152,9 @@ campaignSchema.statics.VALID_TRANSITIONS = VALID_TRANSITIONS
 campaignSchema.index({ createdBy: 1 })
 campaignSchema.index({ startDate: 1, endDate: 1 })
 campaignSchema.index({ name: 'text', description: 'text' })
+// Scheduler : campagnes actives dont la date de fin approche
+campaignSchema.index({ status: 1, endDate: 1 })
+// Liste des campagnes filtrée par statut, triée par date de début desc
+campaignSchema.index({ status: 1, startDate: -1 })
 
 module.exports = { Campaign: model('Campaign', campaignSchema), VALID_TRANSITIONS }

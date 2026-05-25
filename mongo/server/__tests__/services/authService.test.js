@@ -12,7 +12,7 @@ jest.mock('jsonwebtoken')
 const User   = require('../../models/User')
 const bcrypt = require('bcrypt')
 const jwt    = require('jsonwebtoken')
-const { login, allowedNotifKeysFor, filterNotifPrefsByRole } = require('../../services/authService')
+const { login, logout, register, validateUser, allowedNotifKeysFor, filterNotifPrefsByRole } = require('../../services/authService')
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -64,6 +64,7 @@ describe('authService — login()', () => {
     mockFindOne(mockUser)
     bcrypt.compare.mockResolvedValue(true)
     jwt.sign.mockReturnValue('mock-jwt-token')
+    User.updateOne.mockResolvedValue({ modifiedCount: 1 })
 
     const result = await login('test@test.com', 'correctpass', false)
     expect(result.accessToken).toBe('mock-jwt-token')
@@ -74,6 +75,7 @@ describe('authService — login()', () => {
     mockFindOne({ _id: 'u1', authSource: 'local', passwordHash: 'hash', mustChangePassword: false })
     bcrypt.compare.mockResolvedValue(true)
     jwt.sign.mockReturnValue('token')
+    User.updateOne.mockResolvedValue({ modifiedCount: 1 })
 
     const result = await login('test@test.com', 'pass', true)
     expect(result.accessToken).toBeDefined()
@@ -140,5 +142,91 @@ describe('authService — filterNotifPrefsByRole(prefs, role)', () => {
     const result = filterNotifPrefsByRole({ evaluationAssigned: 1, deadlineReminder: 0 }, 'employee')
     expect(result.evaluationAssigned).toBe(true)
     expect(result.deadlineReminder).toBe(false)
+  })
+})
+
+// ─────────────────────────────────────────────────────────────────────────────
+describe('authService — logout()', () => {
+  test('calls User.updateOne to pull the refresh token', async () => {
+    User.updateOne.mockResolvedValue({ modifiedCount: 1 })
+    await logout('user123', 'someRefreshToken')
+    expect(User.updateOne).toHaveBeenCalledWith(
+      { _id: 'user123' },
+      { $pull: { refreshTokens: 'someRefreshToken' } },
+    )
+  })
+
+  test('returns early without calling User.updateOne when userId is falsy', async () => {
+    await logout(null, 'someToken')
+    expect(User.updateOne).not.toHaveBeenCalled()
+  })
+
+  test('does not throw if User.updateOne rejects', async () => {
+    User.updateOne.mockRejectedValue(new Error('DB error'))
+    await expect(logout('user123', 'token')).resolves.toBeUndefined()
+  })
+})
+
+// ─────────────────────────────────────────────────────────────────────────────
+describe('authService — validateUser()', () => {
+  test('throws 401 when email is missing', async () => {
+    const err = await validateUser('', 'pass').catch(e => e)
+    expect(err.status).toBe(401)
+  })
+
+  test('throws 401 when user is not found', async () => {
+    mockFindOne(null)
+    const err = await validateUser('nobody@test.com', 'pass').catch(e => e)
+    expect(err.status).toBe(401)
+  })
+
+  test('throws 401 when password does not match', async () => {
+    mockFindOne({ _id: 'u1', email: 'test@test.com', authSource: 'local', passwordHash: 'hash', isActive: true })
+    bcrypt.compare.mockResolvedValue(false)
+    const err = await validateUser('test@test.com', 'wrongpass').catch(e => e)
+    expect(err.status).toBe(401)
+  })
+
+  test('throws 401 when account is inactive', async () => {
+    mockFindOne({ _id: 'u1', email: 'test@test.com', passwordHash: 'hash', isActive: false })
+    bcrypt.compare.mockResolvedValue(true)
+    const err = await validateUser('test@test.com', 'pass').catch(e => e)
+    expect(err.status).toBe(401)
+  })
+
+  test('returns user without passwordHash for valid credentials', async () => {
+    mockFindOne({ _id: 'u1', email: 'test@test.com', passwordHash: 'hash', isActive: true, firstName: 'Test' })
+    bcrypt.compare.mockResolvedValue(true)
+    const result = await validateUser('test@test.com', 'correct')
+    expect(result).not.toHaveProperty('passwordHash')
+    expect(result.email).toBe('test@test.com')
+  })
+})
+
+// ─────────────────────────────────────────────────────────────────────────────
+describe('authService — register()', () => {
+  test('throws 400 when required fields are missing', async () => {
+    const err = await register({ email: 'test@test.com', password: 'pass', firstName: 'A' }).catch(e => e)
+    expect(err.status).toBe(400)
+  })
+
+  test('throws 409 when email is already taken', async () => {
+    User.findOne.mockReturnValue({ lean: jest.fn().mockResolvedValue({ _id: 'existing' }) })
+    const err = await register({ email: 'taken@test.com', password: 'pass123', firstName: 'A', lastName: 'B' }).catch(e => e)
+    expect(err.status).toBe(409)
+  })
+
+  test('creates user and returns object without passwordHash', async () => {
+    User.findOne.mockReturnValue({ lean: jest.fn().mockResolvedValue(null) })
+    bcrypt.hash.mockResolvedValue('$2b$12$hashed')
+    User.create.mockResolvedValue({
+      toObject: jest.fn().mockReturnValue({
+        _id: 'new-user-id', email: 'new@test.com', firstName: 'New',
+        lastName: 'User', role: 'employee', passwordHash: '$2b$12$hashed',
+      }),
+    })
+    const result = await register({ email: 'new@test.com', password: 'mypassword', firstName: 'New', lastName: 'User' })
+    expect(result).not.toHaveProperty('passwordHash')
+    expect(result.email).toBe('new@test.com')
   })
 })

@@ -12,7 +12,7 @@ const jwt = require('jsonwebtoken')
 jest.mock('../../middleware/authGuard', () => ({
   authGuard: (roles = []) => (req, res, next) => {
     const _jwt = require('jsonwebtoken')
-    const token = req.cookies?.token
+    const token = req.cookies?.accessToken
     if (!token) return res.status(401).json({ error: 'Authentication required' })
     try {
       const payload = _jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] })
@@ -123,21 +123,21 @@ describe('routes/audit.js', () => {
     it('manager → 403', async () => {
       const res = await request(app)
         .get('/api/admin/audit')
-        .set('Cookie', `token=${MANAGER_TOKEN}`)
+        .set('Cookie', `accessToken=${MANAGER_TOKEN}`)
       expect(res.status).toBe(403)
     })
 
     it('employee → 403', async () => {
       const res = await request(app)
         .get('/api/admin/audit')
-        .set('Cookie', `token=${EMPLOYEE_TOKEN}`)
+        .set('Cookie', `accessToken=${EMPLOYEE_TOKEN}`)
       expect(res.status).toBe(403)
     })
 
     it('director → 403', async () => {
       const res = await request(app)
         .get('/api/admin/audit')
-        .set('Cookie', `token=${DIRECTOR_TOKEN}`)
+        .set('Cookie', `accessToken=${DIRECTOR_TOKEN}`)
       expect(res.status).toBe(403)
     })
   })
@@ -148,14 +148,14 @@ describe('routes/audit.js', () => {
     it('admin can list audit logs', async () => {
       const res = await request(app)
         .get('/api/admin/audit')
-        .set('Cookie', `token=${ADMIN_TOKEN}`)
+        .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
       expect(res.status).toBe(200)
     })
 
     it('hr can list audit logs', async () => {
       const res = await request(app)
         .get('/api/admin/audit')
-        .set('Cookie', `token=${HR_TOKEN}`)
+        .set('Cookie', `accessToken=${HR_TOKEN}`)
       expect(res.status).toBe(200)
     })
   })
@@ -170,7 +170,7 @@ describe('routes/audit.js', () => {
 
       const res = await request(app)
         .get('/api/admin/audit')
-        .set('Cookie', `token=${ADMIN_TOKEN}`)
+        .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
       expect(res.status).toBe(200)
       expect(res.body).toMatchObject({
         data:  expect.any(Array),
@@ -185,14 +185,14 @@ describe('routes/audit.js', () => {
 
       const res = await request(app)
         .get('/api/admin/audit')
-        .set('Cookie', `token=${ADMIN_TOKEN}`)
+        .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
       expect(res.body.total).toBe(42)
     })
 
     it('page and limit echo the requested values', async () => {
       const res = await request(app)
         .get('/api/admin/audit?page=2&limit=10')
-        .set('Cookie', `token=${ADMIN_TOKEN}`)
+        .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
       expect(res.body.page).toBe(2)
       expect(res.body.limit).toBe(10)
     })
@@ -200,7 +200,7 @@ describe('routes/audit.js', () => {
     it('defaults to page=1 and limit=20 when not specified', async () => {
       const res = await request(app)
         .get('/api/admin/audit')
-        .set('Cookie', `token=${ADMIN_TOKEN}`)
+        .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
       expect(res.body.page).toBe(1)
       expect(res.body.limit).toBe(20)
     })
@@ -212,7 +212,7 @@ describe('routes/audit.js', () => {
     it('passes action to AuditLog.find when valid', async () => {
       await request(app)
         .get('/api/admin/audit?action=login')
-        .set('Cookie', `token=${ADMIN_TOKEN}`)
+        .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
         .expect(200)
       expect(AuditLog.find).toHaveBeenCalledWith(
         expect.objectContaining({ action: 'login' })
@@ -222,7 +222,7 @@ describe('routes/audit.js', () => {
     it('400 when action is not in the whitelist', async () => {
       const res = await request(app)
         .get('/api/admin/audit?action=HACKED')
-        .set('Cookie', `token=${ADMIN_TOKEN}`)
+        .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
       expect(res.status).toBe(400)
       expect(res.body).toHaveProperty('error')
     })
@@ -232,7 +232,7 @@ describe('routes/audit.js', () => {
     it('passes targetType to AuditLog.find when valid', async () => {
       await request(app)
         .get('/api/admin/audit?targetType=User')
-        .set('Cookie', `token=${ADMIN_TOKEN}`)
+        .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
         .expect(200)
       expect(AuditLog.find).toHaveBeenCalledWith(
         expect.objectContaining({ targetType: 'User' })
@@ -242,7 +242,7 @@ describe('routes/audit.js', () => {
     it('400 when targetType is not in the whitelist', async () => {
       const res = await request(app)
         .get('/api/admin/audit?targetType=Secret')
-        .set('Cookie', `token=${ADMIN_TOKEN}`)
+        .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
       expect(res.status).toBe(400)
       expect(res.body).toHaveProperty('error')
     })
@@ -252,7 +252,7 @@ describe('routes/audit.js', () => {
     it('passes userId to AuditLog.find when it is a valid ObjectId', async () => {
       await request(app)
         .get(`/api/admin/audit?userId=${VALID_OBJECT_ID}`)
-        .set('Cookie', `token=${ADMIN_TOKEN}`)
+        .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
         .expect(200)
       expect(AuditLog.find).toHaveBeenCalledWith(
         expect.objectContaining({ userId: VALID_OBJECT_ID })
@@ -262,7 +262,7 @@ describe('routes/audit.js', () => {
     it('ignores userId when it is not a valid ObjectId', async () => {
       await request(app)
         .get('/api/admin/audit?userId=not-an-objectid')
-        .set('Cookie', `token=${ADMIN_TOKEN}`)
+        .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
         .expect(200)
       expect(AuditLog.find).toHaveBeenCalledWith(
         expect.not.objectContaining({ userId: expect.anything() })
@@ -274,7 +274,7 @@ describe('routes/audit.js', () => {
     it('sets filter.createdAt.$gte when ?from is provided', async () => {
       await request(app)
         .get('/api/admin/audit?from=2024-01-01')
-        .set('Cookie', `token=${ADMIN_TOKEN}`)
+        .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
         .expect(200)
       expect(AuditLog.find).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -286,7 +286,7 @@ describe('routes/audit.js', () => {
     it('sets filter.createdAt.$lte when ?to is provided', async () => {
       await request(app)
         .get('/api/admin/audit?to=2024-12-31')
-        .set('Cookie', `token=${ADMIN_TOKEN}`)
+        .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
         .expect(200)
       expect(AuditLog.find).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -298,7 +298,7 @@ describe('routes/audit.js', () => {
     it('sets both $gte and $lte when ?from and ?to are both provided', async () => {
       await request(app)
         .get('/api/admin/audit?from=2024-01-01&to=2024-12-31')
-        .set('Cookie', `token=${ADMIN_TOKEN}`)
+        .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
         .expect(200)
       expect(AuditLog.find).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -320,7 +320,7 @@ describe('routes/audit.js', () => {
 
       await request(app)
         .get('/api/admin/audit?page=3&limit=5')
-        .set('Cookie', `token=${ADMIN_TOKEN}`)
+        .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
         .expect(200)
 
       // page=3, limit=5 → skip = (3-1)*5 = 10
@@ -334,7 +334,7 @@ describe('routes/audit.js', () => {
 
       await request(app)
         .get('/api/admin/audit?limit=9999')
-        .set('Cookie', `token=${ADMIN_TOKEN}`)
+        .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
         .expect(200)
 
       expect(chain.limit).toHaveBeenCalledWith(100)
@@ -343,7 +343,7 @@ describe('routes/audit.js', () => {
     it('passes the same filter to both find and countDocuments', async () => {
       await request(app)
         .get(`/api/admin/audit?action=login&userId=${VALID_OBJECT_ID}`)
-        .set('Cookie', `token=${ADMIN_TOKEN}`)
+        .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
         .expect(200)
 
       const expectedFilter = expect.objectContaining({

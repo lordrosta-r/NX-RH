@@ -83,7 +83,7 @@ jest.mock('../../middleware/authGuard', () => ({
   authGuard: (roles = []) => (req, res, next) => {
     const _jwt   = require('jsonwebtoken')
     const secret = process.env.JWT_SECRET
-    const token  = req.cookies?.token
+    const token  = req.cookies?.accessToken
     if (!token) return res.status(401).json({ error: 'Authentication required' })
     try {
       const payload = _jwt.verify(token, secret, { algorithms: ['HS256'] })
@@ -211,7 +211,7 @@ describe('POST /bulk — authentication & authorization', () => {
   it('returns 401 for an invalid/expired token', async () => {
     const res = await request(app)
       .post('/bulk')
-      .set('Cookie', 'token=this.is.not.valid')
+      .set('Cookie', 'accessToken=this.is.not.valid')
       .send({ evaluations: [validEval()] })
     expect(res.status).toBe(401)
   })
@@ -219,7 +219,7 @@ describe('POST /bulk — authentication & authorization', () => {
   it('returns 403 for manager role (not in ADMIN_ROLES)', async () => {
     const res = await request(app)
       .post('/bulk')
-      .set('Cookie', `token=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
       .send({ evaluations: [validEval()] })
     expect(res.status).toBe(403)
     expect(res.body.error).toMatch(/admins|RH/i)
@@ -228,7 +228,7 @@ describe('POST /bulk — authentication & authorization', () => {
   it('returns 403 for employee role', async () => {
     const res = await request(app)
       .post('/bulk')
-      .set('Cookie', `token=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
       .send({ evaluations: [validEval()] })
     expect(res.status).toBe(403)
   })
@@ -236,7 +236,7 @@ describe('POST /bulk — authentication & authorization', () => {
   it('returns 403 for director role', async () => {
     const res = await request(app)
       .post('/bulk')
-      .set('Cookie', `token=${tokenFor({ id: DIRECTOR_ID, role: 'director' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: DIRECTOR_ID, role: 'director' })}`)
       .send({ evaluations: [validEval()] })
     expect(res.status).toBe(403)
   })
@@ -257,7 +257,7 @@ describe('POST /bulk — input validation', () => {
   it('returns 400 when evaluations key is absent', async () => {
     const res = await request(app)
       .post('/bulk')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({})
     expect(res.status).toBe(400)
     expect(res.body.error).toMatch(/tableau/i)
@@ -266,7 +266,7 @@ describe('POST /bulk — input validation', () => {
   it('returns 400 when evaluations is an empty array', async () => {
     const res = await request(app)
       .post('/bulk')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ evaluations: [] })
     expect(res.status).toBe(400)
     expect(res.body.error).toMatch(/tableau/i)
@@ -275,7 +275,7 @@ describe('POST /bulk — input validation', () => {
   it('returns 400 when evaluations is not an array (string)', async () => {
     const res = await request(app)
       .post('/bulk')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ evaluations: 'not-an-array' })
     expect(res.status).toBe(400)
   })
@@ -284,7 +284,7 @@ describe('POST /bulk — input validation', () => {
     const evaluations = Array.from({ length: 501 }, () => validEval())
     const res = await request(app)
       .post('/bulk')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ evaluations })
     expect(res.status).toBe(400)
     expect(res.body.error).toMatch(/500/i)
@@ -294,7 +294,7 @@ describe('POST /bulk — input validation', () => {
     const ev = { formId: FORM_ID, evaluatorId: MANAGER_ID, evaluateeId: EMPLOYEE_ID }
     const res = await request(app)
       .post('/bulk')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ evaluations: [ev] })
     expect(res.status).toBe(400)
     expect(res.body.error).toMatch(/campaignId/i)
@@ -304,7 +304,7 @@ describe('POST /bulk — input validation', () => {
     const ev = { campaignId: CAMPAIGN_ID, evaluatorId: MANAGER_ID, evaluateeId: EMPLOYEE_ID }
     const res = await request(app)
       .post('/bulk')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ evaluations: [ev] })
     expect(res.status).toBe(400)
     expect(res.body.error).toMatch(/formId/i)
@@ -314,7 +314,7 @@ describe('POST /bulk — input validation', () => {
     const ev = { campaignId: CAMPAIGN_ID, formId: FORM_ID, evaluateeId: EMPLOYEE_ID }
     const res = await request(app)
       .post('/bulk')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ evaluations: [ev] })
     expect(res.status).toBe(400)
     expect(res.body.error).toMatch(/evaluatorId/i)
@@ -324,7 +324,7 @@ describe('POST /bulk — input validation', () => {
     const ev = { campaignId: CAMPAIGN_ID, formId: FORM_ID, evaluatorId: MANAGER_ID }
     const res = await request(app)
       .post('/bulk')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ evaluations: [ev] })
     expect(res.status).toBe(400)
     expect(res.body.error).toMatch(/evaluateeId/i)
@@ -333,7 +333,7 @@ describe('POST /bulk — input validation', () => {
   it('returns 400 when campaignId is an invalid ObjectId', async () => {
     const res = await request(app)
       .post('/bulk')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ evaluations: [validEval({ campaignId: 'bad-id' })] })
     expect(res.status).toBe(400)
     expect(res.body.error).toMatch(/campaignId/i)
@@ -342,7 +342,7 @@ describe('POST /bulk — input validation', () => {
   it('returns 400 when formId is an invalid ObjectId', async () => {
     const res = await request(app)
       .post('/bulk')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ evaluations: [validEval({ formId: 'bad-id' })] })
     expect(res.status).toBe(400)
     expect(res.body.error).toMatch(/formId/i)
@@ -351,7 +351,7 @@ describe('POST /bulk — input validation', () => {
   it('returns 400 when evaluatorId is an invalid ObjectId', async () => {
     const res = await request(app)
       .post('/bulk')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ evaluations: [validEval({ evaluatorId: 'bad-id' })] })
     expect(res.status).toBe(400)
     expect(res.body.error).toMatch(/evaluatorId/i)
@@ -360,7 +360,7 @@ describe('POST /bulk — input validation', () => {
   it('returns 400 when evaluateeId is an invalid ObjectId', async () => {
     const res = await request(app)
       .post('/bulk')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ evaluations: [validEval({ evaluateeId: 'bad-id' })] })
     expect(res.status).toBe(400)
     expect(res.body.error).toMatch(/evaluateeId/i)
@@ -385,7 +385,7 @@ describe('POST /bulk — successful creation', () => {
   it('admin receives 201 with created count', async () => {
     const res = await request(app)
       .post('/bulk')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ evaluations: [validEval()] })
     expect(res.status).toBe(201)
     expect(res.body.created).toBe(1)
@@ -394,7 +394,7 @@ describe('POST /bulk — successful creation', () => {
   it('hr receives 201 with created count', async () => {
     const res = await request(app)
       .post('/bulk')
-      .set('Cookie', `token=${tokenFor({ id: HR_ID, role: 'hr' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: HR_ID, role: 'hr' })}`)
       .send({ evaluations: [validEval()] })
     expect(res.status).toBe(201)
     expect(res.body.created).toBe(1)
@@ -404,7 +404,7 @@ describe('POST /bulk — successful creation', () => {
     Evaluation.insertMany.mockResolvedValue([{ _id: EVAL_ID }, { _id: EVAL_ID_2 }])
     const res = await request(app)
       .post('/bulk')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ evaluations: [validEval(), validEval({ evaluateeId: HR_ID })] })
     expect(res.status).toBe(201)
     expect(res.body.created).toBe(2)
@@ -413,7 +413,7 @@ describe('POST /bulk — successful creation', () => {
   it('calls Form.updateMany with matching formIds and frozenAt: null filter', async () => {
     await request(app)
       .post('/bulk')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ evaluations: [validEval()] })
     expect(Form.updateMany).toHaveBeenCalledWith(
       { _id: { $in: [FORM_ID] }, frozenAt: null },
@@ -424,7 +424,7 @@ describe('POST /bulk — successful creation', () => {
   it('calls Evaluation.insertMany with { ordered: false }', async () => {
     await request(app)
       .post('/bulk')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ evaluations: [validEval()] })
     expect(Evaluation.insertMany).toHaveBeenCalledWith(
       expect.any(Array),
@@ -435,7 +435,7 @@ describe('POST /bulk — successful creation', () => {
   it('sanitizes each evaluation to include status: assigned', async () => {
     await request(app)
       .post('/bulk')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ evaluations: [validEval()] })
     const [sanitized] = Evaluation.insertMany.mock.calls[0]
     expect(sanitized[0].status).toBe('assigned')
@@ -448,7 +448,7 @@ describe('POST /bulk — successful creation', () => {
     ]))
     await request(app)
       .post('/bulk')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ evaluations: [validEval()] })
     const [sanitized] = Evaluation.insertMany.mock.calls[0]
     const expected = new Date(endDate.getTime() + 30 * 24 * 60 * 60 * 1000)
@@ -460,7 +460,7 @@ describe('POST /bulk — successful creation', () => {
     Evaluation.insertMany.mockResolvedValue(evaluations.map((_, i) => ({ _id: String(i) })))
     const res = await request(app)
       .post('/bulk')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ evaluations })
     expect(res.status).toBe(201)
     expect(res.body.created).toBe(500)
@@ -488,7 +488,7 @@ describe('POST /bulk — partial failure (writeErrors)', () => {
 
     const res = await request(app)
       .post('/bulk')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ evaluations: [validEval(), validEval({ evaluateeId: HR_ID })] })
 
     expect(res.status).toBe(207)
@@ -506,7 +506,7 @@ describe('POST /bulk — partial failure (writeErrors)', () => {
 
     const res = await request(app)
       .post('/bulk')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ evaluations: [validEval(), validEval({ evaluateeId: HR_ID })] })
 
     expect(res.status).toBe(207)
@@ -522,7 +522,7 @@ describe('POST /bulk — partial failure (writeErrors)', () => {
 
     const res = await request(app)
       .post('/bulk')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ evaluations: [validEval()] })
 
     expect(res.status).toBe(207)
@@ -534,7 +534,7 @@ describe('POST /bulk — partial failure (writeErrors)', () => {
 
     const res = await request(app)
       .post('/bulk')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ evaluations: [validEval()] })
 
     expect(res.status).toBe(500)
@@ -558,7 +558,7 @@ describe('PATCH /bulk — authentication & authorization', () => {
   it('returns 401 for a malformed token', async () => {
     const res = await request(app)
       .patch('/bulk')
-      .set('Cookie', 'token=bad.token.here')
+      .set('Cookie', 'accessToken=bad.token.here')
       .send({ ids: [EVAL_ID], action: 'archive' })
     expect(res.status).toBe(401)
   })
@@ -566,7 +566,7 @@ describe('PATCH /bulk — authentication & authorization', () => {
   it('returns 403 for manager role', async () => {
     const res = await request(app)
       .patch('/bulk')
-      .set('Cookie', `token=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
       .send({ ids: [EVAL_ID], action: 'archive' })
     expect(res.status).toBe(403)
   })
@@ -574,7 +574,7 @@ describe('PATCH /bulk — authentication & authorization', () => {
   it('returns 403 for employee role', async () => {
     const res = await request(app)
       .patch('/bulk')
-      .set('Cookie', `token=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
       .send({ ids: [EVAL_ID], action: 'archive' })
     expect(res.status).toBe(403)
   })
@@ -582,7 +582,7 @@ describe('PATCH /bulk — authentication & authorization', () => {
   it('returns 403 for director role', async () => {
     const res = await request(app)
       .patch('/bulk')
-      .set('Cookie', `token=${tokenFor({ id: DIRECTOR_ID, role: 'director' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: DIRECTOR_ID, role: 'director' })}`)
       .send({ ids: [EVAL_ID], action: 'archive' })
     expect(res.status).toBe(403)
   })
@@ -598,7 +598,7 @@ describe('PATCH /bulk — input validation', () => {
   it('returns 400 when ids is absent', async () => {
     const res = await request(app)
       .patch('/bulk')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ action: 'archive' })
     expect(res.status).toBe(400)
     expect(res.body.error).toMatch(/ids/i)
@@ -607,7 +607,7 @@ describe('PATCH /bulk — input validation', () => {
   it('returns 400 when ids is an empty array', async () => {
     const res = await request(app)
       .patch('/bulk')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ ids: [], action: 'archive' })
     expect(res.status).toBe(400)
     expect(res.body.error).toMatch(/ids/i)
@@ -617,7 +617,7 @@ describe('PATCH /bulk — input validation', () => {
     const ids = Array.from({ length: 201 }, () => EVAL_ID)
     const res = await request(app)
       .patch('/bulk')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ ids, action: 'archive' })
     expect(res.status).toBe(400)
     expect(res.body.error).toMatch(/200/i)
@@ -626,7 +626,7 @@ describe('PATCH /bulk — input validation', () => {
   it('returns 400 for an unrecognised action value', async () => {
     const res = await request(app)
       .patch('/bulk')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ ids: [EVAL_ID], action: 'delete_everything' })
     expect(res.status).toBe(400)
     expect(res.body.error).toMatch(/action/i)
@@ -635,7 +635,7 @@ describe('PATCH /bulk — input validation', () => {
   it('returns 400 when an id in the array is not a valid ObjectId', async () => {
     const res = await request(app)
       .patch('/bulk')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ ids: ['not-a-valid-object-id'], action: 'archive' })
     expect(res.status).toBe(400)
     expect(res.body.error).toMatch(/invalide/i)
@@ -644,7 +644,7 @@ describe('PATCH /bulk — input validation', () => {
   it('returns 400 when assign_reviewer is used without reviewerId', async () => {
     const res = await request(app)
       .patch('/bulk')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ ids: [EVAL_ID], action: 'assign_reviewer' })
     expect(res.status).toBe(400)
     expect(res.body.error).toMatch(/reviewerId/i)
@@ -653,7 +653,7 @@ describe('PATCH /bulk — input validation', () => {
   it('returns 400 when assign_reviewer has an invalid reviewerId', async () => {
     const res = await request(app)
       .patch('/bulk')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ ids: [EVAL_ID], action: 'assign_reviewer', reviewerId: 'bad-id' })
     expect(res.status).toBe(400)
     expect(res.body.error).toMatch(/reviewerId/i)
@@ -664,7 +664,7 @@ describe('PATCH /bulk — input validation', () => {
     mockEvalFind([])
     const res = await request(app)
       .patch('/bulk')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ ids, action: 'sign_hr' })
     expect(res.status).toBe(200)
   })
@@ -686,7 +686,7 @@ describe('PATCH /bulk — action: sign_hr', () => {
 
     const res = await request(app)
       .patch('/bulk')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ ids: [EVAL_ID], action: 'sign_hr' })
 
     expect(res.status).toBe(200)
@@ -711,7 +711,7 @@ describe('PATCH /bulk — action: sign_hr', () => {
 
     const res = await request(app)
       .patch('/bulk')
-      .set('Cookie', `token=${tokenFor({ id: HR_ID, role: 'hr' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: HR_ID, role: 'hr' })}`)
       .send({ ids: [EVAL_ID], action: 'sign_hr' })
 
     expect(res.status).toBe(200)
@@ -724,7 +724,7 @@ describe('PATCH /bulk — action: sign_hr', () => {
 
     const res = await request(app)
       .patch('/bulk')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ ids: [EVAL_ID], action: 'sign_hr' })
 
     expect(res.status).toBe(200)
@@ -737,7 +737,7 @@ describe('PATCH /bulk — action: sign_hr', () => {
 
     const res = await request(app)
       .patch('/bulk')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ ids: [EVAL_ID], action: 'sign_hr' })
 
     expect(res.status).toBe(200)
@@ -752,7 +752,7 @@ describe('PATCH /bulk — action: sign_hr', () => {
 
     const res = await request(app)
       .patch('/bulk')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ ids: [EVAL_ID], action: 'sign_hr' })
 
     expect(res.status).toBe(200)
@@ -766,7 +766,7 @@ describe('PATCH /bulk — action: sign_hr', () => {
 
     const res = await request(app)
       .patch('/bulk')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ ids: [EVAL_ID], action: 'sign_hr' })
 
     expect(res.status).toBe(200)
@@ -778,7 +778,7 @@ describe('PATCH /bulk — action: sign_hr', () => {
 
     const res = await request(app)
       .patch('/bulk')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ ids: [EVAL_ID], action: 'sign_hr' })
 
     expect(res.status).toBe(200)
@@ -793,7 +793,7 @@ describe('PATCH /bulk — action: sign_hr', () => {
 
     const res = await request(app)
       .patch('/bulk')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ ids: [EVAL_ID, EVAL_ID_2], action: 'sign_hr' })
 
     expect(res.status).toBe(200)
@@ -818,7 +818,7 @@ describe('PATCH /bulk — action: archive', () => {
 
     const res = await request(app)
       .patch('/bulk')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ ids: [EVAL_ID], action: 'archive' })
 
     expect(res.status).toBe(200)
@@ -842,7 +842,7 @@ describe('PATCH /bulk — action: archive', () => {
 
     const res = await request(app)
       .patch('/bulk')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ ids: [EVAL_ID], action: 'archive' })
 
     expect(res.status).toBe(200)
@@ -856,7 +856,7 @@ describe('PATCH /bulk — action: archive', () => {
 
     const res = await request(app)
       .patch('/bulk')
-      .set('Cookie', `token=${tokenFor({ id: HR_ID, role: 'hr' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: HR_ID, role: 'hr' })}`)
       .send({ ids: [EVAL_ID], action: 'archive' })
 
     expect(res.status).toBe(200)
@@ -885,7 +885,7 @@ describe('PATCH /bulk — action: archive', () => {
 
     const res = await request(app)
       .patch('/bulk')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ ids: [EVAL_ID], action: 'archive' })
 
     expect(res.status).toBe(200)
@@ -911,7 +911,7 @@ describe('PATCH /bulk — action: assign_reviewer', () => {
 
     const res = await request(app)
       .patch('/bulk')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ ids: [EVAL_ID], action: 'assign_reviewer', reviewerId: REVIEWER_ID })
 
     expect(res.status).toBe(200)
@@ -935,7 +935,7 @@ describe('PATCH /bulk — action: assign_reviewer', () => {
 
     const res = await request(app)
       .patch('/bulk')
-      .set('Cookie', `token=${tokenFor({ id: HR_ID, role: 'hr' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: HR_ID, role: 'hr' })}`)
       .send({ ids: [EVAL_ID], action: 'assign_reviewer', reviewerId: REVIEWER_ID })
 
     expect(res.status).toBe(200)
@@ -948,7 +948,7 @@ describe('PATCH /bulk — action: assign_reviewer', () => {
 
     const res = await request(app)
       .patch('/bulk')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ ids: [EVAL_ID], action: 'assign_reviewer', reviewerId: REVIEWER_ID })
 
     expect(res.status).toBe(200)
@@ -963,7 +963,7 @@ describe('PATCH /bulk — action: assign_reviewer', () => {
 
     const res = await request(app)
       .patch('/bulk')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ ids: [EVAL_ID], action: 'assign_reviewer', reviewerId: REVIEWER_ID })
 
     expect(res.status).toBe(200)
@@ -981,7 +981,7 @@ describe('PATCH /bulk — action: assign_reviewer', () => {
 
     const res = await request(app)
       .patch('/bulk')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ ids: [EVAL_ID], action: 'assign_reviewer', reviewerId: REVIEWER_ID })
 
     expect(res.status).toBe(200)
@@ -996,7 +996,7 @@ describe('PATCH /bulk — action: assign_reviewer', () => {
 
     await request(app)
       .patch('/bulk')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ ids: [EVAL_ID], action: 'assign_reviewer', reviewerId: REVIEWER_ID })
 
     // Fire-and-forget audit log runs after response
@@ -1010,7 +1010,7 @@ describe('PATCH /bulk — action: assign_reviewer', () => {
 
     await request(app)
       .patch('/bulk')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ ids: [EVAL_ID], action: 'assign_reviewer', reviewerId: REVIEWER_ID })
 
     await new Promise(r => setTimeout(r, 20))
@@ -1022,7 +1022,7 @@ describe('PATCH /bulk — action: assign_reviewer', () => {
 
     const res = await request(app)
       .patch('/bulk')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ ids: [EVAL_ID], action: 'assign_reviewer', reviewerId: REVIEWER_ID })
 
     expect(res.status).toBe(200)

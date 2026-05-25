@@ -28,7 +28,7 @@ jest.mock('../../middleware/authGuard', () => ({
   authGuard: (roles = []) => (req, res, next) => {
     const _jwt   = require('jsonwebtoken')
     const secret = process.env.JWT_SECRET
-    const token  = req.cookies?.token
+    const token  = req.cookies?.accessToken
     if (!token) return res.status(401).json({ error: 'Authentication required' })
     try {
       const payload = _jwt.verify(token, secret, { algorithms: ['HS256'] })
@@ -170,7 +170,7 @@ describe('GET /:id/n1-context — N-1 context endpoint', () => {
   it('200 — admin sees full payload via previousCampaignId', async () => {
     const res = await request(app)
       .get(`/${EVAL_ID}/n1-context`)
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
 
     expect(res.status).toBe(200)
     expect(res.body).toMatchObject({
@@ -194,7 +194,7 @@ describe('GET /:id/n1-context — N-1 context endpoint', () => {
     // MANAGER_ID is the evaluatorId → uid === evorId → access granted without visibleIds
     const res = await request(app)
       .get(`/${EVAL_ID}/n1-context`)
-      .set('Cookie', `token=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
 
     expect(res.status).toBe(200)
     expect(res.body).toMatchObject({
@@ -210,7 +210,7 @@ describe('GET /:id/n1-context — N-1 context endpoint', () => {
     // EMPLOYEE_ID is the evaluateeId → isOwn = true, n1VisibleToEmployee = true
     const res = await request(app)
       .get(`/${EVAL_ID}/n1-context`)
-      .set('Cookie', `token=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
 
     expect(res.status).toBe(200)
     expect(res.body).not.toHaveProperty('evaluateeComment')
@@ -238,7 +238,7 @@ describe('GET /:id/n1-context — N-1 context endpoint', () => {
 
     const res = await request(app)
       .get(`/${EVAL_ID}/n1-context`)
-      .set('Cookie', `token=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
 
     expect(res.status).toBe(204)
   })
@@ -262,7 +262,7 @@ describe('GET /:id/n1-context — N-1 context endpoint', () => {
 
     const res = await request(app)
       .get(`/${EVAL_ID}/n1-context`)
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
 
     expect(res.status).toBe(200)
     expect(res.body).toMatchObject({
@@ -288,7 +288,7 @@ describe('GET /:id/n1-context — N-1 context endpoint', () => {
 
     const res = await request(app)
       .get(`/${EVAL_ID}/n1-context`)
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
 
     expect(res.status).toBe(204)
   })
@@ -302,7 +302,7 @@ describe('GET /:id/n1-context — N-1 context endpoint', () => {
 
     const res = await request(app)
       .get(`/${EVAL_ID}/n1-context`)
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
 
     expect(res.status).toBe(204)
   })
@@ -314,7 +314,7 @@ describe('GET /:id/n1-context — N-1 context endpoint', () => {
 
     const res = await request(app)
       .get(`/${EVAL_ID}/n1-context`)
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
 
     expect(res.status).toBe(404)
     expect(res.body.error).toMatch(/introuvable/i)
@@ -330,7 +330,7 @@ describe('GET /:id/n1-context — N-1 context endpoint', () => {
 
     const res = await request(app)
       .get(`/${EVAL_ID}/n1-context`)
-      .set('Cookie', `token=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
 
     expect(res.status).toBe(403)
     expect(res.body.error).toMatch(/refusé/i)

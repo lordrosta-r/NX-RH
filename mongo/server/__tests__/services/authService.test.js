@@ -66,18 +66,18 @@ describe('authService — login()', () => {
     jwt.sign.mockReturnValue('mock-jwt-token')
 
     const result = await login('test@test.com', 'correctpass', false)
-    expect(result.token).toBe('mock-jwt-token')
+    expect(result.accessToken).toBe('mock-jwt-token')
     expect(result.user).toEqual(mockUser)
-    expect(result.maxAge).toBe(8 * 60 * 60 * 1000)
   })
 
-  test('sets 30-day maxAge when remember=true', async () => {
+  test('returns accessToken and refreshToken when remember=true', async () => {
     mockFindOne({ _id: 'u1', authSource: 'local', passwordHash: 'hash', mustChangePassword: false })
     bcrypt.compare.mockResolvedValue(true)
     jwt.sign.mockReturnValue('token')
 
     const result = await login('test@test.com', 'pass', true)
-    expect(result.maxAge).toBe(30 * 24 * 60 * 60 * 1000)
+    expect(result.accessToken).toBeDefined()
+    expect(result.refreshToken).toBeDefined()
   })
 
   test('returns mustChangePassword flag without a token when set on user', async () => {

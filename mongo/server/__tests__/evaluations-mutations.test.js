@@ -100,7 +100,7 @@ describe('Evaluation Mutation Routes — /api/evaluations', () => {
       // mais sans formId → 400
       const response = await request(app)
         .post('/api/evaluations')
-        .set('Cookie', `token=${employeeToken}`)
+        .set('Cookie', `accessToken=${employeeToken}`)
         .send({})
         .expect(400)
 
@@ -111,7 +111,7 @@ describe('Evaluation Mutation Routes — /api/evaluations', () => {
       // admin doit fournir campaignId, formId, evaluatorId, evaluateeId
       const response = await request(app)
         .post('/api/evaluations')
-        .set('Cookie', `token=${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .send({})
         .expect(400)
 
@@ -121,7 +121,7 @@ describe('Evaluation Mutation Routes — /api/evaluations', () => {
     test('devrait retourner 400 pour un hr avec des IDs invalides', async () => {
       const response = await request(app)
         .post('/api/evaluations')
-        .set('Cookie', `token=${hrToken}`)
+        .set('Cookie', `accessToken=${hrToken}`)
         .send({
           campaignId:  'not-a-valid-id',
           formId:      'not-a-valid-id',
@@ -147,7 +147,7 @@ describe('Evaluation Mutation Routes — /api/evaluations', () => {
     test('devrait retourner 404 avec token hr si évaluation introuvable', async () => {
       const response = await request(app)
         .patch(`/api/evaluations/${FAKE_OBJECT_ID}`)
-        .set('Cookie', `token=${hrToken}`)
+        .set('Cookie', `accessToken=${hrToken}`)
         .send({ answers: [] })
         .expect(404)
 
@@ -157,7 +157,7 @@ describe('Evaluation Mutation Routes — /api/evaluations', () => {
     test('devrait retourner 404 avec token admin si évaluation introuvable', async () => {
       const response = await request(app)
         .patch(`/api/evaluations/${FAKE_OBJECT_ID}`)
-        .set('Cookie', `token=${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .send({ answers: [] })
         .expect(404)
 
@@ -168,7 +168,7 @@ describe('Evaluation Mutation Routes — /api/evaluations', () => {
       // L'employee n'est pas l'évaluateur → soit 403, soit 404 selon impl
       const response = await request(app)
         .patch(`/api/evaluations/${FAKE_OBJECT_ID}`)
-        .set('Cookie', `token=${employeeToken}`)
+        .set('Cookie', `accessToken=${employeeToken}`)
         .send({ answers: [] })
 
       expect([403, 404]).toContain(response.status)
@@ -187,7 +187,7 @@ describe('Evaluation Mutation Routes — /api/evaluations', () => {
     test('devrait retourner 404 avec token admin si évaluation introuvable', async () => {
       const response = await request(app)
         .post(`/api/evaluations/${FAKE_OBJECT_ID}/sign`)
-        .set('Cookie', `token=${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .expect(404)
 
       expect(response.body).toHaveProperty('error')
@@ -206,7 +206,7 @@ describe('Evaluation Mutation Routes — /api/evaluations', () => {
     test('devrait retourner 403 pour un employee (réservé admin/hr)', async () => {
       const response = await request(app)
         .post(`/api/evaluations/${FAKE_OBJECT_ID}/expire`)
-        .set('Cookie', `token=${employeeToken}`)
+        .set('Cookie', `accessToken=${employeeToken}`)
 
       // expire est réservé admin/hr ; employee reçoit 403 ou 404
       expect([403, 404]).toContain(response.status)

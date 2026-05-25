@@ -38,7 +38,7 @@ jest.mock('../../models', () => {
 jest.mock('../../middleware/authGuard', () => ({
   authGuard: (roles = []) => (req, res, next) => {
     const jwt   = require('jsonwebtoken')
-    const token = req.cookies?.token
+    const token = req.cookies?.accessToken
     if (!token) return res.status(401).json({ error: 'Authentication required' })
     try {
       const payload = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] })
@@ -151,7 +151,7 @@ describe('GET /api/hr/flags', () => {
   it('200 — hr voit toutes les demandes', async () => {
     const res = await request(app)
       .get('/api/hr/flags')
-      .set('Cookie', `token=${HR_TOKEN}`)
+      .set('Cookie', `accessToken=${HR_TOKEN}`)
 
     expect(res.status).toBe(200)
     expect(Array.isArray(res.body.data)).toBe(true)
@@ -164,7 +164,7 @@ describe('GET /api/hr/flags', () => {
   it('403 — employee ne peut pas lister les flags', async () => {
     const res = await request(app)
       .get('/api/hr/flags')
-      .set('Cookie', `token=${EMPLOYEE_TOKEN}`)
+      .set('Cookie', `accessToken=${EMPLOYEE_TOKEN}`)
 
     expect(res.status).toBe(403)
   })
@@ -172,7 +172,7 @@ describe('GET /api/hr/flags', () => {
   it('200 — filtre ?type=mobility_request est accepté', async () => {
     const res = await request(app)
       .get('/api/hr/flags?type=mobility_request')
-      .set('Cookie', `token=${HR_TOKEN}`)
+      .set('Cookie', `accessToken=${HR_TOKEN}`)
 
     expect(res.status).toBe(200)
     expect(res.body).toHaveProperty('data')
@@ -184,7 +184,7 @@ describe('GET /api/hr/flags', () => {
 
     const res = await request(app)
       .get('/api/hr/flags?page=1&limit=5')
-      .set('Cookie', `token=${ADMIN_TOKEN}`)
+      .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
 
     expect(res.status).toBe(200)
     expect(res.body.page).toBe(1)
@@ -209,7 +209,7 @@ describe('GET /api/hr/flags/count', () => {
   it('200 — retourne {count, byType}', async () => {
     const res = await request(app)
       .get('/api/hr/flags/count')
-      .set('Cookie', `token=${HR_TOKEN}`)
+      .set('Cookie', `accessToken=${HR_TOKEN}`)
 
     expect(res.status).toBe(200)
     expect(typeof res.body.count).toBe('number')
@@ -247,7 +247,7 @@ describe('PATCH /api/hr/flags/:evalId/status', () => {
   it('200 — hr peut changer le statut en "reviewed"', async () => {
     const res = await request(app)
       .patch(`/api/hr/flags/${EVAL_ID}/status`)
-      .set('Cookie', `token=${HR_TOKEN}`)
+      .set('Cookie', `accessToken=${HR_TOKEN}`)
       .send({ status: 'reviewed' })
 
     expect(res.status).toBe(200)
@@ -257,7 +257,7 @@ describe('PATCH /api/hr/flags/:evalId/status', () => {
   it('403 — employee ne peut pas modifier le statut', async () => {
     const res = await request(app)
       .patch(`/api/hr/flags/${EVAL_ID}/status`)
-      .set('Cookie', `token=${EMPLOYEE_TOKEN}`)
+      .set('Cookie', `accessToken=${EMPLOYEE_TOKEN}`)
       .send({ status: 'reviewed' })
 
     expect(res.status).toBe(403)
@@ -266,7 +266,7 @@ describe('PATCH /api/hr/flags/:evalId/status', () => {
   it('400 — statut invalide (in_progress) retourne 400', async () => {
     const res = await request(app)
       .patch(`/api/hr/flags/${EVAL_ID}/status`)
-      .set('Cookie', `token=${HR_TOKEN}`)
+      .set('Cookie', `accessToken=${HR_TOKEN}`)
       .send({ status: 'in_progress' }) // not in PATCHABLE_STATUSES
 
     expect(res.status).toBe(400)
@@ -278,7 +278,7 @@ describe('PATCH /api/hr/flags/:evalId/status', () => {
 
     const res = await request(app)
       .patch(`/api/hr/flags/${EVAL_ID}/status`)
-      .set('Cookie', `token=${HR_TOKEN}`)
+      .set('Cookie', `accessToken=${HR_TOKEN}`)
       .send({ status: 'reviewed' })
 
     expect(res.status).toBe(404)

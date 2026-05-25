@@ -20,7 +20,7 @@ jest.mock('../../middleware/authGuard', () => ({
   authGuard: (roles = []) => (req, res, next) => {
     const _jwt   = require('jsonwebtoken')
     const secret = process.env.JWT_SECRET
-    const token  = req.cookies?.token
+    const token  = req.cookies?.accessToken
     if (!token) return res.status(401).json({ error: 'Authentication required' })
     try {
       const payload = _jwt.verify(token, secret, { algorithms: ['HS256'] })
@@ -87,7 +87,7 @@ describe('PATCH /api/auth/password — LDAP-only', () => {
   it('retourne 403 avec message contenant "LDAP"', async () => {
     const res = await request(app)
       .patch('/api/auth/password')
-      .set('Cookie', `token=${validToken()}`)
+      .set('Cookie', `accessToken=${validToken()}`)
       .send({ currentPassword: 'old', newPassword: 'new' })
 
     expect(res.status).toBe(403)
@@ -171,7 +171,7 @@ describe('POST /api/auth/login — JWT payload avec firstName/lastName', () => {
 
     // Extraire le token du cookie
     const cookieHeader = res.headers['set-cookie']?.join(',') || ''
-    const match = cookieHeader.match(/token=([^;]+)/)
+    const match = cookieHeader.match(/accessToken=([^;]+)/)
     expect(match).toBeTruthy()
 
     const payload = jwt.verify(match[1], SECRET)
@@ -190,7 +190,7 @@ describe('POST /api/auth/login — JWT payload avec firstName/lastName', () => {
     expect(res.status).toBe(200)
 
     const cookieHeader = res.headers['set-cookie']?.join(',') || ''
-    const match = cookieHeader.match(/token=([^;]+)/)
+    const match = cookieHeader.match(/accessToken=([^;]+)/)
     const payload = jwt.verify(match[1], SECRET)
 
     expect(payload.id).toBeDefined()

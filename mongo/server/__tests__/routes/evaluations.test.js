@@ -89,7 +89,7 @@ jest.mock('../../middleware/authGuard', () => ({
   authGuard: (roles = []) => (req, res, next) => {
     const _jwt   = require('jsonwebtoken')
     const secret = process.env.JWT_SECRET
-    const token  = req.cookies?.token
+    const token  = req.cookies?.accessToken
     if (!token) return res.status(401).json({ error: 'Authentication required' })
     try {
       const payload = _jwt.verify(token, secret, { algorithms: ['HS256'] })
@@ -205,7 +205,7 @@ describe('PATCH /api/evaluations/:id — employee as evaluatee (Bug 2 regression
 
     const res = await request(app)
       .patch(`/api/evaluations/${EVAL_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
       .send({ evaluateeComment: 'Je suis en désaccord avec cette évaluation.' })
 
     expect(res.status).toBe(200)
@@ -220,7 +220,7 @@ describe('PATCH /api/evaluations/:id — employee as evaluatee (Bug 2 regression
 
     const res = await request(app)
       .patch(`/api/evaluations/${EVAL_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
       .send({ status: 'signed_evaluatee' })
 
     expect(res.status).toBe(200)
@@ -236,7 +236,7 @@ describe('PATCH /api/evaluations/:id — employee as evaluatee (Bug 2 regression
 
     const res = await request(app)
       .patch(`/api/evaluations/${EVAL_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
       .send({ evaluateeComment: 'I should not be able to do this.' })
 
     expect(res.status).toBe(403)
@@ -252,7 +252,7 @@ describe('PATCH /api/evaluations/:id — employee as evaluatee (Bug 2 regression
 
     const res = await request(app)
       .patch(`/api/evaluations/${EVAL_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
       .send({ answers: [{ questionId: 'q1', value: 'Good year' }] })
 
     expect(res.status).toBe(200)
@@ -278,7 +278,7 @@ describe('PATCH /api/evaluations/:id — manager evaluatorId check (Bug 5 regres
 
     const res = await request(app)
       .patch(`/api/evaluations/${EVAL_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
       .send({ status: 'reviewed' })
 
     expect(res.status).toBe(403)
@@ -294,7 +294,7 @@ describe('PATCH /api/evaluations/:id — manager evaluatorId check (Bug 5 regres
 
     const res = await request(app)
       .patch(`/api/evaluations/${EVAL_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
       .send({ status: 'reviewed' })
 
     expect(res.status).toBe(200)
@@ -310,7 +310,7 @@ describe('PATCH /api/evaluations/:id — manager evaluatorId check (Bug 5 regres
 
     const res = await request(app)
       .patch(`/api/evaluations/${EVAL_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
       .send({ status: 'signed_manager' })
 
     expect(res.status).toBe(200)
@@ -334,7 +334,7 @@ describe('PATCH /api/evaluations/:id — status transition validation', () => {
 
     const res = await request(app)
       .patch(`/api/evaluations/${EVAL_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
       .send({ status: 'validated' })
 
     expect(res.status).toBe(400)
@@ -350,7 +350,7 @@ describe('PATCH /api/evaluations/:id — status transition validation', () => {
 
     const res = await request(app)
       .patch(`/api/evaluations/${EVAL_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
       .send({ status: 'unknown_status' })
 
     expect(res.status).toBe(400)
@@ -366,7 +366,7 @@ describe('PATCH /api/evaluations/:id — status transition validation', () => {
 
     const res = await request(app)
       .patch(`/api/evaluations/${EVAL_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ status: 'reviewed' })
 
     expect(res.status).toBe(200)
@@ -381,7 +381,7 @@ describe('PATCH /api/evaluations/:id — status transition validation', () => {
 
     const res = await request(app)
       .patch(`/api/evaluations/${EVAL_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
       .send({ answers: [{ questionId: 'q1', value: 'Too late' }] })
 
     expect(res.status).toBe(409)
@@ -406,7 +406,7 @@ describe('PATCH /api/evaluations/:id — input validation', () => {
   it('returns 400 for an invalid evaluation ObjectId', async () => {
     const res = await request(app)
       .patch('/api/evaluations/not-a-valid-id')
-      .set('Cookie', `token=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
       .send({ status: 'reviewed' })
     expect(res.status).toBe(400)
     expect(res.body.error).toMatch(/invalide/i)
@@ -416,7 +416,7 @@ describe('PATCH /api/evaluations/:id — input validation', () => {
     Evaluation.findById = jest.fn().mockResolvedValue(null)
     const res = await request(app)
       .patch(`/api/evaluations/${EVAL_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
       .send({ status: 'reviewed' })
     expect(res.status).toBe(404)
   })
@@ -430,7 +430,7 @@ describe('PATCH /api/evaluations/:id — input validation', () => {
 
     const res = await request(app)
       .patch(`/api/evaluations/${EVAL_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
       .send({ answers: 'not-an-array' })
 
     expect(res.status).toBe(400)

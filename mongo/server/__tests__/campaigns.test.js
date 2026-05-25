@@ -159,7 +159,7 @@ describe('Campaign Routes — /api/campaigns', () => {
     test('devrait permettre à un admin de voir toutes les campagnes', async () => {
       const response = await request(app)
         .get('/api/campaigns')
-        .set('Cookie', `token=${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .expect(200)
 
       expect(response.body).toHaveProperty('data')
@@ -170,7 +170,7 @@ describe('Campaign Routes — /api/campaigns', () => {
     test('devrait permettre à un hr de voir toutes les campagnes', async () => {
       const response = await request(app)
         .get('/api/campaigns')
-        .set('Cookie', `token=${hrToken}`)
+        .set('Cookie', `accessToken=${hrToken}`)
         .expect(200)
 
       expect(response.body.data.length).toBeGreaterThanOrEqual(2)
@@ -179,7 +179,7 @@ describe('Campaign Routes — /api/campaigns', () => {
     test('devrait permettre à un manager de voir toutes les campagnes', async () => {
       const response = await request(app)
         .get('/api/campaigns')
-        .set('Cookie', `token=${managerToken}`)
+        .set('Cookie', `accessToken=${managerToken}`)
         .expect(200)
 
       expect(response.body.data.length).toBeGreaterThanOrEqual(1)
@@ -188,7 +188,7 @@ describe('Campaign Routes — /api/campaigns', () => {
     test('devrait permettre à un employee de voir uniquement les campagnes actives', async () => {
       const response = await request(app)
         .get('/api/campaigns')
-        .set('Cookie', `token=${employeeToken}`)
+        .set('Cookie', `accessToken=${employeeToken}`)
         .expect(200)
 
       // Les employés ne voient que les campagnes actives
@@ -201,7 +201,7 @@ describe('Campaign Routes — /api/campaigns', () => {
     test('devrait supporter le filtre par statut', async () => {
       const response = await request(app)
         .get('/api/campaigns?status=draft')
-        .set('Cookie', `token=${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .expect(200)
 
       expect(response.body.data.length).toBeGreaterThanOrEqual(1)
@@ -213,7 +213,7 @@ describe('Campaign Routes — /api/campaigns', () => {
     test('devrait supporter la pagination', async () => {
       const response = await request(app)
         .get('/api/campaigns?page=1&limit=1')
-        .set('Cookie', `token=${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .expect(200)
 
       expect(response.body.data.length).toBeLessThanOrEqual(1)
@@ -226,7 +226,7 @@ describe('Campaign Routes — /api/campaigns', () => {
     test('devrait retourner une campagne par son ID avec des stats', async () => {
       const response = await request(app)
         .get(`/api/campaigns/${activeCampaign._id}`)
-        .set('Cookie', `token=${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .expect(200)
 
       expect(response.body.data.name).toBe('Évaluation annuelle 2024')
@@ -238,7 +238,7 @@ describe('Campaign Routes — /api/campaigns', () => {
       const fakeId = '507f1f77bcf86cd799439011'
       const response = await request(app)
         .get(`/api/campaigns/${fakeId}`)
-        .set('Cookie', `token=${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .expect(404)
 
       expect(response.body).toHaveProperty('error')
@@ -247,7 +247,7 @@ describe('Campaign Routes — /api/campaigns', () => {
     test('devrait retourner 400 avec un ID invalide', async () => {
       const response = await request(app)
         .get('/api/campaigns/invalid-id')
-        .set('Cookie', `token=${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .expect(400)
 
       expect(response.body).toHaveProperty('error')
@@ -272,7 +272,7 @@ describe('Campaign Routes — /api/campaigns', () => {
 
       const response = await request(app)
         .post('/api/campaigns')
-        .set('Cookie', `token=${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .send(newCampaign)
         .expect(201)
 
@@ -298,7 +298,7 @@ describe('Campaign Routes — /api/campaigns', () => {
 
       const response = await request(app)
         .post('/api/campaigns')
-        .set('Cookie', `token=${hrToken}`)
+        .set('Cookie', `accessToken=${hrToken}`)
         .send(newCampaign)
         .expect(201)
 
@@ -321,7 +321,7 @@ describe('Campaign Routes — /api/campaigns', () => {
 
       const response = await request(app)
         .post('/api/campaigns')
-        .set('Cookie', `token=${employeeToken}`)
+        .set('Cookie', `accessToken=${employeeToken}`)
         .send(newCampaign)
         .expect(403)
 
@@ -339,7 +339,7 @@ describe('Campaign Routes — /api/campaigns', () => {
 
       const response = await request(app)
         .post('/api/campaigns')
-        .set('Cookie', `token=${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .send(invalidCampaign)
         .expect(422)
 
@@ -363,7 +363,7 @@ describe('Campaign Routes — /api/campaigns', () => {
 
       const response = await request(app)
         .post('/api/campaigns')
-        .set('Cookie', `token=${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .send(newCampaign)
         .expect(201)
 
@@ -375,7 +375,7 @@ describe('Campaign Routes — /api/campaigns', () => {
     test('devrait permettre à un admin de modifier une campagne', async () => {
       const response = await request(app)
         .patch(`/api/campaigns/${draftCampaign._id}`)
-        .set('Cookie', `token=${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .send({ description: 'Description mise à jour' })
         .expect(200)
 
@@ -385,7 +385,7 @@ describe('Campaign Routes — /api/campaigns', () => {
     test('devrait permettre de changer le statut d\'une campagne', async () => {
       const response = await request(app)
         .patch(`/api/campaigns/${draftCampaign._id}`)
-        .set('Cookie', `token=${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .send({ status: 'active' })
         .expect(200)
 
@@ -395,7 +395,7 @@ describe('Campaign Routes — /api/campaigns', () => {
     test('devrait refuser à un employee de modifier une campagne (403)', async () => {
       const response = await request(app)
         .patch(`/api/campaigns/${draftCampaign._id}`)
-        .set('Cookie', `token=${employeeToken}`)
+        .set('Cookie', `accessToken=${employeeToken}`)
         .send({ description: 'Unauthorized' })
         .expect(403)
 
@@ -410,7 +410,7 @@ describe('Campaign Routes — /api/campaigns', () => {
 
       const response = await request(app)
         .post(`/api/campaigns/${draftCampaign._id}/generate-evaluations`)
-        .set('Cookie', `token=${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .expect(200)
 
       expect(response.body).toHaveProperty('generated')
@@ -426,7 +426,7 @@ describe('Campaign Routes — /api/campaigns', () => {
 
       await request(app)
         .post(`/api/campaigns/${draftCampaign._id}/generate-evaluations`)
-        .set('Cookie', `token=${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .expect(200)
 
       // Vérifier que l'évaluation de l'employé a son manager comme evaluator
@@ -443,7 +443,7 @@ describe('Campaign Routes — /api/campaigns', () => {
     test('devrait refuser à un employee de générer des évaluations (403)', async () => {
       const response = await request(app)
         .post(`/api/campaigns/${draftCampaign._id}/generate-evaluations`)
-        .set('Cookie', `token=${employeeToken}`)
+        .set('Cookie', `accessToken=${employeeToken}`)
         .expect(403)
 
       expect(response.body).toHaveProperty('error')
@@ -453,7 +453,7 @@ describe('Campaign Routes — /api/campaigns', () => {
       const fakeId = '507f1f77bcf86cd799439011'
       const response = await request(app)
         .post(`/api/campaigns/${fakeId}/generate-evaluations`)
-        .set('Cookie', `token=${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .expect(404)
 
       expect(response.body).toHaveProperty('error')
@@ -484,7 +484,7 @@ describe('Campaign Routes — /api/campaigns', () => {
     test('devrait retourner 403 quand un employee accède à une campagne qui ne le concerne pas', async () => {
       const response = await request(app)
         .get(`/api/campaigns/${rbacCampaign._id}`)
-        .set('Cookie', `token=${employeeToken}`)
+        .set('Cookie', `accessToken=${employeeToken}`)
 
       // Après fix IDOR → 403. Avant fix → peut être 200 (test en attente du fix)
       expect([200, 403]).toContain(response.status)
@@ -504,7 +504,7 @@ describe('Campaign Routes — /api/campaigns', () => {
     test('devrait retourner 200 quand un admin accède à une campagne', async () => {
       const response = await request(app)
         .get(`/api/campaigns/${rbacCampaign._id}`)
-        .set('Cookie', `token=${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .expect(200)
 
       expect(response.body.data.name).toBe('Campagne RBAC Test')
@@ -514,7 +514,7 @@ describe('Campaign Routes — /api/campaigns', () => {
     test('devrait retourner 200 quand un hr accède à une campagne', async () => {
       const response = await request(app)
         .get(`/api/campaigns/${rbacCampaign._id}`)
-        .set('Cookie', `token=${hrToken}`)
+        .set('Cookie', `accessToken=${hrToken}`)
         .expect(200)
 
       expect(response.body.data.name).toBe('Campagne RBAC Test')
@@ -530,7 +530,7 @@ describe('Campaign Routes — /api/campaigns', () => {
     test('devrait retourner 422 avec details quand le body est vide', async () => {
       const response = await request(app)
         .post('/api/campaigns')
-        .set('Cookie', `token=${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .send({})
 
       // Après branchement du middleware Joi → 422 avec details
@@ -546,7 +546,7 @@ describe('Campaign Routes — /api/campaigns', () => {
     test('devrait retourner 422 quand name est présent mais formId est absent', async () => {
       const response = await request(app)
         .post('/api/campaigns')
-        .set('Cookie', `token=${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .send({
           name: 'Campagne sans formId',
           startDate: '2025-01-01',
@@ -568,7 +568,7 @@ describe('Campaign Routes — /api/campaigns', () => {
     test('devrait retourner 422 quand endDate est antérieure à startDate', async () => {
       const response = await request(app)
         .post('/api/campaigns')
-        .set('Cookie', `token=${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .send({
           name: 'Campagne dates invalides',
           formId: testForm._id.toString(),
@@ -590,7 +590,7 @@ describe('Campaign Routes — /api/campaigns', () => {
     test('devrait permettre à un admin de supprimer une campagne draft', async () => {
       await request(app)
         .delete(`/api/campaigns/${draftCampaign._id}`)
-        .set('Cookie', `token=${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .expect(204)
 
       // Vérifier que la campagne n'existe plus
@@ -601,7 +601,7 @@ describe('Campaign Routes — /api/campaigns', () => {
     test('devrait refuser de supprimer une campagne active (400)', async () => {
       const response = await request(app)
         .delete(`/api/campaigns/${activeCampaign._id}`)
-        .set('Cookie', `token=${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .expect(400)
 
       expect(response.body).toHaveProperty('error')
@@ -610,7 +610,7 @@ describe('Campaign Routes — /api/campaigns', () => {
     test('devrait refuser à un employee de supprimer une campagne (403)', async () => {
       const response = await request(app)
         .delete(`/api/campaigns/${draftCampaign._id}`)
-        .set('Cookie', `token=${employeeToken}`)
+        .set('Cookie', `accessToken=${employeeToken}`)
         .expect(403)
 
       expect(response.body).toHaveProperty('error')

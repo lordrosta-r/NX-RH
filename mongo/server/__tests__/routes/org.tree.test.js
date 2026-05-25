@@ -12,7 +12,7 @@ jest.mock('../../models/Sector')
 jest.mock('../../middleware/authGuard', () => ({
   authGuard: (roles = []) => (req, res, next) => {
     const jwt    = require('jsonwebtoken')
-    const token  = req.cookies?.token
+    const token  = req.cookies?.accessToken
     if (!token) return res.status(401).json({ error: 'Authentication required' })
     try {
       const payload = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] })
@@ -138,7 +138,7 @@ describe('GET /api/org/tree', () => {
   it('403 — rôle insuffisant (employee)', async () => {
     const res = await request(app)
       .get('/api/org/tree')
-      .set('Cookie', `token=${tokenFor({ id: EMP1_ID, role: 'employee' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: EMP1_ID, role: 'employee' })}`)
     expect(res.status).toBe(403)
   })
 
@@ -147,7 +147,7 @@ describe('GET /api/org/tree', () => {
   it('400 — view=invalid retourne 400', async () => {
     const res = await request(app)
       .get('/api/org/tree?view=invalid')
-      .set('Cookie', `token=${ADMIN_TOKEN}`)
+      .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
     expect(res.status).toBe(400)
     expect(res.body.error).toMatch(/view invalide/i)
   })
@@ -157,7 +157,7 @@ describe('GET /api/org/tree', () => {
   it('200 — vue all : retourne un tableau avec les racines au premier niveau', async () => {
     const res = await request(app)
       .get('/api/org/tree')
-      .set('Cookie', `token=${ADMIN_TOKEN}`)
+      .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
 
     expect(res.status).toBe(200)
     expect(Array.isArray(res.body)).toBe(true)
@@ -170,7 +170,7 @@ describe('GET /api/org/tree', () => {
   it('200 — vue all : les enfants sont imbriqués sous leur manager', async () => {
     const res = await request(app)
       .get('/api/org/tree?view=all')
-      .set('Cookie', `token=${ADMIN_TOKEN}`)
+      .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
 
     expect(res.status).toBe(200)
     const root = res.body.find(n => n.lastName === 'Admin')
@@ -186,7 +186,7 @@ describe('GET /api/org/tree', () => {
   it('200 — vue teams : retourne des groupes par manager direct', async () => {
     const res = await request(app)
       .get('/api/org/tree?view=teams')
-      .set('Cookie', `token=${ADMIN_TOKEN}`)
+      .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
 
     expect(res.status).toBe(200)
     expect(Array.isArray(res.body)).toBe(true)
@@ -199,7 +199,7 @@ describe('GET /api/org/tree', () => {
   it('200 — vue teams : Alice Admin a 1 direct report (Bob Manager)', async () => {
     const res = await request(app)
       .get('/api/org/tree?view=teams')
-      .set('Cookie', `token=${ADMIN_TOKEN}`)
+      .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
 
     expect(res.status).toBe(200)
     const adminGroup = res.body.find(g => g.manager?.lastName === 'Admin')
@@ -212,7 +212,7 @@ describe('GET /api/org/tree', () => {
   it('200 — vue sector : retourne des groupes par secteur', async () => {
     const res = await request(app)
       .get('/api/org/tree?view=sector')
-      .set('Cookie', `token=${ADMIN_TOKEN}`)
+      .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
 
     expect(res.status).toBe(200)
     expect(Array.isArray(res.body)).toBe(true)
@@ -225,7 +225,7 @@ describe('GET /api/org/tree', () => {
   it('200 — vue sector : Alice sans secteur apparaît dans le groupe null', async () => {
     const res = await request(app)
       .get('/api/org/tree?view=sector')
-      .set('Cookie', `token=${ADMIN_TOKEN}`)
+      .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
 
     expect(res.status).toBe(200)
     const nullGroup = res.body.find(g => g.sector === null)
@@ -239,7 +239,7 @@ describe('GET /api/org/tree', () => {
     mockUserFind([])
     const res = await request(app)
       .get('/api/org/tree?view=all')
-      .set('Cookie', `token=${ADMIN_TOKEN}`)
+      .set('Cookie', `accessToken=${ADMIN_TOKEN}`)
 
     expect(res.status).toBe(200)
     expect(res.body).toEqual([])

@@ -64,7 +64,7 @@ jest.mock('../../models/AuditLog', () => ({
 jest.mock('../../middleware/authGuard', () => ({
   authGuard: (roles = []) => (req, res, next) => {
     const _jwt = require('jsonwebtoken')
-    const token = req.cookies?.token
+    const token = req.cookies?.accessToken
     if (!token) return res.status(401).json({ error: 'Authentication required' })
     try {
       const payload = _jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] })
@@ -157,7 +157,7 @@ describe('POST /api/offboarding', () => {
   it('403 for manager (caught by authGuard — not hr or admin)', async () => {
     const res = await supertest(app)
       .post('/api/offboarding')
-      .set('Cookie', `token=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
       .send({ userId: USER_ID, reason: 'resignation', lastDay: '2025-12-31' })
     expect(res.status).toBe(403)
   })
@@ -165,7 +165,7 @@ describe('POST /api/offboarding', () => {
   it('403 for employee (caught by authGuard)', async () => {
     const res = await supertest(app)
       .post('/api/offboarding')
-      .set('Cookie', `token=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
       .send({ userId: USER_ID, reason: 'resignation', lastDay: '2025-12-31' })
     expect(res.status).toBe(403)
   })
@@ -173,7 +173,7 @@ describe('POST /api/offboarding', () => {
   it('403 for director (caught by authGuard)', async () => {
     const res = await supertest(app)
       .post('/api/offboarding')
-      .set('Cookie', `token=${tokenFor({ id: DIRECTOR_ID, role: 'director' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: DIRECTOR_ID, role: 'director' })}`)
       .send({ userId: USER_ID, reason: 'resignation', lastDay: '2025-12-31' })
     expect(res.status).toBe(403)
   })
@@ -181,7 +181,7 @@ describe('POST /api/offboarding', () => {
   it('400 when userId is missing', async () => {
     const res = await supertest(app)
       .post('/api/offboarding')
-      .set('Cookie', `token=${tokenFor({ id: HR_ID, role: 'hr' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: HR_ID, role: 'hr' })}`)
       .send({ reason: 'resignation', lastDay: '2025-12-31' })
     expect(res.status).toBe(400)
     expect(res.body.error).toMatch(/requis/i)
@@ -190,7 +190,7 @@ describe('POST /api/offboarding', () => {
   it('400 when reason is missing', async () => {
     const res = await supertest(app)
       .post('/api/offboarding')
-      .set('Cookie', `token=${tokenFor({ id: HR_ID, role: 'hr' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: HR_ID, role: 'hr' })}`)
       .send({ userId: USER_ID, lastDay: '2025-12-31' })
     expect(res.status).toBe(400)
     expect(res.body.error).toMatch(/requis/i)
@@ -199,7 +199,7 @@ describe('POST /api/offboarding', () => {
   it('400 when lastDay is missing', async () => {
     const res = await supertest(app)
       .post('/api/offboarding')
-      .set('Cookie', `token=${tokenFor({ id: HR_ID, role: 'hr' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: HR_ID, role: 'hr' })}`)
       .send({ userId: USER_ID, reason: 'resignation' })
     expect(res.status).toBe(400)
     expect(res.body.error).toMatch(/requis/i)
@@ -208,7 +208,7 @@ describe('POST /api/offboarding', () => {
   it('400 for an invalid userId ObjectId', async () => {
     const res = await supertest(app)
       .post('/api/offboarding')
-      .set('Cookie', `token=${tokenFor({ id: HR_ID, role: 'hr' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: HR_ID, role: 'hr' })}`)
       .send({ userId: 'not-an-objectid', reason: 'resignation', lastDay: '2025-12-31' })
     expect(res.status).toBe(400)
     expect(res.body.error).toMatch(/invalide/i)
@@ -217,7 +217,7 @@ describe('POST /api/offboarding', () => {
   it('400 for reason "fired" (not in valid whitelist)', async () => {
     const res = await supertest(app)
       .post('/api/offboarding')
-      .set('Cookie', `token=${tokenFor({ id: HR_ID, role: 'hr' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: HR_ID, role: 'hr' })}`)
       .send({ userId: USER_ID, reason: 'fired', lastDay: '2025-12-31' })
     expect(res.status).toBe(400)
     expect(res.body.error).toMatch(/reason invalide/i)
@@ -226,7 +226,7 @@ describe('POST /api/offboarding', () => {
   it('400 for reason "layoff" (not in valid whitelist)', async () => {
     const res = await supertest(app)
       .post('/api/offboarding')
-      .set('Cookie', `token=${tokenFor({ id: HR_ID, role: 'hr' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: HR_ID, role: 'hr' })}`)
       .send({ userId: USER_ID, reason: 'layoff', lastDay: '2025-12-31' })
     expect(res.status).toBe(400)
     expect(res.body.error).toMatch(/reason invalide/i)
@@ -236,7 +236,7 @@ describe('POST /api/offboarding', () => {
     User.findById = jest.fn(() => makeChain(null))
     const res = await supertest(app)
       .post('/api/offboarding')
-      .set('Cookie', `token=${tokenFor({ id: HR_ID, role: 'hr' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: HR_ID, role: 'hr' })}`)
       .send({ userId: USER_ID, reason: 'resignation', lastDay: '2025-12-31' })
     expect(res.status).toBe(404)
     expect(res.body.error).toMatch(/introuvable/i)
@@ -252,7 +252,7 @@ describe('POST /api/offboarding', () => {
 
     const res = await supertest(app)
       .post('/api/offboarding')
-      .set('Cookie', `token=${tokenFor({ id: HR_ID, role: 'hr' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: HR_ID, role: 'hr' })}`)
       .send({ userId: USER_ID, reason: 'resignation', lastDay: '2025-12-31', notes: '  notice given  ' })
 
     expect(res.status).toBe(201)
@@ -273,7 +273,7 @@ describe('POST /api/offboarding', () => {
 
     const res = await supertest(app)
       .post('/api/offboarding')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ userId: USER_ID, reason: 'termination', lastDay: '2025-11-30' })
 
     expect(res.status).toBe(201)
@@ -287,7 +287,7 @@ describe('POST /api/offboarding', () => {
 
     const res = await supertest(app)
       .post('/api/offboarding')
-      .set('Cookie', `token=${tokenFor({ id: HR_ID, role: 'hr' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: HR_ID, role: 'hr' })}`)
       .send({ userId: USER_ID, reason: 'retirement', lastDay: '2025-12-31' })
 
     expect(res.status).toBe(201)
@@ -299,7 +299,7 @@ describe('POST /api/offboarding', () => {
 
     const res = await supertest(app)
       .post('/api/offboarding')
-      .set('Cookie', `token=${tokenFor({ id: HR_ID, role: 'hr' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: HR_ID, role: 'hr' })}`)
       .send({ userId: USER_ID, reason: 'resignation', lastDay: '2025-12-31' })
 
     expect(res.status).toBe(409)
@@ -320,7 +320,7 @@ describe('GET /api/offboarding', () => {
   it('403 for manager (caught by authGuard)', async () => {
     const res = await supertest(app)
       .get('/api/offboarding')
-      .set('Cookie', `token=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
     expect(res.status).toBe(403)
   })
 
@@ -330,7 +330,7 @@ describe('GET /api/offboarding', () => {
 
     const res = await supertest(app)
       .get('/api/offboarding')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
 
     expect(res.status).toBe(200)
     expect(Array.isArray(res.body.data)).toBe(true)
@@ -344,7 +344,7 @@ describe('GET /api/offboarding', () => {
 
     const res = await supertest(app)
       .get('/api/offboarding')
-      .set('Cookie', `token=${tokenFor({ id: HR_ID, role: 'hr' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: HR_ID, role: 'hr' })}`)
 
     expect(res.status).toBe(200)
     expect(res.body.data).toEqual([])
@@ -356,7 +356,7 @@ describe('GET /api/offboarding', () => {
 
     await supertest(app)
       .get('/api/offboarding?status=pending')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
 
     const [filter] = OffboardingRequest.find.mock.calls[0]
     expect(filter.status).toBe('pending')
@@ -368,7 +368,7 @@ describe('GET /api/offboarding', () => {
 
     await supertest(app)
       .get('/api/offboarding?status=unknown')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
 
     const [filter] = OffboardingRequest.find.mock.calls[0]
     expect(filter.status).toBeUndefined()
@@ -383,7 +383,7 @@ describe('GET /api/offboarding/:id', () => {
   it('400 for an invalid ObjectId', async () => {
     const res = await supertest(app)
       .get('/api/offboarding/not-a-valid-id')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
 
     expect(res.status).toBe(400)
     expect(res.body.error).toMatch(/invalide/i)
@@ -394,7 +394,7 @@ describe('GET /api/offboarding/:id', () => {
 
     const res = await supertest(app)
       .get(`/api/offboarding/${VALID_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
 
     expect(res.status).toBe(404)
     expect(res.body.error).toMatch(/introuvable/i)
@@ -409,7 +409,7 @@ describe('GET /api/offboarding/:id', () => {
 
     const res = await supertest(app)
       .get(`/api/offboarding/${VALID_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
 
     expect(res.status).toBe(200)
     expect(res.body._id).toBe(VALID_ID)
@@ -422,7 +422,7 @@ describe('GET /api/offboarding/:id', () => {
 
     const res = await supertest(app)
       .get(`/api/offboarding/${VALID_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: HR_ID, role: 'hr' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: HR_ID, role: 'hr' })}`)
 
     expect(res.status).toBe(200)
   })
@@ -436,7 +436,7 @@ describe('PATCH /api/offboarding/:id', () => {
   it('400 for an invalid ObjectId', async () => {
     const res = await supertest(app)
       .patch('/api/offboarding/not-valid')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ status: 'in_progress' })
 
     expect(res.status).toBe(400)
@@ -448,7 +448,7 @@ describe('PATCH /api/offboarding/:id', () => {
 
     const res = await supertest(app)
       .patch(`/api/offboarding/${VALID_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ status: 'in_progress' })
 
     expect(res.status).toBe(404)
@@ -460,7 +460,7 @@ describe('PATCH /api/offboarding/:id', () => {
 
     const res = await supertest(app)
       .patch(`/api/offboarding/${VALID_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ status: 'cancelled' })
 
     expect(res.status).toBe(400)
@@ -477,7 +477,7 @@ describe('PATCH /api/offboarding/:id', () => {
 
     const res = await supertest(app)
       .patch(`/api/offboarding/${VALID_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: HR_ID, role: 'hr' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: HR_ID, role: 'hr' })}`)
       .send({ status: 'in_progress' })
 
     expect(res.status).toBe(200)
@@ -493,7 +493,7 @@ describe('PATCH /api/offboarding/:id', () => {
 
     const res = await supertest(app)
       .patch(`/api/offboarding/${VALID_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ notes: 'Updated notes' })
 
     expect(res.status).toBe(200)
@@ -509,7 +509,7 @@ describe('PATCH /api/offboarding/:id', () => {
 
     const res = await supertest(app)
       .patch(`/api/offboarding/${VALID_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ status: 'completed' })
 
     expect(res.status).toBe(200)
@@ -528,7 +528,7 @@ describe('PATCH /api/offboarding/:id/checklist/:itemIndex', () => {
   it('400 for an invalid ObjectId in :id', async () => {
     const res = await supertest(app)
       .patch('/api/offboarding/not-valid/checklist/0')
-      .set('Cookie', `token=${tokenFor({ id: HR_ID, role: 'hr' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: HR_ID, role: 'hr' })}`)
       .send({ done: true })
 
     expect(res.status).toBe(400)
@@ -538,7 +538,7 @@ describe('PATCH /api/offboarding/:id/checklist/:itemIndex', () => {
   it('400 for a non-numeric itemIndex', async () => {
     const res = await supertest(app)
       .patch(`/api/offboarding/${VALID_ID}/checklist/abc`)
-      .set('Cookie', `token=${tokenFor({ id: HR_ID, role: 'hr' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: HR_ID, role: 'hr' })}`)
       .send({ done: true })
 
     expect(res.status).toBe(400)
@@ -548,7 +548,7 @@ describe('PATCH /api/offboarding/:id/checklist/:itemIndex', () => {
   it('400 for a negative itemIndex', async () => {
     const res = await supertest(app)
       .patch(`/api/offboarding/${VALID_ID}/checklist/-1`)
-      .set('Cookie', `token=${tokenFor({ id: HR_ID, role: 'hr' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: HR_ID, role: 'hr' })}`)
       .send({ done: true })
 
     expect(res.status).toBe(400)
@@ -560,7 +560,7 @@ describe('PATCH /api/offboarding/:id/checklist/:itemIndex', () => {
 
     const res = await supertest(app)
       .patch(`/api/offboarding/${VALID_ID}/checklist/0`)
-      .set('Cookie', `token=${tokenFor({ id: HR_ID, role: 'hr' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: HR_ID, role: 'hr' })}`)
       .send({ done: true })
 
     expect(res.status).toBe(404)
@@ -574,7 +574,7 @@ describe('PATCH /api/offboarding/:id/checklist/:itemIndex', () => {
 
     const res = await supertest(app)
       .patch(`/api/offboarding/${VALID_ID}/checklist/5`)
-      .set('Cookie', `token=${tokenFor({ id: HR_ID, role: 'hr' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: HR_ID, role: 'hr' })}`)
       .send({ done: true })
 
     expect(res.status).toBe(400)
@@ -597,7 +597,7 @@ describe('PATCH /api/offboarding/:id/checklist/:itemIndex', () => {
 
     const res = await supertest(app)
       .patch(`/api/offboarding/${VALID_ID}/checklist/0`)
-      .set('Cookie', `token=${tokenFor({ id: HR_ID, role: 'hr' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: HR_ID, role: 'hr' })}`)
       .send({ done: true })
 
     expect(res.status).toBe(200)
@@ -621,7 +621,7 @@ describe('PATCH /api/offboarding/:id/checklist/:itemIndex', () => {
 
     const res = await supertest(app)
       .patch(`/api/offboarding/${VALID_ID}/checklist/0`)
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       .send({ done: false })
 
     expect(res.status).toBe(200)
@@ -639,7 +639,7 @@ describe('DELETE /api/offboarding/:id', () => {
   it('403 for hr — route has an inner admin-only check (ADMIN_ROLES = ["admin"])', async () => {
     const res = await supertest(app)
       .delete(`/api/offboarding/${VALID_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: HR_ID, role: 'hr' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: HR_ID, role: 'hr' })}`)
 
     expect(res.status).toBe(403)
     expect(res.body.error).toMatch(/administrateur/i)
@@ -648,7 +648,7 @@ describe('DELETE /api/offboarding/:id', () => {
   it('400 for an invalid ObjectId', async () => {
     const res = await supertest(app)
       .delete('/api/offboarding/not-valid')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
 
     expect(res.status).toBe(400)
     expect(res.body.error).toMatch(/invalide/i)
@@ -659,7 +659,7 @@ describe('DELETE /api/offboarding/:id', () => {
 
     const res = await supertest(app)
       .delete(`/api/offboarding/${VALID_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
 
     expect(res.status).toBe(404)
     expect(res.body.error).toMatch(/introuvable/i)
@@ -672,7 +672,7 @@ describe('DELETE /api/offboarding/:id', () => {
 
     const res = await supertest(app)
       .delete(`/api/offboarding/${VALID_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
 
     expect(res.status).toBe(204)
     expect(res.body).toEqual({})

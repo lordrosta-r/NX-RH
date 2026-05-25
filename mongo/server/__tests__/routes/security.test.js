@@ -60,7 +60,7 @@ jest.mock('../../middleware/authGuard', () => ({
   authGuard: (roles = []) => (req, res, next) => {
     const _jwt   = require('jsonwebtoken')
     const secret = process.env.JWT_SECRET
-    const token  = req.cookies?.token
+    const token  = req.cookies?.accessToken
     if (!token) return res.status(401).json({ error: 'Authentication required' })
     try {
       const payload = _jwt.verify(token, secret, { algorithms: ['HS256'] })
@@ -242,7 +242,7 @@ describe('NoSQL Injection', () => {
     it('sector[$ne]= ne doit pas provoquer d\'erreur serveur (200 ou 400, pas 500)', async () => {
       const res = await request(app)
         .get('/api/users?sector[$ne]=')
-        .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+        .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       expect(res.status).not.toBe(500)
       expect([200, 400]).toContain(res.status)
     })
@@ -250,7 +250,7 @@ describe('NoSQL Injection', () => {
     it('l\'opérateur $ne ne doit pas être transmis à MongoDB comme filtre sectorId', async () => {
       await request(app)
         .get('/api/users?sector[$ne]=')
-        .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+        .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       if (RouteUser.find.mock.calls.length > 0) {
         const [filter] = RouteUser.find.mock.calls[0]
         // sectorId ne doit pas contenir un opérateur MongoDB
@@ -277,7 +277,7 @@ describe('NoSQL Injection', () => {
     it('status[$in][]=draft&status[$in][]=validated → 400 (validation de type, pas 500)', async () => {
       const res = await request(app)
         .get('/api/evaluations?status[$in][]=draft&status[$in][]=validated')
-        .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+        .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
       // La route valide typeof status === 'string' — un objet/tableau retourne 400
       expect(res.status).not.toBe(500)
       expect([400, 200]).toContain(res.status)
@@ -300,14 +300,14 @@ describe('RBAC cross-role', () => {
   it('employee GET /api/users → 403', async () => {
     const res = await request(usersApp)
       .get('/api/users')
-      .set('Cookie', `token=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
     expect(res.status).toBe(403)
   })
 
   it('employee POST /api/campaigns → 403', async () => {
     const res = await request(campaignsApp)
       .post('/api/campaigns')
-      .set('Cookie', `token=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
       .send({ name: 'Test', startDate: '2025-01-01', endDate: '2025-12-31' })
     expect(res.status).toBe(403)
   })
@@ -315,7 +315,7 @@ describe('RBAC cross-role', () => {
   it('employee GET /api/analytics/summary → 403', async () => {
     const res = await request(analyticsApp)
       .get('/api/analytics/summary')
-      .set('Cookie', `token=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
     expect(res.status).toBe(403)
   })
 
@@ -323,14 +323,14 @@ describe('RBAC cross-role', () => {
   it('manager DELETE /api/users/:id → 403', async () => {
     const res = await request(usersApp)
       .delete(`/api/users/${TARGET_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
     expect(res.status).toBe(403)
   })
 
   it('manager POST /api/campaigns → 403', async () => {
     const res = await request(campaignsApp)
       .post('/api/campaigns')
-      .set('Cookie', `token=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
       .send({ name: 'Test', startDate: '2025-01-01', endDate: '2025-12-31' })
     expect(res.status).toBe(403)
   })
@@ -339,7 +339,7 @@ describe('RBAC cross-role', () => {
   it('hr DELETE /api/users/:id → 403 (réservé admin)', async () => {
     const res = await request(usersApp)
       .delete(`/api/users/${TARGET_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: HR_ID, role: 'hr' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: HR_ID, role: 'hr' })}`)
     expect(res.status).toBe(403)
   })
 })
@@ -426,7 +426,7 @@ describe('JWT validation', () => {
   it('GET /api/users avec token invalide (chaîne aléatoire) → 401', async () => {
     const res = await request(app)
       .get('/api/users')
-      .set('Cookie', 'token=not.a.valid.jwt')
+      .set('Cookie', 'accessToken=not.a.valid.jwt')
     expect(res.status).toBe(401)
   })
 
@@ -436,7 +436,7 @@ describe('JWT validation', () => {
     })
     const res = await request(app)
       .get('/api/users')
-      .set('Cookie', `token=${badToken}`)
+      .set('Cookie', `accessToken=${badToken}`)
     expect(res.status).toBe(401)
   })
 
@@ -446,21 +446,21 @@ describe('JWT validation', () => {
     })
     const res = await request(app)
       .get('/api/users')
-      .set('Cookie', `token=${expiredToken}`)
+      .set('Cookie', `accessToken=${expiredToken}`)
     expect(res.status).toBe(401)
   })
 
   it('GET /api/users avec token valide mais rôle insuffisant (employee) → 403', async () => {
     const res = await request(app)
       .get('/api/users')
-      .set('Cookie', `token=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
     expect(res.status).toBe(403)
   })
 
   it('GET /api/users avec token admin valide → 200', async () => {
     const res = await request(app)
       .get('/api/users')
-      .set('Cookie', `token=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(res.status).toBe(200)
   })
 })

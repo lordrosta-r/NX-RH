@@ -76,7 +76,7 @@ describe('Middleware — authGuard', () => {
 
       const response = await request(app)
         .get('/api/test')
-        .set('Cookie', `token=${employeeToken}`)
+        .set('Cookie', `accessToken=${employeeToken}`)
         .expect(200)
 
       expect(response.body.userId).toBe(employeeUser._id.toString())
@@ -105,7 +105,7 @@ describe('Middleware — authGuard', () => {
 
       const response = await request(app)
         .get('/api/test')
-        .set('Cookie', 'token=invalid-token-string')
+        .set('Cookie', 'accessToken=invalid-token-string')
         .expect(401)
 
       expect(response.body).toHaveProperty('error')
@@ -122,7 +122,7 @@ describe('Middleware — authGuard', () => {
 
       const response = await request(app)
         .get('/api/test')
-        .set('Cookie', `token=${expiredToken}`)
+        .set('Cookie', `accessToken=${expiredToken}`)
         .expect(401)
 
       expect(response.body).toHaveProperty('error')
@@ -140,7 +140,7 @@ describe('Middleware — authGuard', () => {
 
       const response = await request(app)
         .get('/api/test')
-        .set('Cookie', `token=${employeeToken}`)
+        .set('Cookie', `accessToken=${employeeToken}`)
         .expect(401)
 
       expect(response.body).toHaveProperty('error')
@@ -160,7 +160,7 @@ describe('Middleware — authGuard', () => {
 
       const response = await request(app)
         .get('/api/admin-only')
-        .set('Cookie', `token=${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .expect(200)
 
       expect(response.body.success).toBe(true)
@@ -175,7 +175,7 @@ describe('Middleware — authGuard', () => {
 
       const response = await request(app)
         .get('/api/admin-only')
-        .set('Cookie', `token=${employeeToken}`)
+        .set('Cookie', `accessToken=${employeeToken}`)
         .expect(403)
 
       expect(response.body).toHaveProperty('error')
@@ -190,7 +190,7 @@ describe('Middleware — authGuard', () => {
 
       const response = await request(app)
         .get('/api/admin-or-hr')
-        .set('Cookie', `token=${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .expect(200)
 
       expect(response.body.success).toBe(true)
@@ -204,7 +204,7 @@ describe('Middleware — authGuard', () => {
 
       const response = await request(app)
         .get('/api/admin-or-hr')
-        .set('Cookie', `token=${employeeToken}`)
+        .set('Cookie', `accessToken=${employeeToken}`)
         .expect(403)
 
       expect(response.body).toHaveProperty('error')
@@ -223,7 +223,7 @@ describe('Middleware — authGuard', () => {
 
       await request(app)
         .get('/api/test')
-        .set('Cookie', `token=${employeeToken}`)
+        .set('Cookie', `accessToken=${employeeToken}`)
         .expect(200)
 
       expect(capturedUser).toBeTruthy()

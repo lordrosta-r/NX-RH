@@ -91,7 +91,7 @@ jest.mock('../../middleware/authGuard', () => ({
   authGuard: (roles = []) => (req, res, next) => {
     const _jwt   = require('jsonwebtoken')
     const secret = process.env.JWT_SECRET
-    const token  = req.cookies?.token
+    const token  = req.cookies?.accessToken
     if (!token) return res.status(401).json({ error: 'Authentication required' })
     try {
       const payload = _jwt.verify(token, secret, { algorithms: ['HS256'] })
@@ -198,7 +198,7 @@ describe('Chaîne de signature — signed_hr → validated (fix-eval-machine)', 
 
     const res = await request(app)
       .patch(`/api/evaluations/${EVAL_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: HR_ID, role: 'hr' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: HR_ID, role: 'hr' })}`)
       .send({ status: 'validated' })
 
     expect(res.status).toBe(200)
@@ -212,7 +212,7 @@ describe('Chaîne de signature — signed_hr → validated (fix-eval-machine)', 
 
     const res = await request(app)
       .patch(`/api/evaluations/${EVAL_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
       .send({ status: 'validated' })
 
     expect(res.status).toBe(400)
@@ -226,7 +226,7 @@ describe('Chaîne de signature — signed_hr → validated (fix-eval-machine)', 
 
     const res = await request(app)
       .patch(`/api/evaluations/${EVAL_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
       .send({ status: 'validated' })
 
     expect(res.status).toBe(400)
@@ -253,7 +253,7 @@ describe('Chaîne de signature — timestamps automatiques', () => {
 
     const res = await request(app)
       .patch(`/api/evaluations/${EVAL_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
       .send({ status: 'signed_evaluatee' })
 
     expect(res.status).toBe(200)
@@ -272,7 +272,7 @@ describe('Chaîne de signature — timestamps automatiques', () => {
 
     const res = await request(app)
       .patch(`/api/evaluations/${EVAL_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
       .send({ status: 'signed_manager' })
 
     expect(res.status).toBe(200)
@@ -289,7 +289,7 @@ describe('Chaîne de signature — timestamps automatiques', () => {
 
     const res = await request(app)
       .patch(`/api/evaluations/${EVAL_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: HR_ID, role: 'hr' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: HR_ID, role: 'hr' })}`)
       .send({ status: 'signed_hr' })
 
     expect(res.status).toBe(200)
@@ -307,7 +307,7 @@ describe('Chaîne de signature — timestamps automatiques', () => {
 
     const res = await request(app)
       .patch(`/api/evaluations/${EVAL_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
       .send({ status: 'submitted' })
 
     expect(res.status).toBe(200)
@@ -335,7 +335,7 @@ describe('Chaîne de signature — transitions invalides', () => {
 
     const res = await request(app)
       .patch(`/api/evaluations/${EVAL_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
       .send({ status: 'validated' })
 
     expect(res.status).toBe(400)
@@ -349,7 +349,7 @@ describe('Chaîne de signature — transitions invalides', () => {
 
     const res = await request(app)
       .patch(`/api/evaluations/${EVAL_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: HR_ID, role: 'hr' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: HR_ID, role: 'hr' })}`)
       .send({ status: 'validated' })
 
     expect(res.status).toBe(400)
@@ -363,7 +363,7 @@ describe('Chaîne de signature — transitions invalides', () => {
 
     const res = await request(app)
       .patch(`/api/evaluations/${EVAL_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: HR_ID, role: 'hr' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: HR_ID, role: 'hr' })}`)
       .send({ status: 'signed_evaluatee' })
 
     expect(res.status).toBe(400)
@@ -377,7 +377,7 @@ describe('Chaîne de signature — transitions invalides', () => {
 
     const res = await request(app)
       .patch(`/api/evaluations/${EVAL_ID}`)
-      .set('Cookie', `token=${tokenFor({ id: HR_ID, role: 'hr' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: HR_ID, role: 'hr' })}`)
       .send({ status: 'not_a_real_status' })
 
     expect(res.status).toBe(400)

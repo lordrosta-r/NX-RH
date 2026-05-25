@@ -97,7 +97,7 @@ describe('User Routes — /api/users', () => {
     test('devrait permettre à un admin de lister tous les utilisateurs', async () => {
       const response = await request(app)
         .get('/api/users')
-        .set('Cookie', `token=${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .expect(200)
 
       expect(response.body).toHaveProperty('data')
@@ -114,7 +114,7 @@ describe('User Routes — /api/users', () => {
     test('devrait permettre à un hr de lister tous les utilisateurs', async () => {
       const response = await request(app)
         .get('/api/users')
-        .set('Cookie', `token=${hrToken}`)
+        .set('Cookie', `accessToken=${hrToken}`)
         .expect(200)
 
       expect(response.body).toHaveProperty('data')
@@ -124,7 +124,7 @@ describe('User Routes — /api/users', () => {
     test('devrait permettre à un manager de voir ses subordonnés uniquement', async () => {
       const response = await request(app)
         .get('/api/users')
-        .set('Cookie', `token=${managerToken}`)
+        .set('Cookie', `accessToken=${managerToken}`)
         .expect(200)
 
       expect(response.body).toHaveProperty('data')
@@ -136,7 +136,7 @@ describe('User Routes — /api/users', () => {
     test('devrait refuser l\'accès à un employee (403)', async () => {
       const response = await request(app)
         .get('/api/users')
-        .set('Cookie', `token=${employeeToken}`)
+        .set('Cookie', `accessToken=${employeeToken}`)
         .expect(403)
 
       expect(response.body).toHaveProperty('error')
@@ -146,7 +146,7 @@ describe('User Routes — /api/users', () => {
     test('devrait supporter la recherche par nom', async () => {
       const response = await request(app)
         .get('/api/users?search=Employee')
-        .set('Cookie', `token=${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .expect(200)
 
       expect(response.body.data.length).toBeGreaterThanOrEqual(1)
@@ -156,7 +156,7 @@ describe('User Routes — /api/users', () => {
     test('devrait supporter le filtre par rôle', async () => {
       const response = await request(app)
         .get('/api/users?role=admin')
-        .set('Cookie', `token=${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .expect(200)
 
       expect(response.body.data.length).toBeGreaterThanOrEqual(1)
@@ -171,7 +171,7 @@ describe('User Routes — /api/users', () => {
 
       const response = await request(app)
         .get('/api/users?isActive=true')
-        .set('Cookie', `token=${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .expect(200)
 
       // Ne devrait pas inclure l'employé désactivé
@@ -181,7 +181,7 @@ describe('User Routes — /api/users', () => {
     test('devrait supporter la pagination', async () => {
       const response = await request(app)
         .get('/api/users?page=1&limit=2')
-        .set('Cookie', `token=${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .expect(200)
 
       expect(response.body.data.length).toBeLessThanOrEqual(2)
@@ -194,7 +194,7 @@ describe('User Routes — /api/users', () => {
     test('devrait permettre à un admin de voir n\'importe quel utilisateur', async () => {
       const response = await request(app)
         .get(`/api/users/${employeeUser._id}`)
-        .set('Cookie', `token=${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .expect(200)
 
       expect(response.body.data.email).toBe('employee@nanoxplore.com')
@@ -204,7 +204,7 @@ describe('User Routes — /api/users', () => {
     test('devrait permettre à un utilisateur de voir son propre profil', async () => {
       const response = await request(app)
         .get(`/api/users/${employeeUser._id}`)
-        .set('Cookie', `token=${employeeToken}`)
+        .set('Cookie', `accessToken=${employeeToken}`)
         .expect(200)
 
       expect(response.body.data.email).toBe('employee@nanoxplore.com')
@@ -213,7 +213,7 @@ describe('User Routes — /api/users', () => {
     test('devrait refuser l\'accès à un employee qui veut voir un autre utilisateur (403)', async () => {
       const response = await request(app)
         .get(`/api/users/${adminUser._id}`)
-        .set('Cookie', `token=${employeeToken}`)
+        .set('Cookie', `accessToken=${employeeToken}`)
         .expect(403)
 
       expect(response.body).toHaveProperty('error')
@@ -223,7 +223,7 @@ describe('User Routes — /api/users', () => {
       const fakeId = '507f1f77bcf86cd799439011'
       const response = await request(app)
         .get(`/api/users/${fakeId}`)
-        .set('Cookie', `token=${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .expect(404)
 
       expect(response.body).toHaveProperty('error')
@@ -232,7 +232,7 @@ describe('User Routes — /api/users', () => {
     test('devrait retourner 400 avec un ID invalide', async () => {
       const response = await request(app)
         .get('/api/users/invalid-id')
-        .set('Cookie', `token=${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .expect(400)
 
       expect(response.body).toHaveProperty('error')
@@ -251,7 +251,7 @@ describe('User Routes — /api/users', () => {
 
       const response = await request(app)
         .post('/api/users')
-        .set('Cookie', `token=${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .send(newUser)
         .expect(201)
 
@@ -276,7 +276,7 @@ describe('User Routes — /api/users', () => {
 
       const response = await request(app)
         .post('/api/users')
-        .set('Cookie', `token=${hrToken}`)
+        .set('Cookie', `accessToken=${hrToken}`)
         .send(newUser)
         .expect(201)
 
@@ -293,7 +293,7 @@ describe('User Routes — /api/users', () => {
 
       const response = await request(app)
         .post('/api/users')
-        .set('Cookie', `token=${employeeToken}`)
+        .set('Cookie', `accessToken=${employeeToken}`)
         .send(newUser)
         .expect(403)
 
@@ -308,7 +308,7 @@ describe('User Routes — /api/users', () => {
 
       const response = await request(app)
         .post('/api/users')
-        .set('Cookie', `token=${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .send(newUser)
         .expect(422)
 
@@ -326,7 +326,7 @@ describe('User Routes — /api/users', () => {
 
       const response = await request(app)
         .post('/api/users')
-        .set('Cookie', `token=${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .send(duplicateUser)
         .expect(409)
 
@@ -344,7 +344,7 @@ describe('User Routes — /api/users', () => {
 
       const response = await request(app)
         .post('/api/users')
-        .set('Cookie', `token=${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .send(newUser)
         .expect(422)
 
@@ -356,7 +356,7 @@ describe('User Routes — /api/users', () => {
     test('devrait permettre à un admin de modifier le rôle d\'un utilisateur', async () => {
       const response = await request(app)
         .patch(`/api/users/${employeeUser._id}`)
-        .set('Cookie', `token=${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .send({ role: 'manager' })
         .expect(200)
 
@@ -370,7 +370,7 @@ describe('User Routes — /api/users', () => {
     test('devrait permettre à un utilisateur de modifier ses propres informations limitées', async () => {
       const response = await request(app)
         .patch(`/api/users/${employeeUser._id}`)
-        .set('Cookie', `token=${employeeToken}`)
+        .set('Cookie', `accessToken=${employeeToken}`)
         .send({ phone: '+33612345678', avatar: 'https://example.com/avatar.jpg' })
         .expect(200)
 
@@ -380,7 +380,7 @@ describe('User Routes — /api/users', () => {
     test('devrait refuser à un employee de modifier son rôle (403)', async () => {
       const response = await request(app)
         .patch(`/api/users/${employeeUser._id}`)
-        .set('Cookie', `token=${employeeToken}`)
+        .set('Cookie', `accessToken=${employeeToken}`)
         .send({ role: 'admin' })
         .expect(403)
 
@@ -391,7 +391,7 @@ describe('User Routes — /api/users', () => {
     test('devrait refuser à un employee de modifier un autre utilisateur (403)', async () => {
       const response = await request(app)
         .patch(`/api/users/${adminUser._id}`)
-        .set('Cookie', `token=${employeeToken}`)
+        .set('Cookie', `accessToken=${employeeToken}`)
         .send({ firstName: 'Hacked' })
         .expect(403)
 
@@ -402,7 +402,7 @@ describe('User Routes — /api/users', () => {
       const fakeId = '507f1f77bcf86cd799439011'
       const response = await request(app)
         .patch(`/api/users/${fakeId}`)
-        .set('Cookie', `token=${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .send({ firstName: 'Test' })
         .expect(404)
 
@@ -412,7 +412,7 @@ describe('User Routes — /api/users', () => {
     test('ne devrait jamais exposer passwordHash dans la réponse', async () => {
       const response = await request(app)
         .patch(`/api/users/${employeeUser._id}`)
-        .set('Cookie', `token=${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .send({ firstName: 'Updated' })
         .expect(200)
 
@@ -424,7 +424,7 @@ describe('User Routes — /api/users', () => {
     test('devrait permettre à un admin de désactiver un utilisateur', async () => {
       const response = await request(app)
         .delete(`/api/users/${employeeUser._id}`)
-        .set('Cookie', `token=${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .expect(204)
 
       // Vérifier que l'utilisateur est désactivé
@@ -435,7 +435,7 @@ describe('User Routes — /api/users', () => {
     test('devrait refuser à un admin de se supprimer lui-même (403)', async () => {
       const response = await request(app)
         .delete(`/api/users/${adminUser._id}`)
-        .set('Cookie', `token=${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .expect(403)
 
       expect(response.body).toHaveProperty('error')
@@ -444,7 +444,7 @@ describe('User Routes — /api/users', () => {
     test('devrait refuser à un non-admin de supprimer un utilisateur (403)', async () => {
       const response = await request(app)
         .delete(`/api/users/${employeeUser._id}`)
-        .set('Cookie', `token=${hrToken}`)
+        .set('Cookie', `accessToken=${hrToken}`)
         .expect(403)
 
       expect(response.body).toHaveProperty('error')

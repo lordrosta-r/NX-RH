@@ -7,6 +7,7 @@ import { queryClient } from "./lib/queryClient";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ErrorBoundary } from "./components/ui/ErrorBoundary";
 import App from "./App";
+import "./styles/tokens.css";
 import "./index.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(

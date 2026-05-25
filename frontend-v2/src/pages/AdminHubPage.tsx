@@ -95,7 +95,7 @@ export default function AdminHubPage() {
                     className="flex flex-col hover:bg-gray-50 rounded-lg p-2 -mx-2 transition"
                   >
                     <span className="text-sm font-medium text-gray-700">{item.label}</span>
-                    <span className="text-xs text-gray-400">{item.desc}</span>
+                    <span className="text-xs text-gray-500">{item.desc}</span>
                   </Link>
                 </li>
               ))}

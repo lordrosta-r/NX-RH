@@ -100,7 +100,7 @@ export default function AdminAuditPage() {
           <tbody className="divide-y divide-slate-100">
             {isLoading ? Array.from({ length: 10 }).map((_, i) => <SkeletonRow key={i} />) :
              !data?.data?.length ? (
-               <tr><td colSpan={4} className="px-4 py-16 text-center text-slate-400">Aucune entrée dans le journal d'audit.</td></tr>
+               <tr><td colSpan={4} className="px-4 py-16 text-center text-slate-600">Aucune entrée dans le journal d'audit.</td></tr>
              ) : data.data.map(entry => (
                <tr key={entry.id} className="hover:bg-slate-50 transition">
                  <td className="px-4 py-3 text-slate-500 whitespace-nowrap text-xs">{new Date(entry.createdAt).toLocaleString('fr-FR')}</td>
@@ -110,7 +110,7 @@ export default function AdminAuditPage() {
                  <td className="px-4 py-3"><ActionBadge action={entry.action} /></td>
                  <td className="px-4 py-3 text-slate-600">
                    {entry.targetLabel ?? entry.targetId ?? '—'}
-                   {entry.targetType && <span className="ml-2 text-xs text-slate-400">({entry.targetType})</span>}
+                   {entry.targetType && <span className="ml-2 text-xs text-slate-500">({entry.targetType})</span>}
                  </td>
                </tr>
              ))

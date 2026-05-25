@@ -50,7 +50,7 @@ function RelativeDate({ date }: { date?: string }) {
     if (minutes >= 1) return `il y a ${minutes}min`
     return "à l'instant"
   }, [date])
-  return <span className="text-xs text-slate-400">{label ?? '—'}</span>
+  return <span className="text-xs text-slate-500">{label ?? '—'}</span>
 }
 
 function ActionMenu({ user: u, currentRole, onOffboard, onAnonymize }: {
@@ -247,7 +247,7 @@ export function UsersTable({
                           <p className="text-sm font-medium text-slate-900 group-hover:text-primary-600 transition-colors">
                             {u.firstName} {u.lastName}
                           </p>
-                          <p className="text-xs text-slate-400">{u.email}</p>
+                          <p className="text-xs text-slate-500">{u.email}</p>
                         </div>
                       </Link>
                     </td>

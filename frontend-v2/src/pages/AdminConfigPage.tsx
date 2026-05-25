@@ -40,7 +40,7 @@ function EnvCheckSection() {
           </div>
         )}
         {isError && (
-          <div className="p-6 text-sm text-slate-400 text-center">
+          <div className="p-6 text-sm text-slate-600 text-center">
             Endpoint non disponible — les variables d'environnement ne peuvent pas être vérifiées pour l'instant.
           </div>
         )}
@@ -58,7 +58,7 @@ function EnvCheckSection() {
                 <tr key={v.key} className="hover:bg-slate-50 transition">
                   <td className="px-4 py-3">
                     <span className={`font-mono text-slate-800 ${v.required ? 'font-bold' : ''}`}>{v.key}</span>
-                    {v.required && <span className="ml-2 text-[10px] text-slate-400 uppercase">requis</span>}
+                    {v.required && <span className="ml-2 text-[10px] text-slate-500 uppercase">requis</span>}
                   </td>
                   <td className="px-4 py-3 text-slate-500">{v.description}</td>
                   <td className="px-4 py-3">
@@ -141,7 +141,7 @@ export default function AdminConfigPage() {
           <tbody className="divide-y divide-slate-100">
             {isLoading ? Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} />) :
              !keys?.length ? (
-               <tr><td colSpan={3} className="px-4 py-12 text-center text-slate-400">Aucune clé de configuration</td></tr>
+               <tr><td colSpan={3} className="px-4 py-12 text-center text-slate-600">Aucune clé de configuration</td></tr>
              ) : keys.map(k => (
                <tr key={k.key} className="hover:bg-slate-50 transition">
                  <td className="px-4 py-3 font-mono text-slate-800">{k.key}</td>
@@ -170,7 +170,7 @@ export default function AdminConfigPage() {
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold text-slate-900">{editingKey ? 'Modifier la clé' : 'Nouvelle clé'}</h2>
-              <button onClick={() => setShowKeyModal(false)} className="p-1 text-slate-400 hover:text-slate-700"><X size={18} /></button>
+              <button onClick={() => setShowKeyModal(false)} className="p-1 text-slate-400 hover:text-slate-700" aria-label="Fermer"><X size={18} /></button>
             </div>
             <div className="space-y-3">
               <div>

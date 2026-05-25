@@ -140,7 +140,7 @@ export default function AdminFormsImportPage() {
         >
           <Upload size={40} className="mx-auto mb-3 text-slate-300" />
           <p className="font-medium text-slate-700">Glissez-déposez un fichier JSON</p>
-          <p className="text-sm text-slate-400 mt-1">ou cliquez pour sélectionner</p>
+          <p className="text-sm text-slate-500 mt-1">ou cliquez pour sélectionner</p>
           <input ref={inputRef} type="file" accept=".json" className="hidden" onChange={e => { if (e.target.files?.[0]) processFile(e.target.files[0]) }} />
         </div>
       )}
@@ -180,15 +180,15 @@ export default function AdminFormsImportPage() {
             <p className="text-xs text-slate-500 uppercase tracking-wider mb-3 font-semibold">Aperçu</p>
             <div className="grid grid-cols-3 gap-4">
               <div>
-                <p className="text-xs text-slate-400">Titre</p>
+                <p className="text-xs text-slate-500">Titre</p>
                 <p className="text-sm font-medium text-slate-900">{json.title}</p>
               </div>
               <div>
-                <p className="text-xs text-slate-400">Type</p>
+                <p className="text-xs text-slate-500">Type</p>
                 <p className="text-sm font-medium text-slate-900">{json.formType}</p>
               </div>
               <div>
-                <p className="text-xs text-slate-400">Questions</p>
+                <p className="text-xs text-slate-500">Questions</p>
                 <p className="text-sm font-medium text-slate-900">{questions.length}</p>
               </div>
             </div>
@@ -204,7 +204,7 @@ export default function AdminFormsImportPage() {
                     <span className="text-slate-700 truncate">{q.text}</span>
                   </li>
                 ))}
-                {questions.length > 5 && <li className="text-xs text-slate-400">… et {questions.length - 5} autres</li>}
+                {questions.length > 5 && <li className="text-xs text-slate-500">… et {questions.length - 5} autres</li>}
               </ul>
             </div>
           )}

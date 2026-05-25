@@ -95,7 +95,7 @@ export default function HrFlagsPage() {
                <tr>
                  <td colSpan={5} className="px-4 py-20 text-center">
                    <Inbox size={40} className="mx-auto mb-2 text-slate-200" />
-                   <p className="text-slate-400">Aucun signal RH</p>
+                   <p className="text-slate-600">Aucun signal RH</p>
                  </td>
                </tr>
              ) : data.data.map(flag => (
@@ -131,21 +131,21 @@ export default function HrFlagsPage() {
             </div>
             <div className="p-6 flex-1 overflow-y-auto space-y-4">
               <div>
-                <p className="text-xs text-slate-400 font-medium uppercase mb-1">Collaborateur</p>
+                <p className="text-xs text-slate-500 font-medium uppercase mb-1">Collaborateur</p>
                 <p className="font-semibold text-slate-800">{selectedFlag.userName ?? selectedFlag.userId}</p>
               </div>
               <div>
-                <p className="text-xs text-slate-400 font-medium uppercase mb-1">Type</p>
+                <p className="text-xs text-slate-500 font-medium uppercase mb-1">Type</p>
                 <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${TYPE_COLORS[selectedFlag.type]}`}>{TYPE_LABELS[selectedFlag.type]}</span>
               </div>
               {selectedFlag.description && (
                 <div>
-                  <p className="text-xs text-slate-400 font-medium uppercase mb-1">Description</p>
+                  <p className="text-xs text-slate-500 font-medium uppercase mb-1">Description</p>
                   <p className="text-sm text-slate-700">{selectedFlag.description}</p>
                 </div>
               )}
               <div>
-                <p className="text-xs text-slate-400 font-medium uppercase mb-1">Note RH</p>
+                <p className="text-xs text-slate-500 font-medium uppercase mb-1">Note RH</p>
                 <textarea
                   className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-400 resize-none"
                   rows={3}
@@ -155,7 +155,7 @@ export default function HrFlagsPage() {
                 />
               </div>
               <div>
-                <p className="text-xs text-slate-400 font-medium uppercase mb-1">Changer le statut</p>
+                <p className="text-xs text-slate-500 font-medium uppercase mb-1">Changer le statut</p>
                 <select
                   className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
                   value={newStatus}

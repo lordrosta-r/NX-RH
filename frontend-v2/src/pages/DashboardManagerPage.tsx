@@ -27,7 +27,7 @@ function EvalsToComplete({ evaluations }: { evaluations: Evaluation[] }) {
 
   if (pending.length === 0) {
     return (
-      <p className="text-sm text-slate-400 text-center py-4">
+      <p className="text-sm text-slate-600 text-center py-4">
         Aucune évaluation à compléter
       </p>
     )
@@ -48,7 +48,7 @@ function EvalsToComplete({ evaluations }: { evaluations: Evaluation[] }) {
             <StatusBadge status={ev.status} />
           </div>
           <div className="flex items-center justify-between mt-3">
-            <span className="text-xs text-slate-400">Deadline : —</span>
+            <span className="text-xs text-slate-500">Deadline : —</span>
             <Link
               to={`/evaluations/${ev.id}`}
               className="text-sm text-primary-600 hover:text-primary-700 font-medium hover:underline"
@@ -65,7 +65,7 @@ function EvalsToComplete({ evaluations }: { evaluations: Evaluation[] }) {
 function MyTeam({ evaluations }: { evaluations: Evaluation[] }) {
   if (evaluations.length === 0) {
     return (
-      <p className="text-sm text-slate-400 text-center py-4">
+      <p className="text-sm text-slate-600 text-center py-4">
         Aucun membre dans l'équipe
       </p>
     )
@@ -118,7 +118,7 @@ function ActiveCampaigns() {
 
   if (campaigns.length === 0) {
     return (
-      <p className="text-sm text-slate-400 text-center py-4">
+      <p className="text-sm text-slate-600 text-center py-4">
         Aucune campagne active
       </p>
     )
@@ -142,7 +142,7 @@ function ActiveCampaigns() {
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-slate-900 truncate">{c.name}</p>
               {c.endDate && (
-                <p className="text-xs text-slate-400 mt-0.5">
+                <p className="text-xs text-slate-500 mt-0.5">
                   {'Cloture : '}
                   {new Date(c.endDate).toLocaleDateString('fr-FR', {
                     day: 'numeric',
@@ -301,7 +301,7 @@ export default function DashboardManagerPage() {
             <Link to="/events" className="text-xs text-primary-600 hover:underline">Voir tout →</Link>
           </div>
           {upcomingEvents.length === 0 ? (
-            <p className="text-sm text-slate-400 text-center py-4">Aucun événement à venir.</p>
+            <p className="text-sm text-slate-600 text-center py-4">Aucun événement à venir.</p>
           ) : (
             <ul className="divide-y divide-slate-100">
               {upcomingEvents.map(ev => (
@@ -312,7 +312,7 @@ export default function DashboardManagerPage() {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-slate-900 truncate">{ev.title}</p>
                     {(ev.startDate ?? ev.date) && (
-                      <p className="text-xs text-slate-400">{new Date(ev.startDate ?? ev.date!).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                      <p className="text-xs text-slate-500">{new Date(ev.startDate ?? ev.date!).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
                     )}
                   </div>
                   <Link to={`/events/${ev.id}`} className="text-xs text-primary-600 hover:underline flex-shrink-0">Voir</Link>

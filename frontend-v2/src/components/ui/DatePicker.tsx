@@ -74,6 +74,11 @@ export default function DatePicker({ value, onChange, minDate, maxDate, placehol
     <div className="relative w-full" ref={containerRef}>
       {label && <label className="block text-sm font-medium text-slate-700 mb-1">{label}</label>}
       <div
+        role="button"
+        tabIndex={!disabled ? 0 : -1}
+        aria-haspopup="true"
+        aria-expanded={isOpen}
+        aria-label={label || placeholder}
         className={clsx(
           'flex items-center h-10 w-full rounded-lg border text-sm cursor-pointer transition-colors',
           'focus-within:ring-2 focus-within:ring-offset-0',
@@ -83,8 +88,9 @@ export default function DatePicker({ value, onChange, minDate, maxDate, placehol
           disabled && 'opacity-50 cursor-not-allowed bg-slate-100'
         )}
         onClick={() => !disabled && setIsOpen(!isOpen)}
+        onKeyDown={e => { if (!disabled && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); setIsOpen(o => !o) } }}
       >
-        <span className={clsx('flex-1 px-3', displayValue ? 'text-slate-700' : 'text-slate-400')}>
+        <span className={clsx('flex-1 px-3', displayValue ? 'text-slate-700' : 'text-slate-500')}>
           {displayValue || placeholder}
         </span>
         <Calendar className="w-4 h-4 text-slate-400 mr-3 flex-shrink-0" />
@@ -115,7 +121,7 @@ export default function DatePicker({ value, onChange, minDate, maxDate, placehol
           </div>
           <div className="grid grid-cols-7 mb-1">
             {DAYS_FR.map(d => (
-              <div key={d} className="text-center text-xs font-medium text-slate-400 py-1">{d}</div>
+              <div key={d} className="text-center text-xs font-medium text-slate-500 py-1">{d}</div>
             ))}
           </div>
           <div className="grid grid-cols-7 gap-0.5">

@@ -57,7 +57,7 @@ export function EventSlideOver({
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
           <h2 className="text-lg font-semibold text-slate-900">{heading}</h2>
-          <button onClick={onClose} className="p-2 rounded-md hover:bg-slate-100 text-slate-400 transition-colors">
+          <button onClick={onClose} aria-label="Fermer" className="p-2 rounded-md hover:bg-slate-100 text-slate-400 transition-colors">
             <X size={20} />
           </button>
         </div>
@@ -73,7 +73,7 @@ export function EventSlideOver({
                 type="text" required value={form.title}
                 onChange={e => onChange('title', e.target.value)}
                 placeholder="Titre de l'événement"
-                className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 placeholder:text-slate-400"
+                className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 placeholder:text-slate-500"
               />
             </div>
             {/* Type */}
@@ -119,7 +119,7 @@ export function EventSlideOver({
                 rows={3} value={form.description}
                 onChange={e => onChange('description', e.target.value)}
                 placeholder="Description de l'événement..."
-                className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 placeholder:text-slate-400 resize-none"
+                className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 placeholder:text-slate-500 resize-none"
               />
             </div>
             {/* Lieu */}
@@ -129,7 +129,7 @@ export function EventSlideOver({
                 type="text" value={form.location}
                 onChange={e => onChange('location', e.target.value)}
                 placeholder="Salle, ville, lien visio..."
-                className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 placeholder:text-slate-400"
+                className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 placeholder:text-slate-500"
               />
             </div>
             {/* Campaign ID */}
@@ -139,7 +139,7 @@ export function EventSlideOver({
                 type="text" value={form.campaignId}
                 onChange={e => onChange('campaignId', e.target.value)}
                 placeholder="Optionnel"
-                className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 placeholder:text-slate-400"
+                className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 placeholder:text-slate-500"
               />
             </div>
             {/* Rôles */}

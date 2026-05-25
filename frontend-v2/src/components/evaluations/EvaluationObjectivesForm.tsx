@@ -76,7 +76,7 @@ export function EvaluationObjectivesForm({
               key={q.id}
               className="pb-4 border-b border-slate-100 last:border-0"
             >
-              <p className="text-xs text-slate-400 mb-1">
+              <p className="text-xs text-slate-500 mb-1">
                 Q{idx + 1} · {q.type}
               </p>
               <p className="text-sm font-medium text-slate-800 mb-2">
@@ -92,7 +92,7 @@ export function EvaluationObjectivesForm({
                         className={`w-7 h-7 rounded-full text-xs font-semibold flex items-center justify-center ${
                           Number(answers[q.id]) >= v
                             ? "bg-primary-500 text-white"
-                            : "bg-slate-100 text-slate-400"
+                            : "bg-slate-100 text-slate-500"
                         }`}
                       >
                         {v}

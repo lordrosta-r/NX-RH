@@ -34,7 +34,7 @@ export function UserGroupMembersPanel({ group, onClose, onAddMember, onRemoveMem
           <h3 className="text-lg font-semibold text-slate-900">
             Gérer les membres — {group.name}
           </h3>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition">
+          <button onClick={onClose} aria-label="Fermer" className="text-slate-400 hover:text-slate-600 transition">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -44,7 +44,7 @@ export function UserGroupMembersPanel({ group, onClose, onAddMember, onRemoveMem
             Membres actuels ({group.members.length})
           </p>
           {group.members.length === 0 ? (
-            <p className="text-sm text-slate-400 italic">Aucun membre</p>
+            <p className="text-sm text-slate-600 italic">Aucun membre</p>
           ) : (
             <ul className="space-y-1 max-h-40 overflow-y-auto">
               {group.members.map(m => (
@@ -55,7 +55,7 @@ export function UserGroupMembersPanel({ group, onClose, onAddMember, onRemoveMem
                     </div>
                     <div>
                       <p className="text-sm font-medium text-slate-800">{m.firstName} {m.lastName}</p>
-                      <p className="text-xs text-slate-400">{m.email}</p>
+                      <p className="text-xs text-slate-500">{m.email}</p>
                     </div>
                   </div>
                   <button
@@ -86,10 +86,10 @@ export function UserGroupMembersPanel({ group, onClose, onAddMember, onRemoveMem
           {debouncedSearch.length >= 2 && (
             <ul className="space-y-1 max-h-40 overflow-y-auto">
               {searching && (
-                <li className="text-sm text-slate-400 text-center py-2">Recherche...</li>
+                <li className="text-sm text-slate-600 text-center py-2">Recherche...</li>
               )}
               {!searching && filteredResults.length === 0 && (
-                <li className="text-sm text-slate-400 text-center py-2">Aucun résultat</li>
+                <li className="text-sm text-slate-600 text-center py-2">Aucun résultat</li>
               )}
               {filteredResults.map(u => (
                 <li
@@ -103,7 +103,7 @@ export function UserGroupMembersPanel({ group, onClose, onAddMember, onRemoveMem
                     </div>
                     <div>
                       <p className="text-sm font-medium text-slate-800">{u.firstName} {u.lastName}</p>
-                      <p className="text-xs text-slate-400">{u.email}</p>
+                      <p className="text-xs text-slate-500">{u.email}</p>
                     </div>
                   </div>
                   <button
@@ -117,7 +117,7 @@ export function UserGroupMembersPanel({ group, onClose, onAddMember, onRemoveMem
             </ul>
           )}
           {debouncedSearch.length < 2 && debouncedSearch.length > 0 && (
-            <p className="text-xs text-slate-400 mt-1">Saisissez au moins 2 caractères pour rechercher</p>
+            <p className="text-xs text-slate-500 mt-1">Saisissez au moins 2 caractères pour rechercher</p>
           )}
         </div>
 

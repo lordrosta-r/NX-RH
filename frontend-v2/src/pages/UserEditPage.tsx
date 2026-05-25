@@ -140,7 +140,7 @@ export default function UserEditPage() {
   return (
     <div className="max-w-2xl mx-auto">
       {/* Breadcrumb */}
-      <nav className="text-sm text-slate-500 mb-4">
+      <nav aria-label="Fil d'ariane" className="text-sm text-slate-500 mb-4">
         <Link to="/" className="hover:text-primary-600">Accueil</Link>
         {' › '}
         <Link to="/users" className="hover:text-primary-600">Collaborateurs</Link>
@@ -304,7 +304,7 @@ export default function UserEditPage() {
             <div className="flex items-center justify-between py-3 border-b border-slate-100">
               <div>
                 <p className="text-sm font-medium text-slate-700">Compte actif</p>
-                <p className="text-xs text-slate-400">L&apos;utilisateur peut se connecter</p>
+                <p className="text-xs text-slate-500">L&apos;utilisateur peut se connecter</p>
               </div>
               <button
                 type="button"

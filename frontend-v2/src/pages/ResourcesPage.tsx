@@ -94,7 +94,7 @@ function ResourceCard({ resource, isAdminHr, onPublish, onUnpublish, onDelete }:
           {config.label}
           {resource.fileSize !== undefined && ` · ${formatFileSize(resource.fileSize)}`}
         </p>
-        <p className="text-xs text-slate-400 mt-0.5">
+        <p className="text-xs text-slate-500 mt-0.5">
           Visible : {(resource.visibleTo?.length ?? 0) > 0 ? resource.visibleTo!.join(', ') : 'Tous'}
         </p>
       </div>

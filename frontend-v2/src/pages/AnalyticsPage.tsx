@@ -263,7 +263,7 @@ export default function AnalyticsPage() {
           {isLoading ? (
             <div className="h-72 animate-pulse rounded-xl bg-slate-200" />
           ) : statusChartData.length === 0 ? (
-            <div className="flex h-72 items-center justify-center text-sm text-slate-400">
+            <div className="flex h-72 items-center justify-center text-sm text-slate-600">
               Aucune donnée de statut disponible
             </div>
           ) : (
@@ -295,7 +295,7 @@ export default function AnalyticsPage() {
           {isLoading ? (
             <div className="h-72 animate-pulse rounded-xl bg-slate-200" />
           ) : scoreChartData.length === 0 ? (
-            <div className="flex h-72 items-center justify-center text-sm text-slate-400">
+            <div className="flex h-72 items-center justify-center text-sm text-slate-600">
               Aucune donnée de score disponible
             </div>
           ) : (
@@ -327,7 +327,7 @@ export default function AnalyticsPage() {
         {isLoading ? (
           <div className="h-40 animate-pulse rounded-xl bg-slate-200" />
         ) : !summary?.topPerformers?.length ? (
-          <p className="py-8 text-center text-sm text-slate-400">Aucune donnée disponible</p>
+          <p className="py-8 text-center text-sm text-slate-600">Aucune donnée disponible</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -342,7 +342,7 @@ export default function AnalyticsPage() {
               <tbody>
                 {summary.topPerformers.slice(0, 5).map((p, i) => (
                   <tr key={p.userId} className="border-b border-slate-50 last:border-0 hover:bg-slate-50">
-                    <td className="py-3 pr-4 font-medium text-slate-400">{i + 1}</td>
+                    <td className="py-3 pr-4 font-medium text-slate-500">{i + 1}</td>
                     <td className="py-3 pr-4 font-medium text-slate-800">{p.name}</td>
                     <td className="py-3 pr-4">
                       <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">
@@ -364,7 +364,7 @@ export default function AnalyticsPage() {
         {isLoading ? (
           <div className="h-40 animate-pulse rounded-xl bg-slate-200" />
         ) : !summary?.byDepartmentCompletion?.length ? (
-          <p className="py-8 text-center text-sm text-slate-400">Aucune donnée disponible</p>
+          <p className="py-8 text-center text-sm text-slate-600">Aucune donnée disponible</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">

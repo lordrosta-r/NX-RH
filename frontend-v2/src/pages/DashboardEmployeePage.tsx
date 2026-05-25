@@ -33,7 +33,7 @@ const evalStatusColors: Record<EvaluationStatus, string> = {
   signed_hr: 'bg-blue-50 text-blue-700',
   validated: 'bg-success-50 text-success-700',
   expired: 'bg-slate-100 text-slate-500',
-  archived: 'bg-slate-100 text-slate-400',
+  archived: 'bg-slate-100 text-slate-500',
 }
 
 function EvalStatusBadge({ status }: { status: EvaluationStatus }) {
@@ -212,7 +212,7 @@ export default function DashboardEmployeePage() {
             </Link>
           </div>
           {upcomingEvents.length === 0 ? (
-            <p className="text-sm text-slate-400 text-center py-4">Aucun événement à venir.</p>
+            <p className="text-sm text-slate-600 text-center py-4">Aucun événement à venir.</p>
           ) : (
             <ul className="divide-y divide-slate-100">
               {upcomingEvents.map(ev => (
@@ -221,7 +221,7 @@ export default function DashboardEmployeePage() {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-slate-800 truncate">{ev.title}</p>
                     {(ev.startDate ?? ev.date) && (
-                      <p className="text-xs text-slate-400">{new Date(ev.startDate ?? ev.date!).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</p>
+                      <p className="text-xs text-slate-500">{new Date(ev.startDate ?? ev.date!).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</p>
                     )}
                   </div>
                 </li>
@@ -241,7 +241,7 @@ export default function DashboardEmployeePage() {
             </Link>
           </div>
           {recentResources.length === 0 ? (
-            <p className="text-sm text-slate-400 text-center py-4">Aucune ressource disponible.</p>
+            <p className="text-sm text-slate-600 text-center py-4">Aucune ressource disponible.</p>
           ) : (
             <ul className="divide-y divide-slate-100">
               {recentResources.map(r => (
@@ -249,7 +249,7 @@ export default function DashboardEmployeePage() {
                   <BookOpen size={14} className="text-slate-400 flex-shrink-0" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-slate-800 truncate">{r.title}</p>
-                    {r.category && <p className="text-xs text-slate-400">{r.category}</p>}
+                    {r.category && <p className="text-xs text-slate-500">{r.category}</p>}
                   </div>
                   <Link to={`/resources/${r.id}`} className="text-xs text-primary-600 hover:underline flex-shrink-0">Voir</Link>
                 </li>
@@ -278,7 +278,7 @@ export default function DashboardEmployeePage() {
               ))}
             </div>
           ) : (history.data?.data?.length ?? 0) === 0 ? (
-            <p className="text-sm text-slate-400 text-center py-4">
+            <p className="text-sm text-slate-600 text-center py-4">
               Aucune évaluation validée pour l'instant
             </p>
           ) : (
@@ -289,7 +289,7 @@ export default function DashboardEmployeePage() {
                     <p className="text-sm font-medium text-slate-700">
                       Campagne : {getCampaignName(evaluation.campaignId)}
                     </p>
-                    <p className="text-xs text-slate-400 mt-0.5">
+                    <p className="text-xs text-slate-500 mt-0.5">
                       Validée le{' '}
                       {evaluation.signedByHrAt
                         ? new Date(evaluation.signedByHrAt).toLocaleDateString('fr-FR')

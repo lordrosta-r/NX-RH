@@ -55,7 +55,7 @@ export function EvaluationSkillsForm({
           Remplir l'évaluation
         </h1>
         {lastSavedAt && (
-          <span className="text-xs text-slate-400">
+          <span className="text-xs text-slate-500">
             Sauvegardé à{" "}
             {lastSavedAt.toLocaleTimeString("fr-FR", {
               hour: "2-digit",
@@ -75,7 +75,7 @@ export function EvaluationSkillsForm({
 
       {currentQuestion && (
         <div className="bg-white rounded-xl border border-slate-200 p-6 mb-4">
-          <p className="text-xs text-slate-400 mb-2">
+          <p className="text-xs text-slate-500 mb-2">
             Question {currentQuestionIdx + 1} / {filteredQuestions.length}
           </p>
           <p className="text-base font-medium text-slate-900 mb-4">

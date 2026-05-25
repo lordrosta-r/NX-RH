@@ -22,7 +22,7 @@ const EVAL_STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   signed_hr:        { label: 'Signée (RH)',       color: 'bg-teal-50 text-teal-700' },
   validated:        { label: 'Validée ✓',         color: 'bg-success-50 text-success-700' },
   expired:          { label: 'Expirée',           color: 'bg-error-50 text-error-600' },
-  archived:         { label: 'Archivée',          color: 'bg-slate-50 text-slate-400' },
+  archived:         { label: 'Archivée',          color: 'bg-slate-50 text-slate-500' },
 }
 
 export default function EvaluationsPage() {
@@ -388,7 +388,7 @@ export default function EvaluationsPage() {
                 <p className="font-medium text-slate-900">{typeof ev.campaignId === 'string' ? ev.campaignId : ev.campaignId.name}</p>
                 <p className="text-sm text-slate-500 mt-0.5">{ev.form?.title ?? ev.formId}</p>
                 {ev.deadline && (
-                  <p className="text-xs text-slate-400 mt-0.5">Deadline : {new Date(ev.deadline).toLocaleDateString('fr-FR')}</p>
+                  <p className="text-xs text-slate-500 mt-0.5">Deadline : {new Date(ev.deadline).toLocaleDateString('fr-FR')}</p>
                 )}
               </div>
               <div className="flex items-center gap-3">

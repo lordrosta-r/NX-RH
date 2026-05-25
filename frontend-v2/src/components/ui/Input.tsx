@@ -44,7 +44,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(({
           ref={ref}
           id={id}
           className={clsx(
-            'w-full rounded-lg border text-sm text-slate-700 placeholder:text-slate-400 transition-colors',
+            'w-full rounded-lg border text-sm text-slate-700 placeholder:text-slate-500 transition-colors',
             'focus:outline-none focus:ring-2 focus:ring-offset-0',
             inputSize === 'md' ? 'h-10 px-3 py-2' : 'h-8 px-3 py-1',
             leftIcon && 'pl-9',

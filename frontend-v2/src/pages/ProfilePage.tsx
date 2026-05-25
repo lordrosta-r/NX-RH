@@ -472,7 +472,7 @@ export default function ProfilePage() {
                   <tbody>
                     {myEvals?.data?.length === 0 && (
                       <tr>
-                        <td colSpan={4} className="text-center py-8 text-slate-400">
+                        <td colSpan={4} className="text-center py-8 text-slate-600">
                           Aucune demande pour l'instant.
                         </td>
                       </tr>

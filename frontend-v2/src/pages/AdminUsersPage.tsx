@@ -116,7 +116,7 @@ export default function AdminUsersPage() {
           <tbody className="divide-y divide-slate-100">
             {isLoading ? Array.from({ length: 8 }).map((_, i) => <SkeletonRow key={i} />) :
              !data?.data?.length ? (
-               <tr><td colSpan={8} className="px-4 py-16 text-center text-slate-400">Aucun utilisateur trouvé</td></tr>
+               <tr><td colSpan={8} className="px-4 py-16 text-center text-slate-600">Aucun utilisateur trouvé</td></tr>
              ) : data.data.map(user => (
                <tr key={user.id} className={`hover:bg-slate-50 transition ${user.offboardingStatus === 'offboarding' ? 'bg-amber-50/40' : ''}`}>
                  <td className="px-4 py-3">
@@ -125,7 +125,7 @@ export default function AdminUsersPage() {
                        {user.firstName[0]}{user.lastName[0]}
                      </div>
                      <span className="font-medium text-slate-800">{user.firstName} {user.lastName}</span>
-                     {user.gdprAnonymized && <span className="text-xs text-slate-400 italic">(anonymisé)</span>}
+                     {user.gdprAnonymized && <span className="text-xs text-slate-500 italic">(anonymisé)</span>}
                    </div>
                  </td>
                  <td className="px-4 py-3 text-slate-600">{user.email}</td>
@@ -178,7 +178,7 @@ export default function AdminUsersPage() {
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold text-red-700">Anonymisation RGPD</h2>
-              <button onClick={() => setConfirmUser(null)} className="p-1 text-slate-400 hover:text-slate-700"><X size={18} /></button>
+              <button onClick={() => setConfirmUser(null)} className="p-1 text-slate-400 hover:text-slate-700" aria-label="Fermer"><X size={18} /></button>
             </div>
             <p className="text-sm text-slate-600 mb-2">Vous êtes sur le point d'anonymiser <strong>{confirmUser.firstName} {confirmUser.lastName}</strong>.</p>
             <p className="text-sm text-red-600 mb-4 font-medium flex items-center gap-1"><AlertTriangle className="w-4 h-4 shrink-0" /> Cette action est irréversible. Toutes les données personnelles seront effacées.</p>
@@ -209,7 +209,7 @@ export default function AdminUsersPage() {
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold text-slate-900">Forcer la désactivation</h2>
-              <button onClick={() => setDeactivateTarget(null)} className="p-1 text-slate-400 hover:text-slate-700"><X size={18} /></button>
+              <button onClick={() => setDeactivateTarget(null)} className="p-1 text-slate-400 hover:text-slate-700" aria-label="Fermer"><X size={18} /></button>
             </div>
             <p className="text-sm text-slate-600 mb-4">
               Forcer la désactivation désactivera immédiatement l'accès de{' '}

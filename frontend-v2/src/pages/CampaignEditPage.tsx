@@ -277,7 +277,7 @@ export default function CampaignEditPage() {
 
   if (campaignLoading) {
     return (
-      <div className="flex items-center justify-center h-48 text-slate-400 text-sm">
+      <div className="flex items-center justify-center h-48 text-slate-600 text-sm">
         Chargement…
       </div>
     )
@@ -288,7 +288,7 @@ export default function CampaignEditPage() {
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <nav className="text-sm text-slate-500 mb-1">
+          <nav aria-label="Fil d'ariane" className="text-sm text-slate-500 mb-1">
             <Link to="/" className="hover:text-slate-700">Accueil</Link>
             <span className="mx-1.5">›</span>
             <Link to="/campaigns" className="hover:text-slate-700">Campagnes</Link>
@@ -492,7 +492,7 @@ export default function CampaignEditPage() {
                   ))}
                 </div>
               ) : (
-                <p className="text-xs text-slate-400 italic">Chargement des secteurs…</p>
+                <p className="text-xs text-slate-500 italic">Chargement des secteurs…</p>
               )}
             </Field>
           </div>

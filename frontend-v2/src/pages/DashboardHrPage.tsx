@@ -23,7 +23,7 @@ function CampaignCard({ campaign }: { campaign: Campaign }) {
       <div className="w-full bg-slate-100 rounded-full h-1.5 mb-2">
         <div className="bg-primary-500 h-1.5 rounded-full" style={{ width: '0%' }} />
       </div>
-      <p className="text-xs text-slate-400">
+      <p className="text-xs text-slate-500">
         {start} → {end}
       </p>
     </Link>
@@ -143,7 +143,7 @@ export default function DashboardHrPage() {
         <div className="col-span-8 bg-white rounded-xl shadow-sm border border-slate-100 p-6">
           <h2 className="text-lg font-semibold text-slate-900 mb-4">Campagnes en cours</h2>
           {campaignList.length === 0 ? (
-            <p className="text-sm text-slate-400 text-center py-8">Aucune campagne active</p>
+            <p className="text-sm text-slate-600 text-center py-8">Aucune campagne active</p>
           ) : (
             <div className="space-y-3">
               {campaignList.map((c) => (
@@ -202,11 +202,11 @@ export default function DashboardHrPage() {
           <div className="space-y-3">
             <div className="flex items-center justify-between py-2 border-b border-slate-50">
               <span className="text-sm text-slate-600">Score moyen global</span>
-              <span className="text-sm font-semibold text-slate-400">— (S8)</span>
+              <span className="text-sm font-semibold text-slate-500">— (S8)</span>
             </div>
             <div className="flex items-center justify-between py-2">
               <span className="text-sm text-slate-600">Taux de complétion global</span>
-              <span className="text-sm font-semibold text-slate-400">— (S8)</span>
+              <span className="text-sm font-semibold text-slate-500">— (S8)</span>
             </div>
           </div>
         </div>
@@ -219,7 +219,7 @@ export default function DashboardHrPage() {
               Voir tous →
             </Link>
           </div>
-          <p className="text-sm text-slate-400 text-center py-8">Calendrier événements disponible en S8</p>
+          <p className="text-sm text-slate-600 text-center py-8">Calendrier événements disponible en S8</p>
         </div>
       </div>
     </div>

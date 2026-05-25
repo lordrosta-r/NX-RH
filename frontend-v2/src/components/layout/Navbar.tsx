@@ -343,7 +343,7 @@ export default function Navbar({ onSearchClick }: { onSearchClick?: () => void }
                 </NavLink>
               ) : (
                 <div key={item.label}>
-                  <p className="px-3 py-1 text-xs font-semibold text-slate-400 uppercase tracking-wide">
+                  <p className="px-3 py-1 text-xs font-semibold text-slate-500 uppercase tracking-wide">
                     {item.label}
                   </p>
                   {item.dropdown?.map(d => (

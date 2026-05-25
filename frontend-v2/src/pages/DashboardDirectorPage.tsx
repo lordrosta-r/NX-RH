@@ -129,7 +129,7 @@ function TeamSummary({ evaluations }: { evaluations: Evaluation[] }) {
 
 function CampaignsTable({ campaigns }: { campaigns: Campaign[] }) {
   if (campaigns.length === 0) {
-    return <p className="text-sm text-slate-400 text-center py-4">Aucune campagne active</p>
+    return <p className="text-sm text-slate-600 text-center py-4">Aucune campagne active</p>
   }
   return (
     <table className="w-full">
@@ -238,7 +238,7 @@ export default function DashboardDirectorPage() {
         <div className="col-span-8 bg-white rounded-xl shadow-sm border border-slate-100 p-6">
           <h2 className="text-lg font-semibold text-slate-900 mb-4">Évaluations de mon équipe</h2>
           {evalList.length === 0 ? (
-            <p className="text-sm text-slate-400 text-center py-4">Aucune évaluation trouvée</p>
+            <p className="text-sm text-slate-600 text-center py-4">Aucune évaluation trouvée</p>
           ) : (
             <EvaluationsTable evaluations={evalList} />
           )}
@@ -248,7 +248,7 @@ export default function DashboardDirectorPage() {
         <div className="col-span-4 bg-white rounded-xl shadow-sm border border-slate-100 p-6">
           <h2 className="text-lg font-semibold text-slate-900 mb-4">Résumé équipe</h2>
           {evalList.length === 0 ? (
-            <p className="text-sm text-slate-400 text-center py-4">Aucun membre</p>
+            <p className="text-sm text-slate-600 text-center py-4">Aucun membre</p>
           ) : (
             <TeamSummary evaluations={evalList} />
           )}

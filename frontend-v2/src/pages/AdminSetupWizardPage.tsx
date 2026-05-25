@@ -79,7 +79,7 @@ export default function AdminSetupWizardPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64 text-slate-400">
+      <div className="flex items-center justify-center h-64 text-slate-600">
         Vérification de la configuration...
       </div>
     )

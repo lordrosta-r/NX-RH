@@ -197,7 +197,7 @@ export default function UserDetailPage() {
                   <span className="text-sm text-slate-500">{userData.department}</span>
                 )}
                 {userData.position && (
-                  <span className="text-sm text-slate-400">· {userData.position}</span>
+                  <span className="text-sm text-slate-500">· {userData.position}</span>
                 )}
               </div>
               <p className="text-sm text-slate-500 mt-1">{userData.email}</p>
@@ -306,7 +306,7 @@ export default function UserDetailPage() {
           <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
             <h2 className="text-base font-semibold text-slate-900 mb-4">Hiérarchie</h2>
             <div className="mb-5">
-              <p className="text-xs font-medium text-slate-400 uppercase tracking-wide mb-2">Manager direct</p>
+              <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">Manager direct</p>
               {managerData ? (
                 <Link
                   to={`/users/${managerData.id}`}
@@ -321,11 +321,11 @@ export default function UserDetailPage() {
                   </div>
                 </Link>
               ) : (
-                <p className="text-sm text-slate-400 italic">Aucun manager assigné</p>
+                <p className="text-sm text-slate-600 italic">Aucun manager assigné</p>
               )}
             </div>
             <div>
-              <p className="text-xs font-medium text-slate-400 uppercase tracking-wide mb-2">
+              <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">
                 Subordonnés directs ({reportsData?.length ?? 0})
               </p>
               {reportsData && reportsData.length > 0 ? (
@@ -345,7 +345,7 @@ export default function UserDetailPage() {
                   ))}
                 </ul>
               ) : (
-                <p className="text-sm text-slate-400 italic">Aucun subordonné</p>
+                <p className="text-sm text-slate-600 italic">Aucun subordonné</p>
               )}
             </div>
           </div>
@@ -357,7 +357,7 @@ export default function UserDetailPage() {
         <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
           <h2 className="text-base font-semibold text-slate-900 mb-4">Évaluations</h2>
           {evaluationsData?.data?.length === 0 ? (
-            <p className="text-sm text-slate-400 italic">Aucune évaluation.</p>
+            <p className="text-sm text-slate-600 italic">Aucune évaluation.</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -381,7 +381,7 @@ export default function UserDetailPage() {
                           {EVAL_STATUS_LABELS[ev.status] ?? ev.status}
                         </span>
                       </td>
-                      <td className="py-2 text-slate-400">
+                      <td className="py-2 text-slate-500">
                         {ev.createdAt ? new Date(ev.createdAt).toLocaleDateString('fr-FR') : '—'}
                       </td>
                     </tr>
@@ -420,7 +420,7 @@ export default function UserDetailPage() {
                     : <Square className="w-5 h-5 text-slate-300" />
                   }
                 </button>
-                <span className={`text-sm ${checkedSteps[i] ? 'line-through text-slate-400' : 'text-slate-700'}`}>
+                <span className={`text-sm ${checkedSteps[i] ? 'line-through text-slate-500' : 'text-slate-700'}`}>
                   {step}
                 </span>
               </li>

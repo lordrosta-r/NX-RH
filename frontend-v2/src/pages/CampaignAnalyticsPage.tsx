@@ -92,7 +92,7 @@ function ScoreHistogram({ distribution }: { distribution: Record<string, number>
               minHeight:       bar.count ? '4px' : '0',
             }}
           />
-          <span className="text-xs text-slate-400">{bar.range}</span>
+          <span className="text-xs text-slate-500">{bar.range}</span>
         </div>
       ))}
     </div>
@@ -153,7 +153,7 @@ export default function CampaignAnalyticsPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6 gap-4 flex-wrap">
         <div>
-          <nav className="text-sm text-slate-500 mb-1 flex items-center gap-1">
+          <nav aria-label="Fil d'ariane" className="text-sm text-slate-500 mb-1 flex items-center gap-1">
             <Link to="/" className="hover:text-slate-700">Accueil</Link>
             <ChevronRight className="w-3.5 h-3.5" />
             <Link to="/campaigns" className="hover:text-slate-700">Campagnes</Link>
@@ -206,7 +206,7 @@ export default function CampaignAnalyticsPage() {
         <div className="text-center py-16">
           <BarChart2 className="w-12 h-12 text-slate-300 mx-auto mb-4" />
           <p className="text-slate-500">Aucune donnée analytique disponible.</p>
-          <p className="text-xs text-slate-400 mt-2">Lancez la campagne pour commencer.</p>
+          <p className="text-xs text-slate-500 mt-2">Lancez la campagne pour commencer.</p>
         </div>
       )}
 
@@ -234,7 +234,7 @@ export default function CampaignAnalyticsPage() {
                 <span className="text-4xl font-bold text-slate-900">
                   {avgScore > 0 ? avgScore.toFixed(1) : '—'}
                 </span>
-                <span className="text-slate-400 text-lg">/10</span>
+                <span className="text-slate-500 text-lg">/10</span>
               </div>
             </div>
 
@@ -274,7 +274,7 @@ export default function CampaignAnalyticsPage() {
                   ))}
                   {departmentCompletion.length === 0 && (
                     <tr>
-                      <td colSpan={4} className="px-4 py-8 text-center text-slate-400 text-sm">
+                      <td colSpan={4} className="px-4 py-8 text-center text-slate-600 text-sm">
                         Aucune donnée disponible
                       </td>
                     </tr>

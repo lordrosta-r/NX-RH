@@ -98,7 +98,7 @@ export default function UserNewPage() {
   return (
     <div className="max-w-2xl mx-auto">
       {/* Breadcrumb */}
-      <nav className="text-sm text-slate-500 mb-4">
+      <nav aria-label="Fil d'ariane" className="text-sm text-slate-500 mb-4">
         <Link to="/" className="hover:text-primary-600">Accueil</Link>
         {' › '}
         <Link to="/users" className="hover:text-primary-600">Collaborateurs</Link>
@@ -282,7 +282,7 @@ export default function UserNewPage() {
                 <Copy className="w-4 h-4 text-slate-400 hover:text-slate-600" />
               </button>
             </div>
-            <p className="text-xs text-slate-400 mb-4">
+            <p className="text-xs text-slate-500 mb-4">
               Ce mot de passe ne sera plus affiché après fermeture.
             </p>
             <div className="flex justify-end">

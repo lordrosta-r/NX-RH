@@ -92,7 +92,7 @@ export default function AdminLdapPage() {
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Mot de passe Bind</label>
                 <input className={inp} type="password" placeholder="••••••••" value={bindPassword} onChange={e => setBindPassword(e.target.value)} />
-                <p className="text-xs text-slate-400 mt-1">Laisser vide pour ne pas modifier</p>
+                <p className="text-xs text-slate-500 mt-1">Laisser vide pour ne pas modifier</p>
               </div>
               <hr className="border-slate-100" />
               <p className="text-sm font-semibold text-slate-700">Mapping des attributs</p>

@@ -43,7 +43,7 @@ export default function OrgTeamsView({ data, toolbar }: OrgTeamsViewProps) {
                 </div>
                 <div className="space-y-1.5">
                   {reports.length === 0 ? (
-                    <p className="text-xs text-slate-400 italic">
+                    <p className="text-xs text-slate-500 italic">
                       Aucun collaborateur direct
                     </p>
                   ) : (
@@ -65,7 +65,7 @@ export default function OrgTeamsView({ data, toolbar }: OrgTeamsViewProps) {
                     ))
                   )}
                 </div>
-                <p className="text-[10px] text-slate-400 mt-2">
+                <p className="text-[10px] text-slate-500 mt-2">
                   {reports.length} membre{reports.length !== 1 ? "s" : ""}
                 </p>
               </div>

@@ -113,7 +113,7 @@ export default function HrFlagDetailPage() {
         </button>
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Signal RH</h1>
-          <p className="text-sm text-slate-400">#{id?.slice(-6).toUpperCase()}</p>
+          <p className="text-sm text-slate-500">#{id?.slice(-6).toUpperCase()}</p>
         </div>
       </div>
 
@@ -135,14 +135,14 @@ export default function HrFlagDetailPage() {
           <div className="flex items-start gap-2 text-slate-600">
             <User className="w-4 h-4 mt-0.5 shrink-0 text-slate-400" />
             <div>
-              <p className="text-xs text-slate-400 font-medium uppercase tracking-wide mb-0.5">Collaborateur</p>
+              <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-0.5">Collaborateur</p>
               <p>{flag.userName ?? flag.userId}</p>
             </div>
           </div>
           <div className="flex items-start gap-2 text-slate-600">
             <Clock className="w-4 h-4 mt-0.5 shrink-0 text-slate-400" />
             <div>
-              <p className="text-xs text-slate-400 font-medium uppercase tracking-wide mb-0.5">Créé le</p>
+              <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-0.5">Créé le</p>
               <p>{formatDate(flag.createdAt)}</p>
             </div>
           </div>
@@ -150,7 +150,7 @@ export default function HrFlagDetailPage() {
             <div className="flex items-start gap-2 text-slate-600">
               <RefreshCw className="w-4 h-4 mt-0.5 shrink-0 text-slate-400" />
               <div>
-                <p className="text-xs text-slate-400 font-medium uppercase tracking-wide mb-0.5">Mis à jour</p>
+                <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-0.5">Mis à jour</p>
                 <p>{formatDate(flag.updatedAt)}</p>
               </div>
             </div>
@@ -163,7 +163,7 @@ export default function HrFlagDetailPage() {
             <div className="flex items-start gap-2 text-sm text-slate-600">
               <FileText className="w-4 h-4 mt-0.5 shrink-0 text-slate-400" />
               <div>
-                <p className="text-xs text-slate-400 font-medium uppercase tracking-wide mb-0.5">Description</p>
+                <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-0.5">Description</p>
                 <p className="whitespace-pre-wrap">{flag.description}</p>
               </div>
             </div>
@@ -176,7 +176,7 @@ export default function HrFlagDetailPage() {
             <div className="flex items-start gap-2 text-sm text-slate-600">
               <FileText className="w-4 h-4 mt-0.5 shrink-0 text-slate-400" />
               <div>
-                <p className="text-xs text-slate-400 font-medium uppercase tracking-wide mb-0.5">Note RH</p>
+                <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-0.5">Note RH</p>
                 <p className="whitespace-pre-wrap">{flag.note}</p>
               </div>
             </div>

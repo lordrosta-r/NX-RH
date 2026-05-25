@@ -41,7 +41,7 @@ export function KpiCard({ title, value, total, icon, color, trend, isLoading }: 
           </p>
           <div className="flex items-center gap-2 mt-1 min-h-[1.25rem]">
             {total != null && (
-              <span className="text-xs text-slate-400">sur {total}</span>
+              <span className="text-xs text-slate-500">sur {total}</span>
             )}
             {trend != null && (
               <span

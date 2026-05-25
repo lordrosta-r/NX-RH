@@ -139,7 +139,7 @@ function NotificationCard({ notification, onMarkRead }: NotificationCardProps) {
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-slate-900 truncate">{notification.title}</p>
         <p className="text-sm text-slate-500 line-clamp-2">{notification.body}</p>
-        <p className="text-xs text-slate-400 mt-1">{formatRelativeTime(notification.createdAt)}</p>
+        <p className="text-xs text-slate-500 mt-1">{formatRelativeTime(notification.createdAt)}</p>
       </div>
     </div>
   )
@@ -159,7 +159,7 @@ function Section({ title, notifications, onMarkRead }: SectionProps) {
     <div className="mb-4">
       <div className="flex items-center gap-3 my-3">
         <div className="h-px flex-1 bg-slate-200" />
-        <span className="text-xs font-semibold text-slate-400 uppercase tracking-wide">
+        <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
           {title}
         </span>
         <div className="h-px flex-1 bg-slate-200" />

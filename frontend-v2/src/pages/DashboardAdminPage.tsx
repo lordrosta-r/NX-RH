@@ -64,7 +64,7 @@ const statusColors: Record<string, string> = {
   draft: 'bg-slate-100 text-slate-600',
   active: 'bg-success-50 text-success-600',
   closed: 'bg-slate-100 text-slate-500',
-  archived: 'bg-slate-100 text-slate-400',
+  archived: 'bg-slate-100 text-slate-500',
 }
 
 function StatusBadge({ status }: { status: string }) {
@@ -90,7 +90,7 @@ function CampaignTable({ campaigns, isLoading }: { campaigns: Campaign[]; isLoad
   }
 
   if (campaigns.length === 0) {
-    return <p className="text-sm text-slate-400 text-center py-8">Aucune campagne active</p>
+    return <p className="text-sm text-slate-600 text-center py-8">Aucune campagne active</p>
   }
 
   return (
@@ -362,7 +362,7 @@ export default function DashboardAdminPage() {
             Voir le journal complet →
           </Link>
         </div>
-        <p className="text-sm text-slate-400 text-center py-8">Journal d'audit disponible en S11</p>
+        <p className="text-sm text-slate-600 text-center py-8">Journal d'audit disponible en S11</p>
       </div>
     </div>
   )

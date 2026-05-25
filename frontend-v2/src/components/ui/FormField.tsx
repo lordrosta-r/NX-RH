@@ -22,7 +22,7 @@ export default function FormField({ label, hint, error, required, children, clas
       )}
       {children}
       {error && <p className="text-xs text-error-600" role="alert">{error}</p>}
-      {hint && !error && <p className="text-xs text-slate-400">{hint}</p>}
+      {hint && !error && <p className="text-xs text-slate-500">{hint}</p>}
     </div>
   )
 }

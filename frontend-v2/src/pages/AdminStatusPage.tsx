@@ -135,7 +135,7 @@ export default function AdminStatusPage() {
           <div className="bg-white rounded-2xl shadow p-6 inline-flex items-center gap-3">
             <Clock className="w-5 h-5 text-slate-400" />
             <div>
-              <p className="text-xs text-slate-400 font-medium uppercase mb-0.5">Uptime</p>
+              <p className="text-xs text-slate-500 font-medium uppercase mb-0.5">Uptime</p>
               <p className="text-lg font-semibold text-slate-900">{formatUptime(data.uptime)}</p>
             </div>
           </div>

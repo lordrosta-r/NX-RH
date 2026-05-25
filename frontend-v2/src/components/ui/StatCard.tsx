@@ -15,7 +15,7 @@ export interface StatCardProps {
 
 export default function StatCard({ label, value, icon, iconColor = 'bg-primary-50 text-primary-600', trend, trendLabel, loading = false, className }: StatCardProps) {
   const TrendIcon = trend == null || trend === 0 ? Minus : trend > 0 ? TrendingUp : TrendingDown
-  const trendColor = trend == null || trend === 0 ? 'text-slate-400' : trend > 0 ? 'text-success-600' : 'text-error-600'
+  const trendColor = trend == null || trend === 0 ? 'text-slate-500' : trend > 0 ? 'text-success-600' : 'text-error-600'
 
   if (loading) {
     return (

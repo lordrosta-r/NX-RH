@@ -2,7 +2,8 @@
 
 const express = require('express');
 const router = express.Router();
-const { authenticate } = require('../middleware/auth');
+const { authGuard } = require('../middleware/authGuard');
+const authenticate = authGuard();
 const respond = require('../utils/response');
 const mobilityService = require('../services/mobilityService');
 

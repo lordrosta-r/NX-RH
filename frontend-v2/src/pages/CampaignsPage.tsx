@@ -1,57 +1,67 @@
-import { useState, useRef, useEffect } from 'react'
-import { useDebounce } from '../hooks/useDebounce'
-import { Link } from 'react-router-dom'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { BarChart2, Search, Plus, MoreVertical, Download } from 'lucide-react'
-import EmptyState from '../components/ui/EmptyState'
-import { useAuth } from '../contexts/AuthContext'
-import { campaignsApi } from '../api/campaigns'
-import { toast } from '../hooks/useToast'
-import type { Campaign } from '../types'
-import PageGuide from '../components/shared/PageGuide'
-import { exportToCsv } from '../utils/export'
-import { queryKeys } from '../lib/queryKeys'
+import { useState, useRef, useEffect } from "react";
+import { useDebounce } from "../hooks/useDebounce";
+import { Link } from "react-router-dom";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { BarChart2, Search, Plus, MoreVertical, Download } from "lucide-react";
+import EmptyState from "../components/ui/EmptyState";
+import { useAuth } from "../contexts/AuthContext";
+import { campaignsApi } from "../api/campaigns";
+import { toast } from "../hooks/useToast";
+import type { Campaign } from "../types";
+import PageGuide from "../components/shared/PageGuide";
+import { exportToCsv } from "../utils/export";
+import { queryKeys } from "../lib/queryKeys";
 
-const STATUS_TABS = ['all', 'draft', 'active', 'closed', 'archived'] as const
+const STATUS_TABS = ["all", "draft", "active", "closed", "archived"] as const;
 
 const STATUS_LABELS: Record<string, string> = {
-  all: 'Tous',
-  draft: 'Brouillon',
-  active: 'Active',
-  closed: 'Clôturée',
-  archived: 'Archivée',
-}
+  all: "Tous",
+  draft: "Brouillon",
+  active: "Active",
+  closed: "Clôturée",
+  archived: "Archivée",
+};
 
 const STATUS_BADGE: Record<string, string> = {
-  draft: 'bg-slate-100 text-slate-700',
-  active: 'bg-success-50 text-success-700',
-  closed: 'bg-warning-50 text-warning-700',
-  archived: 'bg-slate-50 text-slate-500',
-}
+  draft: "bg-slate-100 text-slate-700",
+  active: "bg-success-50 text-success-700",
+  closed: "bg-warning-50 text-warning-700",
+  archived: "bg-slate-50 text-slate-500",
+};
 
 const STATUS_DOT: Record<string, string> = {
-  draft: 'bg-slate-400',
-  active: 'bg-success-500',
-  closed: 'bg-warning-500',
-  archived: 'bg-slate-300',
-}
+  draft: "bg-slate-400",
+  active: "bg-success-500",
+  closed: "bg-warning-500",
+  archived: "bg-slate-300",
+};
 
 function formatDateRange(start: string, end: string) {
-  const s = new Date(start).toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })
-  const e = new Date(end).toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })
-  return `${s} – ${e}`
+  const s = new Date(start).toLocaleDateString("fr-FR", {
+    month: "short",
+    year: "numeric",
+  });
+  const e = new Date(end).toLocaleDateString("fr-FR", {
+    month: "short",
+    year: "numeric",
+  });
+  return `${s} – ${e}`;
 }
 
 /** Backend returns `_id` from lean() queries — this helper normalises to a string id */
-const cid = (c: Campaign): string => c.id ?? c._id ?? ''
+const cid = (c: Campaign): string => c.id ?? c._id ?? "";
 
 function StatusBadge({ status }: { status: string }) {
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_BADGE[status] ?? 'bg-slate-100 text-slate-700'}`}>
-      <span className={`w-1.5 h-1.5 rounded-full ${STATUS_DOT[status] ?? 'bg-slate-400'}`} />
+    <span
+      className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_BADGE[status] ?? "bg-slate-100 text-slate-700"}`}
+    >
+      <span
+        className={`w-1.5 h-1.5 rounded-full ${STATUS_DOT[status] ?? "bg-slate-400"}`}
+      />
       {STATUS_LABELS[status] ?? status}
     </span>
-  )
+  );
 }
 
 function ActionMenu({
@@ -61,32 +71,35 @@ function ActionMenu({
   onArchive,
   onDelete,
 }: {
-  campaign: Campaign
-  canManage: boolean
-  onClone: (id: string) => void
-  onArchive: (id: string) => void
-  onDelete: (id: string) => void
+  campaign: Campaign;
+  canManage: boolean;
+  onClone: (id: string) => void;
+  onArchive: (id: string) => void;
+  onDelete: (id: string) => void;
 }) {
-  const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function handle(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+      if (ref.current && !ref.current.contains(e.target as Node))
+        setOpen(false);
     }
-    document.addEventListener('mousedown', handle)
-    return () => document.removeEventListener('mousedown', handle)
-  }, [])
+    document.addEventListener("mousedown", handle);
+    return () => document.removeEventListener("mousedown", handle);
+  }, []);
 
-  if (!canManage) return null
+  if (!canManage) return null;
 
-  const canArchive = campaign.status === 'active' || campaign.status === 'closed'
-  const canDelete = campaign.status === 'draft' || campaign.status === 'archived'
+  const canArchive =
+    campaign.status === "active" || campaign.status === "closed";
+  const canDelete =
+    campaign.status === "draft" || campaign.status === "archived";
 
   return (
     <div className="relative" ref={ref}>
       <button
-        onClick={() => setOpen(v => !v)}
+        onClick={() => setOpen((v) => !v)}
         aria-label="Actions campagne"
         className="p-1.5 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
       >
@@ -110,14 +123,20 @@ function ActionMenu({
           </Link>
           <button
             className="flex items-center px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 w-full"
-            onClick={() => { onClone(cid(campaign)); setOpen(false) }}
+            onClick={() => {
+              onClone(cid(campaign));
+              setOpen(false);
+            }}
           >
             Cloner
           </button>
           {canArchive && (
             <button
               className="flex items-center px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 w-full"
-              onClick={() => { onArchive(cid(campaign)); setOpen(false) }}
+              onClick={() => {
+                onArchive(cid(campaign));
+                setOpen(false);
+              }}
             >
               Archiver
             </button>
@@ -125,7 +144,10 @@ function ActionMenu({
           {canDelete && (
             <button
               className="flex items-center px-3 py-2 text-sm text-error-600 hover:bg-error-50 w-full"
-              onClick={() => { onDelete(cid(campaign)); setOpen(false) }}
+              onClick={() => {
+                onDelete(cid(campaign));
+                setOpen(false);
+              }}
             >
               Supprimer
             </button>
@@ -133,60 +155,71 @@ function ActionMenu({
         </div>
       )}
     </div>
-  )
+  );
 }
 
 export default function CampaignsPage() {
-  const [statusTab, setStatusTab] = useState('all')
-  const [search, setSearch] = useState('')
-  const debouncedSearch = useDebounce(search, 400)
-  const { user } = useAuth()
-  const queryClient = useQueryClient()
+  const [statusTab, setStatusTab] = useState("all");
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 400);
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
 
-  const canManage = user?.role === 'admin' || user?.role === 'hr'
-  const isSearching = search !== debouncedSearch
+  const canManage = user?.role === "admin" || user?.role === "hr";
+  const isSearching = search !== debouncedSearch;
 
   const { data, isLoading } = useQuery({
-    queryKey: queryKeys.campaigns.list({ status: statusTab, q: debouncedSearch }),
+    queryKey: queryKeys.campaigns.list({
+      status: statusTab,
+      q: debouncedSearch,
+    }),
     queryFn: () =>
       campaignsApi
         .getCampaigns({
-          status: statusTab === 'all' ? undefined : statusTab,
+          status: statusTab === "all" ? undefined : statusTab,
           q: debouncedSearch || undefined,
           limit: 50,
         })
-        .then(r => r.data),
-  })
+        .then((r) => r.data),
+  });
 
   const cloneMutation = useMutation({
     mutationFn: (id: string) => campaignsApi.cloneCampaign(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.campaigns.lists() }),
-    onError: () => toast.error('Erreur lors du clonage', 'Veuillez réessayer.'),
-  })
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: queryKeys.campaigns.lists() }),
+    onError: () => toast.error("Erreur lors du clonage", "Veuillez réessayer."),
+  });
 
   const archiveMutation = useMutation({
     mutationFn: (id: string) => campaignsApi.archiveCampaign(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.campaigns.lists() }),
-    onError: () => toast.error('Erreur lors de l\'archivage', 'Veuillez réessayer.'),
-  })
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: queryKeys.campaigns.lists() }),
+    onError: () =>
+      toast.error("Erreur lors de l'archivage", "Veuillez réessayer."),
+  });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => campaignsApi.deleteCampaign(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.campaigns.lists() }),
-    onError: () => toast.error('Erreur lors de la suppression', 'Veuillez réessayer.'),
-  })
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: queryKeys.campaigns.lists() }),
+    onError: () =>
+      toast.error("Erreur lors de la suppression", "Veuillez réessayer."),
+  });
 
-  const campaigns = data?.data ?? []
-  const isEmpty = !isLoading && campaigns.length === 0
+  const campaigns = data?.data ?? [];
+  const isEmpty = !isLoading && campaigns.length === 0;
 
   const handleExport = () => {
-    exportToCsv('campagnes.csv', (campaigns ?? []).map(c => ({
-      nom: c.name,
-      statut: c.status,
-      dateDebut: c.startDate,
-      dateFin: c.endDate,
-    })))
-  }
+    exportToCsv(
+      "campagnes.csv",
+      (campaigns ?? []).map((c) => ({
+        nom: c.name,
+        statut: c.status,
+        dateDebut: c.startDate,
+        dateFin: c.endDate,
+      })),
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -204,19 +237,30 @@ export default function CampaignsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <nav aria-label="Fil d'ariane" className="text-sm text-slate-500 mb-1">            <Link to="/" className="hover:text-slate-700">Accueil</Link>
+          <nav
+            aria-label="Fil d'ariane"
+            className="text-sm text-slate-500 mb-1"
+          >
+            {" "}
+            <Link to="/" className="hover:text-slate-700">
+              Accueil
+            </Link>
             <span className="mx-1.5">›</span>
             <span>Campagnes</span>
           </nav>
           <h1 className="text-2xl font-bold text-slate-900">Campagnes</h1>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={handleExport} className="flex items-center gap-2 px-4 py-2 border border-slate-200 text-slate-700 rounded-md text-sm hover:bg-slate-50">
+          <button
+            onClick={handleExport}
+            className="flex items-center gap-2 px-4 py-2 border border-slate-200 text-slate-700 rounded-md text-sm hover:bg-slate-50"
+          >
             <Download size={16} /> Exporter
           </button>
           {canManage && (
             <Link
               to="/campaigns/new"
+              data-testid="new-campaign-button"
               className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors"
             >
               <Plus className="w-4 h-4" />
@@ -227,17 +271,20 @@ export default function CampaignsPage() {
       </div>
 
       {/* Card with filters + content */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-100">
+      <div
+        data-testid="campaigns-list"
+        className="bg-white rounded-xl shadow-sm border border-slate-100"
+      >
         {/* Status tabs */}
         <div className="flex border-b border-slate-100 px-4 overflow-x-auto">
-          {STATUS_TABS.map(tab => (
+          {STATUS_TABS.map((tab) => (
             <button
               key={tab}
               onClick={() => setStatusTab(tab)}
               className={`px-4 py-3 text-sm whitespace-nowrap transition-colors ${
                 statusTab === tab
-                  ? 'border-b-2 border-primary-500 text-primary-600 font-medium'
-                  : 'text-slate-500 hover:text-slate-700 border-b-2 border-transparent'
+                  ? "border-b-2 border-primary-500 text-primary-600 font-medium"
+                  : "text-slate-500 hover:text-slate-700 border-b-2 border-transparent"
               }`}
             >
               {STATUS_LABELS[tab]}
@@ -254,7 +301,7 @@ export default function CampaignsPage() {
                 type="text"
                 placeholder="Rechercher une campagne…"
                 value={search}
-                onChange={e => setSearch(e.target.value)}
+                onChange={(e) => setSearch(e.target.value)}
                 className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               />
             </div>
@@ -264,13 +311,22 @@ export default function CampaignsPage() {
 
         {/* Content */}
         {isLoading ? (
-          <div className="p-10 text-center text-slate-600 text-sm">Chargement…</div>
+          <div className="p-10 text-center text-slate-600 text-sm">
+            Chargement…
+          </div>
         ) : isEmpty ? (
           <EmptyState
             icon={<BarChart2 className="w-8 h-8" />}
             title="Aucune campagne"
             description="Aucune campagne ne correspond à vos critères."
-            action={canManage ? { label: 'Créer la première campagne', onClick: () => window.location.assign('/campaigns/new') } : undefined}
+            action={
+              canManage
+                ? {
+                    label: "Créer la première campagne",
+                    onClick: () => window.location.assign("/campaigns/new"),
+                  }
+                : undefined
+            }
           />
         ) : (
           <>
@@ -287,8 +343,8 @@ export default function CampaignsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50">
-                  {campaigns.map(campaign => {
-                    const progress = campaign.completionPct ?? 0
+                  {campaigns.map((campaign) => {
+                    const progress = campaign.completionPct ?? 0;
                     return (
                       <tr key={cid(campaign)}>
                         <td className="px-4 py-3">
@@ -308,7 +364,10 @@ export default function CampaignsPage() {
                           <StatusBadge status={campaign.status} />
                         </td>
                         <td className="px-4 py-3 text-slate-600">
-                          {formatDateRange(campaign.startDate, campaign.endDate)}
+                          {formatDateRange(
+                            campaign.startDate,
+                            campaign.endDate,
+                          )}
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
@@ -318,20 +377,22 @@ export default function CampaignsPage() {
                                 style={{ width: `${progress}%` }}
                               />
                             </div>
-                            <span className="text-xs text-slate-500 w-8 text-right">{progress}%</span>
+                            <span className="text-xs text-slate-500 w-8 text-right">
+                              {progress}%
+                            </span>
                           </div>
                         </td>
                         <td className="px-4 py-3 text-right">
                           <ActionMenu
                             campaign={campaign}
                             canManage={canManage}
-                            onClone={id => cloneMutation.mutate(id)}
-                            onArchive={id => archiveMutation.mutate(id)}
-                            onDelete={id => deleteMutation.mutate(id)}
+                            onClone={(id) => cloneMutation.mutate(id)}
+                            onArchive={(id) => archiveMutation.mutate(id)}
+                            onDelete={(id) => deleteMutation.mutate(id)}
                           />
                         </td>
                       </tr>
-                    )
+                    );
                   })}
                 </tbody>
               </table>
@@ -339,10 +400,13 @@ export default function CampaignsPage() {
 
             {/* Mobile cards */}
             <div className="md:hidden divide-y divide-slate-100">
-              {campaigns.map(campaign => {
-                const progress = campaign.completionPct ?? 0
+              {campaigns.map((campaign) => {
+                const progress = campaign.completionPct ?? 0;
                 return (
-                  <div key={cid(campaign)} className="flex items-center justify-between p-4">
+                  <div
+                    key={cid(campaign)}
+                    className="flex items-center justify-between p-4"
+                  >
                     <div className="flex-1 min-w-0">
                       <Link
                         to={`/campaigns/${cid(campaign)}`}
@@ -353,7 +417,10 @@ export default function CampaignsPage() {
                       <div className="flex items-center gap-2 mb-2">
                         <StatusBadge status={campaign.status} />
                         <span className="text-xs text-slate-500">
-                          {formatDateRange(campaign.startDate, campaign.endDate)}
+                          {formatDateRange(
+                            campaign.startDate,
+                            campaign.endDate,
+                          )}
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
@@ -363,23 +430,25 @@ export default function CampaignsPage() {
                             style={{ width: `${progress}%` }}
                           />
                         </div>
-                        <span className="text-xs text-slate-500">{progress}%</span>
+                        <span className="text-xs text-slate-500">
+                          {progress}%
+                        </span>
                       </div>
                     </div>
                     <ActionMenu
                       campaign={campaign}
                       canManage={canManage}
-                      onClone={id => cloneMutation.mutate(id)}
-                      onArchive={id => archiveMutation.mutate(id)}
-                      onDelete={id => deleteMutation.mutate(id)}
+                      onClone={(id) => cloneMutation.mutate(id)}
+                      onArchive={(id) => archiveMutation.mutate(id)}
+                      onDelete={(id) => deleteMutation.mutate(id)}
                     />
                   </div>
-                )
+                );
               })}
             </div>
           </>
         )}
       </div>
     </div>
-  )
+  );
 }

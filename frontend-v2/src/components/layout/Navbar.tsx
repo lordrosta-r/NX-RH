@@ -1,175 +1,193 @@
-import { useState, useRef, useEffect } from 'react'
-import { NavLink, Link } from 'react-router-dom'
-import nxLogo from '../../assets/nx-logo.png'
-import { ChevronDown, LogOut, User, Menu, X, Search, Moon, Sun } from 'lucide-react'
-import { useAuth } from '../../contexts/AuthContext'
-import { useDarkModeContext } from '../../contexts/DarkModeContext'
-import type { Role } from '../../types'
-import { NotificationBell } from '../NotificationBell'
-import clsx from 'clsx'
+import { useState, useRef, useEffect } from "react";
+import { NavLink, Link } from "react-router-dom";
+import nxLogo from "../../assets/nx-logo.png";
+import {
+  ChevronDown,
+  LogOut,
+  User,
+  Menu,
+  X,
+  Search,
+  Moon,
+  Sun,
+} from "lucide-react";
+import { useAuth } from "../../contexts/AuthContext";
+import { useDarkModeContext } from "../../contexts/DarkModeContext";
+import type { Role } from "../../types";
+import { NotificationBell } from "../NotificationBell";
+import clsx from "clsx";
 
 interface NavItem {
-  label: string
-  href?: string
-  dropdown?: { label: string; href: string; separator?: boolean }[]
+  label: string;
+  href?: string;
+  dropdown?: { label: string; href: string; separator?: boolean }[];
 }
 
 function getNavItems(role: Role): NavItem[] {
-  const dashboard: NavItem = { label: 'Tableau de bord', href: '/' }
+  const dashboard: NavItem = { label: "Tableau de bord", href: "/" };
   const pilotage: NavItem = {
-    label: 'Pilotage',
+    label: "Pilotage",
     dropdown: [
-      { label: 'Calendrier', href: '/events' },
-      { label: 'Ressources', href: '/resources' },
-      { label: 'Analytics', href: '/analytics', separator: true },
+      { label: "Calendrier", href: "/events" },
+      { label: "Ressources", href: "/resources" },
+      { label: "Analytics", href: "/analytics", separator: true },
     ],
-  }
+  };
 
   const pilotageNoAnalytics: NavItem = {
-    label: 'Pilotage',
+    label: "Pilotage",
     dropdown: [
-      { label: 'Calendrier', href: '/events' },
-      { label: 'Ressources', href: '/resources' },
+      { label: "Calendrier", href: "/events" },
+      { label: "Ressources", href: "/resources" },
     ],
-  }
+  };
 
-  if (role === 'admin') return [
-    dashboard,
-    {
-      label: 'Collaborateurs',
-      dropdown: [
-        { label: 'Utilisateurs', href: '/users' },
-        { label: 'Organigramme', href: '/org' },
-        { label: 'Offboarding', href: '/offboarding', separator: true },
-      ],
-    },
-    {
-      label: 'Campagnes',
-      dropdown: [
-        { label: 'Campagnes', href: '/campaigns' },
-        { label: 'Formulaires', href: '/forms' },
-      ],
-    },
-    {
-      label: 'Évaluations',
-      dropdown: [
-        { label: 'Toutes les évaluations', href: '/evaluations' },
-        { label: 'Historique', href: '/evaluations/history' },
-      ],
-    },
-    pilotage,
-    {
-      label: 'Administration',
-      dropdown: [
-        { label: 'Portail admin', href: '/admin' },
-        { label: "Journal d'audit", href: '/admin/audit' },
-        { label: 'Paramètres RH', href: '/admin/settings', separator: true },
-        { label: 'Demandes RH', href: '/hr/flags' },
-        { label: 'Mobilité interne', href: '/mobility' },
-      ],
-    },
-  ]
+  if (role === "admin")
+    return [
+      dashboard,
+      {
+        label: "Collaborateurs",
+        dropdown: [
+          { label: "Utilisateurs", href: "/users" },
+          { label: "Organigramme", href: "/org" },
+          { label: "Offboarding", href: "/offboarding", separator: true },
+        ],
+      },
+      {
+        label: "Campagnes",
+        dropdown: [
+          { label: "Campagnes", href: "/campaigns" },
+          { label: "Formulaires", href: "/forms" },
+        ],
+      },
+      {
+        label: "Évaluations",
+        dropdown: [
+          { label: "Toutes les évaluations", href: "/evaluations" },
+          { label: "Historique", href: "/evaluations/history" },
+        ],
+      },
+      pilotage,
+      {
+        label: "Administration",
+        dropdown: [
+          { label: "Portail admin", href: "/admin" },
+          { label: "Journal d'audit", href: "/admin/audit" },
+          { label: "Paramètres RH", href: "/admin/settings", separator: true },
+          { label: "Demandes RH", href: "/hr/flags" },
+          { label: "Mobilité interne", href: "/mobility" },
+        ],
+      },
+    ];
 
-  if (role === 'hr') return [
-    dashboard,
-    {
-      label: 'Collaborateurs',
-      dropdown: [
-        { label: 'Utilisateurs', href: '/users' },
-        { label: 'Organigramme', href: '/org' },
-        { label: 'Offboarding', href: '/offboarding', separator: true },
-      ],
-    },
-    {
-      label: 'Campagnes',
-      dropdown: [
-        { label: 'Campagnes', href: '/campaigns' },
-        { label: 'Formulaires', href: '/forms' },
-      ],
-    },
-    {
-      label: 'Évaluations',
-      dropdown: [
-        { label: 'Toutes les évaluations', href: '/evaluations' },
-        { label: 'Historique', href: '/evaluations/history' },
-        { label: 'Demandes RH', href: '/hr/flags', separator: true },
-        { label: 'Mobilité interne', href: '/mobility' },
-      ],
-    },
-    pilotage,
-    {
-      label: 'Administration',
-      dropdown: [
-        { label: 'Portail admin', href: '/admin' },
-        { label: 'Paramètres RH', href: '/admin/settings', separator: true },
-        { label: "Journal d'audit", href: '/admin/audit' },
-        { label: 'Utilisateurs (import)', href: '/admin/users/import' },
-        { label: 'Import formulaires', href: '/admin/forms/import' },
-        { label: 'Email templates', href: '/admin/mail-templates' },
-      ],
-    },
-  ]
+  if (role === "hr")
+    return [
+      dashboard,
+      {
+        label: "Collaborateurs",
+        dropdown: [
+          { label: "Utilisateurs", href: "/users" },
+          { label: "Organigramme", href: "/org" },
+          { label: "Offboarding", href: "/offboarding", separator: true },
+        ],
+      },
+      {
+        label: "Campagnes",
+        dropdown: [
+          { label: "Campagnes", href: "/campaigns" },
+          { label: "Formulaires", href: "/forms" },
+        ],
+      },
+      {
+        label: "Évaluations",
+        dropdown: [
+          { label: "Toutes les évaluations", href: "/evaluations" },
+          { label: "Historique", href: "/evaluations/history" },
+          { label: "Demandes RH", href: "/hr/flags", separator: true },
+          { label: "Mobilité interne", href: "/mobility" },
+        ],
+      },
+      pilotage,
+      {
+        label: "Administration",
+        dropdown: [
+          { label: "Portail admin", href: "/admin" },
+          { label: "Paramètres RH", href: "/admin/settings", separator: true },
+          { label: "Journal d'audit", href: "/admin/audit" },
+          { label: "Utilisateurs (import)", href: "/admin/users/import" },
+          { label: "Import formulaires", href: "/admin/forms/import" },
+          { label: "Email templates", href: "/admin/mail-templates" },
+        ],
+      },
+    ];
 
-  if (role === 'manager') return [
-    dashboard,
-    {
-      label: 'Mon Équipe',
-      dropdown: [
-        { label: 'Mon équipe', href: '/users' },
-        { label: 'Organigramme', href: '/org' },
-      ],
-    },
-    { label: 'Campagnes', href: '/campaigns' },
-    {
-      label: 'Évaluations',
-      dropdown: [
-        { label: 'À traiter', href: '/evaluations' },
-        { label: 'Historique', href: '/evaluations/history' },
-      ],
-    },
-    { label: 'Mobilité', href: '/mobility' },
-    pilotageNoAnalytics,
-  ]
+  if (role === "manager")
+    return [
+      dashboard,
+      {
+        label: "Mon Équipe",
+        dropdown: [
+          { label: "Mon équipe", href: "/users" },
+          { label: "Organigramme", href: "/org" },
+        ],
+      },
+      { label: "Campagnes", href: "/campaigns" },
+      {
+        label: "Évaluations",
+        dropdown: [
+          { label: "À traiter", href: "/evaluations" },
+          { label: "Historique", href: "/evaluations/history" },
+        ],
+      },
+      { label: "Mobilité", href: "/mobility" },
+      pilotageNoAnalytics,
+    ];
 
   // employee
   return [
     dashboard,
     {
-      label: 'Mes Évaluations',
+      label: "Mes Évaluations",
       dropdown: [
-        { label: 'En cours', href: '/evaluations' },
-        { label: 'Historique', href: '/evaluations/history' },
+        { label: "En cours", href: "/evaluations" },
+        { label: "Historique", href: "/evaluations/history" },
       ],
     },
-    { label: 'Mobilité', href: '/mobility' },
-    { label: 'Mon profil', href: '/profile' },
-    { label: 'Notifications', href: '/notifications' },
+    { label: "Mobilité", href: "/mobility" },
+    { label: "Mon profil", href: "/profile" },
+    { label: "Notifications", href: "/notifications" },
     pilotageNoAnalytics,
-  ]
+  ];
 }
 
 function NavDropdown({ item }: { item: NavItem }) {
-  const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function handle(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+      if (ref.current && !ref.current.contains(e.target as Node))
+        setOpen(false);
     }
-    document.addEventListener('mousedown', handle)
-    return () => document.removeEventListener('mousedown', handle)
-  }, [])
+    document.addEventListener("mousedown", handle);
+    return () => document.removeEventListener("mousedown", handle);
+  }, []);
 
   return (
     <div ref={ref} className="relative">
       <button
-        onClick={() => setOpen(v => !v)}
+        onClick={() => setOpen((v) => !v)}
         className="flex items-center gap-1 text-sm text-slate-600 hover:text-slate-900 font-medium py-1 transition-colors focus:outline-none focus-visible:text-primary-600"
         aria-expanded={open}
         aria-haspopup="menu"
       >
         {item.label}
-        <ChevronDown className={clsx('w-3.5 h-3.5 transition-transform', open && 'rotate-180')} />
+        <ChevronDown
+          className={clsx(
+            "w-3.5 h-3.5 transition-transform",
+            open && "rotate-180",
+          )}
+        />
       </button>
 
       {open && (
@@ -179,15 +197,21 @@ function NavDropdown({ item }: { item: NavItem }) {
         >
           {item.dropdown!.map((d) => (
             <div key={`${d.href}-${d.label}`}>
-              {d.separator && <div className="my-1 border-t border-slate-100" />}
+              {d.separator && (
+                <div className="my-1 border-t border-slate-100" />
+              )}
               <NavLink
                 to={d.href}
                 onClick={() => setOpen(false)}
                 role="menuitem"
-                className={({ isActive }) => clsx(
-                  'block px-4 py-2 text-sm transition-colors',
-                  isActive ? 'text-primary-600 bg-primary-50 dark:bg-primary-900/20' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700',
-                )}
+                className={({ isActive }) =>
+                  clsx(
+                    "block px-4 py-2 text-sm transition-colors",
+                    isActive
+                      ? "text-primary-600 bg-primary-50 dark:bg-primary-900/20"
+                      : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700",
+                  )
+                }
               >
                 {d.label}
               </NavLink>
@@ -196,46 +220,53 @@ function NavDropdown({ item }: { item: NavItem }) {
         </div>
       )}
     </div>
-  )
+  );
 }
 
-export default function Navbar({ onSearchClick }: { onSearchClick?: () => void }) {
-  const { user, logout } = useAuth()
-  const { isDark, toggle: toggleDark } = useDarkModeContext()
-  const [mobileOpen, setMobileOpen] = useState(false)
-  const [avatarOpen, setAvatarOpen] = useState(false)
-  const avatarRef = useRef<HTMLDivElement>(null)
+export default function Navbar({
+  onSearchClick,
+}: {
+  onSearchClick?: () => void;
+}) {
+  const { user, logout } = useAuth();
+  const { isDark, toggle: toggleDark } = useDarkModeContext();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [avatarOpen, setAvatarOpen] = useState(false);
+  const avatarRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function handle(e: MouseEvent) {
-      if (avatarRef.current && !avatarRef.current.contains(e.target as Node)) setAvatarOpen(false)
+      if (avatarRef.current && !avatarRef.current.contains(e.target as Node))
+        setAvatarOpen(false);
     }
-    document.addEventListener('mousedown', handle)
-    return () => document.removeEventListener('mousedown', handle)
-  }, [])
+    document.addEventListener("mousedown", handle);
+    return () => document.removeEventListener("mousedown", handle);
+  }, []);
 
   useEffect(() => {
     function handleEscape(e: KeyboardEvent) {
-      if (e.key === 'Escape') setMobileOpen(false)
+      if (e.key === "Escape") setMobileOpen(false);
     }
-    document.addEventListener('keydown', handleEscape)
-    return () => document.removeEventListener('keydown', handleEscape)
-  }, [])
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, []);
 
-  const navItems = user ? getNavItems(user.role) : []
+  const navItems = user ? getNavItems(user.role) : [];
   const initials = user
-    ? `${user.firstName[0] ?? ''}${user.lastName[0] ?? ''}`.toUpperCase()
-    : '??'
+    ? `${user.firstName[0] ?? ""}${user.lastName[0] ?? ""}`.toUpperCase()
+    : "??";
 
   async function handleLogout() {
-    setAvatarOpen(false)
-    await logout()
+    setAvatarOpen(false);
+    await logout();
   }
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-40 h-16 bg-white dark:bg-slate-900 shadow-sm dark:shadow-slate-900/50 border-b border-transparent dark:border-slate-800" aria-label="Navigation principale">
+    <nav
+      className="fixed top-0 left-0 right-0 z-40 h-16 bg-white dark:bg-slate-900 shadow-sm dark:shadow-slate-900/50 border-b border-transparent dark:border-slate-800"
+      aria-label="Navigation principale"
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between gap-6">
-
         {/* Logo */}
         <Link to="/" className="flex items-center flex-shrink-0">
           <img src={nxLogo} alt="NanoXplore RH" className="h-8 w-auto" />
@@ -243,22 +274,26 @@ export default function Navbar({ onSearchClick }: { onSearchClick?: () => void }
 
         {/* Nav desktop */}
         <div className="hidden md:flex items-center gap-5 flex-1">
-          {navItems.map(item =>
+          {navItems.map((item) =>
             item.dropdown ? (
               <NavDropdown key={item.label} item={item} />
             ) : (
               <NavLink
                 key={item.href}
                 to={item.href!}
-                end={item.href === '/'}
-                className={({ isActive }) => clsx(
-                  'text-sm font-medium transition-colors whitespace-nowrap',
-                  isActive ? 'text-primary-600' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100',
-                )}
+                end={item.href === "/"}
+                className={({ isActive }) =>
+                  clsx(
+                    "text-sm font-medium transition-colors whitespace-nowrap",
+                    isActive
+                      ? "text-primary-600"
+                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100",
+                  )
+                }
               >
                 {item.label}
               </NavLink>
-            )
+            ),
           )}
         </div>
 
@@ -279,18 +314,21 @@ export default function Navbar({ onSearchClick }: { onSearchClick?: () => void }
           {/* Avatar + menu */}
           <div ref={avatarRef} className="relative">
             <button
-              onClick={() => setAvatarOpen(v => !v)}
+              onClick={() => setAvatarOpen((v) => !v)}
+              data-testid="user-menu-button"
               className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-300"
               aria-expanded={avatarOpen}
               aria-haspopup="menu"
             >
               <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
-                <span className="text-primary-700 text-xs font-semibold">{initials}</span>
+                <span className="text-primary-700 text-xs font-semibold">
+                  {initials}
+                </span>
               </div>
               <ChevronDown
                 className={clsx(
-                  'w-3.5 h-3.5 text-slate-400 transition-transform hidden sm:block',
-                  avatarOpen && 'rotate-180',
+                  "w-3.5 h-3.5 text-slate-400 transition-transform hidden sm:block",
+                  avatarOpen && "rotate-180",
                 )}
               />
             </button>
@@ -305,7 +343,9 @@ export default function Navbar({ onSearchClick }: { onSearchClick?: () => void }
                   <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                     {user?.firstName} {user?.lastName}
                   </p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 capitalize">{user?.role}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 capitalize">
+                    {user?.role}
+                  </p>
                 </div>
 
                 <NavLink
@@ -319,9 +359,14 @@ export default function Navbar({ onSearchClick }: { onSearchClick?: () => void }
                 </NavLink>
 
                 <button
-                  onClick={() => { toggleDark(); }}
+                  onClick={() => {
+                    toggleDark();
+                  }}
                   role="menuitem"
-                  aria-label={isDark ? 'Passer en mode clair' : 'Passer en mode sombre'}
+                  data-testid="dark-mode-toggle"
+                  aria-label={
+                    isDark ? "Passer en mode clair" : "Passer en mode sombre"
+                  }
                   className="w-full flex items-center gap-2 px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
                 >
                   {isDark ? (
@@ -329,7 +374,7 @@ export default function Navbar({ onSearchClick }: { onSearchClick?: () => void }
                   ) : (
                     <Moon className="w-4 h-4 text-slate-500" />
                   )}
-                  {isDark ? 'Mode clair' : 'Mode sombre'}
+                  {isDark ? "Mode clair" : "Mode sombre"}
                 </button>
 
                 <div className="border-t border-slate-100 dark:border-slate-700 mt-1 pt-1">
@@ -348,13 +393,17 @@ export default function Navbar({ onSearchClick }: { onSearchClick?: () => void }
 
           {/* Hamburger mobile */}
           <button
-            onClick={() => setMobileOpen(v => !v)}
+            onClick={() => setMobileOpen((v) => !v)}
             className="md:hidden p-2 rounded-lg text-slate-500 hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-300"
-            aria-label={mobileOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
+            aria-label={mobileOpen ? "Fermer le menu" : "Ouvrir le menu"}
             aria-expanded={mobileOpen}
             aria-controls="mobile-nav-menu"
           >
-            {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            {mobileOpen ? (
+              <X className="w-5 h-5" />
+            ) : (
+              <Menu className="w-5 h-5" />
+            )}
           </button>
         </div>
       </div>
@@ -368,19 +417,26 @@ export default function Navbar({ onSearchClick }: { onSearchClick?: () => void }
             onClick={() => setMobileOpen(false)}
             aria-hidden="true"
           />
-          <div id="mobile-nav-menu" className="md:hidden relative z-40 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 shadow-lg">
+          <div
+            id="mobile-nav-menu"
+            className="md:hidden relative z-40 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 shadow-lg"
+          >
             <div className="px-4 py-3 space-y-1">
-              {navItems.map(item =>
+              {navItems.map((item) =>
                 item.href ? (
                   <NavLink
                     key={item.href}
                     to={item.href}
-                    end={item.href === '/'}
+                    end={item.href === "/"}
                     onClick={() => setMobileOpen(false)}
-                    className={({ isActive }) => clsx(
-                      'block px-3 py-2 rounded-lg text-sm font-medium transition-colors',
-                      isActive ? 'bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-400' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800',
-                    )}
+                    className={({ isActive }) =>
+                      clsx(
+                        "block px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                        isActive
+                          ? "bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-400"
+                          : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800",
+                      )
+                    }
                   >
                     {item.label}
                   </NavLink>
@@ -389,26 +445,30 @@ export default function Navbar({ onSearchClick }: { onSearchClick?: () => void }
                     <p className="px-3 py-1 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
                       {item.label}
                     </p>
-                    {item.dropdown?.map(d => (
+                    {item.dropdown?.map((d) => (
                       <NavLink
                         key={`${d.href}-${d.label}`}
                         to={d.href}
                         onClick={() => setMobileOpen(false)}
-                        className={({ isActive }) => clsx(
-                          'block px-6 py-2 rounded-lg text-sm transition-colors',
-                          isActive ? 'text-primary-600 bg-primary-50 dark:bg-primary-900/20 dark:text-primary-400' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800',
-                        )}
+                        className={({ isActive }) =>
+                          clsx(
+                            "block px-6 py-2 rounded-lg text-sm transition-colors",
+                            isActive
+                              ? "text-primary-600 bg-primary-50 dark:bg-primary-900/20 dark:text-primary-400"
+                              : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800",
+                          )
+                        }
                       >
                         {d.label}
                       </NavLink>
                     ))}
                   </div>
-                )
+                ),
               )}
             </div>
           </div>
         </>
       )}
     </nav>
-  )
+  );
 }

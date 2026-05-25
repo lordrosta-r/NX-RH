@@ -7,6 +7,7 @@
 const mongoose = require('mongoose')
 const { Evaluation } = require('../../../models')
 const { ADMIN_ROLES } = require('../../../config/constants')
+const cache = require('../../../utils/cache')
 
 /**
  * POST /:id/expire
@@ -31,6 +32,11 @@ async function handleExpire(req, res, next) {
     evaluation.status     = 'expired'
     evaluation.nearExpiry = false
     await evaluation.save()
+
+    cache.invalidatePattern('GET:/api/analytics')
+    cache.invalidatePattern('GET:/api/v1/analytics')
+    cache.invalidatePattern('GET:/api/dashboard')
+    cache.invalidatePattern('GET:/api/v1/dashboard')
 
     res.json({ id: evaluation._id, status: evaluation.status })
   } catch (err) {

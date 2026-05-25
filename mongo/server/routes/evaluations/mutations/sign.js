@@ -9,6 +9,7 @@ const { Evaluation, User } = require('../../../models')
 const { ADMIN_ROLES } = require('../../../config/constants')
 const { notify: notifyInApp } = require('../../../services/notificationHelper')
 const { sanitizeAnonymity } = require('../helpers')
+const cache = require('../../../utils/cache')
 
 /**
  * POST /:id/sign
@@ -78,6 +79,11 @@ async function handleSign(req, res, next) {
     evaluation.auditLog.push({ action: 'signed', by: req.user._id, at: now, meta: { signingRole, nextStatus, ip: req.ip } })
 
     await evaluation.save()
+
+    cache.invalidatePattern('GET:/api/analytics')
+    cache.invalidatePattern('GET:/api/v1/analytics')
+    cache.invalidatePattern('GET:/api/dashboard')
+    cache.invalidatePattern('GET:/api/v1/dashboard')
 
     // Notifications in-app (fire-and-forget)
     if (signingRole === 'evaluatee') {

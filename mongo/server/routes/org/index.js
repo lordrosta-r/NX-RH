@@ -20,10 +20,12 @@ const mongoose = require('mongoose')
 const User     = require('../../models/User')
 const Sector   = require('../../models/Sector')
 const { ROLES } = require('../../config/constants')
+const { cacheResponse } = require('../../middleware/cacheMiddleware')
+const cache = require('../../utils/cache')
 
 // ─── GET /api/org/tree ────────────────────────────────────────────────────────
 
-router.get('/tree', async (req, res, next) => {
+router.get('/tree', cacheResponse(120, req => `GET:${req.originalUrl}:${req.user.id}`), async (req, res, next) => {
   try {
     let { view = 'all' } = req.query
     if (view === 'team') view = 'teams'  // alias singulier → pluriel
@@ -195,6 +197,9 @@ router.patch('/users/:id', async (req, res, next) => {
     // anti-cycle géré par le pre-save hook de User
     await user.save()
 
+    cache.invalidatePattern('GET:/api/org')
+    cache.invalidatePattern('GET:/api/v1/org')
+
     const result = user.toObject()
     delete result.passwordHash
     delete result.ldapDn
@@ -207,7 +212,7 @@ router.patch('/users/:id', async (req, res, next) => {
 
 // ─── GET /api/org/sectors ─────────────────────────────────────────────────────
 
-router.get('/sectors', async (req, res, next) => {
+router.get('/sectors', cacheResponse(300), async (req, res, next) => {
   try {
     if (!['admin', 'hr'].includes(req.user.role)) {
       return res.status(403).json({ error: 'Accès interdit' })
@@ -243,6 +248,8 @@ router.post('/sectors', async (req, res, next) => {
     })
 
     await sector.save()
+    cache.invalidatePattern('GET:/api/org')
+    cache.invalidatePattern('GET:/api/v1/org')
     res.status(201).json(sector.toObject())
   } catch (err) {
     if (err.code === 11000) return res.status(409).json({ error: 'Un secteur avec ce nom existe déjà' })
@@ -269,6 +276,8 @@ router.patch('/sectors/:id/assign-users', async (req, res, next) => {
     if (!sector) return res.status(404).json({ error: 'Secteur introuvable' })
 
     const result = await User.updateMany({ _id: { $in: userIds } }, { sectorId: id })
+    cache.invalidatePattern('GET:/api/org')
+    cache.invalidatePattern('GET:/api/v1/org')
     res.json({ updated: result.modifiedCount })
   } catch (err) {
     next(err)
@@ -299,6 +308,8 @@ router.patch('/sectors/:id', async (req, res, next) => {
     ).populate('createdBy', 'firstName lastName')
 
     if (!sector) return res.status(404).json({ error: 'Secteur introuvable' })
+    cache.invalidatePattern('GET:/api/org')
+    cache.invalidatePattern('GET:/api/v1/org')
     res.json(sector.toObject())
   } catch (err) {
     if (err.code === 11000) return res.status(409).json({ error: 'Un secteur avec ce nom existe déjà' })
@@ -327,6 +338,8 @@ router.delete('/sectors/:id', async (req, res, next) => {
     }
 
     await Sector.deleteOne({ _id: id })
+    cache.invalidatePattern('GET:/api/org')
+    cache.invalidatePattern('GET:/api/v1/org')
     res.status(204).end()
   } catch (err) {
     next(err)

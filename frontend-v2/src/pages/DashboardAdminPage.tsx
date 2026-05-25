@@ -146,15 +146,15 @@ export default function DashboardAdminPage() {
     return (
       <div>
         <div className="h-8 w-64 bg-slate-200 rounded animate-pulse mb-8" />
-        <div className="grid grid-cols-4 gap-6 mb-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-6">
           {[...Array(4)].map((_, i) => (
             <div key={i} className="h-32 bg-slate-200 rounded-xl animate-pulse" />
           ))}
         </div>
-        <div className="grid grid-cols-12 gap-6">
-          <div className="col-span-8 h-64 bg-slate-200 rounded-xl animate-pulse" />
-          <div className="col-span-4 h-64 bg-slate-200 rounded-xl animate-pulse" />
-          <div className="col-span-12 h-40 bg-slate-200 rounded-xl animate-pulse" />
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div className="lg:col-span-8 h-64 bg-slate-200 rounded-xl animate-pulse" />
+          <div className="lg:col-span-4 h-64 bg-slate-200 rounded-xl animate-pulse" />
+          <div className="lg:col-span-12 h-40 bg-slate-200 rounded-xl animate-pulse" />
         </div>
       </div>
     )
@@ -257,8 +257,8 @@ export default function DashboardAdminPage() {
       </div>
 
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="text-2xl font-bold text-slate-900">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+        <h1 className="text-xl sm:text-2xl font-bold text-slate-900">
           Tableau de bord · Bonjour, {user?.firstName ?? '...'}
         </h1>
         <button
@@ -270,51 +270,45 @@ export default function DashboardAdminPage() {
       </div>
 
       {/* KPI Grid */}
-      <div className="grid grid-cols-12 gap-6 mb-6">
-        <div className="col-span-3">
-          <KpiCard
-            label="Utilisateurs actifs"
-            value={totalUsers}
-            icon={Users}
-            colorClass="bg-primary-50 text-primary-500"
-          />
-        </div>
-        <div className="col-span-3">
-          <KpiCard
-            label="Campagnes actives"
-            value={totalCampaigns}
-            icon={BarChart2}
-            colorClass="bg-success-50 text-success-500"
-          />
-        </div>
-        <div className="col-span-3">
-          <KpiCard
-            label="Évaluations non finalisées"
-            value={totalEvals}
-            icon={ClipboardList}
-            colorClass="bg-warning-50 text-warning-500"
-          />
-        </div>
-        <div className="col-span-3">
-          <KpiCard
-            label="Offboardings en attente"
-            value={0}
-            icon={LogOut}
-            colorClass="bg-error-50 text-error-500"
-          />
-        </div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-6">
+        <KpiCard
+          label="Utilisateurs actifs"
+          value={totalUsers}
+          icon={Users}
+          colorClass="bg-primary-50 text-primary-500"
+        />
+        <KpiCard
+          label="Campagnes actives"
+          value={totalCampaigns}
+          icon={BarChart2}
+          colorClass="bg-success-50 text-success-500"
+        />
+        <KpiCard
+          label="Évaluations non finalisées"
+          value={totalEvals}
+          icon={ClipboardList}
+          colorClass="bg-warning-50 text-warning-500"
+        />
+        <KpiCard
+          label="Offboardings en attente"
+          value={0}
+          icon={LogOut}
+          colorClass="bg-error-50 text-error-500"
+        />
       </div>
 
       {/* Middle row */}
-      <div className="grid grid-cols-12 gap-6 mb-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
         {/* Campagnes actives */}
-        <div className="col-span-8 bg-white rounded-xl shadow-sm border border-slate-100 p-6">
+        <div className="lg:col-span-8 bg-white rounded-xl shadow-sm border border-slate-100 p-6">
           <h2 className="text-lg font-semibold text-slate-900 mb-4">Campagnes actives</h2>
-          <CampaignTable campaigns={campaignList} isLoading={campaigns.isLoading} />
+          <div className="overflow-x-auto">
+            <CampaignTable campaigns={campaignList} isLoading={campaigns.isLoading} />
+          </div>
         </div>
 
         {/* Actions urgentes */}
-        <div className="col-span-4 bg-white rounded-xl shadow-sm border border-slate-100 p-6">
+        <div className="lg:col-span-4 bg-white rounded-xl shadow-sm border border-slate-100 p-6">
           <h2 className="text-lg font-semibold text-slate-900 mb-4">Actions urgentes</h2>
           <div className="space-y-3">
             <div className="flex items-start gap-3 p-3 bg-error-50 rounded-lg border border-error-100">

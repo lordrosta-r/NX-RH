@@ -108,7 +108,7 @@ export function EvaluationCommentsSection({
 
       {/* Résumé révision */}
       <div className="bg-white rounded-xl border border-slate-200 p-5 mb-6">
-        <div className="grid grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           {evaluation.reviewerScore !== undefined && (
             <div>
               <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">
@@ -123,7 +123,7 @@ export function EvaluationCommentsSection({
             </div>
           )}
           {evaluation.reviewerComment && (
-            <div className="col-span-2">
+            <div className="sm:col-span-2">
               <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">
                 Commentaire reviewer
               </p>
@@ -133,7 +133,7 @@ export function EvaluationCommentsSection({
             </div>
           )}
           {evaluation.nextYearObjectives && (
-            <div className="col-span-2">
+            <div className="sm:col-span-2">
               <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">
                 Objectifs N+1
               </p>

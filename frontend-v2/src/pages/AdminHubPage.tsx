@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Users, ClipboardList, Briefcase, Mail, Settings } from 'lucide-react'
+import { Users, ClipboardList, Briefcase, Mail, Settings, BarChart2 } from 'lucide-react'
 
 // ─── Palette helpers (full class names for Tailwind JIT) ──────────────────────
 
@@ -9,6 +9,7 @@ const iconBg: Record<string, string> = {
   purple: 'bg-purple-100 text-purple-600',
   orange: 'bg-orange-100 text-orange-600',
   gray:   'bg-gray-100 text-gray-600',
+  teal:   'bg-teal-100 text-teal-600',
 }
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
@@ -16,13 +17,13 @@ const iconBg: Record<string, string> = {
 const adminFamilies = [
   {
     id: 'users',
-    title: 'Utilisateurs',
+    title: 'Utilisateurs & Accès',
     icon: <Users className="w-5 h-5" />,
     color: 'blue',
     items: [
       { label: 'Gestion des utilisateurs', href: '/admin/users',        desc: 'Créer, modifier, désactiver' },
       { label: 'Import CSV',               href: '/admin/users/import', desc: 'Importer en masse' },
-      { label: 'Groupes & équipes',        href: '/admin/groups',       desc: 'Organiser par équipe' },
+      { label: 'Groupes & équipes',        href: '/users/groups',       desc: 'Organiser par équipe' },
       { label: 'Organigramme',             href: '/org',                desc: 'Visualiser la hiérarchie' },
     ],
   },
@@ -32,8 +33,8 @@ const adminFamilies = [
     icon: <ClipboardList className="w-5 h-5" />,
     color: 'green',
     items: [
-      { label: 'Campagnes',           href: '/campaigns',   desc: 'Créer et gérer les campagnes' },
-      { label: 'Formulaires',         href: '/forms',       desc: "Templates d'évaluation" },
+      { label: 'Campagnes',             href: '/campaigns',   desc: 'Créer et gérer les campagnes' },
+      { label: 'Formulaires',           href: '/forms',       desc: "Templates d'évaluation" },
       { label: 'Suivi des évaluations', href: '/evaluations', desc: 'Toutes les évaluations' },
     ],
   },
@@ -43,20 +44,21 @@ const adminFamilies = [
     icon: <Briefcase className="w-5 h-5" />,
     color: 'purple',
     items: [
-      { label: 'Demandes de mobilité', href: '/admin/mobility', desc: 'Suivre les demandes' },
-      { label: 'Onboarding',           href: '/onboarding',     desc: 'Nouveaux arrivants' },
-      { label: 'Offboarding',          href: '/offboarding',    desc: 'Départs' },
+      { label: 'Demandes de mobilité', href: '/mobility',    desc: 'Suivre les demandes' },
+      { label: 'Suivi des demandes RH', href: '/hr/flags',   desc: 'Flags et alertes RH' },
+      { label: 'Onboarding',           href: '/onboarding',  desc: 'Nouveaux arrivants' },
+      { label: 'Offboarding',          href: '/offboarding', desc: 'Départs' },
     ],
   },
   {
     id: 'communication',
-    title: 'Communication',
+    title: 'Configuration email',
     icon: <Mail className="w-5 h-5" />,
     color: 'orange',
     items: [
-      { label: 'Templates email',      href: '/admin/mail-templates', desc: 'Personnaliser les emails' },
-      { label: "Test d'envoi",         href: '/admin/mail-test',      desc: 'Tester la configuration' },
-      { label: 'Configuration SMTP',   href: '/admin/mail-config',    desc: 'Paramètres serveur mail' },
+      { label: 'Templates email',    href: '/admin/mail-templates', desc: 'Personnaliser les emails' },
+      { label: "Test d'envoi",       href: '/admin/test-mail',      desc: 'Tester la configuration' },
+      { label: 'Configuration SMTP', href: '/admin/mail-config',    desc: 'Paramètres serveur mail' },
     ],
   },
   {
@@ -65,9 +67,20 @@ const adminFamilies = [
     icon: <Settings className="w-5 h-5" />,
     color: 'gray',
     items: [
-      { label: 'Configuration LDAP',  href: '/admin/ldap',      desc: 'Synchronisation annuaire' },
-      { label: 'Journaux système',    href: '/admin/logs',      desc: 'Logs et audits' },
-      { label: 'Paramètres généraux', href: '/admin/settings',  desc: 'Configuration globale' },
+      { label: 'Configuration LDAP',  href: '/admin/ldap',     desc: 'Synchronisation annuaire' },
+      { label: "Journal d'audit",     href: '/admin/audit',    desc: 'Logs et traçabilité' },
+      { label: 'Paramètres généraux', href: '/admin/settings', desc: 'Configuration globale' },
+    ],
+  },
+  {
+    id: 'stats',
+    title: 'Statistiques',
+    icon: <BarChart2 className="w-5 h-5" />,
+    color: 'teal',
+    items: [
+      { label: 'Vue d\'ensemble',        href: '/admin/stats',             desc: 'KPIs et indicateurs globaux' },
+      { label: 'Analytics campagnes',    href: '/analytics',               desc: 'Statistiques des campagnes' },
+      { label: 'Import formulaires',     href: '/admin/forms/import',      desc: 'Importer des modèles' },
     ],
   },
 ]

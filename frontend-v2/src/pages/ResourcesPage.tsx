@@ -251,10 +251,11 @@ function NewResourceSlideOver({ open, onClose }: NewResourceSlideOverProps) {
           <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
             {/* Title */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">
+              <label htmlFor="resource-title" className="block text-sm font-medium text-slate-700 mb-1.5">
                 Titre <span className="text-red-500">*</span>
               </label>
               <input
+                id="resource-title"
                 type="text"
                 required
                 value={title}
@@ -266,8 +267,9 @@ function NewResourceSlideOver({ open, onClose }: NewResourceSlideOverProps) {
 
             {/* Type */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Type</label>
+              <label htmlFor="resource-type" className="block text-sm font-medium text-slate-700 mb-1.5">Type</label>
               <select
+                id="resource-type"
                 value={type}
                 onChange={e => setType(e.target.value as ResourceType)}
                 className="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
@@ -280,8 +282,9 @@ function NewResourceSlideOver({ open, onClose }: NewResourceSlideOverProps) {
 
             {/* Description */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Description</label>
+              <label htmlFor="resource-description" className="block text-sm font-medium text-slate-700 mb-1.5">Description</label>
               <textarea
+                id="resource-description"
                 rows={3}
                 value={description}
                 onChange={e => setDescription(e.target.value)}
@@ -292,8 +295,9 @@ function NewResourceSlideOver({ open, onClose }: NewResourceSlideOverProps) {
 
             {/* File URL */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">URL du fichier</label>
+              <label htmlFor="resource-url" className="block text-sm font-medium text-slate-700 mb-1.5">URL du fichier</label>
               <input
+                id="resource-url"
                 type="text"
                 value={fileUrl}
                 onChange={e => setFileUrl(e.target.value)}
@@ -303,8 +307,8 @@ function NewResourceSlideOver({ open, onClose }: NewResourceSlideOverProps) {
             </div>
 
             {/* Visible to */}
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Visible pour</label>
+            <fieldset>
+              <legend className="block text-sm font-medium text-slate-700 mb-2">Visible pour</legend>
               <div className="flex flex-wrap gap-3">
                 {AVAILABLE_ROLES.map(role => (
                   <label key={role} className="flex items-center gap-2 cursor-pointer">
@@ -318,13 +322,14 @@ function NewResourceSlideOver({ open, onClose }: NewResourceSlideOverProps) {
                   </label>
                 ))}
               </div>
-            </div>
+            </fieldset>
 
             {/* Status toggle */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Statut</label>
+              <label htmlFor="resource-status" className="block text-sm font-medium text-slate-700 mb-2">Statut</label>
               <div className="flex items-center gap-3">
                 <button
+                  id="resource-status"
                   type="button"
                   onClick={() => setStatus(s => s === 'published' ? 'draft' : 'published')}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${

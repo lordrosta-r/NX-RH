@@ -271,9 +271,10 @@ export default function ProfilePage() {
             <div className="space-y-5 max-w-lg">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Prénom</label>
+                  <label htmlFor="profile-firstname" className="block text-sm font-medium text-slate-700 mb-1">Prénom</label>
                   {editMode ? (
                     <input
+                      id="profile-firstname"
                       value={firstName}
                       onChange={(e) => setFirstName(e.target.value)}
                       className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
@@ -283,9 +284,10 @@ export default function ProfilePage() {
                   )}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Nom</label>
+                  <label htmlFor="profile-lastname" className="block text-sm font-medium text-slate-700 mb-1">Nom</label>
                   {editMode ? (
                     <input
+                      id="profile-lastname"
                       value={lastName}
                       onChange={(e) => setLastName(e.target.value)}
                       className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
@@ -296,25 +298,25 @@ export default function ProfilePage() {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
+                <p className="block text-sm font-medium text-slate-700 mb-1">Email</p>
                 <p className="text-sm text-slate-500 px-3 py-2 bg-slate-50 rounded-lg">{user.email}</p>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Rôle</label>
+                  <p className="block text-sm font-medium text-slate-700 mb-1">Rôle</p>
                   <p className="text-sm text-slate-500 px-3 py-2 bg-slate-50 rounded-lg">{roleLabels[user.role] ?? user.role}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Département</label>
+                  <p className="block text-sm font-medium text-slate-700 mb-1">Département</p>
                   <p className="text-sm text-slate-500 px-3 py-2 bg-slate-50 rounded-lg">{user.department ?? '—'}</p>
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Poste</label>
+                <p className="block text-sm font-medium text-slate-700 mb-1">Poste</p>
                 <p className="text-sm text-slate-500 px-3 py-2 bg-slate-50 rounded-lg">{user.position ?? '—'}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Manager</label>
+                <p className="block text-sm font-medium text-slate-700 mb-1">Manager</p>
                 <p className="text-sm text-slate-500 px-3 py-2 bg-slate-50 rounded-lg">
                   {managerData ? `${managerData.firstName} ${managerData.lastName}` : '—'}
                 </p>

@@ -10,6 +10,20 @@ import EvaluationsPage from "../pages/EvaluationsPage";
 import EvaluationDetailPage from "../pages/EvaluationDetailPage";
 import EvaluationHistoryPage from "../pages/EvaluationHistoryPage";
 
+// Le PDF est désormais généré côté client (jsPDF) via usePdfExport, plus via
+// window.open. On mocke le hook pour vérifier le déclenchement de l'export.
+const { exportEvaluationPdfMock } = vi.hoisted(() => ({
+  exportEvaluationPdfMock: vi.fn(),
+}));
+vi.mock("../hooks/usePdfExport", () => ({
+  usePdfExport: () => ({
+    exportEvaluationPdf: exportEvaluationPdfMock,
+    exportListPdf: vi.fn(),
+    exportDashboardPdf: vi.fn(),
+    isExporting: false,
+  }),
+}));
+
 const employee = makeUser({
   id: "emp-1",
   _id: "emp-1",
@@ -649,9 +663,8 @@ describe("EvaluationDetailPage", () => {
     expect(screen.getByText("Commentaire de l'évalué")).toBeInTheDocument();
     const user = userEvent.setup();
     await user.click(screen.getByRole("button", { name: /télécharger pdf/i }));
-    expect(window.open).toHaveBeenCalledWith(
-      "/api/evaluations/eval-1/pdf",
-      "_blank",
+    expect(exportEvaluationPdfMock).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "eval-1" }),
     );
   });
 });

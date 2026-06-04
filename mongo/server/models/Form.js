@@ -55,6 +55,15 @@ const formSchema = new Schema({
   // upward_feedback → forcé true par pre-save, non modifiable ensuite.
   isAnonymous: { type: Boolean, default: false },
 
+  // Visibilité par formulaire (une campagne porte plusieurs formulaires) :
+  // qui remplit ce formulaire et qui peut le consulter une fois rempli.
+  // filledBy : rôle attendu de l'évaluateur (employé en self-éval, manager/RH sinon).
+  filledBy: { type: String, enum: ['employee', 'manager', 'hr'], default: 'employee' },
+
+  // Si false, l'évalué ne voit pas les réponses de ce formulaire (ex. éval
+  // compétences manager confidentielle). Admin/HR/évaluateur y ont toujours accès.
+  visibleToEvaluatee: { type: Boolean, default: true },
+
   // Questions — peuvent être vides à la création (ajoutées via FormBuilder)
   questions: {
     type: [questionSchema],

@@ -146,7 +146,7 @@ function buildApp() {
   app.use(cookieParser())
   app.use('/api/evaluations', authGuard(['admin', 'director', 'hr', 'manager', 'employee']), evalRouter)
   // Global error handler (mirrors index.js, including Bug 3 fix)
-  // eslint-disable-next-line no-unused-vars
+   
   app.use((err, _req, res, _next) => {
     let status = err.status || 500
     if (err.name === 'ValidationError' || err.name === 'CastError') status = 400
@@ -585,6 +585,53 @@ describe('GET /api/evaluations/:id — detail', () => {
     const res = await request(app)
       .get(`/api/evaluations/${EVAL_ID}`)
       .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+
+    expect(res.status).toBe(200)
+  })
+
+  // ── Visibilité par formulaire (#2) ──────────────────────────────────────────
+
+  it('returns 403 when the evaluatee (not evaluator) opens a form hidden from them', async () => {
+    Evaluation.findById = jest.fn().mockReturnValue(makeThenable({
+      ...fullEval,
+      evaluatorId: { _id: MANAGER_ID },
+      evaluateeId: { _id: EMPLOYEE_ID },
+      formId: { ...fullEval.formId, visibleToEvaluatee: false },
+    }))
+
+    const res = await request(app)
+      .get(`/api/evaluations/${EVAL_ID}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+
+    expect(res.status).toBe(403)
+  })
+
+  it('returns 200 when the form is hidden but the requester is the evaluator (self-eval)', async () => {
+    Evaluation.findById = jest.fn().mockReturnValue(makeThenable({
+      ...fullEval,
+      evaluatorId: { _id: EMPLOYEE_ID },
+      evaluateeId: { _id: EMPLOYEE_ID },
+      formId: { ...fullEval.formId, visibleToEvaluatee: false },
+    }))
+
+    const res = await request(app)
+      .get(`/api/evaluations/${EVAL_ID}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+
+    expect(res.status).toBe(200)
+  })
+
+  it('returns 200 for admin even when the form is hidden from the evaluatee', async () => {
+    Evaluation.findById = jest.fn().mockReturnValue(makeThenable({
+      ...fullEval,
+      evaluatorId: { _id: MANAGER_ID },
+      evaluateeId: { _id: ADMIN_ID },
+      formId: { ...fullEval.formId, visibleToEvaluatee: false },
+    }))
+
+    const res = await request(app)
+      .get(`/api/evaluations/${EVAL_ID}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
 
     expect(res.status).toBe(200)
   })

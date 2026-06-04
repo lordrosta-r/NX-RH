@@ -195,6 +195,8 @@ export interface Form {
   questions: FormQuestion[];
   isFrozen: boolean;
   frozenAt?: string;
+  filledBy?: "employee" | "manager" | "hr";
+  visibleToEvaluatee?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }

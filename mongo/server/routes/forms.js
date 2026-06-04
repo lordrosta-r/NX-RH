@@ -80,7 +80,7 @@ router.post('/', async (req, res, next) => {
       return res.status(403).json({ error: 'Réservé aux admins et RH' })
     }
 
-    const { title, description, formType, isAnonymous, questions, campaignId } = req.body
+    const { title, description, formType, isAnonymous, questions, campaignId, filledBy, visibleToEvaluatee } = req.body
 
     if (!title || !formType) {
       return res.status(400).json({ error: 'title et formType sont requis' })
@@ -91,6 +91,9 @@ router.post('/', async (req, res, next) => {
     if (questions !== undefined && !Array.isArray(questions)) {
       return res.status(400).json({ error: 'questions doit être un tableau' })
     }
+    if (filledBy !== undefined && !['employee', 'manager', 'hr'].includes(filledBy)) {
+      return res.status(400).json({ error: 'filledBy invalide (employee|manager|hr)' })
+    }
 
     const form = await Form.create({
       title,
@@ -98,6 +101,8 @@ router.post('/', async (req, res, next) => {
       formType,
       isAnonymous:  formType === 'upward_feedback' ? true : (isAnonymous || false),
       questions:    Array.isArray(questions) ? questions : [],
+      filledBy:     filledBy || 'employee',
+      visibleToEvaluatee: visibleToEvaluatee !== undefined ? !!visibleToEvaluatee : true,
       createdBy:    req.user.id,
     })
 
@@ -133,11 +138,18 @@ router.patch('/:id', async (req, res, next) => {
       })
     }
 
-    // Champs modifiables librement
-    const EDITABLE_FREE = ['title', 'description']
+    if (req.body.filledBy !== undefined && !['employee', 'manager', 'hr'].includes(req.body.filledBy)) {
+      return res.status(400).json({ error: 'filledBy invalide (employee|manager|hr)' })
+    }
+
+    // Champs modifiables librement (indépendants du gel des questions)
+    const EDITABLE_FREE = ['title', 'description', 'filledBy']
     EDITABLE_FREE.forEach(key => {
       if (req.body[key] !== undefined) form[key] = req.body[key]
     })
+    if (req.body.visibleToEvaluatee !== undefined) {
+      form.visibleToEvaluatee = !!req.body.visibleToEvaluatee
+    }
 
     // Questions : modifiables seulement si pas gelées
     if (req.body.questions !== undefined && !form.frozenAt) {

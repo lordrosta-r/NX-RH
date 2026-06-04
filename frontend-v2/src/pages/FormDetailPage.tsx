@@ -61,7 +61,12 @@ export default function FormDetailPage() {
     enabled: !!id,
   });
 
-  const [meta, setMeta] = useState({ title: "", description: "" });
+  const [meta, setMeta] = useState({
+    title: "",
+    description: "",
+    filledBy: "employee" as "employee" | "manager" | "hr",
+    visibleToEvaluatee: true,
+  });
   const [questions, setQuestions] = useState<FormQuestion[]>([]);
   const [isDirty, setIsDirty] = useState(false);
 
@@ -73,7 +78,12 @@ export default function FormDetailPage() {
     if (form) {
       // Synchro one-shot de la donnée serveur vers l'état éditable du builder.
       /* eslint-disable react-hooks/set-state-in-effect */
-      setMeta({ title: form.title, description: form.description || "" });
+      setMeta({
+        title: form.title,
+        description: form.description || "",
+        filledBy: form.filledBy ?? "employee",
+        visibleToEvaluatee: form.visibleToEvaluatee ?? true,
+      });
       setQuestions(form.questions || []);
       setIsDirty(false);
       /* eslint-enable react-hooks/set-state-in-effect */
@@ -91,6 +101,8 @@ export default function FormDetailPage() {
         .updateForm(id!, {
           title: meta.title,
           description: meta.description,
+          filledBy: meta.filledBy,
+          visibleToEvaluatee: meta.visibleToEvaluatee,
           questions,
         })
         .then((r) => r.data),
@@ -303,6 +315,58 @@ export default function FormDetailPage() {
                 disabled={isFrozen}
                 className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-400 resize-none"
               />
+            </div>
+
+            {/* Rempli par */}
+            <div className="mb-4">
+              <label
+                htmlFor="form-filled-by"
+                className="block text-sm font-medium text-slate-700 mb-1"
+              >
+                Rempli par
+              </label>
+              <select
+                id="form-filled-by"
+                value={meta.filledBy}
+                onChange={(e) => {
+                  setMeta((m) => ({
+                    ...m,
+                    filledBy: e.target.value as "employee" | "manager" | "hr",
+                  }));
+                  setIsDirty(true);
+                }}
+                disabled={isFrozen}
+                className="w-full h-10 px-3 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-400"
+              >
+                <option value="employee">L'employé (auto-évaluation)</option>
+                <option value="manager">Le manager</option>
+                <option value="hr">Les RH</option>
+              </select>
+            </div>
+
+            {/* Visible par l'évalué */}
+            <div className="mb-4">
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={meta.visibleToEvaluatee}
+                  onChange={(e) => {
+                    setMeta((m) => ({
+                      ...m,
+                      visibleToEvaluatee: e.target.checked,
+                    }));
+                    setIsDirty(true);
+                  }}
+                  disabled={isFrozen}
+                  className="w-4 h-4 rounded border-slate-300 text-primary-600 focus:ring-primary-500"
+                />
+                <span className="text-sm font-medium text-slate-700">
+                  Visible par l'évalué
+                </span>
+              </label>
+              <p className="text-xs text-slate-500 mt-1 ml-6">
+                Si décoché, l'évalué ne verra pas les réponses de ce formulaire
+              </p>
             </div>
 
             <div className="mb-4">

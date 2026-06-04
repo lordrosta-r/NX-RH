@@ -104,7 +104,7 @@ function buildApp() {
     authGuard(['admin', 'hr', 'director', 'manager', 'employee']),
     formRouter,
   )
-  // eslint-disable-next-line no-unused-vars
+   
   app.use((err, _req, res, _next) => {
     let status = err.status || 500
     if (err.name === 'ValidationError') status = 400
@@ -382,6 +382,39 @@ describe('POST /api/forms', () => {
       .send({ title: 'SA', formType: 'self_assessment', isAnonymous: false })
     const createArg = Form.create.mock.calls[0][0]
     expect(createArg.isAnonymous).toBe(false)
+  })
+
+  it('persists filledBy and visibleToEvaluatee from the body', async () => {
+    Form.create   = jest.fn().mockResolvedValue({ _id: FORM_ID })
+    Form.findById = jest.fn(() => makeChain({ _id: FORM_ID }))
+    await request(app)
+      .post('/api/forms')
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .send({ title: 'Mgr', formType: 'manager_evaluation', filledBy: 'manager', visibleToEvaluatee: false })
+    const createArg = Form.create.mock.calls[0][0]
+    expect(createArg.filledBy).toBe('manager')
+    expect(createArg.visibleToEvaluatee).toBe(false)
+  })
+
+  it('defaults filledBy=employee and visibleToEvaluatee=true when omitted', async () => {
+    Form.create   = jest.fn().mockResolvedValue({ _id: FORM_ID })
+    Form.findById = jest.fn(() => makeChain({ _id: FORM_ID }))
+    await request(app)
+      .post('/api/forms')
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .send({ title: 'Self', formType: 'self_assessment' })
+    const createArg = Form.create.mock.calls[0][0]
+    expect(createArg.filledBy).toBe('employee')
+    expect(createArg.visibleToEvaluatee).toBe(true)
+  })
+
+  it('returns 400 for an invalid filledBy value', async () => {
+    const res = await request(app)
+      .post('/api/forms')
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .send({ title: 'F', formType: 'self_assessment', filledBy: 'director' })
+    expect(res.status).toBe(400)
+    expect(res.body.error).toMatch(/filledBy/i)
   })
 })
 

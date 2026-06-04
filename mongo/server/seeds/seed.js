@@ -330,6 +330,8 @@ async function seed() {
       title: 'Évaluation compétences (manager)',
       description: "Évaluation des compétences et du développement par le manager — couvre les types de question avancés.",
       formType: 'manager_evaluation',
+      filledBy: 'manager',
+      visibleToEvaluatee: false,
       createdBy: U.hr1,
       questions: [
         {

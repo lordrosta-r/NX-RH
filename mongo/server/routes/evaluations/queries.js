@@ -190,7 +190,7 @@ async function handleDetail(req, res, next) {
     }
 
     const evaluation = await Evaluation.findById(req.params.id)
-      .populate('formId', 'title formType isAnonymous questions')
+      .populate('formId', 'title formType isAnonymous questions visibleToEvaluatee filledBy')
       .populate('evaluatorId', 'firstName lastName')
       .populate('evaluateeId', 'firstName lastName department position')
       .populate('campaignId', 'name status extendedVisibility')
@@ -219,6 +219,20 @@ async function handleDetail(req, res, next) {
       ) {
         return res.status(403).json({ error: 'Accès refusé' })
       }
+    }
+
+    // Visibilité par formulaire : l'évalué qui n'est PAS l'évaluateur (ex. éval
+    // compétences remplie par le manager) ne voit pas un formulaire marqué
+    // visibleToEvaluatee=false. Admin/HR conservent un accès total.
+    const eveeId = evaluation.evaluateeId?._id?.toString() ?? evaluation.evaluateeId?.toString()
+    const evorId = evaluation.evaluatorId?._id?.toString() ?? evaluation.evaluatorId?.toString()
+    const isEvaluateeOnly = uid === eveeId && uid !== evorId
+    if (
+      isEvaluateeOnly &&
+      !['admin', 'hr'].includes(role) &&
+      evaluation.formId?.visibleToEvaluatee === false
+    ) {
+      return res.status(403).json({ error: 'Ce formulaire n\'est pas visible par l\'évalué' })
     }
 
     res.json(sanitizeAnonymity(evaluation))

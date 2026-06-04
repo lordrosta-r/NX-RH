@@ -41,12 +41,29 @@ function generateTokens(payload) {
 async function refreshAccessToken(refreshToken) {
   try {
     const decoded = jwt.verify(refreshToken, REFRESH_SECRET, { algorithms: ['HS256'] })
-    const user = await User.findById(decoded.id).select('+isActive').lean()
+    const user = await User.findById(decoded.id).select('+isActive +refreshTokens').lean()
     if (!user || !user.isActive) {
       throw makeError('Utilisateur introuvable ou inactif', 401)
     }
+    // Allowlist : le refresh token doit être encore enregistré côté serveur.
+    // Un token révoqué au logout (ou déjà tourné) est rejeté même si sa
+    // signature JWT reste valide → protège contre le rejeu d'un token volé.
+    if (!(user.refreshTokens || []).includes(refreshToken)) {
+      throw makeError('Refresh token révoqué', 401)
+    }
     const payload = { id: user._id, email: user.email, role: user.role, firstName: user.firstName, lastName: user.lastName }
-    return generateTokens(payload)
+    const tokens = generateTokens(payload)
+    // Rotation : on retire l'ancien token et on enregistre le nouveau de façon
+    // atomique pour qu'un refresh ne puisse être rejoué qu'une seule fois.
+    await User.updateOne(
+      { _id: user._id },
+      { $pull: { refreshTokens: refreshToken } },
+    )
+    await User.updateOne(
+      { _id: user._id },
+      { $push: { refreshTokens: tokens.refreshToken } },
+    )
+    return tokens
   } catch (err) {
     if (err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
       throw makeError('Refresh token invalide ou expiré', 401)
@@ -182,6 +199,23 @@ async function logout(userId, refreshToken) {
     )
   } catch (err) {
     logger.error('[auth] logout token revocation failed', { userId, error: err.message })
+  }
+}
+
+/**
+ * Révoque un refresh token à partir du token seul (cookie de logout).
+ * Décode l'ID utilisateur depuis le token puis retire le token de l'allowlist.
+ * Silencieux : un token absent/invalide n'empêche pas la déconnexion.
+ *
+ * @param {string} refreshToken
+ */
+async function revokeRefreshToken(refreshToken) {
+  if (!refreshToken) return
+  try {
+    const decoded = jwt.verify(refreshToken, REFRESH_SECRET, { algorithms: ['HS256'] })
+    await logout(decoded.id, refreshToken)
+  } catch {
+    // Token expiré/invalide : rien à révoquer côté serveur, on ignore.
   }
 }
 
@@ -329,6 +363,7 @@ module.exports = {
   refreshAccessToken,
   login,
   logout,
+  revokeRefreshToken,
   register,
   validateUser,
   updatePreferences,

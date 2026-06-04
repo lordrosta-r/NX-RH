@@ -83,6 +83,12 @@ app.use(helmet({
       defaultSrc:              ["'self'"],
       // Hashes are computed dynamically at startup from the built index.html
       scriptSrc:               ["'self'"],
+      // 'unsafe-inline' conservé pour styleSrc : Tailwind v4 et certains
+      // composants/libs (transitions, styles calculés via style={{}}) injectent
+      // des styles inline au runtime. Le retirer imposerait une nonce CSP
+      // régénérée par requête et propagée à React — surcoût non justifié ici.
+      // Risque résiduel faible : pas de scriptSrc 'unsafe-inline' (vecteur XSS
+      // principal), et frameAncestors 'none' + X-Content-Type-Options limitent l'impact.
       styleSrc:                ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
       fontSrc:                 ["'self'", 'https://fonts.gstatic.com'],
       imgSrc:                  ["'self'", 'data:', 'https://images.unsplash.com', 'https://lh3.googleusercontent.com'],

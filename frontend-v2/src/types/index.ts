@@ -227,7 +227,8 @@ export interface OrgTreeNode extends OrgUser {
 export interface OrgTeamGroup {
   manager: OrgUser;
   directReports: OrgUser[];
-  subManagers?: OrgTeamGroup[];
+  // Managers rattachés à ce manager (sous-équipes) — renvoyés par l'API org/tree?view=teams
+  subManagers?: OrgUser[];
 }
 
 export interface OrgSectorGroup {
@@ -349,7 +350,12 @@ export interface MonthlyTrendPoint {
 // ─── Dashboard HR Stats ────────────────────────────────────────────────────────
 export interface DashboardHrStats {
   users: { total: number; active: number; inactive: number };
-  campaigns: { active: number; draft: number; completed: number; overdue: number };
+  campaigns: {
+    active: number;
+    draft: number;
+    completed: number;
+    overdue: number;
+  };
   evaluations: {
     total: number;
     completed: number;
@@ -360,12 +366,23 @@ export interface DashboardHrStats {
     completionRate: number;
   };
   mobility: { pending: number };
-  recentCampaigns: Array<{ _id: string; name: string; status: string; createdAt: string }>;
+  recentCampaigns: Array<{
+    _id: string;
+    name: string;
+    status: string;
+    createdAt: string;
+  }>;
 }
 
 // ─── Dashboard Manager Stats ───────────────────────────────────────────────────
 export interface DashboardManagerStats {
-  evaluations: { total: number; completed: number; pending: number; overdue: number; signedByManager: number };
+  evaluations: {
+    total: number;
+    completed: number;
+    pending: number;
+    overdue: number;
+    signedByManager: number;
+  };
   campaigns: { total: number };
   completionRate: number;
   teamSize: number;

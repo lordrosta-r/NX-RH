@@ -52,6 +52,9 @@ jest.mock('../../models', () => {
 
   const Form = {
     updateMany: jest.fn().mockResolvedValue({ modifiedCount: 0 }),
+    // bulk.js charge les types de formulaire pour calculer phaseDeadline.
+    // Défaut : aucun form trouvé (phaseDeadline → null). Conservé par clearAllMocks.
+    find: jest.fn(() => ({ lean: () => Promise.resolve([]) })),
   }
 
   const Campaign = {
@@ -144,7 +147,7 @@ function buildApp() {
   app.use(cookieParser())
   app.post('/bulk',  authGuard(ALL_ROLES), handleBulkCreate)
   app.patch('/bulk', authGuard(ALL_ROLES), handleBulkAction)
-  // eslint-disable-next-line no-unused-vars
+   
   app.use((err, _req, res, _next) => {
     const status = err.status || 500
     res.status(status).json({ error: err.message || 'Internal server error' })

@@ -11,6 +11,7 @@ const mongoose = require('mongoose')
 const router   = require('express').Router()
 const { OffboardingRequest } = require('../models/OffboardingRequest')
 const User     = require('../models/User')
+const { Evaluation } = require('../models/Evaluation')
 const AuditLog = require('../models/AuditLog')
 const { paginate } = require('../utils/paginate')
 
@@ -66,10 +67,11 @@ router.post('/', async (req, res, next) => {
   }
 })
 
-// GET /api/offboarding — Liste des demandes de départ (hr/admin)
+// GET /api/offboarding — Liste des demandes de départ (hr/admin/manager lecture seule)
 router.get('/', async (req, res, next) => {
   try {
-    if (!HR_ROLES.includes(req.user.role)) {
+    const READ_ROLES = [...HR_ROLES, 'manager']
+    if (!READ_ROLES.includes(req.user.role)) {
       return res.status(403).json({ error: 'Accès refusé' })
     }
 
@@ -77,6 +79,12 @@ router.get('/', async (req, res, next) => {
     const VALID_STATUSES = ['pending', 'in_progress', 'completed']
     if (req.query.status && VALID_STATUSES.includes(req.query.status)) {
       filter.status = req.query.status
+    }
+
+    // Managers only see offboardings for their direct reports
+    if (req.user.role === 'manager') {
+      const teamMembers = await User.find({ managerId: req.user._id }).select('_id').lean()
+      filter.userId = { $in: teamMembers.map(u => u._id) }
     }
 
     const result = await paginate(OffboardingRequest, filter, {
@@ -94,10 +102,11 @@ router.get('/', async (req, res, next) => {
   }
 })
 
-// GET /api/offboarding/:id — Détail d'une demande de départ (hr/admin)
+// GET /api/offboarding/:id — Détail d'une demande de départ (hr/admin/manager lecture seule)
 router.get('/:id', async (req, res, next) => {
   try {
-    if (!HR_ROLES.includes(req.user.role)) {
+    const READ_ROLES = [...HR_ROLES, 'manager']
+    if (!READ_ROLES.includes(req.user.role)) {
       return res.status(403).json({ error: 'Accès refusé' })
     }
     if (!mongoose.isValidObjectId(req.params.id)) {
@@ -136,13 +145,22 @@ router.patch('/:id', async (req, res, next) => {
       }
       request.status = req.body.status
 
-      // Archiver l'utilisateur quand le départ est complété
+      // Archiver l'utilisateur ET ses évaluations en cours quand le départ est complété
       if (req.body.status === 'completed') {
         await User.findByIdAndUpdate(request.userId, {
           isActive:   false,
           archivedAt: new Date(),
           offboardingStatus: 'offboarded',
         })
+        // Les évaluations non terminales (où l'user est évalué OU évaluateur)
+        // sont annulées → 'archived' pour ne pas rester bloquées en campagne.
+        await Evaluation.updateMany(
+          {
+            $or: [{ evaluateeId: request.userId }, { evaluatorId: request.userId }],
+            status: { $nin: ['validated', 'archived'] },
+          },
+          { $set: { status: 'archived' } },
+        )
       }
     }
 

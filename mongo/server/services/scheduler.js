@@ -35,36 +35,23 @@ let timer = null
 async function runDeadlineReminders() {
   const now       = new Date()
   const windowEnd = new Date(now.getTime() + REMINDER_WINDOW_DAYS * DAY_MS)
+  const cutoff    = new Date(now.getTime() - REMINDER_COOLDOWN_HOURS * HOUR_MS)
 
-  // Find active campaigns whose endDate is within the next N days
-  const campaigns = await Campaign.find({
-    status:  'active',
-    endDate: { $gte: now, $lte: windowEnd },
-  }).lean()
-
-  if (!campaigns.length) return 0
-
-  const cutoff     = new Date(now.getTime() - REMINDER_COOLDOWN_HOURS * HOUR_MS)
-  const campaignIds = campaigns.map(c => c._id)
-
-  // Fetch ALL pending evaluations for all matching campaigns in a single query (fix N+1)
+  // Évals non répondues dont la deadline de phase approche (J-N), hors cooldown.
+  // La deadline de phase (phaseDeadline) est la vraie date limite de réponse.
   const allEvals = await Evaluation.find({
-    campaignId: { $in: campaignIds },
-    status:     { $in: ['assigned', 'in_progress'] },
+    status:        { $in: ['assigned', 'in_progress'] },
+    phaseDeadline: { $ne: null, $gte: now, $lte: windowEnd },
     $or: [{ lastReminderAt: null }, { lastReminderAt: { $lt: cutoff } }],
   }).lean()
 
   if (!allEvals.length) return 0
 
-  // Group evaluations by campaign for enrichment
-  const evalsByCampaign = new Map()
-  for (const ev of allEvals) {
-    const key = ev.campaignId.toString()
-    if (!evalsByCampaign.has(key)) evalsByCampaign.set(key, [])
-    evalsByCampaign.get(key).push(ev)
-  }
+  // Enrichissement : noms de campagne + évalués (deux requêtes groupées, pas de N+1)
+  const campaignIds = [...new Set(allEvals.map(e => e.campaignId?.toString()).filter(Boolean))]
+  const campaigns   = await Campaign.find({ _id: { $in: campaignIds } }, 'name').lean()
+  const campaignById = new Map(campaigns.map(c => [c._id.toString(), c]))
 
-  // Fetch all required users in a single query (fix second N+1)
   const evaluateeIds = [...new Set(allEvals.map(e => e.evaluateeId.toString()))]
   const users    = await User.find({ _id: { $in: evaluateeIds }, isActive: true }).lean()
   const userById = new Map(users.map(u => [u._id.toString(), u]))
@@ -72,36 +59,28 @@ async function runDeadlineReminders() {
   let sentCount = 0
   const sentEvalIds = []
 
-  for (const c of campaigns) {
-    const evals = evalsByCampaign.get(c._id.toString()) || []
-    if (!evals.length) continue
+  for (const ev of allEvals) {
+    const user = userById.get(ev.evaluateeId.toString())
+    if (!user) continue
+    const campaignName = campaignById.get(ev.campaignId?.toString())?.name || 'Évaluation'
+    const deadline     = new Date(ev.phaseDeadline).toLocaleDateString('fr-FR')
 
-    const deadline = new Date(c.endDate).toLocaleDateString('fr-FR')
-
-    for (const ev of evals) {
-      const user = userById.get(ev.evaluateeId.toString())
-      if (!user) continue
-      const ok = await notify('deadlineReminder', user, {
-        campaignName: c.name,
-        deadline,
-      })
-      if (ok) {
-        sentEvalIds.push(ev._id)
-        sentCount += 1
-      }
-      // Always create the in-app notification (non-blocking, even if email failed)
-      await notifyInApp(
-        ev.evaluateeId,
-        'eval_reminder_deadline',
-        `Rappel : évaluation à compléter`,
-        `La campagne "${c.name}" se termine le ${deadline}. Pensez à finaliser votre évaluation.`,
-        `/evaluations/${ev._id}`,
-        'high',
-      )
+    const ok = await notify('deadlineReminder', user, { campaignName, deadline })
+    if (ok) {
+      sentEvalIds.push(ev._id)
+      sentCount += 1
     }
+    // Notification in-app toujours créée (non bloquant, même si l'email échoue)
+    await notifyInApp(
+      ev.evaluateeId,
+      'eval_reminder_deadline',
+      `Rappel : évaluation à compléter`,
+      `Votre évaluation "${campaignName}" est à compléter avant le ${deadline}.`,
+      `/evaluations/${ev._id}`,
+      'high',
+    )
   }
 
-  // Batch update lastReminderAt for all sent evaluations (replaces N individual saves)
   if (sentEvalIds.length > 0) {
     await Evaluation.updateMany(
       { _id: { $in: sentEvalIds } },
@@ -113,6 +92,24 @@ async function runDeadlineReminders() {
     logger.info('[Scheduler] Deadline reminders envoyés', { count: sentCount })
   }
   return sentCount
+}
+
+// Expire les évaluations NON RÉPONDUES (assigned/in_progress) dont la deadline de
+// phase est dépassée. Ne touche JAMAIS les évals déjà soumises/en signature :
+// celles-là restent dans le workflow (la signature peut continuer après la date).
+async function runDeadlineExpiry() {
+  const now = new Date()
+  const res = await Evaluation.updateMany(
+    {
+      phaseDeadline: { $ne: null, $lt: now },
+      status:        { $in: ['assigned', 'in_progress'] },
+    },
+    { $set: { status: 'expired', nearExpiry: false } },
+  )
+  if (res.modifiedCount > 0) {
+    logger.info('[Scheduler] Deadline expiry', { expired: res.modifiedCount })
+  }
+  return res.modifiedCount
 }
 
 // Expire les évaluations dont expiresAt est dépassé, et marque celles proches
@@ -162,6 +159,7 @@ async function runExpiryCheck() {
 async function tick() {
   try {
     await withLock('deadline-reminders', 300, runDeadlineReminders)
+    await withLock('deadline-expiry', 600, runDeadlineExpiry)
     await withLock('expire-evaluations', 600, runExpiryCheck)
   } catch (err) {
     logger.error('[Scheduler] tick error', { error: err.message })
@@ -183,5 +181,5 @@ function stop() {
   if (timer) { clearInterval(timer); timer = null }
 }
 
-module.exports = { start, stop, runDeadlineReminders, runExpiryCheck }
+module.exports = { start, stop, runDeadlineReminders, runDeadlineExpiry, runExpiryCheck }
 

@@ -8,6 +8,7 @@ const mongoose = require('mongoose')
 const { Evaluation, Form, Campaign } = require('../../../models')
 const { ADMIN_ROLES, REQUEST_FORM_TYPES } = require('../../../config/constants')
 const { notify: notifyInApp } = require('../../../services/notificationHelper')
+const { resolveExpiry, resolvePhaseDeadline } = require('../../../services/evaluationService')
 const cache = require('../../../utils/cache')
 
 /**
@@ -56,12 +57,16 @@ async function handleCreate(req, res, next) {
     await Form.findByIdAndUpdate(formId, { $set: { frozenAt: new Date() } }, { timestamps: false })
       .where({ frozenAt: null })
 
-    const campaign  = campaignId ? await Campaign.findById(campaignId, 'endDate name').lean() : null
-    const expiresAt = campaign?.endDate
-      ? new Date(new Date(campaign.endDate).getTime() + 30 * 24 * 60 * 60 * 1000)
+    const campaign = campaignId
+      ? await Campaign.findById(campaignId, 'endDate name deadlineEmployee deadlineManager').lean()
       : null
+    const form = await Form.findById(formId, 'formType').lean()
 
-    const evaluation = await Evaluation.create({ campaignId: campaignId || null, formId, evaluatorId, evaluateeId, expiresAt })
+    const evaluation = await Evaluation.create({
+      campaignId: campaignId || null, formId, evaluatorId, evaluateeId,
+      expiresAt:     resolveExpiry(campaign),
+      phaseDeadline: resolvePhaseDeadline(campaign, form?.formType),
+    })
 
     cache.invalidatePattern('GET:/api/analytics')
     cache.invalidatePattern('GET:/api/v1/analytics')

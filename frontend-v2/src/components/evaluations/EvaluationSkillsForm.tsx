@@ -1,8 +1,28 @@
 import { useCallback } from "react";
 import type { Dispatch, SetStateAction } from "react";
+import { Sun, CloudSun, CloudRain, CloudLightning } from "lucide-react";
 import type { Evaluation, FormQuestion } from "../../types";
 import type { EvalMutationHandle } from "../../types/evaluation";
 import { EvaluationProgress } from "./EvaluationProgress";
+import { N1ImportView } from "./N1ImportView";
+
+// États de la « météo humeur » (type de question `weather`).
+const WEATHER_OPTIONS = [
+  { key: "sunny", label: "Ensoleillé", Icon: Sun },
+  { key: "cloudy", label: "Nuageux", Icon: CloudSun },
+  { key: "rainy", label: "Pluvieux", Icon: CloudRain },
+  { key: "stormy", label: "Orageux", Icon: CloudLightning },
+] as const;
+
+// Lecture sûre d'un sous-champ d'une réponse stockée comme objet
+// (types `objective_item` et `mobility`).
+function objField(value: unknown, key: string): string {
+  if (value && typeof value === "object" && key in value) {
+    const v = (value as Record<string, unknown>)[key];
+    return v == null ? "" : String(v);
+  }
+  return "";
+}
 
 interface EvaluationSkillsFormProps {
   evaluation: Evaluation;
@@ -24,6 +44,7 @@ interface EvaluationSkillsFormProps {
 }
 
 export function EvaluationSkillsForm({
+  evaluation,
   answers,
   currentQuestionIdx,
   currentPhase,
@@ -147,9 +168,176 @@ export function EvaluationSkillsForm({
             </div>
           )}
 
+          {currentQuestion.type === "scale" && (
+            <div>
+              <input
+                type="range"
+                min={0}
+                max={100}
+                step={5}
+                value={Number(answers[currentQuestion.id] ?? 0)}
+                onChange={(e) =>
+                  setAnswer(currentQuestion.id, Number(e.target.value))
+                }
+                className="w-full accent-primary-500"
+                aria-label={currentQuestion.text}
+              />
+              <div className="text-sm font-medium text-primary-700 mt-1">
+                {Number(answers[currentQuestion.id] ?? 0)}%
+              </div>
+            </div>
+          )}
+
+          {currentQuestion.type === "weather" && (
+            <div className="flex gap-3">
+              {WEATHER_OPTIONS.map(({ key, label, Icon }) => {
+                const selected = answers[currentQuestion.id] === key;
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setAnswer(currentQuestion.id, key)}
+                    aria-pressed={selected}
+                    title={label}
+                    className={`flex flex-col items-center gap-1 px-4 py-3 rounded-md border-2 text-xs transition-all ${
+                      selected
+                        ? "border-primary-500 bg-primary-50 text-primary-700 font-medium"
+                        : "border-slate-200 text-slate-600 hover:border-primary-300"
+                    }`}
+                  >
+                    <Icon size={24} strokeWidth={1.5} aria-hidden="true" />
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {currentQuestion.type === "objective_item" && (
+            <div className="space-y-3">
+              <div>
+                <label
+                  htmlFor={`${currentQuestion.id}-desc`}
+                  className="block text-xs text-slate-500 mb-1"
+                >
+                  Objectif
+                </label>
+                <textarea
+                  id={`${currentQuestion.id}-desc`}
+                  rows={2}
+                  value={objField(answers[currentQuestion.id], "description")}
+                  onChange={(e) =>
+                    setAnswer(currentQuestion.id, {
+                      ...(typeof answers[currentQuestion.id] === "object"
+                        ? answers[currentQuestion.id]
+                        : {}),
+                      description: e.target.value,
+                    })
+                  }
+                  placeholder="Décrivez l'objectif…"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-200 resize-none"
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor={`${currentQuestion.id}-progress`}
+                  className="block text-xs text-slate-500 mb-1"
+                >
+                  Avancement :{" "}
+                  {objField(answers[currentQuestion.id], "progress") || 0}%
+                </label>
+                <input
+                  id={`${currentQuestion.id}-progress`}
+                  type="range"
+                  min={0}
+                  max={100}
+                  step={5}
+                  value={Number(
+                    objField(answers[currentQuestion.id], "progress") || 0,
+                  )}
+                  onChange={(e) =>
+                    setAnswer(currentQuestion.id, {
+                      ...(typeof answers[currentQuestion.id] === "object"
+                        ? answers[currentQuestion.id]
+                        : {}),
+                      progress: Number(e.target.value),
+                    })
+                  }
+                  className="w-full accent-primary-500"
+                />
+              </div>
+            </div>
+          )}
+
+          {currentQuestion.type === "mobility" && (
+            <div className="space-y-3">
+              <div>
+                <label
+                  htmlFor={`${currentQuestion.id}-wish`}
+                  className="block text-xs text-slate-500 mb-1"
+                >
+                  Souhait de mobilité
+                </label>
+                <select
+                  id={`${currentQuestion.id}-wish`}
+                  value={objField(answers[currentQuestion.id], "wish")}
+                  onChange={(e) =>
+                    setAnswer(currentQuestion.id, {
+                      ...(typeof answers[currentQuestion.id] === "object"
+                        ? answers[currentQuestion.id]
+                        : {}),
+                      wish: e.target.value,
+                    })
+                  }
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-200"
+                >
+                  <option value="">Sélectionner…</option>
+                  <option value="none">Aucun souhait</option>
+                  <option value="functional">
+                    Mobilité fonctionnelle (poste)
+                  </option>
+                  <option value="geographic">
+                    Mobilité géographique (lieu)
+                  </option>
+                  <option value="both">Les deux</option>
+                </select>
+              </div>
+              <div>
+                <label
+                  htmlFor={`${currentQuestion.id}-details`}
+                  className="block text-xs text-slate-500 mb-1"
+                >
+                  Précisions (optionnel)
+                </label>
+                <textarea
+                  id={`${currentQuestion.id}-details`}
+                  rows={2}
+                  value={objField(answers[currentQuestion.id], "details")}
+                  onChange={(e) =>
+                    setAnswer(currentQuestion.id, {
+                      ...(typeof answers[currentQuestion.id] === "object"
+                        ? answers[currentQuestion.id]
+                        : {}),
+                      details: e.target.value,
+                    })
+                  }
+                  placeholder="Poste, lieu, horizon souhaité…"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-200 resize-none"
+                />
+              </div>
+            </div>
+          )}
+
+          {currentQuestion.type === "n1_import" && (
+            <N1ImportView evaluationId={evaluation.id} />
+          )}
+
           {currentQuestion.type === "rating" && (
             <div className="mt-4">
-              <label htmlFor={`${currentQuestion.id}-note`} className="block text-xs text-slate-500 mb-1">
+              <label
+                htmlFor={`${currentQuestion.id}-note`}
+                className="block text-xs text-slate-500 mb-1"
+              >
                 Note (optionnelle)
               </label>
               <input

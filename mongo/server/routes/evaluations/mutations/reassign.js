@@ -41,7 +41,7 @@ async function handleReassign(req, res, next) {
     if (!newEvaluator.isActive) {
       return res.status(400).json({ error: "L'évaluateur sélectionné n'est pas actif" })
     }
-    if (!['manager', 'director'].includes(newEvaluator.role)) {
+    if (!['manager'].includes(newEvaluator.role)) {
       return res.status(400).json({ error: "L'évaluateur doit avoir le rôle manager ou director" })
     }
 

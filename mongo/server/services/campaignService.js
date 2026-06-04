@@ -39,7 +39,7 @@ async function checkCampaignVisibility(campaign, user) {
   let hasEvaluation = false
   if (role === 'employee') {
     hasEvaluation = await Evaluation.exists({ campaignId: campaign._id, evaluateeId: userId })
-  } else if (role === 'manager' || role === 'director') {
+  } else if (role === 'manager') {
     hasEvaluation = await Evaluation.exists({ campaignId: campaign._id, evaluatorId: userId })
   }
 
@@ -53,7 +53,7 @@ async function checkCampaignVisibility(campaign, user) {
  * @returns {Promise<number>} nombre d'évaluations créées
  */
 async function generateEvaluationsForCampaign(campaign) {
-  let userFilter = { isActive: true }
+  const userFilter = { isActive: true }
   const { scopeType, ids } = campaign.targetScope || {}
 
   if (scopeType === 'department' && ids?.length) {

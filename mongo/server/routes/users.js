@@ -27,7 +27,7 @@ router.get('/stats', async (req, res, next) => {
 })
 router.get('/search', async (req, res, next) => {
   try {
-    const allowed = ['admin', 'hr', 'manager', 'director']
+    const allowed = ['admin', 'hr', 'manager']
     if (!allowed.includes(req.user.role)) {
       return res.status(403).json({ error: 'Permissions insuffisantes' })
     }
@@ -56,7 +56,7 @@ router.get('/', async (req, res, next) => {
     const filter = {}
 
     // Scope par rôle appelant
-    if (req.user.role === 'manager' || req.user.role === 'director') {
+    if (req.user.role === 'manager') {
       // Manager et director ne voient que leurs subordonnés directs
       filter.managerId = req.user.id
     } else if (!['admin', 'hr'].includes(req.user.role)) {

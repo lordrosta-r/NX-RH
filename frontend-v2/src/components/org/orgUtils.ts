@@ -5,7 +5,6 @@ export const ROLE_COLORS_HEX: Record<string, string> = {
   hr: "#059669",
   manager: "#2563EB",
   employee: "#64748B",
-  director: "#7C3AED",
 };
 
 export function initials(firstName?: string, lastName?: string): string {

@@ -15,10 +15,11 @@ const {
 describe('constants', () => {
   describe('ROLES', () => {
     it('is an array', () => expect(Array.isArray(ROLES)).toBe(true))
-    it('contains admin, hr, director, manager, employee', () => {
-      expect(ROLES).toEqual(expect.arrayContaining(['admin', 'hr', 'director', 'manager', 'employee']))
+    it('contains admin, hr, manager, employee', () => {
+      expect(ROLES).toEqual(expect.arrayContaining(['admin', 'hr', 'manager', 'employee']))
     })
-    it('has exactly 5 roles', () => expect(ROLES).toHaveLength(5))
+    it('has exactly 4 roles', () => expect(ROLES).toHaveLength(4))
+    it('does not contain the removed director role', () => expect(ROLES).not.toContain('director'))
   })
 
   describe('ADMIN_ROLES', () => {
@@ -33,8 +34,8 @@ describe('constants', () => {
   })
 
   describe('MANAGER_ROLES', () => {
-    it('contains admin, hr, director, manager', () => {
-      expect(MANAGER_ROLES).toEqual(expect.arrayContaining(['admin', 'hr', 'director', 'manager']))
+    it('contains admin, hr, manager', () => {
+      expect(MANAGER_ROLES).toEqual(expect.arrayContaining(['admin', 'hr', 'manager']))
     })
     it('does not contain employee', () => {
       expect(MANAGER_ROLES).not.toContain('employee')

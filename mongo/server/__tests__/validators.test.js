@@ -100,7 +100,7 @@ describe('Validators — userValidators', () => {
     })
 
     test('devrait accepter tous les rôles valides', () => {
-      const roles = ['admin', 'hr', 'director', 'manager', 'employee']
+      const roles = ['admin', 'hr', 'manager', 'employee']
 
       roles.forEach(role => {
         const user = {

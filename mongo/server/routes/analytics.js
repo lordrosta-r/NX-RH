@@ -17,8 +17,8 @@ const { Evaluation, Campaign } = require('../models')
 const { ADMIN_ROLES } = require('../config/constants')
 const { cacheResponse } = require('../middleware/cacheMiddleware')
 
-const SUMMARY_ROLES  = ['admin', 'hr', 'director']
-const CAMPAIGN_ROLES = ['admin', 'hr', 'director', 'manager']
+const SUMMARY_ROLES  = ['admin', 'hr']
+const CAMPAIGN_ROLES = ['admin', 'hr', 'manager']
 
 // ── GET /api/analytics/summary ────────────────────────────────────────────────
 // Statistiques globales toutes campagnes confondues.
@@ -142,7 +142,7 @@ router.get('/export/csv', async (req, res, next) => {
       return res.status(403).json({ error: 'Réservé aux admins et RH' })
     }
 
-    let evalFilter = {}
+    const evalFilter = {}
     if (req.query.campaignId) {
       if (!mongoose.isValidObjectId(req.query.campaignId)) {
         return res.status(400).json({ error: 'campaignId invalide' })
@@ -214,7 +214,7 @@ router.get('/export/pdf', async (req, res, next) => {
     }
 
     // Filtre optionnel par campagne
-    let evalFilter = {}
+    const evalFilter = {}
     if (req.query.campaignId) {
       if (!mongoose.isValidObjectId(req.query.campaignId)) {
         return res.status(400).json({ error: 'campaignId invalide' })

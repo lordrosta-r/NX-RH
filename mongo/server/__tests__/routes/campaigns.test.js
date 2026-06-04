@@ -127,7 +127,7 @@ function buildApp() {
     authGuard(['admin', 'hr', 'director', 'manager', 'employee']),
     campaignRouter,
   )
-  // eslint-disable-next-line no-unused-vars
+   
   app.use((err, _req, res, _next) => {
     res.status(err.status || 500).json({ error: err.message || 'Internal server error' })
   })
@@ -184,17 +184,6 @@ describe('GET /api/campaigns', () => {
     const res = await request(app)
       .get('/api/campaigns')
       .set('Cookie', `accessToken=${tokenFor({ id: HR_ID, role: 'hr' })}`)
-    expect(res.status).toBe(200)
-    const [filter] = Campaign.find.mock.calls[0]
-    expect(filter.status).toBeUndefined()
-  })
-
-  it('director can list campaigns without status restriction', async () => {
-    Campaign.find = jest.fn(() => makeChain([]))
-    Campaign.countDocuments = jest.fn().mockResolvedValue(0)
-    const res = await request(app)
-      .get('/api/campaigns')
-      .set('Cookie', `accessToken=${tokenFor({ id: DIRECTOR_ID, role: 'director' })}`)
     expect(res.status).toBe(200)
     const [filter] = Campaign.find.mock.calls[0]
     expect(filter.status).toBeUndefined()

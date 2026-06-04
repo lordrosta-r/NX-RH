@@ -30,7 +30,7 @@ async function handleSign(req, res, next) {
     const isHrAdmin     = ADMIN_ROLES.includes(role)
     const isEvaluatee   = evaluation.evaluateeId?.toString() === userId
     const isEvaluator   = evaluation.evaluatorId?.toString() === userId
-    const isManagerRole = ['manager', 'director'].includes(role)
+    const isManagerRole = ['manager'].includes(role)
 
     // Empêcher double signature
     const alreadySigned = (evaluation.signatures ?? []).some(s => s.userId.toString() === userId)

@@ -15,3 +15,6 @@ docs/AUDIT_PROMPT.md
 docs/PROXMOX_VLAN_MIGRATION.md
 graphify-out/
 mongo/server/logs/
+
+# Env e2e jetable (secrets générés)
+.env.e2e

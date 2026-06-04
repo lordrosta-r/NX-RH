@@ -24,7 +24,12 @@ const logger  = require('../utils/logger')
 // Deux limiters distincts : un par email (anti brute-force), un par IP (anti spray)
 // E2E_MODE=true ou NODE_ENV=test → limites très élevées pour les tests automatisés
 
-const isTestEnv = process.env.NODE_ENV === 'test' || process.env.E2E_MODE === 'true'
+// RELAX_RATE_LIMIT : relâche les limiteurs pour la stack e2e (NODE_ENV=production
+// mais données jetables). N'est PAS E2E_MODE (qui reste interdit en prod par le
+// garde-fou de boot) — uniquement le rate-limit, jamais activé en prod réelle.
+const isTestEnv = process.env.NODE_ENV === 'test'
+  || process.env.E2E_MODE === 'true'
+  || process.env.RELAX_RATE_LIMIT === 'true'
 
 const loginByEmailLimiter = rateLimit({
   windowMs:       15 * 60 * 1000,
@@ -40,7 +45,9 @@ const loginByEmailLimiter = rateLimit({
 
 const loginByIPLimiter = rateLimit({
   windowMs:       15 * 60 * 1000,
-  max:            isTestEnv ? 1000 : 20,
+  // 100/IP/15min : anti-spray large, tolérant aux IP partagées (bureau/VPN/NAT).
+  // L'anti-brute-force fin reste le limiter par email (5/email/15min).
+  max:            isTestEnv ? 1000 : 100,
   keyGenerator:   (req) => `ip:${ipKeyGenerator(req)}`,
   standardHeaders: true,
   legacyHeaders:  false,

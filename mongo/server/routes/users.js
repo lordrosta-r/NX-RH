@@ -18,7 +18,7 @@ const { getDescendantUserIds } = require('../services/managerVisibility')
 // Limiteur dédié anti-énumération sur GET /api/users/:id : un utilisateur
 // authentifié ne devrait pas balayer des centaines d'IDs à la minute.
 // Relâché en test/e2e pour ne pas faire échouer les suites automatisées.
-const isTestEnv = process.env.NODE_ENV === 'test' || process.env.E2E_MODE === 'true'
+const isTestEnv = process.env.NODE_ENV === 'test' || process.env.E2E_MODE === 'true' || process.env.RELAX_RATE_LIMIT === 'true'
 const userByIdLimiter = rateLimit({
   windowMs:       60 * 1000,
   max:            isTestEnv ? 10000 : 30,

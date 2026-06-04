@@ -18,7 +18,8 @@ export default defineConfig({
     video: "retain-on-failure",
     headless: process.env.HEADED !== "true",
     launchOptions: {
-      slowMo: process.env.HEADED === "true" ? 500 : 0,
+      // Rapide par défaut, même en headed. Mettre SLOWMO=500 pour suivre à l'œil.
+      slowMo: Number(process.env.SLOWMO) || 0,
     },
   },
   projects: [

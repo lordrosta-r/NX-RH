@@ -467,6 +467,24 @@ export interface LdapConfig {
   tlsEnabled?: boolean;
 }
 
+// Source LDAP (multi-annuaires). Champs alignés sur le backend (host/attr*).
+export interface LdapSource {
+  id: string;
+  label: string;
+  enabled: boolean;
+  host: string;
+  baseDN: string;
+  bindDN: string;
+  bindPassword?: string;
+  userFilter?: string;
+  attrEmail?: string;
+  attrFirstName?: string;
+  attrLastName?: string;
+  attrDepartment?: string;
+  attrTitle?: string;
+  defaultRole?: string;
+}
+
 export interface MailTemplate {
   id?: string;
   _id?: string;

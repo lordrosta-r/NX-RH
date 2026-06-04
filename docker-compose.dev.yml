@@ -1,29 +1,23 @@
 # =============================================================================
 # NanoXplore RH — Docker Compose Override (Development)
 #
-# Extends docker-compose.yml for local development:
-#   - Adds a Vite dev server container (client) on port 5173 with HMR
-#   - Exposes MongoDB port for GUI clients (Compass, Studio 3T…)
-#   - Mounts mongo/server/ source for live-reload with nodemon
-#   - Skips nginx (access frontend on 5173, API on 3000)
-#
 # Usage:
 #   docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
 # =============================================================================
 
 services:
 
-  # ── Vite dev server (HMR) ────────────────────────────────────────────────
-  client:
+  # ── Vite dev server (frontend-v2) ─────────────────────────────────────────
+  frontend:
     build:
-      context: ./client
-      dockerfile: Dockerfile
-    container_name: nx_client
+      context: ./frontend-v2
+      dockerfile: Dockerfile.dev
+    container_name: nx_frontend_dev
     environment:
-      VITE_API_TARGET: http://app:3000
+      VITE_API_URL: ""
     volumes:
-      - ./client:/app:delegated
-      - /app/node_modules           # Keep container's node_modules isolated
+      - ./frontend-v2:/app:delegated
+      - /app/node_modules
     ports:
       - "5173:5173"
     depends_on:
@@ -32,21 +26,111 @@ services:
     networks:
       - frontend
 
+  # ── Backend live-reload ───────────────────────────────────────────────────
   app:
     build:
-      target: server           # Skip the client-builder stage
+      target: server
     command: ["npx", "nodemon", "index.js"]
     environment:
       NODE_ENV: development
+      MAIL_HOST: mailhog
+      MAIL_PORT: "1025"
+      LDAP_URL: ldap://openldap:389
+      LDAP_BASE_DN: dc=nxrh,dc=local
+      LDAP_BIND_DN: cn=admin,dc=nxrh,dc=local
+      LDAP_BIND_PASSWORD: adminpass
     volumes:
-      - ./mongo/server:/app:delegated  # Live-reload server source
-      - /app/node_modules              # Keep container's node_modules isolated
+      - ./mongo/server:/app:delegated
+      - /app/node_modules
     ports:
-      - "3000:3000"                    # Direct access — no nginx in dev
+      - "3000:3000"
+    depends_on:
+      - mailhog
+      - openldap
+    networks:
+      - frontend
+      - backend
+
+  # ── MongoDB exposed for GUI clients ──────────────────────────────────────
   mongo:
     ports:
-      - "27017:27017"                  # Expose for local DB clients
-  # Disable nginx in dev mode
+      - "27017:27017"
+
+  # ── MailHog (fake SMTP + WebUI) ───────────────────────────────────────────
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: nx_mailhog
+    ports:
+      - "1025:1025"   # SMTP
+      - "8025:8025"   # Web UI
+    networks:
+      - backend
+
+  # ── OpenLDAP ──────────────────────────────────────────────────────────────
+  openldap:
+    image: osixia/openldap:1.5.0
+    container_name: nx_openldap
+    environment:
+      LDAP_ORGANISATION: "NanoXplore RH"
+      LDAP_DOMAIN: nxrh.local
+      LDAP_ADMIN_PASSWORD: adminpass
+      LDAP_READONLY_USER: "true"
+      LDAP_READONLY_USER_USERNAME: readonly
+      LDAP_READONLY_USER_PASSWORD: readonlypass
+    ports:
+      - "389:389"
+      - "636:636"
+    volumes:
+      - openldap_data:/var/lib/ldap
+      - openldap_config:/etc/ldap/slapd.d
+      - ./docker/ldap/seed.ldif:/container/service/slapd/assets/config/bootstrap/ldif/custom/seed.ldif:ro
+    networks:
+      - backend
+
+  # ── OpenLDAP #2 — annuaire « Partner » (test multi-source) ────────────────
+  openldap2:
+    image: osixia/openldap:1.5.0
+    container_name: nx_openldap2
+    environment:
+      LDAP_ORGANISATION: "Partner Directory"
+      LDAP_DOMAIN: partner.local
+      LDAP_ADMIN_PASSWORD: partnerpass
+    ports:
+      - "390:389"
+    volumes:
+      - openldap2_data:/var/lib/ldap
+      - openldap2_config:/etc/ldap/slapd.d
+      - ./docker/ldap/seed-partner.ldif:/container/service/slapd/assets/config/bootstrap/ldif/custom/seed.ldif:ro
+    networks:
+      - backend
+
+  # ── phpLDAPadmin ──────────────────────────────────────────────────────────
+  phpldapadmin:
+    image: osixia/phpldapadmin:0.9.0
+    container_name: nx_phpldapadmin
+    environment:
+      PHPLDAPADMIN_LDAP_HOSTS: openldap
+      PHPLDAPADMIN_HTTPS: "false"
+    ports:
+      - "8080:80"
+    depends_on:
+      - openldap
+    networks:
+      - backend
+
+  # ── Nginx — dev override: routes /api to Express, / to Vite dev ─────────
   nginx:
-    profiles:
-      - production                     # Only starts with --profile production
+    profiles: []   # re-enable nginx in dev
+    volumes:
+      - ./docker/nginx-dev.conf:/etc/nginx/conf.d/app.conf:ro   # replace prod config
+    depends_on:
+      - frontend
+    networks:
+      - frontend
+      - backend
+
+volumes:
+  openldap_data:
+  openldap_config:
+  openldap2_data:
+  openldap2_config:

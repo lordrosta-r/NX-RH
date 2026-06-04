@@ -9,6 +9,8 @@ const jwt       = require('jsonwebtoken')
 const User      = require('../models/User')
 const AppError  = require('../utils/AppError')
 const logger    = require('../utils/logger')
+const ldapService = require('./ldapService')
+const ldapSources = require('./ldapSources')
 const { LOCALES, THEMES, NOTIF_PREF_KEYS, NOTIF_KEYS_BY_ROLE, BCRYPT_ROUNDS } = require('../config/constants')
 
 // ── Helper ────────────────────────────────────────────────────────────────────
@@ -92,30 +94,8 @@ function filterNotifPrefsByRole(prefs, role) {
  *
  * @throws {Error} status 401 si identifiants invalides (err.loginFailed = true)
  */
-async function login(email, password, remember) {
-  const user = await User.findOne({ email: email.toLowerCase().trim(), isActive: true })
-    .select('+passwordHash +authSource')
-    .lean()
-
-  if (!user || user.authSource !== 'local' || !user.passwordHash) {
-    logger.warn('[auth] Login failed — user not found or wrong authSource', { email: email.toLowerCase() })
-    const err = makeError('Identifiants invalides', 401)
-    err.loginFailed = true
-    throw err
-  }
-
-  const valid = await bcrypt.compare(password, user.passwordHash)
-  if (!valid) {
-    logger.warn('[auth] Login failed — wrong password', { email: email.toLowerCase() })
-    const err = makeError('Identifiants invalides', 401)
-    err.loginFailed = true
-    throw err
-  }
-
-  if (user.mustChangePassword) {
-    return { mustChangePassword: true, userId: user._id }
-  }
-
+// Émet les tokens pour un utilisateur authentifié et enregistre le refresh token.
+function issueTokens(user) {
   const payload = { id: user._id, email: user.email, role: user.role, firstName: user.firstName, lastName: user.lastName }
   const { accessToken, refreshToken } = generateTokens(payload)
 
@@ -124,6 +104,61 @@ async function login(email, password, remember) {
     .catch(err => logger.error('[auth] refreshToken push failed', { error: err.message }))
 
   return { user, accessToken, refreshToken }
+}
+
+// Tente une authentification contre chaque source LDAP activée.
+// Au succès : upsert l'utilisateur (authSource:'ldap') et le renvoie. Sinon null.
+async function tryLdapLogin(email, password) {
+  let sources
+  try {
+    sources = await ldapSources.getEnabledSources()
+  } catch (err) {
+    logger.warn('[auth] LDAP sources unavailable', { error: err.message })
+    return null
+  }
+  for (const source of sources) {
+    try {
+      const entry = await ldapService.authenticate(source, email, password)
+      if (!entry) continue
+      const user = await ldapService.upsertLdapUser(entry, source)
+      if (user && user.isActive !== false) {
+        logger.info('[auth] LDAP login ok', { email: email.toLowerCase(), source: source.id })
+        return user
+      }
+    } catch (err) {
+      logger.warn('[auth] LDAP source error', { source: source.id, error: err.message })
+    }
+  }
+  return null
+}
+
+async function login(email, password, remember) {
+  const user = await User.findOne({ email: email.toLowerCase().trim(), isActive: true })
+    .select('+passwordHash +authSource')
+    .lean()
+
+  // ── 1. Authentification locale ────────────────────────────────────────────
+  if (user && user.authSource === 'local' && user.passwordHash) {
+    const valid = await bcrypt.compare(password, user.passwordHash)
+    if (valid) {
+      if (user.mustChangePassword) {
+        return { mustChangePassword: true, userId: user._id }
+      }
+      return issueTokens(user)
+    }
+  }
+
+  // ── 2. Authentification LDAP (compte LDAP existant OU inconnu localement) ──
+  if (!user || user.authSource === 'ldap') {
+    const ldapUser = await tryLdapLogin(email, password)
+    if (ldapUser) return issueTokens(ldapUser)
+  }
+
+  // ── 3. Échec ──────────────────────────────────────────────────────────────
+  logger.warn('[auth] Login failed', { email: email.toLowerCase() })
+  const err = makeError('Identifiants invalides', 401)
+  err.loginFailed = true
+  throw err
 }
 
 // ── Déconnexion ───────────────────────────────────────────────────────────────

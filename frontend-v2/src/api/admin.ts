@@ -2,6 +2,7 @@ import client from "./client";
 import type {
   AppConfig,
   LdapConfig,
+  LdapSource,
   MailTemplate,
   AuditLogEntry,
   PaginatedResponse,
@@ -34,6 +35,35 @@ export const adminApi = {
 
   previewLdap: (config: Partial<LdapConfig>) =>
     client.post("/api/admin/ldap/preview", config),
+
+  // LDAP multi-source
+  getLdapSources: () =>
+    client.get<{ sources: LdapSource[] }>("/api/admin/ldap/sources"),
+
+  updateLdapSources: (sources: LdapSource[]) =>
+    client.put<{ sources: LdapSource[] }>("/api/admin/ldap/sources", {
+      sources,
+    }),
+
+  testLdapSource: (sourceId: string) =>
+    client.post<{ ok: boolean; info?: string; error?: string }>(
+      "/api/admin/ldap/test",
+      { sourceId },
+    ),
+
+  previewLdapSource: (sourceId: string) =>
+    client.post<{ users: Record<string, string>[] }>(
+      "/api/admin/ldap/preview",
+      { sourceId },
+    ),
+
+  syncLdapSource: (sourceId: string) =>
+    client.post<{
+      created: number;
+      updated: number;
+      skipped: number;
+      errors: string[];
+    }>("/api/admin/ldap/sync", { sourceId }),
 
   // Journal d'audit
   getAuditLog: (

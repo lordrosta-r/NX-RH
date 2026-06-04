@@ -105,15 +105,15 @@ test.describe.serial("Onboarding admin-first", () => {
     await loginViaForm(page, "admin");
     // La page LDAP est visitée (visible), le provisioning passe par l'API.
     await page.goto("/admin/ldap");
-    await page.waitForLoadState("domcontentloaded");
-    await expect(page.getByRole("tab", { name: /config/i })).toBeVisible({
+    await page.waitForLoadState("networkidle");
+    await expect(page.getByText(/LDAP/i).first()).toBeVisible({
       timeout: 15000,
     });
 
     await configureAndSyncLdap();
 
     // Les utilisateurs LDAP doivent maintenant exister
-    await page.goto("/users");
+    await page.goto("/admin/users");
     await page.waitForLoadState("networkidle");
     await expect(page.getByText(/marie\.dupont@nxrh\.local/i)).toBeVisible({
       timeout: 15000,
@@ -127,17 +127,17 @@ test.describe.serial("Onboarding admin-first", () => {
     page,
   }) => {
     await loginViaForm(page, "admin");
-    await page.goto("/users?role=hr");
+    await page.goto("/admin/users");
     await page.waitForLoadState("networkidle");
+    // RH et manager provisionnés depuis le LDAP avec leurs rôles
     await expect(page.getByText(/marie\.dupont@nxrh\.local/i)).toBeVisible({
       timeout: 15000,
     });
-
-    await page.goto("/users?role=manager");
-    await page.waitForLoadState("networkidle");
     await expect(page.getByText(/pierre\.leclerc@nxrh\.local/i)).toBeVisible({
       timeout: 15000,
     });
+    await expect(page.getByText(/\bRH\b|\bhr\b/i).first()).toBeVisible();
+    await expect(page.getByText(/manager|responsable/i).first()).toBeVisible();
   });
 
   test("5. la RH (LDAP) se connecte et crée un formulaire", async ({

@@ -117,9 +117,11 @@ export const adminApi = {
   }) =>
     client.get("/api/admin/audit/export/csv", { params, responseType: "blob" }),
   // RGPD advanced users
+  // Liste des utilisateurs (l'endpoint /api/admin/users n'existe pas — la route
+  // réelle est /api/users, qui renvoie tous les users pour un admin/hr).
   getAdminUsers: (
     params?: PaginationParams & { q?: string; authSource?: string },
-  ) => client.get<PaginatedResponse<User>>("/api/admin/users", { params }),
+  ) => client.get<PaginatedResponse<User>>("/api/users", { params }),
   anonymizeUser: (id: string) =>
     client.post(`/api/admin/users/${id}/anonymize`),
   exportUserGdpr: (id: string) =>

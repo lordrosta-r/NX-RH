@@ -3,7 +3,6 @@ import { useMutation } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { ChevronLeft, Save } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
-import { useDarkModeContext } from "../contexts/DarkModeContext";
 import { authApi } from "../api/auth";
 import { cn } from "../utils/cn";
 
@@ -44,14 +43,8 @@ const ALL_NOTIFS: NotifDef[] = [
 
 export default function PreferencesPage() {
   const { user } = useAuth();
-  const { isDark, setDark } = useDarkModeContext();
 
   const [locale, setLocale] = useState<"fr" | "en">("fr");
-  // Sync themeChoice with isDark when toggled externally (e.g. Navbar toggle)
-  const derivedTheme = isDark ? "dark" : "light";
-  // Displayed selection: 'system' only when no explicit preference is stored
-  const displayTheme: "light" | "dark" | "system" =
-    localStorage.getItem("theme") ? derivedTheme : "system";
   const [notifs, setNotifs] = useState<Record<string, boolean>>({});
   const [toast, setToast] = useState<string>("");
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -62,22 +55,9 @@ export default function PreferencesPage() {
     };
   }, []);
 
-  function handleThemeChange(t: "light" | "dark" | "system") {
-    if (t === "dark") {
-      setDark(true);
-    } else if (t === "light") {
-      setDark(false);
-    } else {
-      // system: remove explicit preference so hook falls back to system
-      localStorage.removeItem("theme");
-      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      setDark(prefersDark);
-    }
-  }
-
   const saveMutation = useMutation({
     mutationFn: () =>
-      authApi.updatePreferences({ locale, theme: displayTheme, notificationPrefs: notifs }),
+      authApi.updatePreferences({ locale, notificationPrefs: notifs }),
     onSuccess: () => {
       setToast("Préférences sauvegardées");
       toastTimerRef.current = setTimeout(() => setToast(""), 3000);
@@ -96,7 +76,7 @@ export default function PreferencesPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="space-y-6">
       <div className="flex items-center gap-3">
         <Link
           to="/profile"
@@ -104,16 +84,22 @@ export default function PreferencesPage() {
         >
           <ChevronLeft className="w-5 h-5" />
         </Link>
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Préférences</h1>
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+          Préférences
+        </h1>
       </div>
 
       {/* Card Interface */}
       <div className="bg-white dark:bg-slate-800 rounded-2xl shadow p-6 space-y-6">
-        <h2 className="text-base font-semibold text-slate-800 dark:text-slate-200">Interface</h2>
+        <h2 className="text-base font-semibold text-slate-800 dark:text-slate-200">
+          Interface
+        </h2>
 
         {/* Langue */}
         <div>
-          <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Langue</p>
+          <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+            Langue
+          </p>
           <div className="flex gap-3">
             {(["fr", "en"] as const).map((lang) => (
               <label
@@ -134,40 +120,6 @@ export default function PreferencesPage() {
                   className="sr-only"
                 />
                 {lang === "fr" ? "🇫🇷 Français" : "🇬🇧 English"}
-              </label>
-            ))}
-          </div>
-        </div>
-
-        {/* Thème */}
-        <div>
-          <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Thème</p>
-          <div className="flex gap-3">
-            {(
-              [
-                { value: "light", label: "☀️ Clair" },
-                { value: "dark", label: "🌙 Sombre" },
-                { value: "system", label: "💻 Système" },
-              ] as { value: "light" | "dark" | "system"; label: string }[]
-            ).map((t) => (
-              <label
-                key={t.value}
-                className={cn(
-                  "flex items-center gap-2 px-4 py-2 rounded-lg border cursor-pointer transition-colors",
-                  displayTheme === t.value
-                    ? "border-primary-500 bg-primary-50 text-primary-700"
-                    : "border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700",
-                )}
-              >
-                <input
-                  type="radio"
-                  name="theme"
-                  value={t.value}
-                  checked={displayTheme === t.value}
-                  onChange={() => handleThemeChange(t.value)}
-                  className="sr-only"
-                />
-                {t.label}
               </label>
             ))}
           </div>

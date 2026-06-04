@@ -8,12 +8,9 @@ import {
   Menu,
   X,
   Search,
-  Moon,
-  Sun,
   Globe,
 } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
-import { useDarkModeContext } from "../../contexts/DarkModeContext";
 import type { Role } from "../../types";
 import { NotificationBell } from "../NotificationBell";
 import clsx from "clsx";
@@ -27,6 +24,7 @@ interface NavItem {
 
 function getNavItems(role: Role, t: (key: string) => string): NavItem[] {
   const dashboard: NavItem = { label: t("nav.dashboard"), href: "/" };
+
   const pilotage: NavItem = {
     label: t("nav.pilotage"),
     dropdown: [
@@ -44,21 +42,27 @@ function getNavItems(role: Role, t: (key: string) => string): NavItem[] {
     ],
   };
 
+  const collaborateurs: NavItem = {
+    label: t("nav.collaborateurs"),
+    dropdown: [
+      { label: t("nav.users"), href: "/users" },
+      { label: t("nav.org"), href: "/org" },
+      { label: t("nav.offboarding"), href: "/offboarding", separator: true },
+    ],
+  };
+
+  const monParcours: NavItem = {
+    label: t("nav.monParcours"),
+    dropdown: [
+      { label: t("nav.mobility"), href: "/mobility" },
+      { label: t("nav.pdi"), href: "/pdi" },
+    ],
+  };
+
   if (role === "admin")
     return [
       dashboard,
-      {
-        label: t("nav.collaborateurs"),
-        dropdown: [
-          { label: t("nav.users"), href: "/users" },
-          { label: t("nav.org"), href: "/org" },
-          {
-            label: t("nav.offboarding"),
-            href: "/offboarding",
-            separator: true,
-          },
-        ],
-      },
+      collaborateurs,
       {
         label: t("nav.campaigns"),
         dropdown: [
@@ -94,18 +98,7 @@ function getNavItems(role: Role, t: (key: string) => string): NavItem[] {
   if (role === "hr")
     return [
       dashboard,
-      {
-        label: t("nav.collaborateurs"),
-        dropdown: [
-          { label: t("nav.users"), href: "/users" },
-          { label: t("nav.org"), href: "/org" },
-          {
-            label: t("nav.offboarding"),
-            href: "/offboarding",
-            separator: true,
-          },
-        ],
-      },
+      collaborateurs,
       {
         label: t("nav.campaigns"),
         dropdown: [
@@ -123,7 +116,7 @@ function getNavItems(role: Role, t: (key: string) => string): NavItem[] {
           { label: t("nav.pdi"), href: "/pdi" },
         ],
       },
-      pilotage,
+      pilotageNoAnalytics,
       {
         label: t("nav.administration"),
         dropdown: [
@@ -136,7 +129,7 @@ function getNavItems(role: Role, t: (key: string) => string): NavItem[] {
           { label: t("nav.auditLog"), href: "/admin/audit" },
           { label: t("nav.usersImport"), href: "/admin/users/import" },
           { label: t("nav.formsImport"), href: "/admin/forms/import" },
-          { label: t("nav.emailTemplates"), href: "/admin/mail-templates" },
+          { label: t("nav.mailTemplates"), href: "/admin/mail-templates" },
         ],
       },
     ];
@@ -159,8 +152,7 @@ function getNavItems(role: Role, t: (key: string) => string): NavItem[] {
           { label: t("nav.history"), href: "/evaluations/history" },
         ],
       },
-      { label: t("nav.mobility"), href: "/mobility" },
-      { label: t("nav.pdi"), href: "/pdi" },
+      monParcours,
       pilotageNoAnalytics,
     ];
 
@@ -174,14 +166,9 @@ function getNavItems(role: Role, t: (key: string) => string): NavItem[] {
         { label: t("nav.history"), href: "/evaluations/history" },
       ],
     },
-    { label: t("nav.mobility"), href: "/mobility" },
-    { label: t("nav.pdi"), href: "/pdi" },
-    { label: t("nav.profile"), href: "/profile" },
-    { label: t("nav.notifications"), href: "/notifications" },
-    pilotageNoAnalytics,
+    monParcours,
   ];
 }
-
 function NavDropdown({ item }: { item: NavItem }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -252,7 +239,6 @@ export default function Navbar({
 }) {
   const { t, i18n } = useTranslation();
   const { user, logout } = useAuth();
-  const { isDark, toggle: toggleDark } = useDarkModeContext();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [avatarOpen, setAvatarOpen] = useState(false);
   const avatarRef = useRef<HTMLDivElement>(null);
@@ -385,23 +371,6 @@ export default function Navbar({
                   {t("nav.profile")}
                 </NavLink>
 
-                <button
-                  onClick={() => {
-                    toggleDark();
-                  }}
-                  role="menuitem"
-                  data-testid="dark-mode-toggle"
-                  aria-label={isDark ? t("nav.lightMode") : t("nav.darkMode")}
-                  className="w-full flex items-center gap-2 px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
-                >
-                  {isDark ? (
-                    <Sun className="w-4 h-4 text-warning-500" />
-                  ) : (
-                    <Moon className="w-4 h-4 text-slate-500" />
-                  )}
-                  {isDark ? t("nav.lightMode") : t("nav.darkMode")}
-                </button>
-
                 {/* Language toggle */}
                 <button
                   onClick={handleToggleLanguage}
@@ -409,7 +378,7 @@ export default function Navbar({
                   className="w-full flex items-center gap-2 px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
                 >
                   <Globe className="w-4 h-4 text-slate-500" />
-                  {i18n.language === "fr" ? "🇬🇧 English" : "🇫🇷 Français"}
+                  {i18n.language === "fr" ? "English" : "Français"}
                 </button>
 
                 <div className="border-t border-slate-100 dark:border-slate-700 mt-1 pt-1">

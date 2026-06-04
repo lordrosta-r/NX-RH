@@ -2,15 +2,6 @@
 <html lang="fr">
   <head>
     <meta charset="UTF-8" />
-    <!-- Prevent flash of unstyled content on dark mode -->
-    <script>
-      (function () {
-        var stored = localStorage.getItem('theme');
-        if (stored === 'dark' || (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-          document.documentElement.classList.add('dark');
-        }
-      })();
-    </script>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>NX-RH</title>

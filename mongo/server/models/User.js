@@ -72,6 +72,11 @@ const userSchema = new Schema({
     index: true,
   },
 
+  // Autorise un manager à voir TOUTE sa descendance hiérarchique (sous-équipes
+  // incluses) sur GET /api/users, au lieu de ses seuls subordonnés directs.
+  // Réglable uniquement par hr/admin (jamais par le client manager lui-même).
+  canViewSubtree: { type: Boolean, default: false },
+
   sectorId: {
     type: Schema.Types.ObjectId,
     ref: 'Sector',

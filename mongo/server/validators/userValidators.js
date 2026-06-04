@@ -32,6 +32,7 @@ const updateUser = Joi.object({
   position:   Joi.string().max(150).optional().allow('', null),
   managerId:  objectId.optional().allow(null),
   isActive:   Joi.boolean().optional(),
+  canViewSubtree: Joi.boolean().optional(),
   phone:      Joi.string().max(30).optional().allow('', null),
   avatar:     Joi.string().max(500).optional().allow('', null),
 }).min(1)

@@ -47,7 +47,7 @@ for (const [role, email] of Object.entries({
 // [méthode, path, { role: statusAttendu }]  (2xx = autorisé, 403 = refusé)
 const probes = [
   ['GET', '/org/tree?view=teams', { admin: 200, hr: 200, manager: 200, employee: 403 }],
-  ['GET', '/users?limit=5',       { admin: 200, hr: 200, manager: 403, employee: 403 }],
+  ['GET', '/users?limit=5',       { admin: 200, hr: 200, manager: 200, employee: 403 }],  // manager: 200 mais scopé à son équipe (cf. canViewSubtree)
   ['GET', '/campaigns',           { admin: 200, hr: 200, manager: 200, employee: 200 }],
   ['GET', '/admin/ldap/sources',  { admin: 200, hr: 403, manager: 403, employee: 403 }],
   ['GET', '/admin/config',        { admin: 200, hr: 403, manager: 403, employee: 403 }],

@@ -22,6 +22,7 @@ export interface User {
   department?: string;
   position?: string;
   isActive: boolean;
+  canViewSubtree?: boolean;
   authSource: AuthSource;
   gdprAnonymized?: boolean;
   deactivatedAt?: string;

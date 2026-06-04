@@ -15,11 +15,23 @@ Rejouer : `docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d`
 | Login (local) | ✅ | ✅ | ✅ | ✅ | OK |
 | Login (LDAP, 2 annuaires) | — | ✅ | ✅ | ✅ | OK (cf. §4) |
 | Organigramme `/org/tree` | ✅ | ✅ | ✅ (scopé) | ⛔ 403 | OK |
-| Liste users `/users` | ✅ | ✅ | ⚠️ **200** | ⛔ 403 | **À confirmer** : un manager liste TOUS les users |
+| Liste users `/users` | ✅ | ✅ | ✅ (scopé) | ⛔ 403 | OK |
 | Campagnes `/campaigns` | ✅ | ✅ | ✅ | ✅ | OK |
 | Admin LDAP / config | ✅ | ⛔ 403 | ⛔ 403 | ⛔ 403 | OK |
 
-**RBAC global : sain**, sauf un point : `GET /api/users` est accessible aux managers (attendu : restreint hr/admin, ou au moins filtré à leur équipe). À trancher.
+**RBAC global : sain.**
+
+### ✅ [TRANCHÉ] Scope de `GET /api/users` pour les managers
+
+Décision : un manager **ne voit que son équipe** (subordonnés directs, `managerId`).
+hr/admin peuvent accorder à un manager le flag `canViewSubtree` (champ `User`,
+default `false`) qui élargit sa vue à **toute sa descendance hiérarchique**
+(sous-équipes incluses, via `services/managerVisibility.getDescendantUserIds`).
+
+Garde-fou : le scope est dérivé **côté serveur** du flag stocké en DB, jamais d'un
+paramètre de requête. `canViewSubtree` est un champ protégé (seuls hr/admin le
+modifient, cf. `userService.updateUser`). Toggle exposé dans `UserEditPage` pour
+les utilisateurs de rôle `manager` uniquement. Couvert par `__tests__/routes/users.test.js`.
 
 ---
 

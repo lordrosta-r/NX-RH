@@ -101,14 +101,14 @@ async function updateUser(id, data, requestingUser) {
 
   if (!isAdmin && !isSelf) throw AppError.forbidden('Permissions insuffisantes')
 
-  const ALLOWED = ['email', 'firstName', 'lastName', 'department', 'position', 'role', 'managerId', 'isActive', 'avatar', 'phone']
+  const ALLOWED = ['email', 'firstName', 'lastName', 'department', 'position', 'role', 'managerId', 'isActive', 'avatar', 'phone', 'canViewSubtree']
   const updates = {}
   for (const key of ALLOWED) {
     if (data[key] !== undefined) updates[key] = data[key]
   }
 
   if (!isAdmin) {
-    const protectedFields = ['role', 'managerId', 'isActive', 'department', 'position', 'email']
+    const protectedFields = ['role', 'managerId', 'isActive', 'department', 'position', 'email', 'canViewSubtree']
     const forbidden = protectedFields.filter(f => data[f] !== undefined)
     if (forbidden.length > 0) {
       throw AppError.forbidden(`Champs protégés non modifiables : ${forbidden.join(', ')}`)

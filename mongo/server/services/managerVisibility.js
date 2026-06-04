@@ -117,6 +117,42 @@ async function getVisibleUserIds(managerId, campaign) {
 }
 
 /**
+ * Retourne les IDs de TOUS les utilisateurs (tous rôles) situés sous un
+ * manager dans l'arbre hiérarchique — récursivement, sous-équipes incluses.
+ *
+ * Utilisé par GET /api/users quand le manager a canViewSubtree = true.
+ * N'inclut PAS le manager racine lui-même.
+ *
+ * @param {ObjectId|string} rootManagerId
+ * @returns {Promise<ObjectId[]>}
+ */
+async function getDescendantUserIds(rootManagerId) {
+  const collected = new Set()
+  let frontier = [rootManagerId]
+  let depth = 0
+
+  while (frontier.length > 0 && depth <= MAX_DEPTH) {
+    const children = await User.find(
+      { managerId: { $in: frontier }, isActive: true },
+      '_id'
+    ).lean()
+
+    const next = []
+    for (const child of children) {
+      const key = child._id.toString()
+      if (!collected.has(key)) {
+        collected.add(key)
+        next.push(child._id)  // on ne redescend que dans les nouveaux nœuds
+      }
+    }
+    frontier = next
+    depth += 1
+  }
+
+  return [...collected]
+}
+
+/**
  * Vérifie si un manager a le droit de voir l'évaluation d'un utilisateur
  * donné dans le contexte d'une campagne.
  *
@@ -130,4 +166,4 @@ async function canManagerSeeEvaluatee(managerId, evaluateeId, campaign) {
   return ids.includes(evaluateeId.toString())
 }
 
-module.exports = { getVisibleUserIds, canManagerSeeEvaluatee, getSubManagerTree }
+module.exports = { getVisibleUserIds, canManagerSeeEvaluatee, getSubManagerTree, getDescendantUserIds }

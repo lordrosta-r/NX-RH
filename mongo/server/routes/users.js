@@ -12,6 +12,7 @@ const { filterNotifPrefsByRole } = require('../services/authService')
 const respond = require('../utils/response')
 const apiResponse = require('../utils/apiResponse')
 const { paginate } = require('../utils/paginate')
+const { getDescendantUserIds } = require('../services/managerVisibility')
 
 // GET /api/users/stats — Statistiques utilisateurs (admin/hr uniquement)
 router.get('/stats', async (req, res, next) => {
@@ -57,8 +58,16 @@ router.get('/', async (req, res, next) => {
 
     // Scope par rôle appelant
     if (req.user.role === 'manager') {
-      // Manager et director ne voient que leurs subordonnés directs
-      filter.managerId = req.user.id
+      // Par défaut : subordonnés directs uniquement.
+      // Si hr/admin a accordé canViewSubtree au manager (flag stocké en DB,
+      // jamais pilotable par le client), il voit toute sa descendance.
+      const me = await User.findById(req.user.id).select('canViewSubtree').lean()
+      if (me?.canViewSubtree) {
+        const descendantIds = await getDescendantUserIds(req.user.id)
+        filter._id = { $in: descendantIds }
+      } else {
+        filter.managerId = req.user.id
+      }
     } else if (!['admin', 'hr'].includes(req.user.role)) {
       return res.status(403).json({ error: 'Permissions insuffisantes' })
     }

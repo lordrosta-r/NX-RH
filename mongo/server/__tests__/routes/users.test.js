@@ -97,7 +97,7 @@ function buildApp() {
   app.use(cookieParser())
   // Mirror the middleware stack used in index.js: auth guard + router
   app.use('/api/users', authGuard(['admin', 'director', 'hr', 'manager', 'employee']), userRouter)
-  // eslint-disable-next-line no-unused-vars
+   
   app.use((err, _req, res, _next) => {
     res.status(err.status || 500).json({ error: err.message || 'Internal server error' })
   })
@@ -137,7 +137,8 @@ describe('GET /api/users', () => {
     expect(filter.managerId).toBeUndefined()
   })
 
-  it('manager only sees their direct reports', async () => {
+  it('manager only sees their direct reports (canViewSubtree false)', async () => {
+    User.findById = jest.fn(() => makeChain({ canViewSubtree: false }))
     User.find = jest.fn(() => makeChain([{ _id: EMPLOYEE_ID, managerId: MANAGER_ID }]))
     const res = await request(app)
       .get('/api/users')
@@ -145,6 +146,27 @@ describe('GET /api/users', () => {
     expect(res.status).toBe(200)
     const [filter] = User.find.mock.calls[0]
     expect(filter.managerId).toBe(MANAGER_ID)
+    expect(filter._id).toBeUndefined()
+  })
+
+  it('manager with canViewSubtree sees the whole descendant subtree, not just direct reports', async () => {
+    const CHILD_ID = '507f1f77bcf86cd799439006'
+    const GRANDCHILD_ID = '507f1f77bcf86cd799439007'
+    User.findById = jest.fn(() => makeChain({ canViewSubtree: true }))
+    // getDescendantUserIds() walks the tree, then paginate() runs the final find.
+    User.find = jest.fn()
+      .mockReturnValueOnce(makeChain([{ _id: CHILD_ID }]))        // niveau 1
+      .mockReturnValueOnce(makeChain([{ _id: GRANDCHILD_ID }]))   // niveau 2
+      .mockReturnValueOnce(makeChain([]))                          // niveau 3 → stop
+      .mockReturnValue(makeChain([{ _id: CHILD_ID }, { _id: GRANDCHILD_ID }]))  // paginate
+    const res = await request(app)
+      .get('/api/users')
+      .set('Cookie', `accessToken=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
+    expect(res.status).toBe(200)
+    // Le filtre de pagination scope par _id (descendance), pas par managerId direct.
+    const paginateFilter = User.find.mock.calls.at(-1)[0]
+    expect(paginateFilter.managerId).toBeUndefined()
+    expect(paginateFilter._id.$in).toEqual(expect.arrayContaining([CHILD_ID, GRANDCHILD_ID]))
   })
 
   it('employee gets 403 (cannot list users)', async () => {
@@ -394,6 +416,25 @@ describe('PATCH /api/users/:id', () => {
       .send({ department: 'Engineering' })
     expect(res.status).toBe(403)
     expect(res.body.error).toMatch(/department/i)
+  })
+
+  it('returns 403 when a manager tries to grant themselves canViewSubtree', async () => {
+    mockFindByIdUser({ _id: MANAGER_ID, role: 'manager' })
+    const res = await request(app)
+      .patch(`/api/users/${MANAGER_ID}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
+      .send({ canViewSubtree: true })
+    expect(res.status).toBe(403)
+    expect(res.body.error).toMatch(/canViewSubtree/i)
+  })
+
+  it('admin can grant canViewSubtree to a manager', async () => {
+    mockFindByIdUser({ _id: MANAGER_ID, role: 'manager' })
+    const res = await request(app)
+      .patch(`/api/users/${MANAGER_ID}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+      .send({ canViewSubtree: true })
+    expect(res.status).toBe(200)
   })
 
   it('admin can update protected fields (role, isActive)', async () => {

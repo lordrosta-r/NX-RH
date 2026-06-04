@@ -1,6 +1,7 @@
 ﻿'use strict'
 
 const mongoose = require('mongoose')
+const rateLimit = require('express-rate-limit')
 const router = require('express').Router()
 const { User, Evaluation, AuditLog } = require('../models')
 const { OffboardingRequest } = require('../models/OffboardingRequest')
@@ -13,6 +14,18 @@ const respond = require('../utils/response')
 const apiResponse = require('../utils/apiResponse')
 const { paginate } = require('../utils/paginate')
 const { getDescendantUserIds } = require('../services/managerVisibility')
+
+// Limiteur dédié anti-énumération sur GET /api/users/:id : un utilisateur
+// authentifié ne devrait pas balayer des centaines d'IDs à la minute.
+// Relâché en test/e2e pour ne pas faire échouer les suites automatisées.
+const isTestEnv = process.env.NODE_ENV === 'test' || process.env.E2E_MODE === 'true'
+const userByIdLimiter = rateLimit({
+  windowMs:       60 * 1000,
+  max:            isTestEnv ? 10000 : 30,
+  standardHeaders: true,
+  legacyHeaders:   false,
+  message:        { error: 'Trop de requêtes, réessayez plus tard' },
+})
 
 // GET /api/users/stats — Statistiques utilisateurs (admin/hr uniquement)
 router.get('/stats', async (req, res, next) => {
@@ -121,7 +134,7 @@ router.get('/me', async (req, res, next) => {
 })
 
 // GET /api/users/:id — Retourne un utilisateur par son ID
-router.get('/:id', async (req, res, next) => {
+router.get('/:id', userByIdLimiter, async (req, res, next) => {
   try {
     const user = await userService.getUserById(req.params.id, req.user)
     respond.item(res, user)

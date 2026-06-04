@@ -133,8 +133,12 @@ router.post('/login', loginByEmailLimiter, loginByIPLimiter, async (req, res, ne
 
 // ─── POST /api/auth/logout ───────────────────────────────────────────────────
 
-// POST /api/auth/logout — Supprime les cookies de session
-router.post('/logout', (_req, res) => {
+// POST /api/auth/logout — Révoque le refresh token (allowlist) et supprime les cookies
+router.post('/logout', async (req, res) => {
+  // Révocation serveur du refresh token pour qu'il ne puisse plus être rejoué
+  // via /refresh. Best-effort : ne bloque jamais la déconnexion côté client.
+  await authService.revokeRefreshToken(req.cookies?.refreshToken)
+
   const cookieBase = {
     httpOnly: true,
     secure:   process.env.COOKIE_SECURE !== undefined ? process.env.COOKIE_SECURE === 'true' : process.env.NODE_ENV === 'production',

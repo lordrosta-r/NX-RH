@@ -12,7 +12,7 @@ jest.mock('jsonwebtoken')
 const User   = require('../../models/User')
 const bcrypt = require('bcrypt')
 const jwt    = require('jsonwebtoken')
-const { login, logout, register, validateUser, allowedNotifKeysFor, filterNotifPrefsByRole } = require('../../services/authService')
+const { login, logout, revokeRefreshToken, refreshAccessToken, register, validateUser, allowedNotifKeysFor, filterNotifPrefsByRole } = require('../../services/authService')
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -164,6 +164,74 @@ describe('authService — logout()', () => {
   test('does not throw if User.updateOne rejects', async () => {
     User.updateOne.mockRejectedValue(new Error('DB error'))
     await expect(logout('user123', 'token')).resolves.toBeUndefined()
+  })
+})
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('authService — refreshAccessToken()', () => {
+  const decoded = { id: 'user123', email: 'u@corp.com', role: 'employee', firstName: 'U', lastName: 'Ser' }
+
+  function mockUser(refreshTokens) {
+    User.findById.mockReturnValue({
+      select: jest.fn().mockReturnThis(),
+      lean:   jest.fn().mockResolvedValue({ _id: 'user123', isActive: true, email: 'u@corp.com', role: 'employee', firstName: 'U', lastName: 'Ser', refreshTokens }),
+    })
+  }
+
+  beforeEach(() => {
+    jest.clearAllMocks()
+    jwt.verify.mockReturnValue(decoded)
+    jwt.sign.mockReturnValueOnce('newAccess').mockReturnValueOnce('newRefresh')
+    User.updateOne.mockResolvedValue({ modifiedCount: 1 })
+  })
+
+  test('rejects (401) when the refresh token is not in the allowlist', async () => {
+    mockUser([])  // token absent → révoqué
+    await expect(refreshAccessToken('stolenToken')).rejects.toMatchObject({ status: 401 })
+    expect(User.updateOne).not.toHaveBeenCalled()
+  })
+
+  test('issues new tokens and rotates (pull old, push new) when token is valid', async () => {
+    mockUser(['validToken'])
+    const result = await refreshAccessToken('validToken')
+    expect(result).toEqual({ accessToken: 'newAccess', refreshToken: 'newRefresh' })
+    expect(User.updateOne).toHaveBeenCalledWith({ _id: 'user123' }, { $pull: { refreshTokens: 'validToken' } })
+    expect(User.updateOne).toHaveBeenCalledWith({ _id: 'user123' }, { $push: { refreshTokens: 'newRefresh' } })
+  })
+
+  test('rejects (401) when the user is inactive', async () => {
+    User.findById.mockReturnValue({
+      select: jest.fn().mockReturnThis(),
+      lean:   jest.fn().mockResolvedValue({ _id: 'user123', isActive: false, refreshTokens: ['validToken'] }),
+    })
+    await expect(refreshAccessToken('validToken')).rejects.toMatchObject({ status: 401 })
+  })
+})
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('authService — revokeRefreshToken()', () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+    User.updateOne.mockResolvedValue({ modifiedCount: 1 })
+  })
+
+  test('decodes the token and pulls it from the allowlist', async () => {
+    jwt.verify.mockReturnValue({ id: 'user123' })
+    await revokeRefreshToken('someToken')
+    expect(User.updateOne).toHaveBeenCalledWith({ _id: 'user123' }, { $pull: { refreshTokens: 'someToken' } })
+  })
+
+  test('is silent (no throw, no DB write) for an invalid token', async () => {
+    jwt.verify.mockImplementation(() => { throw new Error('invalid') })
+    await expect(revokeRefreshToken('bad')).resolves.toBeUndefined()
+    expect(User.updateOne).not.toHaveBeenCalled()
+  })
+
+  test('returns early when no token is provided', async () => {
+    await revokeRefreshToken(undefined)
+    expect(User.updateOne).not.toHaveBeenCalled()
   })
 })
 

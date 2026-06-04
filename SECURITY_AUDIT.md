@@ -206,3 +206,25 @@ Suite à l'audit par rôle (`docs/audits/role-audit.md`), corrections appliquée
 Restes recommandés (non bloquants) : rate-limit dédié sur `/api/users/:id`
 (anti-énumération), resserrement de `styleSrc 'unsafe-inline'` dans la CSP, et
 revue du périmètre `GET /api/users` ouvert aux managers.
+
+## Durcissement résiduel — 2026-06-04 (suite, #8)
+
+Traitement des restes ci-dessus :
+
+- **Rate-limit anti-énumération** (`mongo/server/routes/users.js`) : limiteur dédié
+  `userByIdLimiter` sur `GET /api/users/:id` — 30 req/min/IP (10000 en test/e2e).
+- **Révocation effective du logout / refresh** (`routes/auth.js`,
+  `services/authService.js`) : `POST /api/auth/logout` appelle désormais
+  `revokeRefreshToken` qui retire le refresh token de l'allowlist serveur
+  (`User.refreshTokens`). `refreshAccessToken` **vérifie l'allowlist** (un token
+  révoqué ou déjà tourné est rejeté en 401 même si la signature JWT reste valide)
+  et applique une **rotation** (pull ancien / push nouveau) à chaque refresh.
+  L'access token reste valide jusqu'à son expiry (≤1h) — pas de blocklist d'access
+  token introduite (surcoût d'état partagé non justifié, cf. recommandation #1).
+- **CSP `styleSrc`** : `'unsafe-inline'` **conservé volontairement** (Tailwind v4 +
+  styles inline runtime des libs) avec justification documentée dans `index.js`.
+  Risque résiduel faible : pas de `scriptSrc 'unsafe-inline'`, `frameAncestors 'none'`,
+  `X-Content-Type-Options: nosniff`.
+- **Périmètre `GET /api/users`** : tranché (cf. `docs/audits/role-audit.md`) — manager
+  scopé à son équipe par défaut, descendance complète sur flag `canViewSubtree`
+  (hr/admin only).

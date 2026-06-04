@@ -7,10 +7,39 @@
 const mongoose = require('mongoose')
 const { Evaluation, Form, Campaign } = require('../models')
 
+const DAY_MS = 24 * 60 * 60 * 1000
+
+// Formulaires remplis par l'évalué lui-même → soumis à campaign.deadlineEmployee.
+// Les autres (manager_evaluation, director_evaluation, peer_review) → deadlineManager.
+const EVALUATEE_FORM_TYPES = ['self_evaluation', 'upward_feedback', 'objectives']
+
+/**
+ * Backstop d'expiration absolue : date de fin de campagne + 30 jours.
+ * @param {{endDate?: Date}|null} campaign
+ * @returns {Date|null}
+ */
+function resolveExpiry(campaign) {
+  return campaign?.endDate ? new Date(new Date(campaign.endDate).getTime() + 30 * DAY_MS) : null
+}
+
+/**
+ * Date limite EFFECTIVE de réponse, dérivée de la phase (selon le type de form).
+ * Renvoie null si la campagne n'a pas de deadline pour cette phase.
+ * @param {{deadlineEmployee?: Date, deadlineManager?: Date}|null} campaign
+ * @param {string} formType
+ * @returns {Date|null}
+ */
+function resolvePhaseDeadline(campaign, formType) {
+  if (!campaign) return null
+  const d = EVALUATEE_FORM_TYPES.includes(formType) ? campaign.deadlineEmployee : campaign.deadlineManager
+  return d ? new Date(d) : null
+}
+
 /**
  * Crée une nouvelle évaluation.
  * - Gèle le formulaire si ce n'est pas déjà fait (frozenAt)
- * - Calcule expiresAt à partir de la date de fin de campagne + 30 jours
+ * - expiresAt = backstop absolu (endDate + 30j)
+ * - phaseDeadline = deadline effective de réponse (selon la phase)
  *
  * @param {object} params
  * @param {string|null} params.campaignId
@@ -24,12 +53,15 @@ async function createEvaluation({ campaignId, formId, evaluatorId, evaluateeId }
   await Form.findByIdAndUpdate(formId, { $set: { frozenAt: new Date() } }, { timestamps: false })
     .where({ frozenAt: null })
 
-  const campaign  = campaignId ? await Campaign.findById(campaignId, 'endDate name').lean() : null
-  const expiresAt = campaign?.endDate
-    ? new Date(new Date(campaign.endDate).getTime() + 30 * 24 * 60 * 60 * 1000)
-    : null
+  const form     = await Form.findById(formId, 'formType').lean()
+  const campaign = campaignId ? await Campaign.findById(campaignId, 'endDate name deadlineEmployee deadlineManager').lean() : null
 
-  return Evaluation.create({ campaignId: campaignId || null, formId, evaluatorId, evaluateeId, expiresAt })
+  return Evaluation.create({
+    campaignId:    campaignId || null,
+    formId, evaluatorId, evaluateeId,
+    expiresAt:     resolveExpiry(campaign),
+    phaseDeadline: resolvePhaseDeadline(campaign, form?.formType),
+  })
 }
 
 /**
@@ -77,4 +109,6 @@ module.exports = {
   findEvaluationById,
   findEvaluationWithDetails,
   expireEvaluation,
+  resolveExpiry,
+  resolvePhaseDeadline,
 }

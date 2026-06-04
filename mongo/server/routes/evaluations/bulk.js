@@ -11,6 +11,7 @@ const mongoose  = require('mongoose')
 const { Evaluation, Form, Campaign, User, AuditLog, VALID_TRANSITIONS, ROLE_TRANSITIONS } = require('../../models')
 const { ADMIN_ROLES }           = require('../../config/constants')
 const { notifyMany }            = require('../../services/notificationService')
+const { resolveExpiry, resolvePhaseDeadline } = require('../../services/evaluationService')
 
 // POST /bulk — Créer des évaluations en masse (max 500)
 async function handleBulkCreate(req, res, next) {
@@ -41,20 +42,22 @@ async function handleBulkCreate(req, res, next) {
       { $set: { frozenAt: new Date() } }
     )
 
-    // Calculer expiresAt par campagne
+    // Charger les campagnes (avec deadlines) et les types de formulaire concernés
     const uniqueCampaignIds = [...new Set(evaluations.map(e => e.campaignId?.toString()).filter(Boolean))]
-    const campaigns = await Campaign.find({ _id: { $in: uniqueCampaignIds } }, 'endDate').lean()
-    const campaignEndDates = new Map(campaigns.map(c => [c._id.toString(), c.endDate]))
+    const campaigns = await Campaign.find({ _id: { $in: uniqueCampaignIds } }, 'endDate deadlineEmployee deadlineManager').lean()
+    const campaignById = new Map(campaigns.map(c => [c._id.toString(), c]))
+    const forms = await Form.find({ _id: { $in: formIds } }, 'formType').lean()
+    const formTypeById = new Map(forms.map(f => [f._id.toString(), f.formType]))
 
     const sanitized = evaluations.map(e => {
-      const endDate = campaignEndDates.get(e.campaignId?.toString())
+      const campaign = campaignById.get(e.campaignId?.toString()) || null
+      const formType = formTypeById.get(e.formId?.toString())
       return {
         ...e,
         status: 'assigned',
         lastSavedAt: null,
-        expiresAt: endDate
-          ? new Date(new Date(endDate).getTime() + 30 * 24 * 60 * 60 * 1000)
-          : null,
+        expiresAt:     resolveExpiry(campaign),
+        phaseDeadline: resolvePhaseDeadline(campaign, formType),
       }
     })
 

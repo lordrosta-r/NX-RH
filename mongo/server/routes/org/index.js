@@ -52,7 +52,7 @@ router.get('/tree', cacheResponse(120, req => `GET:${req.originalUrl}:${req.user
     }
 
     let users = await User.find({ isActive: true })
-      .select('_id firstName lastName role department sectorId managerId avatar')
+      .select('_id firstName lastName email role department position sectorId managerId avatar')
       .lean()
 
     if (scopeIds) {

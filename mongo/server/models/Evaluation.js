@@ -148,6 +148,14 @@ const evaluationSchema = new Schema({
   // Utilisé par l'UI RH pour afficher un badge d'avertissement.
   nearExpiry: { type: Boolean, default: false },
 
+  // Date limite EFFECTIVE de réponse pour cette évaluation, dérivée de la phase :
+  //   • formulaires remplis par l'évalué (self/upward/objectives) → campaign.deadlineEmployee
+  //   • formulaires manager → campaign.deadlineManager
+  // Passé cette date, le scheduler (runDeadlineExpiry) passe les évals encore
+  // 'assigned'/'in_progress' à 'expired' — SANS toucher les évals déjà soumises
+  // ou en cours de signature. null = pas de deadline de phase (seul expiresAt agit).
+  phaseDeadline: { type: Date, default: null },
+
   // Journal des actions RH sur l'évaluation (réaffectations, etc.)
   // Chaque entrée est immuable — append-only.
   auditLog: {
@@ -179,6 +187,8 @@ evaluationSchema.index({ evaluatorId: 1, status: 1 })
 evaluationSchema.index({ status: 1, expiresAt: 1 })
 // Scheduler near-expiry cleanup — retire nearExpiry des évals validées/expirées
 evaluationSchema.index({ nearExpiry: 1, status: 1 })
+// Scheduler deadline expiry — évals non répondues après la deadline de phase
+evaluationSchema.index({ status: 1, phaseDeadline: 1 })
 
 evaluationSchema.post('init', function() {
   this._originalStatus = this.status;

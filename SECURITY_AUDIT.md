@@ -183,3 +183,26 @@ Ces éléments sont **corrects** et constituent une bonne base de sécurité :
 ---
 
 *Audit réalisé par GitHub Copilot — Agent Sécurité OWASP*
+
+---
+
+## Durcissement résiduel — 2026-06-04 (W10)
+
+Suite à l'audit par rôle (`docs/audits/role-audit.md`), corrections appliquées :
+
+- **Garde-fous de démarrage en production** (`mongo/server/index.js`) : le serveur
+  refuse de démarrer si `NODE_ENV=production` et que l'une de ces conditions est
+  vraie — `JWT_SECRET` ressemble à une valeur dev/par défaut, `E2E_MODE=true`
+  (désactive le rate-limit de login), ou `MONGO_URI` contient `changeme`.
+- **Header `Permissions-Policy`** ajouté (`camera=(), microphone=(), geolocation=(),
+  browsing-topics=()`) — Helmet v7 ne le pose plus nativement.
+- **Validation mot de passe** : création/réinitialisation déjà en `min(8)` (vérifié).
+- **`.env.prod.example`** : template de production avec consignes (régénérer
+  `JWT_SECRET`/`JWT_REFRESH_SECRET` via `openssl rand -hex 48`, `COOKIE_SECURE=true`,
+  mot de passe Mongo fort, `E2E_MODE` vide).
+- **Bug d'audit `login_failed`** corrigé (entrée d'audit invalide ⇒ jamais écrite) —
+  cf. commit `fix(auth)`.
+
+Restes recommandés (non bloquants) : rate-limit dédié sur `/api/users/:id`
+(anti-énumération), resserrement de `styleSrc 'unsafe-inline'` dans la CSP, et
+revue du périmètre `GET /api/users` ouvert aux managers.

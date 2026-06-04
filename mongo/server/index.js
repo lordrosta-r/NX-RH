@@ -102,6 +102,9 @@ app.use((_req, res, next) => {
   // X-Frame-Options géré par Helmet (frameguard) — pas redéfini ici
   res.setHeader('X-Content-Type-Options', 'nosniff')
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin')
+  // Helmet v7 ne pose plus Permissions-Policy : on désactive les API sensibles
+  // (utile en accès direct à l'API, sans le reverse-proxy nginx).
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), browsing-topics=()')
   next()
 })
 app.use(express.json({ limit: '100kb' }))
@@ -314,6 +317,25 @@ async function start() {
   if (process.env.JWT_SECRET.length < 32) {
     logger.error('JWT_SECRET trop courte (minimum 32 caractères)')
     process.exit(1)
+  }
+
+  // ── Garde-fous PRODUCTION : refuser de démarrer avec une config dangereuse ──
+  if (process.env.NODE_ENV === 'production') {
+    const fatal = []
+    const secret = process.env.JWT_SECRET
+    if (/dev|changeme|secret_key|not_for_production|example|placeholder/i.test(secret)) {
+      fatal.push('JWT_SECRET ressemble à une valeur par défaut/dev — générez un secret aléatoire (≥64 car.)')
+    }
+    if (process.env.E2E_MODE === 'true') {
+      fatal.push('E2E_MODE=true désactive le rate-limit de login — interdit en production')
+    }
+    if (/:changeme@|password=changeme/i.test(process.env.MONGO_URI || '')) {
+      fatal.push('MONGO_URI utilise le mot de passe par défaut « changeme »')
+    }
+    if (fatal.length) {
+      for (const m of fatal) logger.error(`[boot] Config production dangereuse : ${m}`)
+      process.exit(1)
+    }
   }
 
   await connect()

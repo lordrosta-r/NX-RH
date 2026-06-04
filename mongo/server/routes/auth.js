@@ -22,10 +22,13 @@ const logger  = require('../utils/logger')
 
 // ─── Rate limiters — POST /login ─────────────────────────────────────────────
 // Deux limiters distincts : un par email (anti brute-force), un par IP (anti spray)
+// E2E_MODE=true ou NODE_ENV=test → limites très élevées pour les tests automatisés
+
+const isTestEnv = process.env.NODE_ENV === 'test' || process.env.E2E_MODE === 'true'
 
 const loginByEmailLimiter = rateLimit({
   windowMs:       15 * 60 * 1000,
-  max:            process.env.NODE_ENV === 'test' ? 1000 : 5,
+  max:            isTestEnv ? 1000 : 5,
   keyGenerator:   (req) => {
     const raw = req.body?.email
     return `email:${typeof raw === 'string' ? raw.toLowerCase().trim() : 'unknown'}`
@@ -37,7 +40,7 @@ const loginByEmailLimiter = rateLimit({
 
 const loginByIPLimiter = rateLimit({
   windowMs:       15 * 60 * 1000,
-  max:            process.env.NODE_ENV === 'test' ? 1000 : 20,
+  max:            isTestEnv ? 1000 : 20,
   keyGenerator:   (req) => `ip:${ipKeyGenerator(req)}`,
   standardHeaders: true,
   legacyHeaders:  false,
@@ -47,7 +50,7 @@ const loginByIPLimiter = rateLimit({
 // ─── POST /api/auth/login ────────────────────────────────────────────────────
 
 const loginSchema = Joi.object({
-  email: Joi.string().email().max(254).required().messages({
+  email: Joi.string().email({ tlds: { allow: false } }).max(254).required().messages({
     'string.email': 'Email invalide',
     'any.required': 'Email requis',
   }),
@@ -110,7 +113,18 @@ router.post('/login', loginByEmailLimiter, loginByIPLimiter, async (req, res, ne
     })
   } catch (err) {
     if (err.loginFailed) {
-      AuditLog.create({ action: 'login_failed', details: { email: req.body.email, ip: req.ip } }).catch(err => logger.error('[auth] AuditLog create failed', { error: err.message }))
+      // Audit best-effort : seulement si l'échec porte sur un compte connu
+      // (authService attache auditUserId). Email inconnu → uniquement dans les logs.
+      if (err.auditUserId) {
+        AuditLog.create({
+          userId:     err.auditUserId,
+          userRole:   err.auditUserRole,
+          action:     'login_failed',
+          targetType: 'User',
+          targetId:   err.auditUserId,
+          meta:       { email: req.body.email, ip: req.ip },
+        }).catch(e => logger.error('[auth] AuditLog login_failed', { error: e.message }))
+      }
       return res.status(401).json({ error: err.message })
     }
     next(err)

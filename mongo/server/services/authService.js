@@ -158,6 +158,9 @@ async function login(email, password, remember) {
   logger.warn('[auth] Login failed', { email: email.toLowerCase() })
   const err = makeError('Identifiants invalides', 401)
   err.loginFailed = true
+  // Pour l'audit : on ne peut tracer en base qu'un échec sur un compte CONNU
+  // (AuditLog exige userId/targetId). Email inconnu → seulement dans les logs.
+  if (user) { err.auditUserId = user._id; err.auditUserRole = user.role }
   throw err
 }
 

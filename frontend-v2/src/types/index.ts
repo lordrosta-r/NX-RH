@@ -132,6 +132,32 @@ export interface Evaluation {
   form?: Form;
 }
 
+// Données de l'évaluation N-1 — renvoyées par GET /api/evaluations/:id/n1-context
+// (204 No Content si la feature est désactivée ou si aucune éval N-1 n'existe).
+export interface N1Context {
+  n1Campaign: {
+    id?: string;
+    name?: string;
+    startDate?: string;
+    endDate?: string;
+  };
+  reviewerScore: number | null;
+  reviewerComment: string | null;
+  nextYearObjectives: string | null;
+  objectiveRatings: Record<string, string>;
+  status: EvaluationStatus;
+  objectivesAnswers: Array<{
+    questionId: string;
+    questionLabel: string;
+    questionType?: string;
+    value: unknown;
+  }>;
+  formTitle: string | null;
+  formType: string | null;
+  evaluateeComment?: string | null;
+  disagreementFlag?: boolean;
+}
+
 // ─── Formulaires ───────────────────────────────────────────────────────────────
 export type QuestionType =
   | "text"

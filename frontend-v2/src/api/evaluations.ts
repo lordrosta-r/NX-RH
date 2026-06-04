@@ -1,28 +1,38 @@
-import client from './client'
-import type { Evaluation, PaginatedResponse, PaginationParams } from '../types'
+import client from "./client";
+import type {
+  Evaluation,
+  N1Context,
+  PaginatedResponse,
+  PaginationParams,
+} from "../types";
 
 export interface EvaluationFilters extends PaginationParams {
-  campaignId?: string
-  status?: string
-  evaluateeId?: string
-  evaluatorId?: string
-  department?: string
-  q?: string
-  year?: string
+  campaignId?: string;
+  status?: string;
+  evaluateeId?: string;
+  evaluatorId?: string;
+  department?: string;
+  q?: string;
+  year?: string;
 }
 
 export const evaluationsApi = {
   getEvaluations: (params?: EvaluationFilters) =>
-    client.get<PaginatedResponse<Evaluation>>('/api/evaluations', { params }),
+    client.get<PaginatedResponse<Evaluation>>("/api/evaluations", { params }),
 
   getMyEvaluations: (params?: EvaluationFilters) =>
-    client.get<PaginatedResponse<Evaluation>>('/api/evaluations/me', { params }),
+    client.get<PaginatedResponse<Evaluation>>("/api/evaluations/me", {
+      params,
+    }),
 
-  getHistory: () =>
-    client.get<Evaluation[]>('/api/evaluations/history'),
+  getHistory: () => client.get<Evaluation[]>("/api/evaluations/history"),
 
   getEvaluation: (id: string) =>
     client.get<Evaluation>(`/api/evaluations/${id}`),
+
+  // 204 No Content → axios renvoie data === "" ; le consommateur traite ce cas.
+  getN1Context: (id: string) =>
+    client.get<N1Context | "">(`/api/evaluations/${id}/n1-context`),
 
   updateEvaluation: (id: string, data: Partial<Evaluation>) =>
     client.patch<Evaluation>(`/api/evaluations/${id}`, data),
@@ -37,17 +47,30 @@ export const evaluationsApi = {
     client.post<Evaluation>(`/api/evaluations/${id}/validate`),
 
   getEvaluationPdf: (id: string) =>
-    client.get(`/api/evaluations/${id}/pdf`, { responseType: 'blob' }),
+    client.get(`/api/evaluations/${id}/pdf`, { responseType: "blob" }),
 
-  createEvaluation: (data: { campaignId: string; evaluateeId: string; evaluatorId: string }) =>
-    client.post<Evaluation>('/api/evaluations', data),
+  createEvaluation: (data: {
+    campaignId: string;
+    evaluateeId: string;
+    evaluatorId: string;
+  }) => client.post<Evaluation>("/api/evaluations", data),
 
   transitionEvaluation: (id: string, action: string) =>
     client.post<Evaluation>(`/api/evaluations/${id}/transition`, { action }),
 
-  createBulk: (data: { campaignId: string; pairs: Array<{ evaluateeId: string; evaluatorId: string }> }) =>
-    client.post('/api/evaluations/bulk', data),
+  createBulk: (data: {
+    campaignId: string;
+    pairs: Array<{ evaluateeId: string; evaluatorId: string }>;
+  }) => client.post("/api/evaluations/bulk", data),
 
-  bulkAction: (data: { ids: string[]; action: 'archive' | 'sign_hr' | 'assign_reviewer'; reviewerId?: string }) =>
-    client.patch<{ success: number; skipped: number; errors: Array<{ id: string; reason: string }> }>('/api/evaluations/bulk', data),
-}
+  bulkAction: (data: {
+    ids: string[];
+    action: "archive" | "sign_hr" | "assign_reviewer";
+    reviewerId?: string;
+  }) =>
+    client.patch<{
+      success: number;
+      skipped: number;
+      errors: Array<{ id: string; reason: string }>;
+    }>("/api/evaluations/bulk", data),
+};

@@ -1,31 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2, ArrowRight, Check } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuth } from "../contexts/AuthContext";
 import type { AxiosError } from "axios";
 import { loginSchema, type LoginFormValues } from "../schemas";
-import { ErrorMessage } from "../components/ui/ErrorMessage";
 import { useTranslation } from "react-i18next";
-
-function InlineAlert({
-  type,
-  message,
-}: {
-  type: "error" | "warning";
-  message: string;
-}) {
-  const styles = {
-    error: "bg-error-50 border-error-500 text-error-700",
-    warning: "bg-warning-50 border-warning-500 text-warning-700",
-  };
-  return (
-    <div className={`border-l-4 rounded-lg p-3 text-sm ${styles[type]}`}>
-      {message}
-    </div>
-  );
-}
 
 export default function LoginPage() {
   const { t } = useTranslation();
@@ -73,145 +54,141 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-xl p-8">
-      <h1 className="text-2xl font-bold text-slate-900">{t("auth.login")}</h1>
-      <p className="text-sm text-slate-500 mt-1">{t("auth.welcome")}</p>
+    <div className="auth-card">
+      <div style={{ marginBottom: 28 }}>
+        <p className="eyebrow">{t("auth.eyebrowSpace")}</p>
+        <h2 className="h1" style={{ marginTop: 8 }}>
+          {t("auth.login")}
+        </h2>
+        <p className="body" style={{ marginTop: 8 }}>
+          {t("auth.subtitle")}
+        </p>
+      </div>
 
       {alertError && (
-        <div className="mt-4">
-          <InlineAlert type={alertError.type} message={alertError.message} />
+        <div
+          className={`auth-alert ${alertError.type}`}
+          role="alert"
+          style={{ marginBottom: 20 }}
+        >
+          {alertError.message}
         </div>
       )}
 
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="mt-6 space-y-4"
         noValidate
+        style={{ display: "flex", flexDirection: "column", gap: 20 }}
       >
         {/* Email */}
-        <div>
-          <label
-            htmlFor="email"
-            className="block text-sm font-medium text-slate-700 mb-1"
-          >
-            {t("auth.email")}
-          </label>
+        <div className="field">
+          <label htmlFor="email">{t("auth.email")}</label>
           <input
             id="email"
             type="email"
             autoFocus
             autoComplete="username"
             data-testid="login-email"
+            placeholder="prenom.nom@nanoxplore.com"
             {...register("email")}
             aria-invalid={!!errors.email}
             aria-describedby={errors.email ? "email-error" : undefined}
             disabled={isSubmitting}
-            className={`w-full h-10 px-3 rounded-lg border bg-white text-slate-900 text-sm transition-colors placeholder:text-slate-500 focus:outline-none focus:ring-2 ${
-              errors.email
-                ? "border-error-500 ring-error-200 focus:ring-error-200"
-                : "border-slate-300 focus:border-primary-500 focus:ring-primary-200"
-            } disabled:opacity-60 disabled:cursor-not-allowed`}
-            placeholder="prenom.nom@nanoxplore.com"
+            className={`input${errors.email ? " is-invalid" : ""}`}
           />
-          <ErrorMessage id="email-error" message={errors.email?.message} />
+          {errors.email && (
+            <span id="email-error" className="field-error">
+              {errors.email.message}
+            </span>
+          )}
         </div>
 
         {/* Mot de passe */}
-        <div>
-          <label
-            htmlFor="password"
-            className="block text-sm font-medium text-slate-700 mb-1"
-          >
-            {t("auth.password")}
-          </label>
-          <div className="relative">
+        <div className="field">
+          <label htmlFor="password">{t("auth.password")}</label>
+          <div className="input-wrap">
             <input
               id="password"
               type={showPassword ? "text" : "password"}
               autoComplete="current-password"
               data-testid="login-password"
+              placeholder={t("auth.password")}
               {...register("password")}
               aria-invalid={!!errors.password}
               aria-describedby={errors.password ? "password-error" : undefined}
               disabled={isSubmitting}
-              className={`w-full h-10 px-3 pr-10 rounded-lg border bg-white text-slate-900 text-sm transition-colors placeholder:text-slate-500 focus:outline-none focus:ring-2 ${
-                errors.password
-                  ? "border-error-500 ring-error-200 focus:ring-error-200"
-                  : "border-slate-300 focus:border-primary-500 focus:ring-primary-200"
-              } disabled:opacity-60 disabled:cursor-not-allowed`}
-              placeholder="••••••••"
+              className={`input has-icon${errors.password ? " is-invalid" : ""}`}
             />
             <button
               type="button"
+              className="input-icon-btn"
               onClick={() => setShowPassword((v) => !v)}
-              className="absolute inset-y-0 right-0 flex items-center px-3 text-slate-400 hover:text-slate-600"
               aria-label={
                 showPassword ? t("auth.hidePassword") : t("auth.showPassword")
               }
             >
               {showPassword ? (
-                <EyeOff className="w-4 h-4" />
+                <EyeOff className="ico" style={{ width: 18, height: 18 }} />
               ) : (
-                <Eye className="w-4 h-4" />
+                <Eye className="ico" style={{ width: 18, height: 18 }} />
               )}
             </button>
           </div>
-          <ErrorMessage
-            id="password-error"
-            message={errors.password?.message}
-          />
+          {errors.password && (
+            <span id="password-error" className="field-error">
+              {errors.password.message}
+            </span>
+          )}
         </div>
 
-        {/* Remember me */}
-        <div className="flex items-center gap-2">
+        {/* Se souvenir de moi */}
+        <label className="checkbox" htmlFor="remember">
           <input
             id="remember"
             type="checkbox"
             checked={remember}
             onChange={(e) => setRemember(e.target.checked)}
             disabled={isSubmitting}
-            className="h-4 w-4 rounded border-slate-300 text-primary-500 focus:ring-primary-200"
           />
-          <label htmlFor="remember" className="text-sm text-slate-600">
-            {t("auth.remember")}
-          </label>
-        </div>
+          <span className="box">
+            <Check />
+          </span>
+          <span>{t("auth.remember")}</span>
+        </label>
 
         {/* Submit */}
         <button
           type="submit"
           data-testid="login-submit"
           disabled={isSubmitting}
-          className="w-full h-11 flex items-center justify-center gap-2 rounded-lg bg-primary-600 text-white font-medium text-sm hover:bg-primary-700 active:bg-primary-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed"
+          className="btn btn-primary btn-lg btn-block"
         >
           {isSubmitting ? (
             <>
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <Loader2
+                className="ico animate-spin"
+                style={{ width: 18, height: 18 }}
+                aria-hidden
+              />
               {t("auth.loginLoading")}
             </>
           ) : (
-            t("auth.loginButton")
+            <>
+              {t("auth.loginButton")}
+              <ArrowRight className="ico" aria-hidden />
+            </>
           )}
         </button>
 
-        {/* Divider + LDAP */}
+        {/* LDAP */}
         {ldapEnabled && (
-          <>
-            <div className="relative my-2">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-slate-200" />
-              </div>
-              <div className="relative flex justify-center text-xs text-slate-500">
-                <span className="bg-white px-3">ou</span>
-              </div>
-            </div>
-            <Link
-              to="/login/ldap"
-              className="w-full h-11 flex items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-700 font-medium text-sm hover:bg-slate-50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-300"
-            >
-              {t("auth.ldapLogin")}
-            </Link>
-          </>
+          <Link
+            to="/login/ldap"
+            className="link"
+            style={{ textAlign: "center" }}
+          >
+            {t("auth.ldapLogin")}
+          </Link>
         )}
       </form>
     </div>

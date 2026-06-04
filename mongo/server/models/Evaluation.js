@@ -41,12 +41,14 @@ const ROLE_TRANSITIONS = {
     reviewed:    ['signed_evaluatee'],   // l'employé signe après review du manager
   },
   manager:   {
+    in_progress:       ['submitted'],       // peut soumettre une éval qu'il remplit (ex: éval compétences)
     submitted:         ['reviewed'],
     signed_evaluatee:  ['signed_manager'],  // le manager co-signe après l'employé
   },
   director:  {
-    submitted:        ['reviewed'],
-    signed_evaluatee: ['signed_manager'],
+    in_progress:       ['submitted'],
+    submitted:         ['reviewed'],
+    signed_evaluatee:  ['signed_manager'],
   },
   // HR peut signer directement depuis reviewed OU signed_manager (bypass intentionnel :
   // permet à RH de valider même si l'employé ou le manager n'a pas encore signé).

@@ -165,9 +165,15 @@ async function handleUpdate(req, res, next) {
 
     // ── Transition de statut ──────────────────────────────────────────────────
     if (req.body.status !== undefined) {
+      // Un manager/directeur peut faire avancer le statut s'il est l'évaluateur
+      // (ex: il remplit une éval compétences) OU le manager hiérarchique (N+1) de
+      // l'évalué (ex: il relit la self-évaluation d'un collaborateur).
       if (['manager', 'director'].includes(role)) {
-        if (evaluation.evaluatorId.toString() !== uid) {
-          return res.status(403).json({ error: "Accès refusé : vous n'êtes pas l'évaluateur de cette évaluation" })
+        if (!_evaluatee) _evaluatee = await User.findById(evaluation.evaluateeId, 'managerId').lean()
+        const isEvaluator = evaluation.evaluatorId.toString() === uid
+        const isManagerOf = _evaluatee?.managerId?.toString() === uid
+        if (!isEvaluator && !isManagerOf) {
+          return res.status(403).json({ error: "Accès refusé : vous n'êtes ni l'évaluateur ni le manager de cet évalué" })
         }
       }
 

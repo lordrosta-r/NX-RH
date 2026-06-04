@@ -31,7 +31,19 @@ Rejouer : `docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d`
 
 ---
 
-## 3. ⚠️ Incohérence majeure — workflow review/signature côté manager
+## 3. ✅ [CORRIGÉ] Workflow review/signature côté manager
+
+> **Résolu** : `ROLE_TRANSITIONS.manager/director` accepte désormais `in_progress → submitted`
+> (le manager peut soumettre une éval compétences qu'il remplit) ET le check de transition
+> autorise « l'évaluateur **OU** le manager N+1 de l'évalué » (le manager peut relire la
+> self-évaluation d'un collaborateur). Chaîne complète vérifiée live : remplir → soumettre →
+> reviewed → signatures (évalué/manager/RH) → validé = **40/41 checks**.
+> Cela soutient le besoin métier : une campagne porte plusieurs formulaires (auto-éval +
+> éval compétences manager/direction), la RH choisit qui remplit/relit chacun.
+
+_Diagnostic initial (conservé pour mémoire) :_
+
+
 
 Le passage `submitted → reviewed → signed_*` est **bloqué pour le manager** par deux règles contradictoires :
 

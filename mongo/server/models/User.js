@@ -91,6 +91,14 @@ const userSchema = new Schema({
     select: false,
   },
 
+  // Identifiant de la SOURCE LDAP d'origine (config multi-annuaires).
+  // null pour les comptes locaux. Permet de savoir contre quel annuaire
+  // authentifier l'utilisateur et d'où il a été importé.
+  ldapSource: {
+    type: String,
+    default: null,
+  },
+
   // Préférences utilisateur — persistées en DB pour suivre l'utilisateur entre devices.
   // localStorage reste le cache anti-flash côté client.
   locale: { type: String, enum: LOCALES, default: 'fr' },

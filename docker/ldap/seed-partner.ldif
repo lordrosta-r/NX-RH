@@ -1,0 +1,53 @@
+# NanoXplore RH — 2e annuaire LDAP de test (« Partner »)
+# Base : dc=partner,dc=local — mot de passe de tous les comptes : password
+# Sert à tester l'authentification multi-source (login contre un 2e LDAP).
+
+dn: ou=users,dc=partner,dc=local
+objectClass: organizationalUnit
+ou: users
+
+# ── Utilisateurs partenaires ────────────────────────────────────────────────
+dn: uid=partner.alice,ou=users,dc=partner,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: partner.alice
+cn: Alice Partner
+sn: Partner
+givenName: Alice
+mail: alice.partner@partner.local
+title: Consultante externe
+departmentNumber: Consulting
+uidNumber: 2001
+gidNumber: 2001
+homeDirectory: /home/partner.alice
+userPassword: {SSHA}W6ph5Mm5Pz8GgiULbPgzG37mj9g=
+
+dn: uid=partner.bob,ou=users,dc=partner,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: partner.bob
+cn: Bob Partner
+sn: Partner
+givenName: Bob
+mail: bob.partner@partner.local
+title: Prestataire IT
+departmentNumber: Infrastructure
+uidNumber: 2002
+gidNumber: 2002
+homeDirectory: /home/partner.bob
+userPassword: {SSHA}W6ph5Mm5Pz8GgiULbPgzG37mj9g=
+
+dn: uid=partner.carol,ou=users,dc=partner,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: partner.carol
+cn: Carol Partner
+sn: Partner
+givenName: Carol
+mail: carol.partner@partner.local
+title: Auditrice
+departmentNumber: Finance
+uidNumber: 2003
+gidNumber: 2003
+homeDirectory: /home/partner.carol
+userPassword: {SSHA}W6ph5Mm5Pz8GgiULbPgzG37mj9g=

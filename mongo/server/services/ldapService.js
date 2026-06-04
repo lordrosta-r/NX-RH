@@ -138,7 +138,8 @@ async function previewUsers(config) {
     const entries = await searchAsync(client, config.baseDN, {
       scope:      'sub',
       filter:     config.userFilter || '(objectClass=person)',
-      sizeLimit:  50,
+      // Élargi (500) pour permettre à l'admin de voir TOUS les utilisateurs de l'annuaire.
+      sizeLimit:  config.previewLimit || 500,
       attributes: ['dn', 'cn', attrEmail, attrFirst, attrLast, attrDept, attrTitle],
     })
     await unbindAsync(client)
@@ -146,6 +147,99 @@ async function previewUsers(config) {
   } catch (err) {
     try { await unbindAsync(client) } catch (_) { /* ignore */ }
     throw new Error(`Prévisualisation impossible : ${err.message}`, { cause: err })
+  }
+}
+
+// Échappe une valeur pour un filtre LDAP (anti-injection).
+function escapeFilter(value) {
+  return String(value).replace(/[\\*()\0]/g, c => '\\' + c.charCodeAt(0).toString(16).padStart(2, '0'))
+}
+
+// Mappe une entrée LDAP brute vers les champs User selon les attributs configurés.
+function mapLdapEntry(entry, config) {
+  return {
+    email:     (getVal(entry, config.attrEmail || 'mail') || '').toLowerCase(),
+    firstName: getVal(entry, config.attrFirstName || 'givenName') || 'Inconnu',
+    lastName:  getVal(entry, config.attrLastName  || 'sn')        || 'Inconnu',
+    dept:      getVal(entry, config.attrDepartment || 'department'),
+    position:  getVal(entry, config.attrTitle      || 'title'),
+    dn:        entry.dn || '',
+  }
+}
+
+/**
+ * Crée ou met à jour un utilisateur local à partir d'une entrée LDAP.
+ * Trace la source d'origine via ldapSource. Ne remplace jamais un mot de passe existant.
+ * @returns {Promise<object|null>} l'utilisateur (lean) ou null si pas d'email
+ */
+async function upsertLdapUser(entry, config) {
+  const { email, firstName, lastName, dept, position, dn } = mapLdapEntry(entry, config)
+  if (!email) return null
+  const sourceId = config.id || config.label || null
+
+  const existing = await User.findOne({ email }).lean()
+  if (existing) {
+    const updates = { firstName, lastName, ldapDn: dn, authSource: 'ldap', ldapSource: sourceId }
+    if (dept)     updates.department = dept
+    if (position) updates.position   = position
+    await User.updateOne({ _id: existing._id }, { $set: updates })
+    return User.findById(existing._id).lean()
+  }
+
+  const randomPwd = await bcrypt.hash(randomUUID(), BCRYPT_ROUNDS)
+  const created = await User.create({
+    email, firstName, lastName,
+    passwordHash: randomPwd,
+    authSource:   'ldap',
+    ldapDn:       dn,
+    ldapSource:   sourceId,
+    role:         config.defaultRole || 'employee',
+    department:   dept     || null,
+    position:     position || null,
+    isActive:     true,
+  })
+  return created.toObject()
+}
+
+/**
+ * Authentifie un utilisateur contre un annuaire LDAP (bind avec son DN).
+ * 1. bind compte de service → 2. recherche par email → 3. bind comme l'utilisateur.
+ * Ne lance jamais : renvoie l'entrée LDAP en cas de succès, sinon null.
+ * @returns {Promise<object|null>}
+ */
+async function authenticate(config, email, password) {
+  if (!config?.host || !config?.bindDN || !config?.baseDN || !email || !password) return null
+  const attrEmail = config.attrEmail || 'mail'
+
+  const client = makeClient(config)
+  let userDn = null
+  let entry  = null
+  try {
+    await bindAsync(client, config.bindDN, config.bindPassword || '')
+    const entries = await searchAsync(client, config.baseDN, {
+      scope:      'sub',
+      filter:     `(${attrEmail}=${escapeFilter(email)})`,
+      sizeLimit:  2,
+      attributes: ['dn', attrEmail, config.attrFirstName || 'givenName', config.attrLastName || 'sn', config.attrDepartment || 'department', config.attrTitle || 'title'],
+    })
+    await unbindAsync(client)
+    if (entries.length === 1 && entries[0].dn) { userDn = entries[0].dn; entry = entries[0] }
+  } catch (err) {
+    try { await unbindAsync(client) } catch (_) { /* ignore */ }
+    logger.warn('[LDAP] authenticate — search error', { error: err.message })
+    return null
+  }
+  if (!userDn) return null
+
+  // Vérifie le mot de passe en se bindant comme l'utilisateur
+  const userClient = makeClient(config)
+  try {
+    await bindAsync(userClient, userDn, password)
+    await unbindAsync(userClient)
+    return entry
+  } catch (_) {
+    try { await unbindAsync(userClient) } catch (_) { /* ignore */ }
+    return null
   }
 }
 
@@ -234,4 +328,4 @@ async function syncUsers(config) {
   }
 }
 
-module.exports = { testConnection, previewUsers, syncUsers }
+module.exports = { testConnection, previewUsers, syncUsers, authenticate, upsertLdapUser, mapLdapEntry }

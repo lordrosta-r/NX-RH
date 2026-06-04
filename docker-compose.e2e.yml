@@ -5,3 +5,7 @@ services:
   app:
     env_file:
       - .env.e2e
+    # Publie l'app en HTTP direct (sans nginx ni redirection HTTPS) pour pouvoir
+    # la forwarder via un tunnel (VS Code devtunnel, ngrok…) et tester en externe.
+    ports:
+      - "8090:3000"

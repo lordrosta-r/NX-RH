@@ -18,6 +18,13 @@ export const adminApi = {
   updateConfig: (data: Partial<AppConfig>) =>
     client.put<AppConfig>("/api/admin/config", data),
 
+  // Départements (liste gérée en DB)
+  getDepartments: () =>
+    client.get<{ departments: string[] }>("/api/departments"),
+
+  updateDepartments: (departments: string[]) =>
+    client.put<{ departments: string[] }>("/api/departments", { departments }),
+
   // LDAP
   getLdapConfig: () => client.get<LdapConfig>("/api/admin/ldap/config"),
 

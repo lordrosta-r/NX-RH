@@ -81,7 +81,7 @@ function buildApp() {
   app.use(cookieParser())
   // The dashboard route applies its own authGuard — just mount the router.
   app.use('/api/dashboard', dashboardRouter)
-  // eslint-disable-next-line no-unused-vars
+   
   app.use((err, _req, res, _next) => {
     res.status(err.status || 500).json({ error: err.message || 'Internal server error' })
   })
@@ -158,30 +158,6 @@ describe('GET /api/dashboard', () => {
     expect(res.body).toHaveProperty('team')
     expect(res.body.team).toMatchObject({ total: 0, submitted: 0, completionRate: 0 })
     expect(res.body).toHaveProperty('teamSize', 0)
-    expect(res.body).toHaveProperty('pendingRequests')
-  })
-
-  // ── Director ─────────────────────────────────────────────────────────────────
-
-  it('returns subtree stats for director', async () => {
-    // Two sequential User.find calls: direct reports then second level
-    User.find
-      .mockReturnValueOnce(makeChain([]))   // directReports
-      .mockReturnValueOnce(makeChain([]))   // secondLevel
-    Campaign.find.mockReturnValue(makeChain([]))
-    Evaluation.find
-      .mockReturnValueOnce(makeChain([]))   // subtreeEvals
-      .mockReturnValueOnce(makeChain([]))   // pendingRequests
-
-    const res = await request(app)
-      .get('/api/dashboard')
-      .set('Cookie', `accessToken=${tokenFor({ id: DIRECTOR_ID, role: 'director' })}`)
-
-    expect(res.status).toBe(200)
-    expect(res.body.role).toBe('director')
-    expect(res.body).toHaveProperty('activeCampaigns')
-    expect(res.body).toHaveProperty('subtree')
-    expect(res.body.subtree).toMatchObject({ total: 0, submitted: 0, completionRate: 0, size: 0 })
     expect(res.body).toHaveProperty('pendingRequests')
   })
 

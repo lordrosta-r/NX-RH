@@ -45,11 +45,6 @@ const ROLE_TRANSITIONS = {
     submitted:         ['reviewed'],
     signed_evaluatee:  ['signed_manager'],  // le manager co-signe après l'employé
   },
-  director:  {
-    in_progress:       ['submitted'],
-    submitted:         ['reviewed'],
-    signed_evaluatee:  ['signed_manager'],
-  },
   // HR peut signer directement depuis reviewed OU signed_manager (bypass intentionnel :
   // permet à RH de valider même si l'employé ou le manager n'a pas encore signé).
   // HR peut aussi valider (signed_hr → validated) sans passer par l'admin.

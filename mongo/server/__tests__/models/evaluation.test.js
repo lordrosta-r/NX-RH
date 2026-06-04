@@ -72,10 +72,13 @@ describe('Evaluation model — VALID_TRANSITIONS', () => {
 })
 
 describe('Evaluation model — ROLE_TRANSITIONS', () => {
-  it('is defined for employee, manager, director, hr', () => {
-    ['employee', 'manager', 'director', 'hr'].forEach(role => {
+  it('is defined for employee, manager, hr', () => {
+    ['employee', 'manager', 'hr'].forEach(role => {
       expect(ROLE_TRANSITIONS).toHaveProperty(role)
     })
+  })
+  it('no longer defines the removed director role', () => {
+    expect(ROLE_TRANSITIONS).not.toHaveProperty('director')
   })
 
   describe('employee transitions', () => {
@@ -107,16 +110,6 @@ describe('Evaluation model — ROLE_TRANSITIONS', () => {
       Object.values(mgr).forEach(targets => {
         expect(targets).not.toContain('validated')
       })
-    })
-  })
-
-  describe('director transitions', () => {
-    const dir = ROLE_TRANSITIONS.director
-    it('can review like manager: submitted → reviewed', () => {
-      expect(dir.submitted).toContain('reviewed')
-    })
-    it('can co-sign: signed_evaluatee → signed_manager', () => {
-      expect(dir.signed_evaluatee).toContain('signed_manager')
     })
   })
 

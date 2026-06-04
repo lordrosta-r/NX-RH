@@ -220,7 +220,7 @@ app.get('*', (req, res, next) => {
 
 // ─── API Routes ──────────────────────────────────────────────────────────────
 
-const authenticated = authGuard(['admin', 'director', 'manager', 'employee', 'hr'])
+const authenticated = authGuard(['admin', 'manager', 'employee', 'hr'])
 
 // Rate limiters API
 const apiLimiter = rateLimit({ windowMs: 60 * 1000, max: 2000, standardHeaders: true, legacyHeaders: false })
@@ -265,7 +265,7 @@ v1Router.use('/hr/notifications', mutationLimiter, authGuard(['admin', 'hr']), h
 // hr/flags : authGuard inline par route (POST accessible aux employees/managers)
 v1Router.use('/hr/flags',         mutationLimiter, hrFlagsRoutes)
 v1Router.use('/hr/settings',      apiLimiter,      authGuard(['admin', 'hr']), hrSettingsRoutes)
-v1Router.use('/org',              mutationLimiter, authGuard(['admin', 'hr', 'manager', 'director']), orgRoutes)
+v1Router.use('/org',              mutationLimiter, authGuard(['admin', 'hr', 'manager']), orgRoutes)
 v1Router.use('/notifications',    apiLimiter, authenticated, notificationsRouter)
 v1Router.use('/dashboard',        apiLimiter, authenticated, dashboardRouter)
 v1Router.use('/search',           apiLimiter, authGuard(['admin', 'hr', 'manager', 'employee']), searchRoutes)

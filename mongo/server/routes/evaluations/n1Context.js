@@ -44,7 +44,7 @@ async function handleN1Context(req, res, next) {
         evaluation.evaluateeId?.toString() === uid
       if (!isOwn) return res.status(403).json({ error: 'Accès refusé' })
       if (campaign?.n1VisibleToEmployee === false) return res.status(204).end()
-    } else if (role === 'manager' || role === 'director') {
+    } else if (role === 'manager') {
       const visibleIds = await getVisibleUserIds(req.user.id, campaign)
       const eveeId = evaluation.evaluateeId?.toString()
       const evorId = evaluation.evaluatorId?.toString()

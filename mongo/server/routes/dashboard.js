@@ -8,7 +8,7 @@ const MobilityRequest                   = require('../models/MobilityRequest')
 const logger                            = require('../utils/logger')
 const { cacheResponse }                 = require('../middleware/cacheMiddleware')
 
-const authenticated = authGuard(['admin', 'hr', 'director', 'manager', 'employee'])
+const authenticated = authGuard(['admin', 'hr', 'manager', 'employee'])
 
 router.get('/', authenticated, cacheResponse(300, req => `GET:/api/dashboard:${req.user.id}`), async (req, res) => {
   try {
@@ -52,31 +52,6 @@ router.get('/', authenticated, cacheResponse(300, req => `GET:/api/dashboard:${r
         team: { total, submitted, completionRate: total ? Math.round(submitted / total * 100) : 0 },
         pendingRequests,
         teamSize: teamIds.length
-      }
-
-    } else if (role === 'director') {
-      const directReports = await User.find({ managerId: userId, isActive: true }).select('_id').lean()
-      const directIds     = directReports.map(u => u._id)
-      const secondLevel   = await User.find({ managerId: { $in: directIds }, isActive: true }).select('_id').lean()
-      const subtreeIds    = [...directIds, ...secondLevel.map(u => u._id)]
-      const [activeCampaigns, subtreeEvals, pendingRequests] = await Promise.all([
-        Campaign.find({ status: 'active' }).select('name startDate endDate').lean(),
-        Evaluation.find({
-          evaluateeId: { $in: subtreeIds },
-          status: { $in: ['assigned', 'in_progress', 'submitted'] }
-        }).populate('evaluateeId', 'firstName lastName department').lean(),
-        Evaluation.find({
-          evaluateeId: { $in: subtreeIds },
-          campaignId: null,
-          status: { $in: ['assigned', 'submitted'] }
-        }).populate('evaluateeId', 'firstName lastName').populate('formId', 'formType').lean()
-      ])
-      const total     = subtreeEvals.length
-      const submitted = subtreeEvals.filter(e => ['submitted', 'reviewed', 'validated'].includes(e.status)).length
-      data = {
-        activeCampaigns,
-        subtree: { total, submitted, completionRate: total ? Math.round(submitted / total * 100) : 0, size: subtreeIds.length },
-        pendingRequests
       }
 
     } else if (role === 'hr' || role === 'admin') {

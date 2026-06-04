@@ -25,7 +25,7 @@ const MAX_DEPTH = 20
  */
 async function getDirectSubManagers(managerId) {
   const subs = await User.find(
-    { managerId, role: { $in: ['manager', 'director'] }, isActive: true },
+    { managerId, role: { $in: ['manager'] }, isActive: true },
     '_id'
   ).lean()
   return subs.map(u => u._id)

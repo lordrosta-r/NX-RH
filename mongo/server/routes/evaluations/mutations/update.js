@@ -55,7 +55,7 @@ async function handleUpdate(req, res, next) {
       if (LOCKED_STATUSES.includes(evaluation.status)) {
         return res.status(409).json({ error: 'Les réponses sont verrouillées — évaluation déjà soumise' })
       }
-      if (['manager', 'director'].includes(role)) {
+      if (['manager'].includes(role)) {
         if (!_evaluatee) _evaluatee = await User.findById(evaluation.evaluateeId).select('managerId').lean()
         if (!_evaluatee || !_evaluatee.managerId || !_evaluatee.managerId.equals(req.user._id)) {
           return res.status(403).json({ error: "Accès interdit : vous n'êtes pas le manager de cet évaluataire." })
@@ -67,13 +67,13 @@ async function handleUpdate(req, res, next) {
 
     // ── Score reviewer (manager/director/admin/hr) ────────────────────────────
     if (req.body.reviewerScore !== undefined) {
-      if (!['manager', 'director', 'admin', 'hr'].includes(role)) {
+      if (!['manager', 'admin', 'hr'].includes(role)) {
         return res.status(403).json({ error: 'Seuls les managers et admins peuvent ajouter un score' })
       }
       if (evaluation.status === 'validated') {
         return res.status(403).json({ error: 'Score non modifiable sur une évaluation validée' })
       }
-      if (['manager', 'director'].includes(role)) {
+      if (['manager'].includes(role)) {
         if (!_evaluatee) _evaluatee = await User.findById(evaluation.evaluateeId, 'managerId').lean()
         if (!_evaluatee || _evaluatee.managerId?.toString() !== uid) {
           return res.status(403).json({ error: "Vous n'êtes pas le manager de cet évalué" })
@@ -84,13 +84,13 @@ async function handleUpdate(req, res, next) {
 
     // ── Commentaire reviewer ──────────────────────────────────────────────────
     if (req.body.reviewerComment !== undefined) {
-      if (!['manager', 'director', 'admin', 'hr'].includes(role)) {
+      if (!['manager', 'admin', 'hr'].includes(role)) {
         return res.status(403).json({ error: 'Seuls les managers et admins peuvent ajouter un commentaire reviewer' })
       }
       if (typeof req.body.reviewerComment !== 'string' || req.body.reviewerComment.length > 5000) {
         return res.status(400).json({ error: 'reviewerComment invalide (max 5000 chars)' })
       }
-      if (['manager', 'director'].includes(role)) {
+      if (['manager'].includes(role)) {
         if (!_evaluatee) _evaluatee = await User.findById(evaluation.evaluateeId, 'managerId').lean()
         const isEvaluator = evaluation.evaluatorId.toString() === uid
         const isManagerOf = _evaluatee?.managerId?.toString() === uid
@@ -103,13 +103,13 @@ async function handleUpdate(req, res, next) {
 
     // ── Objectifs suivants ────────────────────────────────────────────────────
     if (req.body.nextYearObjectives !== undefined) {
-      if (!['manager', 'director', 'admin', 'hr'].includes(role)) {
+      if (!['manager', 'admin', 'hr'].includes(role)) {
         return res.status(403).json({ error: 'Seuls les managers et admins peuvent définir les objectifs suivants' })
       }
       if (typeof req.body.nextYearObjectives !== 'string' || req.body.nextYearObjectives.length > 5000) {
         return res.status(400).json({ error: 'nextYearObjectives invalide (max 5000 chars)' })
       }
-      if (['manager', 'director'].includes(role)) {
+      if (['manager'].includes(role)) {
         if (!_evaluatee) _evaluatee = await User.findById(evaluation.evaluateeId, 'managerId').lean()
         const isEvaluator = evaluation.evaluatorId.toString() === uid
         const isManagerOf = _evaluatee?.managerId?.toString() === uid
@@ -122,13 +122,13 @@ async function handleUpdate(req, res, next) {
 
     // ── Notations des objectifs ───────────────────────────────────────────────
     if (req.body.objectiveRatings !== undefined) {
-      if (!['manager', 'director', 'admin', 'hr'].includes(role)) {
+      if (!['manager', 'admin', 'hr'].includes(role)) {
         return res.status(403).json({ error: 'Seuls les managers et admins peuvent noter les objectifs' })
       }
       if (typeof req.body.objectiveRatings !== 'object' || Array.isArray(req.body.objectiveRatings)) {
         return res.status(400).json({ error: 'objectiveRatings doit être un objet' })
       }
-      if (['manager', 'director'].includes(role)) {
+      if (['manager'].includes(role)) {
         if (!_evaluatee) _evaluatee = await User.findById(evaluation.evaluateeId, 'managerId').lean()
         const isEvaluator = evaluation.evaluatorId.toString() === uid
         const isManagerOf = _evaluatee?.managerId?.toString() === uid
@@ -168,7 +168,7 @@ async function handleUpdate(req, res, next) {
       // Un manager/directeur peut faire avancer le statut s'il est l'évaluateur
       // (ex: il remplit une éval compétences) OU le manager hiérarchique (N+1) de
       // l'évalué (ex: il relit la self-évaluation d'un collaborateur).
-      if (['manager', 'director'].includes(role)) {
+      if (['manager'].includes(role)) {
         if (!_evaluatee) _evaluatee = await User.findById(evaluation.evaluateeId, 'managerId').lean()
         const isEvaluator = evaluation.evaluatorId.toString() === uid
         const isManagerOf = _evaluatee?.managerId?.toString() === uid

@@ -64,7 +64,7 @@ async function handleList(req, res, next) {
 
     if (role === 'employee') {
       filter.$or = [{ evaluatorId: uid }, { evaluateeId: uid }]
-    } else if (role === 'manager' || role === 'director') {
+    } else if (role === 'manager') {
       let visibleIds = []
       if (req.query.campaignId) {
         const campaign = await Campaign.findById(req.query.campaignId).lean()
@@ -207,7 +207,7 @@ async function handleDetail(req, res, next) {
       if (!isOwn) return res.status(403).json({ error: 'Accès refusé' })
     }
 
-    if (role === 'manager' || role === 'director') {
+    if (role === 'manager') {
       const visibleIds = await getVisibleUserIds(req.user.id, evaluation.campaignId)
       const evaluateeId = evaluation.evaluateeId?._id?.toString() ?? evaluation.evaluateeId?.toString()
       const evaluatorId = evaluation.evaluatorId?._id?.toString() ?? evaluation.evaluatorId?.toString()

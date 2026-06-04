@@ -12,7 +12,7 @@
 //   • Les utilisateurs locaux (authSource: 'local') sont créés manuellement par un admin.
 // =============================================================================
 
-const ROLES = ['admin', 'hr', 'director', 'manager', 'employee']
+const ROLES = ['admin', 'hr', 'manager', 'employee']
 
 const DEPARTMENTS = [
   'Engineering',
@@ -37,7 +37,6 @@ const FORM_TYPES = [
   'self_evaluation',
   'manager_evaluation',
   'upward_feedback',
-  'director_evaluation',
   'peer_review',
   'objectives',
   'mobility_request',
@@ -49,7 +48,7 @@ const FORM_TYPES = [
 const REQUEST_FORM_TYPES = ['mobility_request', 'salary_raise_request', 'promotion_request', 'training_request']
 
 const ADMIN_ROLES    = ['admin', 'hr']
-const MANAGER_ROLES  = ['admin', 'hr', 'director', 'manager']
+const MANAGER_ROLES  = ['admin', 'hr', 'manager']
 
 // Types d'événements calendrier (source de vérité pour models/Event.js)
 const EVENT_TYPES    = ['deadline', 'interview', 'meeting', 'feedback', 'campaign']
@@ -104,7 +103,6 @@ const NOTIF_PREF_KEYS = [
 const NOTIF_KEYS_BY_ROLE = {
   employee: ['evaluationAssigned', 'deadlineReminder', 'managerActionRequired', 'bulkReminder', 'request_treated', 'request_rejected'],
   manager:  ['evaluationAssigned', 'deadlineReminder', 'evaluationSubmitted', 'bulkReminder'],
-  director: ['evaluationAssigned', 'deadlineReminder', 'evaluationSubmitted', 'bulkReminder'],
   hr:       ['evaluationAssigned', 'deadlineReminder', 'evaluationSubmitted', 'campaignLaunch', 'bulkReminder'],
   admin:    ['evaluationAssigned', 'deadlineReminder', 'evaluationSubmitted', 'campaignLaunch', 'systemAlerts', 'bulkReminder'],
 }

@@ -39,12 +39,7 @@ router.get('/tree', cacheResponse(120, req => `GET:${req.originalUrl}:${req.user
     // Déterminer les IDs accessibles selon le rôle
     let scopeIds = null // null = accès complet (admin/hr)
 
-    if (role === 'director') {
-      const directReports = await User.find({ managerId: userId, isActive: true }).select('_id').lean()
-      const directIds = directReports.map(u => u._id)
-      const secondLevel = await User.find({ managerId: { $in: directIds }, isActive: true }).select('_id').lean()
-      scopeIds = new Set([userId, ...directIds.map(String), ...secondLevel.map(u => u._id.toString())])
-    } else if (role === 'manager') {
+    if (role === 'manager') {
       const directReports = await User.find({ managerId: userId, isActive: true }).select('_id').lean()
       scopeIds = new Set([userId, ...directReports.map(u => u._id.toString())])
     } else if (!['admin', 'hr'].includes(role)) {

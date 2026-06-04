@@ -6,7 +6,7 @@
 
 const Joi = require('joi')
 
-const ROLES = ['admin', 'hr', 'director', 'manager', 'employee']
+const ROLES = ['admin', 'hr', 'manager', 'employee']
 
 const objectId = Joi.string().hex().length(24).messages({
   'string.hex':    '{{#label}} doit être un ObjectId hexadécimal valide',
@@ -16,7 +16,7 @@ const objectId = Joi.string().hex().length(24).messages({
 const createUser = Joi.object({
   firstName:   Joi.string().min(1).max(80).required(),
   lastName:    Joi.string().min(1).max(80).required(),
-  email:       Joi.string().email().required(),
+  email:       Joi.string().email({ tlds: { allow: false } }).required(),
   role:        Joi.string().valid(...ROLES).required(),
   department:  Joi.string().max(120).optional().allow(''),
   managerId:   objectId.optional().allow(null),
@@ -26,7 +26,7 @@ const createUser = Joi.object({
 const updateUser = Joi.object({
   firstName:  Joi.string().min(1).max(80).optional(),
   lastName:   Joi.string().min(1).max(80).optional(),
-  email:      Joi.string().email().optional(),
+  email:      Joi.string().email({ tlds: { allow: false } }).optional(),
   role:       Joi.string().valid(...ROLES).optional(),
   department: Joi.string().max(120).optional().allow('', null),
   position:   Joi.string().max(150).optional().allow('', null),

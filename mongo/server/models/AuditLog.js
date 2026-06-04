@@ -14,7 +14,7 @@ const TWO_YEARS_SECONDS = 2 * 365 * 24 * 60 * 60  // 63 072 000 s
 
 const auditLogSchema = new Schema({
   userId:     { type: Schema.Types.ObjectId, ref: 'User', required: true },
-  userRole:   { type: String, enum: ['admin', 'hr', 'director', 'manager', 'employee'] },
+  userRole:   { type: String, enum: ['admin', 'hr', 'manager', 'employee'] },
   action:     { type: String, required: true, enum: AUDIT_ACTIONS },
   targetType: { type: String, required: true },   // 'Evaluation', 'Campaign', 'User'
   targetId:   { type: Schema.Types.ObjectId, required: true },

@@ -8,7 +8,6 @@ const FORM_TYPE_LABELS: Record<string, string> = {
   self_evaluation: "Auto-évaluation",
   manager_evaluation: "Évaluation manager",
   upward_feedback: "Feedback montant",
-  director_evaluation: "Évaluation directeur",
   objectives: "Objectifs",
   peer_review: "Peer review",
 };

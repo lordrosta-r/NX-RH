@@ -43,7 +43,9 @@ services:
       - ./mongo/server:/app:delegated
       - /app/node_modules
     ports:
-      - "3000:3000"
+      # Hôte 3001 → conteneur 3000 (évite le conflit avec d'autres projets sur 3000 ;
+      # l'API reste accessible via nginx sur https://localhost/api).
+      - "3001:3000"
     depends_on:
       - mailhog
       - openldap
@@ -77,13 +79,16 @@ services:
       LDAP_READONLY_USER: "true"
       LDAP_READONLY_USER_USERNAME: readonly
       LDAP_READONLY_USER_PASSWORD: readonlypass
+      # Ne pas supprimer le dossier de bootstrap (il est bind-monté → rm échoue)
+      LDAP_REMOVE_CONFIG_AFTER_SETUP: "false"
     ports:
       - "389:389"
       - "636:636"
     volumes:
       - openldap_data:/var/lib/ldap
       - openldap_config:/etc/ldap/slapd.d
-      - ./docker/ldap/seed.ldif:/container/service/slapd/assets/config/bootstrap/ldif/custom/seed.ldif:ro
+      # Le bootstrap osixia (montage LDIF) est destructif/fragile : on peuple
+      # l'annuaire APRÈS démarrage via scripts/ldap-seed.sh (ldapadd + ldappasswd).
     networks:
       - backend
 
@@ -95,12 +100,12 @@ services:
       LDAP_ORGANISATION: "Partner Directory"
       LDAP_DOMAIN: partner.local
       LDAP_ADMIN_PASSWORD: partnerpass
+      LDAP_REMOVE_CONFIG_AFTER_SETUP: "false"
     ports:
       - "390:389"
     volumes:
       - openldap2_data:/var/lib/ldap
       - openldap2_config:/etc/ldap/slapd.d
-      - ./docker/ldap/seed-partner.ldif:/container/service/slapd/assets/config/bootstrap/ldif/custom/seed.ldif:ro
     networks:
       - backend
 

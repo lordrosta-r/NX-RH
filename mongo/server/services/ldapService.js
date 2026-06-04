@@ -69,16 +69,25 @@ function unbindAsync(client) {
   })
 }
 
+// Convertit une entrée searchEntry (ldapjs 3.x) en objet plat { dn, attr: value }.
+// ldapjs 3 n'expose plus entry.object : les attributs sont dans entry.pojo.attributes
+// (tableau { type, values }) et le DN dans pojo.objectName.
+function entryToObject(entry) {
+  const pojo = entry.pojo || entry
+  const obj  = { dn: pojo.objectName || (entry.dn ? String(entry.dn) : '') }
+  for (const a of (pojo.attributes || entry.attributes || [])) {
+    obj[a.type] = Array.isArray(a.values) && a.values.length === 1 ? a.values[0] : a.values
+  }
+  return obj
+}
+
 function searchAsync(client, base, opts) {
   return new Promise((resolve, reject) => {
     const entries = []
     client.search(base, opts, (err, res) => {
       if (err) return reject(err)
       res.on('searchEntry', (entry) => {
-        // entry.object includes dn + all attributes as a plain JS object
-        const obj = entry.object || {}
-        if (!obj.dn) obj.dn = entry.dn ? String(entry.dn) : ''
-        entries.push(obj)
+        entries.push(entryToObject(entry))
       })
       res.on('error',  (e)      => reject(e))
       res.on('end',    (result) => {

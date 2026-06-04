@@ -79,7 +79,13 @@
     "genericError": "An error occurred. Please try again.",
     "showPassword": "Show password",
     "hidePassword": "Hide password",
-    "sessionExpired": "Session expired, please log in again"
+    "sessionExpired": "Session expired, please log in again",
+    "eyebrowSpace": "Employee area",
+    "subtitle": "Sign in to access your NX-RH workspace.",
+    "asideEyebrow": "2026 Campaign",
+    "asideTitle": "Annual reviews, made simple.",
+    "asideLead": "Prepare and track your performance review in a single workspace.",
+    "support": "Need help? Contact your HR representative · rh-support@nanoxplore.com"
   },
   "campaigns": {
     "title": "Campaigns",

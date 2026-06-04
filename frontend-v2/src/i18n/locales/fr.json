@@ -79,7 +79,13 @@
     "genericError": "Une erreur est survenue. Réessayez.",
     "showPassword": "Afficher le mot de passe",
     "hidePassword": "Masquer le mot de passe",
-    "sessionExpired": "Session expirée, veuillez vous reconnecter"
+    "sessionExpired": "Session expirée, veuillez vous reconnecter",
+    "eyebrowSpace": "Espace collaborateur",
+    "subtitle": "Identifiez-vous pour accéder à votre espace NX-RH.",
+    "asideEyebrow": "Campagne 2026",
+    "asideTitle": "L'entretien annuel, simplifié.",
+    "asideLead": "Préparez et suivez votre entretien professionnel sur un espace unique.",
+    "support": "Besoin d'aide ? Contactez votre référent RH · rh-support@nanoxplore.com"
   },
   "campaigns": {
     "title": "Campagnes",

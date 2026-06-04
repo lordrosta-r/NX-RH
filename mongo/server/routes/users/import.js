@@ -18,7 +18,8 @@ const router  = express.Router()
 
 const User   = require('../../models/User')
 const Sector = require('../../models/Sector')
-const { ROLES, DEPARTMENTS, BCRYPT_ROUNDS } = require('../../config/constants')
+const { ROLES, BCRYPT_ROUNDS } = require('../../config/constants')
+const { getDepartments } = require('../../services/departmentsService')
 const notificationService = require('../../services/notificationService')
 const logger              = require('../../utils/logger')
 
@@ -95,6 +96,7 @@ router.post(
 
       const userByEmail   = new Map(fetchedUsers.map(u => [u.email.toLowerCase(), u]))
       const sectorByName  = new Map(fetchedSectors.map(s => [s.name, s._id]))
+      const validDepartments = await getDepartments()
       // ──────────────────────────────────────────────────────────────────────
 
       for (let i = 0; i < rows.length; i++) {
@@ -119,7 +121,7 @@ router.post(
 
         // Valider department
         const department = (row.department || '').trim() || null
-        if (department && !DEPARTMENTS.includes(department)) {
+        if (department && !validDepartments.includes(department)) {
           results.errors.push({ row: rowNum, field: 'department', message: `Département invalide : ${department}` })
           results.skipped++
           continue

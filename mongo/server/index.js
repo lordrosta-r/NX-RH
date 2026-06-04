@@ -274,6 +274,7 @@ v1Router.use('/dashboard',        apiLimiter, authenticated, dashboardRouter)
 v1Router.use('/search',           apiLimiter, authGuard(['admin', 'hr', 'manager', 'employee']), searchRoutes)
 v1Router.use('/mobility',         mutationLimiter, authenticated, mobilityRoutes)
 v1Router.use('/pdi',              mutationLimiter, authenticated, pdiRoutes)
+v1Router.use('/departments',      mutationLimiter, authenticated, require('./routes/departments'))
 
 // Mount v1 at versioned path + legacy /api/ alias (backward compat)
 app.use('/api/v1', v1Router)

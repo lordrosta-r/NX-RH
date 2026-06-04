@@ -165,20 +165,22 @@ describe('User model — role enum', () => {
 // Department validation
 // =============================================================================
 
-describe('User model — department enum', () => {
+describe('User model — department (liste dynamique en DB)', () => {
   it('accepts null department', async () => {
     const doc = validPayload({ department: null })
     const msg = await validationError(doc, 'department')
     expect(msg).toBeNull()
   })
 
-  it('rejects an unknown department', async () => {
-    const doc = validPayload({ department: 'UnknownDept' })
+  // L'enum figé a été retiré du modèle : la validation se fait désormais au
+  // niveau des routes contre la liste gérée en DB (departmentsService).
+  it('accepts any string department at the model level (validation route-level)', async () => {
+    const doc = validPayload({ department: 'UnNouveauDepartement' })
     const msg = await validationError(doc, 'department')
-    expect(msg).toBeTruthy()
+    expect(msg).toBeNull()
   })
 
-  it.each(DEPARTMENTS)('accepts valid department: %s', async (dept) => {
+  it.each(DEPARTMENTS)('accepts default department: %s', async (dept) => {
     const doc = validPayload({ department: dept })
     const msg = await validationError(doc, 'department')
     expect(msg).toBeNull()

@@ -7,7 +7,7 @@
 
 const { Schema, model } = require('mongoose')
 const bcrypt = require('bcrypt')
-const { ROLES, DEPARTMENTS, BCRYPT_ROUNDS, AUTH_SOURCES, LOCALES, THEMES, NOTIF_PREF_KEYS } = require('../config/constants')
+const { ROLES, BCRYPT_ROUNDS, AUTH_SOURCES, LOCALES, THEMES, NOTIF_PREF_KEYS } = require('../config/constants')
 
 // Defaults notifications — strict subset des clés autorisées
 const DEFAULT_NOTIF_PREFS = {
@@ -54,7 +54,10 @@ const userSchema = new Schema({
     default: 'employee',
   },
 
-  department: { type: String, enum: [null, ...DEPARTMENTS], trim: true, default: null },
+  // Département : liste gérée en DB (services/departmentsService) — pas d'enum figé
+  // ici afin qu'un admin puisse ajouter un département sans redéploiement.
+  // La validation se fait au niveau des routes (create/update/import) contre la liste courante.
+  department: { type: String, trim: true, default: null },
 
   // Titre de poste (ex: "Responsable comptabilité", "Développeur senior").
   // Optionnel — utile pour les rapports RH et l'affichage dans les évaluations.

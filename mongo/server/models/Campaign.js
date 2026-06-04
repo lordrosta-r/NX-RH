@@ -6,7 +6,7 @@
 // =============================================================================
 
 const { Schema, model }                        = require('mongoose')
-const { DEPARTMENTS, CAMPAIGN_STATUSES }       = require('../config/constants')
+const { CAMPAIGN_STATUSES }                    = require('../config/constants')
 
 // Transitions de statut autorisées — utilisées dans les routes PATCH
 const VALID_TRANSITIONS = {
@@ -46,11 +46,13 @@ const campaignSchema = new Schema({
   // Vide = toute l'entreprise.
   // Exemple : ['RH', 'IT', 'Finance']
   // Utilisé pour pré-filtrer les employés lors de la création des évaluations.
+  // Départements ciblés — validés contre la liste dynamique (services/departmentsService)
+  // au niveau des routes ; ici on n'exige que des chaînes non vides.
   targetDepartments: {
     type: [String],
     default: [],
     validate: {
-      validator: arr => arr.every(d => DEPARTMENTS.includes(d)),
+      validator: arr => arr.every(d => typeof d === 'string' && d.trim().length > 0),
       message: 'Département invalide',
     },
   },

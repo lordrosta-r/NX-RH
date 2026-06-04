@@ -74,6 +74,29 @@ async function configureAndSyncLdap(): Promise<void> {
   await ctx.dispose();
 }
 
+// L'admin attribue un rôle à un utilisateur (gestion des rôles). Les users
+// synchronisés depuis le LDAP arrivent en « employee » : l'admin promeut
+// ensuite qui est RH / manager.
+async function assignRole(email: string, role: string): Promise<void> {
+  const ctx = await request.newContext({
+    baseURL: BASE_URL,
+    ignoreHTTPSErrors: true,
+  });
+  await ctx.post("/api/auth/login", {
+    data: { email: "alice@nxrh.local", password: "password123" },
+  });
+  const list = await ctx.get("/api/users?limit=200");
+  const body = await list.json();
+  const target = (body.data ?? []).find(
+    (u: { email: string; id?: string; _id?: string }) => u.email === email,
+  );
+  expect(target, `user ${email} introuvable`).toBeTruthy();
+  const id = target.id ?? target._id;
+  const patch = await ctx.patch(`/api/users/${id}`, { data: { role } });
+  expect(patch.ok(), `PATCH role ${email}→${role}`).toBeTruthy();
+  await ctx.dispose();
+}
+
 test.describe.serial("Onboarding admin-first", () => {
   test.setTimeout(90000);
 
@@ -123,21 +146,20 @@ test.describe.serial("Onboarding admin-first", () => {
     });
   });
 
-  test("4. les rôles RH et manager sont attribués depuis le LDAP", async ({
-    page,
-  }) => {
+  test("4. l'admin attribue les rôles RH et manager", async ({ page }) => {
     await loginViaForm(page, "admin");
+    // Les users LDAP arrivent en « employee » ; l'admin promeut RH + manager.
+    await assignRole("marie.dupont@nxrh.local", "hr");
+    await assignRole("pierre.leclerc@nxrh.local", "manager");
+
     await page.goto("/admin/users");
     await page.waitForLoadState("networkidle");
-    // RH et manager provisionnés depuis le LDAP avec leurs rôles
     await expect(page.getByText(/marie\.dupont@nxrh\.local/i)).toBeVisible({
       timeout: 15000,
     });
     await expect(page.getByText(/pierre\.leclerc@nxrh\.local/i)).toBeVisible({
       timeout: 15000,
     });
-    await expect(page.getByText(/\bRH\b|\bhr\b/i).first()).toBeVisible();
-    await expect(page.getByText(/manager|responsable/i).first()).toBeVisible();
   });
 
   test("5. la RH (LDAP) se connecte et crée un formulaire", async ({

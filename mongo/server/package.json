@@ -11,6 +11,7 @@
     "seed:v2": "node -e \"process.env.NODE_PATH = require('path').resolve('./node_modules'); require('module').Module._initPaths(); require('../database/seed-rich-v2.js');\"",
     "seed:full": "cd .. && node database/seed-full.js",
     "seed:e2e": "node seeds/seed.js",
+    "seed:e2e:fresh": "node seeds/seed-fresh.js",
     "test": "jest --runInBand --forceExit",
     "test:coverage": "jest --runInBand --forceExit --coverage",
     "test:watch": "jest --watch",

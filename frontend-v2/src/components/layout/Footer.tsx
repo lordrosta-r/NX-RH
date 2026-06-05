@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import nxLogo from "../../assets/nx-logo.png";
 
 /**
  * Pied de page institutionnel — affiché sur toutes les pages authentifiées et
@@ -29,10 +30,11 @@ export default function Footer() {
         >
           {/* Marque + accroche */}
           <div style={{ maxWidth: 360 }}>
-            <span className="nx-mark" style={{ fontSize: 22 }}>
-              <span className="n">N</span>
-              <span className="x">X</span>
-            </span>
+            <img
+              src={nxLogo}
+              alt="NanoXplore RH"
+              style={{ height: 34, width: "auto", display: "block" }}
+            />
             <p className="small" style={{ marginTop: 8 }}>
               NanoXplore RH — Plateforme d’entretiens professionnels et de
               développement des collaborateurs.

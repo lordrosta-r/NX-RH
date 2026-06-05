@@ -45,8 +45,12 @@ describe('Evaluation model — VALID_TRANSITIONS', () => {
     expect(VALID_TRANSITIONS.submitted).toEqual(['reviewed'])
   })
 
-  it('"reviewed" can only transition to "signed_evaluatee"', () => {
-    expect(VALID_TRANSITIONS.reviewed).toEqual(['signed_evaluatee'])
+  it('"reviewed" can transition to "signed_evaluatee" or "disputed"', () => {
+    expect(VALID_TRANSITIONS.reviewed).toEqual(['signed_evaluatee', 'disputed'])
+  })
+
+  it('"disputed" can transition back to "reviewed" or forward to "signed_evaluatee"', () => {
+    expect(VALID_TRANSITIONS.disputed).toEqual(['reviewed', 'signed_evaluatee'])
   })
 
   it('"signed_evaluatee" can only transition to "signed_manager"', () => {

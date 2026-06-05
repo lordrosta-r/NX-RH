@@ -12,6 +12,7 @@ import "@xyflow/react/dist/style.css";
 import {
   OrgCircleNode,
   OrgControls,
+  OrgLegend,
   OrgDragConfirmDialog,
   OrgSectorsView,
   OrgSidePanel,
@@ -21,6 +22,7 @@ import {
 import { useOrgChart } from "../hooks/useOrgChart";
 import type { OrgNodeData } from "../hooks/useOrgLayout";
 import { PageHead } from "../components/shell";
+import { useAuth } from "../contexts/AuthContext";
 
 const nodeTypes: NodeTypes = {
   orgCircle: OrgCircleNode as ComponentType<
@@ -30,6 +32,7 @@ const nodeTypes: NodeTypes = {
 
 function OrgFlowInner() {
   const chart = useOrgChart();
+  const { user } = useAuth();
 
   const toolbar = (
     <OrgToolbar
@@ -119,6 +122,7 @@ function OrgFlowInner() {
       </div>
       {toolbar}
       <OrgControls />
+      <OrgLegend legend={chart.legend} canEdit={user?.role === "admin"} />
       {chart.selectedPerson && (
         <OrgSidePanel
           person={chart.selectedPerson}

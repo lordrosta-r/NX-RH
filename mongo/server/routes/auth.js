@@ -10,6 +10,7 @@
 
 const router    = require('express').Router()
 const Joi       = require('joi')
+const jwt       = require('jsonwebtoken')
 const rateLimit    = require('express-rate-limit')
 const { ipKeyGenerator } = require('express-rate-limit')
 const User      = require('../models/User')
@@ -191,7 +192,8 @@ router.get('/me', authGuard(), async (req, res, next) => {
     user.notificationPrefs = filterNotifPrefsByRole(user.notificationPrefs, user.role)
 
     const { _id, ...rest } = user
-    res.json({ id: _id, ...rest })
+    // Expose le contexte d'impersonation pour que l'UI affiche la bannière.
+    res.json({ id: _id, ...rest, impersonatedBy: req.user.impersonatedBy || null })
   } catch (err) {
     next(err)
   }
@@ -233,11 +235,57 @@ router.post('/reset-password', (req, res) => {
   return res.status(403).json({ message: 'La réinitialisation du mot de passe est gérée par le LDAP.' })
 })
 
+// ─── POST /api/auth/impersonate/stop ─────────────────────────────────────────
+// Termine une session d'impersonation et restaure la session admin d'origine.
+// Doit rester accessible PENDANT l'impersonation (le rôle courant est celui de
+// la cible, pas admin) → guard authentifié simple, vérification via le claim imp.
+router.post('/impersonate/stop', authGuard(), async (req, res, next) => {
+  const cookieBase = {
+    httpOnly: true,
+    secure:   process.env.COOKIE_SECURE !== undefined ? process.env.COOKIE_SECURE === 'true' : process.env.NODE_ENV === 'production',
+    sameSite: 'Strict',
+    path:     '/',
+  }
+  try {
+    if (!req.user?.imp) {
+      return res.status(400).json({ error: 'Aucune impersonation en cours' })
+    }
+    const adminToken = req.cookies?.adminToken
+    if (!adminToken) {
+      res.clearCookie('accessToken', cookieBase)
+      res.clearCookie('adminToken', cookieBase)
+      res.clearCookie('adminRefresh', cookieBase)
+      return res.status(409).json({ error: 'Session admin perdue, reconnexion nécessaire' })
+    }
+    res.cookie('accessToken', adminToken, { ...cookieBase, maxAge: 60 * 60 * 1000 })
+    const adminRefresh = req.cookies?.adminRefresh
+    if (adminRefresh) res.cookie('refreshToken', adminRefresh, { ...cookieBase, maxAge: 7 * 24 * 60 * 60 * 1000 })
+    res.clearCookie('adminToken', cookieBase)
+    res.clearCookie('adminRefresh', cookieBase)
+
+    AuditLog.create({
+      userId: req.user.impersonatedBy, userRole: 'admin', action: 'impersonate_stop',
+      targetType: 'User', targetId: req.user.id, meta: {},
+    }).catch(() => {})
+
+    res.json({ success: true })
+  } catch (err) {
+    next(err)
+  }
+})
+
 // ─── POST /api/auth/refresh ──────────────────────────────────────────────────
 // Émet un nouveau couple accessToken / refreshToken à partir du refreshToken courant.
 
 router.post('/refresh', async (req, res, next) => {
   try {
+    // Un jeton d'impersonation ne se rafraîchit jamais (pas de rotation/persistance).
+    if (req.cookies?.accessToken) {
+      try {
+        const p = jwt.verify(req.cookies.accessToken, process.env.JWT_SECRET, { algorithms: ['HS256'] })
+        if (p?.imp) return res.status(403).json({ success: false, error: 'Refresh interdit pendant une impersonation' })
+      } catch { /* token invalide/expiré → flux normal ci-dessous */ }
+    }
     const refreshToken = req.cookies?.refreshToken
     if (!refreshToken) {
       return res.status(401).json({ success: false, error: 'Refresh token manquant' })

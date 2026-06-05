@@ -1,0 +1,184 @@
+# NanoXplore RH — LDAP Seed Data
+# Organisational Units
+dn: ou=users,dc=nxrh,dc=local
+objectClass: organizationalUnit
+ou: users
+
+dn: ou=groups,dc=nxrh,dc=local
+objectClass: organizationalUnit
+ou: groups
+
+# ── Admin ─────────────────────────────────────────────────────────────────
+dn: uid=admin.ldap,ou=users,dc=nxrh,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: admin.ldap
+cn: Admin LDAP
+sn: LDAP
+givenName: Admin
+mail: admin.ldap@nxrh.local
+uidNumber: 1000
+gidNumber: 1000
+homeDirectory: /home/admin.ldap
+userPassword: {SSHA}W6ph5Mm5Pz8GgiULbPgzG37mj9g=
+
+# ── HR Users ──────────────────────────────────────────────────────────────
+dn: uid=hr1,ou=users,dc=nxrh,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: hr1
+cn: Marie Dupont
+sn: Dupont
+givenName: Marie
+mail: marie.dupont@nxrh.local
+uidNumber: 1001
+gidNumber: 1001
+homeDirectory: /home/hr1
+userPassword: {SSHA}W6ph5Mm5Pz8GgiULbPgzG37mj9g=
+
+dn: uid=hr2,ou=users,dc=nxrh,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: hr2
+cn: Sophie Martin
+sn: Martin
+givenName: Sophie
+mail: sophie.martin@nxrh.local
+uidNumber: 1002
+gidNumber: 1002
+homeDirectory: /home/hr2
+userPassword: {SSHA}W6ph5Mm5Pz8GgiULbPgzG37mj9g=
+
+# ── Managers ──────────────────────────────────────────────────────────────
+dn: uid=manager1,ou=users,dc=nxrh,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: manager1
+cn: Pierre Leclerc
+sn: Leclerc
+givenName: Pierre
+mail: pierre.leclerc@nxrh.local
+uidNumber: 1003
+gidNumber: 1003
+homeDirectory: /home/manager1
+userPassword: {SSHA}W6ph5Mm5Pz8GgiULbPgzG37mj9g=
+
+dn: uid=manager2,ou=users,dc=nxrh,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: manager2
+cn: Jean Moreau
+sn: Moreau
+givenName: Jean
+mail: jean.moreau@nxrh.local
+uidNumber: 1004
+gidNumber: 1004
+homeDirectory: /home/manager2
+userPassword: {SSHA}W6ph5Mm5Pz8GgiULbPgzG37mj9g=
+
+dn: uid=manager3,ou=users,dc=nxrh,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: manager3
+cn: Claire Fontaine
+sn: Fontaine
+givenName: Claire
+mail: claire.fontaine@nxrh.local
+uidNumber: 1005
+gidNumber: 1005
+homeDirectory: /home/manager3
+userPassword: {SSHA}W6ph5Mm5Pz8GgiULbPgzG37mj9g=
+
+# ── Employees ─────────────────────────────────────────────────────────────
+dn: uid=employee1,ou=users,dc=nxrh,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: employee1
+cn: Lucas Bernard
+sn: Bernard
+givenName: Lucas
+mail: lucas.bernard@nxrh.local
+uidNumber: 1006
+gidNumber: 1006
+homeDirectory: /home/employee1
+userPassword: {SSHA}W6ph5Mm5Pz8GgiULbPgzG37mj9g=
+
+dn: uid=employee2,ou=users,dc=nxrh,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: employee2
+cn: Emma Petit
+sn: Petit
+givenName: Emma
+mail: emma.petit@nxrh.local
+uidNumber: 1007
+gidNumber: 1007
+homeDirectory: /home/employee2
+userPassword: {SSHA}W6ph5Mm5Pz8GgiULbPgzG37mj9g=
+
+dn: uid=employee3,ou=users,dc=nxrh,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: employee3
+cn: Thomas Richard
+sn: Richard
+givenName: Thomas
+mail: thomas.richard@nxrh.local
+uidNumber: 1008
+gidNumber: 1008
+homeDirectory: /home/employee3
+userPassword: {SSHA}W6ph5Mm5Pz8GgiULbPgzG37mj9g=
+
+dn: uid=employee4,ou=users,dc=nxrh,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: employee4
+cn: Léa Durand
+sn: Durand
+givenName: Léa
+mail: lea.durand@nxrh.local
+uidNumber: 1009
+gidNumber: 1009
+homeDirectory: /home/employee4
+userPassword: {SSHA}W6ph5Mm5Pz8GgiULbPgzG37mj9g=
+
+dn: uid=employee5,ou=users,dc=nxrh,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: employee5
+cn: Nicolas Blanc
+sn: Blanc
+givenName: Nicolas
+mail: nicolas.blanc@nxrh.local
+uidNumber: 1010
+gidNumber: 1010
+homeDirectory: /home/employee5
+userPassword: {SSHA}W6ph5Mm5Pz8GgiULbPgzG37mj9g=
+
+# ── Groups ────────────────────────────────────────────────────────────────
+dn: cn=admins,ou=groups,dc=nxrh,dc=local
+objectClass: groupOfNames
+cn: admins
+member: uid=admin.ldap,ou=users,dc=nxrh,dc=local
+
+dn: cn=hr,ou=groups,dc=nxrh,dc=local
+objectClass: groupOfNames
+cn: hr
+member: uid=hr1,ou=users,dc=nxrh,dc=local
+member: uid=hr2,ou=users,dc=nxrh,dc=local
+
+dn: cn=managers,ou=groups,dc=nxrh,dc=local
+objectClass: groupOfNames
+cn: managers
+member: uid=manager1,ou=users,dc=nxrh,dc=local
+member: uid=manager2,ou=users,dc=nxrh,dc=local
+member: uid=manager3,ou=users,dc=nxrh,dc=local
+
+dn: cn=employees,ou=groups,dc=nxrh,dc=local
+objectClass: groupOfNames
+cn: employees
+member: uid=employee1,ou=users,dc=nxrh,dc=local
+member: uid=employee2,ou=users,dc=nxrh,dc=local
+member: uid=employee3,ou=users,dc=nxrh,dc=local
+member: uid=employee4,ou=users,dc=nxrh,dc=local
+member: uid=employee5,ou=users,dc=nxrh,dc=local

@@ -2,6 +2,8 @@
   "nav": {
     "dashboard": "Tableau de bord",
     "pilotage": "Pilotage",
+    "aide": "Aide",
+    "help": "Aide",
     "collaborateurs": "Collaborateurs",
     "campaigns": "Campagnes",
     "evaluations": "Évaluations",
@@ -19,7 +21,7 @@
     "hrFlags": "Demandes RH",
     "mobilityInternal": "Mobilité interne",
     "pdi": "PDI",
-    "mobility": "Mobilité",
+    "mobility": "Demandes",
     "profile": "Mon profil",
     "logout": "Se déconnecter",
     "notifications": "Notifications",
@@ -47,7 +49,8 @@
     "systemConfig": "Configuration système",
     "mailConfig": "Configuration e-mail",
     "systemStatus": "État du système",
-    "setupWizard": "Assistant de configuration"
+    "setupWizard": "Assistant de configuration",
+    "configHub": "Configuration"
   },
   "common": {
     "save": "Enregistrer",
@@ -93,7 +96,7 @@
     "sessionExpired": "Session expirée, veuillez vous reconnecter",
     "eyebrowSpace": "Espace collaborateur",
     "subtitle": "Identifiez-vous pour accéder à votre espace NX-RH.",
-    "asideEyebrow": "Campagne 2026",
+    "asideEyebrow": "Entretiens professionnels",
     "asideTitle": "L'entretien annuel, simplifié.",
     "asideLead": "Préparez et suivez votre entretien professionnel sur un espace unique.",
     "support": "Besoin d'aide ? Contactez votre référent RH · rh-support@nanoxplore.com"

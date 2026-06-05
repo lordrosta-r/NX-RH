@@ -20,7 +20,11 @@ const VALID_TRANSITIONS = {
   assigned:        ['in_progress'],
   in_progress:     ['submitted'],
   submitted:       ['reviewed'],
-  reviewed:        ['signed_evaluatee'],
+  // Après review, l'évalué peut signer OU contester (litige formel).
+  reviewed:        ['signed_evaluatee', 'disputed'],
+  // Litige : seul un RH/admin arbitre — soit renvoie en review (correction),
+  // soit acte le désaccord et fait avancer la signature de l'évalué.
+  disputed:        ['reviewed', 'signed_evaluatee'],
   signed_evaluatee:['signed_manager'],
   signed_manager:  ['signed_hr'],       // RH signe avant la validation finale
   signed_hr:       ['validated'],
@@ -38,7 +42,7 @@ const ROLE_TRANSITIONS = {
   employee:  {
     assigned:    ['in_progress'],
     in_progress: ['submitted'],
-    reviewed:    ['signed_evaluatee'],   // l'employé signe après review du manager
+    reviewed:    ['signed_evaluatee', 'disputed'],   // l'employé signe OU conteste après review du manager
   },
   manager:   {
     in_progress:       ['submitted'],       // peut soumettre une éval qu'il remplit (ex: éval compétences)
@@ -50,13 +54,14 @@ const ROLE_TRANSITIONS = {
   // HR peut aussi valider (signed_hr → validated) sans passer par l'admin.
   hr:        {
     reviewed:         ['signed_hr'],
+    disputed:         ['reviewed', 'signed_evaluatee'],  // arbitrage du litige
     signed_evaluatee: ['signed_hr'],
     signed_manager:   ['signed_hr'],
     signed_hr:        ['validated'],
   },
 }
 
-const LOCKED_STATUSES = ['submitted', 'reviewed', 'signed_evaluatee', 'signed_manager', 'signed_hr', 'validated', 'archived']
+const LOCKED_STATUSES = ['submitted', 'reviewed', 'disputed', 'signed_evaluatee', 'signed_manager', 'signed_hr', 'validated', 'archived']
 
 // Sous-schema d'une réponse — simple {questionId, value}
 const answerSchema = new Schema({

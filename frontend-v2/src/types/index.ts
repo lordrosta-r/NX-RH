@@ -23,6 +23,8 @@ export interface User {
   position?: string;
   isActive: boolean;
   canViewSubtree?: boolean;
+  dottedLineManagerIds?: string[];
+  impersonatedBy?: string | null;
   authSource: AuthSource;
   gdprAnonymized?: boolean;
   deactivatedAt?: string;
@@ -80,6 +82,7 @@ export type EvaluationStatus =
   | "in_progress"
   | "submitted"
   | "reviewed"
+  | "disputed"
   | "signed_evaluatee"
   | "signed_manager"
   | "signed_hr"
@@ -246,11 +249,24 @@ export interface OrgUser {
   email?: string;
   sectorId?: string | null;
   managerId?: string | null;
+  dottedLineManagerIds?: string[];
   avatar?: string | null;
 }
 
 export interface OrgTreeNode extends OrgUser {
   children: OrgTreeNode[];
+}
+
+export interface OrgLegendEntry {
+  label: string;
+  color: string;
+}
+export interface OrgLegend {
+  edges: {
+    hierarchical: OrgLegendEntry;
+    transverse: OrgLegendEntry;
+  };
+  roles: Record<"admin" | "hr" | "manager" | "employee", OrgLegendEntry>;
 }
 
 export interface OrgTeamGroup {

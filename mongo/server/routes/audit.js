@@ -19,6 +19,7 @@ const VALID_ACTIONS = [
   'campaign_update', 'campaign_delete', 'bulk_action', 'offboard', 'offboarding_create',
   'offboarding_update', 'offboarding_delete', 'gdpr_anonymize', 'reassigned',
   'login', 'login_failed',
+  'impersonate_start', 'impersonate_stop', 'impersonate_write_blocked',
 ]
 const VALID_TARGET_TYPES = ['Evaluation', 'Campaign', 'User', 'Form', 'OffboardingRequest']
 

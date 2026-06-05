@@ -7,7 +7,7 @@ import "../styles/login.css";
 const PREVIEW_STEPS: [string, boolean][] = [
   ["Bilan de l'année", true],
   ["Compétences", true],
-  ["Objectifs 2026", true],
+  ["Objectifs", true],
   ["Récapitulatif", false],
 ];
 
@@ -53,7 +53,7 @@ export default function AuthLayout() {
                 <div className="row gap-8" style={{ minWidth: 0, flex: 1 }}>
                   <img src={nxLogo} alt="NanoXplore" className="ap-logo" />
                   <div style={{ minWidth: 0 }}>
-                    <div className="ap-title">Entretien 2026</div>
+                    <div className="ap-title">Entretien annuel</div>
                     <div className="ap-sub">Auto-évaluation</div>
                   </div>
                 </div>

@@ -6,6 +6,8 @@ import {
   ChevronRight,
   Save,
   ExternalLink,
+  CheckSquare,
+  Square,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -56,6 +58,9 @@ export default function OrgSidePanel({
   const [editManagerId, setEditManagerId] = useState<string>(
     person.managerId ?? "",
   );
+  const [editDotted, setEditDotted] = useState<string[]>(
+    person.dottedLineManagerIds ?? [],
+  );
   const [managerSearch, setManagerSearch] = useState("");
   const [dirty, setDirty] = useState(false);
 
@@ -65,6 +70,7 @@ export default function OrgSidePanel({
     setEditRole(person.role);
     setEditSectorId(person.sectorId ?? "");
     setEditManagerId(person.managerId ?? "");
+    setEditDotted(person.dottedLineManagerIds ?? []);
     setDirty(false);
   }, [person.id]);
 
@@ -80,12 +86,20 @@ export default function OrgSidePanel({
           editManagerId !== (person.managerId ?? "")
             ? editManagerId || null
             : undefined,
+        dottedLineManagerIds: editDotted,
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.org.all });
       setDirty(false);
     },
   });
+
+  const toggleDotted = (uid: string) => {
+    setEditDotted((prev) =>
+      prev.includes(uid) ? prev.filter((x) => x !== uid) : [...prev, uid],
+    );
+    setDirty(true);
+  };
 
   const filteredManagers = allUsers
     .filter((u) => {
@@ -344,6 +358,64 @@ export default function OrgSidePanel({
                     </span>
                   </button>
                 ))}
+              </div>
+            </div>
+
+            {/* Responsables transverses (matriciel) */}
+            <div className="field">
+              <label style={{ fontSize: 13 }}>Responsables transverses</label>
+              <p
+                className="small"
+                style={{ color: "var(--ink-3)", marginBottom: 6 }}
+              >
+                Liens fonctionnels (visibilité). La signature reste au manager
+                direct.
+              </p>
+              <div
+                className="overflow-hidden max-h-36 overflow-y-auto"
+                style={{
+                  border: "1px solid var(--line)",
+                  borderRadius: "var(--radius)",
+                }}
+              >
+                {allUsers
+                  .filter(
+                    (u) =>
+                      u.id !== person.id &&
+                      u.id !== editManagerId &&
+                      (!managerSearch ||
+                        `${u.firstName} ${u.lastName}`
+                          .toLowerCase()
+                          .includes(managerSearch.toLowerCase())),
+                  )
+                  .slice(0, 8)
+                  .map((u) => {
+                    const checked = editDotted.includes(u.id);
+                    return (
+                      <button
+                        key={u.id}
+                        onClick={() => toggleDotted(u.id)}
+                        className="w-full flex items-center gap-2 px-3 py-2 small"
+                        style={
+                          checked
+                            ? { background: "var(--blue-soft)" }
+                            : undefined
+                        }
+                      >
+                        {checked ? (
+                          <CheckSquare
+                            size={14}
+                            style={{ color: "var(--blue-text)" }}
+                          />
+                        ) : (
+                          <Square size={14} style={{ color: "var(--ink-3)" }} />
+                        )}
+                        <span style={{ color: "var(--ink)" }}>
+                          {u.firstName} {u.lastName}
+                        </span>
+                      </button>
+                    );
+                  })}
               </div>
             </div>
           </div>

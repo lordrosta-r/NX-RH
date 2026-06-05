@@ -20,6 +20,11 @@ export const EVALUATION_STATUS_CONFIG = {
     color: "bg-primary-50 text-primary-700 border-primary-200",
     dotColor: "bg-primary-500",
   },
+  disputed: {
+    label: "En litige",
+    color: "bg-error-50 text-error-600 border-error-200",
+    dotColor: "bg-error-500",
+  },
   signed_evaluatee: {
     label: "Signée (évalué)",
     color: "bg-primary-50 text-primary-700 border-primary-200",

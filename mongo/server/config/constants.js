@@ -60,6 +60,7 @@ const CAMPAIGN_STATUSES   = ['draft', 'active', 'closed', 'archived']
 
 const EVALUATION_STATUSES = [
   'assigned', 'in_progress', 'submitted', 'reviewed',
+  'disputed',   // litige — l'évalué conteste après review ; en attente d'arbitrage RH
   'signed_evaluatee', 'signed_manager', 'signed_hr', 'validated', 'expired',
   'rejected',   // terminal — demande RH refusée par un RH
   'archived',   // terminal — évaluation annulée suite à un offboarding
@@ -76,6 +77,7 @@ const AUDIT_ACTIONS = [
   'campaign_create', 'campaign_activate', 'campaign_update', 'campaign_delete',
   'offboard', 'offboarding_create', 'offboarding_update', 'offboarding_delete',
   'gdpr_anonymize',
+  'impersonate_start', 'impersonate_stop', 'impersonate_write_blocked',
 ]
 
 const AUTH_SOURCES = ['local', 'ldap']

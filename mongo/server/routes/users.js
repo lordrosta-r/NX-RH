@@ -15,6 +15,12 @@ const apiResponse = require('../utils/apiResponse')
 const { paginate } = require('../utils/paginate')
 const { getDescendantUserIds } = require('../services/managerVisibility')
 
+// Les requêtes .lean() renvoient `_id` mais pas le virtuel `id`. Le frontend
+// (liens /users/:id, sélection, etc.) utilise `id`. On normalise donc les
+// réponses user pour exposer `id` (en conservant `_id` pour la rétrocompat),
+// à l'image de GET /auth/me.
+const withId = (u) => (u && u._id ? { id: String(u._id), ...u } : u)
+
 // Limiteur dédié anti-énumération sur GET /api/users/:id : un utilisateur
 // authentifié ne devrait pas balayer des centaines d'IDs à la minute.
 // Relâché en test/e2e pour ne pas faire échouer les suites automatisées.
@@ -57,7 +63,7 @@ router.get('/search', async (req, res, next) => {
       isActive:   isActive === 'true' ? true : isActive === 'false' ? false : undefined,
     }
     const result = await userService.searchUsers(q, options)
-    respond.paginated(res, { data: result.users, total: result.total, page: result.page, limit: result.limit })
+    respond.paginated(res, { data: result.users.map(withId), total: result.total, page: result.page, limit: result.limit })
   } catch (err) {
     next(err)
   }
@@ -75,12 +81,16 @@ router.get('/', async (req, res, next) => {
       // Si hr/admin a accordé canViewSubtree au manager (flag stocké en DB,
       // jamais pilotable par le client), il voit toute sa descendance.
       const me = await User.findById(req.user.id).select('canViewSubtree').lean()
+      // Périmètre lecture : hiérarchique (direct ou descendance) + transverse
+      // (utilisateurs dont il est responsable fonctionnel).
+      const scopes = [{ dottedLineManagerIds: req.user.id }]
       if (me?.canViewSubtree) {
         const descendantIds = await getDescendantUserIds(req.user.id)
-        filter._id = { $in: descendantIds }
+        scopes.push({ _id: { $in: descendantIds } })
       } else {
-        filter.managerId = req.user.id
+        scopes.push({ managerId: req.user.id })
       }
+      filter.$or = scopes
     } else if (!['admin', 'hr'].includes(req.user.role)) {
       return res.status(403).json({ error: 'Permissions insuffisantes' })
     }
@@ -104,6 +114,7 @@ router.get('/', async (req, res, next) => {
       sort:   { lastName: 1, firstName: 1 },
       select: '-passwordHash -ldapDn',
     })
+    result.data = result.data.map(withId)
     apiResponse.paginated(res, result)
   } catch (err) {
     next(err)
@@ -137,7 +148,7 @@ router.get('/me', async (req, res, next) => {
 router.get('/:id', userByIdLimiter, async (req, res, next) => {
   try {
     const user = await userService.getUserById(req.params.id, req.user)
-    respond.item(res, user)
+    respond.item(res, withId(user))
   } catch (err) {
     next(err)
   }
@@ -163,7 +174,7 @@ router.post('/', validate(createUserValidator), async (req, res, next) => {
 router.patch('/:id', validate(updateUserValidator), async (req, res, next) => {
   try {
     const result = await userService.updateUser(req.params.id, req.body, req.user)
-    respond.item(res, result)
+    respond.item(res, withId(result))
   } catch (err) {
     next(err)
   }

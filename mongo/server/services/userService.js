@@ -118,6 +118,10 @@ async function updateUser(id, data, requestingUser) {
   const user = await User.findById(id)
   if (!user) throw AppError.notFound('Utilisateur introuvable')
 
+  if (await wouldRemoveLastActiveAdmin(user, updates)) {
+    throw AppError.conflict("Action refusée : c'est le dernier administrateur actif. Promouvez un autre administrateur avant de changer son rôle ou de le désactiver.")
+  }
+
   Object.assign(user, updates)
   await user.save()
 
@@ -125,6 +129,19 @@ async function updateUser(id, data, requestingUser) {
   delete result.passwordHash
   delete result.ldapDn
   return result
+}
+
+// Anti lock-out : empêche de retirer le DERNIER administrateur actif, que ce
+// soit par démotion de rôle (admin → autre) ou par désactivation (isActive=false).
+async function wouldRemoveLastActiveAdmin(user, { role, isActive } = {}) {
+  const losesAdmin =
+    user.role === 'admin' &&
+    ((role !== undefined && role !== 'admin') || isActive === false)
+  if (!losesAdmin) return false
+  const otherAdmins = await User.countDocuments({
+    _id: { $ne: user._id }, role: 'admin', isActive: true,
+  })
+  return otherAdmins === 0
 }
 
 // ── Suppression (soft delete) ─────────────────────────────────────────────────
@@ -138,6 +155,10 @@ async function deleteUser(id, requestingUserId) {
 
   const user = await User.findById(id)
   if (!user) throw AppError.notFound('Utilisateur introuvable')
+
+  if (await wouldRemoveLastActiveAdmin(user, { isActive: false })) {
+    throw AppError.conflict("Impossible de désactiver le dernier administrateur actif.")
+  }
 
   user.isActive = false
   await user.save()
@@ -201,27 +222,74 @@ async function offboardUser(userId, body) {
   user.offboardingReason = reason.trim()
   user.offboardingDate   = new Date(effectiveDate)
 
-  const evalFilter = {
-    $or: [{ evaluateeId: userId }, { evaluatorId: userId }],
-    status: { $nin: ['validated', 'archived'] },
+  const TERMINAL = ['validated', 'archived', 'expired', 'rejected']
+
+  // 1) Évaluations DONT IL EST L'ÉVALUÉ → archivées (la personne part).
+  const archiveFilter = {
+    evaluateeId: userId,
+    status: { $nin: TERMINAL },
+  }
+
+  // 2) Évaluations DONT IL EST L'ÉVALUATEUR d'autrui → NE PAS archiver
+  //    (sinon on détruit l'évaluation de collaborateurs encore présents).
+  //    On les réassigne à son N+1 (user.managerId), management de transition.
+  //    Si pas de N+1 (top de hiérarchie), on laisse en place pour réassignation
+  //    manuelle RH (PATCH /evaluations/:id/reassign) — surtout pas d'archivage.
+  const reassignFilter = {
+    evaluatorId: userId,
+    evaluateeId: { $ne: userId },
+    status: { $nin: TERMINAL },
+  }
+
+  const newEvaluatorId = user.managerId || null
+  let reassignedCount = 0
+
+  const runMutations = async (session) => {
+    const opts = session ? { session } : {}
+    await (session ? user.save({ session }) : user.save())
+    await Evaluation.updateMany(archiveFilter, { $set: { status: 'archived' } }, opts)
+
+    if (newEvaluatorId) {
+      const r = await Evaluation.updateMany(
+        reassignFilter,
+        {
+          $set: { evaluatorId: newEvaluatorId },
+          $push: { auditLog: { action: 'reassigned', by: userId, meta: { reason: 'offboarding', from: userId, to: newEvaluatorId } } },
+        },
+        opts,
+      )
+      reassignedCount = r.modifiedCount ?? r.nModified ?? 0
+    } else {
+      const pending = await Evaluation.countDocuments(reassignFilter)
+      if (pending > 0) {
+        logger.warn(`[offboard] ${pending} évaluation(s) à réassigner manuellement (user ${userId} sans N+1)`)
+      }
+    }
   }
 
   const session = await mongoose.startSession()
   try {
-    await session.withTransaction(async () => {
-      await user.save({ session })
-      await Evaluation.updateMany(evalFilter, { $set: { status: 'archived' } }, { session })
-    })
+    await session.withTransaction(async () => { await runMutations(session) })
   } catch (err) {
     if (err.code === 20 || err.message?.includes('Transaction') || err.message?.includes('replica')) {
       logger.warn('[offboard] Transactions non disponibles, exécution séquentielle')
-      await user.save()
-      await Evaluation.updateMany(evalFilter, { $set: { status: 'archived' } })
+      await runMutations(null)
     } else {
       throw err
     }
   } finally {
     await session.endSession()
+  }
+
+  if (reassignedCount > 0) {
+    AuditLog.create({
+      userId,
+      userRole: 'hr',
+      action: 'reassigned',
+      targetType: 'User',
+      targetId: userId,
+      meta: { reason: 'offboarding', newEvaluatorId, reassignedCount },
+    }).catch(err => logger.error('[offboard] AuditLog reassigned failed:', err))
   }
 
   const result = user.toObject()

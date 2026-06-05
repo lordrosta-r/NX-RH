@@ -237,6 +237,10 @@ const mutationLimiter = rateLimit({ windowMs: 60 * 1000, max: 500, standardHeade
 
 app.use('/api/', apiLimiter)
 
+// Lecture seule sous impersonation : refuse toute écriture (sauf sortie).
+const { blockImpersonatedWrites } = require('./middleware/impersonationGuard')
+app.use('/api/', blockImpersonatedWrites)
+
 // ─── v1 Router — all versioned routes ────────────────────────────────────────
 // Mounted at /api/v1 (current) and /api (backward-compat alias).
 // Both prefixes reach the same handlers; clients can migrate at their own pace.

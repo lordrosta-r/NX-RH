@@ -10,6 +10,7 @@ import {
   CheckSquare,
   Square,
   AlertTriangle,
+  Eye,
 } from "lucide-react";
 import { usersApi } from "../api/users";
 import client from "../api/client";
@@ -356,6 +357,31 @@ export default function UserDetailPage() {
                     />{" "}
                     Exporter données RGPD
                   </button>
+                  {currentUser?.role === "admin" &&
+                    userData.role !== "admin" &&
+                    userData.isActive &&
+                    userData.id !== currentUser.id && (
+                      <button
+                        onClick={async () => {
+                          setActionsOpen(false);
+                          await client.post(`/api/admin/impersonate/${id}`);
+                          window.location.href = "/";
+                        }}
+                        className="row w-full text-left"
+                        style={{
+                          gap: 8,
+                          padding: "10px 16px",
+                          fontSize: 14,
+                          color: "var(--ink-2)",
+                        }}
+                      >
+                        <Eye
+                          className="ico"
+                          style={{ width: 16, height: 16 }}
+                        />{" "}
+                        Voir en tant que
+                      </button>
+                    )}
                   {currentUser?.role === "admin" && (
                     <button
                       onClick={() => {

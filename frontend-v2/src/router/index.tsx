@@ -59,6 +59,7 @@ const EventsPage = lazy(() => import("../pages/EventsPage"));
 const EventDetailPage = lazy(() => import("../pages/EventDetailPage"));
 const ResourcesPage = lazy(() => import("../pages/ResourcesPage"));
 const ResourceDetailPage = lazy(() => import("../pages/ResourceDetailPage"));
+const HelpPage = lazy(() => import("../pages/HelpPage"));
 const OffboardingPage = lazy(() => import("../pages/OffboardingPage"));
 const OffboardingDetailPage = lazy(
   () => import("../pages/OffboardingDetailPage"),
@@ -388,6 +389,16 @@ export const router = createBrowserRouter([
         element: (
           <S>
             <ResourceDetailPage />
+          </S>
+        ),
+      },
+      // Aide — ouverte à tous les rôles authentifiés (admin compris, non masqué).
+      // L'anti-exposition est éditoriale : aucune section admin sensible dans la page.
+      {
+        path: "/help",
+        element: (
+          <S>
+            <HelpPage />
           </S>
         ),
       },

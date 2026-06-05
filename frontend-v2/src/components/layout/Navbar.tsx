@@ -1,7 +1,14 @@
 import { useState, useRef, useEffect } from "react";
 import { NavLink, Link, useNavigate } from "react-router-dom";
 import nxLogo from "../../assets/nx-logo.png";
-import { ChevronDown, LogOut, User, Globe, Search } from "lucide-react";
+import {
+  ChevronDown,
+  LogOut,
+  User,
+  Globe,
+  Search,
+  HelpCircle,
+} from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import {
   usePerspective,
@@ -132,6 +139,16 @@ export default function Navbar({
               >
                 <Search className="w-5 h-5" />
               </button>
+
+              {/* Aide — visible pour tous les rôles, admin compris (non masqué) */}
+              <Link
+                to="/help"
+                className="icon-btn"
+                aria-label={t("nav.help")}
+                title={t("nav.help")}
+              >
+                <HelpCircle className="w-5 h-5" />
+              </Link>
 
               <NotificationBell />
 

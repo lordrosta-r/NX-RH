@@ -1,7 +1,9 @@
-import type { Dispatch, SetStateAction } from "react";
+import { useState, type Dispatch, type SetStateAction } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle } from "lucide-react";
 import { SignatureSection } from "../SignatureSection";
+import ConfirmDialog from "../ui/ConfirmDialog";
+import GlossaryTerm from "../ui/GlossaryTerm";
 import type { Evaluation, EvaluationStatus } from "../../types";
 import type { EvalMutationHandle } from "../../types/evaluation";
 import { queryKeys } from "../../lib/queryKeys";
@@ -42,6 +44,9 @@ interface EvaluationCommentsSectionProps {
   signMutation: EvalMutationHandle;
   validateMutation: EvalMutationHandle;
   signWithCommentMutation: EvalMutationHandle;
+  disputeMutation: EvalMutationHandle;
+  resolveReopenMutation: EvalMutationHandle;
+  resolveProceedMutation: EvalMutationHandle;
 }
 
 export function EvaluationCommentsSection({
@@ -58,9 +63,14 @@ export function EvaluationCommentsSection({
   signMutation,
   validateMutation,
   signWithCommentMutation,
+  disputeMutation,
+  resolveReopenMutation,
+  resolveProceedMutation,
 }: EvaluationCommentsSectionProps) {
   const queryClient = useQueryClient();
   const currentIdx = SIGN_STATUSES.indexOf(status as SignStatus);
+  const [confirmValidate, setConfirmValidate] = useState(false);
+  const [confirmDispute, setConfirmDispute] = useState(false);
 
   return (
     <div>
@@ -183,7 +193,7 @@ export function EvaluationCommentsSection({
           {evaluation.nextYearObjectives && (
             <div style={{ gridColumn: "1 / -1" }}>
               <p className="eyebrow" style={{ marginBottom: 4 }}>
-                Objectifs N+1
+                Objectifs <GlossaryTerm term="N+1" />
               </p>
               <p className="small" style={{ color: "var(--ink-2)" }}>
                 {evaluation.nextYearObjectives}
@@ -231,16 +241,111 @@ export function EvaluationCommentsSection({
               <span>Je signale un désaccord avec cette évaluation</span>
             </label>
           </div>
-          <div style={{ marginTop: 16 }}>
+          <div
+            className="row"
+            style={{ marginTop: 16, gap: 12, flexWrap: "wrap" }}
+          >
             <button
               type="button"
               className="btn btn-primary"
               onClick={() => signWithCommentMutation.mutate()}
-              disabled={signWithCommentMutation.isPending}
+              disabled={
+                signWithCommentMutation.isPending || disputeMutation.isPending
+              }
             >
               {signWithCommentMutation.isPending
                 ? "Signature…"
                 : "Signer et valider la prise de connaissance"}
+            </button>
+            <button
+              type="button"
+              className="btn btn-ghost"
+              style={{ color: "var(--red)" }}
+              onClick={() => setConfirmDispute(true)}
+              disabled={
+                disputeMutation.isPending || signWithCommentMutation.isPending
+              }
+            >
+              {disputeMutation.isPending ? "Envoi…" : "Contester l'évaluation"}
+            </button>
+          </div>
+          <p className="small" style={{ marginTop: 8, color: "var(--ink-3)" }}>
+            Contester ouvre un litige transmis aux RH pour arbitrage, sans
+            signer la prise de connaissance.
+          </p>
+        </div>
+      )}
+
+      {/* Litige en cours */}
+      {status === "disputed" && (
+        <div
+          className="callout red row"
+          style={{ gap: 12, marginBottom: 24, alignItems: "flex-start" }}
+        >
+          <AlertTriangle
+            size={20}
+            style={{ color: "var(--red)", flexShrink: 0 }}
+            aria-hidden="true"
+          />
+          <div>
+            <p
+              className="small"
+              style={{ color: "var(--red)", fontWeight: 600 }}
+            >
+              Évaluation en litige — arbitrage RH en cours.
+            </p>
+            {evaluation.evaluateeComment && (
+              <p
+                className="small"
+                style={{
+                  color: "var(--ink-2)",
+                  marginTop: 4,
+                  fontStyle: "italic",
+                }}
+              >
+                « {evaluation.evaluateeComment} »
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Arbitrage RH du litige */}
+      {status === "disputed" && isAdminOrHr && (
+        <div className="tile" style={{ marginBottom: 24 }}>
+          <h2 className="eyebrow" style={{ marginBottom: 16 }}>
+            Arbitrage du litige
+          </h2>
+          <p className="body" style={{ marginBottom: 16 }}>
+            Renvoyez l'évaluation au responsable pour correction, ou actez le
+            désaccord et poursuivez le circuit de signature.
+          </p>
+          <div className="row" style={{ gap: 12, flexWrap: "wrap" }}>
+            <button
+              type="button"
+              className="btn btn-ghost"
+              onClick={() => resolveReopenMutation.mutate()}
+              disabled={
+                resolveReopenMutation.isPending ||
+                resolveProceedMutation.isPending
+              }
+            >
+              {resolveReopenMutation.isPending
+                ? "Renvoi…"
+                : "Renvoyer en révision"}
+            </button>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={() => resolveProceedMutation.mutate()}
+              disabled={
+                resolveProceedMutation.isPending ||
+                resolveReopenMutation.isPending
+              }
+            >
+              {resolveProceedMutation.isPending
+                ? "Traitement…"
+                : "Acter le litige et poursuivre"}
             </button>
           </div>
         </div>
@@ -291,7 +396,7 @@ export function EvaluationCommentsSection({
             type="button"
             className="btn btn-primary"
             style={{ background: "var(--green)" }}
-            onClick={() => validateMutation.mutate()}
+            onClick={() => setConfirmValidate(true)}
             disabled={validateMutation.isPending}
           >
             {validateMutation.isPending
@@ -300,6 +405,34 @@ export function EvaluationCommentsSection({
           </button>
         </div>
       )}
+
+      <ConfirmDialog
+        isOpen={confirmValidate}
+        onClose={() => setConfirmValidate(false)}
+        onConfirm={() => {
+          setConfirmValidate(false);
+          validateMutation.mutate();
+        }}
+        title="Valider définitivement l'évaluation"
+        description="Cette action est irréversible : l'évaluation passera en statut « validée » et ne pourra plus être modifiée. Confirmez-vous la validation définitive ?"
+        confirmLabel="Valider définitivement"
+        variant="warning"
+        loading={validateMutation.isPending}
+      />
+
+      <ConfirmDialog
+        isOpen={confirmDispute}
+        onClose={() => setConfirmDispute(false)}
+        onConfirm={() => {
+          setConfirmDispute(false);
+          disputeMutation.mutate();
+        }}
+        title="Contester l'évaluation"
+        description="Vous allez ouvrir un litige : l'évaluation sera transmise aux RH pour arbitrage et vous ne signez pas la prise de connaissance. Pensez à préciser votre désaccord dans le commentaire. Confirmer la contestation ?"
+        confirmLabel="Contester"
+        variant="warning"
+        loading={disputeMutation.isPending}
+      />
 
       <SignatureSection
         evaluationId={id}

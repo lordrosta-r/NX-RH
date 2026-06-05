@@ -32,6 +32,17 @@ async function _sendStatusNotifications(evaluation, newStatus) {
       if (evaluatee) await notify('managerActionRequired', evaluatee, { campaignName: cName })
       notifyInApp(evaluation.evaluateeId, 'eval_reviewed', 'Évaluation complétée', cName).catch(() => {})
 
+    } else if (newStatus === 'disputed') {
+      // Litige déposé par l'évalué → alerte RH/admin (arbitrage requis) + manager.
+      const hrUsers = await User.find({ role: { $in: ['hr', 'admin'] }, isActive: true }).select('_id').lean()
+      for (const hrUser of hrUsers) {
+        notifyInApp(hrUser._id, 'system', 'Litige sur une évaluation', `Un désaccord a été signalé — arbitrage requis (${cName})`, `/evaluations/${evaluation._id}`).catch(() => {})
+      }
+      const evaluatee = await User.findById(evaluation.evaluateeId, 'managerId').lean()
+      if (evaluatee?.managerId) {
+        notifyInApp(evaluatee.managerId, 'system', 'Litige sur une évaluation', `L'évalué a contesté l'évaluation (${cName})`, `/evaluations/${evaluation._id}`).catch(() => {})
+      }
+
     } else if (newStatus === 'signed_evaluatee') {
       const evaluatee = await User.findById(evaluation.evaluateeId, 'managerId firstName').lean()
       if (evaluatee?.managerId) {

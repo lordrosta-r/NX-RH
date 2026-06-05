@@ -71,6 +71,13 @@ function getTransporter() {
   return _initPromise
 }
 
+// Invalide le transporter en cache pour qu'il soit recréé avec la config SMTP
+// à jour (appelé après une modification des réglages SMTP en base).
+function resetTransporter() {
+  _transporter = null
+  _initPromise = null
+}
+
 /**
  * Send an email.
  * @param {{ to: string, subject: string, text?: string, html?: string }} opts
@@ -88,4 +95,4 @@ async function sendMail({ to, subject, text, html }) {
   return info
 }
 
-module.exports = { sendMail }
+module.exports = { sendMail, resetTransporter }

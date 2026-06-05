@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
+import SetupBanner from "../components/layout/SetupBanner";
+import ImpersonationBanner from "../components/layout/ImpersonationBanner";
 import { ToastContainer } from "../components/ui";
 import SearchOverlay from "../components/shared/SearchOverlay";
 import { PerspectiveProvider } from "../contexts/PerspectiveContext";
@@ -32,7 +34,9 @@ export default function AppLayout() {
           Aller au contenu principal
         </a>
         {/* Navbar institutionnelle (scopée .nx-app en interne) */}
+        <ImpersonationBanner />
         <Navbar onSearchClick={() => setSearchOpen(true)} />
+        <SetupBanner />
         <main id="main-content" className="flex-1">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
             <Outlet />

@@ -64,32 +64,47 @@ export function EvaluationCommentsSection({
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-slate-900 mb-6">
+      <h1 className="h2" style={{ marginBottom: 24 }}>
         Compte-rendu d'entretien
       </h1>
 
       {/* Stepper */}
-      <div className="bg-white rounded-xl border border-slate-200 p-4 mb-6 overflow-x-auto">
-        <div className="flex items-center gap-2 min-w-max">
+      <div
+        className="tile"
+        style={{ padding: 16, marginBottom: 24, overflowX: "auto" }}
+      >
+        <div
+          className="row"
+          style={{ gap: 8, minWidth: "max-content", flexWrap: "nowrap" }}
+        >
           {STEPS.map((step, idx) => {
             const stepIdx = SIGN_STATUSES.indexOf(step.key);
             const isDone = stepIdx < currentIdx;
             const isCurrent = stepIdx === currentIdx;
             return (
-              <div key={step.key} className="flex items-center gap-2">
+              <div key={step.key} className="row" style={{ gap: 8 }}>
                 <div
-                  className={`flex items-center gap-1 text-sm ${
-                    isDone
-                      ? "text-success-600"
+                  className="small"
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 4,
+                    color: isDone
+                      ? "var(--green)"
                       : isCurrent
-                        ? "text-primary-600 font-semibold"
-                        : "text-slate-500"
-                  }`}
+                        ? "var(--blue-text)"
+                        : "var(--ink-3)",
+                    fontWeight: isCurrent ? 700 : 400,
+                  }}
                 >
                   {isDone ? "✓" : isCurrent ? "→" : "○"} {step.label}
                 </div>
                 {idx < STEPS.length - 1 && (
-                  <span className="text-slate-300 mx-1">─</span>
+                  <span
+                    style={{ color: "var(--line-strong)", margin: "0 4px" }}
+                  >
+                    ─
+                  </span>
                 )}
               </div>
             );
@@ -99,46 +114,78 @@ export function EvaluationCommentsSection({
 
       {/* Désaccord */}
       {evaluation.disagreementFlag && (
-        <div className="border-l-4 border-warning-500 bg-warning-50 p-4 rounded-lg mb-4 flex items-center gap-3">
-          <AlertTriangle className="w-5 h-5 text-warning-600 flex-shrink-0" />
-          <p className="text-sm text-warning-700 font-medium">
+        <div
+          className="callout amber row"
+          style={{ gap: 12, marginBottom: 16 }}
+        >
+          <AlertTriangle
+            size={20}
+            style={{ color: "var(--amber)", flexShrink: 0 }}
+            aria-hidden="true"
+          />
+          <p
+            className="small"
+            style={{ color: "var(--amber)", fontWeight: 600 }}
+          >
             L'évalué a signalé un désaccord avec cette évaluation.
           </p>
         </div>
       )}
 
       {/* Résumé révision */}
-      <div className="bg-white rounded-xl border border-slate-200 p-5 mb-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+      <div className="tile" style={{ marginBottom: 24 }}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+            gap: 24,
+          }}
+        >
           {evaluation.reviewerScore !== undefined && (
             <div>
-              <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">
+              <p className="eyebrow" style={{ marginBottom: 4 }}>
                 Score
               </p>
-              <p className="text-2xl font-bold text-slate-900">
+              <p
+                style={{
+                  fontSize: 30,
+                  fontWeight: 800,
+                  lineHeight: 1,
+                  color: "var(--ink)",
+                }}
+              >
                 {evaluation.reviewerScore}
-                <span className="text-base font-normal text-slate-500">
+                <span
+                  style={{
+                    fontSize: 16,
+                    fontWeight: 400,
+                    color: "var(--ink-3)",
+                  }}
+                >
                   /100
                 </span>
               </p>
             </div>
           )}
           {evaluation.reviewerComment && (
-            <div className="sm:col-span-2">
-              <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">
+            <div style={{ gridColumn: "1 / -1" }}>
+              <p className="eyebrow" style={{ marginBottom: 4 }}>
                 Commentaire reviewer
               </p>
-              <p className="text-sm text-slate-700 italic">
+              <p
+                className="small"
+                style={{ color: "var(--ink-2)", fontStyle: "italic" }}
+              >
                 « {evaluation.reviewerComment} »
               </p>
             </div>
           )}
           {evaluation.nextYearObjectives && (
-            <div className="sm:col-span-2">
-              <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">
+            <div style={{ gridColumn: "1 / -1" }}>
+              <p className="eyebrow" style={{ marginBottom: 4 }}>
                 Objectifs N+1
               </p>
-              <p className="text-sm text-slate-700">
+              <p className="small" style={{ color: "var(--ink-2)" }}>
                 {evaluation.nextYearObjectives}
               </p>
             </div>
@@ -148,41 +195,48 @@ export function EvaluationCommentsSection({
 
       {/* Zone évalué */}
       {status === "reviewed" && isEvaluatee && (
-        <div className="bg-white rounded-xl border border-slate-200 p-5 mb-6">
-          <h2 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-4">
+        <div className="tile" style={{ marginBottom: 24 }}>
+          <h2 className="eyebrow" style={{ marginBottom: 16 }}>
             Votre prise de connaissance
           </h2>
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="evaluatee-comment" className="block text-sm font-medium text-slate-700 mb-1">
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <div className="field">
+              <label htmlFor="evaluatee-comment">
                 Mon commentaire (facultatif)
               </label>
               <textarea
                 id="evaluatee-comment"
+                className="input"
                 rows={3}
                 value={evaluateeComment}
                 onChange={(e) => setEvaluateeComment(e.target.value)}
                 placeholder="Votre commentaire sur cette évaluation…"
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-200 resize-none"
               />
             </div>
-            <label className="flex items-start gap-3 cursor-pointer">
+            <label
+              className="small row"
+              style={{
+                gap: 12,
+                alignItems: "flex-start",
+                cursor: "pointer",
+                color: "var(--ink-2)",
+              }}
+            >
               <input
                 type="checkbox"
                 checked={disagreementFlag}
                 onChange={(e) => setDisagreementFlag(e.target.checked)}
-                className="mt-0.5 rounded border-slate-300 text-warning-500"
+                style={{ marginTop: 2, accentColor: "var(--amber)" }}
               />
-              <span className="text-sm text-slate-700">
-                Je signale un désaccord avec cette évaluation
-              </span>
+              <span>Je signale un désaccord avec cette évaluation</span>
             </label>
           </div>
-          <div className="mt-4">
+          <div style={{ marginTop: 16 }}>
             <button
+              type="button"
+              className="btn btn-primary"
               onClick={() => signWithCommentMutation.mutate()}
               disabled={signWithCommentMutation.isPending}
-              className="px-6 py-2 bg-primary-500 text-white rounded-md text-sm font-semibold hover:bg-primary-600 disabled:opacity-50"
             >
               {signWithCommentMutation.isPending
                 ? "Signature…"
@@ -194,14 +248,15 @@ export function EvaluationCommentsSection({
 
       {/* Signature manager */}
       {status === "signed_evaluatee" && (isManager || isAdminOrHr) && (
-        <div className="bg-white rounded-xl border border-slate-200 p-5 mb-6">
-          <p className="text-sm text-slate-600 mb-4">
+        <div className="tile" style={{ marginBottom: 24 }}>
+          <p className="body" style={{ marginBottom: 16 }}>
             L'évalué a signé. Votre signature est maintenant requise.
           </p>
           <button
+            type="button"
+            className="btn btn-primary"
             onClick={() => signMutation.mutate()}
             disabled={signMutation.isPending}
-            className="px-6 py-2 bg-primary-500 text-white rounded-md text-sm font-semibold hover:bg-primary-600 disabled:opacity-50"
           >
             {signMutation.isPending ? "Signature…" : "Signer"}
           </button>
@@ -210,14 +265,15 @@ export function EvaluationCommentsSection({
 
       {/* Signature RH */}
       {status === "signed_manager" && isAdminOrHr && (
-        <div className="bg-white rounded-xl border border-slate-200 p-5 mb-6">
-          <p className="text-sm text-slate-600 mb-4">
+        <div className="tile" style={{ marginBottom: 24 }}>
+          <p className="body" style={{ marginBottom: 16 }}>
             Le manager a signé. La signature RH est requise.
           </p>
           <button
+            type="button"
+            className="btn btn-primary"
             onClick={() => signMutation.mutate()}
             disabled={signMutation.isPending}
-            className="px-6 py-2 bg-primary-500 text-white rounded-md text-sm font-semibold hover:bg-primary-600 disabled:opacity-50"
           >
             {signMutation.isPending ? "Signature RH…" : "Signer (RH)"}
           </button>
@@ -226,15 +282,17 @@ export function EvaluationCommentsSection({
 
       {/* Validation finale */}
       {status === "signed_hr" && isAdminOrHr && (
-        <div className="bg-white rounded-xl border border-slate-200 p-5 mb-6">
-          <p className="text-sm text-slate-600 mb-4">
+        <div className="tile" style={{ marginBottom: 24 }}>
+          <p className="body" style={{ marginBottom: 16 }}>
             Toutes les signatures sont collectées. Vous pouvez valider
             définitivement.
           </p>
           <button
+            type="button"
+            className="btn btn-primary"
+            style={{ background: "var(--green)" }}
             onClick={() => validateMutation.mutate()}
             disabled={validateMutation.isPending}
-            className="px-6 py-2 bg-success-500 text-white rounded-md text-sm font-semibold hover:bg-success-600 disabled:opacity-50"
           >
             {validateMutation.isPending
               ? "Validation…"
@@ -250,7 +308,9 @@ export function EvaluationCommentsSection({
         evaluatorId={evaluation.evaluatorId}
         evaluateeId={evaluation.evaluateeId}
         onSigned={() =>
-          queryClient.invalidateQueries({ queryKey: queryKeys.evaluations.detail(id) })
+          queryClient.invalidateQueries({
+            queryKey: queryKeys.evaluations.detail(id),
+          })
         }
       />
     </div>

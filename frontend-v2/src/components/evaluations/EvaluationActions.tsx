@@ -15,35 +15,41 @@ export function EvaluationActions({ evaluation, id }: EvaluationActionsProps) {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-slate-900">
+      <div className="row between wrap nxgap-12" style={{ marginBottom: 24 }}>
+        <h1 className="h1">
           Compte-rendu — {evaluation.evaluatee?.firstName}{" "}
           {evaluation.evaluatee?.lastName}
         </h1>
         <button
           onClick={() => exportEvaluationPdf(evaluation)}
-          className="inline-flex items-center gap-2 border border-slate-200 hover:bg-slate-50 px-4 py-2 rounded-md text-sm font-medium"
+          className="btn btn-ghost btn-sm"
         >
-          <Download className="w-4 h-4" /> Télécharger PDF
+          <Download className="ico" /> Télécharger PDF
         </button>
       </div>
 
-      <div className="space-y-6">
+      <div className="section-gap">
         {/* Réponses */}
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
-          <h2 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-4">
+        <div className="tile">
+          <h2 className="eyebrow" style={{ marginBottom: 16 }}>
             Réponses
           </h2>
-          <div className="space-y-4">
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             {questions.map((q, idx) => (
               <div
                 key={q.id}
-                className="pb-4 border-b border-slate-100 last:border-0"
+                style={{
+                  paddingBottom: 16,
+                  borderBottom: "1px solid var(--line)",
+                }}
               >
-                <p className="text-sm font-medium text-slate-800 mb-1">
+                <p
+                  className="body"
+                  style={{ fontWeight: 600, color: "var(--ink)" }}
+                >
                   Q{idx + 1}. {q.text}
                 </p>
-                <p className="text-sm text-slate-600 pl-4">
+                <p className="small" style={{ paddingLeft: 16, marginTop: 4 }}>
                   ➤ {String(answers[q.id] ?? "—")}
                 </p>
               </div>
@@ -53,31 +59,52 @@ export function EvaluationActions({ evaluation, id }: EvaluationActionsProps) {
 
         {/* Résumé révision */}
         {evaluation.reviewerScore !== undefined && (
-          <div className="bg-white rounded-xl border border-slate-200 p-5">
-            <h2 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-4">
+          <div className="tile">
+            <h2 className="eyebrow" style={{ marginBottom: 16 }}>
               Révision
             </h2>
-            <div className="space-y-3">
-              <div className="flex items-center gap-3">
-                <span className="text-sm text-slate-500">Score :</span>
-                <span className="text-lg font-bold text-slate-900">
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              <div className="row nxgap-12">
+                <span className="small">Score :</span>
+                <span
+                  style={{
+                    fontSize: 20,
+                    fontWeight: 800,
+                    color: "var(--ink)",
+                  }}
+                >
                   {evaluation.reviewerScore}/100
                 </span>
               </div>
               {evaluation.reviewerComment && (
                 <div>
-                  <p className="text-sm text-slate-500 mb-1">
+                  <p className="small" style={{ marginBottom: 4 }}>
                     Commentaire reviewer :
                   </p>
-                  <p className="text-sm text-slate-700 italic pl-3 border-l-2 border-slate-200">
+                  <p
+                    className="body"
+                    style={{
+                      fontStyle: "italic",
+                      paddingLeft: 12,
+                      borderLeft: "2px solid var(--line)",
+                    }}
+                  >
                     « {evaluation.reviewerComment} »
                   </p>
                 </div>
               )}
               {evaluation.nextYearObjectives && (
                 <div>
-                  <p className="text-sm text-slate-500 mb-1">Objectifs N+1 :</p>
-                  <p className="text-sm text-slate-700 pl-3 border-l-2 border-slate-200">
+                  <p className="small" style={{ marginBottom: 4 }}>
+                    Objectifs N+1 :
+                  </p>
+                  <p
+                    className="body"
+                    style={{
+                      paddingLeft: 12,
+                      borderLeft: "2px solid var(--line)",
+                    }}
+                  >
                     {evaluation.nextYearObjectives}
                   </p>
                 </div>
@@ -88,17 +115,21 @@ export function EvaluationActions({ evaluation, id }: EvaluationActionsProps) {
 
         {/* Commentaire évalué */}
         {evaluation.evaluateeComment && (
-          <div className="bg-white rounded-xl border border-slate-200 p-5">
-            <h2 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-4">
+          <div className="tile">
+            <h2 className="eyebrow" style={{ marginBottom: 16 }}>
               Commentaire de l'évalué
             </h2>
-            <p className="text-sm text-slate-700 italic">
+            <p className="body" style={{ fontStyle: "italic" }}>
               « {evaluation.evaluateeComment} »
             </p>
             {evaluation.disagreementFlag && (
-              <div className="mt-3 flex items-center gap-2 text-warning-600 text-sm font-medium">
-                <AlertTriangle className="w-4 h-4" /> Désaccord signalé
-              </div>
+              <span className="badge red" style={{ marginTop: 12 }}>
+                <AlertTriangle
+                  className="ico"
+                  style={{ width: 14, height: 14 }}
+                />{" "}
+                Désaccord signalé
+              </span>
             )}
           </div>
         )}

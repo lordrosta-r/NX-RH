@@ -1,3 +1,5 @@
+import { Bar } from "../shell";
+
 interface EvaluationProgressProps {
   answeredCount: number;
   totalQuestions: number;
@@ -17,30 +19,36 @@ export function EvaluationProgress({
 
   return (
     <>
-      <div className="mb-6">
-        <div className="flex justify-between text-xs text-slate-500 mb-1">
+      <div style={{ marginBottom: 24 }}>
+        <div
+          className="small"
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            marginBottom: 6,
+          }}
+        >
           <span>
             {answeredCount}/{totalQuestions} questions répondues
           </span>
           <span>{Math.round(pct)}%</span>
         </div>
-        <div className="bg-slate-100 rounded-full h-2">
-          <div
-            className="h-2 rounded-full bg-primary-500 transition-all"
-            style={{ width: `${pct}%` }}
-          />
-        </div>
+        <Bar pct={pct} tone="var(--blue)" />
       </div>
 
       {phases.length > 1 && (
-        <div className="flex gap-1 mb-6 overflow-x-auto pb-1">
+        <div
+          style={{
+            display: "flex",
+            gap: 6,
+            marginBottom: 24,
+            overflowX: "auto",
+            paddingBottom: 4,
+          }}
+        >
           <button
             onClick={() => onPhaseChange(null)}
-            className={`px-4 py-2 rounded-md text-sm font-medium whitespace-nowrap ${
-              !currentPhase
-                ? "bg-primary-500 text-white"
-                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-            }`}
+            className={`btn btn-sm ${!currentPhase ? "btn-primary" : "btn-ghost"}`}
           >
             Toutes
           </button>
@@ -48,11 +56,7 @@ export function EvaluationProgress({
             <button
               key={phase}
               onClick={() => onPhaseChange(phase)}
-              className={`px-4 py-2 rounded-md text-sm font-medium whitespace-nowrap ${
-                currentPhase === phase
-                  ? "bg-primary-500 text-white"
-                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-              }`}
+              className={`btn btn-sm ${currentPhase === phase ? "btn-primary" : "btn-ghost"}`}
             >
               {phase}
             </button>

@@ -78,12 +78,10 @@ export function EvaluationSkillsForm({
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-2">
-        <h1 className="text-2xl font-bold text-slate-900">
-          Remplir l'évaluation
-        </h1>
+      <div className="row between" style={{ marginBottom: 8 }}>
+        <h1 className="h2">Remplir l'évaluation</h1>
         {lastSavedAt && (
-          <span className="text-xs text-slate-500">
+          <span className="small">
             Sauvegardé à{" "}
             {lastSavedAt.toLocaleTimeString("fr-FR", {
               hour: "2-digit",
@@ -102,29 +100,49 @@ export function EvaluationSkillsForm({
       />
 
       {currentQuestion && (
-        <div className="bg-white rounded-xl border border-slate-200 p-6 mb-4">
-          <p className="text-xs text-slate-500 mb-2">
+        <div className="tile" style={{ marginBottom: 16 }}>
+          <p className="small" style={{ marginBottom: 8 }}>
             Question {currentQuestionIdx + 1} / {filteredQuestions.length}
           </p>
-          <p className="text-base font-medium text-slate-900 mb-4">
+          <p
+            className="body"
+            style={{
+              fontWeight: 600,
+              color: "var(--ink)",
+              marginBottom: 16,
+            }}
+          >
             {currentQuestion.text}
           </p>
 
           {currentQuestion.type === "rating" && (
-            <div className="flex gap-2">
-              {[1, 2, 3, 4, 5].map((v) => (
-                <button
-                  key={v}
-                  onClick={() => setAnswer(currentQuestion.id, v)}
-                  className={`w-10 h-10 rounded-full border-2 font-semibold text-sm transition-all ${
-                    answers[currentQuestion.id] === v
-                      ? "border-primary-500 bg-primary-500 text-white"
-                      : "border-slate-200 text-slate-600 hover:border-primary-300"
-                  }`}
-                >
-                  {v}
-                </button>
-              ))}
+            <div className="row" style={{ gap: 8 }}>
+              {[1, 2, 3, 4, 5].map((v) => {
+                const selected = answers[currentQuestion.id] === v;
+                return (
+                  <button
+                    key={v}
+                    onClick={() => setAnswer(currentQuestion.id, v)}
+                    aria-label={`Note ${v}`}
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: "50%",
+                      fontWeight: 600,
+                      fontSize: 14,
+                      cursor: "pointer",
+                      transition: "background 0.12s, border-color 0.12s",
+                      border: selected
+                        ? "2px solid var(--blue)"
+                        : "1px solid var(--line)",
+                      background: selected ? "var(--blue)" : "#fff",
+                      color: selected ? "#fff" : "var(--ink-2)",
+                    }}
+                  >
+                    {v}
+                  </button>
+                );
+              })}
             </div>
           )}
 
@@ -135,43 +153,68 @@ export function EvaluationSkillsForm({
               value={String(answers[currentQuestion.id] ?? "")}
               onChange={(e) => setAnswer(currentQuestion.id, e.target.value)}
               placeholder="Votre réponse…"
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-200 resize-none"
+              aria-label={currentQuestion.text}
+              className="input"
             />
           )}
 
           {currentQuestion.type === "yes_no" && (
-            <div className="flex gap-3">
-              {["Oui", "Non"].map((opt) => (
-                <button
-                  key={opt}
-                  onClick={() => setAnswer(currentQuestion.id, opt)}
-                  className={`px-6 py-2 rounded-md border-2 font-medium text-sm transition-all ${
-                    answers[currentQuestion.id] === opt
-                      ? "border-primary-500 bg-primary-500 text-white"
-                      : "border-slate-200 text-slate-600 hover:border-primary-300"
-                  }`}
-                >
-                  {opt}
-                </button>
-              ))}
+            <div className="row" style={{ gap: 12 }}>
+              {["Oui", "Non"].map((opt) => {
+                const selected = answers[currentQuestion.id] === opt;
+                return (
+                  <button
+                    key={opt}
+                    onClick={() => setAnswer(currentQuestion.id, opt)}
+                    style={{
+                      padding: "9px 24px",
+                      borderRadius: "var(--radius)",
+                      fontWeight: 600,
+                      fontSize: 14,
+                      cursor: "pointer",
+                      transition: "background 0.12s, border-color 0.12s",
+                      border: selected
+                        ? "2px solid var(--blue)"
+                        : "1px solid var(--line)",
+                      background: selected ? "var(--blue)" : "#fff",
+                      color: selected ? "#fff" : "var(--ink-2)",
+                    }}
+                  >
+                    {opt}
+                  </button>
+                );
+              })}
             </div>
           )}
 
           {currentQuestion.type === "choice" && currentQuestion.options && (
-            <div className="space-y-2">
-              {currentQuestion.options.map((opt) => (
-                <button
-                  key={opt}
-                  onClick={() => setAnswer(currentQuestion.id, opt)}
-                  className={`w-full text-left px-4 py-3 rounded-md border-2 text-sm transition-all ${
-                    answers[currentQuestion.id] === opt
-                      ? "border-primary-500 bg-primary-50 text-primary-700 font-medium"
-                      : "border-slate-200 text-slate-700 hover:border-slate-300"
-                  }`}
-                >
-                  {opt}
-                </button>
-              ))}
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {currentQuestion.options.map((opt) => {
+                const selected = answers[currentQuestion.id] === opt;
+                return (
+                  <button
+                    key={opt}
+                    onClick={() => setAnswer(currentQuestion.id, opt)}
+                    style={{
+                      width: "100%",
+                      textAlign: "left",
+                      padding: "12px 16px",
+                      borderRadius: "var(--radius)",
+                      fontSize: 14,
+                      cursor: "pointer",
+                      transition: "background 0.12s, border-color 0.12s",
+                      border: selected
+                        ? "2px solid var(--blue)"
+                        : "1px solid var(--line)",
+                      background: selected ? "var(--blue-soft)" : "#fff",
+                      color: selected ? "var(--blue-text)" : "var(--ink-2)",
+                      fontWeight: selected ? 600 : 400,
+                    }}
+                  >
+                    {opt}
+                  </button>
+                );
+              })}
             </div>
           )}
 
@@ -186,17 +229,24 @@ export function EvaluationSkillsForm({
                 onChange={(e) =>
                   setAnswer(currentQuestion.id, Number(e.target.value))
                 }
-                className="w-full accent-primary-500"
+                style={{ width: "100%", accentColor: "var(--blue)" }}
                 aria-label={currentQuestion.text}
               />
-              <div className="text-sm font-medium text-primary-700 mt-1">
+              <div
+                className="small"
+                style={{
+                  fontWeight: 600,
+                  color: "var(--blue-text)",
+                  marginTop: 4,
+                }}
+              >
                 {Number(answers[currentQuestion.id] ?? 0)}%
               </div>
             </div>
           )}
 
           {currentQuestion.type === "weather" && (
-            <div className="flex gap-3">
+            <div className="row" style={{ gap: 12 }}>
               {WEATHER_OPTIONS.map(({ key, label, Icon }) => {
                 const selected = answers[currentQuestion.id] === key;
                 return (
@@ -206,11 +256,23 @@ export function EvaluationSkillsForm({
                     onClick={() => setAnswer(currentQuestion.id, key)}
                     aria-pressed={selected}
                     title={label}
-                    className={`flex flex-col items-center gap-1 px-4 py-3 rounded-md border-2 text-xs transition-all ${
-                      selected
-                        ? "border-primary-500 bg-primary-50 text-primary-700 font-medium"
-                        : "border-slate-200 text-slate-600 hover:border-primary-300"
-                    }`}
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      gap: 4,
+                      padding: "12px 16px",
+                      borderRadius: "var(--radius)",
+                      fontSize: 12,
+                      cursor: "pointer",
+                      transition: "background 0.12s, border-color 0.12s",
+                      border: selected
+                        ? "2px solid var(--blue)"
+                        : "1px solid var(--line)",
+                      background: selected ? "var(--blue-soft)" : "#fff",
+                      color: selected ? "var(--blue-text)" : "var(--ink-2)",
+                      fontWeight: selected ? 600 : 400,
+                    }}
                   >
                     <Icon size={24} strokeWidth={1.5} aria-hidden="true" />
                     {label}
@@ -221,14 +283,9 @@ export function EvaluationSkillsForm({
           )}
 
           {currentQuestion.type === "objective_item" && (
-            <div className="space-y-3">
-              <div>
-                <label
-                  htmlFor={`${currentQuestion.id}-desc`}
-                  className="block text-xs text-slate-500 mb-1"
-                >
-                  Objectif
-                </label>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              <div className="field">
+                <label htmlFor={`${currentQuestion.id}-desc`}>Objectif</label>
                 <textarea
                   id={`${currentQuestion.id}-desc`}
                   rows={2}
@@ -240,14 +297,11 @@ export function EvaluationSkillsForm({
                     })
                   }
                   placeholder="Décrivez l'objectif…"
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-200 resize-none"
+                  className="input"
                 />
               </div>
-              <div>
-                <label
-                  htmlFor={`${currentQuestion.id}-progress`}
-                  className="block text-xs text-slate-500 mb-1"
-                >
+              <div className="field">
+                <label htmlFor={`${currentQuestion.id}-progress`}>
                   Avancement :{" "}
                   {objField(answers[currentQuestion.id], "progress") || 0}%
                 </label>
@@ -266,19 +320,16 @@ export function EvaluationSkillsForm({
                       progress: Number(e.target.value),
                     })
                   }
-                  className="w-full accent-primary-500"
+                  style={{ width: "100%", accentColor: "var(--blue)" }}
                 />
               </div>
             </div>
           )}
 
           {currentQuestion.type === "mobility" && (
-            <div className="space-y-3">
-              <div>
-                <label
-                  htmlFor={`${currentQuestion.id}-wish`}
-                  className="block text-xs text-slate-500 mb-1"
-                >
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              <div className="field">
+                <label htmlFor={`${currentQuestion.id}-wish`}>
                   Souhait de mobilité
                 </label>
                 <select
@@ -290,7 +341,7 @@ export function EvaluationSkillsForm({
                       wish: e.target.value,
                     })
                   }
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-200"
+                  className="input"
                 >
                   <option value="">Sélectionner…</option>
                   <option value="none">Aucun souhait</option>
@@ -303,11 +354,8 @@ export function EvaluationSkillsForm({
                   <option value="both">Les deux</option>
                 </select>
               </div>
-              <div>
-                <label
-                  htmlFor={`${currentQuestion.id}-details`}
-                  className="block text-xs text-slate-500 mb-1"
-                >
+              <div className="field">
+                <label htmlFor={`${currentQuestion.id}-details`}>
                   Précisions (optionnel)
                 </label>
                 <textarea
@@ -321,7 +369,7 @@ export function EvaluationSkillsForm({
                     })
                   }
                   placeholder="Poste, lieu, horizon souhaité…"
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-200 resize-none"
+                  className="input"
                 />
               </div>
             </div>
@@ -332,11 +380,8 @@ export function EvaluationSkillsForm({
           )}
 
           {currentQuestion.type === "rating" && (
-            <div className="mt-4">
-              <label
-                htmlFor={`${currentQuestion.id}-note`}
-                className="block text-xs text-slate-500 mb-1"
-              >
+            <div className="field" style={{ marginTop: 16 }}>
+              <label htmlFor={`${currentQuestion.id}-note`}>
                 Note (optionnelle)
               </label>
               <input
@@ -347,32 +392,33 @@ export function EvaluationSkillsForm({
                   setAnswer(`${currentQuestion.id}_note`, e.target.value)
                 }
                 placeholder="Commentaire…"
-                className="w-full h-9 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-200"
+                className="input"
               />
             </div>
           )}
         </div>
       )}
 
-      <div className="flex items-center justify-between">
+      <div className="row between">
         <button
           disabled={currentQuestionIdx === 0}
           onClick={() => setCurrentQuestionIdx((i) => i - 1)}
-          className="px-4 py-2 border border-slate-200 rounded-md text-sm font-medium hover:bg-slate-50 disabled:opacity-40"
+          className="btn btn-ghost btn-sm"
         >
           ← Précédent
         </button>
         {currentQuestionIdx < filteredQuestions.length - 1 ? (
           <button
             onClick={() => setCurrentQuestionIdx((i) => i + 1)}
-            className="px-4 py-2 bg-primary-500 text-white rounded-md text-sm font-medium hover:bg-primary-600"
+            className="btn btn-primary btn-sm"
           >
             Suivant →
           </button>
         ) : (
           <button
             onClick={() => setSubmitModal(true)}
-            className="px-6 py-2 bg-success-500 text-white rounded-md text-sm font-semibold hover:bg-success-600"
+            className="btn btn-sm"
+            style={{ background: "var(--green)", color: "#fff" }}
           >
             Soumettre l'évaluation
           </button>
@@ -380,31 +426,54 @@ export function EvaluationSkillsForm({
       </div>
 
       {submitModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-xl">
-            <h3 className="text-lg font-semibold text-slate-900 mb-2">
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 50,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "rgba(0,0,0,0.5)",
+          }}
+        >
+          <div
+            style={{
+              background: "#fff",
+              borderRadius: "var(--radius-lg)",
+              padding: 24,
+              width: "100%",
+              maxWidth: 448,
+              boxShadow: "var(--shadow-lg)",
+            }}
+          >
+            <h3 className="h3" style={{ marginBottom: 8 }}>
               Confirmer la soumission ?
             </h3>
-            <p className="text-sm text-slate-600 mb-4">
+            <p className="body" style={{ marginBottom: 16 }}>
               Vous ne pourrez plus modifier vos réponses après soumission.{" "}
               {answeredCount < questions.length && (
-                <span className="text-warning-600 font-medium">
+                <span style={{ color: "var(--amber)", fontWeight: 600 }}>
                   {questions.length - answeredCount} question(s) non
                   répondue(s).
                 </span>
               )}
             </p>
-            <div className="flex gap-3 justify-end">
+            <div
+              className="row"
+              style={{ gap: 12, justifyContent: "flex-end" }}
+            >
               <button
                 onClick={() => setSubmitModal(false)}
-                className="px-4 py-2 text-sm border border-slate-200 rounded-md hover:bg-slate-50"
+                className="btn btn-ghost btn-sm"
               >
                 Annuler
               </button>
               <button
                 onClick={() => submitMutation.mutate()}
                 disabled={submitMutation.isPending}
-                className="px-4 py-2 text-sm bg-success-500 text-white rounded-md hover:bg-success-600 disabled:opacity-50"
+                className="btn btn-sm"
+                style={{ background: "var(--green)", color: "#fff" }}
               >
                 {submitMutation.isPending
                   ? "Soumission…"

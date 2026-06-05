@@ -1,135 +1,263 @@
-import { useState } from 'react'
-import { Search, X, Plus } from 'lucide-react'
-import { useQuery } from '@tanstack/react-query'
-import { usersApi } from '../../api/users'
-import { useDebounce } from '../../hooks/useDebounce'
-import type { UserGroup } from '../../types'
+import { useState } from "react";
+import { Search, X, Plus } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { usersApi } from "../../api/users";
+import { useDebounce } from "../../hooks/useDebounce";
+import type { UserGroup } from "../../types";
 
 interface Props {
-  group: UserGroup
-  onClose: () => void
-  onAddMember: (userId: string) => void
-  onRemoveMember: (userId: string) => void
+  group: UserGroup;
+  onClose: () => void;
+  onAddMember: (userId: string) => void;
+  onRemoveMember: (userId: string) => void;
 }
 
-export function UserGroupMembersPanel({ group, onClose, onAddMember, onRemoveMember }: Props) {
-  const [search, setSearch] = useState('')
-  const debouncedSearch = useDebounce(search, 400)
+export function UserGroupMembersPanel({
+  group,
+  onClose,
+  onAddMember,
+  onRemoveMember,
+}: Props) {
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 400);
 
   const { data: searchResults, isLoading: searching } = useQuery({
-    queryKey: ['users-search', debouncedSearch],
-    queryFn: () => usersApi.getUsers({ q: debouncedSearch, limit: 10 }).then(r => r.data),
+    queryKey: ["users-search", debouncedSearch],
+    queryFn: () =>
+      usersApi.getUsers({ q: debouncedSearch, limit: 10 }).then((r) => r.data),
     enabled: debouncedSearch.length >= 2,
-  })
+  });
 
-  const memberIds = new Set(group.members.map(m => m._id))
+  const memberIds = new Set(group.members.map((m) => m._id));
   const filteredResults = (searchResults?.data ?? []).filter(
-    u => !memberIds.has(u._id ?? u.id ?? '')
-  )
+    (u) => !memberIds.has(u._id ?? u.id ?? ""),
+  );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-white rounded-xl p-6 w-full max-w-lg shadow-xl">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-slate-900">
-            Gérer les membres — {group.name}
-          </h3>
-          <button onClick={onClose} aria-label="Fermer" className="text-slate-400 hover:text-slate-600 transition">
-            <X className="w-5 h-5" />
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: "rgba(22, 22, 29, 0.45)" }}
+    >
+      <div
+        className="card w-full"
+        style={{ maxWidth: 540, boxShadow: "var(--shadow-lg)" }}
+      >
+        <div
+          className="row between"
+          style={{
+            padding: "20px 24px",
+            borderBottom: "1px solid var(--line)",
+          }}
+        >
+          <h3 className="h3">Gérer les membres — {group.name}</h3>
+          <button
+            onClick={onClose}
+            aria-label="Fermer"
+            className="icon-btn"
+            style={{ width: 36, height: 36 }}
+          >
+            <X className="ico" size={18} aria-hidden="true" />
           </button>
         </div>
 
-        <div className="mb-4">
-          <p className="text-sm font-medium text-slate-700 mb-2">
-            Membres actuels ({group.members.length})
-          </p>
-          {group.members.length === 0 ? (
-            <p className="text-sm text-slate-600 italic">Aucun membre</p>
-          ) : (
-            <ul className="space-y-1 max-h-40 overflow-y-auto">
-              {group.members.map(m => (
-                <li key={m._id} className="flex items-center justify-between px-3 py-2 bg-slate-50 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-full bg-primary-100 text-primary-700 text-xs font-semibold flex items-center justify-center">
-                      {(m.firstName?.[0] ?? '') + (m.lastName?.[0] ?? '')}
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-slate-800">{m.firstName} {m.lastName}</p>
-                      <p className="text-xs text-slate-500">{m.email}</p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => onRemoveMember(m._id ?? '')}
-                    className="text-slate-400 hover:text-red-500 transition p-1"
-                    aria-label={`Retirer ${m.firstName}`}
+        <div style={{ padding: "20px 24px" }}>
+          <div style={{ marginBottom: 22 }}>
+            <p className="eyebrow" style={{ marginBottom: 10 }}>
+              Membres actuels ({group.members.length})
+            </p>
+            {group.members.length === 0 ? (
+              <p className="small" style={{ fontStyle: "italic" }}>
+                Aucun membre
+              </p>
+            ) : (
+              <ul
+                style={{
+                  maxHeight: 180,
+                  overflowY: "auto",
+                  listStyle: "none",
+                  margin: 0,
+                  padding: 0,
+                }}
+              >
+                {group.members.map((m) => (
+                  <li
+                    key={m._id}
+                    className="row between"
+                    style={{
+                      padding: "10px 12px",
+                      background: "var(--bg-alt)",
+                      borderRadius: "var(--radius)",
+                      marginBottom: 6,
+                      gap: 12,
+                    }}
                   >
-                    <X className="w-4 h-4" />
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-
-        <div>
-          <p className="text-sm font-medium text-slate-700 mb-2">Ajouter des membres</p>
-          <div className="relative mb-2">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Rechercher un utilisateur..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="pl-10 pr-4 py-2 border border-slate-200 rounded-lg text-sm w-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-            />
+                    <div className="row nxgap-12">
+                      <div
+                        className="avatar"
+                        style={{ width: 32, height: 32, fontSize: 12 }}
+                      >
+                        {(m.firstName?.[0] ?? "") + (m.lastName?.[0] ?? "")}
+                      </div>
+                      <div>
+                        <p
+                          className="body"
+                          style={{
+                            fontSize: 14,
+                            fontWeight: 600,
+                            color: "var(--ink)",
+                          }}
+                        >
+                          {m.firstName} {m.lastName}
+                        </p>
+                        <p className="small" style={{ fontSize: 12 }}>
+                          {m.email}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => onRemoveMember(m._id ?? "")}
+                      className="icon-btn"
+                      style={{
+                        width: 32,
+                        height: 32,
+                        border: "none",
+                        background: "transparent",
+                        color: "var(--ink-3)",
+                      }}
+                      aria-label={`Retirer ${m.firstName}`}
+                    >
+                      <X size={16} aria-hidden="true" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
-          {debouncedSearch.length >= 2 && (
-            <ul className="space-y-1 max-h-40 overflow-y-auto">
-              {searching && (
-                <li className="text-sm text-slate-600 text-center py-2">Recherche...</li>
-              )}
-              {!searching && filteredResults.length === 0 && (
-                <li className="text-sm text-slate-600 text-center py-2">Aucun résultat</li>
-              )}
-              {filteredResults.map(u => (
-                <li
-                  key={u.id ?? u._id}
-                  className="flex items-center justify-between px-3 py-2 hover:bg-slate-50 rounded-lg cursor-pointer"
-                  onClick={() => onAddMember(u._id ?? u.id ?? '')}
-                >
-                  <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-full bg-primary-100 text-primary-700 text-xs font-semibold flex items-center justify-center">
-                      {(u.firstName?.[0] ?? '') + (u.lastName?.[0] ?? '')}
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-slate-800">{u.firstName} {u.lastName}</p>
-                      <p className="text-xs text-slate-500">{u.email}</p>
-                    </div>
-                  </div>
-                  <button
-                    className="text-primary-500 hover:text-primary-700 transition p-1"
-                    aria-label={`Ajouter ${u.firstName}`}
+
+          <div className="field">
+            <label htmlFor="group-member-search">Ajouter des membres</label>
+            <div style={{ position: "relative" }}>
+              <Search
+                size={16}
+                aria-hidden="true"
+                style={{
+                  position: "absolute",
+                  left: 12,
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  color: "var(--ink-3)",
+                  pointerEvents: "none",
+                }}
+              />
+              <input
+                id="group-member-search"
+                type="text"
+                placeholder="Rechercher un utilisateur..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="input"
+                style={{ paddingLeft: 36 }}
+              />
+            </div>
+            {debouncedSearch.length >= 2 && (
+              <ul
+                style={{
+                  maxHeight: 180,
+                  overflowY: "auto",
+                  listStyle: "none",
+                  margin: "6px 0 0",
+                  padding: 0,
+                }}
+              >
+                {searching && (
+                  <li
+                    className="small"
+                    style={{ textAlign: "center", padding: "8px 0" }}
                   >
-                    <Plus className="w-4 h-4" />
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-          {debouncedSearch.length < 2 && debouncedSearch.length > 0 && (
-            <p className="text-xs text-slate-500 mt-1">Saisissez au moins 2 caractères pour rechercher</p>
-          )}
+                    Recherche...
+                  </li>
+                )}
+                {!searching && filteredResults.length === 0 && (
+                  <li
+                    className="small"
+                    style={{ textAlign: "center", padding: "8px 0" }}
+                  >
+                    Aucun résultat
+                  </li>
+                )}
+                {filteredResults.map((u) => (
+                  <li
+                    key={u.id ?? u._id}
+                    className="row between"
+                    style={{
+                      padding: "10px 12px",
+                      borderRadius: "var(--radius)",
+                      cursor: "pointer",
+                      gap: 12,
+                    }}
+                    onClick={() => onAddMember(u._id ?? u.id ?? "")}
+                  >
+                    <div className="row nxgap-12">
+                      <div
+                        className="avatar"
+                        style={{ width: 32, height: 32, fontSize: 12 }}
+                      >
+                        {(u.firstName?.[0] ?? "") + (u.lastName?.[0] ?? "")}
+                      </div>
+                      <div>
+                        <p
+                          className="body"
+                          style={{
+                            fontSize: 14,
+                            fontWeight: 600,
+                            color: "var(--ink)",
+                          }}
+                        >
+                          {u.firstName} {u.lastName}
+                        </p>
+                        <p className="small" style={{ fontSize: 12 }}>
+                          {u.email}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      className="icon-btn"
+                      style={{
+                        width: 32,
+                        height: 32,
+                        border: "none",
+                        background: "transparent",
+                        color: "var(--blue-text)",
+                      }}
+                      aria-label={`Ajouter ${u.firstName}`}
+                    >
+                      <Plus size={16} aria-hidden="true" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {debouncedSearch.length < 2 && debouncedSearch.length > 0 && (
+              <p className="hint">
+                Saisissez au moins 2 caractères pour rechercher
+              </p>
+            )}
+          </div>
         </div>
 
-        <div className="flex justify-end pt-4 border-t border-slate-100 mt-4">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
-          >
+        <div
+          className="row"
+          style={{
+            justifyContent: "flex-end",
+            padding: "16px 24px",
+            borderTop: "1px solid var(--line)",
+          }}
+        >
+          <button onClick={onClose} className="btn btn-ghost btn-sm">
             Fermer
           </button>
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -23,41 +23,54 @@ export default function OrgSectorsView({ data, toolbar }: OrgSectorsViewProps) {
             return (
               <div
                 key={sector?._id ?? `no-sector-${i}`}
-                className="bg-white rounded-xl border border-slate-200 shadow-sm p-4"
+                className="tile"
+                style={{ padding: 16 }}
               >
-                <div className="flex items-center gap-2 mb-3 pb-3 border-b border-slate-100">
+                <div
+                  className="flex items-center gap-2 mb-3 pb-3"
+                  style={{ borderBottom: "1px solid var(--line)" }}
+                >
                   <div
                     className="w-3 h-3 rounded-full flex-shrink-0"
                     style={{ backgroundColor: sectorColor }}
                   />
-                  <h3 className="text-sm font-semibold text-slate-900 truncate">
+                  <h3 className="h3 truncate" style={{ fontSize: 15 }}>
                     {sector ? sector.name : "Sans secteur"}
                   </h3>
-                  <span className="ml-auto text-xs font-medium text-slate-500">
+                  <span className="badge grey" style={{ marginLeft: "auto" }}>
                     {users.length}
                   </span>
                 </div>
                 <div className="space-y-1.5">
                   {users.length === 0 ? (
-                    <p className="text-xs text-slate-500 italic">
+                    <p className="small" style={{ fontStyle: "italic" }}>
                       Aucun utilisateur
                     </p>
                   ) : (
                     users.map((u) => (
                       <div key={u._id} className="flex items-center gap-2">
                         <div
-                          className="w-6 h-6 rounded-full flex items-center justify-center text-white text-[10px] font-semibold flex-shrink-0"
+                          className="avatar flex-shrink-0"
                           style={{
+                            width: 24,
+                            height: 24,
+                            fontSize: 10,
                             backgroundColor:
-                              ROLE_COLORS_HEX[u.role] ?? "#64748B",
+                              ROLE_COLORS_HEX[u.role] ?? "var(--ink-3)",
                           }}
                         >
                           {initials(u.firstName, u.lastName)}
                         </div>
-                        <span className="text-xs text-slate-700 truncate">
+                        <span
+                          className="small truncate"
+                          style={{ color: "var(--ink-2)" }}
+                        >
                           {u.firstName} {u.lastName}
                         </span>
-                        <span className="text-[10px] text-slate-500 ml-auto capitalize">
+                        <span
+                          className="small capitalize"
+                          style={{ marginLeft: "auto", fontSize: 11 }}
+                        >
                           {u.role}
                         </span>
                       </div>

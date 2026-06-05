@@ -1,18 +1,19 @@
-import { ZoomIn, ZoomOut, Maximize2, Crosshair } from 'lucide-react'
-import { useReactFlow } from '@xyflow/react'
+import { ZoomIn, ZoomOut, Maximize2, Crosshair } from "lucide-react";
+import { useReactFlow } from "@xyflow/react";
 
 export default function OrgControls() {
-  const { zoomIn, zoomOut, fitView } = useReactFlow()
+  const { zoomIn, zoomOut, fitView } = useReactFlow();
 
   const handleCenter = () => {
-    fitView({ padding: 0.1, duration: 400 })
-  }
+    fitView({ padding: 0.1, duration: 400 });
+  };
 
   return (
     <div className="absolute bottom-4 right-4 flex flex-col gap-1 z-10">
       <button
         onClick={() => zoomIn({ duration: 200 })}
-        className="w-9 h-9 bg-white rounded-lg shadow-md border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+        className="icon-btn"
+        style={{ boxShadow: "var(--shadow-sm)" }}
         title="Zoom avant"
         aria-label="Zoom avant"
       >
@@ -20,7 +21,8 @@ export default function OrgControls() {
       </button>
       <button
         onClick={() => zoomOut({ duration: 200 })}
-        className="w-9 h-9 bg-white rounded-lg shadow-md border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+        className="icon-btn"
+        style={{ boxShadow: "var(--shadow-sm)" }}
         title="Zoom arrière"
         aria-label="Zoom arrière"
       >
@@ -28,7 +30,8 @@ export default function OrgControls() {
       </button>
       <button
         onClick={handleCenter}
-        className="w-9 h-9 bg-white rounded-lg shadow-md border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+        className="icon-btn"
+        style={{ boxShadow: "var(--shadow-sm)" }}
         title="Centrer"
         aria-label="Centrer"
       >
@@ -36,12 +39,13 @@ export default function OrgControls() {
       </button>
       <button
         onClick={() => fitView({ padding: 0.15, duration: 400 })}
-        className="w-9 h-9 bg-white rounded-lg shadow-md border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+        className="icon-btn"
+        style={{ boxShadow: "var(--shadow-sm)" }}
         title="Ajuster à l'écran"
         aria-label="Ajuster à l'écran"
       >
         <Maximize2 size={16} />
       </button>
     </div>
-  )
+  );
 }

@@ -1,14 +1,19 @@
-import type { UserGroup } from '../../types'
-import Modal from '../ui/Modal'
+import type { UserGroup } from "../../types";
+import Modal from "../ui/Modal";
 
 interface Props {
-  group: UserGroup
-  onClose: () => void
-  onConfirm: () => void
-  isPending: boolean
+  group: UserGroup;
+  onClose: () => void;
+  onConfirm: () => void;
+  isPending: boolean;
 }
 
-export function UserGroupDeleteModal({ group, onClose, onConfirm, isPending }: Props) {
+export function UserGroupDeleteModal({
+  group,
+  onClose,
+  onConfirm,
+  isPending,
+}: Props) {
   return (
     <Modal
       isOpen={true}
@@ -16,27 +21,34 @@ export function UserGroupDeleteModal({ group, onClose, onConfirm, isPending }: P
       title="Supprimer le groupe"
       size="sm"
       footer={
-        <>
+        <div className="nx-app">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
+            aria-label="Annuler la suppression"
+            className="btn btn-ghost btn-sm"
           >
             Annuler
           </button>
           <button
             disabled={isPending}
             onClick={onConfirm}
-            className="px-4 py-2 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            aria-label="Confirmer la suppression"
+            className="btn btn-sm"
+            style={{ background: "var(--red)", color: "#fff" }}
           >
-            {isPending ? 'Suppression...' : 'Supprimer'}
+            {isPending ? "Suppression..." : "Supprimer"}
           </button>
-        </>
+        </div>
       }
     >
-      <p className="text-sm text-slate-600">
-        Êtes-vous sûr de vouloir supprimer <strong>{group.name}</strong> ?
-        Cette action est irréversible.
-      </p>
+      <div className="nx-app">
+        <div className="callout red">
+          <p className="body">
+            Êtes-vous sûr de vouloir supprimer <strong>{group.name}</strong> ?
+            Cette action est irréversible.
+          </p>
+        </div>
+      </div>
     </Modal>
-  )
+  );
 }

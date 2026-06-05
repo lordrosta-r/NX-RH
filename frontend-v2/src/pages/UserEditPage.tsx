@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { usersApi } from "../api/users";
 import type { User } from "../types";
 import { useAuth } from "../contexts/AuthContext";
-import Button from "../components/ui/Button";
+import { PageHead, Tile, Callout } from "../components/shell";
 import { queryKeys } from "../lib/queryKeys";
 
 const ROLE_LABELS: Record<string, string> = {
@@ -138,93 +138,86 @@ export default function UserEditPage() {
     updateMutation.mutate(payload);
   }
 
-  const inputCls = (field: string) => {
-    const disabled = isDisabled(field);
-    const hasErr = !!errors[field];
-    return `w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
-      disabled
-        ? "bg-slate-100 cursor-not-allowed border-slate-200"
-        : hasErr
-          ? "border-error-500"
-          : "border-slate-200"
-    }`;
-  };
+  const inputCls = (field: string) =>
+    `input${errors[field] ? " is-invalid" : ""}`;
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="w-8 h-8 border-2 border-primary-200 border-t-primary-500 rounded-full animate-spin" />
+      <div className="nx-app">
+        <div className="row" style={{ justifyContent: "center", padding: 96 }}>
+          <div className="w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
-      {/* Breadcrumb */}
-      <nav aria-label="Fil d'ariane" className="text-sm text-slate-500 mb-4">
-        <Link to="/" className="hover:text-primary-600">
+    <div className="nx-app">
+      <p className="eyebrow" style={{ marginBottom: 12 }}>
+        <Link to="/" className="link">
           Accueil
-        </Link>
-        {" › "}
-        <Link to="/users" className="hover:text-primary-600">
+        </Link>{" "}
+        ›{" "}
+        <Link to="/users" className="link">
           Collaborateurs
-        </Link>
-        {" › "}
-        <Link to={`/users/${id}`} className="hover:text-primary-600">
+        </Link>{" "}
+        ›{" "}
+        <Link to={`/users/${id}`} className="link">
           {userData?.firstName} {userData?.lastName}
-        </Link>
-        {" › "}
-        <span className="text-slate-900">Modifier</span>
-      </nav>
+        </Link>{" "}
+        › Modifier
+      </p>
 
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-slate-900">
-          Modifier — {userData?.firstName} {userData?.lastName}
-        </h1>
-        <div className="flex gap-3">
-          <Link
-            to={`/users/${id}`}
-            className="inline-flex items-center gap-2 border border-slate-200 hover:bg-slate-50 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium"
-          >
-            Voir le profil
-          </Link>
-          <Button
-            type="submit"
-            form="edit-form"
-            variant="primary"
-            loading={updateMutation.isPending}
-            disabled={updateMutation.isPending}
-          >
-            {updateMutation.isPending ? "Enregistrement…" : "Enregistrer →"}
-          </Button>
-        </div>
-      </div>
+      <PageHead
+        title={`Modifier — ${userData?.firstName ?? ""} ${userData?.lastName ?? ""}`}
+        actions={
+          <>
+            <Link to={`/users/${id}`} className="btn btn-ghost">
+              Voir le profil
+            </Link>
+            <button
+              type="submit"
+              form="edit-form"
+              className="btn btn-primary"
+              disabled={updateMutation.isPending}
+            >
+              {updateMutation.isPending ? "Enregistrement…" : "Enregistrer →"}
+            </button>
+          </>
+        }
+      />
 
       {errors.submit && (
-        <div className="border-l-4 border-error-500 bg-error-50 p-4 rounded-lg mb-4 text-sm text-error-700">
+        <Callout tone="red" style={{ marginBottom: 16 }}>
           {errors.submit}
-        </div>
+        </Callout>
       )}
 
       {isSelf && !canEditAll && (
-        <div className="border-l-4 border-warning-500 bg-warning-50 p-4 rounded-lg mb-4 text-sm text-warning-700">
+        <Callout tone="amber" style={{ marginBottom: 16 }}>
           Vous pouvez uniquement modifier votre prénom et votre nom.
-        </div>
+        </Callout>
       )}
 
       <form id="edit-form" onSubmit={handleSubmit} noValidate>
         {/* Card 1 — Informations personnelles */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6 mb-4">
-          <h2 className="text-base font-semibold text-slate-900 mb-4">
+        <Tile style={{ marginBottom: 16 }}>
+          <h2 className="h2" style={{ marginBottom: 16 }}>
             Informations personnelles
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                Prénom <span className="text-error-500">*</span>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+              gap: 16,
+            }}
+          >
+            <div className="field">
+              <label htmlFor="firstName">
+                Prénom <span style={{ color: "var(--red)" }}>*</span>
               </label>
               <input
+                id="firstName"
                 type="text"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
@@ -232,16 +225,15 @@ export default function UserEditPage() {
                 className={inputCls("firstName")}
               />
               {errors.firstName && (
-                <p className="text-xs text-error-500 mt-1">
-                  {errors.firstName}
-                </p>
+                <p className="field-error">{errors.firstName}</p>
               )}
             </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                Nom <span className="text-error-500">*</span>
+            <div className="field">
+              <label htmlFor="lastName">
+                Nom <span style={{ color: "var(--red)" }}>*</span>
               </label>
               <input
+                id="lastName"
                 type="text"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
@@ -249,37 +241,37 @@ export default function UserEditPage() {
                 className={inputCls("lastName")}
               />
               {errors.lastName && (
-                <p className="text-xs text-error-500 mt-1">{errors.lastName}</p>
+                <p className="field-error">{errors.lastName}</p>
               )}
             </div>
           </div>
-          <div className="mt-4">
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              E-mail <span className="text-error-500">*</span>
+          <div className="field" style={{ marginTop: 16 }}>
+            <label htmlFor="email">
+              E-mail <span style={{ color: "var(--red)" }}>*</span>
             </label>
             <input
+              id="email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={isDisabled("email")}
               className={inputCls("email")}
             />
-            {errors.email && (
-              <p className="text-xs text-error-500 mt-1">{errors.email}</p>
-            )}
+            {errors.email && <p className="field-error">{errors.email}</p>}
           </div>
-        </div>
+        </Tile>
 
         {/* Card 2 — Poste & Organisation */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6 mb-4">
-          <h2 className="text-base font-semibold text-slate-900 mb-4">
+        <Tile style={{ marginBottom: 16 }}>
+          <h2 className="h2" style={{ marginBottom: 16 }}>
             Poste &amp; Organisation
           </h2>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Rôle <span className="text-error-500">*</span>
+          <div className="field" style={{ marginBottom: 16 }}>
+            <label htmlFor="role">
+              Rôle <span style={{ color: "var(--red)" }}>*</span>
             </label>
             <select
+              id="role"
               value={role}
               onChange={(e) => setRole(e.target.value)}
               disabled={isDisabled("role")}
@@ -292,16 +284,20 @@ export default function UserEditPage() {
                 </option>
               ))}
             </select>
-            {errors.role && (
-              <p className="text-xs text-error-500 mt-1">{errors.role}</p>
-            )}
+            {errors.role && <p className="field-error">{errors.role}</p>}
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                Département
-              </label>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+              gap: 16,
+              marginBottom: 16,
+            }}
+          >
+            <div className="field">
+              <label htmlFor="department">Département</label>
               <input
+                id="department"
                 type="text"
                 value={department}
                 onChange={(e) => setDepartment(e.target.value)}
@@ -309,11 +305,10 @@ export default function UserEditPage() {
                 className={inputCls("department")}
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                Poste
-              </label>
+            <div className="field">
+              <label htmlFor="position">Poste</label>
               <input
+                id="position"
                 type="text"
                 value={position}
                 onChange={(e) => setPosition(e.target.value)}
@@ -322,11 +317,10 @@ export default function UserEditPage() {
               />
             </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Responsable direct
-            </label>
+          <div className="field">
+            <label htmlFor="managerId">Responsable direct</label>
             <select
+              id="managerId"
               value={managerId}
               onChange={(e) => setManagerId(e.target.value)}
               disabled={isDisabled("managerId")}
@@ -345,12 +339,20 @@ export default function UserEditPage() {
 
           {/* Visibilité hiérarchique — managers uniquement, réglable par hr/admin */}
           {canEditAll && role === "manager" && (
-            <div className="flex items-center justify-between py-3 mt-4 border-t border-slate-100">
+            <div
+              className="row between"
+              style={{
+                gap: 16,
+                padding: "12px 0",
+                marginTop: 16,
+                borderTop: "1px solid var(--line)",
+              }}
+            >
               <div>
-                <p className="text-sm font-medium text-slate-700">
+                <p className="body" style={{ fontWeight: 600 }}>
                   Voir toute la descendance
                 </p>
-                <p className="text-xs text-slate-500">
+                <p className="small">
                   Accès aux sous-équipes hiérarchiques, pas seulement aux
                   subordonnés directs
                 </p>
@@ -359,71 +361,129 @@ export default function UserEditPage() {
                 type="button"
                 onClick={() => setCanViewSubtree(!canViewSubtree)}
                 aria-pressed={canViewSubtree}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  canViewSubtree ? "bg-primary-500" : "bg-slate-200"
-                }`}
+                aria-label="Voir toute la descendance"
+                style={{
+                  position: "relative",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  height: 24,
+                  width: 44,
+                  flexShrink: 0,
+                  borderRadius: 9999,
+                  border: "none",
+                  cursor: "pointer",
+                  transition: "background 0.12s",
+                  background: canViewSubtree ? "var(--blue)" : "var(--line)",
+                }}
               >
                 <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
-                    canViewSubtree ? "translate-x-6" : "translate-x-1"
-                  }`}
+                  style={{
+                    display: "inline-block",
+                    height: 16,
+                    width: 16,
+                    borderRadius: 9999,
+                    background: "#fff",
+                    boxShadow: "0 1px 2px rgba(0,0,0,0.2)",
+                    transition: "transform 0.12s",
+                    transform: canViewSubtree
+                      ? "translateX(24px)"
+                      : "translateX(4px)",
+                  }}
                 />
               </button>
             </div>
           )}
-        </div>
+        </Tile>
 
         {/* Card 3 — Sécurité (admin only) */}
         {isAdmin && (
-          <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6 mb-4">
-            <h2 className="text-base font-semibold text-slate-900 mb-4">
+          <Tile style={{ marginBottom: 16 }}>
+            <h2 className="h2" style={{ marginBottom: 16 }}>
               Sécurité
             </h2>
-            <div className="flex items-center justify-between py-3 border-b border-slate-100">
+            <div
+              className="row between"
+              style={{
+                gap: 16,
+                padding: "12px 0",
+                borderBottom: "1px solid var(--line)",
+              }}
+            >
               <div>
-                <p className="text-sm font-medium text-slate-700">
+                <p className="body" style={{ fontWeight: 600 }}>
                   Compte actif
                 </p>
-                <p className="text-xs text-slate-500">
-                  L&apos;utilisateur peut se connecter
-                </p>
+                <p className="small">L&apos;utilisateur peut se connecter</p>
               </div>
               <button
                 type="button"
                 onClick={() => setIsActive(!isActive)}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  isActive ? "bg-primary-500" : "bg-slate-200"
-                }`}
+                aria-pressed={isActive}
+                aria-label="Compte actif"
+                style={{
+                  position: "relative",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  height: 24,
+                  width: 44,
+                  flexShrink: 0,
+                  borderRadius: 9999,
+                  border: "none",
+                  cursor: "pointer",
+                  transition: "background 0.12s",
+                  background: isActive ? "var(--blue)" : "var(--line)",
+                }}
               >
                 <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
-                    isActive ? "translate-x-6" : "translate-x-1"
-                  }`}
+                  style={{
+                    display: "inline-block",
+                    height: 16,
+                    width: 16,
+                    borderRadius: 9999,
+                    background: "#fff",
+                    boxShadow: "0 1px 2px rgba(0,0,0,0.2)",
+                    transition: "transform 0.12s",
+                    transform: isActive
+                      ? "translateX(24px)"
+                      : "translateX(4px)",
+                  }}
                 />
               </button>
             </div>
-            <div className="pt-4">
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                Source d&apos;authentification
-              </label>
+            <div className="field" style={{ marginTop: 16 }}>
+              <label htmlFor="authSource">Source d&apos;authentification</label>
               <select
+                id="authSource"
                 value={authSource}
                 onChange={(e) =>
                   setAuthSource(e.target.value as "local" | "ldap")
                 }
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                className="input"
               >
                 <option value="local">Local</option>
                 <option value="ldap">LDAP</option>
               </select>
             </div>
-          </div>
+          </Tile>
         )}
       </form>
 
       {/* Toast */}
       {toast.message && (
-        <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white text-sm px-4 py-2 rounded-lg shadow-lg">
+        <div
+          style={{
+            position: "fixed",
+            bottom: 24,
+            right: 24,
+            zIndex: 50,
+            background: "var(--ink)",
+            color: "#fff",
+            fontSize: 14,
+            padding: "8px 16px",
+            borderRadius: "var(--radius)",
+            boxShadow: "0 8px 24px rgba(0,0,0,0.18)",
+          }}
+        >
           {toast.message}
         </div>
       )}

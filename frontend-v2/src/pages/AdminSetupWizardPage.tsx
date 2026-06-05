@@ -1,6 +1,7 @@
 import { CheckCircle, Circle, ChevronRight, Rocket } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useSetupChecklist } from "../hooks/useSetupChecklist";
+import { PageHead, Tile, Bar, Callout } from "../components/shell";
 
 export default function AdminSetupWizardPage() {
   const { steps, completed, total, percent, isLoading, allDone } =
@@ -8,91 +9,140 @@ export default function AdminSetupWizardPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64 text-slate-600">
-        Vérification de la configuration...
+      <div className="nx-app">
+        <div
+          className="row"
+          style={{
+            justifyContent: "center",
+            padding: "64px 0",
+            color: "var(--ink-3)",
+          }}
+        >
+          Vérification de la configuration...
+        </div>
       </div>
     );
   }
 
   return (
-    <div>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-900">
-          Configuration initiale
-        </h1>
-        <p className="text-slate-500 mt-1">
-          Suivez ces étapes pour mettre en service NX-RH
-        </p>
-      </div>
+    <div className="nx-app">
+      <PageHead
+        eyebrow="Administration"
+        title="Configuration initiale"
+        desc="Suivez ces étapes pour mettre en service NX-RH"
+      />
 
       {allDone ? (
-        <div className="bg-green-50 border border-green-200 rounded-2xl p-6 flex items-center gap-4 mb-6">
-          <CheckCircle size={32} className="text-green-500 flex-shrink-0" />
-          <div>
-            <p className="font-bold text-green-800">Configuration complète !</p>
-            <p className="text-green-600 text-sm">
-              Toutes les étapes de configuration ont été effectuées.
-            </p>
+        <Callout tone="green" className="mb-6">
+          <div className="row" style={{ gap: 16, alignItems: "center" }}>
+            <CheckCircle
+              className="ico"
+              style={{
+                width: 32,
+                height: 32,
+                color: "var(--green)",
+                flex: "none",
+              }}
+            />
+            <div>
+              <p style={{ fontSize: 15, fontWeight: 700, color: "var(--ink)" }}>
+                Configuration complète !
+              </p>
+              <p className="small" style={{ marginTop: 2 }}>
+                Toutes les étapes de configuration ont été effectuées.
+              </p>
+            </div>
           </div>
-        </div>
+        </Callout>
       ) : (
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 mb-6">
-          <div className="flex items-center gap-3 mb-3">
-            <Rocket size={20} className="text-primary-500" />
-            <span className="font-bold text-slate-900">
+        <Tile className="mb-6">
+          <div className="row" style={{ gap: 10, marginBottom: 12 }}>
+            <Rocket
+              className="ico"
+              style={{ width: 20, height: 20, color: "var(--blue)" }}
+            />
+            <span style={{ fontWeight: 700, color: "var(--ink)" }}>
               {percent}% configuré
             </span>
-            <span className="text-slate-500 text-sm">
+            <span className="small">
               · {completed}/{total} étapes complètes
             </span>
           </div>
-          <div className="w-full bg-slate-100 rounded-full h-2">
-            <div
-              className="bg-primary-500 h-2 rounded-full transition-all"
-              style={{ width: `${percent}%` }}
-            />
-          </div>
-        </div>
+          <Bar pct={percent} />
+        </Tile>
       )}
 
-      <div className="space-y-4">
+      <div className="section-gap" style={{ gap: 16 }}>
         {steps.map((step) => (
-          <div
-            key={step.id}
-            className={`bg-white rounded-2xl shadow p-6 flex items-start gap-4 ${
-              step.done ? "opacity-70" : ""
-            }`}
-          >
-            <div
-              className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                step.done ? "bg-green-100" : "bg-slate-100"
-              }`}
-            >
-              {step.done ? (
-                <CheckCircle size={20} className="text-green-600" />
-              ) : (
-                <Circle size={20} className="text-slate-400" />
+          <Tile key={step.id} style={step.done ? { opacity: 0.7 } : undefined}>
+            <div className="row between wrap" style={{ gap: 16 }}>
+              <div
+                className="row"
+                style={{ gap: 16, alignItems: "flex-start", minWidth: 0 }}
+              >
+                <span
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: "var(--radius)",
+                    display: "grid",
+                    placeItems: "center",
+                    flex: "none",
+                    background: step.done
+                      ? "var(--green-soft)"
+                      : "var(--bg-alt)",
+                  }}
+                >
+                  {step.done ? (
+                    <CheckCircle
+                      className="ico"
+                      style={{ width: 20, height: 20, color: "var(--green)" }}
+                    />
+                  ) : (
+                    <Circle
+                      className="ico"
+                      style={{
+                        width: 20,
+                        height: 20,
+                        color: "var(--line-strong)",
+                      }}
+                    />
+                  )}
+                </span>
+                <div style={{ minWidth: 0 }}>
+                  <h3
+                    className="h3"
+                    style={
+                      step.done
+                        ? {
+                            color: "var(--ink-3)",
+                            textDecoration: "line-through",
+                          }
+                        : undefined
+                    }
+                  >
+                    {step.title}
+                  </h3>
+                  <p className="small" style={{ marginTop: 4 }}>
+                    {step.description}
+                  </p>
+                </div>
+              </div>
+              {!step.done && (
+                <Link
+                  to={step.actionHref}
+                  className="btn btn-primary"
+                  style={{ flex: "none" }}
+                >
+                  {step.actionLabel}
+                  <ChevronRight
+                    className="ico"
+                    style={{ width: 16, height: 16 }}
+                  />
+                </Link>
               )}
             </div>
-            <div className="flex-1">
-              <h3
-                className={`font-bold ${
-                  step.done ? "text-slate-500 line-through" : "text-slate-900"
-                }`}
-              >
-                {step.title}
-              </h3>
-              <p className="text-sm text-slate-500 mt-1">{step.description}</p>
-            </div>
-            {!step.done && (
-              <Link
-                to={step.actionHref}
-                className="flex items-center gap-1 px-4 py-2 bg-primary-600 text-white text-sm rounded-xl hover:bg-primary-700 transition flex-shrink-0"
-              >
-                {step.actionLabel} <ChevronRight size={16} />
-              </Link>
-            )}
-          </div>
+          </Tile>
         ))}
       </div>
     </div>

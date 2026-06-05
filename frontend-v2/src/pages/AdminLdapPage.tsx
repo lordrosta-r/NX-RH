@@ -11,9 +11,7 @@ import {
 } from "lucide-react";
 import { adminApi } from "../api/admin";
 import type { LdapSource } from "../types";
-
-const inp =
-  "w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-400";
+import { PageHead, Tile, Badge } from "../components/shell";
 
 function emptySource(): LdapSource {
   return {
@@ -142,61 +140,78 @@ export default function AdminLdapPage() {
   ];
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold text-slate-900">Annuaires LDAP</h1>
-        <div className="flex gap-2">
-          <button
-            onClick={addSource}
-            className="flex items-center gap-2 px-4 py-2 text-sm border border-slate-200 rounded-xl hover:bg-slate-50 transition"
-          >
-            <Plus size={16} /> Ajouter une source
-          </button>
-          <button
-            onClick={() => saveMut.mutate(sources)}
-            disabled={saveMut.isPending || !dirty}
-            className="flex items-center gap-2 px-4 py-2 text-sm bg-primary-500 text-white rounded-xl hover:bg-primary-600 disabled:opacity-50 transition"
-          >
-            <Save size={16} />{" "}
-            {saveMut.isPending ? "Enregistrement…" : "Enregistrer"}
-          </button>
-        </div>
-      </div>
+    <div className="nx-app">
+      <PageHead
+        eyebrow="Administration"
+        title="Annuaires LDAP"
+        actions={
+          <>
+            <button type="button" onClick={addSource} className="btn btn-ghost">
+              <Plus className="ico" style={{ width: 18, height: 18 }} /> Ajouter
+              une source
+            </button>
+            <button
+              type="button"
+              onClick={() => saveMut.mutate(sources)}
+              disabled={saveMut.isPending || !dirty}
+              className="btn btn-primary"
+            >
+              <Save className="ico" style={{ width: 18, height: 18 }} />{" "}
+              {saveMut.isPending ? "Enregistrement…" : "Enregistrer"}
+            </button>
+          </>
+        }
+      />
 
       {dirty && (
-        <p className="text-xs text-amber-600 mb-4">
+        <p
+          className="small"
+          style={{ color: "var(--amber)", marginBottom: 16 }}
+        >
           Modifications non enregistrées — enregistrez avant de tester /
           synchroniser.
         </p>
       )}
 
       {isLoading ? (
-        <div className="space-y-3">
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           {Array.from({ length: 2 }).map((_, i) => (
-            <div
-              key={i}
-              className="h-40 bg-slate-100 rounded-2xl animate-pulse"
-            />
+            <Tile key={i}>
+              <p className="body">Chargement…</p>
+            </Tile>
           ))}
         </div>
       ) : sources.length === 0 ? (
-        <div className="bg-white rounded-2xl shadow p-8 text-center text-slate-500 text-sm">
-          Aucun annuaire configuré. Cliquez sur « Ajouter une source ».
-        </div>
+        <Tile>
+          <p className="body" style={{ textAlign: "center" }}>
+            Aucun annuaire configuré. Cliquez sur « Ajouter une source ».
+          </p>
+        </Tile>
       ) : (
-        <div className="space-y-5">
+        <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
           {sources.map((src, idx) => {
             const res = results[src.id];
             return (
-              <div key={src.id} className="bg-white rounded-2xl shadow p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
+              <Tile key={src.id}>
+                <div
+                  className="row between"
+                  style={{ alignItems: "center", marginBottom: 16 }}
+                >
+                  <div
+                    className="row"
+                    style={{ gap: 12, alignItems: "center" }}
+                  >
                     <input
-                      className="text-lg font-semibold text-slate-900 border-b border-transparent hover:border-slate-200 focus:border-primary-400 focus:outline-none"
+                      className="input"
+                      aria-label="Nom de l'annuaire"
+                      style={{ fontWeight: 600, maxWidth: 320 }}
                       value={src.label}
                       onChange={(e) => patch(idx, "label", e.target.value)}
                     />
-                    <label className="flex items-center gap-1 text-xs text-slate-500">
+                    <label
+                      className="row small"
+                      style={{ gap: 6, alignItems: "center" }}
+                    >
                       <input
                         type="checkbox"
                         checked={src.enabled}
@@ -208,34 +223,42 @@ export default function AdminLdapPage() {
                     </label>
                   </div>
                   <button
+                    type="button"
                     onClick={() => removeSource(idx)}
-                    className="text-slate-400 hover:text-red-500 transition"
-                    title="Supprimer"
+                    aria-label="Supprimer l'annuaire"
+                    className="btn btn-ghost btn-sm"
+                    style={{ padding: 6 }}
                   >
-                    <Trash2 size={18} />
+                    <Trash2 className="ico" style={{ width: 18, height: 18 }} />
                   </button>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+                    gap: 16,
+                  }}
+                >
                   {fields.map((f) => (
-                    <div key={f.key}>
-                      <label className="block text-xs font-medium text-slate-600 mb-1">
-                        {f.label}
-                      </label>
+                    <div className="field" key={f.key}>
+                      <label htmlFor={`${src.id}-${f.key}`}>{f.label}</label>
                       <input
-                        className={inp}
+                        id={`${src.id}-${f.key}`}
+                        className="input"
                         value={(src[f.key] as string) ?? ""}
                         onChange={(e) => patch(idx, f.key, e.target.value)}
                         placeholder={f.placeholder}
                       />
                     </div>
                   ))}
-                  <div>
-                    <label className="block text-xs font-medium text-slate-600 mb-1">
+                  <div className="field">
+                    <label htmlFor={`${src.id}-bindPassword`}>
                       Mot de passe Bind
                     </label>
                     <input
-                      className={inp}
+                      id={`${src.id}-bindPassword`}
+                      className="input"
                       type="password"
                       placeholder="•••••••• (laisser vide = inchangé)"
                       value={src.bindPassword ?? ""}
@@ -244,12 +267,13 @@ export default function AdminLdapPage() {
                       }
                     />
                   </div>
-                  <div>
-                    <label className="block text-xs font-medium text-slate-600 mb-1">
+                  <div className="field">
+                    <label htmlFor={`${src.id}-defaultRole`}>
                       Rôle par défaut
                     </label>
                     <input
-                      className={inp}
+                      id={`${src.id}-defaultRole`}
+                      className="input"
                       value={src.defaultRole ?? "employee"}
                       onChange={(e) =>
                         patch(idx, "defaultRole", e.target.value)
@@ -258,14 +282,20 @@ export default function AdminLdapPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-3 mt-3">
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+                    gap: 16,
+                    marginTop: 16,
+                  }}
+                >
                   {attrFields.map((f) => (
-                    <div key={f.key}>
-                      <label className="block text-xs font-medium text-slate-600 mb-1">
-                        {f.label}
-                      </label>
+                    <div className="field" key={f.key}>
+                      <label htmlFor={`${src.id}-${f.key}`}>{f.label}</label>
                       <input
-                        className={inp}
+                        id={`${src.id}-${f.key}`}
+                        className="input"
                         value={(src[f.key] as string) ?? ""}
                         onChange={(e) => patch(idx, f.key, e.target.value)}
                       />
@@ -273,33 +303,40 @@ export default function AdminLdapPage() {
                   ))}
                 </div>
 
-                <div className="flex items-center gap-2 mt-4">
+                <div
+                  className="row"
+                  style={{ gap: 8, alignItems: "center", marginTop: 16 }}
+                >
                   <button
+                    type="button"
                     onClick={() => testMut.mutate(src.id)}
                     disabled={dirty || testMut.isPending}
-                    className="flex items-center gap-2 px-3 py-1.5 text-sm border border-slate-200 rounded-xl hover:bg-slate-50 disabled:opacity-50 transition"
+                    className="btn btn-ghost btn-sm"
                   >
                     <RefreshCw
-                      size={14}
-                      className={testMut.isPending ? "animate-spin" : ""}
+                      className={`ico ${testMut.isPending ? "animate-spin" : ""}`}
+                      style={{ width: 14, height: 14 }}
                     />{" "}
                     Tester
                   </button>
                   <button
+                    type="button"
                     onClick={() => previewMut.mutate(src.id)}
                     disabled={dirty || previewMut.isPending}
-                    className="flex items-center gap-2 px-3 py-1.5 text-sm border border-slate-200 rounded-xl hover:bg-slate-50 disabled:opacity-50 transition"
+                    className="btn btn-ghost btn-sm"
                   >
-                    <Eye size={14} /> Prévisualiser
+                    <Eye className="ico" style={{ width: 14, height: 14 }} />{" "}
+                    Prévisualiser
                   </button>
                   <button
+                    type="button"
                     onClick={() => syncMut.mutate(src.id)}
                     disabled={dirty || syncMut.isPending}
-                    className="flex items-center gap-2 px-3 py-1.5 text-sm bg-primary-500 text-white rounded-xl hover:bg-primary-600 disabled:opacity-50 transition"
+                    className="btn btn-primary btn-sm"
                   >
                     <RefreshCw
-                      size={14}
-                      className={syncMut.isPending ? "animate-spin" : ""}
+                      className={`ico ${syncMut.isPending ? "animate-spin" : ""}`}
+                      style={{ width: 14, height: 14 }}
                     />{" "}
                     Synchroniser
                   </button>
@@ -307,67 +344,89 @@ export default function AdminLdapPage() {
 
                 {res?.kind === "test" && (
                   <div
-                    className={`mt-3 p-3 rounded-xl flex items-center gap-2 text-sm ${res.ok ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}
+                    className="row"
+                    style={{ gap: 8, alignItems: "center", marginTop: 16 }}
                   >
-                    {res.ok ? <CheckCircle size={16} /> : <XCircle size={16} />}
-                    {res.ok ? "Connexion réussie" : "Connexion échouée"}
+                    <Badge tone={res.ok ? "green" : "red"}>
+                      {res.ok ? (
+                        <CheckCircle
+                          className="ico"
+                          style={{ width: 14, height: 14 }}
+                        />
+                      ) : (
+                        <XCircle
+                          className="ico"
+                          style={{ width: 14, height: 14 }}
+                        />
+                      )}
+                      {res.ok ? "Connexion réussie" : "Connexion échouée"}
+                    </Badge>
                     {res.message && (
-                      <span className="text-xs text-slate-500">
-                        — {res.message}
-                      </span>
+                      <span className="small">— {res.message}</span>
                     )}
                   </div>
                 )}
                 {res?.kind === "sync" && (
-                  <div className="mt-3 p-3 bg-slate-50 rounded-xl text-sm flex gap-6">
-                    <span>
-                      <b className="text-green-600">{res.created}</b> créés
+                  <div
+                    className="row wrap"
+                    style={{
+                      gap: 24,
+                      marginTop: 16,
+                      padding: 12,
+                      background: "var(--bg-alt)",
+                      borderRadius: "var(--radius)",
+                    }}
+                  >
+                    <span className="small">
+                      <b style={{ color: "var(--green)" }}>{res.created}</b>{" "}
+                      créés
                     </span>
-                    <span>
-                      <b className="text-blue-600">{res.updated}</b> mis à jour
+                    <span className="small">
+                      <b style={{ color: "var(--blue)" }}>{res.updated}</b> mis
+                      à jour
                     </span>
-                    <span>
-                      <b className="text-slate-500">{res.skipped}</b> ignorés
+                    <span className="small">
+                      <b style={{ color: "var(--ink-3)" }}>{res.skipped}</b>{" "}
+                      ignorés
                     </span>
-                    <span>
-                      <b className="text-red-500">{res.errors.length}</b>{" "}
+                    <span className="small">
+                      <b style={{ color: "var(--red)" }}>{res.errors.length}</b>{" "}
                       erreurs
                     </span>
                   </div>
                 )}
                 {res?.kind === "preview" && (
-                  <div className="mt-3 border border-slate-100 rounded-xl overflow-hidden">
-                    <table className="w-full text-sm">
-                      <thead className="bg-slate-50">
-                        <tr>
-                          {["Nom", "Email", "DN"].map((h) => (
-                            <th
-                              key={h}
-                              className="px-3 py-2 text-left text-xs font-semibold text-slate-500 uppercase"
-                            >
-                              {h}
-                            </th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        {res.users.slice(0, 100).map((u, i) => (
-                          <tr key={u.dn ?? u.mail ?? `row-${i}`}>
-                            <td className="px-3 py-2">{u.cn ?? "—"}</td>
-                            <td className="px-3 py-2">{u.mail ?? "—"}</td>
-                            <td className="px-3 py-2 font-mono text-xs text-slate-500 truncate max-w-xs">
-                              {u.dn ?? "—"}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                    <p className="px-3 py-2 text-xs text-slate-400">
+                  <div style={{ marginTop: 16 }}>
+                    <div
+                      className="tbl-head"
+                      style={{ gridTemplateColumns: "1fr 1fr 2fr" }}
+                    >
+                      <div>Nom</div>
+                      <div>Email</div>
+                      <div>DN</div>
+                    </div>
+                    {res.users.slice(0, 100).map((u, i) => (
+                      <div
+                        key={u.dn ?? u.mail ?? `row-${i}`}
+                        className="tbl-row"
+                        style={{ gridTemplateColumns: "1fr 1fr 2fr" }}
+                      >
+                        <div className="small">{u.cn ?? "—"}</div>
+                        <div className="small">{u.mail ?? "—"}</div>
+                        <div
+                          className="small truncate"
+                          style={{ fontFamily: "monospace" }}
+                        >
+                          {u.dn ?? "—"}
+                        </div>
+                      </div>
+                    ))}
+                    <p className="small" style={{ marginTop: 8 }}>
                       {res.users.length} utilisateur(s)
                     </p>
                   </div>
                 )}
-              </div>
+              </Tile>
             );
           })}
         </div>

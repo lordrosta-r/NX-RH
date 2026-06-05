@@ -14,6 +14,7 @@ import { adminApi } from "../api/admin";
 import { useAuth } from "../contexts/AuthContext";
 import type { MailTemplate } from "../types";
 import { queryKeys } from "../lib/queryKeys";
+import { PageHead, Tile } from "../components/shell";
 
 const SLUG_LABELS: Record<string, string> = {
   campaignLaunch: "Campagne lancée",
@@ -70,66 +71,98 @@ function TemplateEditor({
   const isDirty =
     subject !== template.subject || bodyText !== template.bodyText;
 
+  const subjectId = `mail-subject-${template.slug}`;
+  const bodyId = `mail-body-${template.slug}`;
+
   return (
-    <div className="border-t border-slate-100 pt-4 mt-4 space-y-4">
-      <div>
-        <label className="block text-xs font-medium text-slate-500 mb-1">
-          Objet
-        </label>
+    <div
+      style={{
+        borderTop: "1px solid var(--line)",
+        paddingTop: 16,
+        marginTop: 16,
+        display: "flex",
+        flexDirection: "column",
+        gap: 16,
+      }}
+    >
+      <div className="field">
+        <label htmlFor={subjectId}>Objet</label>
         <input
+          id={subjectId}
           type="text"
           value={subject}
           onChange={(e) => setSubject(e.target.value)}
-          className="w-full text-sm px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-400"
+          className="input"
         />
       </div>
-      <div>
-        <label className="block text-xs font-medium text-slate-500 mb-1">
-          Corps (texte brut)
-        </label>
+      <div className="field">
+        <label htmlFor={bodyId}>Corps (texte brut)</label>
         <textarea
+          id={bodyId}
           value={bodyText}
           onChange={(e) => setBodyText(e.target.value)}
           rows={8}
-          className="w-full text-sm px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-400 font-mono resize-y"
+          className="input"
+          style={{ fontFamily: "monospace", resize: "vertical" }}
         />
-        <p className="text-xs text-slate-400 mt-1">
+        <p className="small" style={{ marginTop: 6 }}>
           Variables disponibles entre doubles accolades :{" "}
-          <code className="bg-slate-100 px-1 rounded">{"{{firstName}}"}</code>,{" "}
-          <code className="bg-slate-100 px-1 rounded">
+          <code
+            style={{
+              background: "var(--bg-alt)",
+              padding: "1px 4px",
+              borderRadius: 4,
+            }}
+          >
+            {"{{firstName}}"}
+          </code>
+          ,{" "}
+          <code
+            style={{
+              background: "var(--bg-alt)",
+              padding: "1px 4px",
+              borderRadius: 4,
+            }}
+          >
             {"{{campaignName}}"}
           </code>
           , etc.
         </p>
       </div>
-      <div className="flex items-center gap-2">
+      <div className="row" style={{ gap: 8, alignItems: "center" }}>
         <button
+          type="button"
           onClick={() => updateMut.mutate({ subject, bodyText })}
           disabled={updateMut.isPending || !isDirty}
-          className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg disabled:opacity-50 hover:bg-primary-700 transition-colors"
+          className="btn btn-primary"
         >
-          <Save className="w-4 h-4" />
+          <Save className="ico" style={{ width: 16, height: 16 }} />
           {updateMut.isPending ? "Enregistrement…" : "Enregistrer"}
         </button>
         <button
+          type="button"
           onClick={() => resetMut.mutate()}
           disabled={resetMut.isPending}
-          className="flex items-center gap-1.5 px-3 py-2 text-sm text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
+          className="btn btn-ghost"
           title="Remettre les valeurs par défaut"
         >
-          <RefreshCw className="w-4 h-4" />
+          <RefreshCw className="ico" style={{ width: 16, height: 16 }} />
           Réinitialiser
         </button>
         <button
+          type="button"
           onClick={onClose}
-          className="px-3 py-2 text-sm text-slate-500 hover:text-slate-700 transition-colors"
+          className="btn btn-ghost btn-sm"
         >
           Annuler
         </button>
       </div>
       {(updateMut.isError || resetMut.isError) && (
-        <p className="text-sm text-red-600 flex items-center gap-1.5">
-          <AlertCircle className="w-4 h-4" />
+        <p
+          className="small row"
+          style={{ gap: 6, alignItems: "center", color: "var(--red)" }}
+        >
+          <AlertCircle className="ico" style={{ width: 16, height: 16 }} />
           Une erreur est survenue.
         </p>
       )}
@@ -142,56 +175,109 @@ function TemplateRow({ template }: { template: MailTemplate }) {
   const [editing, setEditing] = useState(false);
 
   return (
-    <div className="bg-white rounded-xl border border-slate-100 shadow-sm">
+    <Tile style={{ padding: 0 }}>
       <button
+        type="button"
         onClick={() => {
           setExpanded((e) => !e);
           if (editing) setEditing(false);
         }}
-        className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-slate-50 transition-colors rounded-xl"
+        className="row between"
+        style={{
+          width: "100%",
+          padding: "16px 20px",
+          gap: 12,
+          textAlign: "left",
+          background: "none",
+          border: "none",
+          cursor: "pointer",
+          borderRadius: "var(--radius-lg)",
+        }}
       >
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-primary-50 rounded-lg flex items-center justify-center shrink-0">
-            <Mail className="w-4 h-4 text-primary-600" />
+        <div
+          className="row"
+          style={{ gap: 12, alignItems: "center", minWidth: 0 }}
+        >
+          <div
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: "var(--radius)",
+              background: "var(--bg-alt)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+            }}
+          >
+            <Mail
+              className="ico"
+              style={{ width: 16, height: 16, color: "var(--blue)" }}
+            />
           </div>
-          <div>
-            <p className="text-sm font-medium text-slate-800">
+          <div style={{ minWidth: 0 }}>
+            <p className="body" style={{ fontWeight: 600 }}>
               {SLUG_LABELS[template.slug] ?? template.slug}
             </p>
-            <p className="text-xs text-slate-400 mt-0.5">{template.subject}</p>
+            <p className="small truncate" style={{ marginTop: 2 }}>
+              {template.subject}
+            </p>
           </div>
         </div>
-        <div className="flex items-center gap-3 shrink-0">
-          <span className="text-xs text-slate-400 hidden sm:block">
+        <div
+          className="row"
+          style={{ gap: 12, alignItems: "center", flexShrink: 0 }}
+        >
+          <span className="small">
             Modifié {formatDate(template.updatedAt)}
           </span>
           {expanded ? (
-            <ChevronUp className="w-4 h-4 text-slate-400" />
+            <ChevronUp className="ico" style={{ width: 16, height: 16 }} />
           ) : (
-            <ChevronDown className="w-4 h-4 text-slate-400" />
+            <ChevronDown className="ico" style={{ width: 16, height: 16 }} />
           )}
         </div>
       </button>
 
       {expanded && (
-        <div className="px-5 pb-5">
+        <div style={{ padding: "0 20px 20px" }}>
           {!editing ? (
             <>
-              <div className="mb-3">
-                <p className="text-xs font-medium text-slate-400 uppercase tracking-wide mb-1">
+              <div style={{ marginBottom: 12 }}>
+                <p className="eyebrow" style={{ marginBottom: 6 }}>
                   Aperçu (texte brut)
                 </p>
-                <pre className="text-xs text-slate-600 bg-slate-50 rounded-lg p-3 whitespace-pre-wrap max-h-48 overflow-y-auto font-mono">
+                <pre
+                  className="small"
+                  style={{
+                    background: "var(--bg-alt)",
+                    borderRadius: "var(--radius)",
+                    padding: 12,
+                    whiteSpace: "pre-wrap",
+                    maxHeight: 192,
+                    overflowY: "auto",
+                    fontFamily: "monospace",
+                    margin: 0,
+                  }}
+                >
                   {template.bodyText || (
-                    <span className="italic text-slate-400">
+                    <span style={{ fontStyle: "italic" }}>
                       Aucun corps défini
                     </span>
                   )}
                 </pre>
               </div>
               <button
+                type="button"
                 onClick={() => setEditing(true)}
-                className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+                className="link"
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  fontWeight: 600,
+                  padding: 0,
+                }}
               >
                 Modifier ce template
               </button>
@@ -204,7 +290,7 @@ function TemplateRow({ template }: { template: MailTemplate }) {
           )}
         </div>
       )}
-    </div>
+    </Tile>
   );
 }
 
@@ -238,87 +324,124 @@ export default function AdminMailTemplatesPage() {
   });
 
   return (
-    <div className="px-4 py-8 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900">Modèles email</h1>
-        <p className="text-sm text-slate-500 mt-1">
-          Personnalisez l'objet et le corps des emails envoyés automatiquement
-          par la plateforme.
-        </p>
-      </div>
+    <div className="nx-app">
+      <PageHead
+        title="Modèles email"
+        desc="Personnalisez l'objet et le corps des emails envoyés automatiquement par la plateforme."
+      />
 
-      {isAdmin && (
-        <div className="bg-slate-50 border border-slate-200 rounded-xl p-5">
-          <h2 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
-            <Mail className="w-4 h-4" /> Tester l'envoi SMTP
-          </h2>
-          <div className="flex gap-3 items-start">
-            <input
-              type="email"
-              className="flex-1 px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-400 bg-white"
-              value={smtpEmail}
-              onChange={(e) => {
-                setSmtpEmail(e.target.value);
-                setSmtpResult(null);
-              }}
-              placeholder="destinataire@exemple.com"
-            />
-            <button
-              onClick={() => testSmtpMut.mutate(smtpEmail)}
-              disabled={!smtpEmail || testSmtpMut.isPending}
-              className="flex items-center gap-2 px-4 py-2 text-sm bg-primary-500 text-white rounded-xl hover:bg-primary-600 disabled:opacity-50 transition"
+      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        {isAdmin && (
+          <Tile>
+            <h2
+              className="h3 row"
+              style={{ gap: 8, alignItems: "center", marginBottom: 12 }}
             >
-              <Send className="w-4 h-4" />
-              {testSmtpMut.isPending ? "Envoi…" : "Envoyer"}
-            </button>
+              <Mail className="ico" style={{ width: 16, height: 16 }} /> Tester
+              l'envoi SMTP
+            </h2>
+            <div className="row" style={{ gap: 12, alignItems: "flex-start" }}>
+              <input
+                type="email"
+                aria-label="Adresse e-mail destinataire du test"
+                className="input"
+                style={{ flex: 1 }}
+                value={smtpEmail}
+                onChange={(e) => {
+                  setSmtpEmail(e.target.value);
+                  setSmtpResult(null);
+                }}
+                placeholder="destinataire@exemple.com"
+              />
+              <button
+                type="button"
+                onClick={() => testSmtpMut.mutate(smtpEmail)}
+                disabled={!smtpEmail || testSmtpMut.isPending}
+                className="btn btn-primary"
+              >
+                <Send className="ico" style={{ width: 16, height: 16 }} />
+                {testSmtpMut.isPending ? "Envoi…" : "Envoyer"}
+              </button>
+            </div>
+            {smtpResult && (
+              <p
+                className="small row"
+                style={{
+                  gap: 6,
+                  alignItems: "center",
+                  marginTop: 8,
+                  color: smtpResult.ok ? "var(--green)" : "var(--red)",
+                }}
+              >
+                {smtpResult.ok ? (
+                  <CheckCircle
+                    className="ico"
+                    style={{ width: 16, height: 16 }}
+                  />
+                ) : (
+                  <AlertCircle
+                    className="ico"
+                    style={{ width: 16, height: 16 }}
+                  />
+                )}
+                {smtpResult.msg}
+              </p>
+            )}
+          </Tile>
+        )}
+
+        {isLoading && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div
+                key={i}
+                style={{
+                  height: 64,
+                  borderRadius: "var(--radius-lg)",
+                  background: "var(--bg-alt)",
+                }}
+              />
+            ))}
           </div>
-          {smtpResult && (
-            <p
-              className={`mt-2 text-sm flex items-center gap-1 ${smtpResult.ok ? "text-green-600" : "text-red-600"}`}
-            >
-              {smtpResult.ok ? (
-                <CheckCircle className="w-4 h-4" />
-              ) : (
-                <AlertCircle className="w-4 h-4" />
-              )}
-              {smtpResult.msg}
-            </p>
-          )}
-        </div>
-      )}
+        )}
 
-      {isLoading && (
-        <div className="space-y-3">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div
-              key={i}
-              className="h-16 bg-slate-100 rounded-xl animate-pulse"
+        {isError && (
+          <p
+            className="small row"
+            style={{ gap: 8, alignItems: "center", color: "var(--red)" }}
+          >
+            <AlertCircle
+              className="ico"
+              style={{ width: 16, height: 16, flexShrink: 0 }}
             />
-          ))}
-        </div>
-      )}
+            Impossible de charger les templates.
+          </p>
+        )}
 
-      {isError && (
-        <div className="flex items-center gap-2 text-sm text-red-600 bg-red-50 rounded-xl px-4 py-3">
-          <AlertCircle className="w-4 h-4 shrink-0" />
-          Impossible de charger les templates.
-        </div>
-      )}
+        {templates && templates.length === 0 && (
+          <div style={{ textAlign: "center", padding: "64px 0" }}>
+            <Mail
+              className="ico"
+              style={{
+                width: 48,
+                height: 48,
+                margin: "0 auto 12px",
+                opacity: 0.3,
+                color: "var(--ink-3)",
+              }}
+            />
+            <p className="body">Aucun template configuré.</p>
+          </div>
+        )}
 
-      {templates && templates.length === 0 && (
-        <div className="text-center py-16 text-slate-400">
-          <Mail className="w-12 h-12 mx-auto mb-3 opacity-30" />
-          <p>Aucun template configuré.</p>
-        </div>
-      )}
-
-      {templates && templates.length > 0 && (
-        <div className="space-y-3">
-          {templates.map((t) => (
-            <TemplateRow key={t.slug} template={t} />
-          ))}
-        </div>
-      )}
+        {templates && templates.length > 0 && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {templates.map((t) => (
+              <TemplateRow key={t.slug} template={t} />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

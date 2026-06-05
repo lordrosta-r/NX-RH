@@ -4,6 +4,7 @@ import { lazy, Suspense } from "react";
 import AuthLayout from "../layouts/AuthLayout";
 import AppLayout from "../layouts/AppLayout";
 import OrgLayout from "../layouts/OrgLayout";
+import LegalLayout from "../layouts/LegalLayout";
 import AuthGuard from "../components/shared/AuthGuard";
 
 function PageLoader() {
@@ -17,6 +18,17 @@ function PageLoader() {
 // Pages Auth
 const LoginPage = lazy(() => import("../pages/LoginPage"));
 const LoginLdapPage = lazy(() => import("../pages/LoginLdapPage"));
+
+// Pages légales / RGPD (publiques)
+const ConfidentialitePage = lazy(
+  () => import("../pages/legal/ConfidentialitePage"),
+);
+const MentionsLegalesPage = lazy(
+  () => import("../pages/legal/MentionsLegalesPage"),
+);
+const AccessibilitePage = lazy(
+  () => import("../pages/legal/AccessibilitePage"),
+);
 
 // Pages privées
 const DashboardPage = lazy(() => import("../pages/DashboardPage"));
@@ -113,6 +125,36 @@ export const router = createBrowserRouter([
         element: (
           <S>
             <LoginLdapPage />
+          </S>
+        ),
+      },
+    ],
+  },
+  // Pages légales / RGPD (publiques, sans authentification)
+  {
+    element: <LegalLayout />,
+    children: [
+      {
+        path: "/confidentialite",
+        element: (
+          <S>
+            <ConfidentialitePage />
+          </S>
+        ),
+      },
+      {
+        path: "/mentions-legales",
+        element: (
+          <S>
+            <MentionsLegalesPage />
+          </S>
+        ),
+      },
+      {
+        path: "/accessibilite",
+        element: (
+          <S>
+            <AccessibilitePage />
           </S>
         ),
       },

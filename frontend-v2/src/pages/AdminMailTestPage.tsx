@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Send, CheckCircle, XCircle } from "lucide-react";
-import PageHeader from "@/components/ui/PageHeader";
-import Button from "@/components/ui/Button";
+import { PageHead, Tile, Callout } from "../components/shell";
 import client from "@/api/client";
 
 interface TestResult {
@@ -24,64 +23,85 @@ export default function AdminMailTestPage() {
   const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   return (
-    <div className="p-6 space-y-6 max-w-xl">
-      <PageHeader
+    <div className="nx-app">
+      <PageHead
         title="Test d'envoi d'email"
-        subtitle="Envoie un email de test via la configuration SMTP courante"
+        desc="Envoie un email de test via la configuration SMTP courante"
       />
 
-      <div className="bg-white rounded-2xl shadow p-6 space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">
-            Destinataire
-          </label>
-          <input
-            type="email"
-            className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
-            placeholder="vous@exemple.fr"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </div>
-
-        <Button
-          onClick={() => testMutation.mutate(email)}
-          loading={testMutation.isPending}
-          disabled={!valid || testMutation.isPending}
-          className="flex items-center gap-2"
-        >
-          <Send size={16} /> Envoyer l'email de test
-        </Button>
-
-        {testMutation.isSuccess && (
-          <div className="p-4 rounded-xl bg-green-50 flex items-start gap-3">
-            <CheckCircle
-              size={20}
-              className="text-green-500 flex-shrink-0 mt-0.5"
+      <Tile>
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <div className="field">
+            <label htmlFor="mail-test-to">Destinataire</label>
+            <input
+              id="mail-test-to"
+              type="email"
+              className="input"
+              placeholder="vous@exemple.fr"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
             />
-            <div className="text-sm">
-              <p className="font-semibold text-green-700">Email envoyé</p>
-              {result?.previewUrl && (
-                <a
-                  href={result.previewUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-primary-600 hover:underline break-all"
-                >
-                  Voir l'aperçu (Ethereal)
-                </a>
-              )}
-            </div>
           </div>
-        )}
 
-        {testMutation.isError && (
-          <div className="p-4 rounded-xl bg-red-50 flex items-center gap-3 text-sm text-red-700">
-            <XCircle size={20} className="text-red-500 flex-shrink-0" />
-            Échec de l'envoi — vérifiez la configuration SMTP.
+          <div className="row" style={{ gap: 12 }}>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={() => testMutation.mutate(email)}
+              disabled={!valid || testMutation.isPending}
+            >
+              <Send size={16} aria-hidden="true" />
+              {testMutation.isPending ? "Envoi…" : "Envoyer l'email de test"}
+            </button>
           </div>
-        )}
-      </div>
+
+          {testMutation.isSuccess && (
+            <Callout tone="green">
+              <div
+                className="row"
+                style={{ gap: 12, alignItems: "flex-start" }}
+              >
+                <CheckCircle
+                  size={20}
+                  aria-hidden="true"
+                  style={{ flexShrink: 0, marginTop: 2 }}
+                />
+                <div>
+                  <p className="body" style={{ fontWeight: 600 }}>
+                    Email envoyé
+                  </p>
+                  {result?.previewUrl && (
+                    <a
+                      href={result.previewUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="link"
+                      style={{ wordBreak: "break-all" }}
+                    >
+                      Voir l'aperçu (Ethereal)
+                    </a>
+                  )}
+                </div>
+              </div>
+            </Callout>
+          )}
+
+          {testMutation.isError && (
+            <Callout tone="red">
+              <div className="row" style={{ gap: 12, alignItems: "center" }}>
+                <XCircle
+                  size={20}
+                  aria-hidden="true"
+                  style={{ flexShrink: 0 }}
+                />
+                <span className="body">
+                  Échec de l'envoi — vérifiez la configuration SMTP.
+                </span>
+              </div>
+            </Callout>
+          )}
+        </div>
+      </Tile>
     </div>
   );
 }

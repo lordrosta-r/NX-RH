@@ -38,26 +38,25 @@ export function EvaluationObjectivesForm({
   const { exportEvaluationPdf } = usePdfExport();
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-slate-900">
-          Révision de l'évaluation
-        </h1>
-        <div className="flex items-center gap-2">
-          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-warning-50 text-warning-700">
+    <div className="section-gap">
+      <div className="row between wrap nxgap-12">
+        <h1 className="h1">Révision de l'évaluation</h1>
+        <div className="row wrap nxgap-12">
+          <span className="badge amber">
+            <span className="dot" />
             Soumise
           </span>
           <button
             onClick={() => exportEvaluationPdf(evaluation)}
-            className="inline-flex items-center gap-2 border border-slate-200 hover:bg-slate-50 px-3 py-1.5 rounded-md text-sm"
+            className="btn btn-ghost btn-sm"
           >
-            <Download className="w-4 h-4" /> PDF
+            <Download className="ico" aria-hidden="true" /> PDF
           </button>
           {(isAdminOrHr || isManager) && (
             <button
               onClick={() => reviewMutation.mutate()}
               disabled={reviewMutation.isPending}
-              className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white px-3 py-1.5 rounded-md text-sm font-medium disabled:opacity-50"
+              className="btn btn-primary btn-sm"
             >
               {reviewMutation.isPending ? "Traitement…" : "Revoir →"}
             </button>
@@ -66,41 +65,67 @@ export function EvaluationObjectivesForm({
       </div>
 
       {/* Réponses en lecture seule */}
-      <div className="bg-white rounded-xl border border-slate-200 p-5 mb-6">
-        <h2 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-4">
+      <div className="tile">
+        <h2 className="eyebrow" style={{ marginBottom: 16 }}>
           Réponses de l'évalué
         </h2>
-        <div className="space-y-4">
+        <div className="section-gap" style={{ gap: 16 }}>
           {questions.map((q, idx) => (
             <div
               key={q.id}
-              className="pb-4 border-b border-slate-100 last:border-0"
+              style={{
+                paddingBottom: 16,
+                borderBottom: "1px solid var(--line)",
+              }}
             >
-              <p className="text-xs text-slate-500 mb-1">
+              <p className="small" style={{ marginBottom: 4 }}>
                 Q{idx + 1} · {q.type}
               </p>
-              <p className="text-sm font-medium text-slate-800 mb-2">
+              <p
+                className="body"
+                style={{
+                  fontWeight: 600,
+                  color: "var(--ink)",
+                  marginBottom: 8,
+                }}
+              >
                 {q.text}
               </p>
-              <div className="flex items-center gap-2">
-                <span className="text-primary-600 text-sm">➤</span>
+              <div className="row nxgap-12">
+                <span style={{ color: "var(--blue-text)" }}>➤</span>
                 {q.type === "rating" && answers[q.id] !== undefined ? (
-                  <div className="flex gap-1">
+                  <div className="row" style={{ gap: 4 }}>
                     {[1, 2, 3, 4, 5].map((v) => (
                       <div
                         key={v}
-                        className={`w-7 h-7 rounded-full text-xs font-semibold flex items-center justify-center ${
-                          Number(answers[q.id]) >= v
-                            ? "bg-primary-500 text-white"
-                            : "bg-slate-100 text-slate-500"
-                        }`}
+                        style={{
+                          width: 28,
+                          height: 28,
+                          borderRadius: "50%",
+                          fontSize: 12,
+                          fontWeight: 600,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          background:
+                            Number(answers[q.id]) >= v
+                              ? "var(--blue)"
+                              : "var(--bg-alt-2)",
+                          color:
+                            Number(answers[q.id]) >= v
+                              ? "#fff"
+                              : "var(--ink-3)",
+                        }}
                       >
                         {v}
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-slate-700 italic">
+                  <p
+                    className="body"
+                    style={{ fontStyle: "italic", color: "var(--ink-2)" }}
+                  >
                     {String(answers[q.id] ?? "—")}
                   </p>
                 )}
@@ -111,16 +136,16 @@ export function EvaluationObjectivesForm({
       </div>
 
       {/* Formulaire de révision */}
-      <div className="bg-white rounded-xl border border-slate-200 p-5">
-        <h2 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-4">
+      <div className="tile">
+        <h2 className="eyebrow" style={{ marginBottom: 16 }}>
           Votre révision
         </h2>
-        <div className="space-y-4">
-          <div>
-            <label htmlFor="reviewer-score" className="block text-sm font-medium text-slate-700 mb-1">
-              Score global <span className="text-error-500">*</span>
+        <div className="section-gap" style={{ gap: 16 }}>
+          <div className="field">
+            <label htmlFor="reviewer-score">
+              Score global <span style={{ color: "var(--red)" }}>*</span>
             </label>
-            <div className="flex items-center gap-3">
+            <div className="row nxgap-12">
               <input
                 id="reviewer-score"
                 type="number"
@@ -132,48 +157,48 @@ export function EvaluationObjectivesForm({
                     e.target.value === "" ? "" : Number(e.target.value),
                   )
                 }
-                className="w-24 h-10 px-3 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-200"
+                className="input"
+                style={{ width: 110 }}
               />
-              <span className="text-sm text-slate-500">/ 100</span>
+              <span className="small">/ 100</span>
             </div>
           </div>
-          <div>
-            <label htmlFor="reviewer-comment" className="block text-sm font-medium text-slate-700 mb-1">
-              Commentaire
-            </label>
+          <div className="field">
+            <label htmlFor="reviewer-comment">Commentaire</label>
             <textarea
               id="reviewer-comment"
               rows={3}
               value={reviewerComment}
               onChange={(e) => setReviewerComment(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-200 resize-none"
+              className="input"
             />
           </div>
-          <div>
-            <label htmlFor="next-year-objectives" className="block text-sm font-medium text-slate-700 mb-1">
-              Objectifs N+1
-            </label>
+          <div className="field">
+            <label htmlFor="next-year-objectives">Objectifs N+1</label>
             <textarea
               id="next-year-objectives"
               rows={3}
               value={nextYearObjectives}
               onChange={(e) => setNextYearObjectives(e.target.value)}
               placeholder="Objectifs pour l'année prochaine…"
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-200 resize-none"
+              className="input"
             />
           </div>
         </div>
-        <div className="flex justify-end gap-3 mt-6">
+        <div
+          className="row wrap nxgap-12"
+          style={{ justifyContent: "flex-end", marginTop: 24 }}
+        >
           <button
             onClick={() => navigate("/evaluations")}
-            className="px-4 py-2 text-sm border border-slate-200 rounded-md hover:bg-slate-50"
+            className="btn btn-ghost btn-sm"
           >
             Annuler
           </button>
           <button
             onClick={() => reviewMutation.mutate()}
             disabled={reviewMutation.isPending || reviewerScore === ""}
-            className="px-4 py-2 text-sm bg-primary-500 text-white rounded-md hover:bg-primary-600 disabled:opacity-50"
+            className="btn btn-primary btn-sm"
           >
             {reviewMutation.isPending
               ? "Enregistrement…"

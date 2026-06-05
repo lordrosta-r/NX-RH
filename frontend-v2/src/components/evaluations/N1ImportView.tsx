@@ -19,7 +19,8 @@ export function N1ImportView({ evaluationId }: N1ImportViewProps) {
   if (isLoading) {
     return (
       <div
-        className="h-20 bg-slate-100 rounded-lg animate-pulse"
+        className="tile"
+        style={{ height: 80, background: "var(--bg-alt)" }}
         aria-hidden="true"
       />
     );
@@ -28,7 +29,7 @@ export function N1ImportView({ evaluationId }: N1ImportViewProps) {
   // 204 No Content → axios renvoie une chaîne vide ; ou erreur réseau.
   if (isError || !data || typeof data === "string") {
     return (
-      <p className="text-sm text-slate-500 italic">
+      <p className="small" style={{ fontStyle: "italic" }}>
         Aucune donnée de l'année précédente (N-1) disponible.
       </p>
     );
@@ -37,27 +38,29 @@ export function N1ImportView({ evaluationId }: N1ImportViewProps) {
   const n1 = data as N1Context;
 
   return (
-    <div className="space-y-4 text-sm">
+    <div className="tile section-gap">
       {n1.n1Campaign?.name && (
-        <p className="text-xs text-slate-500">
+        <p className="small">
           Source : {n1.n1Campaign.name}
           {n1.formTitle ? ` — ${n1.formTitle}` : ""}
         </p>
       )}
 
       {n1.reviewerScore != null && (
-        <div className="flex items-center gap-2">
-          <span className="font-medium text-slate-700">Note N-1 :</span>
-          <span className="px-2 py-0.5 rounded-md bg-primary-50 text-primary-700 font-semibold">
-            {n1.reviewerScore}
+        <div className="row nxgap-12">
+          <span className="body" style={{ fontWeight: 600 }}>
+            Note N-1 :
           </span>
+          <span className="badge blue">{n1.reviewerScore}</span>
         </div>
       )}
 
       {n1.reviewerComment && (
         <div>
-          <p className="font-medium text-slate-700 mb-1">Appréciation N-1</p>
-          <p className="text-slate-600 whitespace-pre-wrap">
+          <p className="h3" style={{ marginBottom: 4 }}>
+            Appréciation N-1
+          </p>
+          <p className="body" style={{ whiteSpace: "pre-wrap" }}>
             {n1.reviewerComment}
           </p>
         </div>
@@ -65,10 +68,10 @@ export function N1ImportView({ evaluationId }: N1ImportViewProps) {
 
       {n1.nextYearObjectives && (
         <div>
-          <p className="font-medium text-slate-700 mb-1">
+          <p className="h3" style={{ marginBottom: 4 }}>
             Objectifs fixés pour l'année
           </p>
-          <p className="text-slate-600 whitespace-pre-wrap">
+          <p className="body" style={{ whiteSpace: "pre-wrap" }}>
             {n1.nextYearObjectives}
           </p>
         </div>
@@ -76,13 +79,13 @@ export function N1ImportView({ evaluationId }: N1ImportViewProps) {
 
       {n1.objectivesAnswers?.length > 0 && (
         <div>
-          <p className="font-medium text-slate-700 mb-1">
+          <p className="h3" style={{ marginBottom: 8 }}>
             Réponses N-1 (objectifs)
           </p>
-          <ul className="space-y-1">
+          <ul style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             {n1.objectivesAnswers.map((a) => (
-              <li key={a.questionId} className="text-slate-600">
-                <span className="text-slate-500">{a.questionLabel} : </span>
+              <li key={a.questionId} className="body">
+                <span className="small">{a.questionLabel} : </span>
                 {typeof a.value === "object"
                   ? JSON.stringify(a.value)
                   : String(a.value ?? "—")}

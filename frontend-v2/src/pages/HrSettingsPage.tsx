@@ -1,148 +1,246 @@
-import { useState, useEffect } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Bell, X } from 'lucide-react'
-import { adminApi } from '../api/admin'
-import { queryKeys } from '../lib/queryKeys'
+import { useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Bell, X } from "lucide-react";
+import { adminApi } from "../api/admin";
+import { queryKeys } from "../lib/queryKeys";
+import { PageHead, Tile } from "../components/shell";
 
 type CampaignSettings = {
-  allow_self_evaluation: boolean
-  require_manager_signature: boolean
-  send_completion_email: boolean
-  auto_close_days: number
-}
+  allow_self_evaluation: boolean;
+  require_manager_signature: boolean;
+  send_completion_email: boolean;
+  auto_close_days: number;
+};
 
 export default function HrSettingsPage() {
-  const [showConfirm, setShowConfirm] = useState(false)
-  const [campaignId, setCampaignId] = useState('')
-  const [targetStatuses, setTargetStatuses] = useState<string[]>(['assigned', 'in_progress'])
-  const [remindResult, setRemindResult] = useState<string | null>(null)
-  const [autoCloseDays, setAutoCloseDays] = useState<number>(0)
-  const qc = useQueryClient()
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [campaignId, setCampaignId] = useState("");
+  const [targetStatuses, setTargetStatuses] = useState<string[]>([
+    "assigned",
+    "in_progress",
+  ]);
+  const [remindResult, setRemindResult] = useState<string | null>(null);
+  const [autoCloseDays, setAutoCloseDays] = useState<number>(0);
+  const qc = useQueryClient();
 
-  const { data: campaignSettings, isLoading: settingsLoading } = useQuery<CampaignSettings>({
-    queryKey: queryKeys.campaignSettings.all,
-    queryFn: () => adminApi.getHrSettings().then(r => r.data as CampaignSettings),
-  })
+  const { data: campaignSettings, isLoading: settingsLoading } =
+    useQuery<CampaignSettings>({
+      queryKey: queryKeys.campaignSettings.all,
+      queryFn: () =>
+        adminApi.getHrSettings().then((r) => r.data as CampaignSettings),
+    });
 
   useEffect(() => {
     if (campaignSettings?.auto_close_days != null) {
-      setAutoCloseDays(campaignSettings.auto_close_days)
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- hydratation du champ depuis les paramètres chargés
+      setAutoCloseDays(campaignSettings.auto_close_days);
     }
-  }, [campaignSettings?.auto_close_days])
+  }, [campaignSettings?.auto_close_days]);
 
   const updateSettings = useMutation({
-    mutationFn: (data: Partial<CampaignSettings>) => adminApi.updateHrSettings(data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.campaignSettings.all }),
-  })
+    mutationFn: (data: Partial<CampaignSettings>) =>
+      adminApi.updateHrSettings(data),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: queryKeys.campaignSettings.all }),
+  });
 
   const bulkRemindMut = useMutation({
-    mutationFn: () => adminApi.bulkRemind({ campaignId: campaignId || undefined, targetStatuses }),
+    mutationFn: () =>
+      adminApi.bulkRemind({
+        campaignId: campaignId || undefined,
+        targetStatuses,
+      }),
     onSuccess: (res) => {
-      setRemindResult(`Rappels envoyés (${JSON.stringify(res.data)})`)
-      setShowConfirm(false)
+      setRemindResult(`Rappels envoyés (${JSON.stringify(res.data)})`);
+      setShowConfirm(false);
     },
     onError: () => {
-      setRemindResult("Erreur lors de l'envoi des rappels")
-      setShowConfirm(false)
+      setRemindResult("Erreur lors de l'envoi des rappels");
+      setShowConfirm(false);
     },
-  })
+  });
 
-  const statuses = ['assigned', 'in_progress', 'submitted']
+  const statuses = ["assigned", "in_progress", "submitted"];
+
+  const flags = [
+    { key: "allow_self_evaluation", label: "Auto-évaluation autorisée" },
+    {
+      key: "require_manager_signature",
+      label: "Signature manager obligatoire",
+    },
+    { key: "send_completion_email", label: "Email de clôture automatique" },
+  ] as const;
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold text-slate-900 mb-6">Paramètres RH</h1>
+    <div className="nx-app">
+      <PageHead title="Paramètres RH" />
 
-      <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
-        {/* Card rappels */}
-        <div className="bg-white rounded-2xl shadow p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center">
-              <Bell size={20} className="text-amber-600" />
-            </div>
-            <h2 className="text-lg font-bold text-slate-900">Rappels groupés</h2>
+      <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+        {/* Tile — rappels groupés */}
+        <Tile>
+          <div
+            className="row"
+            style={{ gap: 12, alignItems: "center", marginBottom: 16 }}
+          >
+            <Bell
+              size={20}
+              style={{ color: "var(--amber)" }}
+              aria-hidden="true"
+            />
+            <h2 className="h3">Rappels groupés</h2>
           </div>
-          <div className="space-y-3 mb-4">
-            <div>
-              <label htmlFor="hr-campaign-id" className="block text-sm font-medium text-slate-700 mb-1">ID Campagne (optionnel)</label>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <div className="field">
+              <label htmlFor="hr-campaign-id">ID Campagne (optionnel)</label>
               <input
                 id="hr-campaign-id"
-                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
+                className="input"
                 value={campaignId}
-                onChange={e => setCampaignId(e.target.value)}
+                onChange={(e) => setCampaignId(e.target.value)}
                 placeholder="Toutes les campagnes actives"
               />
             </div>
-            <fieldset>
-              <legend className="block text-sm font-medium text-slate-700 mb-2">Statuts cibles</legend>
-              <div className="flex flex-wrap gap-2">
-                {statuses.map(s => (
-                  <label key={s} className="flex items-center gap-1.5 text-sm cursor-pointer">
+
+            <fieldset style={{ border: "none", padding: 0, margin: 0 }}>
+              <legend
+                className="small"
+                style={{ fontWeight: 600, marginBottom: 8 }}
+              >
+                Statuts cibles
+              </legend>
+              <div className="row wrap" style={{ gap: 12 }}>
+                {statuses.map((s) => (
+                  <label
+                    key={s}
+                    className="row"
+                    style={{ gap: 6, cursor: "pointer", alignItems: "center" }}
+                  >
                     <input
                       type="checkbox"
                       checked={targetStatuses.includes(s)}
-                      onChange={e => setTargetStatuses(ts => e.target.checked ? [...ts, s] : ts.filter(x => x !== s))}
-                      className="rounded"
+                      onChange={(e) =>
+                        setTargetStatuses((ts) =>
+                          e.target.checked
+                            ? [...ts, s]
+                            : ts.filter((x) => x !== s),
+                        )
+                      }
                     />
-                    <span className="text-slate-700">{s}</span>
+                    <span className="body">{s}</span>
                   </label>
                 ))}
               </div>
             </fieldset>
-          </div>
-          {remindResult && <p className="text-sm text-green-600 mb-3">{remindResult}</p>}
-          <button
-            onClick={() => setShowConfirm(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-amber-500 text-white rounded-md text-sm hover:bg-amber-600 transition"
-          >
-            <Bell size={16} /> Envoyer rappels groupés
-          </button>
-        </div>
 
-        {/* Card feature flags */}
-        <div className="bg-white rounded-2xl shadow p-6">
-          <h2 className="text-lg font-bold text-slate-900 mb-4">Paramètres campagnes</h2>
+            {remindResult && (
+              <p className="small" style={{ color: "var(--green)" }}>
+                {remindResult}
+              </p>
+            )}
+
+            <div className="row">
+              <button
+                type="button"
+                onClick={() => setShowConfirm(true)}
+                className="btn btn-primary"
+              >
+                <Bell size={16} aria-hidden="true" /> Envoyer rappels groupés
+              </button>
+            </div>
+          </div>
+        </Tile>
+
+        {/* Tile — paramètres campagnes */}
+        <Tile>
+          <h2 className="h3" style={{ marginBottom: 16 }}>
+            Paramètres campagnes
+          </h2>
           {settingsLoading ? (
-            <div className="space-y-3">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-8 bg-slate-100 rounded-xl animate-pulse" />)}</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div
+                  key={i}
+                  style={{
+                    height: 32,
+                    background: "var(--bg-alt)",
+                    borderRadius: "var(--radius)",
+                  }}
+                />
+              ))}
+            </div>
           ) : (
-            <div className="space-y-3">
-              {(
-                [
-                  { key: 'allow_self_evaluation',      label: 'Auto-évaluation autorisée' },
-                  { key: 'require_manager_signature',  label: 'Signature manager obligatoire' },
-                  { key: 'send_completion_email',      label: 'Email de clôture automatique' },
-                ] as const
-              ).map(({ key, label }) => {
-                const val = campaignSettings?.[key] ?? false
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              {flags.map(({ key, label }) => {
+                const val = campaignSettings?.[key] ?? false;
                 return (
-                  <div key={key} className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50">
-                    <span className="text-sm font-medium text-slate-700">{label}</span>
-                    <div
-                      className={`w-11 h-6 rounded-full transition-colors cursor-pointer flex items-center px-0.5 ${val ? 'bg-teal-500' : 'bg-slate-200'}`}
+                  <label
+                    key={key}
+                    className="row between"
+                    style={{ gap: 12, cursor: "pointer", alignItems: "center" }}
+                  >
+                    <span className="body" style={{ fontWeight: 600 }}>
+                      {label}
+                    </span>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={val}
+                      aria-label={label}
                       onClick={() => updateSettings.mutate({ [key]: !val })}
+                      style={{
+                        position: "relative",
+                        width: 44,
+                        height: 24,
+                        borderRadius: 9999,
+                        border: "none",
+                        cursor: "pointer",
+                        padding: 0,
+                        background: val ? "var(--blue)" : "var(--line)",
+                        transition: "background 0.12s",
+                        flexShrink: 0,
+                      }}
                     >
-                      <div className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${val ? 'translate-x-5' : 'translate-x-0'}`} />
-                    </div>
-                  </div>
-                )
+                      <span
+                        style={{
+                          position: "absolute",
+                          top: 2,
+                          left: 2,
+                          width: 20,
+                          height: 20,
+                          borderRadius: 9999,
+                          background: "#fff",
+                          boxShadow: "0 1px 2px rgba(0,0,0,0.2)",
+                          transform: val ? "translateX(20px)" : "translateX(0)",
+                          transition: "transform 0.12s",
+                        }}
+                      />
+                    </button>
+                  </label>
+                );
               })}
 
-              <div className="p-3 rounded-xl hover:bg-slate-50">
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+              <div className="field">
+                <label htmlFor="hr-auto-close-days">
                   Clôture auto après N jours (0 = désactivé)
                 </label>
-                <div className="flex items-center gap-2">
+                <div className="row" style={{ gap: 8, alignItems: "center" }}>
                   <input
+                    id="hr-auto-close-days"
                     type="number"
                     min={0}
                     value={autoCloseDays}
-                    onChange={e => setAutoCloseDays(Number(e.target.value))}
-                    className="w-24 px-3 py-1.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
+                    onChange={(e) => setAutoCloseDays(Number(e.target.value))}
+                    className="input"
+                    style={{ width: 120 }}
                   />
                   <button
-                    onClick={() => updateSettings.mutate({ auto_close_days: autoCloseDays })}
+                    type="button"
+                    onClick={() =>
+                      updateSettings.mutate({ auto_close_days: autoCloseDays })
+                    }
                     disabled={updateSettings.isPending}
-                    className="px-3 py-1.5 bg-teal-500 text-white rounded-lg text-sm hover:bg-teal-600 disabled:opacity-50 transition"
+                    className="btn btn-primary"
                   >
                     Sauvegarder
                   </button>
@@ -150,31 +248,69 @@ export default function HrSettingsPage() {
               </div>
             </div>
           )}
-        </div>
+        </Tile>
       </div>
 
       {/* Confirm modal */}
       {showConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-slate-900">Confirmer l'envoi</h2>
-              <button onClick={() => setShowConfirm(false)} className="p-1 text-slate-400 hover:text-slate-700"><X size={18} /></button>
-            </div>
-            <p className="text-sm text-slate-600 mb-6">Vous allez envoyer des rappels à tous les utilisateurs avec les statuts sélectionnés{campaignId ? ` pour la campagne ${campaignId}` : ''}. Confirmer ?</p>
-            <div className="flex justify-end gap-3">
-              <button onClick={() => setShowConfirm(false)} className="px-4 py-2 text-sm border border-slate-200 text-slate-600 rounded-md hover:bg-slate-50">Annuler</button>
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 50,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "rgba(0,0,0,0.4)",
+          }}
+        >
+          <Tile style={{ width: "100%", maxWidth: 420, margin: 16 }}>
+            <div
+              className="row between"
+              style={{ alignItems: "center", marginBottom: 16 }}
+            >
+              <h2 className="h3">Confirmer l'envoi</h2>
               <button
-                onClick={() => bulkRemindMut.mutate()}
-                disabled={bulkRemindMut.isPending}
-                className="px-4 py-2 text-sm bg-amber-500 text-white rounded-md hover:bg-amber-600 disabled:opacity-50 transition"
+                type="button"
+                onClick={() => setShowConfirm(false)}
+                aria-label="Fermer"
+                className="btn btn-ghost"
+                style={{ padding: 6 }}
               >
-                {bulkRemindMut.isPending ? 'Envoi…' : 'Confirmer'}
+                <X size={18} aria-hidden="true" />
               </button>
             </div>
-          </div>
+            <p
+              className="body"
+              style={{ marginBottom: 24, color: "var(--ink-2)" }}
+            >
+              Vous allez envoyer des rappels à tous les utilisateurs avec les
+              statuts sélectionnés
+              {campaignId ? ` pour la campagne ${campaignId}` : ""}. Confirmer ?
+            </p>
+            <div
+              className="row"
+              style={{ justifyContent: "flex-end", gap: 12 }}
+            >
+              <button
+                type="button"
+                onClick={() => setShowConfirm(false)}
+                className="btn btn-ghost"
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                onClick={() => bulkRemindMut.mutate()}
+                disabled={bulkRemindMut.isPending}
+                className="btn btn-primary"
+              >
+                {bulkRemindMut.isPending ? "Envoi…" : "Confirmer"}
+              </button>
+            </div>
+          </Tile>
         </div>
       )}
     </div>
-  )
+  );
 }

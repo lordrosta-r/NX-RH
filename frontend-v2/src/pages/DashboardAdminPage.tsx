@@ -16,6 +16,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { useDashboardAdmin } from "../hooks/useDashboard";
 import { useSetupChecklist } from "../hooks/useSetupChecklist";
 import { adminApi } from "../api/admin";
+import { offboardingApi } from "../api/offboarding";
 import type { Campaign } from "../types";
 import {
   PageHead,
@@ -25,6 +26,21 @@ import {
   Callout,
   Bar,
 } from "../components/shell";
+
+// Libellés lisibles pour les actions du journal d'audit.
+const AUDIT_ACTION_LABELS: Record<string, string> = {
+  login: "Connexion",
+  login_failed: "Échec de connexion",
+  logout: "Déconnexion",
+  user_created: "Utilisateur créé",
+  user_updated: "Utilisateur modifié",
+  user_deleted: "Utilisateur supprimé",
+  campaign_created: "Campagne créée",
+  campaign_updated: "Campagne modifiée",
+  evaluation_submitted: "Évaluation soumise",
+  evaluation_signed: "Évaluation signée",
+  ldap_sync: "Synchronisation LDAP",
+};
 
 // ─── Widget de complétude de la configuration (onboarding admin) ───────────────
 
@@ -194,6 +210,22 @@ export default function DashboardAdminPage() {
       adminApi
         .getFlags({ status: "pending" })
         .then((r) => (r.data as { total?: number })?.total ?? 0),
+  });
+
+  // Offboardings en attente — vrai compteur depuis l'API.
+  const { data: offboardingPending } = useQuery({
+    queryKey: ["offboarding-pending-count"],
+    queryFn: () =>
+      offboardingApi
+        .getOffboardings({ status: "pending", limit: 1 })
+        .then((r) => r.data?.total ?? 0),
+  });
+
+  // Journal d'audit — 5 dernières entrées réelles.
+  const { data: auditRecent, isLoading: auditLoading } = useQuery({
+    queryKey: ["admin-audit-recent"],
+    queryFn: () =>
+      adminApi.getAuditLog({ limit: 5 }).then((r) => r.data?.data ?? []),
   });
 
   const isLoading =
@@ -410,7 +442,11 @@ export default function DashboardAdminPage() {
           label="Évaluations non finalisées"
           tone="var(--amber)"
         />
-        <StatTile value={0} label="Offboardings en attente" tone="var(--red)" />
+        <StatTile
+          value={offboardingPending ?? "—"}
+          label="Offboardings en attente"
+          tone="var(--red)"
+        />
       </div>
 
       {/* Campagnes + actions urgentes */}
@@ -542,9 +578,71 @@ export default function DashboardAdminPage() {
             Voir le journal complet →
           </Link>
         </div>
-        <p className="small text-center" style={{ padding: "24px 0" }}>
-          Journal d&apos;audit disponible en S11
-        </p>
+        {auditLoading ? (
+          <div className="section-gap" style={{ gap: 10 }}>
+            {[...Array(4)].map((_, i) => (
+              <div
+                key={i}
+                className="h-10 bg-slate-100 rounded animate-pulse"
+              />
+            ))}
+          </div>
+        ) : (auditRecent?.length ?? 0) === 0 ? (
+          <p className="small text-center" style={{ padding: "24px 0" }}>
+            Aucune activité récente
+          </p>
+        ) : (
+          <div>
+            {auditRecent!.map((a, i) => (
+              <div
+                key={a.id}
+                className="row between wrap"
+                style={{
+                  gap: 12,
+                  padding: "12px 0",
+                  borderTop: i ? "1px solid var(--line)" : "none",
+                }}
+              >
+                <div className="row" style={{ gap: 12, minWidth: 0 }}>
+                  <span
+                    style={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: "50%",
+                      background: a.action.includes("failed")
+                        ? "var(--red)"
+                        : "var(--blue)",
+                      flex: "none",
+                    }}
+                  />
+                  <span
+                    style={{
+                      fontSize: 14,
+                      fontWeight: 600,
+                      color: "var(--ink)",
+                    }}
+                  >
+                    {AUDIT_ACTION_LABELS[a.action] ?? a.action}
+                    {(a.actorName || a.actorEmail) && (
+                      <span className="small" style={{ fontWeight: 400 }}>
+                        {" "}
+                        · {a.actorName ?? a.actorEmail}
+                      </span>
+                    )}
+                  </span>
+                </div>
+                <span className="small" style={{ flex: "none" }}>
+                  {new Date(a.createdAt).toLocaleDateString("fr-FR", {
+                    day: "numeric",
+                    month: "short",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
       </Tile>
     </div>
   );

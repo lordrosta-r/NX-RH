@@ -61,8 +61,13 @@ const loginSchema = Joi.object({
     'string.email': 'Email invalide',
     'any.required': 'Email requis',
   }),
-  password: Joi.string().min(6).max(128).required().messages({
-    'string.min': 'Mot de passe trop court',
+  // Pas de longueur minimale au login : la politique de mot de passe relève de la
+  // création de compte. Imposer min(6) ici renvoyait un message distinct (« trop
+  // court ») selon la longueur → fuite d'info + UX incohérente. Tout mot de passe
+  // erroné (quelle que soit sa longueur) doit donner le même 401 « identifiants
+  // incorrects ». On vérifie seulement la présence.
+  password: Joi.string().min(1).max(128).required().messages({
+    'string.empty': 'Mot de passe requis',
     'any.required': 'Mot de passe requis',
   }),
   remember: Joi.boolean(),

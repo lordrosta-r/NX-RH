@@ -57,9 +57,9 @@ export default function LoginPage() {
     <div className="auth-card">
       <div style={{ marginBottom: 28 }}>
         <p className="eyebrow">{t("auth.eyebrowSpace")}</p>
-        <h2 className="h1" style={{ marginTop: 8 }}>
+        <h1 className="h1" style={{ marginTop: 8 }}>
           {t("auth.login")}
-        </h2>
+        </h1>
         <p className="body" style={{ marginTop: 8 }}>
           {t("auth.subtitle")}
         </p>

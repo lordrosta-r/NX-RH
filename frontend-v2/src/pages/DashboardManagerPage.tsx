@@ -1,443 +1,501 @@
-import { Link } from 'react-router-dom'
-import { ClipboardList, Users, Calendar, TrendingUp, AlertTriangle, PenLine, CheckCircle2 } from 'lucide-react'
-import { useQuery } from '@tanstack/react-query'
+import { Link } from "react-router-dom";
+import { ArrowRight, PenLine } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import {
-  PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend,
-} from 'recharts'
-import { useDashboardManager, useDashboardManagerStats } from '../hooks/useDashboardByRole'
-import { KpiCard } from '../components/KpiCard'
-import { StatusBadge } from '../components/ui'
-import { eventsApi } from '../api/events'
-import { campaignsApi } from '../api/campaigns'
-import type { Evaluation, Campaign, DashboardManagerStats } from '../types'
-import { getCampaignName } from '../types'
+  useDashboardManager,
+  useDashboardManagerStats,
+} from "../hooks/useDashboardByRole";
+import { eventsApi } from "../api/events";
+import { campaignsApi } from "../api/campaigns";
+import type {
+  Evaluation,
+  Campaign,
+  EvaluationStatus,
+  DashboardManagerStats,
+} from "../types";
+import { getCampaignName } from "../types";
+import { PageHead, Tile, StatTile, Badge, Bar } from "../components/shell";
 
-// ─── Design colours ───────────────────────────────────────────────────────────
-const EVAL_STATUS_COLORS: Record<string, string> = {
-  assigned:    '#d97706',
-  in_progress: '#2563eb',
-  submitted:   '#7c3aed',
-  reviewed:    '#0891b2',
-  validated:   '#16a34a',
-  overdue:     '#dc2626',
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+type PopulatedUser = {
+  _id?: string;
+  firstName: string;
+  lastName: string;
+  department?: string;
+};
+function getDisplayName(id: string | PopulatedUser | undefined | null): string {
+  if (!id) return "—";
+  if (typeof id === "object") return `${id.firstName} ${id.lastName}`.trim();
+  return id;
+}
+function getInitials(id: string | PopulatedUser | undefined | null): string {
+  const name = getDisplayName(id);
+  return name.length >= 2 ? name.slice(0, 2).toUpperCase() : name.toUpperCase();
 }
 
+type Tone = "blue" | "green" | "amber" | "red" | "grey";
+const statusLabels: Record<string, string> = {
+  assigned: "Assignée",
+  in_progress: "En cours",
+  submitted: "Soumise",
+  reviewed: "Revue",
+  signed_evaluatee: "Signée (évalué)",
+  signed_manager: "Signée (manager)",
+  signed_hr: "Signée (RH)",
+  validated: "Validée",
+  expired: "Expirée",
+  archived: "Archivée",
+};
+const statusTone: Record<string, Tone> = {
+  assigned: "amber",
+  in_progress: "blue",
+  submitted: "blue",
+  reviewed: "blue",
+  signed_evaluatee: "blue",
+  signed_manager: "blue",
+  signed_hr: "blue",
+  validated: "green",
+  expired: "grey",
+  archived: "grey",
+};
+function StatusBadge({ status }: { status: EvaluationStatus }) {
+  return (
+    <Badge tone={statusTone[status] ?? "grey"} dot>
+      {statusLabels[status] ?? status}
+    </Badge>
+  );
+}
 
-
-function progressWidth(ev: Evaluation): string {
+function progressWidth(ev: Evaluation): number {
   switch (ev.status) {
-    case 'validated':        return '100%'
-    case 'submitted':        return '75%'
-    case 'in_progress':      return '40%'
-    default:                 return '10%'
+    case "validated":
+      return 100;
+    case "submitted":
+      return 75;
+    case "in_progress":
+      return 40;
+    default:
+      return 10;
   }
 }
 
 function EvalsToComplete({ evaluations }: { evaluations: Evaluation[] }) {
-  const pending = evaluations.filter(e =>
-    e.status === 'assigned' || e.status === 'in_progress'
-  )
-
+  const pending = evaluations.filter(
+    (e) => e.status === "assigned" || e.status === "in_progress",
+  );
   if (pending.length === 0) {
     return (
-      <p className="text-sm text-slate-600 text-center py-4">
+      <p className="small text-center" style={{ padding: "16px 0" }}>
         Aucune évaluation à compléter
       </p>
-    )
+    );
   }
-
   return (
-    <div className="space-y-3">
-      {pending.map(ev => (
+    <div className="section-gap" style={{ gap: 12 }}>
+      {pending.map((ev) => (
         <div
           key={ev.id}
-          className="bg-white rounded-xl border border-slate-100 p-4 shadow-sm hover:shadow-md transition-shadow"
+          className="row between wrap"
+          style={{
+            gap: 12,
+            border: "1px solid var(--line)",
+            borderRadius: "var(--radius)",
+            padding: "14px 16px",
+          }}
         >
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="font-semibold text-slate-900 text-sm">{ev.evaluateeId}</p>
-              <p className="text-xs text-slate-500 mt-0.5">Campagne : {getCampaignName(ev.campaignId)}</p>
-            </div>
-            <StatusBadge status={ev.status} />
+          <div>
+            <p style={{ fontWeight: 700, fontSize: 15 }}>
+              {getDisplayName(ev.evaluateeId as string | PopulatedUser)}
+            </p>
+            <p className="small" style={{ marginTop: 2 }}>
+              Campagne : {getCampaignName(ev.campaignId)}
+            </p>
           </div>
-          <div className="flex items-center justify-between mt-3">
-            <span className="text-xs text-slate-500">Deadline : —</span>
+          <div className="row" style={{ gap: 12 }}>
+            <StatusBadge status={ev.status} />
             <Link
               to={`/evaluations/${ev.id}`}
-              className="text-sm text-primary-600 hover:text-primary-700 font-medium hover:underline"
+              className="btn btn-primary btn-sm"
             >
-              Remplir →
+              Remplir{" "}
+              <ArrowRight className="ico" style={{ width: 15, height: 15 }} />
             </Link>
           </div>
         </div>
       ))}
     </div>
-  )
+  );
 }
 
 function MyTeam({ evaluations }: { evaluations: Evaluation[] }) {
   if (evaluations.length === 0) {
     return (
-      <p className="text-sm text-slate-600 text-center py-4">
-        Aucun membre dans l'équipe
+      <p className="small text-center" style={{ padding: "16px 0" }}>
+        Aucun membre dans l’équipe
       </p>
-    )
+    );
   }
-
   return (
-    <div className="space-y-3">
-      {evaluations.map(ev => (
-        <div key={ev.id} className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-primary-100 text-primary-700 text-xs font-semibold flex items-center justify-center flex-shrink-0">
-            {ev.evaluateeId.slice(0, 2).toUpperCase()}
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between mb-1">
-              <p className="text-sm font-medium text-slate-700 truncate">{ev.evaluateeId}</p>
+    <div className="section-gap" style={{ gap: 14 }}>
+      {evaluations.map((ev) => (
+        <div key={ev.id} className="row" style={{ gap: 12 }}>
+          <span
+            className="avatar"
+            style={{ width: 32, height: 32, fontSize: 12 }}
+          >
+            {getInitials(ev.evaluateeId as string | PopulatedUser)}
+          </span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div className="row between" style={{ marginBottom: 6 }}>
+              <p style={{ fontSize: 14, fontWeight: 600 }} className="truncate">
+                {getDisplayName(ev.evaluateeId as string | PopulatedUser)}
+              </p>
               <StatusBadge status={ev.status} />
             </div>
-            <div className="w-full bg-slate-100 rounded-full h-1.5">
-              <div
-                className="bg-primary-500 h-1.5 rounded-full transition-all"
-                style={{ width: progressWidth(ev) }}
-              />
-            </div>
+            <Bar pct={progressWidth(ev)} height={6} />
           </div>
         </div>
       ))}
     </div>
-  )
-}
-
-function CampaignsSkeleton() {
-  return (
-    <div className="space-y-3">
-      {[...Array(3)].map((_, i) => (
-        <div key={i} className="h-12 bg-slate-100 rounded-lg animate-pulse" />
-      ))}
-    </div>
-  )
+  );
 }
 
 function ActiveCampaigns() {
   const { data, isLoading } = useQuery({
-    queryKey: ['dashboard-manager-campaigns'],
-    queryFn: () => campaignsApi.getCampaigns({ status: 'active', limit: 5 }),
-  })
-
-  const campaigns: Campaign[] = data?.data?.data ?? []
-
-  if (isLoading) return <CampaignsSkeleton />
-
+    queryKey: ["dashboard-manager-campaigns"],
+    queryFn: () => campaignsApi.getCampaigns({ status: "active", limit: 5 }),
+  });
+  const campaigns: Campaign[] = data?.data?.data ?? [];
+  if (isLoading) {
+    return (
+      <div className="section-gap" style={{ gap: 12 }}>
+        {[...Array(3)].map((_, i) => (
+          <div key={i} className="h-12 bg-slate-100 rounded-lg animate-pulse" />
+        ))}
+      </div>
+    );
+  }
   if (campaigns.length === 0) {
     return (
-      <p className="text-sm text-slate-600 text-center py-4">
+      <p className="small text-center" style={{ padding: "16px 0" }}>
         Aucune campagne active
       </p>
-    )
+    );
   }
-
   return (
-    <div className="space-y-2">
-      {campaigns.map(c => {
+    <div className="section-gap" style={{ gap: 10 }}>
+      {campaigns.map((c) => {
         const pct =
           c.completionPct != null
             ? c.completionPct
             : c.stats && c.stats.total > 0
-            ? Math.round(((c.stats.submitted + c.stats.validated) / c.stats.total) * 100)
-            : 0
-
+              ? Math.round(
+                  ((c.stats.submitted + c.stats.validated) / c.stats.total) *
+                    100,
+                )
+              : 0;
         return (
           <div
             key={c.id}
-            className="flex items-center gap-4 p-3 rounded-lg border border-slate-100 hover:bg-slate-50 transition-colors"
+            className="row wrap"
+            style={{
+              gap: 16,
+              padding: "12px 14px",
+              border: "1px solid var(--line)",
+              borderRadius: "var(--radius)",
+            }}
           >
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-slate-900 truncate">{c.name}</p>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ fontSize: 14, fontWeight: 600 }} className="truncate">
+                {c.name}
+              </p>
               {c.endDate && (
-                <p className="text-xs text-slate-500 mt-0.5">
-                  {'Cloture : '}
-                  {new Date(c.endDate).toLocaleDateString('fr-FR', {
-                    day: 'numeric',
-                    month: 'short',
-                    year: 'numeric',
+                <p className="small" style={{ marginTop: 2 }}>
+                  Clôture :{" "}
+                  {new Date(c.endDate).toLocaleDateString("fr-FR", {
+                    day: "numeric",
+                    month: "short",
+                    year: "numeric",
                   })}
                 </p>
               )}
             </div>
-            <div className="w-40 flex-shrink-0">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xs text-slate-500">Progression</span>
-                <span className="text-xs font-semibold text-slate-700">{pct}%</span>
+            <div style={{ width: 160, flex: "none" }}>
+              <div className="row between" style={{ marginBottom: 4 }}>
+                <span className="small">Progression</span>
+                <span className="small" style={{ fontWeight: 700 }}>
+                  {pct}%
+                </span>
               </div>
-              <div className="w-full bg-slate-100 rounded-full h-1.5">
-                <div
-                  className="bg-primary-500 h-1.5 rounded-full transition-all"
-                  style={{ width: `${pct}%` }}
-                />
-              </div>
+              <Bar pct={pct} height={6} />
             </div>
             <Link
               to={`/campaigns/${c.id}`}
-              className="text-xs text-primary-600 hover:text-primary-700 font-medium hover:underline flex-shrink-0"
+              className="link small"
+              style={{ flex: "none" }}
             >
               Voir
             </Link>
           </div>
-        )
+        );
       })}
     </div>
-  )
+  );
 }
 
-// ─── Pending signatures list ──────────────────────────────────────────────────
-function PendingSignaturesList({ statsData }: { statsData: DashboardManagerStats | undefined }) {
-  const list = (statsData?.pendingSignatures ?? []).slice(0, 5)
-
+function PendingSignaturesList({
+  statsData,
+}: {
+  statsData: DashboardManagerStats | undefined;
+}) {
+  const list = (statsData?.pendingSignatures ?? []).slice(0, 5);
   if (list.length === 0) {
     return (
-      <p className="text-sm text-slate-600 dark:text-slate-400 text-center py-4">
+      <p className="small text-center" style={{ padding: "16px 0" }}>
         Aucune évaluation en attente de votre signature
       </p>
-    )
+    );
   }
-
   return (
-    <div className="space-y-2">
-      {list.map(ev => {
-        const evaluatee = typeof ev.evaluateeId === 'object'
-          ? `${ev.evaluateeId.firstName} ${ev.evaluateeId.lastName}`
-          : ev.evaluateeId
-        const campaign = typeof ev.campaignId === 'object'
-          ? ev.campaignId.name
-          : ev.campaignId
+    <div className="section-gap" style={{ gap: 10 }}>
+      {list.map((ev) => {
+        const evaluatee =
+          typeof ev.evaluateeId === "object"
+            ? `${ev.evaluateeId.firstName} ${ev.evaluateeId.lastName}`
+            : ev.evaluateeId;
+        const campaign =
+          typeof ev.campaignId === "object"
+            ? ev.campaignId.name
+            : ev.campaignId;
         const signedAt = ev.signedByEvaluateeAt
-          ? new Date(ev.signedByEvaluateeAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
-          : '—'
-
+          ? new Date(ev.signedByEvaluateeAt).toLocaleDateString("fr-FR", {
+              day: "numeric",
+              month: "short",
+            })
+          : "—";
         return (
           <div
             key={ev._id ?? ev.id}
-            className="flex items-center justify-between gap-3 p-3 rounded-lg border border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+            className="row between"
+            style={{
+              gap: 12,
+              padding: "12px 14px",
+              border: "1px solid var(--line)",
+              borderRadius: "var(--radius)",
+            }}
           >
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">{evaluatee}</p>
-              <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ fontSize: 14, fontWeight: 600 }} className="truncate">
+                {evaluatee}
+              </p>
+              <p className="small truncate">
                 {campaign} · signé le {signedAt}
               </p>
             </div>
             <Link
               to={`/evaluations/${ev._id ?? ev.id}`}
-              className="inline-flex items-center gap-1 text-xs text-primary-600 hover:text-primary-700 font-medium hover:underline flex-shrink-0"
+              className="link small row"
+              style={{ gap: 4, flex: "none" }}
             >
-              <PenLine className="w-3 h-3" />
-              Signer
+              <PenLine className="w-3 h-3" /> Signer
             </Link>
           </div>
-        )
+        );
       })}
     </div>
-  )
-}
-
-// ─── Team evaluation status pie chart ────────────────────────────────────────
-function TeamStatusChart({ statsData }: { statsData: DashboardManagerStats | undefined }) {
-  if (!statsData) return <div className="h-40 bg-slate-100 dark:bg-slate-700 rounded animate-pulse" />
-
-  const ev = statsData.evaluations
-  const data = [
-    { name: 'En attente',  value: ev.pending,        color: EVAL_STATUS_COLORS.assigned },
-    { name: 'Complétées',  value: ev.completed,       color: EVAL_STATUS_COLORS.validated },
-    { name: 'En retard',   value: ev.overdue,         color: EVAL_STATUS_COLORS.overdue },
-    { name: 'Signées',     value: ev.signedByManager, color: EVAL_STATUS_COLORS.signed_manager ?? '#1e40af' },
-  ].filter(d => d.value > 0)
-
-  if (data.length === 0) {
-    return <p className="text-sm text-slate-500 text-center py-8">Aucune donnée d'équipe</p>
-  }
-
-  return (
-    <ResponsiveContainer width="100%" height={180}>
-      <PieChart>
-        <Pie data={data} cx="50%" cy="50%" innerRadius={40} outerRadius={70} dataKey="value" nameKey="name">
-          {data.map(entry => (
-            <Cell key={entry.name} fill={entry.color} />
-          ))}
-        </Pie>
-        <Tooltip formatter={(v: number, name: string) => [v, name]} />
-        <Legend iconSize={10} />
-      </PieChart>
-    </ResponsiveContainer>
-  )
+  );
 }
 
 export default function DashboardManagerPage() {
-  const { evaluations } = useDashboardManager()
-  const stats = useDashboardManagerStats()
+  const { evaluations } = useDashboardManager();
+  const stats = useDashboardManagerStats();
 
   const { data: eventsData } = useQuery({
-    queryKey: ['dashboard-manager-events'],
+    queryKey: ["dashboard-manager-events"],
     queryFn: () => eventsApi.getEvents({ limit: 3 }),
-  })
-  const upcomingEvents = eventsData?.data?.data ?? []
+  });
+  const upcomingEvents = eventsData?.data?.data ?? [];
 
   if (evaluations.isLoading) {
     return (
-      <div>
+      <div className="nx-app">
         <div className="h-8 w-64 bg-slate-200 rounded animate-pulse mb-8" />
-        <div className="grid grid-cols-12 gap-6">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="col-span-3 h-32 bg-slate-200 rounded-xl animate-pulse" />
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+          {[...Array(5)].map((_, i) => (
+            <div
+              key={i}
+              className="h-28 bg-slate-200 rounded-xl animate-pulse"
+            />
           ))}
         </div>
       </div>
-    )
+    );
   }
 
-  const evalList = evaluations.data?.data ?? []
-
+  const evalList = evaluations.data?.data ?? [];
   const toCompleteCount = evalList.filter(
-    e => e.status === 'assigned' || e.status === 'in_progress'
-  ).length
-  const waitingCount = evalList.filter(e => e.status === 'assigned').length
+    (e) => e.status === "assigned" || e.status === "in_progress",
+  ).length;
+  const waitingCount = evalList.filter((e) => e.status === "assigned").length;
+  const s = stats.data;
 
   return (
-    <div>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900">Tableau de bord — Mon équipe</h1>
-          <p className="text-slate-500 mt-1">Suivez et gérez les évaluations de votre équipe</p>
-        </div>
-        <Link
-          to="/evaluations"
-          className="inline-flex items-center gap-2 bg-primary-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors"
-        >
-          Mes évaluations →
-        </Link>
-      </div>
+    <div className="nx-app">
+      <PageHead
+        eyebrow="Espace manager"
+        title="Tableau de bord — Mon équipe"
+        desc="Suivez et gérez les évaluations de votre équipe."
+        actions={
+          <Link to="/evaluations" className="btn btn-primary">
+            Mes évaluations <ArrowRight className="ico" />
+          </Link>
+        }
+      />
 
       {/* KPI row */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-        {stats.isLoading ? (
-          Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="h-28 bg-gray-200 animate-pulse rounded-xl" />
-          ))
-        ) : (
-          <>
-            <KpiCard
-              title="Évals à compléter"
-              value={stats.data?.evaluations?.pending ?? toCompleteCount}
-              icon={<ClipboardList size={18} />}
-              color="orange"
-              isLoading={stats.isLoading}
-            />
-            <KpiCard
-              title="Taux de complétion"
-              value={
-                stats.data?.completionRate != null
-                  ? `${stats.data.completionRate}%`
-                  : '—'
-              }
-              icon={<TrendingUp size={18} />}
-              color="green"
-              isLoading={stats.isLoading}
-            />
-            <KpiCard
-              title="Taille de l'équipe"
-              value={stats.data?.teamSize ?? waitingCount}
-              icon={<Users size={18} />}
-              color="blue"
-              isLoading={stats.isLoading}
-            />
-            <KpiCard
-              title="En retard"
-              value={stats.data?.evaluations?.overdue ?? 0}
-              icon={<AlertTriangle size={18} />}
-              color="red"
-              isLoading={stats.isLoading}
-            />
-            <KpiCard
-              title="Signées"
-              value={stats.data?.evaluations?.signedByManager ?? 0}
-              icon={<CheckCircle2 size={18} />}
-              color="green"
-              isLoading={stats.isLoading}
-            />
-          </>
-        )}
+        <StatTile
+          value={s?.evaluations?.pending ?? toCompleteCount}
+          label="Évals à compléter"
+          tone="var(--amber)"
+        />
+        <StatTile
+          value={s?.completionRate != null ? `${s.completionRate}%` : "—"}
+          label="Taux de complétion"
+          tone="var(--green)"
+        />
+        <StatTile
+          value={s?.teamSize ?? waitingCount}
+          label="Taille de l’équipe"
+          tone="var(--blue)"
+        />
+        <StatTile
+          value={s?.evaluations?.overdue ?? 0}
+          label="En retard"
+          tone="var(--red)"
+        />
+        <StatTile
+          value={s?.evaluations?.signedByManager ?? 0}
+          label="Signées"
+          tone="var(--green)"
+        />
       </div>
 
-      {/* Middle row: evals to complete + my team */}
+      {/* Évals à compléter + Mon équipe */}
       <div className="grid grid-cols-12 gap-6 mb-6">
-        <div className="col-span-7 bg-white rounded-xl shadow-sm border border-slate-100 p-6">
-          <h2 className="text-lg font-semibold text-slate-900 mb-4">Évaluations à compléter</h2>
-          <EvalsToComplete evaluations={evalList} />
+        <div className="col-span-12 lg:col-span-7">
+          <Tile style={{ height: "100%" }}>
+            <h2 className="h2" style={{ marginBottom: 16 }}>
+              Évaluations à compléter
+            </h2>
+            <EvalsToComplete evaluations={evalList} />
+          </Tile>
         </div>
-
-        <div className="col-span-5 bg-white rounded-xl shadow-sm border border-slate-100 p-6">
-          <h2 className="text-lg font-semibold text-slate-900 mb-4">Mon équipe</h2>
-          <MyTeam evaluations={evalList} />
+        <div className="col-span-12 lg:col-span-5">
+          <Tile style={{ height: "100%" }}>
+            <h2 className="h2" style={{ marginBottom: 16 }}>
+              Mon équipe
+            </h2>
+            <MyTeam evaluations={evalList} />
+          </Tile>
         </div>
       </div>
 
       {/* Campagnes actives */}
-      <div className="grid grid-cols-12 gap-6 mb-6">
-        <div className="col-span-12 bg-white rounded-xl shadow-sm border border-slate-100 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-slate-900">Campagnes actives</h2>
-            <Link to="/campaigns" className="text-xs text-primary-600 hover:underline">
-              Voir toutes →
-            </Link>
-          </div>
-          <ActiveCampaigns />
+      <Tile className="mb-6">
+        <div className="row between" style={{ marginBottom: 16 }}>
+          <h2 className="h2">Campagnes actives</h2>
+          <Link to="/campaigns" className="link small">
+            Voir toutes →
+          </Link>
         </div>
-      </div>
+        <ActiveCampaigns />
+      </Tile>
 
       {/* En attente de signature */}
-      <div className="grid grid-cols-12 gap-6 mb-6">
-        <div className="col-span-12 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-              En attente de signature
-            </h2>
-            <Link to="/evaluations" className="text-xs text-primary-600 hover:underline">
-              Voir toutes →
-            </Link>
-          </div>
-          <PendingSignaturesList statsData={stats.data} />
+      <Tile className="mb-6">
+        <div className="row between" style={{ marginBottom: 16 }}>
+          <h2 className="h2">En attente de signature</h2>
+          <Link to="/evaluations" className="link small">
+            Voir toutes →
+          </Link>
         </div>
-      </div>
+        <PendingSignaturesList statsData={stats.data} />
+      </Tile>
 
-      {/* Upcoming events */}
-      <div className="grid grid-cols-12 gap-6">
-        <div className="col-span-12 bg-white rounded-xl shadow-sm border border-slate-100 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-slate-900">Prochains événements</h2>
-            <Link to="/events" className="text-xs text-primary-600 hover:underline">Voir tout →</Link>
-          </div>
-          {upcomingEvents.length === 0 ? (
-            <p className="text-sm text-slate-600 text-center py-4">Aucun événement à venir.</p>
-          ) : (
-            <ul className="divide-y divide-slate-100">
-              {upcomingEvents.map(ev => (
-                <li key={ev.id} className="flex items-center gap-3 py-3">
-                  <div className="w-8 h-8 rounded-lg bg-primary-50 flex items-center justify-center flex-shrink-0">
-                    <Calendar size={15} className="text-primary-600" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-slate-900 truncate">{ev.title}</p>
-                    {(ev.startDate ?? ev.date) && (
-                      <p className="text-xs text-slate-500">{new Date(ev.startDate ?? ev.date!).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
-                    )}
-                  </div>
-                  <Link to={`/events/${ev.id}`} className="text-xs text-primary-600 hover:underline flex-shrink-0">Voir</Link>
-                </li>
-              ))}
-            </ul>
-          )}
+      {/* Prochains événements */}
+      <Tile>
+        <div className="row between" style={{ marginBottom: 16 }}>
+          <h2 className="h2">Prochains événements</h2>
+          <Link to="/events" className="link small">
+            Voir tout →
+          </Link>
         </div>
-      </div>
+        {upcomingEvents.length === 0 ? (
+          <p className="small text-center" style={{ padding: "16px 0" }}>
+            Aucun événement à venir.
+          </p>
+        ) : (
+          <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
+            {upcomingEvents.map((ev) => (
+              <li
+                key={ev.id}
+                className="row"
+                style={{ gap: 12, padding: "10px 0" }}
+              >
+                <span
+                  style={{
+                    width: 34,
+                    height: 34,
+                    borderRadius: 8,
+                    background: "var(--blue-soft)",
+                    display: "grid",
+                    placeItems: "center",
+                    flex: "none",
+                  }}
+                >
+                  <svg
+                    width="15"
+                    height="15"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="var(--blue)"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <rect x="3" y="5" width="18" height="16" rx="2" />
+                    <path d="M3 9h18M8 3v4M16 3v4" />
+                  </svg>
+                </span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p
+                    style={{ fontSize: 14, fontWeight: 600 }}
+                    className="truncate"
+                  >
+                    {ev.title}
+                  </p>
+                  {(ev.startDate ?? ev.date) && (
+                    <p className="small">
+                      {new Date(ev.startDate ?? ev.date!).toLocaleDateString(
+                        "fr-FR",
+                        { day: "numeric", month: "short", year: "numeric" },
+                      )}
+                    </p>
+                  )}
+                </div>
+                <Link
+                  to={`/events/${ev.id}`}
+                  className="link small"
+                  style={{ flex: "none" }}
+                >
+                  Voir
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Tile>
     </div>
-  )
+  );
 }

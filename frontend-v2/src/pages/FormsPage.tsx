@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useDebounce } from "../hooks/useDebounce";
 import { Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Copy, Trash2, FileText } from "lucide-react";
+import { Plus, Copy, Trash2, FileText, Lock } from "lucide-react";
 import EmptyState from "../components/ui/EmptyState";
 import { useAuth } from "../contexts/AuthContext";
 import { formsApi } from "../api/forms";
@@ -12,38 +12,20 @@ import ConfirmDialog from "../components/ui/ConfirmDialog";
 import type { Form } from "../types";
 import PageGuide from "../components/shared/PageGuide";
 import { queryKeys } from "../lib/queryKeys";
+import { PageHead, Tile, Badge } from "../components/shell";
 
-const FORM_TYPE_CONFIG: Record<string, { label: string; color: string }> = {
-  self_evaluation: {
-    label: "Auto-évaluation",
-    color: "bg-primary-50 text-primary-700",
-  },
-  manager_evaluation: {
-    label: "Évaluation manager",
-    color: "bg-warning-50 text-warning-700",
-  },
-  upward_feedback: {
-    label: "Feedback ascendant",
-    color: "bg-purple-50 text-purple-700",
-  },
-  peer_review: { label: "Peer review", color: "bg-cyan-50 text-cyan-700" },
-  objectives: { label: "Objectifs", color: "bg-success-50 text-success-700" },
-  mobility_request: {
-    label: "Demande mobilité",
-    color: "bg-orange-50 text-orange-700",
-  },
-  salary_raise_request: {
-    label: "Demande augmentation",
-    color: "bg-emerald-50 text-emerald-700",
-  },
-  promotion_request: {
-    label: "Demande promotion",
-    color: "bg-indigo-50 text-indigo-700",
-  },
-  training_request: {
-    label: "Demande formation",
-    color: "bg-teal-50 text-teal-700",
-  },
+type BadgeTone = "blue" | "green" | "amber" | "red" | "grey";
+
+const FORM_TYPE_CONFIG: Record<string, { label: string; tone: BadgeTone }> = {
+  self_evaluation: { label: "Auto-évaluation", tone: "red" },
+  manager_evaluation: { label: "Évaluation manager", tone: "amber" },
+  upward_feedback: { label: "Feedback ascendant", tone: "blue" },
+  peer_review: { label: "Peer review", tone: "blue" },
+  objectives: { label: "Objectifs", tone: "green" },
+  mobility_request: { label: "Demande mobilité", tone: "amber" },
+  salary_raise_request: { label: "Demande augmentation", tone: "green" },
+  promotion_request: { label: "Demande promotion", tone: "blue" },
+  training_request: { label: "Demande formation", tone: "green" },
 };
 
 export default function FormsPage() {
@@ -106,7 +88,7 @@ export default function FormsPage() {
   const forms = data?.data ?? [];
 
   return (
-    <div>
+    <div className="nx-app">
       <PageGuide
         id="forms"
         title="Les formulaires d'évaluation"
@@ -117,26 +99,30 @@ export default function FormsPage() {
           "Une fois créé, associez le formulaire à une campagne lors de sa création",
         ]}
       />
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-slate-900">Formulaires</h1>
-        {isAdminOrHr && (
-          <Link
-            to="/forms/new"
-            className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-          >
-            <Plus className="w-4 h-4" /> Nouveau formulaire
-          </Link>
-        )}
-      </div>
+
+      <PageHead
+        title="Formulaires"
+        actions={
+          isAdminOrHr && (
+            <Link to="/forms/new" className="btn btn-primary">
+              <Plus className="ico" style={{ width: 18, height: 18 }} /> Nouveau
+              formulaire
+            </Link>
+          )
+        }
+      />
 
       {/* Filtres */}
-      <div className="flex items-center gap-3 mb-6 flex-wrap">
+      <div
+        className="row wrap"
+        style={{ gap: 12, alignItems: "center", marginBottom: 16 }}
+      >
         <select
           aria-label="Filtrer par type"
           value={typeFilter}
           onChange={(e) => setTypeFilter(e.target.value)}
-          className="border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
+          className="input"
+          style={{ width: "auto" }}
         >
           <option value="">Tous les types</option>
           {Object.entries(FORM_TYPE_CONFIG).map(([k, v]) => (
@@ -146,9 +132,11 @@ export default function FormsPage() {
           ))}
         </select>
         <select
+          aria-label="Filtrer par campagne"
           value={campaignFilter}
           onChange={(e) => setCampaignFilter(e.target.value)}
-          className="border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
+          className="input"
+          style={{ width: "auto" }}
         >
           <option value="">Toutes les campagnes</option>
           {campaigns.map((c) => (
@@ -158,19 +146,23 @@ export default function FormsPage() {
           ))}
         </select>
         <input
-          className="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
+          aria-label="Rechercher un formulaire"
+          className="input"
+          style={{ flex: 1, minWidth: 200 }}
           placeholder="Rechercher un formulaire..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
         {isSearching && (
-          <span className="text-xs text-slate-500 self-center">…</span>
+          <span className="small" style={{ alignSelf: "center" }}>
+            …
+          </span>
         )}
       </div>
 
       {/* Loading */}
       {isLoading && (
-        <div className="text-center py-12 text-slate-600 text-sm">
+        <div className="small" style={{ padding: 40, textAlign: "center" }}>
           Chargement…
         </div>
       )}
@@ -194,65 +186,78 @@ export default function FormsPage() {
 
       {/* Grille */}
       {!isLoading && forms.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+            gap: 16,
+          }}
+        >
           {forms.map((form) => {
             const typeConfig = FORM_TYPE_CONFIG[form.formType] ?? {
               label: form.formType,
-              color: "bg-slate-100 text-slate-700",
+              tone: "grey" as BadgeTone,
             };
             return (
-              <div
-                key={form.id}
-                className="bg-white rounded-xl shadow-sm border border-slate-100 p-5 hover:shadow-md transition-shadow"
-              >
-                <div className="flex items-start justify-between mb-3">
-                  <div
-                    className={`px-2 py-1 rounded-full text-xs font-medium ${typeConfig.color}`}
-                  >
-                    {typeConfig.label}
-                  </div>
+              <Tile key={form.id}>
+                <div
+                  className="row between"
+                  style={{ alignItems: "flex-start", marginBottom: 12 }}
+                >
+                  <Badge tone={typeConfig.tone}>{typeConfig.label}</Badge>
                   {form.isFrozen && (
-                    <span className="flex items-center gap-1 px-2 py-1 bg-slate-100 text-slate-500 border border-slate-200 rounded-full text-xs">
-                      🔒 Gelé
-                    </span>
+                    <Badge tone="grey" dot={false}>
+                      <Lock
+                        className="ico"
+                        style={{ width: 12, height: 12, marginRight: 4 }}
+                      />
+                      Gelé
+                    </Badge>
                   )}
                 </div>
-                <h3 className="font-semibold text-slate-900 mb-1">
+                <h3 className="h3" style={{ marginBottom: 4 }}>
                   {form.title}
                 </h3>
-                <p className="text-xs text-slate-500 mb-3">
+                <p className="small" style={{ marginBottom: 12 }}>
                   {form.questions?.length ?? 0} question
                   {(form.questions?.length ?? 0) !== 1 ? "s" : ""}
                 </p>
-                <div className="flex items-center justify-between">
-                  <Link
-                    to={`/forms/${form.id}`}
-                    className="text-sm text-primary-600 hover:text-primary-700 font-medium hover:underline"
-                  >
+                <div className="row between" style={{ alignItems: "center" }}>
+                  <Link to={`/forms/${form.id}`} className="link small">
                     Voir →
                   </Link>
                   {isAdminOrHr && (
-                    <div className="flex gap-1">
+                    <div className="row" style={{ gap: 4 }}>
                       <button
                         onClick={() => setCloneTarget(form)}
-                        className="p-1.5 hover:bg-slate-50 rounded text-slate-400 hover:text-slate-600"
+                        className="btn btn-ghost btn-sm"
+                        style={{ padding: 6 }}
+                        aria-label="Dupliquer"
                         title="Dupliquer"
                       >
-                        <Copy className="w-4 h-4" />
+                        <Copy
+                          className="ico"
+                          style={{ width: 16, height: 16 }}
+                        />
                       </button>
                       {!form.isFrozen && (
                         <button
                           onClick={() => handleDelete(form.id)}
-                          className="p-1.5 hover:bg-error-50 rounded text-slate-400 hover:text-error-600"
+                          className="btn btn-ghost btn-sm"
+                          style={{ padding: 6, color: "var(--red)" }}
+                          aria-label="Supprimer"
                           title="Supprimer"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2
+                            className="ico"
+                            style={{ width: 16, height: 16 }}
+                          />
                         </button>
                       )}
                     </div>
                   )}
                 </div>
-              </div>
+              </Tile>
             );
           })}
         </div>
@@ -260,31 +265,44 @@ export default function FormsPage() {
 
       {/* Modal clone */}
       {cloneTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-xl">
-            <h3 className="text-lg font-semibold text-slate-900 mb-2">
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 50,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "rgba(0,0,0,0.5)",
+          }}
+        >
+          <Tile style={{ width: "100%", maxWidth: 420 }}>
+            <h3 className="h3" style={{ marginBottom: 8 }}>
               Dupliquer — {cloneTarget.title}
             </h3>
-            <p className="text-sm text-slate-600 mb-4">
+            <p className="body" style={{ marginBottom: 16 }}>
               Une copie sera créée avec le titre « Copie de {cloneTarget.title}{" "}
               », non gelée et sans campagne associée.
             </p>
-            <div className="flex gap-3 justify-end">
+            <div
+              className="row"
+              style={{ gap: 12, justifyContent: "flex-end" }}
+            >
               <button
                 onClick={() => setCloneTarget(null)}
-                className="px-4 py-2 text-sm font-medium text-slate-700 border border-slate-200 rounded-lg hover:bg-slate-50"
+                className="btn btn-ghost"
               >
                 Annuler
               </button>
               <button
                 onClick={() => cloneMutation.mutate(cloneTarget.id)}
                 disabled={cloneMutation.isPending}
-                className="px-4 py-2 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 disabled:opacity-50 rounded-lg"
+                className="btn btn-primary"
               >
                 {cloneMutation.isPending ? "Duplication…" : "Dupliquer"}
               </button>
             </div>
-          </div>
+          </Tile>
         </div>
       )}
 

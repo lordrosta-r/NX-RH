@@ -12,6 +12,7 @@ import {
   EvaluationActions,
 } from "../components/evaluations";
 import { useEvaluationForm } from "../hooks/useEvaluationForm";
+import { PageHead, Tile } from "../components/shell";
 import type { Evaluation } from "../types";
 import type { EvaluationMode } from "../types/evaluation";
 
@@ -96,25 +97,33 @@ export default function EvaluationDetailPage() {
 
   if (isLoading)
     return (
-      <div className="space-y-4">
-        {[...Array(3)].map((_, i) => (
-          <div key={i} className="h-24 bg-slate-100 rounded-xl animate-pulse" />
-        ))}
+      <div className="nx-app">
+        <div className="section-gap" style={{ gap: 16 }}>
+          {[...Array(3)].map((_, i) => (
+            <div
+              key={i}
+              className="h-24 bg-slate-100 rounded-xl animate-pulse"
+            />
+          ))}
+        </div>
       </div>
     );
 
   if (!evaluation)
     return (
-      <div className="text-center py-16">
-        <p className="text-slate-500">
-          Évaluation introuvable ou accès refusé.
-        </p>
-        <Link
-          to="/evaluations"
-          className="text-primary-600 hover:underline text-sm mt-2 inline-block"
-        >
-          ← Retour aux évaluations
-        </Link>
+      <div className="nx-app">
+        <Tile>
+          <div className="text-center" style={{ padding: "40px 0" }}>
+            <p className="body">Évaluation introuvable ou accès refusé.</p>
+            <Link
+              to="/evaluations"
+              className="link small"
+              style={{ marginTop: 8, display: "inline-block" }}
+            >
+              ← Retour aux évaluations
+            </Link>
+          </div>
+        </Tile>
       </div>
     );
 
@@ -123,14 +132,24 @@ export default function EvaluationDetailPage() {
     "…";
 
   return (
-    <div className="max-w-3xl mx-auto py-6 px-4">
+    <div className="nx-app">
       <Breadcrumbs
         items={[
           { label: "Évaluations", href: "/evaluations" },
           { label: evaluateeName },
         ]}
       />
-      <EvaluationHeader evaluation={evaluation} />
+
+      <PageHead
+        eyebrow="Évaluation"
+        title={evaluateeName}
+        desc="Détail de l’évaluation et étapes associées."
+      />
+
+      <Tile className="mb-6">
+        <EvaluationHeader evaluation={evaluation} />
+      </Tile>
+
       <EvaluationFormSection
         key={evaluation.id}
         evaluation={evaluation}

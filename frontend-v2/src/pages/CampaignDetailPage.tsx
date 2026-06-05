@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import Breadcrumbs from "../components/ui/Breadcrumbs";
 import {
   CampaignDetailHeader,
   CampaignDetailOverview,
@@ -9,6 +8,7 @@ import {
   CampaignDeleteModal,
 } from "../components/campaigns";
 import { useCampaignDetail } from "../hooks/useCampaignDetail";
+import { Tile } from "../components/shell";
 
 type Tab = "overview" | "evaluations" | "forms";
 
@@ -28,8 +28,10 @@ export default function CampaignDetailPage() {
 
   if (detail.isLoading) {
     return (
-      <div className="flex items-center justify-center py-24">
-        <div className="w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
+      <div className="nx-app">
+        <div className="row" style={{ justifyContent: "center", padding: 96 }}>
+          <div className="w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
+        </div>
       </div>
     );
   }
@@ -37,13 +39,13 @@ export default function CampaignDetailPage() {
   if (!detail.campaign) return null;
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-6">
-      <Breadcrumbs
-        items={[
-          { label: "Campagnes", href: "/campaigns" },
-          { label: detail.campaign.name },
-        ]}
-      />
+    <div className="nx-app">
+      <p className="eyebrow" style={{ marginBottom: 12 }}>
+        <Link to="/campaigns" className="link">
+          Campagnes
+        </Link>{" "}
+        › {detail.campaign.name}
+      </p>
 
       <CampaignDetailHeader
         campaign={detail.campaign}
@@ -59,16 +61,33 @@ export default function CampaignDetailPage() {
         onDeleteClick={() => setDeleteModal(true)}
       />
 
-      <div className="flex gap-1 border-b border-slate-200 mb-6 overflow-x-auto">
+      <div
+        className="row"
+        style={{
+          gap: 0,
+          borderBottom: "1px solid var(--line)",
+          marginBottom: 24,
+          overflowX: "auto",
+        }}
+      >
         {TABS.map((t) => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
-            className={`px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 -mb-px transition-colors ${
-              tab === t.id
-                ? "border-primary-500 text-primary-600"
-                : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
-            }`}
+            className="small"
+            style={{
+              padding: "10px 16px",
+              whiteSpace: "nowrap",
+              background: "none",
+              border: "none",
+              borderBottom:
+                tab === t.id
+                  ? "2px solid var(--blue)"
+                  : "2px solid transparent",
+              color: tab === t.id ? "var(--blue)" : "var(--ink-3)",
+              fontWeight: tab === t.id ? 700 : 500,
+              cursor: "pointer",
+            }}
           >
             {t.label}
           </button>
@@ -84,25 +103,22 @@ export default function CampaignDetailPage() {
       )}
 
       {tab === "evaluations" && (
-        <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-8 text-center">
+        <Tile style={{ textAlign: "center", padding: 32 }}>
           {detail.campaign.status === "draft" ? (
-            <p className="text-slate-600 text-sm">
+            <p className="body">
               Aucune évaluation disponible — la campagne est en brouillon.
             </p>
           ) : (
             <>
-              <p className="text-slate-500 mb-4">
+              <p className="body" style={{ marginBottom: 16 }}>
                 Consultez les évaluations associées à cette campagne.
               </p>
-              <Link
-                to={`/evaluations?campaign=${id}`}
-                className="inline-flex items-center gap-1 text-primary-600 font-medium hover:text-primary-700"
-              >
+              <Link to={`/evaluations?campaign=${id}`} className="link">
                 Voir les évaluations de cette campagne →
               </Link>
             </>
           )}
-        </div>
+        </Tile>
       )}
 
       {tab === "forms" && (

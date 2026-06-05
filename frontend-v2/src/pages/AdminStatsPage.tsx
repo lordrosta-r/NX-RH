@@ -1,13 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import {
-  ChartBar,
-  Megaphone,
-  ClipboardList,
-  CheckCircle2,
-  Star,
-} from "lucide-react";
 import { analyticsApi } from "@/api/analytics";
-import PageHeader from "@/components/ui/PageHeader";
+import { PageHead, Tile, StatTile, Bar } from "../components/shell";
 
 const STATUS_LABELS: Record<string, string> = {
   assigned: "Assignées",
@@ -23,28 +16,6 @@ const STATUS_LABELS: Record<string, string> = {
   archived: "Archivées",
 };
 
-function StatCard({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string | number;
-}) {
-  return (
-    <div className="bg-white rounded-2xl shadow p-5 flex items-center gap-4">
-      <div className="p-3 rounded-xl bg-primary-50 text-primary-600">
-        {icon}
-      </div>
-      <div>
-        <p className="text-2xl font-bold text-slate-900">{value}</p>
-        <p className="text-xs text-slate-500">{label}</p>
-      </div>
-    </div>
-  );
-}
-
 export default function AdminStatsPage() {
   const { data, isLoading, isError } = useQuery({
     queryKey: ["analytics", "summary"],
@@ -53,8 +24,8 @@ export default function AdminStatsPage() {
 
   if (isLoading) {
     return (
-      <div className="p-6 space-y-4">
-        <PageHeader title="Statistiques" subtitle="Vue d'ensemble RH" />
+      <div className="nx-app">
+        <PageHead title="Statistiques" desc="Vue d'ensemble RH" />
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {Array.from({ length: 4 }).map((_, i) => (
             <div
@@ -69,9 +40,9 @@ export default function AdminStatsPage() {
 
   if (isError || !data) {
     return (
-      <div className="p-6">
-        <PageHeader title="Statistiques" subtitle="Vue d'ensemble RH" />
-        <p className="text-sm text-red-600">
+      <div className="nx-app">
+        <PageHead title="Statistiques" desc="Vue d'ensemble RH" />
+        <p className="body" style={{ color: "var(--red)" }}>
           Impossible de charger les statistiques.
         </p>
       </div>
@@ -87,72 +58,81 @@ export default function AdminStatsPage() {
   );
 
   return (
-    <div className="p-6 space-y-6">
-      <PageHeader
+    <div className="nx-app">
+      <PageHead
+        eyebrow="Administration"
         title="Statistiques"
-        subtitle="Vue d'ensemble RH (campagnes & évaluations)"
+        desc="Vue d'ensemble RH (campagnes & évaluations)"
       />
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard
-          icon={<Megaphone size={20} />}
-          label="Campagnes"
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <StatTile
           value={data.totalCampaigns}
+          label="Campagnes"
+          tone="var(--blue)"
         />
-        <StatCard
-          icon={<ChartBar size={20} />}
-          label="Campagnes actives"
+        <StatTile
           value={data.activeCampaigns}
+          label="Campagnes actives"
+          tone="var(--green)"
         />
-        <StatCard
-          icon={<ClipboardList size={20} />}
-          label="Évaluations"
+        <StatTile
           value={data.totalEvaluations}
+          label="Évaluations"
+          tone="var(--amber)"
         />
-        <StatCard
-          icon={<CheckCircle2 size={20} />}
-          label="Taux de complétion"
+        <StatTile
           value={`${data.completionRate}%`}
+          label="Taux de complétion"
+          tone="var(--green)"
         />
       </div>
 
       {avg != null && (
-        <div className="bg-white rounded-2xl shadow p-5 flex items-center gap-4 max-w-xs">
-          <div className="p-3 rounded-xl bg-amber-50 text-amber-600">
-            <Star size={20} />
-          </div>
-          <div>
-            <p className="text-2xl font-bold text-slate-900">
-              {Math.round(avg)}/100
-            </p>
-            <p className="text-xs text-slate-500">Score moyen (validées)</p>
-          </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <StatTile
+            value={`${Math.round(avg)}/100`}
+            label="Score moyen (validées)"
+            tone="var(--amber)"
+          />
         </div>
       )}
 
-      <div className="bg-white rounded-2xl shadow p-6">
-        <h2 className="text-sm font-semibold text-slate-700 mb-4">
+      <Tile>
+        <h2 className="h2" style={{ marginBottom: 16 }}>
           Évaluations par statut
         </h2>
-        <div className="space-y-2">
+        <div className="section-gap" style={{ gap: 10 }}>
           {Object.entries(byStatus).map(([status, count]) => (
-            <div key={status} className="flex items-center gap-3">
-              <span className="w-40 text-xs text-slate-600 truncate">
+            <div key={status} className="row" style={{ gap: 12 }}>
+              <span
+                className="small"
+                style={{
+                  width: 160,
+                  flex: "none",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
                 {STATUS_LABELS[status] ?? status}
               </span>
-              <div className="flex-1 bg-slate-100 rounded-full h-3 overflow-hidden">
-                <div
-                  className="h-full bg-primary-500 rounded-full"
-                  style={{ width: `${(Number(count) / maxCount) * 100}%` }}
+              <div style={{ flex: 1 }}>
+                <Bar
+                  pct={(Number(count) / maxCount) * 100}
+                  tone="var(--blue)"
                 />
               </div>
-              <span className="w-8 text-right text-xs font-medium text-slate-700">
+              <span
+                className="small"
+                style={{ width: 32, textAlign: "right", fontWeight: 600 }}
+              >
                 {Number(count)}
               </span>
             </div>
           ))}
         </div>
-      </div>
+      </Tile>
     </div>
   );
 }

@@ -22,18 +22,20 @@ const config: Config = {
         ],
       },
       colors: {
+        // Bleu institutionnel NanoXplore (aligné sur var(--blue) #1b1b78 du design
+        // system). Remplace l'ancien cyan pour que tout `primary-*` soit à la marque.
         primary: {
-          50: "#EFF9FD",
-          100: "#D9F1FA",
-          200: "#A8E0F5",
-          300: "#62C8EC",
-          400: "#2DB5DE",
-          500: "#17A8D4",
-          600: "#1290B5",
-          700: "#0E7090",
-          800: "#0A5068",
-          900: "#063545",
-          950: "#031E29",
+          50: "#ececfb",
+          100: "#e0e0f6",
+          200: "#c4c4ec",
+          300: "#9b9bdb",
+          400: "#5b5bb8",
+          500: "#2e2e8c",
+          600: "#1b1b78",
+          700: "#15155f",
+          800: "#101049",
+          900: "#0b0b33",
+          950: "#060620",
         },
         success: {
           50: "#F0FDF4",

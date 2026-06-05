@@ -4,9 +4,9 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, MoreVertical, CheckSquare, Square, X } from "lucide-react";
 import { offboardingApi, type OffboardingRecord } from "../api/offboarding";
 import { useAuth } from "../contexts/AuthContext";
-import { cn } from "../utils/cn";
 import { formatDate, formatDateTime } from "../utils/formatDate";
 import { queryKeys } from "../lib/queryKeys";
+import { PageHead, Tile, Badge, Bar } from "../components/shell";
 
 const REASON_LABELS: Record<OffboardingRecord["reason"], string> = {
   resignation: "Démission",
@@ -15,10 +15,23 @@ const REASON_LABELS: Record<OffboardingRecord["reason"], string> = {
   other: "Autre",
 };
 
-const STATUS_BADGE: Record<OffboardingRecord["status"], string> = {
-  pending: "bg-yellow-50 text-yellow-700",
-  in_progress: "bg-blue-50 text-blue-700",
-  completed: "bg-green-50 text-green-700",
+const REASON_TONE: Record<
+  OffboardingRecord["reason"],
+  "blue" | "green" | "amber" | "red" | "grey"
+> = {
+  resignation: "amber",
+  termination: "red",
+  retirement: "blue",
+  other: "grey",
+};
+
+const STATUS_TONE: Record<
+  OffboardingRecord["status"],
+  "blue" | "green" | "amber" | "red" | "grey"
+> = {
+  pending: "amber",
+  in_progress: "blue",
+  completed: "green",
 };
 
 const STATUS_LABELS: Record<OffboardingRecord["status"], string> = {
@@ -116,17 +129,24 @@ export default function OffboardingDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <div className="w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
+      <div className="nx-app">
+        <div className="row" style={{ justifyContent: "center", padding: 96 }}>
+          <div className="w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
+        </div>
       </div>
     );
   }
 
   if (!record)
-    return <p className="text-slate-500">Enregistrement introuvable.</p>;
+    return (
+      <div className="nx-app">
+        <p className="body">Enregistrement introuvable.</p>
+      </div>
+    );
 
   const done = record.checklist.filter((c) => c.done).length;
   const total = record.checklist.length;
+  const pct = total ? (done / total) * 100 : 0;
   const isAdmin = user?.role === "admin";
 
   const nextStatus: Record<
@@ -144,205 +164,263 @@ export default function OffboardingDetailPage() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
-      {/* Back + Header */}
-      <div className="flex items-center gap-3">
-        <Link
-          to="/offboarding"
-          className="p-2 rounded-lg hover:bg-slate-100 text-slate-500 transition-colors"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </Link>
-        <div className="flex-1">
-          <div className="flex items-center gap-3 flex-wrap">
-            <h1 className="text-xl font-bold text-slate-900">
-              Départ — {getUserName(record)}
-            </h1>
-            <span
-              className={cn(
-                "px-2.5 py-0.5 rounded-full text-xs font-medium",
-                STATUS_BADGE[record.status],
-              )}
-            >
+    <div className="nx-app">
+      <PageHead
+        eyebrow={
+          <>
+            <Link to="/offboarding" className="link">
+              <ArrowLeft
+                size={14}
+                strokeWidth={1.5}
+                aria-hidden="true"
+                style={{ display: "inline", verticalAlign: "-2px" }}
+              />{" "}
+              Offboarding
+            </Link>{" "}
+            › {getUserName(record)}
+          </>
+        }
+        title={`Départ — ${getUserName(record)}`}
+        desc={
+          <>
+            <Badge tone={REASON_TONE[record.reason]}>
+              {REASON_LABELS[record.reason]}
+            </Badge>{" "}
+            <Badge tone={STATUS_TONE[record.status]}>
               {STATUS_LABELS[record.status]}
+            </Badge>{" "}
+            <span style={{ color: "var(--ink-3)" }}>
+              Dernier jour : {formatDate(record.lastDay)}
             </span>
+          </>
+        }
+        actions={
+          <div style={{ position: "relative" }}>
+            <button
+              type="button"
+              onClick={() => setMenuOpen(!menuOpen)}
+              className="btn btn-ghost btn-sm"
+              aria-label="Plus d'actions"
+            >
+              <MoreVertical size={18} strokeWidth={1.5} aria-hidden="true" />
+            </button>
+            {menuOpen && (
+              <div
+                style={{
+                  position: "absolute",
+                  right: 0,
+                  top: "calc(100% + 4px)",
+                  width: 176,
+                  background: "#fff",
+                  border: "1px solid var(--line)",
+                  borderRadius: "var(--radius)",
+                  boxShadow: "var(--shadow-lg)",
+                  padding: "4px 0",
+                  zIndex: 10,
+                }}
+              >
+                {isAdmin && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      setDeleteConfirm(true);
+                    }}
+                    className="small"
+                    style={{
+                      width: "100%",
+                      textAlign: "left",
+                      padding: "8px 16px",
+                      background: "none",
+                      border: "none",
+                      color: "var(--red)",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Supprimer
+                  </button>
+                )}
+              </div>
+            )}
           </div>
-          <p className="text-sm text-slate-500 mt-0.5">
-            {REASON_LABELS[record.reason]} · Dernier jour :{" "}
-            {formatDate(record.lastDay)}
-          </p>
-        </div>
-        <div className="relative">
-          <button
-            onClick={() => setMenuOpen(!menuOpen)}
-            className="p-2 rounded-md hover:bg-slate-100 text-slate-500 transition-colors"
-          >
-            <MoreVertical className="w-5 h-5" />
-          </button>
-          {menuOpen && (
-            <div className="absolute right-0 top-full mt-1 w-44 bg-white border border-slate-200 rounded-xl shadow-lg py-1 z-10">
-              {isAdmin && (
-                <button
-                  onClick={() => {
-                    setMenuOpen(false);
-                    setDeleteConfirm(true);
-                  }}
-                  className="w-full text-left px-4 py-2 text-sm text-error-600 hover:bg-error-50"
-                >
-                  Supprimer
-                </button>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
+        }
+      />
 
-      {/* Two columns */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Col gauche */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Checklist */}
-          <div className="bg-white rounded-2xl shadow p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-base font-semibold text-slate-800">
-                Checklist de départ
-              </h2>
-              <span className="text-sm text-slate-500">
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "minmax(0, 2fr) minmax(0, 1fr)",
+          gap: 24,
+          alignItems: "start",
+        }}
+      >
+        {/* Col gauche — Checklist */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+          <Tile>
+            <div
+              className="row between"
+              style={{ marginBottom: 16, alignItems: "center" }}
+            >
+              <h2 className="h3">Checklist de départ</h2>
+              <span className="small">
                 {done}/{total} complétés
               </span>
             </div>
-            <div className="w-full h-2 bg-slate-100 rounded-full mb-5">
-              <div
-                className="h-full bg-primary-500 rounded-full transition-all"
-                style={{ width: total ? `${(done / total) * 100}%` : "0%" }}
-              />
+            <div style={{ marginBottom: 20 }}>
+              <Bar pct={pct} tone="var(--blue)" />
             </div>
-            <div className="space-y-3">
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {record.checklist.map((item, i) => (
-                <div key={item.item} className="group relative">
-                  <button
-                    onClick={() => toggleMutation.mutate(i)}
-                    disabled={toggleMutation.isPending}
-                    className={cn(
-                      "w-full flex items-center gap-3 p-3 rounded-md border transition-colors text-left",
-                      item.done
-                        ? "border-success-500/30 bg-success-50"
-                        : "border-slate-100 bg-slate-50 hover:border-slate-200",
-                    )}
+                <button
+                  key={item.item}
+                  type="button"
+                  onClick={() => toggleMutation.mutate(i)}
+                  disabled={toggleMutation.isPending}
+                  aria-label={`Basculer : ${item.item}`}
+                  className="row"
+                  style={{
+                    width: "100%",
+                    gap: 12,
+                    padding: 12,
+                    borderRadius: "var(--radius)",
+                    border: `1px solid ${item.done ? "var(--green)" : "var(--line)"}`,
+                    background: item.done ? "var(--bg-alt)" : "#fff",
+                    textAlign: "left",
+                    cursor: "pointer",
+                    alignItems: "center",
+                  }}
+                >
+                  {item.done ? (
+                    <CheckSquare
+                      size={20}
+                      strokeWidth={1.5}
+                      aria-hidden="true"
+                      style={{ color: "var(--green)", flexShrink: 0 }}
+                    />
+                  ) : (
+                    <Square
+                      size={20}
+                      strokeWidth={1.5}
+                      aria-hidden="true"
+                      style={{ color: "var(--ink-3)", flexShrink: 0 }}
+                    />
+                  )}
+                  <span
+                    className="body"
+                    style={{
+                      color: item.done ? "var(--ink-3)" : "var(--ink)",
+                      textDecoration: item.done ? "line-through" : "none",
+                    }}
                   >
-                    {item.done ? (
-                      <CheckSquare className="w-5 h-5 text-success-600 shrink-0" />
-                    ) : (
-                      <Square className="w-5 h-5 text-slate-300 shrink-0" />
-                    )}
+                    {item.item}
+                  </span>
+                  {item.done && item.doneAt && (
                     <span
-                      className={cn(
-                        "text-sm",
-                        item.done
-                          ? "text-slate-500 line-through"
-                          : "text-slate-800",
-                      )}
+                      className="small"
+                      style={{
+                        marginLeft: "auto",
+                        whiteSpace: "nowrap",
+                        color: "var(--ink-3)",
+                      }}
                     >
-                      {item.item}
+                      {item.doneBy ? `${item.doneBy} · ` : ""}
+                      {formatDateTime(item.doneAt)}
                     </span>
-                    {item.done && item.doneAt && (
-                      <span className="ml-auto text-xs text-slate-400 hidden group-hover:block whitespace-nowrap">
-                        {item.doneBy ? `${item.doneBy} · ` : ""}
-                        {formatDateTime(item.doneAt)}
-                      </span>
-                    )}
-                  </button>
-                </div>
+                  )}
+                </button>
               ))}
             </div>
-          </div>
+          </Tile>
         </div>
 
         {/* Col droite */}
-        <div className="space-y-4">
+        <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
           {/* Infos */}
-          <div className="bg-white rounded-2xl shadow p-5 space-y-3">
-            <h3 className="text-sm font-semibold text-slate-700">
+          <Tile>
+            <h3 className="h3" style={{ marginBottom: 16 }}>
               Informations
             </h3>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-slate-500">Collaborateur</span>
-                <Link
-                  to={`/users/${getUserId(record)}`}
-                  className="text-primary-600 hover:underline font-medium"
-                >
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <div className="row between">
+                <span className="small">Collaborateur</span>
+                <Link to={`/users/${getUserId(record)}`} className="link">
                   {getUserName(record)}
                 </Link>
               </div>
               {record.department && (
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Département</span>
-                  <span className="text-slate-700">{record.department}</span>
+                <div className="row between">
+                  <span className="small">Département</span>
+                  <span className="body">{record.department}</span>
                 </div>
               )}
               {record.managerName && (
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Responsable</span>
-                  <span className="text-slate-700">{record.managerName}</span>
+                <div className="row between">
+                  <span className="small">Responsable</span>
+                  <span className="body">{record.managerName}</span>
                 </div>
               )}
               {record.createdBy && (
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Créé par</span>
-                  <span className="text-slate-700">{record.createdBy}</span>
+                <div className="row between">
+                  <span className="small">Créé par</span>
+                  <span className="body">{record.createdBy}</span>
                 </div>
               )}
-              <div className="flex justify-between">
-                <span className="text-slate-500">Créé le</span>
-                <span className="text-slate-700">
-                  {formatDate(record.createdAt)}
-                </span>
+              <div className="row between">
+                <span className="small">Créé le</span>
+                <span className="body">{formatDate(record.createdAt)}</span>
               </div>
             </div>
-          </div>
+          </Tile>
 
           {/* Notes RH */}
-          <div className="bg-white rounded-2xl shadow p-5 space-y-3">
-            <h3 className="text-sm font-semibold text-slate-700">Notes RH</h3>
+          <Tile>
+            <h3 className="h3" style={{ marginBottom: 16 }}>
+              Notes RH
+            </h3>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={5}
               placeholder="Ajouter des notes RH confidentielles…"
-              className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary-400"
+              aria-label="Notes RH"
+              className="input"
+              style={{ resize: "none", marginBottom: 12 }}
             />
             <button
+              type="button"
               onClick={() => notesMutation.mutate()}
               disabled={notesMutation.isPending}
-              className="w-full px-4 py-2 bg-primary-500 text-white text-sm font-medium rounded-md hover:bg-primary-600 disabled:opacity-50 transition-colors"
+              className="btn btn-primary btn-block"
             >
               {notesMutation.isPending
                 ? "Sauvegarde…"
                 : "Sauvegarder les notes"}
             </button>
-          </div>
+          </Tile>
         </div>
       </div>
 
       {/* Footer: change status */}
       {nextStatus[record.status] && (
-        <div className="bg-white rounded-2xl shadow p-4 flex justify-end">
-          <button
-            onClick={() => {
-              if (record.status === "in_progress") {
-                setStatusConfirm(true);
-              } else {
-                const ns = nextStatus[record.status];
-                if (ns) statusMutation.mutate(ns);
-              }
-            }}
-            disabled={statusMutation.isPending}
-            className="px-5 py-2.5 bg-primary-500 text-white text-sm font-semibold rounded-md hover:bg-primary-600 disabled:opacity-50 transition-colors"
-          >
-            {nextStatusLabel[record.status]}
-          </button>
-        </div>
+        <Tile style={{ marginTop: 24 }}>
+          <div className="row" style={{ justifyContent: "flex-end" }}>
+            <button
+              type="button"
+              onClick={() => {
+                if (record.status === "in_progress") {
+                  setStatusConfirm(true);
+                } else {
+                  const ns = nextStatus[record.status];
+                  if (ns) statusMutation.mutate(ns);
+                }
+              }}
+              disabled={statusMutation.isPending}
+              className="btn btn-primary"
+            >
+              {nextStatusLabel[record.status]}
+            </button>
+          </div>
+        </Tile>
       )}
 
       {/* Status confirm modal (in_progress → completed) */}
@@ -352,36 +430,45 @@ export default function OffboardingDetailPage() {
             className="absolute inset-0 bg-black/30"
             onClick={() => setStatusConfirm(false)}
           />
-          <div className="relative bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm">
+          <Tile
+            className="relative w-full max-w-sm"
+            style={{ boxShadow: "var(--shadow-lg)" }}
+          >
             <button
+              type="button"
               onClick={() => setStatusConfirm(false)}
-              className="absolute top-4 right-4 p-1 rounded-md hover:bg-slate-100 text-slate-400"
+              aria-label="Fermer"
+              className="btn btn-ghost btn-sm"
+              style={{ position: "absolute", top: 12, right: 12 }}
             >
-              <X className="w-4 h-4" />
+              <X size={16} strokeWidth={1.5} aria-hidden="true" />
             </button>
-            <h3 className="text-base font-semibold text-slate-900 mb-2">
+            <h3 className="h3" style={{ marginBottom: 8 }}>
               Confirmer la clôture
             </h3>
-            <p className="text-sm text-slate-600 mb-5">
+            <p className="body" style={{ marginBottom: 20 }}>
               L'utilisateur sera désactivé dans le système. Cette action est
               définitive.
             </p>
-            <div className="flex gap-3">
+            <div className="row" style={{ gap: 12 }}>
               <button
+                type="button"
                 onClick={() => statusMutation.mutate("completed")}
                 disabled={statusMutation.isPending}
-                className="flex-1 px-4 py-2 bg-primary-500 text-white text-sm font-medium rounded-md hover:bg-primary-600 disabled:opacity-50 transition-colors"
+                className="btn btn-primary"
+                style={{ flex: 1 }}
               >
                 {statusMutation.isPending ? "En cours…" : "Confirmer"}
               </button>
               <button
+                type="button"
                 onClick={() => setStatusConfirm(false)}
-                className="px-4 py-2 border border-slate-300 text-sm font-medium rounded-md text-slate-700 hover:bg-slate-50 transition-colors"
+                className="btn btn-ghost"
               >
                 Annuler
               </button>
             </div>
-          </div>
+          </Tile>
         </div>
       )}
 
@@ -392,29 +479,39 @@ export default function OffboardingDetailPage() {
             className="absolute inset-0 bg-black/30"
             onClick={() => setDeleteConfirm(false)}
           />
-          <div className="relative bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm">
-            <h3 className="text-base font-semibold text-slate-900 mb-2">
+          <Tile
+            className="relative w-full max-w-sm"
+            style={{ boxShadow: "var(--shadow-lg)" }}
+          >
+            <h3 className="h3" style={{ marginBottom: 8 }}>
               Confirmer la suppression
             </h3>
-            <p className="text-sm text-slate-600 mb-5">
+            <p className="body" style={{ marginBottom: 20 }}>
               Cette action est irréversible.
             </p>
-            <div className="flex gap-3">
+            <div className="row" style={{ gap: 12 }}>
               <button
+                type="button"
                 onClick={() => deleteMutation.mutate()}
                 disabled={deleteMutation.isPending}
-                className="flex-1 px-4 py-2 bg-error-600 text-white text-sm font-medium rounded-md hover:bg-error-700 disabled:opacity-50 transition-colors"
+                className="btn btn-primary"
+                style={{
+                  flex: 1,
+                  background: "var(--red)",
+                  borderColor: "var(--red)",
+                }}
               >
                 {deleteMutation.isPending ? "Suppression…" : "Supprimer"}
               </button>
               <button
+                type="button"
                 onClick={() => setDeleteConfirm(false)}
-                className="px-4 py-2 border border-slate-300 text-sm font-medium rounded-md text-slate-700 hover:bg-slate-50 transition-colors"
+                className="btn btn-ghost"
               >
                 Annuler
               </button>
             </div>
-          </div>
+          </Tile>
         </div>
       )}
 

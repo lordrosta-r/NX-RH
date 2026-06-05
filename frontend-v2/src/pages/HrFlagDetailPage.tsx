@@ -14,6 +14,7 @@ import {
 import { hrApi } from "../api/hr";
 import type { HrFlag, HrFlagStatus, HrFlagType } from "../types";
 import { queryKeys } from "../lib/queryKeys";
+import { PageHead, Tile, Badge } from "../components/shell";
 
 const TYPE_LABELS: Record<HrFlagType, string> = {
   mobility_request: "Mobilité",
@@ -22,12 +23,13 @@ const TYPE_LABELS: Record<HrFlagType, string> = {
   training_request: "Formation",
   other: "Autre",
 };
-const TYPE_COLORS: Record<HrFlagType, string> = {
-  mobility_request: "bg-blue-100 text-blue-700",
-  salary_raise_request: "bg-green-100 text-green-700",
-  promotion_request: "bg-purple-100 text-purple-700",
-  training_request: "bg-amber-100 text-amber-700",
-  other: "bg-slate-100 text-slate-700",
+type Tone = "blue" | "green" | "amber" | "red" | "grey";
+const TYPE_TONES: Record<HrFlagType, Tone> = {
+  mobility_request: "blue",
+  salary_raise_request: "green",
+  promotion_request: "blue",
+  training_request: "amber",
+  other: "grey",
 };
 const STATUS_LABELS: Record<HrFlagStatus, string> = {
   pending: "En attente",
@@ -35,11 +37,11 @@ const STATUS_LABELS: Record<HrFlagStatus, string> = {
   treated: "Traité",
   rejected: "Rejeté",
 };
-const STATUS_COLORS: Record<HrFlagStatus, string> = {
-  pending: "bg-amber-100 text-amber-700",
-  in_progress: "bg-blue-100 text-blue-700",
-  treated: "bg-green-100 text-green-700",
-  rejected: "bg-red-100 text-red-700",
+const STATUS_TONES: Record<HrFlagStatus, Tone> = {
+  pending: "amber",
+  in_progress: "blue",
+  treated: "green",
+  rejected: "red",
 };
 const STATUS_ICONS: Record<HrFlagStatus, React.ReactNode> = {
   pending: <AlertCircle className="w-4 h-4" />,
@@ -95,11 +97,9 @@ export default function HrFlagDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="px-4 py-8">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-slate-200 rounded w-1/3" />
-          <div className="h-40 bg-slate-200 rounded" />
-          <div className="h-24 bg-slate-200 rounded" />
+      <div className="nx-app">
+        <div className="row" style={{ justifyContent: "center", padding: 96 }}>
+          <div className="w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
         </div>
       </div>
     );
@@ -107,15 +107,21 @@ export default function HrFlagDetailPage() {
 
   if (isError || !flag) {
     return (
-      <div className="px-4 py-8 text-center">
-        <AlertCircle className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-        <p className="text-slate-500">Signal introuvable.</p>
-        <Link
-          to="/hr/flags"
-          className="text-primary-600 text-sm mt-2 inline-block hover:underline"
-        >
-          Retour à la liste
-        </Link>
+      <div className="nx-app">
+        <Tile style={{ textAlign: "center", padding: 48 }}>
+          <AlertCircle
+            className="w-12 h-12 mx-auto mb-3"
+            style={{ color: "var(--ink-3)" }}
+          />
+          <p className="body">Signal introuvable.</p>
+          <Link
+            to="/hr/flags"
+            className="link"
+            style={{ marginTop: 8, display: "inline-block" }}
+          >
+            Retour à la liste
+          </Link>
+        </Tile>
       </div>
     );
   }
@@ -124,121 +130,140 @@ export default function HrFlagDetailPage() {
   const canUpdate = nextStatuses.length > 0;
 
   return (
-    <div className="px-4 py-8 space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-3">
-        <button
-          onClick={() => navigate(-1)}
-          className="p-2 rounded-lg hover:bg-slate-100 text-slate-500 transition-colors"
-          aria-label="Retour"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">Signal RH</h1>
-          <p className="text-sm text-slate-500">
-            #{id?.slice(-6).toUpperCase()}
-          </p>
-        </div>
-      </div>
-
-      {/* Main card */}
-      <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-6 space-y-4">
-        {/* Type + status */}
-        <div className="flex flex-wrap items-center gap-2">
-          <span
-            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${TYPE_COLORS[flag.type]}`}
-          >
-            {TYPE_LABELS[flag.type]}
+    <div className="nx-app">
+      <PageHead
+        eyebrow={
+          <span className="row" style={{ gap: 8, alignItems: "center" }}>
+            <button
+              onClick={() => navigate(-1)}
+              className="btn btn-ghost btn-sm"
+              aria-label="Retour"
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </button>
+            Signal RH
           </span>
-          <span
-            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${STATUS_COLORS[flag.status]}`}
-          >
-            {STATUS_ICONS[flag.status]}
-            {STATUS_LABELS[flag.status]}
-          </span>
-        </div>
+        }
+        title={`#${id?.slice(-6).toUpperCase()}`}
+        actions={
+          <div className="row wrap" style={{ gap: 8 }}>
+            <Badge tone={TYPE_TONES[flag.type]}>{TYPE_LABELS[flag.type]}</Badge>
+            <Badge tone={STATUS_TONES[flag.status]} dot>
+              <span className="row" style={{ gap: 6, alignItems: "center" }}>
+                {STATUS_ICONS[flag.status]}
+                {STATUS_LABELS[flag.status]}
+              </span>
+            </Badge>
+          </div>
+        }
+      />
 
-        {/* Metadata */}
+      {/* Détail de l'alerte */}
+      <Tile style={{ marginBottom: 24 }}>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-          <div className="flex items-start gap-2 text-slate-600">
-            <User className="w-4 h-4 mt-0.5 shrink-0 text-slate-400" />
+          <div className="row" style={{ gap: 8, alignItems: "flex-start" }}>
+            <User
+              className="w-4 h-4 mt-0.5 shrink-0"
+              style={{ color: "var(--ink-3)" }}
+            />
             <div>
-              <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-0.5">
+              <p className="eyebrow" style={{ marginBottom: 2 }}>
                 Collaborateur
               </p>
-              <p>{flag.userName ?? flag.userId}</p>
+              <p className="body">{flag.userName ?? flag.userId}</p>
             </div>
           </div>
-          <div className="flex items-start gap-2 text-slate-600">
-            <Clock className="w-4 h-4 mt-0.5 shrink-0 text-slate-400" />
+          <div className="row" style={{ gap: 8, alignItems: "flex-start" }}>
+            <Clock
+              className="w-4 h-4 mt-0.5 shrink-0"
+              style={{ color: "var(--ink-3)" }}
+            />
             <div>
-              <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-0.5">
+              <p className="eyebrow" style={{ marginBottom: 2 }}>
                 Créé le
               </p>
-              <p>{formatDate(flag.createdAt)}</p>
+              <p className="body">{formatDate(flag.createdAt)}</p>
             </div>
           </div>
           {flag.updatedAt && (
-            <div className="flex items-start gap-2 text-slate-600">
-              <RefreshCw className="w-4 h-4 mt-0.5 shrink-0 text-slate-400" />
+            <div className="row" style={{ gap: 8, alignItems: "flex-start" }}>
+              <RefreshCw
+                className="w-4 h-4 mt-0.5 shrink-0"
+                style={{ color: "var(--ink-3)" }}
+              />
               <div>
-                <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-0.5">
+                <p className="eyebrow" style={{ marginBottom: 2 }}>
                   Mis à jour
                 </p>
-                <p>{formatDate(flag.updatedAt)}</p>
+                <p className="body">{formatDate(flag.updatedAt)}</p>
               </div>
             </div>
           )}
         </div>
 
-        {/* Description */}
         {flag.description && (
-          <div className="border-t border-slate-100 pt-4">
-            <div className="flex items-start gap-2 text-sm text-slate-600">
-              <FileText className="w-4 h-4 mt-0.5 shrink-0 text-slate-400" />
+          <div
+            style={{
+              borderTop: "1px solid var(--line)",
+              paddingTop: 16,
+              marginTop: 16,
+            }}
+          >
+            <div className="row" style={{ gap: 8, alignItems: "flex-start" }}>
+              <FileText
+                className="w-4 h-4 mt-0.5 shrink-0"
+                style={{ color: "var(--ink-3)" }}
+              />
               <div>
-                <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-0.5">
+                <p className="eyebrow" style={{ marginBottom: 2 }}>
                   Description
                 </p>
-                <p className="whitespace-pre-wrap">{flag.description}</p>
+                <p className="body whitespace-pre-wrap">{flag.description}</p>
               </div>
             </div>
           </div>
         )}
 
-        {/* Note RH */}
         {flag.note && (
-          <div className="border-t border-slate-100 pt-4">
-            <div className="flex items-start gap-2 text-sm text-slate-600">
-              <FileText className="w-4 h-4 mt-0.5 shrink-0 text-slate-400" />
+          <div
+            style={{
+              borderTop: "1px solid var(--line)",
+              paddingTop: 16,
+              marginTop: 16,
+            }}
+          >
+            <div className="row" style={{ gap: 8, alignItems: "flex-start" }}>
+              <FileText
+                className="w-4 h-4 mt-0.5 shrink-0"
+                style={{ color: "var(--ink-3)" }}
+              />
               <div>
-                <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-0.5">
+                <p className="eyebrow" style={{ marginBottom: 2 }}>
                   Note RH
                 </p>
-                <p className="whitespace-pre-wrap">{flag.note}</p>
+                <p className="body whitespace-pre-wrap">{flag.note}</p>
               </div>
             </div>
           </div>
         )}
-      </div>
+      </Tile>
 
-      {/* Update status */}
+      {/* Résolution */}
       {canUpdate && (
-        <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-6 space-y-4">
-          <h2 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">
+        <Tile>
+          <h2 className="h3" style={{ marginBottom: 16 }}>
             Mettre à jour le statut
           </h2>
-          <div className="flex flex-wrap gap-2">
+          <div className="row wrap" style={{ gap: 8, marginBottom: 16 }}>
             {nextStatuses.map((s) => (
               <button
                 key={s}
                 onClick={() => setTargetStatus(s)}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ${
+                className={
                   targetStatus === s
-                    ? "border-primary-500 bg-primary-50 text-primary-700"
-                    : "border-slate-200 text-slate-600 hover:border-slate-300"
-                }`}
+                    ? "btn btn-primary btn-sm"
+                    : "btn btn-ghost btn-sm"
+                }
               >
                 {STATUS_LABELS[s]}
               </button>
@@ -251,15 +276,17 @@ export default function HrFlagDetailPage() {
                 onChange={(e) => setNote(e.target.value)}
                 placeholder="Note (optionnel)…"
                 rows={3}
-                className="w-full text-sm px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-400 resize-none"
+                aria-label="Note RH"
+                className="input"
+                style={{ width: "100%", resize: "none", marginBottom: 16 }}
               />
-              <div className="flex gap-2">
+              <div className="row" style={{ gap: 8 }}>
                 <button
                   onClick={() => {
                     setTargetStatus("");
                     setNote("");
                   }}
-                  className="px-4 py-2 text-sm text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50"
+                  className="btn btn-ghost"
                 >
                   Annuler
                 </button>
@@ -271,7 +298,7 @@ export default function HrFlagDetailPage() {
                     })
                   }
                   disabled={updateMut.isPending}
-                  className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg disabled:opacity-50 hover:bg-primary-700 transition-colors"
+                  className="btn btn-primary"
                 >
                   {updateMut.isPending
                     ? "Enregistrement…"
@@ -280,17 +307,17 @@ export default function HrFlagDetailPage() {
               </div>
             </>
           )}
-        </div>
+        </Tile>
       )}
 
       {!canUpdate && (
-        <div className="bg-slate-50 rounded-xl border border-slate-200 px-6 py-4 text-sm text-slate-500 text-center">
-          Ce signal est{" "}
-          <span className="font-medium">
-            {STATUS_LABELS[flag.status].toLowerCase()}
-          </span>{" "}
-          — aucune action supplémentaire possible.
-        </div>
+        <Tile style={{ textAlign: "center" }}>
+          <p className="body">
+            Ce signal est{" "}
+            <strong>{STATUS_LABELS[flag.status].toLowerCase()}</strong> — aucune
+            action supplémentaire possible.
+          </p>
+        </Tile>
       )}
     </div>
   );

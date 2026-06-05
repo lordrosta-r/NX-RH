@@ -20,6 +20,19 @@ type SearchResult = {
   href: string;
 };
 
+/** Forme brute renvoyée par GET /api/search (3 collections séparées). */
+type RawSearchResponse = {
+  users?: {
+    _id: string;
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    role?: string;
+  }[];
+  campaigns?: { _id: string; name: string; status?: string }[];
+  forms?: { _id: string; title: string; formType?: string }[];
+};
+
 type SearchOverlayProps = {
   open: boolean;
   onClose: () => void;
@@ -64,10 +77,41 @@ export default function SearchOverlay({ open, onClose }: SearchOverlayProps) {
 
   const { data: results = [], isFetching } = useQuery<SearchResult[]>({
     queryKey: ["global-search", debouncedQ],
-    queryFn: () =>
-      client
-        .get(`/api/search?q=${encodeURIComponent(debouncedQ)}`)
-        .then((r) => r.data),
+    queryFn: async () => {
+      // Le backend renvoie { users, campaigns, forms } (3 collections séparées) :
+      // on aplatit en SearchResult[] et on construit les href côté front.
+      const { data } = await client.get<RawSearchResponse>(
+        `/api/search?q=${encodeURIComponent(debouncedQ)}`,
+      );
+      const users = (data.users ?? []).map(
+        (u): SearchResult => ({
+          id: u._id,
+          type: "user",
+          title: `${u.firstName ?? ""} ${u.lastName ?? ""}`.trim() || u.email,
+          subtitle: u.email ?? u.role,
+          href: `/users/${u._id}`,
+        }),
+      );
+      const campaigns = (data.campaigns ?? []).map(
+        (c): SearchResult => ({
+          id: c._id,
+          type: "campaign",
+          title: c.name,
+          subtitle: c.status,
+          href: `/campaigns/${c._id}`,
+        }),
+      );
+      const forms = (data.forms ?? []).map(
+        (f): SearchResult => ({
+          id: f._id,
+          type: "form",
+          title: f.title,
+          subtitle: f.formType,
+          href: `/forms/${f._id}`,
+        }),
+      );
+      return [...users, ...campaigns, ...forms];
+    },
     enabled: debouncedQ.trim().length >= 2,
     staleTime: 10000,
   });

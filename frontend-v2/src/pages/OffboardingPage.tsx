@@ -363,12 +363,14 @@ export default function OffboardingPage() {
       <div className="bg-white rounded-2xl shadow p-4 flex flex-wrap gap-3">
         <input
           type="search"
+          aria-label="Rechercher un collaborateur"
           placeholder="Rechercher un collaborateur…"
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
           className="border border-slate-300 rounded-lg px-3 py-2 text-sm flex-1 min-w-40 focus:outline-none focus:ring-2 focus:ring-primary-400"
         />
         <select
+          aria-label="Filtrer par statut"
           value={filters.status ?? ""}
           onChange={(e) =>
             setFilters((f) => ({
@@ -385,6 +387,7 @@ export default function OffboardingPage() {
           <option value="completed">Terminé</option>
         </select>
         <select
+          aria-label="Filtrer par motif"
           value={filters.reason ?? ""}
           onChange={(e) =>
             setFilters((f) => ({

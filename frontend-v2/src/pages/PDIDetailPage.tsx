@@ -4,8 +4,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import api from "@/api/client";
 import { queryKeys } from "@/lib/queryKeys";
+import { PageHead, Tile, Badge, Bar } from "@/components/shell";
 import {
-  ArrowLeft,
   CheckCircle2,
   Circle,
   Clock,
@@ -24,6 +24,8 @@ type ActionType =
   | "lecture"
   | "certification"
   | "autre";
+
+type BadgeTone = "blue" | "green" | "amber" | "red" | "grey";
 
 interface Action {
   _id: string;
@@ -64,15 +66,11 @@ const PDI_STATUS_LABELS: Record<PDIStatus, string> = {
   archived: "Archivé",
 };
 
-const PDI_STATUS_COLORS: Record<PDIStatus, string> = {
-  draft:
-    "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
-  active:
-    "bg-primary-100 text-primary-800 dark:bg-primary-900/30 dark:text-primary-300",
-  completed:
-    "bg-success-100 text-success-800 dark:bg-success-900/30 dark:text-success-300",
-  archived:
-    "bg-surface-200 text-surface-600 dark:bg-surface-700 dark:text-surface-400",
+const PDI_STATUS_TONES: Record<PDIStatus, BadgeTone> = {
+  draft: "amber",
+  active: "blue",
+  completed: "green",
+  archived: "grey",
 };
 
 const ACTION_STATUS_LABELS: Record<ActionStatus, string> = {
@@ -93,12 +91,32 @@ const ACTION_TYPE_LABELS: Record<ActionType, string> = {
 
 function ActionStatusIcon({ status }: { status: ActionStatus }) {
   if (status === "completed")
-    return <CheckCircle2 className="w-4 h-4 text-success-500 flex-shrink-0" />;
+    return (
+      <CheckCircle2
+        className="w-4 h-4 flex-shrink-0"
+        style={{ color: "var(--green)" }}
+      />
+    );
   if (status === "in_progress")
-    return <Clock className="w-4 h-4 text-primary-500 flex-shrink-0" />;
+    return (
+      <Clock
+        className="w-4 h-4 flex-shrink-0"
+        style={{ color: "var(--blue)" }}
+      />
+    );
   if (status === "cancelled")
-    return <XCircle className="w-4 h-4 text-red-400 flex-shrink-0" />;
-  return <Circle className="w-4 h-4 text-surface-400 flex-shrink-0" />;
+    return (
+      <XCircle
+        className="w-4 h-4 flex-shrink-0"
+        style={{ color: "var(--red)" }}
+      />
+    );
+  return (
+    <Circle
+      className="w-4 h-4 flex-shrink-0"
+      style={{ color: "var(--ink-3)" }}
+    />
+  );
 }
 
 const EMPTY_ACTION = {
@@ -156,16 +174,20 @@ export default function PDIDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-[400px]">
-        <div className="w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
+      <div className="nx-app">
+        <div className="row" style={{ justifyContent: "center", padding: 96 }}>
+          <div className="w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
+        </div>
       </div>
     );
   }
 
   if (isError || !pdi) {
     return (
-      <div className="px-4 py-8 text-center text-surface-500">
-        PDI introuvable ou accès refusé.
+      <div className="nx-app">
+        <Tile style={{ textAlign: "center", padding: 32 }}>
+          <p className="body">PDI introuvable ou accès refusé.</p>
+        </Tile>
       </div>
     );
   }
@@ -188,135 +210,121 @@ export default function PDIDetailPage() {
     (["admin", "hr"].includes(user?.role ?? "") && !pdi.managerSignedAt);
 
   return (
-    <div className="px-4 py-6 space-y-6">
-      {/* Back */}
-      <Link
-        to="/pdi"
-        className="inline-flex items-center gap-1 text-sm text-surface-500 hover:text-primary-600 dark:text-surface-400 dark:hover:text-primary-400 transition-colors"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        Retour aux PDIs
-      </Link>
+    <div className="nx-app">
+      <p className="eyebrow" style={{ marginBottom: 12 }}>
+        <Link to="/pdi" className="link">
+          PDIs
+        </Link>{" "}
+        › {pdi.employee.firstName} {pdi.employee.lastName}
+      </p>
 
-      {/* Header card */}
-      <div className="bg-white dark:bg-surface-800 rounded-xl border border-surface-200 dark:border-surface-700 p-5 space-y-4">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-xl font-bold text-surface-900 dark:text-surface-50">
-              PDI — {pdi.employee.firstName} {pdi.employee.lastName}
-            </h1>
-            <p className="text-sm text-surface-500 dark:text-surface-400 mt-0.5">
-              {pdi.employee.position && <span>{pdi.employee.position} · </span>}
-              {pdi.employee.department}
-            </p>
-          </div>
-          <span
-            className={`text-xs font-semibold px-2.5 py-1 rounded-full ${PDI_STATUS_COLORS[pdi.status]}`}
-          >
+      <PageHead
+        title={`PDI — ${pdi.employee.firstName} ${pdi.employee.lastName}`}
+        desc={
+          <>
+            {pdi.employee.position && <span>{pdi.employee.position} · </span>}
+            {pdi.employee.department}
+          </>
+        }
+        actions={
+          <Badge tone={PDI_STATUS_TONES[pdi.status]}>
             {PDI_STATUS_LABELS[pdi.status]}
-          </span>
-        </div>
+          </Badge>
+        }
+      />
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
-          <div>
-            <p className="text-xs text-surface-500 dark:text-surface-400 mb-0.5">
+      {/* Header info + signatures */}
+      <Tile style={{ marginBottom: 24 }}>
+        <div className="row wrap" style={{ gap: 24, marginBottom: 16 }}>
+          <div style={{ minWidth: 140 }}>
+            <p className="small" style={{ marginBottom: 2 }}>
               Manager
             </p>
-            <p className="font-medium text-surface-800 dark:text-surface-200">
+            <p className="body" style={{ fontWeight: 600 }}>
               {pdi.manager.firstName} {pdi.manager.lastName}
             </p>
           </div>
-          <div>
-            <p className="text-xs text-surface-500 dark:text-surface-400 mb-0.5">
+          <div style={{ minWidth: 100 }}>
+            <p className="small" style={{ marginBottom: 2 }}>
               Début
             </p>
-            <p className="font-medium text-surface-800 dark:text-surface-200">
+            <p className="body" style={{ fontWeight: 600 }}>
               {new Date(pdi.period.start).toLocaleDateString("fr-FR")}
             </p>
           </div>
-          <div>
-            <p className="text-xs text-surface-500 dark:text-surface-400 mb-0.5">
+          <div style={{ minWidth: 100 }}>
+            <p className="small" style={{ marginBottom: 2 }}>
               Fin
             </p>
-            <p className="font-medium text-surface-800 dark:text-surface-200">
+            <p className="body" style={{ fontWeight: 600 }}>
               {new Date(pdi.period.end).toLocaleDateString("fr-FR")}
             </p>
           </div>
         </div>
 
         {/* Signatures */}
-        <div className="flex flex-wrap gap-3 pt-1">
-          <div
-            className={`flex items-center gap-1.5 text-xs px-3 py-1 rounded-full ${
-              pdi.employeeSignedAt
-                ? "bg-success-100 text-success-700 dark:bg-success-900/30 dark:text-success-300"
-                : "bg-surface-100 text-surface-500 dark:bg-surface-700 dark:text-surface-400"
-            }`}
-          >
+        <div className="row wrap" style={{ gap: 12, alignItems: "center" }}>
+          <Badge tone={pdi.employeeSignedAt ? "green" : "grey"}>
             <FileSignature className="w-3.5 h-3.5" />
             Employé{" "}
             {pdi.employeeSignedAt
               ? `signé le ${new Date(pdi.employeeSignedAt).toLocaleDateString("fr-FR")}`
               : "non signé"}
-          </div>
-          <div
-            className={`flex items-center gap-1.5 text-xs px-3 py-1 rounded-full ${
-              pdi.managerSignedAt
-                ? "bg-success-100 text-success-700 dark:bg-success-900/30 dark:text-success-300"
-                : "bg-surface-100 text-surface-500 dark:bg-surface-700 dark:text-surface-400"
-            }`}
-          >
+          </Badge>
+          <Badge tone={pdi.managerSignedAt ? "green" : "grey"}>
             <FileSignature className="w-3.5 h-3.5" />
             Manager{" "}
             {pdi.managerSignedAt
               ? `signé le ${new Date(pdi.managerSignedAt).toLocaleDateString("fr-FR")}`
               : "non signé"}
-          </div>
+          </Badge>
           {canSign && (
             <button
               onClick={() => signMutation.mutate()}
               disabled={signMutation.isPending}
-              className="flex items-center gap-1.5 text-xs px-3 py-1 rounded-full bg-primary-600 hover:bg-primary-700 text-white disabled:opacity-50 transition-colors font-medium"
+              className="btn btn-primary btn-sm"
             >
               <FileSignature className="w-3.5 h-3.5" />
               {signMutation.isPending ? "Signature…" : "Signer"}
             </button>
           )}
         </div>
-      </div>
+      </Tile>
 
       {/* Progress */}
       {pdi.actions.length > 0 && (
-        <div className="bg-white dark:bg-surface-800 rounded-xl border border-surface-200 dark:border-surface-700 p-4">
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-sm font-medium text-surface-700 dark:text-surface-300">
+        <Tile style={{ marginBottom: 24 }}>
+          <div
+            className="row between"
+            style={{ alignItems: "center", marginBottom: 8 }}
+          >
+            <span className="body" style={{ fontWeight: 600 }}>
               Progression des actions
             </span>
-            <span className="text-sm font-bold text-primary-600 dark:text-primary-400">
+            <span
+              className="body"
+              style={{ fontWeight: 700, color: "var(--blue)" }}
+            >
               {progressPct}% ({completedActions}/{pdi.actions.length})
             </span>
           </div>
-          <div className="h-2.5 bg-surface-200 dark:bg-surface-700 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-success-500 rounded-full transition-all duration-500"
-              style={{ width: `${progressPct}%` }}
-            />
-          </div>
-        </div>
+          <Bar pct={progressPct} tone="var(--green)" height={10} />
+        </Tile>
       )}
 
       {/* Objectives */}
-      <div className="bg-white dark:bg-surface-800 rounded-xl border border-surface-200 dark:border-surface-700 p-5 space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="font-semibold text-surface-800 dark:text-surface-100">
-            Objectifs
-          </h2>
+      <Tile style={{ marginBottom: 24 }}>
+        <div
+          className="row between"
+          style={{ alignItems: "center", marginBottom: 12 }}
+        >
+          <h2 className="h2">Objectifs</h2>
           <button
             onClick={() => {
               setObjectivesText(pdi.objectives.join("\n"));
               setEditingObjective((v) => !v);
             }}
-            className="text-xs text-primary-600 hover:underline dark:text-primary-400 flex items-center gap-1"
+            className="btn btn-ghost btn-sm"
           >
             <PenSquare className="w-3.5 h-3.5" />
             Éditer
@@ -324,51 +332,63 @@ export default function PDIDetailPage() {
         </div>
 
         {editingObjective ? (
-          <div className="space-y-2">
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             <textarea
               rows={4}
-              className="w-full border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-900 rounded-lg px-3 py-2 text-sm text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
+              className="input"
+              aria-label="Objectifs, un par ligne"
               value={objectivesText}
               onChange={(e) => setObjectivesText(e.target.value)}
               placeholder="Un objectif par ligne"
             />
-            <div className="flex justify-end gap-2">
+            <div className="row" style={{ justifyContent: "flex-end", gap: 8 }}>
               <button
                 onClick={() => setEditingObjective(false)}
-                className="px-3 py-1.5 text-xs rounded-lg border border-surface-300 dark:border-surface-600 text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors"
+                className="btn btn-ghost btn-sm"
               >
                 Annuler
               </button>
             </div>
           </div>
         ) : pdi.objectives.length === 0 ? (
-          <p className="text-sm text-surface-400 dark:text-surface-500 italic">
+          <p className="small" style={{ fontStyle: "italic" }}>
             Aucun objectif défini
           </p>
         ) : (
-          <ul className="space-y-1.5">
+          <ul style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             {pdi.objectives.map((obj, i) => (
               <li
                 key={i}
-                className="flex items-start gap-2 text-sm text-surface-700 dark:text-surface-300"
+                className="body"
+                style={{ display: "flex", alignItems: "flex-start", gap: 8 }}
               >
-                <span className="mt-1 w-1.5 h-1.5 rounded-full bg-primary-500 flex-shrink-0" />
+                <span
+                  style={{
+                    marginTop: 7,
+                    width: 6,
+                    height: 6,
+                    borderRadius: "9999px",
+                    background: "var(--blue)",
+                    flexShrink: 0,
+                  }}
+                />
                 {obj}
               </li>
             ))}
           </ul>
         )}
-      </div>
+      </Tile>
 
       {/* Actions */}
-      <div className="bg-white dark:bg-surface-800 rounded-xl border border-surface-200 dark:border-surface-700 p-5 space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="font-semibold text-surface-800 dark:text-surface-100">
-            Actions ({pdi.actions.length})
-          </h2>
+      <Tile style={{ marginBottom: 24 }}>
+        <div
+          className="row between"
+          style={{ alignItems: "center", marginBottom: 16 }}
+        >
+          <h2 className="h2">Actions ({pdi.actions.length})</h2>
           <button
             onClick={() => setShowNewAction((v) => !v)}
-            className="flex items-center gap-1 text-xs text-primary-600 hover:underline dark:text-primary-400"
+            className="btn btn-ghost btn-sm"
           >
             <PlusCircle className="w-3.5 h-3.5" />
             Ajouter une action
@@ -377,14 +397,25 @@ export default function PDIDetailPage() {
 
         {/* New action form */}
         {showNewAction && (
-          <div className="bg-surface-50 dark:bg-surface-900 rounded-lg border border-surface-200 dark:border-surface-700 p-4 space-y-3">
+          <div
+            style={{
+              background: "var(--bg-alt)",
+              border: "1px solid var(--line)",
+              borderRadius: "var(--radius)",
+              padding: 16,
+              marginBottom: 16,
+              display: "flex",
+              flexDirection: "column",
+              gap: 12,
+            }}
+          >
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-surface-600 dark:text-surface-400 mb-1">
-                  Titre *
-                </label>
+              <div className="field">
+                <label htmlFor="pdi-action-title">Titre *</label>
                 <input
-                  className="w-full border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-800 rounded-lg px-3 py-2 text-sm text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  id="pdi-action-title"
+                  className="input"
+                  aria-label="Titre de l'action"
                   value={newAction.title}
                   onChange={(e) =>
                     setNewAction((a) => ({ ...a, title: e.target.value }))
@@ -392,12 +423,12 @@ export default function PDIDetailPage() {
                   placeholder="Titre de l'action"
                 />
               </div>
-              <div>
-                <label className="block text-xs font-medium text-surface-600 dark:text-surface-400 mb-1">
-                  Type
-                </label>
+              <div className="field">
+                <label htmlFor="pdi-action-type">Type</label>
                 <select
-                  className="w-full border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-800 rounded-lg px-3 py-2 text-sm text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  id="pdi-action-type"
+                  className="input"
+                  aria-label="Type d'action"
                   value={newAction.type}
                   onChange={(e) =>
                     setNewAction((a) => ({
@@ -415,25 +446,25 @@ export default function PDIDetailPage() {
                   )}
                 </select>
               </div>
-              <div>
-                <label className="block text-xs font-medium text-surface-600 dark:text-surface-400 mb-1">
-                  Date cible
-                </label>
+              <div className="field">
+                <label htmlFor="pdi-action-date">Date cible</label>
                 <input
+                  id="pdi-action-date"
                   type="date"
-                  className="w-full border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-800 rounded-lg px-3 py-2 text-sm text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="input"
+                  aria-label="Date cible de l'action"
                   value={newAction.targetDate}
                   onChange={(e) =>
                     setNewAction((a) => ({ ...a, targetDate: e.target.value }))
                   }
                 />
               </div>
-              <div>
-                <label className="block text-xs font-medium text-surface-600 dark:text-surface-400 mb-1">
-                  Description
-                </label>
+              <div className="field">
+                <label htmlFor="pdi-action-desc">Description</label>
                 <input
-                  className="w-full border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-800 rounded-lg px-3 py-2 text-sm text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  id="pdi-action-desc"
+                  className="input"
+                  aria-label="Description de l'action"
                   value={newAction.description}
                   onChange={(e) =>
                     setNewAction((a) => ({ ...a, description: e.target.value }))
@@ -442,17 +473,17 @@ export default function PDIDetailPage() {
                 />
               </div>
             </div>
-            <div className="flex justify-end gap-2">
+            <div className="row" style={{ justifyContent: "flex-end", gap: 8 }}>
               <button
                 onClick={() => setShowNewAction(false)}
-                className="px-3 py-1.5 text-xs rounded-lg border border-surface-300 dark:border-surface-600 text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors"
+                className="btn btn-ghost btn-sm"
               >
                 Annuler
               </button>
               <button
                 disabled={addActionMutation.isPending || !newAction.title}
                 onClick={() => addActionMutation.mutate(newAction)}
-                className="px-3 py-1.5 text-xs bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white rounded-lg font-medium transition-colors"
+                className="btn btn-primary btn-sm"
               >
                 {addActionMutation.isPending ? "Ajout…" : "Ajouter"}
               </button>
@@ -462,29 +493,47 @@ export default function PDIDetailPage() {
 
         {/* Action list */}
         {pdi.actions.length === 0 && !showNewAction ? (
-          <p className="text-sm text-surface-400 dark:text-surface-500 italic text-center py-4">
+          <p
+            className="small"
+            style={{ fontStyle: "italic", textAlign: "center", padding: 16 }}
+          >
             Aucune action définie
           </p>
         ) : (
-          <div className="divide-y divide-surface-100 dark:divide-surface-700">
-            {pdi.actions.map((action) => (
-              <div key={action._id} className="py-3 flex items-start gap-3">
-                <ActionStatusIcon status={action.status} />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center flex-wrap gap-2">
-                    <span className="text-sm font-medium text-surface-800 dark:text-surface-200">
+          <div>
+            {pdi.actions.map((action, idx) => (
+              <div
+                key={action._id}
+                className="row"
+                style={{
+                  alignItems: "flex-start",
+                  gap: 12,
+                  padding: "12px 0",
+                  borderTop: idx === 0 ? "none" : "1px solid var(--line)",
+                }}
+              >
+                <span style={{ marginTop: 2 }}>
+                  <ActionStatusIcon status={action.status} />
+                </span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div
+                    className="row wrap"
+                    style={{ alignItems: "center", gap: 8 }}
+                  >
+                    <span className="body" style={{ fontWeight: 600 }}>
                       {action.title}
                     </span>
-                    <span className="text-xs px-1.5 py-0.5 rounded bg-surface-100 dark:bg-surface-700 text-surface-600 dark:text-surface-400">
-                      {ACTION_TYPE_LABELS[action.type]}
-                    </span>
+                    <Badge tone="grey">{ACTION_TYPE_LABELS[action.type]}</Badge>
                   </div>
                   {action.description && (
-                    <p className="text-xs text-surface-500 dark:text-surface-400 mt-0.5">
+                    <p className="small" style={{ marginTop: 2 }}>
                       {action.description}
                     </p>
                   )}
-                  <div className="flex flex-wrap gap-x-3 mt-1 text-xs text-surface-400 dark:text-surface-500">
+                  <div
+                    className="row wrap small"
+                    style={{ gap: 12, marginTop: 4 }}
+                  >
                     <span>{ACTION_STATUS_LABELS[action.status]}</span>
                     {action.targetDate && (
                       <span>
@@ -520,7 +569,8 @@ export default function PDIDetailPage() {
                         })
                       }
                       disabled={updateActionMutation.isPending}
-                      className="text-xs text-primary-600 hover:underline dark:text-primary-400 flex-shrink-0 disabled:opacity-50"
+                      className="btn btn-ghost btn-sm"
+                      style={{ flexShrink: 0 }}
                     >
                       {action.status === "planned"
                         ? "▶ Démarrer"
@@ -531,18 +581,18 @@ export default function PDIDetailPage() {
             ))}
           </div>
         )}
-      </div>
+      </Tile>
 
       {/* Notes */}
       {pdi.notes && (
-        <div className="bg-white dark:bg-surface-800 rounded-xl border border-surface-200 dark:border-surface-700 p-5">
-          <h2 className="font-semibold text-surface-800 dark:text-surface-100 mb-2">
+        <Tile>
+          <h2 className="h2" style={{ marginBottom: 8 }}>
             Notes
           </h2>
-          <p className="text-sm text-surface-600 dark:text-surface-400 whitespace-pre-wrap">
+          <p className="body" style={{ whiteSpace: "pre-wrap" }}>
             {pdi.notes}
           </p>
-        </div>
+        </Tile>
       )}
     </div>
   );

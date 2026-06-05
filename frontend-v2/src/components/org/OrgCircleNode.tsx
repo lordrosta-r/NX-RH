@@ -63,25 +63,31 @@ function OrgCircleNode({ data, selected }: NodeProps<Node<OrgNodeData>>) {
         className="relative flex items-center justify-center"
         style={{ width: size, height: size }}
       >
-        {/* Orange dashed ring for no-manager (admin/hr view) */}
+        {/* Dashed ring for no-manager (admin/hr view) */}
         {hasNoManager && (
           <div
-            className="absolute inset-0 rounded-full border-2 border-dashed border-orange-400"
-            style={{ width: size + 6, height: size + 6, left: -3, top: -3 }}
+            className="absolute inset-0 rounded-full border-2 border-dashed"
+            style={{
+              width: size + 6,
+              height: size + 6,
+              left: -3,
+              top: -3,
+              borderColor: "var(--amber)",
+            }}
           />
         )}
 
         {/* Main circle */}
         <div
-          className="rounded-full flex items-center justify-center font-semibold text-white transition-all duration-200"
+          className="avatar rounded-full flex items-center justify-center font-semibold transition-all duration-200"
           style={{
             width: size,
             height: size,
             backgroundColor: color,
             fontSize,
             boxShadow: selected
-              ? `0 0 0 3px white, 0 0 0 5px ${color}`
-              : "0 1px 4px rgba(0,0,0,0.15)",
+              ? `0 0 0 3px #fff, 0 0 0 5px var(--blue)`
+              : "var(--shadow-sm)",
             transform: showTooltip ? "scale(1.05)" : "scale(1)",
           }}
         >
@@ -91,16 +97,22 @@ function OrgCircleNode({ data, selected }: NodeProps<Node<OrgNodeData>>) {
 
       {/* Name */}
       <span
-        className="mt-1.5 text-xs font-medium text-slate-700 text-center leading-tight"
-        style={{ maxWidth: size + 40 }}
+        className="body mt-1.5 text-center leading-tight"
+        style={{ maxWidth: size + 40, fontSize: 12, color: "var(--ink)" }}
       >
         {truncatedName}
       </span>
 
       {/* Role badge */}
       <span
-        className="mt-0.5 text-[9px] font-medium px-1.5 py-0.5 rounded-full text-white"
-        style={{ backgroundColor: color, opacity: 0.85 }}
+        className="small mt-0.5 px-1.5 py-0.5"
+        style={{
+          fontSize: 9,
+          background: "#fff",
+          border: "1px solid var(--line)",
+          borderRadius: "var(--radius)",
+          color: "var(--ink-3)",
+        }}
       >
         {ROLE_LABELS[role] ?? role}
       </span>

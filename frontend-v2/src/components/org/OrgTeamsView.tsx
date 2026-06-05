@@ -20,46 +20,52 @@ export default function OrgTeamsView({ data, toolbar }: OrgTeamsViewProps) {
             const mgr = team.manager;
             const reports = team.directReports ?? [];
             const subManagers = team.subManagers ?? [];
-            const color = ROLE_COLORS_HEX[mgr.role] ?? "#64748B";
+            const color = ROLE_COLORS_HEX[mgr.role] ?? "var(--ink-3)";
             return (
-              <div
-                key={mgr._id}
-                className="bg-white rounded-xl border border-slate-200 shadow-sm p-4"
-              >
-                <div className="flex items-center gap-3 mb-3 pb-3 border-b border-slate-100">
+              <div key={mgr._id} className="tile" style={{ padding: 16 }}>
+                <div
+                  className="flex items-center gap-3 mb-3 pb-3"
+                  style={{ borderBottom: "1px solid var(--line)" }}
+                >
                   <div
-                    className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-semibold flex-shrink-0"
+                    className="avatar flex-shrink-0"
                     style={{ backgroundColor: color }}
                   >
                     {initials(mgr.firstName, mgr.lastName)}
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-slate-900 truncate">
+                    <p className="h3 truncate" style={{ fontSize: 15 }}>
                       {mgr.firstName} {mgr.lastName}
                     </p>
-                    <p className="text-xs text-slate-500 truncate">
+                    <p className="small truncate">
                       {mgr.department ?? mgr.role}
                     </p>
                   </div>
                 </div>
                 <div className="space-y-1.5">
                   {reports.length === 0 ? (
-                    <p className="text-xs text-slate-500 italic">
+                    <p className="small" style={{ fontStyle: "italic" }}>
                       Aucun collaborateur direct
                     </p>
                   ) : (
                     reports.map((r) => (
                       <div key={r._id} className="flex items-center gap-2">
                         <div
-                          className="w-6 h-6 rounded-full flex items-center justify-center text-white text-[10px] font-semibold flex-shrink-0"
+                          className="avatar flex-shrink-0"
                           style={{
+                            width: 24,
+                            height: 24,
+                            fontSize: 10,
                             backgroundColor:
-                              ROLE_COLORS_HEX[r.role] ?? "#64748B",
+                              ROLE_COLORS_HEX[r.role] ?? "var(--ink-3)",
                           }}
                         >
                           {initials(r.firstName, r.lastName)}
                         </div>
-                        <span className="text-xs text-slate-700 truncate">
+                        <span
+                          className="small truncate"
+                          style={{ color: "var(--ink-2)" }}
+                        >
                           {r.firstName} {r.lastName}
                         </span>
                       </div>
@@ -67,26 +73,38 @@ export default function OrgTeamsView({ data, toolbar }: OrgTeamsViewProps) {
                   )}
                 </div>
                 {subManagers.length > 0 && (
-                  <div className="mt-3 pt-3 border-t border-slate-100">
-                    <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400 mb-1.5">
+                  <div
+                    className="mt-3 pt-3"
+                    style={{ borderTop: "1px solid var(--line)" }}
+                  >
+                    <p className="eyebrow mb-1.5" style={{ fontSize: 10 }}>
                       Managers rattachés
                     </p>
                     <div className="space-y-1.5">
                       {subManagers.map((sm) => (
                         <div key={sm._id} className="flex items-center gap-2">
                           <div
-                            className="w-6 h-6 rounded-full flex items-center justify-center text-white text-[10px] font-semibold flex-shrink-0"
+                            className="avatar flex-shrink-0"
                             style={{
+                              width: 24,
+                              height: 24,
+                              fontSize: 10,
                               backgroundColor:
-                                ROLE_COLORS_HEX[sm.role] ?? "#64748B",
+                                ROLE_COLORS_HEX[sm.role] ?? "var(--ink-3)",
                             }}
                           >
                             {initials(sm.firstName, sm.lastName)}
                           </div>
-                          <span className="text-xs text-slate-700 truncate">
+                          <span
+                            className="small truncate"
+                            style={{ color: "var(--ink-2)" }}
+                          >
                             {sm.firstName} {sm.lastName}
                           </span>
-                          <span className="ml-auto text-[10px] text-slate-400">
+                          <span
+                            className="badge grey ml-auto"
+                            style={{ fontSize: 10 }}
+                          >
                             {sm.department ?? "—"}
                           </span>
                         </div>
@@ -94,7 +112,7 @@ export default function OrgTeamsView({ data, toolbar }: OrgTeamsViewProps) {
                     </div>
                   </div>
                 )}
-                <p className="text-[10px] text-slate-500 mt-2">
+                <p className="small mt-2" style={{ fontSize: 10 }}>
                   {reports.length} membre{reports.length !== 1 ? "s" : ""}
                   {subManagers.length > 0
                     ? ` · ${subManagers.length} manager${subManagers.length !== 1 ? "s" : ""}`

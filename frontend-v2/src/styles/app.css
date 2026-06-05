@@ -293,6 +293,9 @@
   align-items: center;
   justify-content: space-between;
   gap: 20px;
+  /* Pleine largeur : logo proche du bord gauche (proche, pas collé). */
+  max-width: none;
+  padding: 0 24px;
 }
 .nx-app .nx-logo-wrap img {
   height: 36px;

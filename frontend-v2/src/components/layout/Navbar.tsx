@@ -18,6 +18,7 @@ import { NotificationBell } from "../NotificationBell";
 import {
   getPerspectiveNav,
   workPerspectiveLabel,
+  isNavGroup,
   type MoreItem,
 } from "./navConfig";
 import clsx from "clsx";
@@ -56,15 +57,16 @@ export default function Navbar({
   const navigate = useNavigate();
 
   const [avatarOpen, setAvatarOpen] = useState(false);
-  const [moreOpen, setMoreOpen] = useState(false);
+  // Un seul dropdown de sous-nav ouvert à la fois : sa clé (label) ou "__more__".
+  const [openMenu, setOpenMenu] = useState<string | null>(null);
 
   const avatarRef = useOutsideClose(() => setAvatarOpen(false));
-  const moreRef = useOutsideClose(() => setMoreOpen(false));
+  const subnavRef = useOutsideClose(() => setOpenMenu(null));
 
   useEffect(() => {
     function onEsc(e: KeyboardEvent) {
       if (e.key === "Escape") {
-        setMoreOpen(false);
+        setOpenMenu(null);
         setAvatarOpen(false);
       }
     }
@@ -237,32 +239,80 @@ export default function Navbar({
           </div>
         </div>
 
-        {/* Rangée 2 : sous-nav contextuelle + « Plus » */}
+        {/* Rangée 2 : sous-nav contextuelle (liens + dropdowns) + « Plus » */}
         <nav className="subnav" aria-label="Navigation secondaire">
-          <div className="inner">
-            {primary.map((l) => (
-              <NavLink
-                key={l.href + l.label}
-                to={l.href}
-                end={l.end}
-                className={subLinkClass}
-              >
-                {l.label}
-              </NavLink>
-            ))}
+          <div className="inner" ref={subnavRef}>
+            {primary.map((item) =>
+              isNavGroup(item) ? (
+                <div key={item.label} style={{ position: "relative" }}>
+                  <button
+                    className="subnav-link"
+                    onClick={() =>
+                      setOpenMenu((o) => (o === item.label ? null : item.label))
+                    }
+                    aria-expanded={openMenu === item.label}
+                    aria-haspopup="menu"
+                  >
+                    {item.label}
+                    <ChevronDown
+                      className={clsx(
+                        "w-3.5 h-3.5 transition-transform",
+                        openMenu === item.label && "rotate-180",
+                      )}
+                      style={{
+                        display: "inline",
+                        verticalAlign: "middle",
+                        marginLeft: 4,
+                      }}
+                    />
+                  </button>
+                  {openMenu === item.label && (
+                    <div
+                      className="menu-pop"
+                      style={{ left: 0, width: 240 }}
+                      role="menu"
+                    >
+                      {item.children.map((c) => (
+                        <NavLink
+                          key={c.href + c.label}
+                          to={c.href}
+                          end={c.end}
+                          role="menuitem"
+                          className="menu-item"
+                          onClick={() => setOpenMenu(null)}
+                        >
+                          {c.label}
+                        </NavLink>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <NavLink
+                  key={item.href + item.label}
+                  to={item.href}
+                  end={item.end}
+                  className={subLinkClass}
+                >
+                  {item.label}
+                </NavLink>
+              ),
+            )}
             {groupedMore.length > 0 && (
-              <div ref={moreRef} style={{ position: "relative" }}>
+              <div style={{ position: "relative" }}>
                 <button
                   className="subnav-link"
-                  onClick={() => setMoreOpen((v) => !v)}
-                  aria-expanded={moreOpen}
+                  onClick={() =>
+                    setOpenMenu((o) => (o === "__more__" ? null : "__more__"))
+                  }
+                  aria-expanded={openMenu === "__more__"}
                   aria-haspopup="menu"
                 >
                   {t("nav.more")}
                   <ChevronDown
                     className={clsx(
                       "w-3.5 h-3.5 transition-transform",
-                      moreOpen && "rotate-180",
+                      openMenu === "__more__" && "rotate-180",
                     )}
                     style={{
                       display: "inline",
@@ -271,7 +321,7 @@ export default function Navbar({
                     }}
                   />
                 </button>
-                {moreOpen && (
+                {openMenu === "__more__" && (
                   <div
                     className="menu-pop"
                     style={{ left: 0, width: 240 }}
@@ -286,7 +336,7 @@ export default function Navbar({
                             to={it.href}
                             role="menuitem"
                             className="menu-item"
-                            onClick={() => setMoreOpen(false)}
+                            onClick={() => setOpenMenu(null)}
                           >
                             {it.label}
                           </NavLink>

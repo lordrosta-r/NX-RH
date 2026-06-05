@@ -1,9 +1,5 @@
 import { Link } from "react-router-dom";
 import {
-  Users,
-  BarChart2,
-  ClipboardList,
-  LogOut,
   AlertCircle,
   Inbox,
   UserX,
@@ -21,6 +17,14 @@ import { useDashboardAdmin } from "../hooks/useDashboard";
 import { useSetupChecklist } from "../hooks/useSetupChecklist";
 import { adminApi } from "../api/admin";
 import type { Campaign } from "../types";
+import {
+  PageHead,
+  Tile,
+  StatTile,
+  Badge,
+  Callout,
+  Bar,
+} from "../components/shell";
 
 // ─── Widget de complétude de la configuration (onboarding admin) ───────────────
 
@@ -32,90 +36,74 @@ function SetupCompletenessCard() {
   const nextSteps = steps.filter((s) => !s.done).slice(0, 3);
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-primary-100 p-6 mb-6">
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <Rocket className="w-5 h-5 text-primary-500" />
-          <h2 className="text-lg font-semibold text-slate-900">
-            Configuration de l&apos;application
-          </h2>
+    <Tile className="mb-6">
+      <div className="row between" style={{ marginBottom: 12 }}>
+        <div className="row" style={{ gap: 10 }}>
+          <Rocket
+            className="ico"
+            style={{ width: 20, height: 20, color: "var(--blue)" }}
+          />
+          <h2 className="h2">Configuration de l&apos;application</h2>
         </div>
-        <Link
-          to="/admin/setup"
-          className="text-sm text-primary-600 hover:underline"
-        >
+        <Link to="/admin/setup" className="link small">
           Tout voir →
         </Link>
       </div>
-      <div className="flex items-center gap-3 mb-2">
-        <span className="text-2xl font-bold text-slate-900">{percent}%</span>
-        <span className="text-sm text-slate-500">
+      <div className="row" style={{ gap: 12, marginBottom: 10 }}>
+        <span style={{ fontSize: 28, fontWeight: 800, color: "var(--ink)" }}>
+          {percent}%
+        </span>
+        <span className="small">
           {completed}/{total} étapes complètes
         </span>
       </div>
-      <div className="w-full bg-slate-100 rounded-full h-2 mb-4">
-        <div
-          className="bg-primary-500 h-2 rounded-full transition-all"
-          style={{ width: `${percent}%` }}
-        />
+      <div style={{ marginBottom: 16 }}>
+        <Bar pct={percent} />
       </div>
-      <ul className="space-y-2">
+      <ul
+        className="section-gap"
+        style={{ listStyle: "none", margin: 0, padding: 0, gap: 10 }}
+      >
         {nextSteps.map((step) => (
           <li key={step.id}>
             <Link
               to={step.actionHref}
-              className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100 hover:bg-slate-100 transition-colors group"
+              className="row between"
+              style={{
+                gap: 12,
+                padding: "12px 14px",
+                border: "1px solid var(--line)",
+                borderRadius: "var(--radius)",
+                color: "inherit",
+              }}
             >
-              <span className="flex items-center gap-2 text-sm font-medium text-slate-800">
-                <Circle className="w-4 h-4 text-slate-300" />
+              <span
+                className="row"
+                style={{
+                  gap: 10,
+                  fontSize: 14,
+                  fontWeight: 600,
+                  color: "var(--ink-2)",
+                }}
+              >
+                <Circle
+                  className="ico"
+                  style={{ width: 16, height: 16, color: "var(--line-strong)" }}
+                />
                 {step.title}
               </span>
-              <span className="text-xs text-primary-600 group-hover:underline">
+              <span className="link small" style={{ flex: "none" }}>
                 {step.actionLabel}
               </span>
             </Link>
           </li>
         ))}
       </ul>
-    </div>
+    </Tile>
   );
 }
 
-// ─── KPI Card ────────────────────────────────────────────────────────────────
-
-function KpiCard({
-  label,
-  value,
-  icon: Icon,
-  colorClass,
-  isLoading,
-}: {
-  label: string;
-  value: number | string;
-  icon: React.ComponentType<{ className?: string }>;
-  colorClass: string;
-  isLoading?: boolean;
-}) {
-  return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
-      <div className="flex items-center justify-between mb-4">
-        <span className="text-sm font-medium text-slate-500">{label}</span>
-        <div
-          className={`w-10 h-10 rounded-lg flex items-center justify-center ${colorClass}`}
-        >
-          <Icon className="w-5 h-5" />
-        </div>
-      </div>
-      {isLoading ? (
-        <div className="h-8 bg-slate-200 rounded animate-pulse w-16" />
-      ) : (
-        <p className="text-3xl font-bold text-slate-900">{value ?? "—"}</p>
-      )}
-    </div>
-  );
-}
-
-// ─── StatusBadge inline ───────────────────────────────────────────────────────
+// ─── StatusBadge campagne ──────────────────────────────────────────────────────
 
 const statusLabels: Record<string, string> = {
   draft: "Brouillon",
@@ -124,27 +112,25 @@ const statusLabels: Record<string, string> = {
   archived: "Archivée",
 };
 
-const statusColors: Record<string, string> = {
-  draft: "bg-slate-100 text-slate-600",
-  active: "bg-success-50 text-success-600",
-  closed: "bg-slate-100 text-slate-500",
-  archived: "bg-slate-100 text-slate-500",
+type Tone = "blue" | "green" | "amber" | "red" | "grey";
+const statusTone: Record<string, Tone> = {
+  draft: "grey",
+  active: "green",
+  closed: "grey",
+  archived: "grey",
 };
 
 function StatusBadge({ status }: { status: string }) {
-  const color = statusColors[status] ?? "bg-slate-100 text-slate-600";
   return (
-    <span
-      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${color}`}
-    >
+    <Badge tone={statusTone[status] ?? "grey"}>
       {statusLabels[status] ?? status}
-    </span>
+    </Badge>
   );
 }
 
-// ─── Campaign columns ─────────────────────────────────────────────────────────
+// ─── Liste des campagnes ───────────────────────────────────────────────────────
 
-function CampaignTable({
+function CampaignList({
   campaigns,
   isLoading,
 }: {
@@ -153,9 +139,9 @@ function CampaignTable({
 }) {
   if (isLoading) {
     return (
-      <div className="space-y-3">
+      <div className="section-gap" style={{ gap: 12 }}>
         {[...Array(3)].map((_, i) => (
-          <div key={i} className="h-10 bg-slate-200 rounded animate-pulse" />
+          <div key={i} className="h-12 bg-slate-100 rounded-lg animate-pulse" />
         ))}
       </div>
     );
@@ -163,53 +149,36 @@ function CampaignTable({
 
   if (campaigns.length === 0) {
     return (
-      <p className="text-sm text-slate-600 text-center py-8">
+      <p className="small text-center" style={{ padding: "24px 0" }}>
         Aucune campagne active
       </p>
     );
   }
 
   return (
-    <table className="w-full text-sm">
-      <thead>
-        <tr className="border-b border-slate-100">
-          <th className="text-left text-xs font-medium text-slate-500 pb-3">
-            Campagne
-          </th>
-          <th className="text-left text-xs font-medium text-slate-500 pb-3">
-            Statut
-          </th>
-          <th className="text-left text-xs font-medium text-slate-500 pb-3">
-            Progression
-          </th>
-        </tr>
-      </thead>
-      <tbody className="divide-y divide-slate-50">
-        {campaigns.map((row) => (
-          <tr key={row.id} className="hover:bg-slate-50 transition-colors">
-            <td className="py-3 pr-4">
-              <Link
-                to={`/campaigns/${row.id}`}
-                className="text-primary-600 hover:underline font-medium"
-              >
-                {row.name}
-              </Link>
-            </td>
-            <td className="py-3 pr-4">
-              <StatusBadge status={row.status} />
-            </td>
-            <td className="py-3">
-              <div className="w-full bg-slate-100 rounded-full h-2">
-                <div
-                  className="bg-primary-500 h-2 rounded-full"
-                  style={{ width: "0%" }}
-                />
-              </div>
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+    <div className="section-gap" style={{ gap: 12 }}>
+      {campaigns.map((row) => (
+        <div
+          key={row.id}
+          className="row between wrap"
+          style={{
+            gap: 12,
+            padding: "14px 16px",
+            border: "1px solid var(--line)",
+            borderRadius: "var(--radius)",
+          }}
+        >
+          <Link
+            to={`/campaigns/${row.id}`}
+            className="link"
+            style={{ fontSize: 15, fontWeight: 700, flex: 1, minWidth: 0 }}
+          >
+            {row.name}
+          </Link>
+          <StatusBadge status={row.status} />
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -233,20 +202,19 @@ export default function DashboardAdminPage() {
 
   if (isLoading) {
     return (
-      <div>
+      <div className="nx-app">
         <div className="h-8 w-64 bg-slate-200 rounded animate-pulse mb-8" />
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           {[...Array(4)].map((_, i) => (
             <div
               key={i}
-              className="h-32 bg-slate-200 rounded-xl animate-pulse"
+              className="h-28 bg-slate-200 rounded-xl animate-pulse"
             />
           ))}
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <div className="lg:col-span-8 h-64 bg-slate-200 rounded-xl animate-pulse" />
           <div className="lg:col-span-4 h-64 bg-slate-200 rounded-xl animate-pulse" />
-          <div className="lg:col-span-12 h-40 bg-slate-200 rounded-xl animate-pulse" />
         </div>
       </div>
     );
@@ -259,16 +227,19 @@ export default function DashboardAdminPage() {
       users.refetch();
     };
     return (
-      <div className="border-l-4 border-error-500 bg-error-50 p-4 rounded-lg">
-        <p className="text-sm text-error-700">
-          Impossible de charger les données du tableau de bord.
-        </p>
-        <button
-          onClick={refetch}
-          className="mt-2 text-sm text-error-600 underline"
-        >
-          Réessayer
-        </button>
+      <div className="nx-app">
+        <Callout tone="red">
+          <p className="body" style={{ color: "var(--ink)" }}>
+            Impossible de charger les données du tableau de bord.
+          </p>
+          <button
+            onClick={refetch}
+            className="link small"
+            style={{ marginTop: 8 }}
+          >
+            Réessayer
+          </button>
+        </Callout>
       </div>
     );
   }
@@ -279,215 +250,302 @@ export default function DashboardAdminPage() {
   const campaignList = campaigns.data?.data?.data ?? [];
 
   return (
-    <div className="bg-slate-50 min-h-full">
+    <div className="nx-app">
+      <PageHead
+        eyebrow="Administration"
+        title={`Tableau de bord — Bonjour, ${user?.firstName ?? "…"}`}
+        desc="État de la plateforme et activité système."
+        actions={
+          <button disabled className="btn btn-ghost">
+            Exporter PDF
+          </button>
+        }
+      />
+
       {/* Complétude de la configuration (masqué une fois 100%) */}
       <SetupCompletenessCard />
 
       {/* Actions requises */}
-      <div className="bg-white rounded-xl shadow-sm border border-orange-100 p-6 mb-6">
-        <div className="flex items-center gap-2 mb-4">
-          <AlertCircle className="w-5 h-5 text-orange-500" />
-          <h2 className="text-lg font-semibold text-slate-900">
-            Actions requises
-          </h2>
+      <Tile className="mb-6">
+        <div className="row" style={{ gap: 10, marginBottom: 16 }}>
+          <AlertCircle
+            className="ico"
+            style={{ width: 20, height: 20, color: "var(--amber)" }}
+          />
+          <h2 className="h2">Actions requises</h2>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Link
             to="/hr/flags?status=pending"
-            className="flex items-center justify-between p-4 bg-orange-50 rounded-xl border border-orange-100 hover:bg-orange-100 transition-colors group"
+            className="row between"
+            style={{
+              gap: 12,
+              padding: "14px 16px",
+              border: "1px solid var(--amber)",
+              borderRadius: "var(--radius)",
+              background: "var(--amber-soft)",
+              color: "inherit",
+            }}
           >
-            <div className="flex items-center gap-3">
-              <Inbox className="w-5 h-5 text-orange-500" />
-              <span className="text-sm font-medium text-slate-800">
+            <span className="row" style={{ gap: 12 }}>
+              <Inbox
+                className="ico"
+                style={{ width: 18, height: 18, color: "var(--amber)" }}
+              />
+              <span
+                style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)" }}
+              >
                 Demandes RH en attente
               </span>
-            </div>
+            </span>
             {pendingFlagsCount != null && pendingFlagsCount > 0 && (
-              <span className="inline-flex items-center justify-center min-w-[1.5rem] h-6 px-2 bg-orange-500 text-white text-xs font-bold rounded-full">
+              <span
+                style={{
+                  minWidth: 24,
+                  height: 24,
+                  padding: "0 7px",
+                  borderRadius: 999,
+                  background: "var(--amber)",
+                  color: "#fff",
+                  fontSize: 12,
+                  fontWeight: 800,
+                  display: "grid",
+                  placeItems: "center",
+                  flex: "none",
+                }}
+              >
                 {pendingFlagsCount}
               </span>
             )}
           </Link>
           <Link
             to="/users"
-            className="flex items-center gap-3 p-4 bg-slate-50 rounded-xl border border-slate-100 hover:bg-slate-100 transition-colors"
+            className="row"
+            style={{
+              gap: 12,
+              padding: "14px 16px",
+              border: "1px solid var(--line)",
+              borderRadius: "var(--radius)",
+              background: "var(--bg-alt)",
+              color: "inherit",
+            }}
           >
-            <UserX className="w-5 h-5 text-slate-500" />
-            <span className="text-sm font-medium text-slate-800">
+            <UserX
+              className="ico"
+              style={{ width: 18, height: 18, color: "var(--ink-3)" }}
+            />
+            <span
+              style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)" }}
+            >
               Utilisateurs sans manager
             </span>
           </Link>
           <Link
             to="/campaigns?status=active"
-            className="flex items-center gap-3 p-4 bg-blue-50 rounded-xl border border-blue-100 hover:bg-blue-100 transition-colors"
+            className="row"
+            style={{
+              gap: 12,
+              padding: "14px 16px",
+              border: "1px solid var(--blue-soft-2)",
+              borderRadius: "var(--radius)",
+              background: "var(--blue-soft)",
+              color: "inherit",
+            }}
           >
-            <PlayCircle className="w-5 h-5 text-blue-500" />
-            <span className="text-sm font-medium text-slate-800">
+            <PlayCircle
+              className="ico"
+              style={{ width: 18, height: 18, color: "var(--blue)" }}
+            />
+            <span
+              style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)" }}
+            >
               Campagnes actives
             </span>
           </Link>
         </div>
-      </div>
+      </Tile>
 
       {/* Raccourcis */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6 mb-6">
-        <h2 className="text-lg font-semibold text-slate-900 mb-4">
+      <Tile className="mb-6">
+        <h2 className="h2" style={{ marginBottom: 16 }}>
           Raccourcis
         </h2>
-        <div className="flex flex-wrap gap-3">
-          <Link
-            to="/campaigns/new"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-primary-500 text-white text-sm font-medium rounded-lg hover:bg-primary-600 transition-colors"
-          >
-            <PlusCircle className="w-4 h-4" />
+        <div className="row wrap" style={{ gap: 12 }}>
+          <Link to="/campaigns/new" className="btn btn-primary">
+            <PlusCircle className="ico" style={{ width: 18, height: 18 }} />{" "}
             Nouvelle campagne
           </Link>
-          <Link
-            to="/users/new"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-colors"
-          >
-            <UserPlus className="w-4 h-4" />
+          <Link to="/users/new" className="btn btn-ghost">
+            <UserPlus className="ico" style={{ width: 18, height: 18 }} />{" "}
             Ajouter un utilisateur
           </Link>
-          <Link
-            to="/admin/users/import"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-colors"
-          >
-            <Upload className="w-4 h-4" />
+          <Link to="/admin/users/import" className="btn btn-ghost">
+            <Upload className="ico" style={{ width: 18, height: 18 }} />{" "}
             Importer CSV
           </Link>
-          <Link
-            to="/admin/settings"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-colors"
-          >
-            <SlidersHorizontal className="w-4 h-4" />
+          <Link to="/admin/settings" className="btn btn-ghost">
+            <SlidersHorizontal
+              className="ico"
+              style={{ width: 18, height: 18 }}
+            />{" "}
             Paramètres RH
           </Link>
         </div>
-      </div>
+      </Tile>
 
-      {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-        <h1 className="text-xl sm:text-2xl font-bold text-slate-900">
-          Tableau de bord · Bonjour, {user?.firstName ?? "..."}
-        </h1>
-        <button
-          disabled
-          className="inline-flex items-center px-4 py-2 rounded-lg border border-slate-200 bg-white text-sm font-medium text-slate-400 cursor-not-allowed"
-        >
-          Exporter PDF
-        </button>
-      </div>
-
-      {/* KPI Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-6">
-        <KpiCard
-          label="Utilisateurs actifs"
+      {/* KPI */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <StatTile
           value={totalUsers}
-          icon={Users}
-          colorClass="bg-primary-50 text-primary-500"
+          label="Utilisateurs actifs"
+          tone="var(--blue)"
         />
-        <KpiCard
-          label="Campagnes actives"
+        <StatTile
           value={totalCampaigns}
-          icon={BarChart2}
-          colorClass="bg-success-50 text-success-500"
+          label="Campagnes actives"
+          tone="var(--green)"
         />
-        <KpiCard
-          label="Évaluations non finalisées"
+        <StatTile
           value={totalEvals}
-          icon={ClipboardList}
-          colorClass="bg-warning-50 text-warning-500"
+          label="Évaluations non finalisées"
+          tone="var(--amber)"
         />
-        <KpiCard
-          label="Offboardings en attente"
-          value={0}
-          icon={LogOut}
-          colorClass="bg-error-50 text-error-500"
-        />
+        <StatTile value={0} label="Offboardings en attente" tone="var(--red)" />
       </div>
 
-      {/* Middle row */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
-        {/* Campagnes actives */}
-        <div className="lg:col-span-8 bg-white rounded-xl shadow-sm border border-slate-100 p-6">
-          <h2 className="text-lg font-semibold text-slate-900 mb-4">
-            Campagnes actives
-          </h2>
-          <div className="overflow-x-auto">
-            <CampaignTable
+      {/* Campagnes + actions urgentes */}
+      <div className="grid grid-cols-12 gap-6 mb-6">
+        <div className="col-span-12 lg:col-span-8">
+          <Tile style={{ height: "100%" }}>
+            <div className="row between" style={{ marginBottom: 16 }}>
+              <h2 className="h2">Campagnes actives</h2>
+              <Link to="/campaigns" className="link small">
+                Voir toutes →
+              </Link>
+            </div>
+            <CampaignList
               campaigns={campaignList}
               isLoading={campaigns.isLoading}
             />
-          </div>
+          </Tile>
         </div>
 
-        {/* Actions urgentes */}
-        <div className="lg:col-span-4 bg-white rounded-xl shadow-sm border border-slate-100 p-6">
-          <h2 className="text-lg font-semibold text-slate-900 mb-4">
-            Actions urgentes
-          </h2>
-          <div className="space-y-3">
-            <div className="flex items-start gap-3 p-3 bg-error-50 rounded-lg border border-error-100">
-              <AlertCircle className="w-4 h-4 text-error-500 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-sm font-medium text-error-700">
-                  Évaluations expirées
-                </p>
-                <p className="text-xs text-error-600 mt-0.5">
-                  <Link to="/evaluations" className="underline">
-                    Voir les évaluations →
-                  </Link>
-                </p>
-              </div>
+        <div className="col-span-12 lg:col-span-4">
+          <Tile style={{ height: "100%" }}>
+            <h2 className="h2" style={{ marginBottom: 16 }}>
+              Actions urgentes
+            </h2>
+            <div className="section-gap" style={{ gap: 12 }}>
+              <Callout tone="red">
+                <div
+                  className="row"
+                  style={{ gap: 12, alignItems: "flex-start" }}
+                >
+                  <AlertCircle
+                    className="ico"
+                    style={{
+                      width: 18,
+                      height: 18,
+                      color: "var(--red)",
+                      flex: "none",
+                      marginTop: 2,
+                    }}
+                  />
+                  <div>
+                    <p
+                      style={{
+                        fontSize: 14,
+                        fontWeight: 700,
+                        color: "var(--ink)",
+                      }}
+                    >
+                      Évaluations expirées
+                    </p>
+                    <Link to="/evaluations" className="link small">
+                      Voir les évaluations →
+                    </Link>
+                  </div>
+                </div>
+              </Callout>
+              <Callout tone="amber">
+                <div
+                  className="row"
+                  style={{ gap: 12, alignItems: "flex-start" }}
+                >
+                  <AlertCircle
+                    className="ico"
+                    style={{
+                      width: 18,
+                      height: 18,
+                      color: "var(--amber)",
+                      flex: "none",
+                      marginTop: 2,
+                    }}
+                  />
+                  <div>
+                    <p
+                      style={{
+                        fontSize: 14,
+                        fontWeight: 700,
+                        color: "var(--ink)",
+                      }}
+                    >
+                      Évaluations à signer côté RH
+                    </p>
+                    <Link to="/hr/flags" className="link small">
+                      Voir les alertes RH →
+                    </Link>
+                  </div>
+                </div>
+              </Callout>
+              <Callout tone="red">
+                <div
+                  className="row"
+                  style={{ gap: 12, alignItems: "flex-start" }}
+                >
+                  <AlertCircle
+                    className="ico"
+                    style={{
+                      width: 18,
+                      height: 18,
+                      color: "var(--red)",
+                      flex: "none",
+                      marginTop: 2,
+                    }}
+                  />
+                  <div>
+                    <p
+                      style={{
+                        fontSize: 14,
+                        fontWeight: 700,
+                        color: "var(--ink)",
+                      }}
+                    >
+                      Offboardings non complétés &gt; 30 j
+                    </p>
+                    <Link to="/offboarding" className="link small">
+                      Voir les offboardings →
+                    </Link>
+                  </div>
+                </div>
+              </Callout>
             </div>
-            <div className="flex items-start gap-3 p-3 bg-warning-50 rounded-lg border border-warning-100">
-              <AlertCircle className="w-4 h-4 text-warning-500 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-sm font-medium text-warning-700">
-                  Évaluations à signer côté RH
-                </p>
-                <p className="text-xs text-warning-600 mt-0.5">
-                  <Link to="/hr/flags" className="underline">
-                    Voir les alertes RH →
-                  </Link>
-                </p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3 p-3 bg-error-50 rounded-lg border border-error-100">
-              <AlertCircle className="w-4 h-4 text-error-500 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-sm font-medium text-error-700">
-                  Offboardings non complétés &gt; 30 j
-                </p>
-                <p className="text-xs text-error-600 mt-0.5">
-                  <Link to="/offboarding" className="underline">
-                    Voir les offboardings →
-                  </Link>
-                </p>
-              </div>
-            </div>
-          </div>
+          </Tile>
         </div>
       </div>
 
       {/* Activité récente */}
-      <div className="col-span-12 bg-white rounded-xl shadow-sm border border-slate-100 p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-slate-900">
-            Activité récente
-          </h2>
-          <Link
-            to="/admin/audit"
-            className="text-sm text-primary-600 hover:underline"
-          >
+      <Tile>
+        <div className="row between" style={{ marginBottom: 16 }}>
+          <h2 className="h2">Activité récente</h2>
+          <Link to="/admin/audit" className="link small">
             Voir le journal complet →
           </Link>
         </div>
-        <p className="text-sm text-slate-600 text-center py-8">
-          Journal d'audit disponible en S11
+        <p className="small text-center" style={{ padding: "24px 0" }}>
+          Journal d&apos;audit disponible en S11
         </p>
-      </div>
+      </Tile>
     </div>
   );
 }

@@ -9,6 +9,9 @@ import type {
   PaginatedResponse,
 } from "../types";
 import { queryKeys } from "../lib/queryKeys";
+import { PageHead, Tile, Badge } from "../components/shell";
+
+type Tone = "blue" | "green" | "amber" | "red" | "grey";
 
 const TYPE_LABELS: Record<HrFlagType, string> = {
   mobility_request: "Mobilité",
@@ -17,12 +20,12 @@ const TYPE_LABELS: Record<HrFlagType, string> = {
   training_request: "Formation",
   other: "Autre",
 };
-const TYPE_COLORS: Record<HrFlagType, string> = {
-  mobility_request: "bg-blue-100 text-blue-700",
-  salary_raise_request: "bg-green-100 text-green-700",
-  promotion_request: "bg-purple-100 text-purple-700",
-  training_request: "bg-amber-100 text-amber-700",
-  other: "bg-slate-100 text-slate-700",
+const TYPE_TONES: Record<HrFlagType, Tone> = {
+  mobility_request: "blue",
+  salary_raise_request: "green",
+  promotion_request: "blue",
+  training_request: "amber",
+  other: "grey",
 };
 const STATUS_LABELS: Record<HrFlagStatus, string> = {
   pending: "En attente",
@@ -30,22 +33,30 @@ const STATUS_LABELS: Record<HrFlagStatus, string> = {
   treated: "Traité",
   rejected: "Rejeté",
 };
-const STATUS_COLORS: Record<HrFlagStatus, string> = {
-  pending: "bg-amber-100 text-amber-700",
-  in_progress: "bg-blue-100 text-blue-700",
-  treated: "bg-green-100 text-green-700",
-  rejected: "bg-red-100 text-red-700",
+const STATUS_TONES: Record<HrFlagStatus, Tone> = {
+  pending: "amber",
+  in_progress: "blue",
+  treated: "green",
+  rejected: "red",
 };
+
+const COLS = "1.6fr 1.2fr 1fr 1.2fr 48px";
 
 function SkeletonRow() {
   return (
-    <tr>
+    <div className="tbl-row" style={{ gridTemplateColumns: COLS }}>
       {Array.from({ length: 5 }).map((_, i) => (
-        <td key={i} className="px-4 py-3">
-          <div className="h-4 bg-slate-200 rounded animate-pulse" />
-        </td>
+        <div key={i}>
+          <div
+            style={{
+              height: 16,
+              background: "var(--bg-alt)",
+              borderRadius: "var(--radius)",
+            }}
+          />
+        </div>
       ))}
-    </tr>
+    </div>
   );
 }
 
@@ -84,14 +95,19 @@ export default function HrFlagsPage() {
     },
   });
 
+  const flags = data?.data ?? [];
+  const isEmpty = !isLoading && flags.length === 0;
+
   return (
-    <div>
-      <h1 className="text-3xl font-bold text-slate-900 mb-6">Demandes RH</h1>
+    <div className="nx-app">
+      <PageHead title="Demandes RH" />
 
       {/* Filtres */}
-      <div className="bg-white rounded-2xl shadow p-4 mb-6 flex flex-wrap gap-3">
+      <Tile className="row wrap" style={{ gap: 12, marginBottom: 20 }}>
         <select
-          className="px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
+          className="input"
+          aria-label="Filtrer par statut"
+          style={{ maxWidth: 220 }}
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
         >
@@ -103,7 +119,9 @@ export default function HrFlagsPage() {
           ))}
         </select>
         <select
-          className="px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
+          className="input"
+          aria-label="Filtrer par type"
+          style={{ maxWidth: 220 }}
           value={typeFilter}
           onChange={(e) => setTypeFilter(e.target.value)}
         >
@@ -114,197 +132,193 @@ export default function HrFlagsPage() {
             </option>
           ))}
         </select>
-      </div>
+      </Tile>
 
-      <div className="bg-white rounded-2xl shadow overflow-hidden">
-        <div className="overflow-x-auto hidden sm:block">
-          <table className="w-full text-sm">
-            <thead className="bg-slate-50 border-b border-slate-100">
-              <tr>
-                {["Collaborateur", "Type", "Date", "Statut", "Actions"].map(
-                  (h) => (
-                    <th
-                      key={h}
-                      className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider"
-                    >
-                      {h}
-                    </th>
-                  ),
-                )}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {isLoading ? (
-                Array.from({ length: 8 }).map((_, i) => <SkeletonRow key={i} />)
-              ) : !data?.data?.length ? (
-                <tr>
-                  <td colSpan={5} className="px-4 py-20 text-center">
-                    <Inbox size={40} className="mx-auto mb-2 text-slate-200" />
-                    <p className="text-slate-600">Aucun signal RH</p>
-                  </td>
-                </tr>
-              ) : (
-                data.data.map((flag) => (
-                  <tr key={flag.id} className="hover:bg-slate-50 transition">
-                    <td className="px-4 py-3 font-medium text-slate-800">
-                      {flag.userName ?? flag.userId}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${TYPE_COLORS[flag.type]}`}
-                      >
-                        {TYPE_LABELS[flag.type]}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-slate-500 text-xs whitespace-nowrap">
-                      {new Date(flag.createdAt).toLocaleDateString("fr-FR")}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[flag.status]}`}
-                      >
-                        {STATUS_LABELS[flag.status]}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <button
-                        onClick={() => {
-                          setSelectedFlag(flag);
-                          setNote(flag.note ?? "");
-                          setNewStatus(flag.status);
-                        }}
-                        className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-md transition"
-                      >
-                        <MoreVertical size={15} />
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Mobile cards */}
-        <div className="sm:hidden divide-y divide-slate-100">
-          {isLoading ? (
-            Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="p-4">
-                <div className="h-14 bg-slate-200 rounded animate-pulse" />
-              </div>
-            ))
-          ) : !data?.data?.length ? (
-            <div className="p-8 text-center">
-              <Inbox size={36} className="mx-auto mb-2 text-slate-200" />
-              <p className="text-slate-600">Aucun signal RH</p>
+      <Tile style={{ padding: 0, overflow: "hidden" }}>
+        {isLoading ? (
+          <>
+            <div className="tbl-head" style={{ gridTemplateColumns: COLS }}>
+              <div>Collaborateur</div>
+              <div>Type</div>
+              <div>Date</div>
+              <div>Statut</div>
+              <div />
             </div>
-          ) : (
-            data.data.map((flag) => (
-              <div key={flag.id} className="p-4">
-                <div className="flex items-start justify-between mb-2">
-                  <span className="font-medium text-slate-800">
-                    {flag.userName ?? flag.userId}
-                  </span>
+            {Array.from({ length: 8 }).map((_, i) => (
+              <SkeletonRow key={i} />
+            ))}
+          </>
+        ) : isEmpty ? (
+          <div style={{ padding: 80, textAlign: "center" }}>
+            <Inbox
+              className="ico"
+              style={{
+                width: 40,
+                height: 40,
+                margin: "0 auto 8px",
+                color: "var(--line-strong)",
+              }}
+            />
+            <p className="body">Aucun signal RH</p>
+          </div>
+        ) : (
+          <>
+            <div className="tbl-head" style={{ gridTemplateColumns: COLS }}>
+              <div>Collaborateur</div>
+              <div>Type</div>
+              <div>Date</div>
+              <div>Statut</div>
+              <div />
+            </div>
+            {flags.map((flag) => (
+              <div
+                key={flag.id}
+                className="tbl-row"
+                style={{ gridTemplateColumns: COLS }}
+              >
+                <div style={{ minWidth: 0, fontWeight: 600 }}>
+                  {flag.userName ?? flag.userId}
+                </div>
+                <div>
+                  <Badge tone={TYPE_TONES[flag.type]}>
+                    {TYPE_LABELS[flag.type]}
+                  </Badge>
+                </div>
+                <div className="small">
+                  {new Date(flag.createdAt).toLocaleDateString("fr-FR")}
+                </div>
+                <div>
+                  <Badge tone={STATUS_TONES[flag.status]} dot>
+                    {STATUS_LABELS[flag.status]}
+                  </Badge>
+                </div>
+                <div style={{ textAlign: "right" }}>
                   <button
                     onClick={() => {
                       setSelectedFlag(flag);
                       setNote(flag.note ?? "");
                       setNewStatus(flag.status);
                     }}
-                    className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-md transition"
+                    aria-label="Détail du signal"
+                    className="btn btn-ghost btn-sm"
+                    style={{ padding: 6 }}
                   >
-                    <MoreVertical size={15} />
+                    <MoreVertical
+                      className="ico"
+                      style={{ width: 16, height: 16 }}
+                    />
                   </button>
                 </div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span
-                    className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${TYPE_COLORS[flag.type]}`}
-                  >
-                    {TYPE_LABELS[flag.type]}
-                  </span>
-                  <span
-                    className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[flag.status]}`}
-                  >
-                    {STATUS_LABELS[flag.status]}
-                  </span>
-                  <span className="text-xs text-slate-500">
-                    {new Date(flag.createdAt).toLocaleDateString("fr-FR")}
-                  </span>
-                </div>
               </div>
-            ))
-          )}
-        </div>
-      </div>
+            ))}
+          </>
+        )}
+      </Tile>
 
       {/* Slide-over détail */}
       {selectedFlag && (
-        <div className="fixed inset-0 z-50 flex justify-end">
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 50,
+            display: "flex",
+            justifyContent: "flex-end",
+          }}
+        >
           <div
-            className="absolute inset-0 bg-black/30"
+            style={{
+              position: "absolute",
+              inset: 0,
+              background: "rgba(0,0,0,0.3)",
+            }}
             onClick={() => setSelectedFlag(null)}
           />
-          <div className="relative w-full max-w-md bg-white shadow-xl flex flex-col animate-slideInUp">
-            <div className="flex items-center justify-between p-6 border-b border-slate-100">
-              <h2 className="text-lg font-bold text-slate-900">
-                Détail du signal
-              </h2>
+          <div
+            style={{
+              position: "relative",
+              width: "100%",
+              maxWidth: 420,
+              background: "#fff",
+              boxShadow: "0 8px 24px rgba(0,0,0,0.18)",
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            <div
+              className="row between"
+              style={{ padding: 24, borderBottom: "1px solid var(--line)" }}
+            >
+              <h2 className="h3">Détail du signal</h2>
               <button
                 onClick={() => setSelectedFlag(null)}
-                className="p-1 text-slate-400 hover:text-slate-700"
+                aria-label="Fermer le détail"
+                className="btn btn-ghost btn-sm"
+                style={{ padding: 6 }}
               >
-                <X size={18} />
+                <X className="ico" style={{ width: 18, height: 18 }} />
               </button>
             </div>
-            <div className="p-6 flex-1 overflow-y-auto space-y-4">
+            <div
+              style={{
+                padding: 24,
+                flex: 1,
+                overflowY: "auto",
+                display: "flex",
+                flexDirection: "column",
+                gap: 16,
+              }}
+            >
               <div>
-                <p className="text-xs text-slate-500 font-medium uppercase mb-1">
+                <p className="eyebrow" style={{ marginBottom: 4 }}>
                   Collaborateur
                 </p>
-                <p className="font-semibold text-slate-800">
+                <p className="body" style={{ fontWeight: 600 }}>
                   {selectedFlag.userName ?? selectedFlag.userId}
                 </p>
               </div>
               <div>
-                <p className="text-xs text-slate-500 font-medium uppercase mb-1">
+                <p className="eyebrow" style={{ marginBottom: 4 }}>
                   Type
                 </p>
-                <span
-                  className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${TYPE_COLORS[selectedFlag.type]}`}
-                >
+                <Badge tone={TYPE_TONES[selectedFlag.type]}>
                   {TYPE_LABELS[selectedFlag.type]}
-                </span>
+                </Badge>
               </div>
               {selectedFlag.description && (
                 <div>
-                  <p className="text-xs text-slate-500 font-medium uppercase mb-1">
+                  <p className="eyebrow" style={{ marginBottom: 4 }}>
                     Description
                   </p>
-                  <p className="text-sm text-slate-700">
-                    {selectedFlag.description}
-                  </p>
+                  <p className="body">{selectedFlag.description}</p>
                 </div>
               )}
-              <div>
-                <p className="text-xs text-slate-500 font-medium uppercase mb-1">
+              <div className="field">
+                <label className="eyebrow" htmlFor="hr-flag-note">
                   Note RH
-                </p>
+                </label>
                 <textarea
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-400 resize-none"
+                  id="hr-flag-note"
+                  className="input"
+                  aria-label="Note RH"
                   rows={3}
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
                   placeholder="Ajouter une note..."
+                  style={{ resize: "none", marginTop: 4 }}
                 />
               </div>
-              <div>
-                <p className="text-xs text-slate-500 font-medium uppercase mb-1">
+              <div className="field">
+                <label className="eyebrow" htmlFor="hr-flag-status">
                   Changer le statut
-                </p>
+                </label>
                 <select
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
+                  id="hr-flag-status"
+                  className="input"
+                  aria-label="Changer le statut"
                   value={newStatus}
                   onChange={(e) => setNewStatus(e.target.value as HrFlagStatus)}
+                  style={{ marginTop: 4 }}
                 >
                   {Object.entries(STATUS_LABELS).map(([k, v]) => (
                     <option key={k} value={k}>
@@ -314,10 +328,18 @@ export default function HrFlagsPage() {
                 </select>
               </div>
             </div>
-            <div className="p-6 border-t border-slate-100 flex gap-3">
+            <div
+              className="row"
+              style={{
+                padding: 24,
+                borderTop: "1px solid var(--line)",
+                gap: 12,
+              }}
+            >
               <button
                 onClick={() => setSelectedFlag(null)}
-                className="flex-1 px-4 py-2 text-sm border border-slate-200 text-slate-600 rounded-md hover:bg-slate-50"
+                className="btn btn-ghost"
+                style={{ flex: 1 }}
               >
                 Fermer
               </button>
@@ -330,7 +352,8 @@ export default function HrFlagsPage() {
                   })
                 }
                 disabled={updateStatusMut.isPending}
-                className="flex-1 px-4 py-2 text-sm bg-primary-500 text-white rounded-md hover:bg-primary-600 disabled:opacity-50 transition"
+                className="btn btn-primary"
+                style={{ flex: 1 }}
               >
                 {updateStatusMut.isPending ? "Sauvegarde…" : "Sauvegarder"}
               </button>

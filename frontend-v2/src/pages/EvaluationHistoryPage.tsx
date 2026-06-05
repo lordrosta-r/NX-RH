@@ -1,137 +1,220 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
-import { History, Download } from 'lucide-react'
-import { evaluationsApi } from '../api/evaluations'
-import { getCampaignName } from '../types'
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { History, Download } from "lucide-react";
+import { evaluationsApi } from "../api/evaluations";
+import { getCampaignName } from "../types";
+import { PageHead, Tile, Badge, Bar } from "../components/shell";
 
-const EVAL_STATUS_CONFIG: Record<string, { label: string; color: string }> = {
-  assigned:         { label: 'Assignée',         color: 'bg-slate-100 text-slate-600' },
-  in_progress:      { label: 'En cours',          color: 'bg-primary-50 text-primary-700' },
-  submitted:        { label: 'Soumise',           color: 'bg-warning-50 text-warning-700' },
-  reviewed:         { label: 'Révisée',           color: 'bg-info-50 text-info-700' },
-  signed_evaluatee: { label: 'Signée (évalué)',   color: 'bg-purple-50 text-purple-700' },
-  signed_manager:   { label: 'Signée (resp.)',      color: 'bg-indigo-50 text-indigo-700' },
-  signed_hr:        { label: 'Signée (RH)',       color: 'bg-teal-50 text-teal-700' },
-  validated:        { label: 'Validée ✓',         color: 'bg-success-50 text-success-700' },
-  expired:          { label: 'Expirée',           color: 'bg-error-50 text-error-600' },
-  archived:         { label: 'Archivée',          color: 'bg-slate-50 text-slate-500' },
-}
+type Tone = "blue" | "green" | "amber" | "red" | "grey";
+
+const EVAL_STATUS_CONFIG: Record<string, { label: string; tone: Tone }> = {
+  assigned: { label: "Assignée", tone: "grey" },
+  in_progress: { label: "En cours", tone: "blue" },
+  submitted: { label: "Soumise", tone: "amber" },
+  reviewed: { label: "Révisée", tone: "blue" },
+  signed_evaluatee: { label: "Signée (évalué)", tone: "blue" },
+  signed_manager: { label: "Signée (resp.)", tone: "blue" },
+  signed_hr: { label: "Signée (RH)", tone: "blue" },
+  validated: { label: "Validée ✓", tone: "green" },
+  expired: { label: "Expirée", tone: "red" },
+  archived: { label: "Archivée", tone: "grey" },
+};
+
+const GRID_COLS = "2fr 1.2fr 1.4fr 1.2fr 200px";
 
 export default function EvaluationHistoryPage() {
-  const [yearFilter, setYearFilter] = useState('')
-  const [campaignFilter, setCampaignFilter] = useState('')
+  const [yearFilter, setYearFilter] = useState("");
+  const [campaignFilter, setCampaignFilter] = useState("");
 
   const { data: evaluations = [], isLoading } = useQuery({
-    queryKey: ['evaluations-history'],
-    queryFn: () => evaluationsApi.getHistory().then(r => r.data),
-  })
+    queryKey: ["evaluations-history"],
+    queryFn: () => evaluationsApi.getHistory().then((r) => r.data),
+  });
 
-  const years = [...new Set(evaluations.map(e => e.createdAt?.slice(0, 4)).filter(Boolean))].sort().reverse() as string[]
+  const years = [
+    ...new Set(
+      evaluations.map((e) => e.createdAt?.slice(0, 4)).filter(Boolean),
+    ),
+  ]
+    .sort()
+    .reverse() as string[];
 
-  const filteredEvaluations = evaluations.filter(ev => {
-    if (yearFilter && ev.createdAt?.slice(0, 4) !== yearFilter) return false
-    if (campaignFilter && ev.campaign?.name !== campaignFilter) return false
-    return true
-  })
+  const filteredEvaluations = evaluations.filter((ev) => {
+    if (yearFilter && ev.createdAt?.slice(0, 4) !== yearFilter) return false;
+    if (campaignFilter && ev.campaign?.name !== campaignFilter) return false;
+    return true;
+  });
 
   return (
-    <div>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <nav aria-label="Fil d'ariane" className="text-sm text-slate-500 mb-1">
-            <Link to="/" className="hover:text-slate-700">Accueil</Link>
-            {' › '}
-            <Link to="/evaluations" className="hover:text-slate-700">Évaluations</Link>
-            {' › '}
-            <span className="text-slate-900">Historique</span>
-          </nav>
-          <h1 className="text-2xl font-bold text-slate-900">Mon historique d'entretiens</h1>
-        </div>
-      </div>
-
-      {/* Filtres */}
-      <div className="flex gap-3 mb-6">
-        <select
-          value={yearFilter}
-          onChange={e => setYearFilter(e.target.value)}
-          className="h-9 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-200"
-        >
-          <option value="">Toutes les années</option>
-          {years.map(y => <option key={y} value={y}>{y}</option>)}
-        </select>
-        <select
-          value={campaignFilter}
-          onChange={e => setCampaignFilter(e.target.value)}
-          className="h-9 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-200"
-        >
-          <option value="">Toutes les campagnes</option>
-          {[...new Set(evaluations.map(e => e.campaign?.name).filter(Boolean))].map(name => (
-            <option key={name} value={name}>{name}</option>
-          ))}
-        </select>
-      </div>
-
-      {/* Grille */}
-      {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-36 bg-slate-100 rounded-xl animate-pulse" />
-          ))}
-        </div>
-      ) : filteredEvaluations.length === 0 ? (
-        <div className="text-center py-16">
-          <History className="w-12 h-12 text-slate-200 mx-auto mb-3" />
-          <p className="text-slate-500 font-medium">Aucun entretien terminé pour l'instant.</p>
-          <p className="text-sm text-slate-500 mt-1">Vos évaluations validées apparaîtront ici.</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {filteredEvaluations.map(ev => (
-            <div key={ev.id} className="bg-white rounded-xl border border-slate-200 p-5 hover:shadow-sm transition-shadow">
-              <div className="flex items-start justify-between mb-3">
-                <div>
-                  <p className="font-semibold text-slate-900">{ev.campaign?.name ?? getCampaignName(ev.campaignId)}</p>
-                  <p className="text-sm text-slate-500 mt-0.5">{ev.form?.title ?? ev.formId}</p>
-                </div>
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${EVAL_STATUS_CONFIG[ev.status]?.color ?? 'bg-slate-100 text-slate-600'}`}>
-                  {EVAL_STATUS_CONFIG[ev.status]?.label ?? ev.status}
-                </span>
-              </div>
-
-              {ev.reviewerScore !== undefined && (
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="flex-1 bg-slate-100 rounded-full h-1.5">
-                    <div className="h-1.5 rounded-full bg-primary-500" style={{ width: `${ev.reviewerScore}%` }} />
-                  </div>
-                  <span className="text-sm font-medium text-slate-700">{ev.reviewerScore}/100</span>
-                </div>
-              )}
-
-              <p className="text-xs text-slate-500 mb-4">
-                Validée le {ev.signedByHrAt ? new Date(ev.signedByHrAt).toLocaleDateString('fr-FR') : '—'}
-              </p>
-
-              <div className="flex items-center gap-2">
-                <Link
-                  to={`/evaluations/${ev.id}`}
-                  className="flex-1 text-center px-3 py-1.5 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 font-medium"
-                >
-                  Voir le compte-rendu
-                </Link>
-                <button
-                  onClick={() => window.open(`/api/evaluations/${ev.id}/pdf`, '_blank')}
-                  className="p-1.5 text-slate-400 hover:text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50"
-                  title="Télécharger PDF"
-                >
-                  <Download className="w-4 h-4" />
-                </button>
-              </div>
+    <div className="nx-app">
+      <PageHead
+        eyebrow={
+          <>
+            <Link to="/" className="link">
+              Accueil
+            </Link>{" "}
+            ›{" "}
+            <Link to="/evaluations" className="link">
+              Évaluations
+            </Link>{" "}
+            › Historique
+          </>
+        }
+        title="Mon historique d'entretiens"
+        actions={
+          <>
+            <div className="field" style={{ minWidth: 200 }}>
+              <select
+                aria-label="Filtrer par année"
+                value={yearFilter}
+                onChange={(e) => setYearFilter(e.target.value)}
+                className="input"
+              >
+                <option value="">Toutes les années</option>
+                {years.map((y) => (
+                  <option key={y} value={y}>
+                    {y}
+                  </option>
+                ))}
+              </select>
             </div>
-          ))}
-        </div>
-      )}
+            <div className="field" style={{ minWidth: 240 }}>
+              <select
+                aria-label="Filtrer par campagne"
+                value={campaignFilter}
+                onChange={(e) => setCampaignFilter(e.target.value)}
+                className="input"
+              >
+                <option value="">Toutes les campagnes</option>
+                {[
+                  ...new Set(
+                    evaluations.map((e) => e.campaign?.name).filter(Boolean),
+                  ),
+                ].map((name) => (
+                  <option key={name} value={name}>
+                    {name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </>
+        }
+      />
+
+      <Tile style={{ padding: 0, overflow: "hidden" }}>
+        {isLoading ? (
+          <div className="small" style={{ padding: 40, textAlign: "center" }}>
+            Chargement…
+          </div>
+        ) : filteredEvaluations.length === 0 ? (
+          <div style={{ textAlign: "center", padding: "64px 16px" }}>
+            <History
+              className="ico"
+              style={{
+                width: 48,
+                height: 48,
+                color: "var(--line)",
+                margin: "0 auto 12px",
+              }}
+            />
+            <p className="body" style={{ fontWeight: 600 }}>
+              Aucun entretien terminé pour l'instant.
+            </p>
+            <p className="small" style={{ marginTop: 4 }}>
+              Vos évaluations validées apparaîtront ici.
+            </p>
+          </div>
+        ) : (
+          <>
+            <div
+              className="tbl-head"
+              style={{ gridTemplateColumns: GRID_COLS }}
+            >
+              <div>Campagne</div>
+              <div>Statut</div>
+              <div>Score</div>
+              <div>Validée le</div>
+              <div />
+            </div>
+            {filteredEvaluations.map((ev) => {
+              const cfg = EVAL_STATUS_CONFIG[ev.status];
+              return (
+                <div
+                  key={ev.id}
+                  className="tbl-row"
+                  style={{ gridTemplateColumns: GRID_COLS }}
+                >
+                  <div style={{ minWidth: 0 }}>
+                    <Link
+                      to={`/evaluations/${ev.id}`}
+                      className="link"
+                      style={{ fontWeight: 600 }}
+                    >
+                      {ev.campaign?.name ?? getCampaignName(ev.campaignId)}
+                    </Link>
+                    <p className="small truncate" style={{ marginTop: 2 }}>
+                      {ev.form?.title ?? ev.formId}
+                    </p>
+                  </div>
+                  <div>
+                    <Badge tone={cfg?.tone ?? "grey"} dot>
+                      {cfg?.label ?? ev.status}
+                    </Badge>
+                  </div>
+                  <div className="row" style={{ gap: 8, alignItems: "center" }}>
+                    {ev.reviewerScore !== undefined ? (
+                      <>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <Bar
+                            pct={ev.reviewerScore}
+                            tone="var(--blue)"
+                            height={6}
+                          />
+                        </div>
+                        <span
+                          className="small"
+                          style={{ width: 52, textAlign: "right" }}
+                        >
+                          {ev.reviewerScore}/100
+                        </span>
+                      </>
+                    ) : (
+                      <span className="small">—</span>
+                    )}
+                  </div>
+                  <div className="small">
+                    {ev.signedByHrAt
+                      ? new Date(ev.signedByHrAt).toLocaleDateString("fr-FR")
+                      : "—"}
+                  </div>
+                  <div
+                    className="row"
+                    style={{ gap: 8, justifyContent: "flex-end" }}
+                  >
+                    <Link to={`/evaluations/${ev.id}`} className="link small">
+                      Voir le compte-rendu
+                    </Link>
+                    <button
+                      onClick={() =>
+                        window.open(`/api/evaluations/${ev.id}/pdf`, "_blank")
+                      }
+                      className="btn btn-ghost btn-sm"
+                      style={{ padding: 6 }}
+                      aria-label="Télécharger le PDF"
+                    >
+                      <Download
+                        className="ico"
+                        style={{ width: 16, height: 16 }}
+                      />
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </>
+        )}
+      </Tile>
     </div>
-  )
+  );
 }

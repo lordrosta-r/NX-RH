@@ -1,10 +1,11 @@
-import { lazy, Suspense } from 'react'
-import { useAuth } from '../contexts/AuthContext'
+import { lazy, Suspense } from "react";
+import { useAuth } from "../contexts/AuthContext";
+import { usePerspective } from "../contexts/PerspectiveContext";
 
-const DashboardAdminPage = lazy(() => import('./DashboardAdminPage'))
-const DashboardHrPage = lazy(() => import('./DashboardHrPage'))
-const DashboardManagerPage = lazy(() => import('./DashboardManagerPage'))
-const DashboardEmployeePage = lazy(() => import('./DashboardEmployeePage'))
+const DashboardAdminPage = lazy(() => import("./DashboardAdminPage"));
+const DashboardHrPage = lazy(() => import("./DashboardHrPage"));
+const DashboardManagerPage = lazy(() => import("./DashboardManagerPage"));
+const DashboardEmployeePage = lazy(() => import("./DashboardEmployeePage"));
 
 function Loader() {
   return (
@@ -14,23 +15,28 @@ function Loader() {
         <p className="text-sm text-slate-600">Chargement…</p>
       </div>
     </div>
-  )
+  );
 }
 
 export default function DashboardPage() {
-  const { user, isLoading } = useAuth()
+  const { user, isLoading } = useAuth();
+  const { perspective } = usePerspective();
 
-  if (isLoading) return <Loader />
-  if (!user) return null
+  if (isLoading) return <Loader />;
+  if (!user) return null;
+
+  // « Mon espace » → vue collaborateur, quel que soit le rôle.
+  const personal = perspective === "me";
+  const role = personal ? "employee" : user.role;
 
   return (
     <Suspense fallback={<Loader />}>
-      {user.role === 'admin' && <DashboardAdminPage />}
-      {user.role === 'hr' && <DashboardHrPage />}
-      {user.role === 'manager' && <DashboardManagerPage />}
-      {(user.role === 'employee' || !['admin', 'hr', 'manager'].includes(user.role)) && (
+      {role === "admin" && <DashboardAdminPage />}
+      {role === "hr" && <DashboardHrPage />}
+      {role === "manager" && <DashboardManagerPage />}
+      {(role === "employee" || !["admin", "hr", "manager"].includes(role)) && (
         <DashboardEmployeePage />
       )}
     </Suspense>
-  )
+  );
 }

@@ -7,7 +7,7 @@ import {
   keepPreviousData,
 } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import { LogOut, MoreVertical, X } from "lucide-react";
+import { LogOut, MoreVertical, X, Plus } from "lucide-react";
 import {
   offboardingApi,
   type OffboardingRecord,
@@ -16,9 +16,11 @@ import {
 import { usersApi } from "../api/users";
 import type { User } from "../types";
 import { useAuth } from "../contexts/AuthContext";
-import { cn } from "../utils/cn";
 import { formatDate } from "../utils/formatDate";
 import { queryKeys } from "../lib/queryKeys";
+import { PageHead, Tile, Badge, Bar } from "../components/shell";
+
+type Tone = "blue" | "green" | "amber" | "red" | "grey";
 
 const REASON_LABELS: Record<OffboardingRecord["reason"], string> = {
   resignation: "Démission",
@@ -27,17 +29,17 @@ const REASON_LABELS: Record<OffboardingRecord["reason"], string> = {
   other: "Autre",
 };
 
-const REASON_BADGE: Record<OffboardingRecord["reason"], string> = {
-  resignation: "bg-warning-50 text-warning-600",
-  termination: "bg-error-50 text-error-600",
-  retirement: "bg-info-50 text-info-600",
-  other: "bg-slate-100 text-slate-600",
+const REASON_TONE: Record<OffboardingRecord["reason"], Tone> = {
+  resignation: "amber",
+  termination: "red",
+  retirement: "blue",
+  other: "grey",
 };
 
-const STATUS_BADGE: Record<OffboardingRecord["status"], string> = {
-  pending: "bg-yellow-50 text-yellow-700",
-  in_progress: "bg-blue-50 text-blue-700",
-  completed: "bg-green-50 text-green-700",
+const STATUS_TONE: Record<OffboardingRecord["status"], Tone> = {
+  pending: "amber",
+  in_progress: "blue",
+  completed: "green",
 };
 
 const STATUS_LABELS: Record<OffboardingRecord["status"], string> = {
@@ -85,28 +87,14 @@ const DEFAULT_CHECKLIST_ITEMS = [
 ];
 
 function ReasonBadge({ reason }: { reason: OffboardingRecord["reason"] }) {
-  return (
-    <span
-      className={cn(
-        "px-2.5 py-0.5 rounded-full text-xs font-medium",
-        REASON_BADGE[reason],
-      )}
-    >
-      {REASON_LABELS[reason]}
-    </span>
-  );
+  return <Badge tone={REASON_TONE[reason]}>{REASON_LABELS[reason]}</Badge>;
 }
 
 function StatusBadge({ status }: { status: OffboardingRecord["status"] }) {
   return (
-    <span
-      className={cn(
-        "px-2.5 py-0.5 rounded-full text-xs font-medium",
-        STATUS_BADGE[status],
-      )}
-    >
+    <Badge tone={STATUS_TONE[status]} dot>
       {STATUS_LABELS[status]}
-    </span>
+    </Badge>
   );
 }
 
@@ -146,27 +134,40 @@ function SlideOverForm({
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
       <div className="absolute inset-0 bg-black/30" onClick={onClose} />
-      <div className="relative bg-white w-full max-w-md h-full overflow-y-auto shadow-xl flex flex-col">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-          <h2 className="text-lg font-semibold text-slate-900">
-            Nouvelle demande de départ
-          </h2>
+      <div
+        className="relative w-full max-w-md h-full overflow-y-auto flex flex-col"
+        style={{ background: "#fff", boxShadow: "0 8px 40px rgba(0,0,0,0.18)" }}
+      >
+        <div
+          className="row between"
+          style={{
+            padding: "16px 24px",
+            borderBottom: "1px solid var(--line)",
+            alignItems: "center",
+          }}
+        >
+          <h2 className="h3">Nouvelle demande de départ</h2>
           <button
             onClick={onClose}
             aria-label="Fermer"
-            className="p-1 rounded-md hover:bg-slate-100 transition-colors"
+            className="btn btn-ghost btn-sm"
+            style={{ padding: 6 }}
           >
-            <X className="w-5 h-5 text-slate-500" />
+            <X className="ico" style={{ width: 18, height: 18 }} />
           </button>
         </div>
-        <form onSubmit={handleSubmit} className="flex-1 p-6 space-y-5">
-          <div>
-            <label
-              htmlFor="offboarding-user"
-              className="block text-sm font-medium text-slate-700 mb-1"
-            >
-              Collaborateur
-            </label>
+        <form
+          onSubmit={handleSubmit}
+          className="flex-1"
+          style={{
+            padding: 24,
+            display: "flex",
+            flexDirection: "column",
+            gap: 20,
+          }}
+        >
+          <div className="field">
+            <label htmlFor="offboarding-user">Collaborateur</label>
             <select
               id="offboarding-user"
               required
@@ -174,7 +175,7 @@ function SlideOverForm({
               onChange={(e) =>
                 setForm((f) => ({ ...f, userId: e.target.value }))
               }
-              className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
+              className="input"
             >
               <option value="">Sélectionner…</option>
               {users.map((u) => (
@@ -184,13 +185,8 @@ function SlideOverForm({
               ))}
             </select>
           </div>
-          <div>
-            <label
-              htmlFor="offboarding-reason"
-              className="block text-sm font-medium text-slate-700 mb-1"
-            >
-              Motif
-            </label>
+          <div className="field">
+            <label htmlFor="offboarding-reason">Motif</label>
             <select
               id="offboarding-reason"
               value={form.reason}
@@ -200,7 +196,7 @@ function SlideOverForm({
                   reason: e.target.value as OffboardingRecord["reason"],
                 }))
               }
-              className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
+              className="input"
             >
               {(
                 Object.entries(REASON_LABELS) as [
@@ -214,13 +210,8 @@ function SlideOverForm({
               ))}
             </select>
           </div>
-          <div>
-            <label
-              htmlFor="offboarding-last-day"
-              className="block text-sm font-medium text-slate-700 mb-1"
-            >
-              Dernier jour
-            </label>
+          <div className="field">
+            <label htmlFor="offboarding-last-day">Dernier jour</label>
             <input
               id="offboarding-last-day"
               required
@@ -229,38 +220,44 @@ function SlideOverForm({
               onChange={(e) =>
                 setForm((f) => ({ ...f, lastDay: e.target.value }))
               }
-              className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
+              className="input"
             />
           </div>
-          <div className="pt-4">
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+          <div>
+            <p className="eyebrow" style={{ marginBottom: 8 }}>
               Checklist par défaut
             </p>
-            <ul className="space-y-1">
+            <ul style={{ display: "flex", flexDirection: "column", gap: 4 }}>
               {DEFAULT_CHECKLIST_ITEMS.map((item) => (
                 <li
                   key={item}
-                  className="text-sm text-slate-600 flex items-center gap-2"
+                  className="small row"
+                  style={{ gap: 8, alignItems: "center" }}
                 >
-                  <span className="w-1.5 h-1.5 rounded-full bg-slate-300 shrink-0" />
+                  <span
+                    style={{
+                      width: 6,
+                      height: 6,
+                      borderRadius: "50%",
+                      background: "var(--line-strong)",
+                      flexShrink: 0,
+                    }}
+                  />
                   {item}
                 </li>
               ))}
             </ul>
           </div>
-          <div className="flex gap-3 pt-4">
+          <div className="row" style={{ gap: 12, marginTop: 8 }}>
             <button
               type="submit"
               disabled={isPending}
-              className="flex-1 px-4 py-2 bg-primary-500 text-white text-sm font-medium rounded-md hover:bg-primary-600 disabled:opacity-50 transition-colors"
+              className="btn btn-primary"
+              style={{ flex: 1 }}
             >
               {isPending ? "Création…" : "Créer la demande"}
             </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 border border-slate-300 text-sm font-medium rounded-md text-slate-700 hover:bg-slate-50 transition-colors"
-            >
+            <button type="button" onClick={onClose} className="btn btn-ghost">
               Annuler
             </button>
           </div>
@@ -341,33 +338,41 @@ export default function OffboardingPage() {
   const records = data?.data ?? [];
   const isAdmin = user?.role === "admin";
 
+  const menuItemStyle: React.CSSProperties = {
+    display: "block",
+    width: "100%",
+    padding: "9px 14px",
+    fontSize: 14,
+    color: "var(--ink)",
+    textAlign: "left",
+    background: "none",
+    border: "none",
+    cursor: "pointer",
+  };
+
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">Offboarding</h1>
-          <p className="text-sm text-slate-500 mt-0.5">
-            Gestion des départs de collaborateurs
-          </p>
-        </div>
-        <button
-          onClick={() => setShowForm(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-primary-500 text-white text-sm font-semibold rounded-md hover:bg-primary-600 transition-colors"
-        >
-          + Nouvelle demande
-        </button>
-      </div>
+    <div className="nx-app">
+      <PageHead
+        title="Offboarding"
+        desc="Gestion des départs de collaborateurs"
+        actions={
+          <button onClick={() => setShowForm(true)} className="btn btn-primary">
+            <Plus className="ico" style={{ width: 18, height: 18 }} /> Nouvelle
+            demande
+          </button>
+        }
+      />
 
       {/* Filters */}
-      <div className="bg-white rounded-2xl shadow p-4 flex flex-wrap gap-3">
+      <Tile className="row wrap" style={{ gap: 12, alignItems: "center" }}>
         <input
           type="search"
           aria-label="Rechercher un collaborateur"
           placeholder="Rechercher un collaborateur…"
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
-          className="border border-slate-300 rounded-lg px-3 py-2 text-sm flex-1 min-w-40 focus:outline-none focus:ring-2 focus:ring-primary-400"
+          className="input"
+          style={{ flex: 1, minWidth: 160 }}
         />
         <select
           aria-label="Filtrer par statut"
@@ -379,7 +384,8 @@ export default function OffboardingPage() {
               page: 1,
             }))
           }
-          className="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
+          className="input"
+          style={{ width: "auto" }}
         >
           <option value="">Tous les statuts</option>
           <option value="pending">En attente</option>
@@ -396,7 +402,8 @@ export default function OffboardingPage() {
               page: 1,
             }))
           }
-          className="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
+          className="input"
+          style={{ width: "auto" }}
         >
           <option value="">Tous les motifs</option>
           <option value="resignation">Démission</option>
@@ -404,198 +411,171 @@ export default function OffboardingPage() {
           <option value="retirement">Retraite</option>
           <option value="other">Autre</option>
         </select>
-      </div>
+      </Tile>
 
-      {/* Table — desktop */}
+      {/* Table */}
       {isLoading ? (
-        <div className="flex items-center justify-center py-16">
-          <div className="w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
+        <div className="small" style={{ padding: 40, textAlign: "center" }}>
+          Chargement…
         </div>
       ) : records.length === 0 ? (
-        <div className="bg-white rounded-2xl shadow p-12 flex flex-col items-center gap-3 text-slate-600">
-          <LogOut className="w-12 h-12 opacity-30" />
-          <p className="text-base font-medium">
+        <Tile
+          className="col"
+          style={{
+            padding: 48,
+            alignItems: "center",
+            gap: 12,
+            textAlign: "center",
+          }}
+        >
+          <LogOut
+            className="ico"
+            style={{ width: 48, height: 48, opacity: 0.3 }}
+          />
+          <p className="body" style={{ fontWeight: 600 }}>
             Aucune demande de départ en cours.
           </p>
-        </div>
+        </Tile>
       ) : (
-        <>
-          {/* Desktop table */}
-          <div className="hidden md:block bg-white rounded-2xl shadow overflow-hidden">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-slate-100">
-                  <th className="text-left px-5 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                    Collaborateur
-                  </th>
-                  <th className="text-left px-5 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                    Motif
-                  </th>
-                  <th className="text-left px-5 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                    Dernier jour
-                  </th>
-                  <th className="text-left px-5 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                    Statut
-                  </th>
-                  <th className="text-left px-5 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                    Checklist
-                  </th>
-                  <th className="px-5 py-4" />
-                </tr>
-              </thead>
-              <tbody>
-                {records.map((rec) => {
-                  const done = rec.checklist.filter((c) => c.done).length;
-                  const total = rec.checklist.length;
-                  return (
-                    <tr
-                      key={rid(rec)}
-                      className="border-b border-slate-50 hover:bg-slate-50 transition-colors"
-                    >
-                      <td className="px-5 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center text-xs font-bold shrink-0">
-                            {getRecordUserInitial(rec)}
-                          </div>
-                          <Link
-                            to={`/offboarding/${rid(rec)}`}
-                            className="font-medium text-slate-800 hover:text-primary-600"
-                          >
-                            {getRecordUserName(rec)}
-                          </Link>
-                        </div>
-                      </td>
-                      <td className="px-5 py-4">
-                        <ReasonBadge reason={rec.reason} />
-                      </td>
-                      <td className="px-5 py-4 text-slate-600">
-                        {formatDate(rec.lastDay)}
-                      </td>
-                      <td className="px-5 py-4">
-                        <StatusBadge status={rec.status} />
-                      </td>
-                      <td className="px-5 py-4">
-                        <div className="flex items-center gap-2">
-                          <div className="w-24 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                            <div
-                              className="h-full bg-primary-400 rounded-full"
-                              style={{
-                                width: total
-                                  ? `${(done / total) * 100}%`
-                                  : "0%",
-                              }}
-                            />
-                          </div>
-                          <span className="text-xs text-slate-500">
-                            {done}/{total}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-5 py-4 text-right">
-                        <div className="relative inline-block">
-                          <button
-                            onClick={() =>
-                              setOpenMenu(
-                                openMenu === rid(rec) ? null : rid(rec),
-                              )
-                            }
-                            aria-label="Afficher les actions"
-                            className="p-1.5 rounded-md hover:bg-slate-100 transition-colors text-slate-400"
-                          >
-                            <MoreVertical className="w-4 h-4" />
-                          </button>
-                          {openMenu === rid(rec) && (
-                            <div className="absolute right-0 top-full mt-1 w-44 bg-white border border-slate-200 rounded-xl shadow-lg py-1 z-10">
-                              <Link
-                                to={`/offboarding/${rid(rec)}`}
-                                onClick={() => setOpenMenu(null)}
-                                className="block px-4 py-2 text-sm text-slate-700 hover:bg-primary-50 hover:text-primary-700"
-                              >
-                                Voir le détail
-                              </Link>
-                              {(isAdmin || user?.role === "hr") && (
-                                <button
-                                  onClick={() => {
-                                    setOpenMenu(null);
-                                    setStatusTarget({
-                                      id: rid(rec),
-                                      current: rec.status,
-                                    });
-                                    setNewStatus(rec.status);
-                                  }}
-                                  className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-primary-50"
-                                >
-                                  Modifier statut
-                                </button>
-                              )}
-                              {isAdmin && (
-                                <button
-                                  onClick={() => {
-                                    setOpenMenu(null);
-                                    setDeleteConfirm(rid(rec));
-                                  }}
-                                  className="w-full text-left px-4 py-2 text-sm text-error-600 hover:bg-error-50"
-                                >
-                                  Supprimer
-                                </button>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+        <Tile style={{ padding: 0, overflow: "hidden" }}>
+          <div
+            className="tbl-head"
+            style={{
+              gridTemplateColumns: "2fr 1fr 1.2fr 1.2fr 1.4fr 48px",
+            }}
+          >
+            <div>Collaborateur</div>
+            <div>Motif</div>
+            <div>Dernier jour</div>
+            <div>Statut</div>
+            <div>Checklist</div>
+            <div />
           </div>
-
-          {/* Mobile cards */}
-          <div className="md:hidden space-y-3">
-            {records.map((rec) => {
-              const done = rec.checklist.filter((c) => c.done).length;
-              const total = rec.checklist.length;
-              return (
-                <div key={rid(rec)} className="bg-white rounded-2xl shadow p-4">
-                  <div className="flex justify-between items-start">
-                    <div>
+          {records.map((rec) => {
+            const done = rec.checklist.filter((c) => c.done).length;
+            const total = rec.checklist.length;
+            const pct = total ? (done / total) * 100 : 0;
+            return (
+              <div
+                key={rid(rec)}
+                className="tbl-row"
+                style={{
+                  gridTemplateColumns: "2fr 1fr 1.2fr 1.2fr 1.4fr 48px",
+                }}
+              >
+                <div className="row" style={{ gap: 12, alignItems: "center" }}>
+                  <div
+                    style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: "50%",
+                      background: "var(--blue-soft)",
+                      color: "var(--blue-text)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: 12,
+                      fontWeight: 700,
+                      flexShrink: 0,
+                    }}
+                  >
+                    {getRecordUserInitial(rec)}
+                  </div>
+                  <Link
+                    to={`/offboarding/${rid(rec)}`}
+                    className="link"
+                    style={{ fontWeight: 600 }}
+                  >
+                    {getRecordUserName(rec)}
+                  </Link>
+                </div>
+                <div>
+                  <ReasonBadge reason={rec.reason} />
+                </div>
+                <div className="small">{formatDate(rec.lastDay)}</div>
+                <div>
+                  <StatusBadge status={rec.status} />
+                </div>
+                <div className="row" style={{ gap: 8, alignItems: "center" }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <Bar pct={pct} tone="var(--blue)" height={6} />
+                  </div>
+                  <span
+                    className="small"
+                    style={{ width: 36, textAlign: "right" }}
+                  >
+                    {done}/{total}
+                  </span>
+                </div>
+                <div style={{ textAlign: "right", position: "relative" }}>
+                  <button
+                    onClick={() =>
+                      setOpenMenu(openMenu === rid(rec) ? null : rid(rec))
+                    }
+                    aria-label="Afficher les actions"
+                    className="btn btn-ghost btn-sm"
+                    style={{ padding: 6 }}
+                  >
+                    <MoreVertical
+                      className="ico"
+                      style={{ width: 16, height: 16 }}
+                    />
+                  </button>
+                  {openMenu === rid(rec) && (
+                    <div
+                      style={{
+                        position: "absolute",
+                        right: 0,
+                        top: 36,
+                        zIndex: 20,
+                        background: "#fff",
+                        borderRadius: "var(--radius)",
+                        border: "1px solid var(--line)",
+                        boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+                        width: 176,
+                        padding: "6px 0",
+                      }}
+                    >
                       <Link
                         to={`/offboarding/${rid(rec)}`}
-                        className="font-semibold text-slate-800 hover:text-primary-600"
+                        onClick={() => setOpenMenu(null)}
+                        style={menuItemStyle}
                       >
-                        {getRecordUserName(rec)}
+                        Voir le détail
                       </Link>
-                      <div className="flex items-center gap-2 mt-1">
-                        <StatusBadge status={rec.status} />
-                        <ReasonBadge reason={rec.reason} />
-                      </div>
+                      {(isAdmin || user?.role === "hr") && (
+                        <button
+                          onClick={() => {
+                            setOpenMenu(null);
+                            setStatusTarget({
+                              id: rid(rec),
+                              current: rec.status,
+                            });
+                            setNewStatus(rec.status);
+                          }}
+                          style={menuItemStyle}
+                        >
+                          Modifier statut
+                        </button>
+                      )}
+                      {isAdmin && (
+                        <button
+                          onClick={() => {
+                            setOpenMenu(null);
+                            setDeleteConfirm(rid(rec));
+                          }}
+                          style={{ ...menuItemStyle, color: "var(--red)" }}
+                        >
+                          Supprimer
+                        </button>
+                      )}
                     </div>
-                    <Link
-                      to={`/offboarding/${rid(rec)}`}
-                      className="text-xs text-primary-600 hover:underline"
-                    >
-                      Voir →
-                    </Link>
-                  </div>
-                  <div className="mt-3 flex items-center gap-2">
-                    <span className="text-xs text-slate-500">Checklist</span>
-                    <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-primary-400 rounded-full"
-                        style={{
-                          width: total ? `${(done / total) * 100}%` : "0%",
-                        }}
-                      />
-                    </div>
-                    <span className="text-xs text-slate-500">
-                      {done}/{total}
-                    </span>
-                  </div>
+                  )}
                 </div>
-              );
-            })}
-          </div>
-        </>
+              </div>
+            );
+          })}
+        </Tile>
       )}
 
       {/* Create slide-over */}
@@ -615,30 +595,34 @@ export default function OffboardingPage() {
             className="absolute inset-0 bg-black/30"
             onClick={() => setDeleteConfirm(null)}
           />
-          <div className="relative bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm">
-            <h3 className="text-base font-semibold text-slate-900 mb-2">
+          <Tile
+            className="relative w-full max-w-sm"
+            style={{ boxShadow: "0 8px 40px rgba(0,0,0,0.18)" }}
+          >
+            <h3 className="h3" style={{ marginBottom: 8 }}>
               Confirmer la suppression
             </h3>
-            <p className="text-sm text-slate-600 mb-5">
+            <p className="body" style={{ marginBottom: 20 }}>
               Cette action est irréversible. Êtes-vous sûr de vouloir supprimer
               cette demande ?
             </p>
-            <div className="flex gap-3">
+            <div className="row" style={{ gap: 12 }}>
               <button
                 onClick={() => deleteMutation.mutate(deleteConfirm)}
                 disabled={deleteMutation.isPending}
-                className="flex-1 px-4 py-2 bg-error-600 text-white text-sm font-medium rounded-md hover:bg-error-700 disabled:opacity-50 transition-colors"
+                className="btn btn-primary"
+                style={{ flex: 1, background: "var(--red)" }}
               >
                 {deleteMutation.isPending ? "Suppression…" : "Supprimer"}
               </button>
               <button
                 onClick={() => setDeleteConfirm(null)}
-                className="px-4 py-2 border border-slate-300 text-sm font-medium rounded-md text-slate-700 hover:bg-slate-50 transition-colors"
+                className="btn btn-ghost"
               >
                 Annuler
               </button>
             </div>
-          </div>
+          </Tile>
         </div>
       )}
 
@@ -649,20 +633,25 @@ export default function OffboardingPage() {
             className="absolute inset-0 bg-black/30"
             onClick={() => setStatusTarget(null)}
           />
-          <div className="relative bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm">
-            <h3 className="text-base font-semibold text-slate-900 mb-4">
+          <Tile
+            className="relative w-full max-w-sm"
+            style={{ boxShadow: "0 8px 40px rgba(0,0,0,0.18)" }}
+          >
+            <h3 className="h3" style={{ marginBottom: 16 }}>
               Modifier le statut
             </h3>
             <select
+              aria-label="Nouveau statut"
               value={newStatus}
               onChange={(e) => setNewStatus(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-200 mb-4"
+              className="input"
+              style={{ marginBottom: 16 }}
             >
               <option value="pending">En attente</option>
               <option value="in_progress">En cours</option>
               <option value="completed">Terminé</option>
             </select>
-            <div className="flex gap-3">
+            <div className="row" style={{ gap: 12 }}>
               <button
                 onClick={() =>
                   changeStatusMutation.mutate({
@@ -674,7 +663,8 @@ export default function OffboardingPage() {
                   changeStatusMutation.isPending ||
                   newStatus === statusTarget.current
                 }
-                className="flex-1 px-4 py-2 bg-primary-500 text-white text-sm font-medium rounded-md hover:bg-primary-600 disabled:opacity-50 transition-colors"
+                className="btn btn-primary"
+                style={{ flex: 1 }}
               >
                 {changeStatusMutation.isPending
                   ? "Enregistrement…"
@@ -682,12 +672,12 @@ export default function OffboardingPage() {
               </button>
               <button
                 onClick={() => setStatusTarget(null)}
-                className="px-4 py-2 border border-slate-300 text-sm font-medium rounded-md text-slate-700 hover:bg-slate-50 transition-colors"
+                className="btn btn-ghost"
               >
                 Annuler
               </button>
             </div>
-          </div>
+          </Tile>
         </div>
       )}
 

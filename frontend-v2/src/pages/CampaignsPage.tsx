@@ -12,22 +12,17 @@ import PageGuide from "../components/shared/PageGuide";
 import { exportToCsv } from "../utils/export";
 import { queryKeys } from "../lib/queryKeys";
 import { useTranslation } from "react-i18next";
+import { PageHead, Tile, Badge, Bar } from "../components/shell";
 
 const STATUS_TABS = ["all", "draft", "active", "closed", "archived"] as const;
 
-const STATUS_BADGE: Record<string, string> = {
-  draft: "bg-slate-100 text-slate-700",
-  active: "bg-success-50 text-success-700",
-  closed: "bg-warning-50 text-warning-700",
-  archived: "bg-slate-50 text-slate-500",
-};
-
-const STATUS_DOT: Record<string, string> = {
-  draft: "bg-slate-400",
-  active: "bg-success-500",
-  closed: "bg-warning-500",
-  archived: "bg-slate-300",
-};
+const STATUS_TONE: Record<string, "blue" | "green" | "amber" | "red" | "grey"> =
+  {
+    draft: "grey",
+    active: "green",
+    closed: "grey",
+    archived: "grey",
+  };
 
 function formatDateRange(start: string, end: string) {
   const s = new Date(start).toLocaleDateString("fr-FR", {
@@ -46,14 +41,9 @@ const cid = (c: Campaign): string => c.id ?? c._id ?? "";
 
 function StatusBadge({ status, label }: { status: string; label: string }) {
   return (
-    <span
-      className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_BADGE[status] ?? "bg-slate-100 text-slate-700"}`}
-    >
-      <span
-        className={`w-1.5 h-1.5 rounded-full ${STATUS_DOT[status] ?? "bg-slate-400"}`}
-      />
+    <Badge tone={STATUS_TONE[status] ?? "grey"} dot>
       {label}
-    </span>
+    </Badge>
   );
 }
 
@@ -97,33 +87,60 @@ function ActionMenu({
   const canDelete =
     campaign.status === "draft" || campaign.status === "archived";
 
+  const itemStyle: React.CSSProperties = {
+    display: "flex",
+    alignItems: "center",
+    width: "100%",
+    padding: "9px 14px",
+    fontSize: 14,
+    color: "var(--ink)",
+    textAlign: "left",
+    background: "none",
+    border: "none",
+    cursor: "pointer",
+  };
+
   return (
-    <div className="relative" ref={ref}>
+    <div style={{ position: "relative" }} ref={ref}>
       <button
         onClick={() => setOpen((v) => !v)}
         aria-label="Actions campagne"
-        className="p-1.5 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
+        className="btn btn-ghost btn-sm"
+        style={{ padding: 6 }}
       >
-        <MoreVertical className="w-4 h-4" />
+        <MoreVertical className="ico" style={{ width: 16, height: 16 }} />
       </button>
       {open && (
-        <div className="absolute right-0 top-8 z-20 bg-white rounded-lg shadow-lg border border-slate-100 w-44 py-1">
+        <div
+          style={{
+            position: "absolute",
+            right: 0,
+            top: 36,
+            zIndex: 20,
+            background: "#fff",
+            borderRadius: "var(--radius)",
+            border: "1px solid var(--line)",
+            boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+            width: 176,
+            padding: "6px 0",
+          }}
+        >
           <Link
             to={`/campaigns/${cid(campaign)}`}
-            className="flex items-center px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 w-full"
+            style={itemStyle}
             onClick={() => setOpen(false)}
           >
             {labels.view}
           </Link>
           <Link
             to={`/campaigns/${cid(campaign)}/edit`}
-            className="flex items-center px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 w-full"
+            style={itemStyle}
             onClick={() => setOpen(false)}
           >
             {labels.edit}
           </Link>
           <button
-            className="flex items-center px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 w-full"
+            style={itemStyle}
             onClick={() => {
               onClone(cid(campaign));
               setOpen(false);
@@ -133,7 +150,7 @@ function ActionMenu({
           </button>
           {canArchive && (
             <button
-              className="flex items-center px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 w-full"
+              style={itemStyle}
               onClick={() => {
                 onArchive(cid(campaign));
                 setOpen(false);
@@ -144,7 +161,7 @@ function ActionMenu({
           )}
           {canDelete && (
             <button
-              className="flex items-center px-3 py-2 text-sm text-error-600 hover:bg-error-50 w-full"
+              style={{ ...itemStyle, color: "var(--red)" }}
               onClick={() => {
                 onDelete(cid(campaign));
                 setOpen(false);
@@ -232,7 +249,7 @@ export default function CampaignsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="nx-app">
       <PageGuide
         id="campaigns"
         title="Comment créer une campagne d'évaluation ?"
@@ -244,238 +261,204 @@ export default function CampaignsPage() {
           "Activez la campagne — les évaluations sont générées automatiquement",
         ]}
       />
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <nav
-            aria-label="Fil d'ariane"
-            className="text-sm text-slate-500 mb-1"
-          >
-            {" "}
-            <Link to="/" className="hover:text-slate-700">
+
+      <PageHead
+        eyebrow={
+          <>
+            <Link to="/" className="link">
               {t("campaigns.home")}
-            </Link>
-            <span className="mx-1.5">›</span>
-            <span>{t("campaigns.title")}</span>
-          </nav>
-          <h1 className="text-2xl font-bold text-slate-900">
-            {t("campaigns.title")}
-          </h1>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleExport}
-            className="flex items-center gap-2 px-4 py-2 border border-slate-200 text-slate-700 rounded-md text-sm hover:bg-slate-50"
-          >
-            <Download size={16} /> {t("campaigns.export")}
-          </button>
-          {canManage && (
-            <Link
-              to="/campaigns/new"
-              data-testid="new-campaign-button"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-              {t("campaigns.new")}
-            </Link>
-          )}
-        </div>
-      </div>
-
-      {/* Card with filters + content */}
-      <div
-        data-testid="campaigns-list"
-        className="bg-white rounded-xl shadow-sm border border-slate-100"
-      >
-        {/* Status tabs */}
-        <div className="flex border-b border-slate-100 px-4 overflow-x-auto">
-          {STATUS_TABS.map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setStatusTab(tab)}
-              className={`px-4 py-3 text-sm whitespace-nowrap transition-colors ${
-                statusTab === tab
-                  ? "border-b-2 border-primary-500 text-primary-600 font-medium"
-                  : "text-slate-500 hover:text-slate-700 border-b-2 border-transparent"
-              }`}
-            >
-              {t(`campaigns.status.${tab}`)}
+            </Link>{" "}
+            › {t("campaigns.title")}
+          </>
+        }
+        title={t("campaigns.title")}
+        actions={
+          <>
+            <button onClick={handleExport} className="btn btn-ghost">
+              <Download className="ico" style={{ width: 18, height: 18 }} />{" "}
+              {t("campaigns.export")}
             </button>
-          ))}
-        </div>
+            {canManage && (
+              <Link
+                to="/campaigns/new"
+                data-testid="new-campaign-button"
+                className="btn btn-primary"
+              >
+                <Plus className="ico" style={{ width: 18, height: 18 }} />{" "}
+                {t("campaigns.new")}
+              </Link>
+            )}
+          </>
+        }
+      />
 
-        {/* Search bar */}
-        <div className="p-4 border-b border-slate-50">
-          <div className="flex items-center gap-2">
-            <div className="relative max-w-xs">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+      <div data-testid="campaigns-list">
+        <Tile style={{ padding: 0, overflow: "hidden" }}>
+          {/* Status tabs */}
+          <div
+            className="row"
+            style={{
+              gap: 0,
+              borderBottom: "1px solid var(--line)",
+              padding: "0 16px",
+              overflowX: "auto",
+            }}
+          >
+            {STATUS_TABS.map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setStatusTab(tab)}
+                className="small"
+                style={{
+                  padding: "12px 16px",
+                  whiteSpace: "nowrap",
+                  background: "none",
+                  border: "none",
+                  borderBottom:
+                    statusTab === tab
+                      ? "2px solid var(--blue)"
+                      : "2px solid transparent",
+                  color: statusTab === tab ? "var(--blue)" : "var(--ink-3)",
+                  fontWeight: statusTab === tab ? 700 : 500,
+                  cursor: "pointer",
+                }}
+              >
+                {t(`campaigns.status.${tab}`)}
+              </button>
+            ))}
+          </div>
+
+          {/* Search bar */}
+          <div
+            style={{ padding: 16, borderBottom: "1px solid var(--line)" }}
+            className="row"
+          >
+            <div style={{ position: "relative", maxWidth: 320, flex: 1 }}>
+              <Search
+                className="ico"
+                style={{
+                  position: "absolute",
+                  left: 12,
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  width: 16,
+                  height: 16,
+                  color: "var(--ink-3)",
+                }}
+              />
               <input
                 type="text"
+                aria-label={t("campaigns.search")}
                 placeholder={t("campaigns.search")}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                className="input"
+                style={{ paddingLeft: 36 }}
               />
             </div>
-            {isSearching && <span className="text-xs text-slate-500">…</span>}
+            {isSearching && (
+              <span className="small" style={{ marginLeft: 8 }}>
+                …
+              </span>
+            )}
           </div>
-        </div>
 
-        {/* Content */}
-        {isLoading ? (
-          <div className="p-10 text-center text-slate-600 text-sm">
-            {t("campaigns.loading")}
-          </div>
-        ) : isEmpty ? (
-          <EmptyState
-            icon={<BarChart2 className="w-8 h-8" />}
-            title={t("campaigns.empty")}
-            description={t("campaigns.emptyDescription")}
-            action={
-              canManage
-                ? {
-                    label: t("campaigns.createFirst"),
-                    onClick: () => window.location.assign("/campaigns/new"),
-                  }
-                : undefined
-            }
-          />
-        ) : (
-          <>
-            {/* Desktop table */}
-            <div className="hidden md:block overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-xs text-slate-500 font-medium uppercase tracking-wide border-b border-slate-100">
-                    <th className="px-4 py-3 text-left">
-                      {t("campaigns.columns.name")}
-                    </th>
-                    <th className="px-4 py-3 text-left">
-                      {t("campaigns.columns.status")}
-                    </th>
-                    <th className="px-4 py-3 text-left">
-                      {t("campaigns.columns.period")}
-                    </th>
-                    <th className="px-4 py-3 text-left w-44">
-                      {t("campaigns.columns.progress")}
-                    </th>
-                    <th className="px-4 py-3 w-12" />
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-50">
-                  {campaigns.map((campaign) => {
-                    const progress = campaign.completionPct ?? 0;
-                    return (
-                      <tr key={cid(campaign)}>
-                        <td className="px-4 py-3">
-                          <Link
-                            to={`/campaigns/${cid(campaign)}`}
-                            className="font-medium text-slate-900 hover:text-primary-600 transition-colors"
-                          >
-                            {campaign.name}
-                          </Link>
-                          {campaign.description && (
-                            <p className="text-xs text-slate-500 truncate max-w-xs mt-0.5">
-                              {campaign.description}
-                            </p>
-                          )}
-                        </td>
-                        <td className="px-4 py-3">
-                          <StatusBadge
-                            status={campaign.status}
-                            label={t(`campaigns.status.${campaign.status}`)}
-                          />
-                        </td>
-                        <td className="px-4 py-3 text-slate-600">
-                          {formatDateRange(
-                            campaign.startDate,
-                            campaign.endDate,
-                          )}
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-2">
-                            <div className="flex-1 bg-slate-100 rounded-full h-1.5">
-                              <div
-                                className="bg-primary-500 h-1.5 rounded-full transition-all"
-                                style={{ width: `${progress}%` }}
-                              />
-                            </div>
-                            <span className="text-xs text-slate-500 w-8 text-right">
-                              {progress}%
-                            </span>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 text-right">
-                          <ActionMenu
-                            campaign={campaign}
-                            canManage={canManage}
-                            onClone={(id) => cloneMutation.mutate(id)}
-                            onArchive={(id) => archiveMutation.mutate(id)}
-                            onDelete={(id) => deleteMutation.mutate(id)}
-                            labels={actionLabels}
-                          />
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+          {/* Content */}
+          {isLoading ? (
+            <div className="small" style={{ padding: 40, textAlign: "center" }}>
+              {t("campaigns.loading")}
             </div>
-
-            {/* Mobile cards */}
-            <div className="md:hidden divide-y divide-slate-100">
+          ) : isEmpty ? (
+            <EmptyState
+              icon={<BarChart2 className="w-8 h-8" />}
+              title={t("campaigns.empty")}
+              description={t("campaigns.emptyDescription")}
+              action={
+                canManage
+                  ? {
+                      label: t("campaigns.createFirst"),
+                      onClick: () => window.location.assign("/campaigns/new"),
+                    }
+                  : undefined
+              }
+            />
+          ) : (
+            <>
+              <div
+                className="tbl-head"
+                style={{
+                  gridTemplateColumns: "2fr 1fr 1.2fr 1.4fr 48px",
+                }}
+              >
+                <div>{t("campaigns.columns.name")}</div>
+                <div>{t("campaigns.columns.status")}</div>
+                <div>{t("campaigns.columns.period")}</div>
+                <div>{t("campaigns.columns.progress")}</div>
+                <div />
+              </div>
               {campaigns.map((campaign) => {
                 const progress = campaign.completionPct ?? 0;
                 return (
                   <div
                     key={cid(campaign)}
-                    className="flex items-center justify-between p-4"
+                    className="tbl-row"
+                    style={{
+                      gridTemplateColumns: "2fr 1fr 1.2fr 1.4fr 48px",
+                    }}
                   >
-                    <div className="flex-1 min-w-0">
+                    <div style={{ minWidth: 0 }}>
                       <Link
                         to={`/campaigns/${cid(campaign)}`}
-                        className="font-medium text-slate-900 hover:text-primary-600 block mb-1"
+                        className="link"
+                        style={{ fontWeight: 600 }}
                       >
                         {campaign.name}
                       </Link>
-                      <div className="flex items-center gap-2 mb-2">
-                        <StatusBadge
-                          status={campaign.status}
-                          label={t(`campaigns.status.${campaign.status}`)}
-                        />
-                        <span className="text-xs text-slate-500">
-                          {formatDateRange(
-                            campaign.startDate,
-                            campaign.endDate,
-                          )}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="flex-1 bg-slate-100 rounded-full h-1.5">
-                          <div
-                            className="bg-primary-500 h-1.5 rounded-full"
-                            style={{ width: `${progress}%` }}
-                          />
-                        </div>
-                        <span className="text-xs text-slate-500">
-                          {progress}%
-                        </span>
-                      </div>
+                      {campaign.description && (
+                        <p className="small truncate" style={{ marginTop: 2 }}>
+                          {campaign.description}
+                        </p>
+                      )}
                     </div>
-                    <ActionMenu
-                      campaign={campaign}
-                      canManage={canManage}
-                      onClone={(id) => cloneMutation.mutate(id)}
-                      onArchive={(id) => archiveMutation.mutate(id)}
-                      onDelete={(id) => deleteMutation.mutate(id)}
-                      labels={actionLabels}
-                    />
+                    <div>
+                      <StatusBadge
+                        status={campaign.status}
+                        label={t(`campaigns.status.${campaign.status}`)}
+                      />
+                    </div>
+                    <div className="small">
+                      {formatDateRange(campaign.startDate, campaign.endDate)}
+                    </div>
+                    <div
+                      className="row"
+                      style={{ gap: 8, alignItems: "center" }}
+                    >
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <Bar pct={progress} tone="var(--blue)" height={6} />
+                      </div>
+                      <span
+                        className="small"
+                        style={{ width: 36, textAlign: "right" }}
+                      >
+                        {progress}%
+                      </span>
+                    </div>
+                    <div style={{ textAlign: "right" }}>
+                      <ActionMenu
+                        campaign={campaign}
+                        canManage={canManage}
+                        onClone={(id) => cloneMutation.mutate(id)}
+                        onArchive={(id) => archiveMutation.mutate(id)}
+                        onDelete={(id) => deleteMutation.mutate(id)}
+                        labels={actionLabels}
+                      />
+                    </div>
                   </div>
                 );
               })}
-            </div>
-          </>
-        )}
+            </>
+          )}
+        </Tile>
       </div>
     </div>
   );

@@ -1,0 +1,649 @@
+/* ============================================================
+   NX-RH — Style "institutionnel" du shell authentifié + dashboards.
+   Scopé sous `.nx-app` pour ne pas impacter les pages non migrées
+   (qui restent en Tailwind). Repris de design/styles.css.
+   ============================================================ */
+
+@import url("https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap");
+
+.nx-app {
+  --blue: #1b1b78;
+  --blue-hover: #15155f;
+  --blue-active: #101049;
+  --blue-text: #1b1b78;
+  --blue-soft: #ececfb;
+  --blue-soft-2: #e0e0f6;
+
+  --red: #d1001f;
+  --red-soft: #fce8ea;
+
+  --ink: #16161d;
+  --ink-2: #3a3a44;
+  --ink-3: #6a6a76;
+
+  --line: #dddde2;
+  --line-strong: #929299;
+  --bg: #ffffff;
+  --bg-alt: #f5f5f9;
+  --bg-alt-2: #ececf1;
+  --fill: #eeeef2;
+  --fill-hover: #e6e6ec;
+
+  --green: #18753c;
+  --green-soft: #e3f3e9;
+  --amber: #b34000;
+  --amber-soft: #fbe9da;
+
+  --focus: #0a76f6;
+
+  --radius: 6px;
+  --radius-lg: 10px;
+
+  --shadow-sm: 0 1px 2px rgba(22, 22, 29, 0.06);
+  --shadow: 0 2px 6px rgba(22, 22, 29, 0.08);
+  --shadow-lg: 0 18px 40px -18px rgba(22, 22, 40, 0.28);
+
+  --maxw: 1180px;
+  --header-h: 84px;
+
+  --font:
+    "Public Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    sans-serif;
+
+  font-family: var(--font);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.nx-app :focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.nx-app h1,
+.nx-app h2,
+.nx-app h3,
+.nx-app h4,
+.nx-app p {
+  margin: 0;
+}
+.nx-app a {
+  color: var(--blue-text);
+  text-decoration: none;
+}
+
+/* ===================== TYPO ===================== */
+.nx-app .eyebrow {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--blue-text);
+  line-height: 1.45;
+}
+.nx-app .h1 {
+  font-size: clamp(26px, 3vw, 34px);
+  font-weight: 800;
+  letter-spacing: -0.018em;
+  line-height: 1.12;
+  color: var(--ink);
+}
+.nx-app .h2 {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  color: var(--ink);
+}
+.nx-app .h3 {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--ink);
+}
+.nx-app .body {
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+.nx-app .small {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink-3);
+}
+.nx-app .link {
+  color: var(--blue-text);
+  font-weight: 600;
+}
+.nx-app .link:hover {
+  text-decoration: underline;
+}
+.nx-app .muted {
+  color: var(--ink-3);
+}
+
+/* ===================== BOUTONS ===================== */
+.nx-app .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1;
+  padding: 13px 22px;
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition:
+    background 0.12s,
+    border-color 0.12s,
+    color 0.12s,
+    box-shadow 0.12s;
+  white-space: nowrap;
+}
+.nx-app .btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.nx-app .btn-primary {
+  background: var(--blue);
+  color: #fff;
+}
+.nx-app .btn-primary:hover:not(:disabled) {
+  background: var(--blue-hover);
+}
+.nx-app .btn-secondary {
+  background: #fff;
+  color: var(--blue-text);
+  border-color: var(--blue);
+}
+.nx-app .btn-secondary:hover:not(:disabled) {
+  background: var(--blue-soft);
+}
+.nx-app .btn-ghost {
+  background: transparent;
+  color: var(--ink-2);
+  border-color: var(--line);
+}
+.nx-app .btn-ghost:hover:not(:disabled) {
+  background: var(--bg-alt);
+}
+.nx-app .btn-lg {
+  padding: 16px 26px;
+  font-size: 17px;
+}
+.nx-app .btn-sm {
+  padding: 9px 15px;
+  font-size: 14px;
+}
+.nx-app .btn-block {
+  width: 100%;
+}
+.nx-app .btn .ico {
+  width: 18px;
+  height: 18px;
+}
+
+/* ===================== CARTES ===================== */
+.nx-app .card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+}
+.nx-app .tile {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  transition:
+    box-shadow 0.15s,
+    transform 0.15s,
+    border-color 0.15s;
+}
+.nx-app .tile-link {
+  cursor: pointer;
+  color: inherit;
+  display: block;
+}
+.nx-app .tile-link:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+  border-color: var(--blue-soft-2);
+}
+.nx-app .callout {
+  background: var(--blue-soft);
+  border-left: 4px solid var(--blue);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 20px 22px;
+}
+.nx-app .callout.amber {
+  background: var(--amber-soft);
+  border-color: var(--amber);
+}
+.nx-app .callout.green {
+  background: var(--green-soft);
+  border-color: var(--green);
+}
+.nx-app .callout.red {
+  background: var(--red-soft);
+  border-color: var(--red);
+}
+
+/* ===================== BADGES ===================== */
+.nx-app .badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 5px 11px;
+  border-radius: 999px;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+.nx-app .badge.blue {
+  background: var(--blue-soft);
+  color: var(--blue-text);
+}
+.nx-app .badge.green {
+  background: var(--green-soft);
+  color: var(--green);
+}
+.nx-app .badge.amber {
+  background: var(--amber-soft);
+  color: var(--amber);
+}
+.nx-app .badge.red {
+  background: var(--red-soft);
+  color: var(--red);
+}
+.nx-app .badge.grey {
+  background: var(--bg-alt-2);
+  color: var(--ink-2);
+}
+.nx-app .badge .dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* ===================== HEADER ===================== */
+.nx-app .app-header {
+  background: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  box-shadow: var(--shadow-sm);
+}
+.nx-app .inner {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 0 28px;
+  width: 100%;
+}
+.nx-app .topbar-main {
+  border-bottom: 1px solid var(--line);
+}
+.nx-app .topbar-main .inner {
+  position: relative;
+  height: var(--header-h);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+.nx-app .nx-logo-wrap img {
+  height: 26px;
+  width: auto;
+  display: block;
+}
+.nx-app .topbar-center {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+}
+.nx-app .perspective-switch {
+  display: flex;
+  gap: 4px;
+  background: var(--bg-alt);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 4px;
+}
+.nx-app .perspective-switch button {
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-2);
+  padding: 8px 22px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition:
+    background 0.12s,
+    color 0.12s;
+  white-space: nowrap;
+}
+.nx-app .perspective-switch button:hover {
+  color: var(--ink);
+}
+.nx-app .perspective-switch button.on {
+  background: #fff;
+  color: var(--blue-text);
+  box-shadow: var(--shadow-sm);
+}
+.nx-app .header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: none;
+}
+.nx-app .icon-btn {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: #fff;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  color: var(--ink-2);
+  transition: background 0.12s;
+}
+.nx-app .icon-btn:hover {
+  background: var(--bg-alt);
+}
+.nx-app .user-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px 6px 6px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  cursor: pointer;
+  background: #fff;
+  white-space: nowrap;
+}
+.nx-app .user-chip:hover {
+  background: var(--bg-alt);
+}
+.nx-app .avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--blue);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 14px;
+  flex: none;
+}
+
+/* Sous-nav */
+.nx-app .subnav {
+  background: #fff;
+  border-bottom: 1px solid var(--line);
+}
+.nx-app .subnav .inner {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 44px;
+  overflow-x: auto;
+}
+.nx-app .subnav a,
+.nx-app .subnav button.subnav-link {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-2);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  position: relative;
+  white-space: nowrap;
+  transition:
+    background 0.12s,
+    color 0.12s;
+}
+.nx-app .subnav a:hover,
+.nx-app .subnav button.subnav-link:hover {
+  background: var(--bg-alt);
+  color: var(--ink);
+}
+.nx-app .subnav a.active {
+  color: var(--blue-text);
+}
+.nx-app .subnav a.active::after {
+  content: "";
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: -1px;
+  height: 2px;
+  background: var(--blue);
+  border-radius: 2px;
+}
+
+/* Menus pop */
+.nx-app .menu-pop {
+  position: absolute;
+  top: calc(100% + 10px);
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: 8px;
+  z-index: 60;
+}
+.nx-app .menu-head {
+  padding: 8px 10px;
+  font-weight: 800;
+  font-size: 14px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 4px;
+  color: var(--ink);
+}
+.nx-app .menu-group {
+  padding: 8px 10px 2px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.nx-app .menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-2);
+  cursor: pointer;
+  text-decoration: none;
+}
+.nx-app .menu-item:hover {
+  background: var(--bg-alt);
+}
+.nx-app .menu-item.danger {
+  color: var(--red);
+}
+.nx-app .divider-h {
+  height: 1px;
+  background: var(--line);
+  border: none;
+  margin: 6px 8px;
+}
+
+/* ===================== LAYOUT ===================== */
+.nx-app .page {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 28px 28px 80px;
+}
+.nx-app .page-head {
+  margin-bottom: 26px;
+}
+.nx-app .section-gap {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+/* ===================== STATTILE / BAR ===================== */
+.nx-app .stat-tile {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+}
+.nx-app .stat-value {
+  font-size: 30px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--ink);
+}
+.nx-app .stat-label {
+  font-size: 14px;
+  color: var(--ink-3);
+  margin-top: 6px;
+}
+.nx-app .stat-sub {
+  font-size: 14px;
+  font-weight: 700;
+  margin-top: 4px;
+  color: var(--blue-text);
+}
+.nx-app .track {
+  height: 8px;
+  background: var(--bg-alt-2);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.nx-app .track > i {
+  display: block;
+  height: 100%;
+  background: var(--blue);
+  border-radius: 999px;
+}
+
+/* ===================== UTILS ===================== */
+.nx-app .row {
+  display: flex;
+  align-items: center;
+}
+.nx-app .between {
+  justify-content: space-between;
+}
+.nx-app .wrap {
+  flex-wrap: wrap;
+}
+.nx-app .nxgap-12 {
+  gap: 12px;
+}
+
+/* ===================== TABLES EN GRILLE ===================== */
+/* Tables institutionnelles : utiliser une grille CSS, gridTemplateColumns en
+   style inline sur .tbl-head et chaque .tbl-row pour aligner les colonnes. */
+.nx-app .tbl-head {
+  display: grid;
+  gap: 16px;
+  align-items: center;
+  padding: 13px 22px;
+  background: var(--bg-alt);
+  border-bottom: 1px solid var(--line);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.nx-app .tbl-row {
+  display: grid;
+  gap: 16px;
+  align-items: center;
+  padding: 15px 22px;
+  border-top: 1px solid var(--line);
+}
+.nx-app .tbl-head + .tbl-row {
+  border-top: none;
+}
+.nx-app .tbl-row:hover {
+  background: var(--bg-alt);
+}
+
+/* ===================== CHAMPS DE FORMULAIRE ===================== */
+.nx-app .field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.nx-app .field > label {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.nx-app .field .hint {
+  font-size: 13px;
+  color: var(--ink-3);
+  margin-top: -2px;
+}
+.nx-app .field-error {
+  font-size: 13px;
+  color: var(--red);
+  font-weight: 600;
+}
+.nx-app .input,
+.nx-app select.input,
+.nx-app textarea.input {
+  width: 100%;
+  font-size: 16px;
+  color: var(--ink);
+  background: var(--fill);
+  border: 1px solid var(--line);
+  border-bottom: 2px solid var(--line-strong);
+  border-radius: var(--radius);
+  padding: 11px 14px;
+  transition:
+    background 0.12s,
+    border-color 0.12s;
+}
+.nx-app .input::placeholder {
+  color: var(--ink-3);
+}
+.nx-app .input:hover {
+  background: var(--fill-hover);
+}
+.nx-app .input:focus {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  background: #fff;
+}
+.nx-app .input.is-invalid {
+  border-color: var(--red);
+}
+.nx-app textarea.input {
+  resize: vertical;
+  min-height: 96px;
+  line-height: 1.55;
+}
+
+/* ===================== RESPONSIVE ===================== */
+@media (max-width: 880px) {
+  .nx-app .topbar-center {
+    display: none;
+  }
+}

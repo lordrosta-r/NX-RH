@@ -28,23 +28,38 @@ export function UsersFilterBar({
   onReset,
 }: Props) {
   return (
-    <div className="flex items-center gap-3 mb-4 flex-wrap">
-      <div className="relative w-full sm:w-64">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+    <div className="row wrap" style={{ gap: 12, marginBottom: 16 }}>
+      <div style={{ position: "relative", width: 256 }}>
+        <Search
+          className="ico"
+          style={{
+            position: "absolute",
+            left: 12,
+            top: "50%",
+            transform: "translateY(-50%)",
+            width: 16,
+            height: 16,
+            color: "var(--ink-3)",
+          }}
+        />
         <input
           type="text"
           data-testid="users-search"
+          aria-label="Rechercher un utilisateur"
           placeholder="Rechercher..."
           value={searchInput}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="pl-10 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white w-full outline-none"
+          className="input"
+          style={{ paddingLeft: 36 }}
         />
       </div>
 
       <select
         value={roleFilter}
         onChange={(e) => onRoleChange(e.target.value)}
-        className="border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-primary-500 outline-none"
+        aria-label="Filtrer par rôle"
+        className="input"
+        style={{ width: "auto" }}
       >
         <option value="">Tous les rôles</option>
         <option value="admin">Admin</option>
@@ -56,7 +71,9 @@ export function UsersFilterBar({
       <select
         value={deptFilter}
         onChange={(e) => onDeptChange(e.target.value)}
-        className="border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-primary-500 outline-none"
+        aria-label="Filtrer par département"
+        className="input"
+        style={{ width: "auto" }}
       >
         <option value="">Tous les départements</option>
         {departments.map((d) => (
@@ -69,7 +86,9 @@ export function UsersFilterBar({
       <select
         value={statusFilter}
         onChange={(e) => onStatusChange(e.target.value)}
-        className="border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-primary-500 outline-none"
+        aria-label="Filtrer par statut"
+        className="input"
+        style={{ width: "auto" }}
       >
         <option value="">Tous les statuts</option>
         <option value="active">Actif</option>
@@ -77,11 +96,8 @@ export function UsersFilterBar({
       </select>
 
       {hasFilters && (
-        <button
-          onClick={onReset}
-          className="inline-flex items-center gap-1.5 px-3 py-2 text-sm text-slate-500 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors bg-white"
-        >
-          <X className="w-3.5 h-3.5" />
+        <button onClick={onReset} className="btn btn-ghost btn-sm">
+          <X className="ico" style={{ width: 16, height: 16 }} />
           Réinitialiser
         </button>
       )}

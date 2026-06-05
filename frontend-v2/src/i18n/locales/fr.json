@@ -36,7 +36,18 @@
     "search": "Rechercher",
     "openMenu": "Ouvrir le menu",
     "closeMenu": "Fermer le menu",
-    "language": "Langue"
+    "language": "Langue",
+    "more": "Plus",
+    "perspectiveMe": "Mon espace",
+    "perspectiveRh": "Pilotage RH",
+    "changeSpace": "Changer d'espace",
+    "monParcours": "Mon parcours",
+    "mailTemplates": "Modèles d'e-mail",
+    "ldap": "Annuaire LDAP",
+    "systemConfig": "Configuration système",
+    "mailConfig": "Configuration e-mail",
+    "systemStatus": "État du système",
+    "setupWizard": "Assistant de configuration"
   },
   "common": {
     "save": "Enregistrer",

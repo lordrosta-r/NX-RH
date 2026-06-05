@@ -10,12 +10,15 @@ import {
 import EmptyState from "../ui/EmptyState";
 import type { User } from "../../types";
 
-const ROLE_BADGES: Record<string, string> = {
-  admin: "bg-error-50 text-error-700",
-  hr: "bg-warning-50 text-warning-700",
-  manager: "bg-primary-50 text-primary-700",
-  employee: "bg-slate-100 text-slate-700",
-};
+const GRID_COLS = "40px 2fr 1fr 1fr 1fr 1fr 48px";
+
+const ROLE_TONES: Record<string, "blue" | "green" | "amber" | "red" | "grey"> =
+  {
+    admin: "red",
+    hr: "amber",
+    manager: "blue",
+    employee: "grey",
+  };
 
 const ROLE_LABELS: Record<string, string> = {
   admin: "Admin",
@@ -24,6 +27,14 @@ const ROLE_LABELS: Record<string, string> = {
   employee: "Collaborateur",
 };
 
+function RoleBadge({ role }: { role: string }) {
+  return (
+    <span className={`badge ${ROLE_TONES[role] ?? "grey"}`}>
+      {ROLE_LABELS[role] ?? role}
+    </span>
+  );
+}
+
 function StatusBadge({
   isActive,
   offboarding,
@@ -31,33 +42,21 @@ function StatusBadge({
   isActive: boolean;
   offboarding?: boolean;
 }) {
-  if (offboarding)
-    return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-warning-50 text-warning-700">
-        Offboarding
-      </span>
-    );
+  if (offboarding) return <span className="badge amber">Offboarding</span>;
   if (isActive)
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-success-50 text-success-700">
-        ● Actif
+      <span className="badge green">
+        <span className="dot" />
+        Actif
       </span>
     );
-  return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-500">
-      Inactif
-    </span>
-  );
+  return <span className="badge grey">Inactif</span>;
 }
 
 function Avatar({ user }: { user: User }) {
   const initials =
     `${user.firstName?.[0] ?? ""}${user.lastName?.[0] ?? ""}`.toUpperCase();
-  return (
-    <div className="w-9 h-9 rounded-full bg-primary-100 text-primary-700 text-xs font-semibold flex items-center justify-center flex-shrink-0">
-      {initials}
-    </div>
-  );
+  return <div className="avatar">{initials}</div>;
 }
 
 function RelativeDate({ date }: { date?: string }) {
@@ -75,7 +74,7 @@ function RelativeDate({ date }: { date?: string }) {
     if (minutes >= 1) return `il y a ${minutes}min`;
     return "à l'instant";
   }, [date]);
-  return <span className="text-xs text-slate-500">{label ?? "—"}</span>;
+  return <span className="small">{label ?? "—"}</span>;
 }
 
 function ActionMenu({
@@ -104,20 +103,47 @@ function ActionMenu({
   const canEdit = currentRole === "admin" || currentRole === "hr";
   const canAnonymize = currentRole === "admin";
 
+  const itemStyle: React.CSSProperties = {
+    display: "flex",
+    alignItems: "center",
+    width: "100%",
+    padding: "9px 14px",
+    fontSize: 14,
+    color: "var(--ink)",
+    textAlign: "left",
+    background: "none",
+    border: "none",
+    cursor: "pointer",
+  };
+
   return (
-    <div className="relative" ref={ref}>
+    <div style={{ position: "relative" }} ref={ref}>
       <button
         onClick={() => setOpen((v) => !v)}
         aria-label="Actions utilisateur"
-        className="p-1.5 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
+        className="btn btn-ghost btn-sm"
+        style={{ padding: 6 }}
       >
-        <MoreVertical className="w-4 h-4" />
+        <MoreVertical className="ico" style={{ width: 16, height: 16 }} />
       </button>
       {open && (
-        <div className="absolute right-0 top-8 z-20 bg-white rounded-lg shadow-lg border border-slate-100 w-44 py-1">
+        <div
+          style={{
+            position: "absolute",
+            right: 0,
+            top: 36,
+            zIndex: 20,
+            background: "#fff",
+            borderRadius: "var(--radius)",
+            border: "1px solid var(--line)",
+            boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+            width: 176,
+            padding: "6px 0",
+          }}
+        >
           <Link
             to={`/users/${u.id}`}
-            className="flex items-center px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 w-full"
+            style={itemStyle}
             onClick={() => setOpen(false)}
           >
             Voir le profil
@@ -125,7 +151,7 @@ function ActionMenu({
           {canEdit && (
             <Link
               to={`/users/${u.id}/edit`}
-              className="flex items-center px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 w-full"
+              style={itemStyle}
               onClick={() => setOpen(false)}
             >
               Modifier
@@ -133,7 +159,7 @@ function ActionMenu({
           )}
           {canEdit && (
             <button
-              className="flex items-center px-3 py-2 text-sm text-warning-700 hover:bg-warning-50 w-full text-left"
+              style={{ ...itemStyle, color: "var(--amber)" }}
               onClick={() => {
                 setOpen(false);
                 onOffboard(u.id);
@@ -144,7 +170,7 @@ function ActionMenu({
           )}
           {canAnonymize && (
             <button
-              className="flex items-center px-3 py-2 text-sm text-error-700 hover:bg-error-50 w-full text-left"
+              style={{ ...itemStyle, color: "var(--red)" }}
               onClick={() => {
                 setOpen(false);
                 onAnonymize(u);
@@ -163,32 +189,79 @@ function SkeletonRows() {
   return (
     <>
       {Array.from({ length: 5 }).map((_, i) => (
-        <tr key={i} className="border-b border-slate-50">
-          <td className="px-4 py-4">
-            <div className="w-4 h-4 bg-slate-200 rounded animate-pulse" />
-          </td>
-          <td className="px-6 py-4">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-full bg-slate-200 animate-pulse" />
-              <div className="h-4 bg-slate-200 rounded w-32 animate-pulse" />
-            </div>
-          </td>
-          <td className="px-6 py-4">
-            <div className="h-5 bg-slate-200 rounded-full w-20 animate-pulse" />
-          </td>
-          <td className="px-6 py-4">
-            <div className="h-4 bg-slate-200 rounded w-24 animate-pulse" />
-          </td>
-          <td className="px-6 py-4">
-            <div className="h-5 bg-slate-200 rounded-full w-16 animate-pulse" />
-          </td>
-          <td className="px-6 py-4">
-            <div className="h-4 bg-slate-200 rounded w-20 animate-pulse" />
-          </td>
-          <td className="px-6 py-4">
-            <div className="h-4 bg-slate-200 rounded w-6 animate-pulse" />
-          </td>
-        </tr>
+        <div
+          key={i}
+          className="tbl-row"
+          style={{ gridTemplateColumns: GRID_COLS }}
+        >
+          <div
+            style={{
+              width: 16,
+              height: 16,
+              borderRadius: 4,
+              background: "var(--bg-alt-2)",
+            }}
+          />
+          <div className="row" style={{ gap: 12 }}>
+            <div
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: "50%",
+                background: "var(--bg-alt-2)",
+                flex: "none",
+              }}
+            />
+            <div
+              style={{
+                height: 14,
+                width: 128,
+                borderRadius: 4,
+                background: "var(--bg-alt-2)",
+              }}
+            />
+          </div>
+          <div
+            style={{
+              height: 18,
+              width: 80,
+              borderRadius: 999,
+              background: "var(--bg-alt-2)",
+            }}
+          />
+          <div
+            style={{
+              height: 14,
+              width: 96,
+              borderRadius: 4,
+              background: "var(--bg-alt-2)",
+            }}
+          />
+          <div
+            style={{
+              height: 18,
+              width: 64,
+              borderRadius: 999,
+              background: "var(--bg-alt-2)",
+            }}
+          />
+          <div
+            style={{
+              height: 14,
+              width: 80,
+              borderRadius: 4,
+              background: "var(--bg-alt-2)",
+            }}
+          />
+          <div
+            style={{
+              height: 14,
+              width: 24,
+              borderRadius: 4,
+              background: "var(--bg-alt-2)",
+            }}
+          />
+        </div>
       ))}
     </>
   );
@@ -238,150 +311,112 @@ export function UsersTable({
     <>
       <div
         data-testid="users-table"
-        className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden"
+        className="tile"
+        style={{ padding: 0, overflow: "hidden" }}
       >
-        <div className="overflow-x-auto hidden sm:block">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-slate-50">
-                <th className="px-4 py-3 w-10">
-                  <input
-                    type="checkbox"
-                    checked={allSelected}
-                    onChange={onToggleSelectAll}
-                    className="rounded border-slate-300 text-primary-500 focus:ring-primary-500"
-                    aria-label="Tout sélectionner"
-                  />
-                </th>
-                <th className="text-left text-xs font-medium text-slate-500 uppercase tracking-wider px-6 py-3">
-                  Nom
-                </th>
-                <th className="text-left text-xs font-medium text-slate-500 uppercase tracking-wider px-6 py-3">
-                  Rôle
-                </th>
-                <th className="text-left text-xs font-medium text-slate-500 uppercase tracking-wider px-6 py-3">
-                  Département
-                </th>
-                <th className="text-left text-xs font-medium text-slate-500 uppercase tracking-wider px-6 py-3">
-                  Statut
-                </th>
-                <th className="text-left text-xs font-medium text-slate-500 uppercase tracking-wider px-6 py-3">
-                  Dernière connexion
-                </th>
-                <th className="px-6 py-3" />
-              </tr>
-            </thead>
-            <tbody>
-              {isLoading ? (
-                <SkeletonRows />
-              ) : users.length === 0 ? (
-                <tr>
-                  <td colSpan={7}>
-                    <EmptyState
-                      icon={<Users className="w-8 h-8" />}
-                      title="Aucun collaborateur trouvé"
-                      description="Aucun utilisateur ne correspond à vos critères de recherche."
-                      action={
-                        currentRole === "admin" || currentRole === "hr"
-                          ? {
-                              label: "Créer le premier collaborateur",
-                              onClick: () =>
-                                window.location.assign("/users/new"),
-                            }
-                          : undefined
-                      }
-                    />
-                  </td>
-                </tr>
-              ) : (
-                users.map((u) => (
-                  <tr
-                    key={u.id ?? u.email}
-                    className="hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0"
-                  >
-                    <td className="px-4 py-4">
-                      <input
-                        type="checkbox"
-                        checked={selected.has(u.id ?? "")}
-                        onChange={() => onToggleSelect(u.id ?? "")}
-                        className="rounded border-slate-300 text-primary-500 focus:ring-primary-500"
-                        aria-label={`Sélectionner ${u.firstName} ${u.lastName}`}
-                      />
-                    </td>
-                    <td className="px-6 py-4">
-                      <Link
-                        to={`/users/${u.id}`}
-                        className="flex items-center gap-3 group"
-                      >
-                        <Avatar user={u} />
-                        <div>
-                          <p className="text-sm font-medium text-slate-900 group-hover:text-primary-600 transition-colors">
-                            {u.firstName} {u.lastName}
-                          </p>
-                          <p className="text-xs text-slate-500">{u.email}</p>
-                        </div>
-                      </Link>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${ROLE_BADGES[u.role] ?? "bg-slate-100 text-slate-700"}`}
-                      >
-                        {ROLE_LABELS[u.role] ?? u.role}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-slate-600">
-                      {u.department ?? "—"}
-                    </td>
-                    <td className="px-6 py-4">
-                      <StatusBadge
-                        isActive={u.isActive}
-                        offboarding={u.offboardingStatus === "in_progress"}
-                      />
-                    </td>
-                    <td className="px-6 py-4">
-                      <RelativeDate date={u.updatedAt} />
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <ActionMenu
-                        user={u}
-                        currentRole={currentRole}
-                        onOffboard={onOffboard}
-                        onAnonymize={onAnonymize}
-                      />
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Mobile cards */}
-        {!isLoading && users.length > 0 && (
-          <div className="sm:hidden divide-y divide-slate-100">
+        {isLoading ? (
+          <>
+            <div
+              className="tbl-head"
+              style={{ gridTemplateColumns: GRID_COLS }}
+            >
+              <div>
+                <input
+                  type="checkbox"
+                  checked={allSelected}
+                  onChange={onToggleSelectAll}
+                  aria-label="Tout sélectionner"
+                />
+              </div>
+              <div>Nom</div>
+              <div>Rôle</div>
+              <div>Département</div>
+              <div>Statut</div>
+              <div>Dernière connexion</div>
+              <div />
+            </div>
+            <SkeletonRows />
+          </>
+        ) : users.length === 0 ? (
+          <div style={{ padding: 24 }}>
+            <EmptyState
+              icon={<Users className="w-8 h-8" />}
+              title="Aucun collaborateur trouvé"
+              description="Aucun utilisateur ne correspond à vos critères de recherche."
+              action={
+                currentRole === "admin" || currentRole === "hr"
+                  ? {
+                      label: "Créer le premier collaborateur",
+                      onClick: () => window.location.assign("/users/new"),
+                    }
+                  : undefined
+              }
+            />
+          </div>
+        ) : (
+          <>
+            <div
+              className="tbl-head"
+              style={{ gridTemplateColumns: GRID_COLS }}
+            >
+              <div>
+                <input
+                  type="checkbox"
+                  checked={allSelected}
+                  onChange={onToggleSelectAll}
+                  aria-label="Tout sélectionner"
+                />
+              </div>
+              <div>Nom</div>
+              <div>Rôle</div>
+              <div>Département</div>
+              <div>Statut</div>
+              <div>Dernière connexion</div>
+              <div />
+            </div>
             {users.map((u) => (
-              <div key={u.id ?? u.email} className="p-4">
-                <div className="flex items-center gap-3 mb-3">
+              <div
+                key={u.id ?? u.email}
+                className="tbl-row"
+                style={{ gridTemplateColumns: GRID_COLS }}
+              >
+                <div>
                   <input
                     type="checkbox"
                     checked={selected.has(u.id ?? "")}
                     onChange={() => onToggleSelect(u.id ?? "")}
-                    className="rounded border-slate-300 text-primary-500 focus:ring-primary-500"
+                    aria-label={`Sélectionner ${u.firstName} ${u.lastName}`}
                   />
+                </div>
+                <div style={{ minWidth: 0 }}>
                   <Link
                     to={`/users/${u.id}`}
-                    className="flex items-center gap-3 flex-1 min-w-0 group"
+                    className="row"
+                    style={{ gap: 12 }}
                   >
                     <Avatar user={u} />
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-slate-900 group-hover:text-primary-600 truncate">
+                    <div style={{ minWidth: 0 }}>
+                      <p className="link" style={{ fontWeight: 600 }}>
                         {u.firstName} {u.lastName}
                       </p>
-                      <p className="text-xs text-slate-500 truncate">
-                        {u.email}
-                      </p>
+                      <p className="small truncate">{u.email}</p>
                     </div>
                   </Link>
+                </div>
+                <div>
+                  <RoleBadge role={u.role} />
+                </div>
+                <div className="small">{u.department ?? "—"}</div>
+                <div>
+                  <StatusBadge
+                    isActive={u.isActive}
+                    offboarding={u.offboardingStatus === "in_progress"}
+                  />
+                </div>
+                <div>
+                  <RelativeDate date={u.updatedAt} />
+                </div>
+                <div style={{ textAlign: "right" }}>
                   <ActionMenu
                     user={u}
                     currentRole={currentRole}
@@ -389,66 +424,40 @@ export function UsersTable({
                     onAnonymize={onAnonymize}
                   />
                 </div>
-                <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm ml-7">
-                  <dt className="text-slate-500">Rôle</dt>
-                  <dd>
-                    <span
-                      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${ROLE_BADGES[u.role] ?? "bg-slate-100 text-slate-700"}`}
-                    >
-                      {ROLE_LABELS[u.role] ?? u.role}
-                    </span>
-                  </dd>
-                  <dt className="text-slate-500">Département</dt>
-                  <dd className="text-slate-700">{u.department ?? "—"}</dd>
-                  <dt className="text-slate-500">Statut</dt>
-                  <dd>
-                    <StatusBadge
-                      isActive={u.isActive}
-                      offboarding={u.offboardingStatus === "in_progress"}
-                    />
-                  </dd>
-                  <dt className="text-slate-500">Dernière connexion</dt>
-                  <dd>
-                    <RelativeDate date={u.updatedAt} />
-                  </dd>
-                </dl>
               </div>
             ))}
-          </div>
-        )}
-        {!isLoading && users.length === 0 && (
-          <div className="sm:hidden px-4 py-6">
-            <EmptyState
-              icon={<Users className="w-8 h-8" />}
-              title="Aucun collaborateur trouvé"
-              description="Aucun utilisateur ne correspond à vos critères de recherche."
-            />
-          </div>
+          </>
         )}
 
         {totalPages > 1 && (
-          <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100">
-            <p className="text-sm text-slate-500">
+          <div
+            className="row between"
+            style={{
+              padding: "16px 22px",
+              borderTop: "1px solid var(--line)",
+            }}
+          >
+            <p className="small">
               Page {page} sur {totalPages} · {total} utilisateurs
             </p>
-            <div className="flex items-center gap-1">
+            <div className="row" style={{ gap: 4 }}>
               <button
                 onClick={() => onPageChange(Math.max(1, page - 1))}
                 disabled={page === 1}
                 aria-label="Page précédente"
-                className="px-2 py-1 text-sm border border-slate-200 rounded hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="btn btn-ghost btn-sm"
+                style={{ padding: 6 }}
               >
-                <ChevronLeft className="w-4 h-4" />
+                <ChevronLeft
+                  className="ico"
+                  style={{ width: 16, height: 16 }}
+                />
               </button>
               {pageNumbers.map((n) => (
                 <button
                   key={n}
                   onClick={() => onPageChange(n)}
-                  className={`px-3 py-1 text-sm border rounded transition-colors ${
-                    n === page
-                      ? "bg-primary-500 text-white border-primary-500"
-                      : "border-slate-200 hover:bg-slate-50"
-                  }`}
+                  className={`btn btn-sm ${n === page ? "btn-primary" : "btn-ghost"}`}
                 >
                   {n}
                 </button>
@@ -457,9 +466,13 @@ export function UsersTable({
                 onClick={() => onPageChange(Math.min(totalPages, page + 1))}
                 disabled={page === totalPages}
                 aria-label="Page suivante"
-                className="px-2 py-1 text-sm border border-slate-200 rounded hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="btn btn-ghost btn-sm"
+                style={{ padding: 6 }}
               >
-                <ChevronRight className="w-4 h-4" />
+                <ChevronRight
+                  className="ico"
+                  style={{ width: 16, height: 16 }}
+                />
               </button>
             </div>
           </div>
@@ -467,23 +480,50 @@ export function UsersTable({
       </div>
 
       {selected.size > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white rounded-xl px-6 py-3 flex items-center gap-4 shadow-xl z-50">
-          <span className="text-sm">{selected.size} sélectionné(s)</span>
+        <div
+          style={{
+            position: "fixed",
+            bottom: 24,
+            left: "50%",
+            transform: "translateX(-50%)",
+            background: "var(--ink)",
+            color: "#fff",
+            borderRadius: "var(--radius-lg)",
+            padding: "12px 24px",
+            display: "flex",
+            alignItems: "center",
+            gap: 16,
+            boxShadow: "var(--shadow-lg)",
+            zIndex: 50,
+          }}
+        >
+          <span className="small" style={{ color: "#fff" }}>
+            {selected.size} sélectionné(s)
+          </span>
           <button
             onClick={onBulkDeactivate}
-            className="text-sm bg-red-500 hover:bg-red-600 px-3 py-1.5 rounded-md"
+            className="btn btn-sm"
+            style={{ background: "var(--red)", color: "#fff" }}
           >
             Désactiver
           </button>
           <button
             onClick={onBulkExport}
-            className="text-sm bg-blue-500 hover:bg-blue-600 px-3 py-1.5 rounded-md"
+            className="btn btn-sm"
+            style={{ background: "var(--blue)", color: "#fff" }}
           >
             Exporter CSV
           </button>
           <button
             onClick={onClearSelection}
-            className="text-slate-400 hover:text-white ml-2"
+            aria-label="Effacer la sélection"
+            style={{
+              background: "none",
+              border: "none",
+              color: "rgba(255,255,255,0.7)",
+              cursor: "pointer",
+              marginLeft: 8,
+            }}
           >
             <X size={16} />
           </button>

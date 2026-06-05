@@ -9,6 +9,7 @@ import {
   UserImportModal,
 } from "../components/users";
 import { useTranslation } from "react-i18next";
+import { Callout } from "../components/shell";
 
 export default function UsersPage() {
   const { t } = useTranslation();
@@ -17,7 +18,7 @@ export default function UsersPage() {
   const p = useUsersPage();
 
   return (
-    <div className="bg-slate-50 min-h-screen p-6">
+    <div className="nx-app">
       <UsersPageHeader
         total={p.data?.total}
         role={user?.role ?? ""}
@@ -37,15 +38,16 @@ export default function UsersPage() {
         onReset={p.resetFilters}
       />
       {p.isError && (
-        <div className="bg-error-50 border border-error-200 text-error-700 rounded-xl px-4 py-3 mb-4 flex items-center justify-between">
-          <span className="text-sm">{t("users.loadError")}</span>
-          <button
-            onClick={() => p.refetch()}
-            className="text-sm font-medium underline hover:no-underline"
-          >
-            {t("users.retry")}
-          </button>
-        </div>
+        <Callout tone="red" style={{ marginBottom: 16 }}>
+          <div className="row between" style={{ gap: 12 }}>
+            <span className="small" style={{ color: "var(--ink)" }}>
+              {t("users.loadError")}
+            </span>
+            <button onClick={() => p.refetch()} className="link small">
+              {t("users.retry")}
+            </button>
+          </div>
+        </Callout>
       )}
       <UsersTable
         users={p.data?.data ?? []}

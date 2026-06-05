@@ -176,7 +176,7 @@ export default function PDIDetailPage() {
     return (
       <div className="nx-app">
         <div className="row" style={{ justifyContent: "center", padding: 96 }}>
-          <div className="w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
+          <div className="w-8 h-8 border-2 border-[#1b1b78] border-t-transparent rounded-full animate-spin" />
         </div>
       </div>
     );

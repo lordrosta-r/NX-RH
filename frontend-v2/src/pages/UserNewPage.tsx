@@ -335,7 +335,7 @@ export default function UserNewPage() {
             <div className="flex justify-end">
               <button
                 onClick={() => navigate(`/users/${createdUserId}`)}
-                className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-md text-sm font-medium"
+                className="inline-flex items-center gap-2 bg-[#1b1b78] hover:bg-[#15155f] text-white px-4 py-2 rounded-md text-sm font-medium"
               >
                 Voir le profil →
               </button>

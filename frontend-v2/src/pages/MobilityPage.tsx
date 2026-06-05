@@ -48,7 +48,9 @@ interface MobilityRequest {
     department?: string;
     position?: string;
   };
-  targetPosition: string;
+  category?: Category;
+  customCategory?: string;
+  targetPosition?: string;
   targetDepartment?: string;
   requestType: RequestType;
   motivation?: string;
@@ -99,6 +101,42 @@ const TYPE_LABELS: Record<RequestType, string> = {
   secondment: "Détachement",
 };
 
+// Modèle unifié « Demandes » : peu de catégories + « Autre » en champ libre.
+type Category =
+  | "mobilite"
+  | "promotion"
+  | "augmentation"
+  | "formation"
+  | "autre";
+
+const CATEGORY_LABELS: Record<Category, string> = {
+  mobilite: "Mobilité",
+  promotion: "Promotion",
+  augmentation: "Augmentation",
+  formation: "Formation",
+  autre: "Autre",
+};
+
+const CATEGORY_TONE: Record<Category, Tone> = {
+  mobilite: "blue",
+  promotion: "green",
+  augmentation: "amber",
+  formation: "blue",
+  autre: "grey",
+};
+
+// Catégories où un poste cible a du sens (champs mobilité affichés + requis).
+const POSITION_CATEGORIES: Category[] = ["mobilite", "promotion"];
+
+// Libellé de catégorie affiché (le libellé libre pour « Autre »).
+function categoryLabel(r: {
+  category?: Category;
+  customCategory?: string;
+}): string {
+  if (r.category === "autre" && r.customCategory) return r.customCategory;
+  return CATEGORY_LABELS[r.category ?? "mobilite"];
+}
+
 const PRIORITY_LABELS: Record<Priority, string> = {
   low: "Faible",
   medium: "Moyenne",
@@ -116,12 +154,23 @@ const PRIORITY_COLOR: Record<Priority, string> = {
 };
 
 const EMPTY_FORM = {
+  category: "mobilite" as Category,
+  customCategory: "",
   targetPosition: "",
   targetDepartment: "",
   requestType: "internal_transfer" as RequestType,
   motivation: "",
   priority: "normal" as Priority,
 };
+
+// Validation selon la catégorie : poste visé requis pour mobilité/promotion,
+// description requise sinon, libellé requis pour « Autre ».
+function isRequestValid(f: typeof EMPTY_FORM): boolean {
+  if (f.category === "autre" && !f.customCategory.trim()) return false;
+  if (POSITION_CATEGORIES.includes(f.category))
+    return !!f.targetPosition.trim();
+  return !!f.motivation.trim();
+}
 
 type Tab = "requests" | "history";
 
@@ -240,8 +289,8 @@ export default function MobilityPage() {
   return (
     <div className="nx-app">
       <PageHead
-        title="Mobilité interne"
-        desc="Gestion des demandes de mobilité et mutations"
+        title="Demandes"
+        desc="Mobilité, promotion, augmentation, formation et autres demandes"
         actions={
           <button
             onClick={() => setShowNewForm(true)}
@@ -375,16 +424,21 @@ export default function MobilityPage() {
                 >
                   <div style={{ minWidth: 0 }}>
                     <p className="body" style={{ fontWeight: 600 }}>
-                      {r.targetPosition}
+                      {r.targetPosition || categoryLabel(r)}
                     </p>
                     <p className="small" style={{ marginTop: 2 }}>
-                      {TYPE_LABELS[r.requestType] ?? r.requestType}
+                      {categoryLabel(r)}
                       {r.targetDepartment && ` · ${r.targetDepartment}`}
                     </p>
                   </div>
-                  <Badge tone={STATUS_TONE[r.status]} dot>
-                    {STATUS_LABELS[r.status]}
-                  </Badge>
+                  <div className="row" style={{ gap: 6 }}>
+                    <Badge tone={CATEGORY_TONE[r.category ?? "mobilite"]}>
+                      {categoryLabel(r)}
+                    </Badge>
+                    <Badge tone={STATUS_TONE[r.status]} dot>
+                      {STATUS_LABELS[r.status]}
+                    </Badge>
+                  </div>
                 </div>
                 <MobilityTimeline
                   createdAt={r.createdAt}
@@ -533,10 +587,10 @@ export default function MobilityPage() {
                           r.employeeId.email}
                       </p>
                     </div>
-                    <div className="small">{r.targetPosition}</div>
+                    <div className="small">{r.targetPosition || "—"}</div>
                     <div>
-                      <Badge tone="grey">
-                        {TYPE_LABELS[r.requestType] ?? r.requestType}
+                      <Badge tone={CATEGORY_TONE[r.category ?? "mobilite"]}>
+                        {categoryLabel(r)}
                       </Badge>
                     </div>
                     <div>
@@ -672,69 +726,125 @@ export default function MobilityPage() {
         <div style={overlayStyle}>
           <Tile style={{ width: "100%", maxWidth: 512 }}>
             <h2 className="h3" style={{ marginBottom: 16 }}>
-              Nouvelle demande de mobilité
+              Nouvelle demande
             </h2>
             <div style={{ display: "grid", gap: 16 }}>
+              {/* Catégorie — peu d'options, « Autre » en champ libre */}
               <div className="field">
-                <label htmlFor="mob-target-position">Poste visé *</label>
-                <input
-                  id="mob-target-position"
-                  aria-label="Poste visé"
-                  value={newRequest.targetPosition}
-                  onChange={(e) =>
-                    setNewRequest((n) => ({
-                      ...n,
-                      targetPosition: e.target.value,
-                    }))
-                  }
-                  className="input"
-                  placeholder="Ex : Chef de projet senior"
-                />
-              </div>
-              <div className="field">
-                <label htmlFor="mob-target-dept">Département cible</label>
-                <input
-                  id="mob-target-dept"
-                  aria-label="Département cible"
-                  value={newRequest.targetDepartment}
-                  onChange={(e) =>
-                    setNewRequest((n) => ({
-                      ...n,
-                      targetDepartment: e.target.value,
-                    }))
-                  }
-                  className="input"
-                  placeholder="Ex : Ingénierie"
-                />
-              </div>
-              <div className="field">
-                <label htmlFor="mob-type">Type de demande</label>
+                <label htmlFor="req-category">Type de demande *</label>
                 <select
-                  id="mob-type"
+                  id="req-category"
                   aria-label="Type de demande"
-                  value={newRequest.requestType}
+                  value={newRequest.category}
                   onChange={(e) =>
                     setNewRequest((n) => ({
                       ...n,
-                      requestType: e.target.value as RequestType,
+                      category: e.target.value as Category,
                     }))
                   }
                   className="input"
                 >
-                  {(Object.entries(TYPE_LABELS) as [RequestType, string][]).map(
-                    ([v, l]) => (
-                      <option key={v} value={v}>
-                        {l}
-                      </option>
-                    ),
-                  )}
+                  {(
+                    Object.entries(CATEGORY_LABELS) as [Category, string][]
+                  ).map(([v, l]) => (
+                    <option key={v} value={v}>
+                      {l}
+                    </option>
+                  ))}
                 </select>
               </div>
+
+              {newRequest.category === "autre" && (
+                <div className="field">
+                  <label htmlFor="req-custom">Précisez *</label>
+                  <input
+                    id="req-custom"
+                    aria-label="Précisez le type de demande"
+                    value={newRequest.customCategory}
+                    onChange={(e) =>
+                      setNewRequest((n) => ({
+                        ...n,
+                        customCategory: e.target.value,
+                      }))
+                    }
+                    className="input"
+                    placeholder="Ex : Aménagement du temps de travail"
+                  />
+                </div>
+              )}
+
+              {/* Champs spécifiques mobilité / promotion */}
+              {POSITION_CATEGORIES.includes(newRequest.category) && (
+                <>
+                  <div className="field">
+                    <label htmlFor="mob-target-position">Poste visé *</label>
+                    <input
+                      id="mob-target-position"
+                      aria-label="Poste visé"
+                      value={newRequest.targetPosition}
+                      onChange={(e) =>
+                        setNewRequest((n) => ({
+                          ...n,
+                          targetPosition: e.target.value,
+                        }))
+                      }
+                      className="input"
+                      placeholder="Ex : Chef de projet senior"
+                    />
+                  </div>
+                  <div className="field">
+                    <label htmlFor="mob-target-dept">Département cible</label>
+                    <input
+                      id="mob-target-dept"
+                      aria-label="Département cible"
+                      value={newRequest.targetDepartment}
+                      onChange={(e) =>
+                        setNewRequest((n) => ({
+                          ...n,
+                          targetDepartment: e.target.value,
+                        }))
+                      }
+                      className="input"
+                      placeholder="Ex : Ingénierie"
+                    />
+                  </div>
+                  {newRequest.category === "mobilite" && (
+                    <div className="field">
+                      <label htmlFor="mob-type">Nature de la mobilité</label>
+                      <select
+                        id="mob-type"
+                        aria-label="Nature de la mobilité"
+                        value={newRequest.requestType}
+                        onChange={(e) =>
+                          setNewRequest((n) => ({
+                            ...n,
+                            requestType: e.target.value as RequestType,
+                          }))
+                        }
+                        className="input"
+                      >
+                        {(
+                          Object.entries(TYPE_LABELS) as [RequestType, string][]
+                        ).map(([v, l]) => (
+                          <option key={v} value={v}>
+                            {l}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                </>
+              )}
+
               <div className="field">
-                <label htmlFor="mob-motivation">Motivation</label>
+                <label htmlFor="mob-motivation">
+                  {POSITION_CATEGORIES.includes(newRequest.category)
+                    ? "Motivation"
+                    : "Description *"}
+                </label>
                 <textarea
                   id="mob-motivation"
-                  aria-label="Motivation"
+                  aria-label="Description de la demande"
                   value={newRequest.motivation}
                   onChange={(e) =>
                     setNewRequest((n) => ({ ...n, motivation: e.target.value }))
@@ -749,7 +859,7 @@ export default function MobilityPage() {
               <button
                 onClick={() => createMutation.mutate(newRequest)}
                 disabled={
-                  !newRequest.targetPosition || createMutation.isPending
+                  createMutation.isPending || !isRequestValid(newRequest)
                 }
                 className="btn btn-primary"
                 style={{ flex: 1 }}

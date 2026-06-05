@@ -1,431 +1,209 @@
-<div align="center">
+# NX-RH — Plateforme RH NanoXplore
 
-```
-███╗   ██╗ █████╗ ███╗   ██╗ ██████╗ ██╗  ██╗██████╗ ██╗      ██████╗ ██████╗ ███████╗    ██████╗ ██╗  ██╗
-████╗  ██║██╔══██╗████╗  ██║██╔═══██╗╚██╗██╔╝██╔══██╗██║     ██╔═══██╗██╔══██╗██╔════╝    ██╔══██╗██║  ██║
-██╔██╗ ██║███████║██╔██╗ ██║██║   ██║ ╚███╔╝ ██████╔╝██║     ██║   ██║██████╔╝█████╗      ██████╔╝███████║
-██║╚██╗██║██╔══██║██║╚██╗██║██║   ██║ ██╔██╗ ██╔═══╝ ██║     ██║   ██║██╔══██╗██╔══╝      ██╔══██╗██╔══██║
-██║ ╚████║██║  ██║██║ ╚████║╚██████╔╝██╔╝ ██╗██║     ███████╗╚██████╔╝██║  ██║███████╗    ██║  ██║██║  ██║
-╚═╝  ╚═══╝╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚══════╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝    ╚═╝  ╚═╝╚═╝  ╚═╝
-```
-
-**Human Resources — Annual Performance Review Platform**
-
-[![Node.js](https://img.shields.io/badge/Node.js-20%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org)
-[![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)](https://react.dev)
-[![Vite](https://img.shields.io/badge/Vite-5-646CFF?logo=vite&logoColor=white)](https://vitejs.dev)
+[![Node.js](https://img.shields.io/badge/Node.js-20-339933?logo=node.js&logoColor=white)](https://nodejs.org)
 [![MongoDB](https://img.shields.io/badge/MongoDB-7-47A248?logo=mongodb&logoColor=white)](https://mongodb.com)
+[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)](https://react.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-6-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white)](https://docker.com)
-[![nginx](https://img.shields.io/badge/nginx-1.27-009639?logo=nginx&logoColor=white)](https://nginx.org)
-[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![CI](https://github.com/nanoxplore/NX-RH/actions/workflows/ci.yml/badge.svg)](https://github.com/nanoxplore/NX-RH/actions/workflows/ci.yml)
 
-*Gérez vos entretiens annuels, campagnes d'évaluation et revues de performance en toute simplicité.*
-
-</div>
+NX-RH est une plateforme RH interne pour NanoXplore, dédiée à la gestion des campagnes d'évaluation annuelles, des plans de développement individuels (PDI), des demandes de mobilité interne, et des processus d'offboarding collaborateur. Elle expose une API REST sécurisée (JWT + LDAP) consommée par une SPA React moderne.
 
 ---
 
-## 🚀 Démarrage rapide
-
-**Prérequis** : Node.js 20+, MongoDB 7+, Docker (optionnel)
+## Quick Start
 
 ```bash
-# 1. Cloner le projet
-git clone https://github.com/nanoxplore/NX-RH.git && cd NX-RH
-
-# 2. Configurer les variables d'environnement
-cp mongo/server/.env.example mongo/server/.env
-cp frontend-v2/.env.example frontend-v2/.env.local  # si exists
-
-# 3. Installer et lancer
-npm install
-npm run dev   # Lance API (port 3000) + Frontend (port 5173) simultanément
+git clone <repo> && cd NX-RH
+cp .env.example .env          # edit credentials as needed
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
 ```
 
-Voir [docs/DEVELOPER.md](docs/DEVELOPER.md) pour la configuration complète.
+The API will be available at `http://localhost:3000` and the frontend at `http://localhost:5173`.
 
 ---
 
-## Overview
+## Test Accounts
 
-**NanoXplore RH** is a lightweight, self-hosted web application for managing the full lifecycle of annual performance reviews — from campaign creation to manager validation.
-
-- **Single-Page Application (SPA):** React Router v6 handles all client-side routing. One React bundle, seamless navigation.
-- **React + Vite:** Full-featured frontend in `frontend-v2/` — TypeScript, TailwindCSS, React Query, and React Router v6.
-- **Docker-native:** Production-ready stack with Nginx SSL termination and horizontal scaling out of the box.
+| Email | Password | Role |
+|---|---|---|
+| alice@nxrh.local | password123 | Admin |
+| marie.dupont@nxrh.local | password123 | RH |
+| pierre.leclerc@nxrh.local | password123 | Manager |
+| lucas.bernard@nxrh.local | password123 | Employé |
+| admin.ldap@nxrh.local | password123 | Admin (LDAP) |
 
 ---
 
-## Features
+## Stack
 
-| Module | Description |
-|--------|-------------|
-| **Campaigns** | Create and manage annual review cycles with defined periods |
-| **Forms** | Build flexible evaluation templates (self-review, manager review, 360°) |
-| **Evaluations** | Assign, fill, and track individual evaluations through their full lifecycle |
-| **Users** | Multi-role directory (Admin / Manager / Employee) with team hierarchy |
-| **Authentication** | Local accounts **or** LDAP/Active Directory — switchable via env var |
-| **Notifications** | SMTP email notifications via any relay (Exchange, O365, Gmail, Mailtrap…) |
+| Layer | Technologies |
+|---|---|
+| **Frontend** | React 19, TypeScript, TanStack Query v5, Vite 8 (rolldown), Tailwind CSS, react-hook-form, Recharts |
+| **Backend** | Node.js 20, Express 4, Mongoose 8, Winston, Helmet, Joi |
+| **Database** | MongoDB 7 |
+| **Auth** | JWT (8h) + LDAP/Active Directory (ldapjs) |
+| **DevOps** | Docker, Docker Compose, nginx 1.27, GitHub Actions |
+| **Testing** | Jest 30, mongodb-memory-server, Supertest, Vitest, Playwright |
 
 ---
 
 ## Architecture
 
 ```
-                            ┌─────────────────────────────────────────┐
-                            │             Docker Network               │
-                            │                                          │
-  Browser ──HTTPS──▶ ┌─────┴──────┐     ┌──────────────────────┐    │
-                      │   Nginx    │────▶│    Express (app)      │    │
-  (port 443)          │  (proxy +  │     │                       │    │
-                      │  SSL/TLS)  │     │  ┌── Static SPA ───┐  │    │
-                      └─────┬──────┘     │  │  GET /*         │  │    │
-                            │            │  │  → index.html   │  │    │
-                     ┌──────┘            │  └────────────────┘  │    │
-                     │  Load balance     │                       │    │
-                     │  across replicas  │  ┌── API Routes ───┐  │    │
-                     │                  │  │  /api/auth      │  │    │
-                     ▼                  │  │  /api/users     │◀─┼────┼── fetch()
-              ┌──────────────┐          │  │  /api/campaigns │  │    │
-              │  app (×1-N)  │          │  │  /api/forms     │  │    │
-              └──────────────┘          │  │  /api/evals     │  │    │
-                                        │  └─────────────────┘  │    │
-                                        └──────────┬───────────┘    │
-                                                   │                  │
-                                        ┌──────────▼───────────┐    │
-                                        │      MongoDB 7        │    │
-                                        │  (persistent volume)  │    │
-                                        └──────────────────────┘    │
-                                                                      │
-                            ┌─── Optional ─────────────────────────┐  │
-                            │  LDAP / Active Directory (external)   │  │
-                            │  SMTP relay (external)                │  │
-                            └───────────────────────────────────────┘  │
-                            └─────────────────────────────────────────┘
+NX-RH/
+├── frontend-v2/      # React SPA — Vite 8 + rolldown build
+├── mongo/server/     # Express REST API + MongoDB models
+├── nginx/            # Reverse proxy config (HTTPS in prod)
+├── docker/           # Infrastructure configs
+├── docker-compose.yml          # Production stack
+└── docker-compose.dev.yml      # Dev override (HMR, MailHog, OpenLDAP)
 ```
 
-### SPA Data Flow
-
-```
-  frontend-v2/src/main.tsx  ──▶ React Router v6 ──▶ <App /> (client-side routing)
-
-  Browser ──GET /dashboard──▶ Nginx ──▶ Express ──authGuard──▶ sendFile(index.html)
-  React Router renders the matching page component client-side.
-  Browser ──fetch /api/──────▶ Express ──route────▶  JSON response
-```
+- **`frontend-v2/`** — SPA React 19 / TypeScript. Routing via React Router v6, state via TanStack Query v5, forms via react-hook-form + Zod, i18n via i18next.
+- **`mongo/server/`** — API REST Express, modèles Mongoose, authentification JWT + LDAP, envoi d'emails (Nodemailer), génération PDF (PDFKit), stockage fichiers (MinIO ou disque local).
+- **`nginx/`** — Reverse proxy en production : SSL/TLS, compression, load-balancing vers les instances `app`.
+- **`docker/`** — Dockerfiles et configurations d'infrastructure.
 
 ---
 
-## Tech Stack
+## Development Setup
 
-| Layer | Technology | Role |
-|-------|-----------|------|
-| **Reverse Proxy** | Nginx 1.27 | SSL termination, load balancing, rate limiting, gzip |
-| **Backend** | Node.js 20 + Express 4 | REST API, JWT auth, static SPA serving |
-| **Frontend** | React 19 + Vite + TailwindCSS + React Router v6 | SPA in `frontend-v2/` |
-| **Database** | MongoDB 7 | Document store, Mongoose ODM |
-| **Auth** | JWT + bcrypt / LDAP | Local or directory-based authentication |
-| **Mail** | Nodemailer | Any SMTP relay |
-| **Container** | Docker + Compose | Single-command deployment |
+Le fichier `docker-compose.dev.yml` étend le compose de prod et ajoute :
 
----
-
-## Quick Start with Docker
-
-### Prerequisites
-
-- Docker ≥ 24 and Docker Compose ≥ 2.20
-- `openssl` (for dev certificates)
-
-### 1 — Clone & configure
+- Serveur Vite avec HMR sur le port **5173**
+- Rechargement live du serveur via **nodemon**
+- MongoDB exposé sur **27017** (accès Compass / Studio 3T)
+- **MailHog** sur **8025** — capture tous les emails sortants
+- **OpenLDAP + phpLDAPadmin** sur **8080** — annuaire LDAP de test
 
 ```bash
-git clone https://github.com/nanoxplore/NX-RH.git
-cd NX-RH
-cp .env.example .env
-# Edit .env with your DB password, JWT secret, etc.
-```
+# Démarrer l'environnement de dev complet
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
 
-### 2 — Generate TLS certificates
-
-**Development (self-signed):**
-```bash
-chmod +x scripts/gen-certs.sh
-./scripts/gen-certs.sh localhost
-```
-
-**Production (Let's Encrypt):**
-```bash
-chmod +x scripts/certbot-init.sh
-./scripts/certbot-init.sh your-domain.com admin@your-domain.com
-```
-
-### 3 — Launch
-
-```bash
-# Standard (1 app instance)
-docker compose up -d
-
-# High-availability (3 app instances behind Nginx)
-docker compose up -d --scale app=3
-
-# Follow logs
+# Logs en temps réel
 docker compose logs -f app
+
+# Arrêter
+docker compose down
 ```
 
-### 4 — Open
-
-| URL | Description |
-|-----|-------------|
-| `https://localhost` | Login page |
-| `https://localhost/dashboard` | Employee dashboard |
-| `https://localhost/manager` | Manager review panel |
-| `https://localhost/api/health` | Health check (JSON) |
-
-Default admin credentials (change immediately):
-```
-Email:    admin@nanoxplore.com
-Password: changeme
-```
-
----
-
-## Development Setup (without Docker)
+Sans Docker (processus séparés) :
 
 ```bash
-# 1. Install dependencies
-cd mongo/server && npm install
-cd ../../frontend-v2 && npm install
-
-# 2. Initialize the database
-cd ../mongo && node database/seed.js
-
-# 3. Start the backend (port 3000)
-cd mongo/server && npm run dev
-
-# 4. Start Vite dev server with HMR (port 5173)
-cd frontend-v2 && npm run dev
-# → API calls are proxied to http://localhost:3000 automatically
+npm run dev        # démarre l'API et le frontend en parallèle (concurrently)
+npm run dev:api    # API seule  (nodemon sur mongo/server/)
+npm run dev:front  # Frontend seul (vite sur frontend-v2/)
 ```
 
 ---
 
 ## Environment Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `NODE_ENV` | `development` | `production` enables secure cookies |
-| `PORT` | `3000` | Express listen port |
-| `MONGO_URI` | `mongodb://...` | MongoDB connection URI (use `mongo` inside Docker) |
-| `DB_NAME` | `nanoxplore_rh` | Database name |
-| `JWT_SECRET` | — | **Required** — min 64 random chars |
-| `JWT_EXPIRES_IN` | `8h` | Token expiry duration |
-| `AUTH_PROVIDER` | `local` | `local` or `ldap` |
+Copiez `.env.example` vers `.env` et adaptez les valeurs. Les variables essentielles :
 
-See [`.env.example`](.env.example) for the full reference including LDAP and SMTP variables.
-
----
-
-## Authentication
-
-### Local (default)
-
-Passwords are hashed with **bcrypt** (cost factor 12) and stored in the `users` table.
-
-```env
-AUTH_PROVIDER=local
-```
-
-### LDAP / Active Directory
-
-Switch to LDAP authentication without touching any code:
-
-```env
-AUTH_PROVIDER=ldap
-LDAP_TYPE=activedirectory        # or openldap
-LDAP_URL=ldaps://dc.corp.local:636
-LDAP_BASE_DN=DC=corp,DC=local
-LDAP_BIND_DN=CN=svc-rh,OU=Service Accounts,DC=corp,DC=local
-LDAP_BIND_PASSWORD=...
-LDAP_USER_SEARCH_BASE=OU=Users,DC=corp,DC=local
-```
-
-| `LDAP_TYPE` | Directory | Search filter |
-|-------------|-----------|---------------|
-| `activedirectory` | Windows AD | `sAMAccountName` / UPN |
-| `openldap` | Linux OpenLDAP | `uid` / `cn` |
-
-> The LDAP service module is at `mongo/server/services/ldap.js`.
+| Variable | Description |
+|---|---|
+| `MONGO_URI` | URI de connexion MongoDB (inclut user/password) |
+| `JWT_SECRET` | Secret JWT — générer 64 caractères aléatoires |
+| `AUTH_PROVIDER` | `local` ou `ldap` |
+| `LDAP_URL` | URL du serveur LDAP/AD (ex. `ldaps://dc.corp.local:636`) |
+| `MAIL_HOST` | Hôte SMTP (MailHog en dev : `mailhog`, port `1025`) |
+| `CLIENT_ORIGIN` | Origine CORS autorisée (ex. `http://localhost:5173`) |
+| `COOKIE_SECURE` | `false` en dev, `true` en prod (HTTPS requis) |
+| `MINIO_ENDPOINT` | Endpoint MinIO (optionnel — fallback sur disque local) |
 
 ---
 
-## Email Notifications
+## API Routes
 
-Configure any SMTP relay — the app sends notifications for campaign launches, evaluation reminders, and validations.
+| Groupe | Préfixe | Description |
+|---|---|---|
+| Auth | `/api/auth` | Login local/LDAP, refresh token, logout |
+| Users | `/api/users` | CRUD utilisateurs, import CSV, groupes |
+| Campaigns | `/api/campaigns` | Campagnes d'évaluation, participants, statuts |
+| Evaluations | `/api/evaluations` | Évaluations, workflow de signatures |
+| Forms | `/api/forms` | Modèles de formulaires RH |
+| Offboarding | `/api/offboarding` | Départs collaborateurs, checklists |
+| Mobility | `/api/mobility` | Demandes de mobilité interne |
+| PDI | `/api/pdi` | Plans de développement individuels |
+| HR | `/api/hr` | Flags RH, paramètres, événements |
+| Admin | `/api/admin` | Config plateforme, LDAP, mail, audit |
+| Metrics | `/api/metrics` | KPIs agrégés, exports analytiques |
 
-```env
-MAIL_HOST=smtp.yourcompany.com
-MAIL_PORT=587
-MAIL_SECURE=false
-MAIL_USER=notifications@nanoxplore.com
-MAIL_PASSWORD=...
-MAIL_FROM="NanoXplore RH <notifications@nanoxplore.com>"
-```
-
-**Development tip:** use [Mailtrap](https://mailtrap.io) to intercept all outgoing emails locally:
-
-```env
-MAIL_HOST=sandbox.smtp.mailtrap.io
-MAIL_PORT=2525
-```
+Voir [`docs/API.md`](docs/API.md) pour la documentation complète des endpoints.
 
 ---
 
-## Project Structure
-
-```
-NX-RH/
-│
-├── Dockerfile                    ← Multi-stage build (frontend-v2 + server)
-├── docker-compose.yml            ← Production stack (nginx + app + db)
-├── docker-compose.dev.yml        ← Dev overrides (live-reload, exposed ports)
-├── .env.example                  ← All configurable variables documented
-│
-├── nginx/
-│   ├── nginx.conf                ← Worker config, gzip, rate limits
-│   ├── certs/                    ← TLS certificates (not committed to git)
-│   └── conf.d/
-│       ├── app.conf              ← Site config: SSL, upstream, security headers
-│       └── proxy_params.conf     ← Shared proxy headers
-│
-├── scripts/
-│   ├── gen-certs.sh              ← Self-signed cert generator (dev)
-│   └── certbot-init.sh           ← Let's Encrypt issuance (prod)
-│
-├── mongo/server/                 ← Express backend
-│   ├── index.js                  ← App entry: API mounts + static SPA serving
-│   ├── config/
-│   │   └── db.js                 ← Mongoose connection
-│   ├── middleware/
-│   │   └── authGuard.js          ← JWT guard (cookie + Bearer header)
-│   ├── routes/
-│   │   ├── auth.js               ← POST /api/auth/login|logout
-│   │   ├── users.js              ← GET|POST|PATCH /api/users
-│   │   ├── campaigns.js          ← /api/campaigns
-│   │   ├── forms.js              ← /api/forms
-│   │   └── evaluations.js        ← /api/evaluations
-│   └── services/
-│       ├── ldap.js               ← LDAP/AD connector (AD + OpenLDAP)
-│       └── mailer.js             ← Nodemailer SMTP transport
-│
-└── frontend-v2/                  ← React SPA (Vite + TypeScript + TailwindCSS)
-    ├── vite.config.ts            ← Vite config with API proxy
-    ├── index.html                ← Single HTML entry point
-    └── src/
-        ├── main.tsx              ← React entry + React Router setup
-        ├── App.tsx               ← Route definitions (React Router v6)
-        ├── types/                ← Shared TypeScript types
-        ├── api/                  ← Axios API clients per resource
-        ├── contexts/             ← AuthContext and other React contexts
-        ├── hooks/                ← Custom React hooks (React Query)
-        ├── components/           ← Shared UI components
-        │   ├── layout/           ← Navbar, Sidebar, Layout wrapper
-        │   └── ui/               ← Buttons, badges, modals, etc.
-        ├── pages/                ← One component per route
-        └── lib/                  ← Constants, utilities
-```
-
----
-
-## Adding a New Page
+## Running Tests
 
 ```bash
-# 1. Create the page component
-touch frontend-v2/src/pages/NewPage.tsx
+# Backend — 1151 tests Jest (in-memory MongoDB)
+cd mongo/server && npm test
 
-# 2. Register the route in App.tsx
-# frontend-v2/src/App.tsx:
-#   <Route path="/new-page" element={<NewPage />} />
+# Backend avec couverture
+cd mongo/server && npm run test:coverage
 
-# 3. Add a nav link in Navbar.tsx if needed
-# frontend-v2/src/components/layout/Navbar.tsx
+# Frontend — tests unitaires Vitest
+cd frontend-v2 && npm run test:run
+
+# E2E — tests Playwright
+cd frontend-v2 && npx playwright test
 ```
 
----
-
-## Database Schema
-
-```
-users ──────────────────────────────────────────────────────────
-  id | email | password_hash | first_name | last_name
-  role (admin/manager/employee) | manager_id (→ users.id)
-  department | job_title | is_active
-
-campaigns ──────────────────────────────────────────────────────
-  id | name | description | status | start_date | end_date
-  created_by (→ users.id)
-
-forms ───────────────────────────────────────────────────────────
-  id | campaign_id | title | form_type | structure (JSON)
-  created_by (→ users.id)
-
-evaluations ─────────────────────────────────────────────────────
-  id | campaign_id | form_id
-  evaluator_id (→ users.id) | evaluatee_id (→ users.id)
-  status | answers (JSON) | score | manager_comment
-  submitted_at | reviewed_at
-```
-
-**Evaluation status lifecycle:**
-```
-pending → in_progress → submitted → reviewed → validated
-```
-
----
-
-## High Availability
-
-Scale the app tier horizontally with a single command:
+Depuis la racine du monorepo :
 
 ```bash
+npm test       # tests backend uniquement
+npm run lint   # lint API + frontend
+npm run build  # build de production du frontend
+```
+
+---
+
+## Docker Services
+
+| Service | Port(s) | Description |
+|---|---|---|
+| `app` | `3000` (interne) | API Express — scalable horizontalement |
+| `mongo` | `27017` (interne) | MongoDB 7 avec volume persistant |
+| `nginx` | `80`, `443` | Reverse proxy + SSL (prod uniquement) |
+| `client` | `5173` | Serveur Vite avec HMR (dev) |
+| `mailhog` | `8025` (UI), `1025` (SMTP) | Capture emails en dev |
+| `phpldapadmin` | `8080` | Interface web OpenLDAP (dev) |
+
+---
+
+## Seed Data
+
+Plusieurs scripts de seed sont disponibles :
+
+```bash
+# Seed complet (utilisateurs, campagnes, évaluations, PDI…)
+cd mongo/server && npm run seed:full
+
+# Seed utilisateurs uniquement
+cd mongo/server && npm run seed:users
+
+# Seed enrichi v2
+cd mongo/server && npm run seed:v2
+```
+
+---
+
+## Production Deployment
+
+```bash
+# Déploiement prod (nginx + app + mongo)
+docker compose up -d --build
+
+# Mode haute disponibilité (3 instances API)
 docker compose up -d --scale app=3
 ```
 
-Nginx uses Docker's internal DNS to round-robin requests across all `app` replicas. The `mongo` tier remains a single MongoDB instance — for full HA at the DB layer, configure a MongoDB Replica Set and update `MONGO_URI` accordingly.
+Placez vos certificats TLS dans `nginx/certs/` avant de démarrer. Voir [`DEPLOYMENT.md`](DEPLOYMENT.md) et [`docs/DEPLOY.md`](docs/DEPLOY.md) pour le guide complet.
 
 ---
 
-## Security Notes
+## Contributing
 
-- All traffic is HTTPS-only (HTTP → 301 redirect)
-- JWT stored in **httpOnly** cookies (not accessible to JavaScript)
-- LDAP bind password never leaves the server
-- MongoDB is on an isolated Docker network — never exposed to the host in production
-- Nginx rate-limits `/api/auth/login` to 5 req/min per IP
-- `server_tokens off` hides nginx version from response headers
-- Non-root user inside the Docker container
-
----
-
-## Roadmap
-
-- [ ] Campaign management UI (admin panel)
-- [ ] Form builder (drag-and-drop question editor)
-- [ ] Employee self-evaluation workflow
-- [ ] Manager review & scoring interface
-- [ ] Email notification triggers
-- [ ] Export to PDF (evaluation reports)
-- [ ] Audit log
-
----
-
-## License
-
-MIT © NanoXplore — see [LICENSE](LICENSE) for details.
-
----
-
-<div align="center">
-  <sub>Built with Express · React · Vite · MongoDB · Docker</sub>
-</div>
+Consultez [`CONTRIBUTING.md`](CONTRIBUTING.md) pour les conventions de code, la politique de branches et le processus de review. Les hooks pre-commit (Husky + lint-staged) s'installent automatiquement via `npm install`.

@@ -34,6 +34,15 @@ export function getPerspectiveNav(
     end: true,
   };
 
+  // Lien Aide — visible pour TOUS les rôles, admin compris (non masqué).
+  // L'anti-exposition est éditoriale : aucune section d'aide admin sensible
+  // n'existe dans la page (cf. HelpPage).
+  const help: MoreItem = {
+    label: t("nav.help"),
+    href: "/help",
+    group: t("nav.aide"),
+  };
+
   // Vue perso (« Mon espace ») — commune à tous les rôles spéciaux + employee.
   const me: PerspectiveNav = {
     primary: [
@@ -43,7 +52,7 @@ export function getPerspectiveNav(
       { label: t("nav.mobility"), href: "/mobility" },
       { label: t("nav.pdi"), href: "/pdi" },
     ],
-    more: [],
+    more: [help],
   };
 
   if (role === "employee") return me;
@@ -71,6 +80,7 @@ export function getPerspectiveNav(
           href: "/resources",
           group: t("nav.pilotage"),
         },
+        help,
       ],
     };
   }
@@ -114,35 +124,11 @@ export function getPerspectiveNav(
           group: t("nav.pilotage"),
         },
         {
-          label: t("nav.adminPortal"),
+          label: t("nav.configHub"),
           href: "/admin",
           group: t("nav.administration"),
         },
-        {
-          label: t("nav.hrSettings"),
-          href: "/admin/settings",
-          group: t("nav.administration"),
-        },
-        {
-          label: t("nav.auditLog"),
-          href: "/admin/audit",
-          group: t("nav.administration"),
-        },
-        {
-          label: t("nav.usersImport"),
-          href: "/admin/users/import",
-          group: t("nav.administration"),
-        },
-        {
-          label: t("nav.formsImport"),
-          href: "/admin/forms/import",
-          group: t("nav.administration"),
-        },
-        {
-          label: t("nav.mailTemplates"),
-          href: "/admin/mail-templates",
-          group: t("nav.administration"),
-        },
+        help,
       ],
     };
   }
@@ -184,67 +170,19 @@ export function getPerspectiveNav(
         href: "/analytics",
         group: t("nav.pilotage"),
       },
+      // Demandes = vue de gestion (toutes les demandes), pas du perso : sous
+      // « Évaluations ». L'admin (compte système) n'a pas d'espace « Mon parcours ».
       {
         label: t("nav.mobility"),
         href: "/mobility",
-        group: t("nav.monParcours"),
+        group: t("nav.evaluations"),
       },
-      { label: t("nav.pdi"), href: "/pdi", group: t("nav.monParcours") },
       {
-        label: t("nav.adminPortal"),
+        label: t("nav.configHub"),
         href: "/admin",
         group: t("nav.administration"),
       },
-      {
-        label: t("nav.setupWizard"),
-        href: "/admin/setup",
-        group: t("nav.administration"),
-      },
-      {
-        label: t("nav.ldap"),
-        href: "/admin/ldap",
-        group: t("nav.administration"),
-      },
-      {
-        label: t("nav.systemConfig"),
-        href: "/admin/config",
-        group: t("nav.administration"),
-      },
-      {
-        label: t("nav.mailConfig"),
-        href: "/admin/mail-config",
-        group: t("nav.administration"),
-      },
-      {
-        label: t("nav.mailTemplates"),
-        href: "/admin/mail-templates",
-        group: t("nav.administration"),
-      },
-      {
-        label: t("nav.systemStatus"),
-        href: "/admin/status",
-        group: t("nav.administration"),
-      },
-      {
-        label: t("nav.auditLog"),
-        href: "/admin/audit",
-        group: t("nav.administration"),
-      },
-      {
-        label: t("nav.usersImport"),
-        href: "/admin/users/import",
-        group: t("nav.administration"),
-      },
-      {
-        label: t("nav.formsImport"),
-        href: "/admin/forms/import",
-        group: t("nav.administration"),
-      },
-      {
-        label: t("nav.hrSettings"),
-        href: "/admin/settings",
-        group: t("nav.administration"),
-      },
+      help,
     ],
   };
 }

@@ -77,6 +77,17 @@ const userSchema = new Schema({
   // Réglable uniquement par hr/admin (jamais par le client manager lui-même).
   canViewSubtree: { type: Boolean, default: false },
 
+  // Managers fonctionnels / transverses (matriciel, n..n) — chefs de projet,
+  // responsables transverses. Lien FONCTIONNEL, distinct du lien HIÉRARCHIQUE
+  // (managerId) : ils obtiennent la VISIBILITÉ sur les évaluations de la
+  // personne et peuvent être désignés évaluateurs, mais la signature
+  // hiérarchique (signed_manager) reste au manager direct.
+  dottedLineManagerIds: {
+    type: [{ type: Schema.Types.ObjectId, ref: 'User' }],
+    default: [],
+    index: true,
+  },
+
   sectorId: {
     type: Schema.Types.ObjectId,
     ref: 'Sector',
@@ -222,6 +233,34 @@ userSchema.pre('save', async function (next) {
       const parent = await this.constructor.findById(current, 'managerId').lean()
       current = parent?.managerId ?? null
     }
+  }
+  next()
+})
+
+// Validation des managers transverses : pas d'auto-référence, pas de doublon
+// avec le manager direct, dédoublonnage. (Pas de contrainte d'acyclicité : le
+// lien transverse est fonctionnel et n'entre pas dans l'arbre de signature.)
+userSchema.pre('save', function (next) {
+  if (this.dottedLineManagerIds && this.dottedLineManagerIds.length) {
+    const self = this._id.toString()
+    const direct = this.managerId ? this.managerId.toString() : null
+    const seen = new Set()
+    const cleaned = []
+    for (const m of this.dottedLineManagerIds) {
+      const k = m.toString()
+      if (k === self) {
+        const err = new Error('Un utilisateur ne peut pas être son propre responsable transverse')
+        err.status = 400
+        return next(err)
+      }
+      if (k === direct) {
+        const err = new Error('Le responsable transverse ne peut pas être le manager direct')
+        err.status = 400
+        return next(err)
+      }
+      if (!seen.has(k)) { seen.add(k); cleaned.push(m) }
+    }
+    this.dottedLineManagerIds = cleaned
   }
   next()
 })

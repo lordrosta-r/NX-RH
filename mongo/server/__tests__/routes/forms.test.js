@@ -45,7 +45,11 @@ jest.mock('../../models', () => {
     })),
   }
 
-  return { Form: MockForm }
+  const MockEvaluation = {
+    countDocuments: jest.fn().mockResolvedValue(0),
+  }
+
+  return { Form: MockForm, Evaluation: MockEvaluation }
 })
 
 // ─── Mock: authGuard ──────────────────────────────────────────────────────────
@@ -69,7 +73,7 @@ jest.mock('../../middleware/authGuard', () => ({
 }))
 
 // ─── Imports (after mocks) ────────────────────────────────────────────────────
-const { Form }       = require('../../models')
+const { Form, Evaluation } = require('../../models')
 const request        = require('supertest')
 const express        = require('express')
 const cookieParser   = require('cookie-parser')
@@ -696,6 +700,7 @@ describe('POST /api/forms/:id/unfreeze', () => {
   })
 
   it('admin can unfreeze a form — returns 200 with success and form', async () => {
+    Evaluation.countDocuments.mockResolvedValueOnce(0)
     const doc = mockFormDoc({ isFrozen: true, frozenAt: new Date() })
     Form.findById = jest.fn()
       .mockResolvedValueOnce(doc)
@@ -706,6 +711,16 @@ describe('POST /api/forms/:id/unfreeze', () => {
     expect(res.status).toBe(200)
     expect(res.body.success).toBe(true)
     expect(res.body.form).toBeDefined()
+  })
+
+  it('refuses unfreeze when started evaluations reference the form — returns 409', async () => {
+    Evaluation.countDocuments.mockResolvedValueOnce(3)
+    const doc = mockFormDoc({ isFrozen: true, frozenAt: new Date() })
+    Form.findById = jest.fn().mockResolvedValueOnce(doc)
+    const res = await request(app)
+      .post(`/api/forms/${FORM_ID}/unfreeze`)
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+    expect(res.status).toBe(409)
   })
 })
 

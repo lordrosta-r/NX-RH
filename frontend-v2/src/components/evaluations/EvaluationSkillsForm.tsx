@@ -3,6 +3,7 @@ import type { Dispatch, SetStateAction } from "react";
 import { Sun, CloudSun, CloudRain, CloudLightning } from "lucide-react";
 import type { Evaluation, FormQuestion } from "../../types";
 import type { EvalMutationHandle } from "../../types/evaluation";
+import type { SaveState } from "../../hooks/useEvaluationForm";
 import { EvaluationProgress } from "./EvaluationProgress";
 import { N1ImportView } from "./N1ImportView";
 
@@ -33,6 +34,7 @@ function objBase(value: unknown): Record<string, unknown> {
 
 interface EvaluationSkillsFormProps {
   evaluation: Evaluation;
+  saveState: SaveState;
   answers: Record<string, unknown>;
   currentQuestionIdx: number;
   currentPhase: string | null;
@@ -52,6 +54,7 @@ interface EvaluationSkillsFormProps {
 
 export function EvaluationSkillsForm({
   evaluation,
+  saveState,
   answers,
   currentQuestionIdx,
   currentPhase,
@@ -80,8 +83,21 @@ export function EvaluationSkillsForm({
     <div>
       <div className="row between" style={{ marginBottom: 8 }}>
         <h1 className="h2">Remplir l'évaluation</h1>
-        {lastSavedAt && (
-          <span className="small">
+        {saveState === "saving" && (
+          <span className="small" style={{ color: "var(--ink-3)" }}>
+            Enregistrement…
+          </span>
+        )}
+        {saveState === "error" && (
+          <span
+            className="small"
+            style={{ color: "var(--red)", fontWeight: 600 }}
+          >
+            ⚠ Échec d'enregistrement — vos réponses sont conservées localement.
+          </span>
+        )}
+        {saveState !== "saving" && saveState !== "error" && lastSavedAt && (
+          <span className="small" style={{ color: "var(--green)" }}>
             Sauvegardé à{" "}
             {lastSavedAt.toLocaleTimeString("fr-FR", {
               hour: "2-digit",
@@ -417,6 +433,14 @@ export function EvaluationSkillsForm({
         ) : (
           <button
             onClick={() => setSubmitModal(true)}
+            disabled={saveState === "saving" || saveState === "error"}
+            title={
+              saveState === "error"
+                ? "Enregistrement en échec — réessayez avant de soumettre"
+                : saveState === "saving"
+                  ? "Enregistrement en cours…"
+                  : undefined
+            }
             className="btn btn-sm"
             style={{ background: "var(--green)", color: "#fff" }}
           >
@@ -471,7 +495,11 @@ export function EvaluationSkillsForm({
               </button>
               <button
                 onClick={() => submitMutation.mutate()}
-                disabled={submitMutation.isPending}
+                disabled={
+                  submitMutation.isPending ||
+                  saveState === "saving" ||
+                  saveState === "error"
+                }
                 className="btn btn-sm"
                 style={{ background: "var(--green)", color: "#fff" }}
               >

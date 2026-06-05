@@ -14,11 +14,12 @@ const { paginate } = require('../utils/paginate');
  * Liste paginée des demandes.
  * Un employé ne voit que les siennes ; HR/admin voient tout.
  */
-async function listRequests(user, { page = 1, limit = 20, status, type } = {}) {
+async function listRequests(user, { page = 1, limit = 20, status, type, category } = {}) {
   const filter = {};
   if (user.role === 'employee') filter.employeeId = user._id;
   if (status) filter.status = status;
   if (type) filter.requestType = type;
+  if (category) filter.category = category;
 
   return paginate(MobilityRequest, filter, {
     page,
@@ -58,14 +59,32 @@ async function getRequestById(id, user) {
 /**
  * Crée une nouvelle demande de mobilité pour l'utilisateur connecté.
  */
+const REQUEST_CATEGORIES = ['mobilite', 'promotion', 'augmentation', 'formation', 'autre'];
+// Catégories où un poste cible a du sens (et est requis).
+const POSITION_CATEGORIES = ['mobilite', 'promotion'];
+
 async function createRequest(
-  { targetPosition, targetDepartment, targetSite, requestType, motivation, priority, targetDate },
+  { category, customCategory, targetPosition, targetDepartment, targetSite, requestType, motivation, priority, targetDate },
   user
 ) {
-  if (!targetPosition) throw AppError.badRequest('targetPosition est requis');
+  const cat = category || 'mobilite';
+  if (!REQUEST_CATEGORIES.includes(cat)) {
+    throw AppError.badRequest('Catégorie de demande invalide');
+  }
+  // Validation conditionnelle selon la catégorie.
+  if (POSITION_CATEGORIES.includes(cat)) {
+    if (!targetPosition) throw AppError.badRequest('Le poste visé est requis pour une demande de mobilité/promotion');
+  } else if (!motivation || !motivation.trim()) {
+    throw AppError.badRequest('Une description est requise pour cette demande');
+  }
+  if (cat === 'autre' && (!customCategory || !customCategory.trim())) {
+    throw AppError.badRequest('Précisez le type de demande (champ « Autre »)');
+  }
 
   const request = await MobilityRequest.create({
     employeeId: user._id,
+    category: cat,
+    customCategory: cat === 'autre' ? customCategory.trim() : undefined,
     currentPosition: user.position,
     currentDepartment: user.department,
     targetPosition,

@@ -15,7 +15,7 @@
 
 const router      = require('express').Router()
 const mongoose    = require('mongoose')
-const { Form } = require('../models')
+const { Form, Evaluation } = require('../models')
 const { ADMIN_ROLES } = require('../config/constants')
 
 // GET /api/forms — Liste des formulaires (filtrable par campaignId, formType, search)
@@ -202,6 +202,20 @@ router.post('/:id/unfreeze', async (req, res, next) => {
 
     const form = await Form.findById(req.params.id)
     if (!form) return res.status(404).json({ error: 'Formulaire introuvable' })
+
+    // Garde-fou : dégeler un formulaire déjà répondu permettrait de modifier ses
+    // questions et d'orpheliner les answers[].questionId déjà saisies. On interdit
+    // donc le dégel si au moins une évaluation a été démarrée (statut ≠ 'assigned').
+    // Pour faire évoluer un formulaire en cours d'usage, cloner (POST /:id/clone).
+    const startedCount = await Evaluation.countDocuments({
+      formId: form._id,
+      status: { $ne: 'assigned' },
+    })
+    if (startedCount > 0) {
+      return res.status(409).json({
+        error: `Dégel impossible : ${startedCount} évaluation(s) déjà démarrée(s) référencent ce formulaire. Clonez-le pour créer une nouvelle version.`,
+      })
+    }
 
     form.isFrozen = false
     form.frozenAt = null

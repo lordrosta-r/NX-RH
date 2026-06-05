@@ -104,9 +104,11 @@ describe('User Routes — /api/users', () => {
       expect(Array.isArray(response.body.data)).toBe(true)
       expect(response.body.data.length).toBeGreaterThanOrEqual(4)
       expect(response.body).toHaveProperty('meta.total')
-      
-      // Vérifier qu'aucun passwordHash n'est retourné
+
+      // Chaque user doit exposer `id` (le frontend construit /users/:id dessus)
       response.body.data.forEach(user => {
+        expect(typeof user.id).toBe('string')
+        expect(user.id.length).toBeGreaterThan(0)
         expect(user).not.toHaveProperty('passwordHash')
       })
     })
@@ -198,6 +200,7 @@ describe('User Routes — /api/users', () => {
         .expect(200)
 
       expect(response.body.data.email).toBe('employee@nanoxplore.com')
+      expect(response.body.data.id).toBe(employeeUser._id.toString())
       expect(response.body.data).not.toHaveProperty('passwordHash')
     })
 
@@ -361,10 +364,29 @@ describe('User Routes — /api/users', () => {
         .expect(200)
 
       expect(response.body.data.role).toBe('manager')
-      
+
       // Vérifier en DB
       const dbUser = await User.findById(employeeUser._id)
       expect(dbUser.role).toBe('manager')
+    })
+
+    test('refuse de rétrograder le DERNIER administrateur actif (409)', async () => {
+      // adminUser est le seul admin du jeu de test → démotion interdite.
+      const res = await request(app)
+        .patch(`/api/users/${adminUser._id}`)
+        .set('Cookie', `accessToken=${adminToken}`)
+        .send({ role: 'manager' })
+      expect(res.status).toBe(409)
+      const stillAdmin = await User.findById(adminUser._id)
+      expect(stillAdmin.role).toBe('admin')
+    })
+
+    test('refuse de désactiver le DERNIER administrateur actif (409)', async () => {
+      const res = await request(app)
+        .patch(`/api/users/${adminUser._id}`)
+        .set('Cookie', `accessToken=${adminToken}`)
+        .send({ isActive: false })
+      expect(res.status).toBe(409)
     })
 
     test('devrait permettre à un utilisateur de modifier ses propres informations limitées', async () => {

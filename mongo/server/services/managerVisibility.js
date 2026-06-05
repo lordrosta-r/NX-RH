@@ -82,13 +82,17 @@ async function getSubManagerTree(managerId, restrictedToManagers = [], visited =
 async function getVisibleUserIds(managerId, campaign) {
   const managerIdStr = managerId.toString()
 
-  // 1. Subordonnés directs (toujours visibles)
-  const directReports = await User.find(
-    { managerId, isActive: true },
-    '_id'
-  ).lean()
+  // 1. Subordonnés directs (toujours visibles) + rattachés transverses
+  //    (dottedLineManagerIds) — lien fonctionnel donnant la visibilité lecture.
+  const [directReports, dottedReports] = await Promise.all([
+    User.find({ managerId, isActive: true }, '_id').lean(),
+    User.find({ dottedLineManagerIds: managerId, isActive: true }, '_id').lean(),
+  ])
 
-  const visibleIds = new Set(directReports.map(u => u._id.toString()))
+  const visibleIds = new Set([
+    ...directReports.map(u => u._id.toString()),
+    ...dottedReports.map(u => u._id.toString()),
+  ])
 
   // 2. Visibilité étendue si configurée pour ce manager dans la campagne
   const grant = (campaign?.extendedVisibility ?? []).find(

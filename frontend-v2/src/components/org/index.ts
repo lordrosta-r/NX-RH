@@ -1,5 +1,6 @@
 export { default as OrgCircleNode } from "./OrgCircleNode";
 export { default as OrgControls } from "./OrgControls";
+export { default as OrgLegend } from "./OrgLegend";
 export { default as OrgDragConfirmDialog } from "./OrgDragConfirmDialog";
 export type { DragTarget } from "./OrgDragConfirmDialog";
 export { default as OrgSectorsView } from "./OrgSectorsView";

@@ -20,6 +20,7 @@ import type {
   OrgSectorGroup,
   Sector,
   Role,
+  OrgLegend,
 } from "../types";
 import type { OrgView } from "../components/org/OrgToolbar";
 import type { DragTarget } from "../components/org/OrgDragConfirmDialog";
@@ -98,6 +99,7 @@ export interface UseOrgChartReturn {
   selectedPerson: OrgNodeData | null;
   allUsersData: OrgNodeData[];
   canEdit: boolean;
+  legend?: OrgLegend;
 }
 
 // ─── Hook ────────────────────────────────────────────────────────────────────
@@ -143,9 +145,18 @@ export function useOrgChart(): UseOrgChartReturn {
     queryFn: () => orgApi.getSectors().then((r) => r.data),
   });
 
+  const { data: legend } = useQuery({
+    queryKey: ["org", "legend"],
+    queryFn: () => orgApi.getLegend().then((r) => r.data),
+    staleTime: 5 * 60 * 1000,
+  });
+
   // ─── Layout + React Flow state ─────────────────────────────────────────────
 
-  const { nodes: layoutNodes, edges: layoutEdges } = useOrgLayout(treeData);
+  const { nodes: layoutNodes, edges: layoutEdges } = useOrgLayout(
+    treeData,
+    legend,
+  );
 
   const [nodes, setNodes, onNodesChange] =
     useNodesState<Node<OrgNodeData>>(layoutNodes);
@@ -392,5 +403,6 @@ export function useOrgChart(): UseOrgChartReturn {
     selectedPerson,
     allUsersData,
     canEdit,
+    legend,
   };
 }

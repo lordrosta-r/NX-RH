@@ -87,9 +87,13 @@ export default function EvaluationDetailPage() {
       return "fill";
     if (status === "submitted" && (isAdminOrHr || isManager)) return "review";
     if (
-      ["reviewed", "signed_evaluatee", "signed_manager", "signed_hr"].includes(
-        status,
-      )
+      [
+        "reviewed",
+        "disputed",
+        "signed_evaluatee",
+        "signed_manager",
+        "signed_hr",
+      ].includes(status)
     )
       return "sign";
     return "readonly";

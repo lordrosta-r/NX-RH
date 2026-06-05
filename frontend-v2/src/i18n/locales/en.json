@@ -2,6 +2,8 @@
   "nav": {
     "dashboard": "Dashboard",
     "pilotage": "Piloting",
+    "aide": "Help",
+    "help": "Help",
     "collaborateurs": "Employees",
     "campaigns": "Campaigns",
     "evaluations": "Evaluations",
@@ -19,7 +21,7 @@
     "hrFlags": "HR Requests",
     "mobilityInternal": "Internal Mobility",
     "pdi": "IDP",
-    "mobility": "Mobility",
+    "mobility": "Requests",
     "profile": "My Profile",
     "logout": "Log Out",
     "notifications": "Notifications",
@@ -47,7 +49,8 @@
     "systemConfig": "System configuration",
     "mailConfig": "Email configuration",
     "systemStatus": "System status",
-    "setupWizard": "Setup wizard"
+    "setupWizard": "Setup wizard",
+    "configHub": "Configuration"
   },
   "common": {
     "save": "Save",
@@ -93,7 +96,7 @@
     "sessionExpired": "Session expired, please log in again",
     "eyebrowSpace": "Employee area",
     "subtitle": "Sign in to access your NX-RH workspace.",
-    "asideEyebrow": "2026 Campaign",
+    "asideEyebrow": "Professional reviews",
     "asideTitle": "Annual reviews, made simple.",
     "asideLead": "Prepare and track your performance review in a single workspace.",
     "support": "Need help? Contact your HR representative · rh-support@nanoxplore.com"

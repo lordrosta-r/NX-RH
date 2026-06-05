@@ -21,6 +21,31 @@ function getMailTemplate() {
   return _MailTemplate
 }
 
+// Valeurs de repli par variable de template — évite d'envoyer un champ vide
+// quand une donnée manque. À étendre selon les besoins métier.
+const TEMPLATE_VAR_DEFAULTS = Object.freeze({
+  firstName:     'Bonjour',
+  campaignName:  'votre campagne',
+  evaluatorName: 'un collaborateur',
+  deadline:      'la date communiquée',
+  alertTitle:    'Notification',
+})
+
+// Interpole {{var}} : valeur fournie → repli déclaré → '' (jamais le littéral
+// {{var}}). Loggue toute variable résolue à vide pour faciliter le diagnostic.
+function interpolateTemplate(str, vars, ctx = {}) {
+  if (!str) return ''
+  return String(str).replace(/\{\{\s*(\w+)\s*\}\}/g, (_, k) => {
+    const v = vars[k]
+    if (v !== undefined && v !== null && v !== '') return String(v)
+    if (Object.prototype.hasOwnProperty.call(TEMPLATE_VAR_DEFAULTS, k)) {
+      return TEMPLATE_VAR_DEFAULTS[k]
+    }
+    logger.warn('[NotificationService] variable de template vide', { variable: k, ...ctx })
+    return ''
+  })
+}
+
 // ── Email templates (subject + body) per notification key ────────────────────
 const TEMPLATES = {
   campaignLaunch: (data) => ({
@@ -114,8 +139,7 @@ async function notify(key, user, data = {}, _dbTemplate = undefined) {
 
   if (resolvedTemplate) {
     try {
-      const interpolate = (str, vars) =>
-        str.replace(/\{\{\s*(\w+)\s*\}\}/g, (_, k) => vars[k] ?? '')
+      const interpolate = (str, v) => interpolateTemplate(str, v, { key })
       const vars = { ...data, firstName: user.firstName }
       const interpolated = {
         subject: interpolate(resolvedTemplate.subject,                           vars),
@@ -176,8 +200,7 @@ async function sendToUser(userId, key, data = {}) {
   const user = await User.findById(userId).select('email firstName').lean()
   if (!user?.email) return false
 
-  const interpolate = (str, vars) =>
-    str.replace(/\{\{\s*(\w+)\s*\}\}/g, (_, k) => vars[k] ?? '')
+  const interpolate = (str, v) => interpolateTemplate(str, v, { key })
   const vars = { ...data, firstName: user.firstName }
 
   // DB-template first

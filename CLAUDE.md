@@ -1,5 +1,29 @@
 # NanoXplore RH — Conventions & Architecture
 
+> ⚠️ **Frontend canonique = `frontend-v2/`** (TypeScript, React Router v6, TanStack Query,
+> i18next, Tailwind). L'ancien `client/` (JSX, React Router v7, makeT/useTranslate) est **legacy
+> en cours de suppression** — les sections ci-dessous qui décrivent `client/src/…` s'appliquent à
+> cet ancien frontend et ne sont **plus la source de vérité**.
+>
+> Repères réels du frontend vivant :
+> - Routes : `frontend-v2/src/router/index.tsx` (protégées par `<AuthGuard roles={[…]}>`,
+>   `frontend-v2/src/components/shared/AuthGuard.tsx`)
+> - Navigation : `frontend-v2/src/components/layout/navConfig.ts`
+>   (`getPerspectiveNav(role, perspective, t)`) + `Navbar.tsx`
+> - Auth : `useAuth()` (`frontend-v2/src/contexts/AuthContext.tsx`), perspective
+>   `me`/`work` via `PerspectiveContext`
+> - i18n : `react-i18next`, `frontend-v2/src/i18n/locales/{fr,en}.json`
+> - UI réutilisable : `frontend-v2/src/components/ui/` (Button, Modal, ConfirmDialog…)
+>
+> Le **backend** (`mongo/server/`, Express + MongoDB/Mongoose, JWT cookies httpOnly + LDAP
+> auth-only) reste conforme aux sections backend de ce document.
+
+> 🔁 **Anti-duplication (obligatoire avant toute création).** Avant de créer un nouveau lien
+> de navigation, une route, une clé i18n, un composant ou tout autre élément nommé, **rechercher
+> d'abord son nom dans le repo** (`grep`/`find` sur le label, la clé, le `href` ou le nom de
+> fichier). S'il existe déjà quelque part, **réutiliser/déplacer l'existant** au lieu d'en créer
+> un doublon. Ne jamais introduire un second élément qui fait la même chose sous un autre nom.
+
 ## Principe directeur : K.I.S.S.
 
 > Keep It Simple, Stupid.

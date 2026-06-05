@@ -20,10 +20,107 @@
 const express    = require('express')
 const nodemailer = require('nodemailer')
 const mongoose   = require('mongoose')
-const { sendMail } = require('../services/mailer')
+const jwt        = require('jsonwebtoken')
+const { sendMail, resetTransporter } = require('../services/mailer')
 const Config = require('../models/Config')
+const { User, Form, AuditLog } = require('../models')
 
 const router = express.Router()
+
+// Options de cookie communes (httpOnly, secure selon env).
+const cookieBase = () => ({
+  httpOnly: true,
+  secure:   process.env.COOKIE_SECURE !== undefined ? process.env.COOKIE_SECURE === 'true' : process.env.NODE_ENV === 'production',
+  sameSite: 'Strict',
+  path:     '/',
+})
+
+// POST /api/admin/impersonate/:userId — Démarre une session d'impersonation.
+// Émet un jeton DÉDIÉ court (30 min, sans refresh) au nom de la cible, met de
+// côté la session admin (cookies adminToken/adminRefresh) pour pouvoir y
+// revenir, et neutralise le refresh pendant l'impersonation. Lecture seule
+// garantie par le middleware blockImpersonatedWrites.
+router.post('/impersonate/:userId', async (req, res, next) => {
+  try {
+    const { userId } = req.params
+    if (!mongoose.isValidObjectId(userId)) {
+      return res.status(400).json({ error: 'ID invalide' })
+    }
+    if (userId === req.user.id.toString()) {
+      return res.status(400).json({ error: 'Auto-impersonation interdite' })
+    }
+
+    const target = await User.findById(userId)
+      .select('email firstName lastName role isActive').lean()
+    if (!target || !target.isActive) {
+      return res.status(404).json({ error: 'Utilisateur introuvable ou inactif' })
+    }
+    // Anti-escalade latérale : jamais d'impersonation d'un autre admin.
+    if (target.role === 'admin') {
+      return res.status(403).json({ error: "Impossible d'impersonner un administrateur" })
+    }
+
+    const currentAccess  = req.cookies?.accessToken
+    const currentRefresh = req.cookies?.refreshToken
+    if (!currentAccess) {
+      return res.status(401).json({ error: 'Session admin introuvable' })
+    }
+
+    const impToken = jwt.sign(
+      {
+        id: target._id, email: target.email, role: target.role,
+        firstName: target.firstName, lastName: target.lastName,
+        imp: true, impersonatedBy: req.user.id,
+      },
+      process.env.JWT_SECRET,
+      { algorithm: 'HS256', expiresIn: '30m' },
+    )
+
+    const base = cookieBase()
+    res.cookie('adminToken', currentAccess, { ...base, maxAge: 60 * 60 * 1000 })
+    if (currentRefresh) res.cookie('adminRefresh', currentRefresh, { ...base, maxAge: 7 * 24 * 60 * 60 * 1000 })
+    res.clearCookie('refreshToken', base)
+    res.cookie('accessToken', impToken, { ...base, maxAge: 30 * 60 * 1000 })
+
+    AuditLog.create({
+      userId: req.user.id, userRole: 'admin', action: 'impersonate_start',
+      targetType: 'User', targetId: target._id, meta: { targetRole: target.role },
+    }).catch(() => {})
+
+    res.json({
+      success: true,
+      impersonating: { id: target._id, firstName: target.firstName, lastName: target.lastName, role: target.role },
+    })
+  } catch (err) {
+    next(err)
+  }
+})
+
+// GET /api/admin/setup-status — Gate « State Zero » : indique si les prérequis
+// minimaux d'exploitation sont réunis. Sert à afficher une bannière bloquante
+// tant que la configuration initiale n'est pas faite.
+router.get('/setup-status', async (req, res, next) => {
+  try {
+    const [hasAdmin, hasManagedUsers, formCount, smtpCfg] = await Promise.all([
+      User.exists({ role: 'admin', isActive: true }),
+      User.exists({ managerId: { $ne: null }, isActive: true }),
+      Form.countDocuments({}),
+      Config.findOne({ key: 'smtp.host' }).lean(),
+    ])
+    const smtpConfigured = Boolean(smtpCfg?.value || process.env.MAIL_HOST)
+
+    const checks = {
+      hasAdmin:        Boolean(hasAdmin),
+      hasManagedUsers: Boolean(hasManagedUsers),
+      hasForm:         formCount > 0,
+      smtpConfigured,
+    }
+    const ready = Object.values(checks).every(Boolean)
+    res.json({ ready, checks })
+  } catch (err) {
+    next(err)
+  }
+})
 
 // GET /api/admin/status — Vérification de l'état du système
 router.get('/status', async (req, res, next) => {
@@ -43,7 +140,7 @@ router.get('/status', async (req, res, next) => {
       const port     = parseInt(cfg['smtp.port'] || process.env.MAIL_PORT || '587', 10)
       const user     = cfg['smtp.user']     || process.env.MAIL_USER     || ''
       const password = cfg['smtp.password'] || process.env.MAIL_PASSWORD || ''
-      const secure   = cfg['smtp.secure'] != null ? Boolean(cfg['smtp.secure']) : (process.env.MAIL_SECURE === 'true' || port === 465)
+      const secure   = (cfg['smtp.secure'] !== null && cfg['smtp.secure'] !== undefined) ? Boolean(cfg['smtp.secure']) : (process.env.MAIL_SECURE === 'true' || port === 465)
 
       if (host) {
         const transport = nodemailer.createTransport({ host, port, secure, auth: user ? { user, pass: password } : undefined })
@@ -98,6 +195,57 @@ router.get('/config', async (req, res, next) => {
   try {
     const configs = await Config.find({}).sort('key').lean()
     res.json(configs)
+  } catch (err) {
+    next(err)
+  }
+})
+
+// ─── Configuration SMTP dédiée (page « Configuration e-mail ») ─────────────────
+// Lit/écrit les VRAIES clés smtp.* que le mailer consomme (host/port/user/
+// password/secure/from), au lieu d'une clé fourre-tout. Doit être déclarée
+// AVANT /config/:key pour ne pas être capturée par le param.
+
+// GET /api/admin/config/mail — Réglages SMTP (mot de passe jamais renvoyé en clair)
+router.get('/config/mail', async (req, res, next) => {
+  try {
+    const keys = ['smtp.host', 'smtp.port', 'smtp.user', 'smtp.secure', 'smtp.from', 'smtp.fromName', 'smtp.password']
+    const docs = await Config.find({ key: { $in: keys } }).lean()
+    const cfg = Object.fromEntries(docs.map(d => [d.key, d.value]))
+    res.json({ data: {
+      smtpHost:   cfg['smtp.host']     ?? process.env.MAIL_HOST ?? '',
+      smtpPort:   Number(cfg['smtp.port'] ?? process.env.MAIL_PORT ?? 587),
+      smtpSecure: cfg['smtp.secure'] !== undefined ? Boolean(cfg['smtp.secure']) : (process.env.MAIL_SECURE === 'true'),
+      smtpUser:   cfg['smtp.user']     ?? process.env.MAIL_USER ?? '',
+      smtpPass:   '',  // jamais exposé ; laisser vide = inchangé au prochain enregistrement
+      passwordSet: Boolean(cfg['smtp.password'] || process.env.MAIL_PASSWORD),
+      fromEmail:  cfg['smtp.from']     ?? process.env.MAIL_FROM ?? '',
+      fromName:   cfg['smtp.fromName'] ?? '',
+    } })
+  } catch (err) {
+    next(err)
+  }
+})
+
+// PUT /api/admin/config/mail — Enregistre les réglages SMTP + invalide le transporter
+router.put('/config/mail', async (req, res, next) => {
+  try {
+    const b = req.body || {}
+    const ops = []
+    const set = (key, value) => ops.push(
+      Config.findOneAndUpdate({ key }, { $set: { value } }, { upsert: true })
+    )
+    if (b.smtpHost   !== undefined) set('smtp.host', String(b.smtpHost).trim())
+    if (b.smtpPort   !== undefined) set('smtp.port', parseInt(b.smtpPort, 10) || 587)
+    if (b.smtpUser   !== undefined) set('smtp.user', String(b.smtpUser).trim())
+    if (b.smtpSecure !== undefined) set('smtp.secure', Boolean(b.smtpSecure))
+    if (b.fromEmail  !== undefined) set('smtp.from', String(b.fromEmail).trim())
+    if (b.fromName   !== undefined) set('smtp.fromName', String(b.fromName).trim())
+    // Mot de passe : mis à jour uniquement s'il est fourni (laisser vide = inchangé)
+    if (b.smtpPass) set('smtp.password', String(b.smtpPass))
+
+    await Promise.all(ops)
+    resetTransporter()  // les prochains envois utiliseront la nouvelle config
+    res.json({ success: true })
   } catch (err) {
     next(err)
   }

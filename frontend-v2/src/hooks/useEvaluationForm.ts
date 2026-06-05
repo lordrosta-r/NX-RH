@@ -6,7 +6,12 @@ import type { Evaluation, FormQuestion } from "../types";
 import type { EvalMutationHandle } from "../types/evaluation";
 import { queryKeys } from "../lib/queryKeys";
 
+export type SaveState = "idle" | "saving" | "saved" | "error";
+
+const draftKey = (id: string) => `eval-draft-${id}`;
+
 export interface UseEvaluationFormResult {
+  saveState: SaveState;
   answers: Record<string, unknown>;
   currentQuestionIdx: number;
   currentPhase: string | null;
@@ -37,6 +42,9 @@ export interface UseEvaluationFormResult {
   signMutation: EvalMutationHandle;
   validateMutation: EvalMutationHandle;
   signWithCommentMutation: EvalMutationHandle;
+  disputeMutation: EvalMutationHandle;
+  resolveReopenMutation: EvalMutationHandle;
+  resolveProceedMutation: EvalMutationHandle;
 }
 
 export function useEvaluationForm(
@@ -45,9 +53,24 @@ export function useEvaluationForm(
   const queryClient = useQueryClient();
   const id = evaluation.id;
 
-  const [answers, setAnswers] = useState<Record<string, unknown>>(
-    () => evaluation.answers ?? {},
-  );
+  // Restaure un éventuel brouillon local (réponses dont la dernière sauvegarde
+  // serveur a échoué) pour ne pas perdre le travail après fermeture d'onglet.
+  const [answers, setAnswers] = useState<Record<string, unknown>>(() => {
+    try {
+      const raw = localStorage.getItem(draftKey(id));
+      if (raw) return { ...(evaluation.answers ?? {}), ...JSON.parse(raw) };
+    } catch {
+      /* localStorage indisponible ou JSON corrompu → on ignore */
+    }
+    return evaluation.answers ?? {};
+  });
+  const [saveState, setSaveState] = useState<SaveState>(() => {
+    try {
+      return localStorage.getItem(draftKey(id)) ? "error" : "idle";
+    } catch {
+      return "idle";
+    }
+  });
   const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
   const [currentPhase, setCurrentPhase] = useState<string | null>(null);
   const [submitModal, setSubmitModal] = useState(false);
@@ -71,7 +94,9 @@ export function useEvaluationForm(
   const questions = evaluation.form?.questions ?? [];
   const phases = [
     ...new Set(
-      questions.map((q) => q.phase).filter((p): p is NonNullable<typeof p> => Boolean(p)),
+      questions
+        .map((q) => q.phase)
+        .filter((p): p is NonNullable<typeof p> => Boolean(p)),
     ),
   ];
   const filteredQuestions = currentPhase
@@ -89,6 +114,7 @@ export function useEvaluationForm(
   const autoSave = useCallback(
     (updatedAnswers: Record<string, unknown>) => {
       if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+      setSaveState("saving");
       saveTimeoutRef.current = setTimeout(async () => {
         try {
           await evaluationsApi.updateEvaluation(id, {
@@ -96,8 +122,22 @@ export function useEvaluationForm(
             status: "in_progress",
           });
           setLastSavedAt(new Date());
+          setSaveState("saved");
+          try {
+            localStorage.removeItem(draftKey(id));
+          } catch {
+            /* ignore */
+          }
         } catch {
-          // silent auto-save failure
+          // Échec réseau : on bascule en "error" et on persiste un brouillon
+          // local pour rejouer/restaurer au prochain montage. L'UI bloque la
+          // soumission tant qu'on n'est pas revenu en "saved".
+          setSaveState("error");
+          try {
+            localStorage.setItem(draftKey(id), JSON.stringify(updatedAnswers));
+          } catch {
+            /* ignore */
+          }
         }
       }, 2000);
     },
@@ -111,7 +151,9 @@ export function useEvaluationForm(
   }
 
   const invalidate = () =>
-    queryClient.invalidateQueries({ queryKey: queryKeys.evaluations.detail(id) });
+    queryClient.invalidateQueries({
+      queryKey: queryKeys.evaluations.detail(id),
+    });
 
   const _submitMutation = useMutation({
     mutationFn: () => evaluationsApi.submitEvaluation(id),
@@ -151,7 +193,34 @@ export function useEvaluationForm(
     onSuccess: () => void invalidate(),
   });
 
+  // Litige : l'évalué conteste (reviewed → disputed). On enregistre son
+  // commentaire + le flag de désaccord, puis on bascule le statut.
+  const _disputeMutation = useMutation({
+    mutationFn: () =>
+      evaluationsApi.updateEvaluation(id, {
+        evaluateeComment,
+        disagreementFlag: true,
+        status: "disputed",
+      }),
+    onSuccess: () => void invalidate(),
+  });
+
+  // Arbitrage RH : renvoyer en révision (disputed → reviewed) pour correction.
+  const _resolveReopenMutation = useMutation({
+    mutationFn: () =>
+      evaluationsApi.updateEvaluation(id, { status: "reviewed" }),
+    onSuccess: () => void invalidate(),
+  });
+
+  // Arbitrage RH : acter le litige et faire avancer (disputed → signed_evaluatee).
+  const _resolveProceedMutation = useMutation({
+    mutationFn: () =>
+      evaluationsApi.updateEvaluation(id, { status: "signed_evaluatee" }),
+    onSuccess: () => void invalidate(),
+  });
+
   return {
+    saveState,
     answers,
     currentQuestionIdx,
     currentPhase,
@@ -196,6 +265,18 @@ export function useEvaluationForm(
     signWithCommentMutation: {
       mutate: () => _signWithCommentMutation.mutate(),
       isPending: _signWithCommentMutation.isPending,
+    },
+    disputeMutation: {
+      mutate: () => _disputeMutation.mutate(),
+      isPending: _disputeMutation.isPending,
+    },
+    resolveReopenMutation: {
+      mutate: () => _resolveReopenMutation.mutate(),
+      isPending: _resolveReopenMutation.isPending,
+    },
+    resolveProceedMutation: {
+      mutate: () => _resolveProceedMutation.mutate(),
+      isPending: _resolveProceedMutation.isPending,
     },
   };
 }

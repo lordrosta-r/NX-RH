@@ -676,9 +676,18 @@ export default function ResourcesPage() {
     placeholderData: keepPreviousData,
   });
 
-  // Client-side draft filter for admin/hr
+  // Client-side draft filter for admin/hr.
+  // Pour les non-admin/hr : on applique aussi visibleTo[] — une ressource
+  // « réservée managers » ne doit pas fuir vers les employés. visibleTo vide =
+  // visible par tous les rôles.
   const resources = (data?.data ?? []).filter((resource) => {
-    if (!isAdminHr) return resource.isPublished && resource.status !== "draft";
+    if (!isAdminHr) {
+      if (!resource.isPublished || resource.status === "draft") return false;
+      const visibleTo = resource.visibleTo ?? [];
+      return (
+        visibleTo.length === 0 || (!!user && visibleTo.includes(user.role))
+      );
+    }
     if (statusFilter === "draft")
       return resource.status === "draft" || !resource.isPublished;
     if (statusFilter === "published")

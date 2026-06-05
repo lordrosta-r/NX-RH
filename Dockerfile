@@ -19,6 +19,7 @@ RUN npm install
 
 # Copy source and build
 COPY frontend-v2/ .
+ENV VITE_LDAP_ENABLED=true
 RUN npx vite build --outDir /build/dist --emptyOutDir
 
 
@@ -32,7 +33,7 @@ WORKDIR /app
 
 # Install production dependencies only
 COPY mongo/server/package*.json ./
-RUN npm ci --omit=dev
+RUN npm pkg delete scripts.prepare && npm ci --omit=dev
 
 # Copy server source
 COPY mongo/server/ .

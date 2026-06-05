@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useSearchParams, Link } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Eye, EyeOff, Loader2, ArrowRight, Check } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -29,7 +29,6 @@ export default function LoginPage() {
     resolver: zodResolver(loginSchema),
   });
 
-  const ldapEnabled = import.meta.env.VITE_LDAP_ENABLED === "true";
   const redirect = searchParams.get("redirect") || "/";
 
   useEffect(() => {
@@ -179,17 +178,6 @@ export default function LoginPage() {
             </>
           )}
         </button>
-
-        {/* LDAP */}
-        {ldapEnabled && (
-          <Link
-            to="/login/ldap"
-            className="link"
-            style={{ textAlign: "center" }}
-          >
-            {t("auth.ldapLogin")}
-          </Link>
-        )}
       </form>
     </div>
   );

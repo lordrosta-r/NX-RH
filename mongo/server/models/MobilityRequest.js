@@ -4,11 +4,26 @@ const mongoose = require('mongoose');
 
 const mobilityRequestSchema = new mongoose.Schema({
   employeeId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+
+  // Catégorie de demande (modèle unifié « Demandes »). Les anciennes demandes
+  // sans catégorie sont implicitement 'mobilite' (default) → pas de migration.
+  category: {
+    type: String,
+    enum: ['mobilite', 'promotion', 'augmentation', 'formation', 'autre'],
+    default: 'mobilite',
+    required: true,
+    index: true,
+  },
+  // Libellé libre quand category === 'autre'.
+  customCategory: { type: String, maxlength: 100 },
+
   currentPosition: { type: String },
   currentDepartment: { type: String },
-  targetPosition: { type: String, required: true },
+  // Spécifique mobilité/promotion — optionnel pour les autres catégories.
+  targetPosition: { type: String },
   targetDepartment: { type: String },
   targetSite: { type: String },
+  // Sous-type de mobilité (conservé pour les demandes de catégorie mobilité).
   requestType: {
     type: String,
     enum: [
@@ -16,8 +31,8 @@ const mobilityRequestSchema = new mongoose.Schema({
       'department_change', 'site_change', 'international', 'secondment',
     ],
     default: 'internal_transfer',
-    required: true,
   },
+  // Motivation / description de la demande (toutes catégories).
   motivation: { type: String, maxlength: 2000 },
   status: {
     type: String,

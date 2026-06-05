@@ -19,6 +19,7 @@ const router   = require('express').Router()
 const mongoose = require('mongoose')
 const User     = require('../../models/User')
 const Sector   = require('../../models/Sector')
+const Config   = require('../../models/Config')
 const { ROLES } = require('../../config/constants')
 const { cacheResponse } = require('../../middleware/cacheMiddleware')
 const cache = require('../../utils/cache')
@@ -46,8 +47,10 @@ router.get('/tree', cacheResponse(120, req => `GET:${req.originalUrl}:${req.user
       return res.status(403).json({ error: 'Accès interdit' })
     }
 
-    let users = await User.find({ isActive: true })
-      .select('_id firstName lastName email role department position sectorId managerId avatar')
+    // Les comptes admin sont des comptes système : ils ne font pas partie de
+    // l'organigramme des collaborateurs et n'y apparaissent pas.
+    let users = await User.find({ isActive: true, role: { $ne: 'admin' } })
+      .select('_id firstName lastName email role department position sectorId managerId dottedLineManagerIds avatar')
       .lean()
 
     if (scopeIds) {
@@ -160,7 +163,7 @@ router.patch('/users/:id', async (req, res, next) => {
       return res.status(400).json({ error: 'ID invalide' })
     }
 
-    const { managerId, sectorId, role } = req.body
+    const { managerId, sectorId, role, dottedLineManagerIds } = req.body
 
     if (managerId !== undefined && managerId !== null) {
       if (!mongoose.isValidObjectId(managerId)) {
@@ -168,6 +171,21 @@ router.patch('/users/:id', async (req, res, next) => {
       }
       const manager = await User.findById(managerId, '_id').lean()
       if (!manager) return res.status(400).json({ error: 'Manager introuvable' })
+    }
+
+    if (dottedLineManagerIds !== undefined) {
+      if (!Array.isArray(dottedLineManagerIds)) {
+        return res.status(400).json({ error: 'dottedLineManagerIds doit être un tableau' })
+      }
+      if (dottedLineManagerIds.some(m => !mongoose.isValidObjectId(m))) {
+        return res.status(400).json({ error: 'dottedLineManagerIds contient un ID invalide' })
+      }
+      if (dottedLineManagerIds.length) {
+        const found = await User.countDocuments({ _id: { $in: dottedLineManagerIds } })
+        if (found !== new Set(dottedLineManagerIds.map(String)).size) {
+          return res.status(400).json({ error: 'Un responsable transverse est introuvable' })
+        }
+      }
     }
 
     if (sectorId !== undefined && sectorId !== null) {
@@ -185,9 +203,18 @@ router.patch('/users/:id', async (req, res, next) => {
     const user = await User.findById(id)
     if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' })
 
+    // Anti lock-out : interdit de démotionner le dernier administrateur actif.
+    if (role !== undefined && role !== 'admin' && user.role === 'admin') {
+      const otherAdmins = await User.countDocuments({ _id: { $ne: user._id }, role: 'admin', isActive: true })
+      if (otherAdmins === 0) {
+        return res.status(409).json({ error: "Action refusée : c'est le dernier administrateur actif." })
+      }
+    }
+
     if (managerId !== undefined) user.managerId = managerId || null
     if (sectorId !== undefined) user.sectorId = sectorId || null
     if (role !== undefined) user.role = role
+    if (dottedLineManagerIds !== undefined) user.dottedLineManagerIds = dottedLineManagerIds
 
     // anti-cycle géré par le pre-save hook de User
     await user.save()
@@ -336,6 +363,83 @@ router.delete('/sectors/:id', async (req, res, next) => {
     cache.invalidatePattern('GET:/api/org')
     cache.invalidatePattern('GET:/api/v1/org')
     res.status(204).end()
+  } catch (err) {
+    next(err)
+  }
+})
+
+// ─── Légende de l'organigramme (configurable par l'admin) ─────────────────────
+// Stockée dans Config sous la clé 'org.legend'. Labels + couleurs des liens
+// (hiérarchique / transverse) et des rôles. Le graphe consomme ces mêmes
+// couleurs côté front pour rester cohérent avec la légende.
+
+const DEFAULT_LEGEND = {
+  edges: {
+    hierarchical: { label: 'Lien hiérarchique', color: '#94A3B8' },
+    transverse:   { label: 'Lien transverse',   color: '#D97706' },
+  },
+  roles: {
+    admin:    { label: 'Admin',         color: '#0D9488' },
+    hr:       { label: 'RH',            color: '#059669' },
+    manager:  { label: 'Responsable',   color: '#2563EB' },
+    employee: { label: 'Collaborateur', color: '#64748B' },
+  },
+}
+
+const HEX_COLOR = /^#[0-9a-fA-F]{6}$/
+
+// Construit une entrée propre {label, color} à partir d'une entrée libre,
+// en retombant sur la valeur par défaut si invalide.
+function pickEntry(entry, def) {
+  const label = (typeof entry?.label === 'string' && entry.label.trim() && entry.label.trim().length <= 40)
+    ? entry.label.trim() : def.label
+  const color = (typeof entry?.color === 'string' && HEX_COLOR.test(entry.color))
+    ? entry.color : def.color
+  return { label, color }
+}
+
+// Fusionne/valide une légende libre par-dessus les valeurs par défaut.
+function sanitizeLegend(body) {
+  const b = body || {}
+  return {
+    edges: {
+      hierarchical: pickEntry(b.edges?.hierarchical, DEFAULT_LEGEND.edges.hierarchical),
+      transverse:   pickEntry(b.edges?.transverse,   DEFAULT_LEGEND.edges.transverse),
+    },
+    roles: {
+      admin:    pickEntry(b.roles?.admin,    DEFAULT_LEGEND.roles.admin),
+      hr:       pickEntry(b.roles?.hr,       DEFAULT_LEGEND.roles.hr),
+      manager:  pickEntry(b.roles?.manager,  DEFAULT_LEGEND.roles.manager),
+      employee: pickEntry(b.roles?.employee, DEFAULT_LEGEND.roles.employee),
+    },
+  }
+}
+
+// GET /api/org/legend — lisible par tous les visualisateurs de l'organigramme.
+router.get('/legend', async (req, res, next) => {
+  try {
+    const doc = await Config.findOne({ key: 'org.legend' }).lean()
+    res.json(doc?.value ? sanitizeLegend(doc.value) : DEFAULT_LEGEND)
+  } catch (err) {
+    next(err)
+  }
+})
+
+// PUT /api/org/legend — modifiable par l'admin uniquement.
+router.put('/legend', async (req, res, next) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ error: "Réservé à l'administrateur" })
+    }
+    const value = sanitizeLegend(req.body)
+    await Config.findOneAndUpdate(
+      { key: 'org.legend' },
+      { $set: { value } },
+      { upsert: true, new: true },
+    )
+    cache.invalidatePattern('GET:/api/org')
+    cache.invalidatePattern('GET:/api/v1/org')
+    res.json(value)
   } catch (err) {
     next(err)
   }

@@ -33,12 +33,13 @@ export default function CampaignChipInput({
             }
           }}
           placeholder={placeholder}
-          className="flex-1 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+          aria-label={placeholder ?? "Ajouter une valeur"}
+          className="input flex-1"
         />
         <button
           type="button"
           onClick={addChip}
-          className="px-3 py-2 text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md transition-colors"
+          className="btn btn-ghost btn-sm"
         >
           Ajouter
         </button>
@@ -46,16 +47,14 @@ export default function CampaignChipInput({
       {values.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {values.map((v) => (
-            <span
-              key={v}
-              className="inline-flex items-center gap-1 px-2 py-1 bg-primary-50 text-primary-700 text-xs rounded-full"
-            >
+            <span key={v} className="badge blue">
               {v}
               <button
                 type="button"
                 onClick={() => onChange(values.filter((x) => x !== v))}
                 aria-label={`Supprimer ${v}`}
-                className="ml-0.5 hover:text-primary-900 font-bold"
+                className="inline-flex items-center font-bold"
+                style={{ color: "var(--blue-text)" }}
               >
                 ×
               </button>

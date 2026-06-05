@@ -29,41 +29,62 @@ export default function CampaignDeleteModal({
       title="Supprimer la campagne"
       size="sm"
       footer={
-        <>
-          <button
-            onClick={handleClose}
-            className="border border-slate-200 hover:bg-slate-50 px-4 py-2 rounded-lg text-sm font-medium"
-          >
+        <div className="nx-app" style={{ display: "flex", gap: 12 }}>
+          <button onClick={handleClose} className="btn btn-ghost">
             Annuler
           </button>
           <button
             disabled={!campaignName || confirm !== campaignName || isPending}
             onClick={onDelete}
-            className="bg-error-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-error-600 disabled:opacity-50"
+            className="btn"
+            style={{
+              background: "var(--red)",
+              color: "#fff",
+              borderColor: "var(--red)",
+            }}
           >
             {isPending ? "Suppression…" : "Supprimer définitivement"}
           </button>
-        </>
+        </div>
       }
     >
-      <div className="space-y-3">
-        <p className="flex items-center gap-2 text-sm text-slate-600">
-          <AlertTriangle size={16} className="text-error-500 shrink-0" />
+      <div
+        className="nx-app"
+        style={{ display: "flex", flexDirection: "column", gap: 16 }}
+      >
+        <div
+          className="callout red body"
+          style={{ display: "flex", alignItems: "center", gap: 8 }}
+        >
+          <AlertTriangle
+            size={16}
+            style={{ color: "var(--red)", flexShrink: 0 }}
+            aria-hidden="true"
+          />
           Cette action est irréversible.
-        </p>
-        <p className="font-mono text-sm bg-slate-50 px-3 py-2 rounded">
+        </div>
+        <p
+          className="small"
+          style={{
+            fontFamily: "monospace",
+            background: "var(--bg-alt)",
+            padding: "8px 12px",
+            borderRadius: "var(--radius)",
+          }}
+        >
           {campaignName}
         </p>
-        <div>
-          <label htmlFor="campaign-delete-confirm" className="block text-sm text-slate-600 mb-2">
+        <div className="field">
+          <label htmlFor="campaign-delete-confirm">
             Saisissez le nom de la campagne pour confirmer :
           </label>
           <input
             id="campaign-delete-confirm"
-            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-error-500"
+            className="input"
             value={confirm}
             onChange={(e) => setConfirm(e.target.value)}
             placeholder={campaignName}
+            aria-label="Nom de la campagne à confirmer"
           />
         </div>
       </div>

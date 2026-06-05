@@ -8,6 +8,7 @@ import {
   CampaignFormCard,
 } from "../components/campaigns";
 import { useCampaignForm, WIZARD_STEPS } from "../hooks/useCampaignForm";
+import { PageHead, Tile } from "../components/shell";
 
 export default function CampaignNewPage() {
   const {
@@ -27,23 +28,26 @@ export default function CampaignNewPage() {
   } = useCampaignForm();
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
-      <div>
-        <nav aria-label="Fil d'ariane" className="text-sm text-slate-500 mb-1">
-          <Link to="/" className="hover:text-slate-700">
-            Accueil
-          </Link>
-          <span className="mx-1.5">›</span>
-          <Link to="/campaigns" className="hover:text-slate-700">
-            Campagnes
-          </Link>
-          <span className="mx-1.5">›</span>
-          <span>Nouvelle campagne</span>
-        </nav>
-        <h1 className="text-2xl font-bold text-slate-900">Nouvelle campagne</h1>
-      </div>
+    <div className="nx-app">
+      <PageHead
+        eyebrow={
+          <>
+            <Link to="/" className="link">
+              Accueil
+            </Link>{" "}
+            ›{" "}
+            <Link to="/campaigns" className="link">
+              Campagnes
+            </Link>{" "}
+            › Nouvelle campagne
+          </>
+        }
+        title="Nouvelle campagne"
+      />
 
-      <Stepper steps={WIZARD_STEPS} currentStep={currentStep} />
+      <Tile style={{ marginBottom: 24 }}>
+        <Stepper steps={WIZARD_STEPS} currentStep={currentStep} />
+      </Tile>
 
       {currentStep === 0 && (
         <CampaignGeneralInfoForm
@@ -57,11 +61,13 @@ export default function CampaignNewPage() {
 
       {currentStep === 1 && (
         <CampaignFormCard title="Formulaires">
-          <p className="text-sm text-slate-500">
+          <p className="body">
             Les formulaires se gèrent depuis la page de la campagne, une fois
             celle-ci créée. Rendez-vous dans l'onglet{" "}
-            <span className="font-medium text-slate-700">Formulaires</span> pour
-            associer un ou plusieurs formulaires depuis la bibliothèque.
+            <span style={{ fontWeight: 600, color: "var(--ink)" }}>
+              Formulaires
+            </span>{" "}
+            pour associer un ou plusieurs formulaires depuis la bibliothèque.
           </p>
         </CampaignFormCard>
       )}

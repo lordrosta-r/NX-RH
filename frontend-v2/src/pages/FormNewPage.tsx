@@ -13,7 +13,7 @@ import {
 import { formsApi } from "../api/forms";
 import { campaignsApi } from "../api/campaigns";
 import type { Form, FormQuestion, QuestionType, QuestionPhase } from "../types";
-import Button from "../components/ui/Button";
+import { PageHead, Tile } from "../components/shell";
 
 const QUESTION_TYPES: { value: QuestionType; label: string }[] = [
   { value: "rating", label: "Note (1-10)" },
@@ -35,11 +35,6 @@ const PHASES: { value: QuestionPhase; label: string }[] = [
   { value: "all", label: "Toutes phases" },
 ];
 
-const INPUT_CLS =
-  "w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none";
-const SELECT_CLS =
-  "border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-primary-500 focus:outline-none w-full";
-
 // ─── QuestionCard ─────────────────────────────────────────────────────────────
 
 function QuestionCard({
@@ -60,144 +55,196 @@ function QuestionCard({
   onMoveDown: () => void;
 }) {
   return (
-    <div className="bg-white rounded-xl border border-slate-200 p-4 mb-3 group">
-      <div className="flex items-start gap-3">
-        {/* Index + move controls */}
-        <div className="flex flex-col items-center gap-1 pt-1">
-          <span className="w-6 h-6 rounded-full bg-slate-100 text-slate-500 text-xs font-medium flex items-center justify-center flex-shrink-0">
-            {index + 1}
-          </span>
-          <div className="flex flex-col gap-0.5">
-            <button
-              onClick={onMoveUp}
-              disabled={index === 0}
-              className="p-0.5 text-slate-300 hover:text-slate-600 disabled:opacity-30"
-            >
-              <ChevronUp className="w-3 h-3" />
-            </button>
-            <button
-              onClick={onMoveDown}
-              disabled={index === total - 1}
-              className="p-0.5 text-slate-300 hover:text-slate-600 disabled:opacity-30"
-            >
-              <ChevronDown className="w-3 h-3" />
-            </button>
-          </div>
-        </div>
-
-        <div className="flex-1 min-w-0">
-          {/* Row 1 : Type + Phase */}
-          <div className="flex items-center gap-3 mb-3">
-            <select
-              value={question.type}
-              onChange={(e) =>
-                onChange({ ...question, type: e.target.value as QuestionType })
-              }
-              className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm bg-white focus:ring-2 focus:ring-primary-500 focus:outline-none flex-1"
-            >
-              {QUESTION_TYPES.map((t) => (
-                <option key={t.value} value={t.value}>
-                  {t.label}
-                </option>
-              ))}
-            </select>
-            <select
-              value={question.phase ?? "all"}
-              onChange={(e) =>
-                onChange({
-                  ...question,
-                  phase: e.target.value as QuestionPhase,
-                })
-              }
-              className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm bg-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
-            >
-              {PHASES.map((p) => (
-                <option key={p.value} value={p.value}>
-                  {p.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Row 2 : Question text */}
-          <textarea
-            value={question.text}
-            onChange={(e) => onChange({ ...question, text: e.target.value })}
-            placeholder="Texte de la question..."
-            rows={2}
-            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none resize-none mb-3"
-          />
-
-          {/* Options (choice only) */}
-          {question.type === "choice" && (
-            <div className="mb-3">
-              <p className="text-xs font-medium text-slate-500 mb-2">
-                Options :
-              </p>
-              {(question.options ?? []).map((opt, i) => (
-                <div key={`${opt}-${i}`} className="flex gap-2 mb-2">
-                  <input
-                    value={opt}
-                    onChange={(e) => {
-                      const opts = [...(question.options ?? [])];
-                      opts[i] = e.target.value;
-                      onChange({ ...question, options: opts });
-                    }}
-                    className="flex-1 border border-slate-200 rounded px-3 py-1.5 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
-                    placeholder={`Option ${i + 1}`}
-                  />
-                  <button
-                    onClick={() =>
-                      onChange({
-                        ...question,
-                        options: (question.options ?? []).filter(
-                          (_, j) => j !== i,
-                        ),
-                      })
-                    }
-                    className="text-slate-400 hover:text-error-500"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              ))}
-              <button
-                onClick={() =>
-                  onChange({
-                    ...question,
-                    options: [...(question.options ?? []), ""],
-                  })
-                }
-                className="text-xs text-primary-600 hover:underline"
-              >
-                + Ajouter une option
-              </button>
-            </div>
-          )}
-
-          {/* Row 3 : Required + Delete */}
-          <div className="flex items-center justify-between">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={question.required}
-                onChange={(e) =>
-                  onChange({ ...question, required: e.target.checked })
-                }
-                className="rounded border-slate-300 text-primary-500"
-              />
-              <span className="text-xs text-slate-500">Requis</span>
-            </label>
-            <button
-              onClick={onDelete}
-              className="text-xs text-slate-400 hover:text-error-500 flex items-center gap-1"
-            >
-              <Trash2 className="w-3 h-3" /> Supprimer
-            </button>
-          </div>
+    <Tile
+      className="row"
+      style={{ alignItems: "flex-start", gap: 12, marginBottom: 12 }}
+    >
+      {/* Index + move controls */}
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: 4,
+          paddingTop: 4,
+        }}
+      >
+        <span
+          className="small"
+          style={{
+            width: 24,
+            height: 24,
+            borderRadius: 999,
+            background: "var(--bg-alt)",
+            color: "var(--ink-3)",
+            fontWeight: 600,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0,
+          }}
+        >
+          {index + 1}
+        </span>
+        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          <button
+            type="button"
+            onClick={onMoveUp}
+            disabled={index === 0}
+            aria-label="Déplacer la question vers le haut"
+            className="btn-ghost btn-sm"
+            style={{ padding: 2, border: "none", background: "none" }}
+          >
+            <ChevronUp size={14} strokeWidth={1.5} aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            onClick={onMoveDown}
+            disabled={index === total - 1}
+            aria-label="Déplacer la question vers le bas"
+            className="btn-ghost btn-sm"
+            style={{ padding: 2, border: "none", background: "none" }}
+          >
+            <ChevronDown size={14} strokeWidth={1.5} aria-hidden="true" />
+          </button>
         </div>
       </div>
-    </div>
+
+      <div style={{ flex: 1, minWidth: 0 }}>
+        {/* Row 1 : Type + Phase */}
+        <div className="row" style={{ gap: 12, marginBottom: 12 }}>
+          <select
+            aria-label="Type de question"
+            value={question.type}
+            onChange={(e) =>
+              onChange({ ...question, type: e.target.value as QuestionType })
+            }
+            className="input"
+            style={{ flex: 1 }}
+          >
+            {QUESTION_TYPES.map((t) => (
+              <option key={t.value} value={t.value}>
+                {t.label}
+              </option>
+            ))}
+          </select>
+          <select
+            aria-label="Phase de la question"
+            value={question.phase ?? "all"}
+            onChange={(e) =>
+              onChange({
+                ...question,
+                phase: e.target.value as QuestionPhase,
+              })
+            }
+            className="input"
+          >
+            {PHASES.map((p) => (
+              <option key={p.value} value={p.value}>
+                {p.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Row 2 : Question text */}
+        <textarea
+          aria-label="Texte de la question"
+          value={question.text}
+          onChange={(e) => onChange({ ...question, text: e.target.value })}
+          placeholder="Texte de la question..."
+          rows={2}
+          className="input"
+          style={{ marginBottom: 12 }}
+        />
+
+        {/* Options (choice only) */}
+        {question.type === "choice" && (
+          <div style={{ marginBottom: 12 }}>
+            <p className="small" style={{ fontWeight: 600, marginBottom: 8 }}>
+              Options :
+            </p>
+            {(question.options ?? []).map((opt, i) => (
+              <div
+                key={`${opt}-${i}`}
+                className="row"
+                style={{ gap: 8, marginBottom: 8 }}
+              >
+                <input
+                  aria-label={`Option ${i + 1}`}
+                  value={opt}
+                  onChange={(e) => {
+                    const opts = [...(question.options ?? [])];
+                    opts[i] = e.target.value;
+                    onChange({ ...question, options: opts });
+                  }}
+                  className="input"
+                  style={{ flex: 1 }}
+                  placeholder={`Option ${i + 1}`}
+                />
+                <button
+                  type="button"
+                  aria-label={`Supprimer l'option ${i + 1}`}
+                  onClick={() =>
+                    onChange({
+                      ...question,
+                      options: (question.options ?? []).filter(
+                        (_, j) => j !== i,
+                      ),
+                    })
+                  }
+                  className="btn btn-ghost btn-sm"
+                >
+                  <X size={16} strokeWidth={1.5} aria-hidden="true" />
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() =>
+                onChange({
+                  ...question,
+                  options: [...(question.options ?? []), ""],
+                })
+              }
+              className="link small"
+              style={{
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                padding: 0,
+              }}
+            >
+              + Ajouter une option
+            </button>
+          </div>
+        )}
+
+        {/* Row 3 : Required + Delete */}
+        <div className="row between">
+          <label
+            className="row"
+            style={{ gap: 8, cursor: "pointer", alignItems: "center" }}
+          >
+            <input
+              type="checkbox"
+              checked={question.required}
+              onChange={(e) =>
+                onChange({ ...question, required: e.target.checked })
+              }
+            />
+            <span className="small">Requis</span>
+          </label>
+          <button
+            type="button"
+            onClick={onDelete}
+            className="btn btn-ghost btn-sm"
+          >
+            <Trash2 size={14} strokeWidth={1.5} aria-hidden="true" /> Supprimer
+          </button>
+        </div>
+      </div>
+    </Tile>
   );
 }
 
@@ -268,278 +315,295 @@ export default function FormNewPage() {
   }
 
   return (
-    <div>
-      {/* Page header */}
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-slate-900">
-          Nouveau formulaire
-        </h1>
-        <div className="flex items-center gap-2">
-          <Link
-            to="/forms"
-            className="px-4 py-2 text-sm font-medium text-slate-700 border border-slate-200 rounded-lg hover:bg-slate-50"
-          >
-            Annuler
-          </Link>
-          <Button
-            variant="primary"
-            onClick={handleSave}
-            loading={createMutation.isPending}
-            disabled={createMutation.isPending}
-          >
-            {createMutation.isPending ? "Enregistrement…" : "Enregistrer"}
-          </Button>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-12 gap-6">
-        {/* ── Col gauche : Métadonnées ── */}
-        <div className="col-span-12 lg:col-span-4">
-          <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6 sticky top-4">
-            <h2 className="text-base font-semibold text-slate-900 mb-4">
-              Métadonnées
-            </h2>
-
-            {/* Titre */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                Titre *
-              </label>
-              <input
-                className={INPUT_CLS}
-                value={meta.title}
-                onChange={(e) =>
-                  setMeta((m) => ({ ...m, title: e.target.value }))
-                }
-                placeholder="Titre du formulaire"
-              />
-              {errors.title && (
-                <p className="text-xs text-error-500 mt-1">{errors.title}</p>
-              )}
-            </div>
-
-            {/* Description */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                Description
-              </label>
-              <textarea
-                rows={3}
-                className={INPUT_CLS}
-                value={meta.description}
-                onChange={(e) =>
-                  setMeta((m) => ({ ...m, description: e.target.value }))
-                }
-                placeholder="Description optionnelle"
-              />
-            </div>
-
-            {/* Type */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                Type *
-              </label>
-              <select
-                className={SELECT_CLS}
-                value={meta.formType}
-                onChange={(e) =>
-                  setMeta((m) => ({ ...m, formType: e.target.value }))
-                }
-              >
-                <option value="">Sélectionner un type...</option>
-                <optgroup label="Évaluations">
-                  <option value="self_evaluation">Auto-évaluation</option>
-                  <option value="manager_evaluation">Évaluation manager</option>
-                  <option value="upward_feedback">Feedback ascendant</option>
-                  <option value="peer_review">Peer review</option>
-                </optgroup>
-                <optgroup label="Objectifs">
-                  <option value="objectives">Objectifs</option>
-                </optgroup>
-                <optgroup label="Formulaires de demande">
-                  <option value="mobility_request">Demande de mobilité</option>
-                  <option value="salary_raise_request">
-                    Demande d'augmentation
-                  </option>
-                  <option value="promotion_request">
-                    Demande de promotion
-                  </option>
-                  <option value="training_request">Demande de formation</option>
-                </optgroup>
-              </select>
-              {errors.formType && (
-                <p className="text-xs text-error-500 mt-1">{errors.formType}</p>
-              )}
-            </div>
-
-            {/* Campagne liée */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                Campagne liée
-              </label>
-              <select
-                className={SELECT_CLS}
-                value={meta.campaignId}
-                onChange={(e) =>
-                  setMeta((m) => ({ ...m, campaignId: e.target.value }))
-                }
-              >
-                <option value="">Aucune campagne</option>
-                {activeCampaigns.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Anonyme */}
-            <div className="mb-4">
-              <label className="flex items-center gap-2 cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={meta.isAnonymous}
-                  onChange={(e) =>
-                    setMeta((m) => ({ ...m, isAnonymous: e.target.checked }))
-                  }
-                  className="w-4 h-4 rounded border-slate-300 text-primary-600 focus:ring-primary-500"
-                />
-                <span className="text-sm font-medium text-slate-700">
-                  Formulaire anonyme
-                </span>
-              </label>
-              <p className="text-xs text-slate-500 mt-1 ml-6">
-                Les réponses ne seront pas attribuées nominativement
-              </p>
-            </div>
-
-            {/* Rempli par */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                Rempli par
-              </label>
-              <select
-                className={SELECT_CLS}
-                value={meta.filledBy}
-                onChange={(e) =>
-                  setMeta((m) => ({
-                    ...m,
-                    filledBy: e.target.value as "employee" | "manager" | "hr",
-                  }))
-                }
-              >
-                <option value="employee">L'employé (auto-évaluation)</option>
-                <option value="manager">Le manager</option>
-                <option value="hr">Les RH</option>
-              </select>
-            </div>
-
-            {/* Visible par l'évalué */}
-            <div className="mb-4">
-              <label className="flex items-center gap-2 cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={meta.visibleToEvaluatee}
-                  onChange={(e) =>
-                    setMeta((m) => ({
-                      ...m,
-                      visibleToEvaluatee: e.target.checked,
-                    }))
-                  }
-                  className="w-4 h-4 rounded border-slate-300 text-primary-600 focus:ring-primary-500"
-                />
-                <span className="text-sm font-medium text-slate-700">
-                  Visible par l'évalué
-                </span>
-              </label>
-              <p className="text-xs text-slate-500 mt-1 ml-6">
-                Si décoché, l'évalué ne verra pas les réponses de ce formulaire
-              </p>
-            </div>
-
-            {/* Objectifs N-1 (si type = objectives) */}
-            {meta.formType === "objectives" && (
-              <div className="mb-4 p-3 bg-primary-50 rounded-lg border border-primary-100">
-                <label className="flex items-start gap-2 cursor-pointer">
-                  <input type="checkbox" className="mt-0.5" />
-                  <span className="text-sm text-primary-700">
-                    📥 Importer automatiquement les objectifs N-1
-                  </span>
-                </label>
-              </div>
-            )}
-
-            {/* Import JSON */}
-            <Link
-              to="/admin/forms/import"
-              className="flex items-center gap-2 text-sm text-slate-500 hover:text-primary-600 mt-4"
-            >
-              <Upload className="w-4 h-4" /> Importer un JSON
+    <div className="nx-app">
+      <PageHead
+        title="Nouveau formulaire"
+        actions={
+          <>
+            <Link to="/forms" className="btn btn-ghost">
+              Annuler
             </Link>
-          </div>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={handleSave}
+              disabled={createMutation.isPending}
+            >
+              {createMutation.isPending ? "Enregistrement…" : "Enregistrer"}
+            </button>
+          </>
+        }
+      />
+
+      {/* ── Métadonnées ── */}
+      <Tile style={{ marginBottom: 24 }}>
+        <h2 className="h3" style={{ marginBottom: 16 }}>
+          Métadonnées
+        </h2>
+
+        {/* Titre */}
+        <div className="field" style={{ marginBottom: 16 }}>
+          <label htmlFor="form-title">Titre *</label>
+          <input
+            id="form-title"
+            className={`input${errors.title ? " is-invalid" : ""}`}
+            value={meta.title}
+            onChange={(e) => setMeta((m) => ({ ...m, title: e.target.value }))}
+            placeholder="Titre du formulaire"
+          />
+          {errors.title && <p className="field-error">{errors.title}</p>}
         </div>
 
-        {/* ── Col droite : FormBuilder ── */}
-        <div className="col-span-12 lg:col-span-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-semibold text-slate-900">
-              Questions ({questions.length})
-            </h2>
-            <button
-              onClick={() => setQuestions((qs) => [...qs, newQuestion()])}
-              className="inline-flex items-center gap-2 text-sm text-primary-600 hover:text-primary-700 font-medium"
-            >
-              <Plus className="w-4 h-4" /> Ajouter une question
-            </button>
-          </div>
+        {/* Description */}
+        <div className="field" style={{ marginBottom: 16 }}>
+          <label htmlFor="form-description">Description</label>
+          <textarea
+            id="form-description"
+            rows={3}
+            className="input"
+            value={meta.description}
+            onChange={(e) =>
+              setMeta((m) => ({ ...m, description: e.target.value }))
+            }
+            placeholder="Description optionnelle"
+          />
+        </div>
 
-          {/* Empty state */}
-          {questions.length === 0 && (
-            <div className="text-center py-16 border-2 border-dashed border-slate-200 rounded-xl">
-              <FileText className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-500 text-sm">
-                Aucune question pour l'instant
-              </p>
-              <button
-                onClick={() => setQuestions([newQuestion()])}
-                className="mt-3 text-sm text-primary-600 hover:underline"
-              >
-                + Ajouter la première question
-              </button>
-            </div>
-          )}
+        {/* Type */}
+        <div className="field" style={{ marginBottom: 16 }}>
+          <label htmlFor="form-type">Type *</label>
+          <select
+            id="form-type"
+            className={`input${errors.formType ? " is-invalid" : ""}`}
+            value={meta.formType}
+            onChange={(e) =>
+              setMeta((m) => ({ ...m, formType: e.target.value }))
+            }
+          >
+            <option value="">Sélectionner un type...</option>
+            <optgroup label="Évaluations">
+              <option value="self_evaluation">Auto-évaluation</option>
+              <option value="manager_evaluation">Évaluation manager</option>
+              <option value="upward_feedback">Feedback ascendant</option>
+              <option value="peer_review">Peer review</option>
+            </optgroup>
+            <optgroup label="Objectifs">
+              <option value="objectives">Objectifs</option>
+            </optgroup>
+            <optgroup label="Formulaires de demande">
+              <option value="mobility_request">Demande de mobilité</option>
+              <option value="salary_raise_request">
+                Demande d'augmentation
+              </option>
+              <option value="promotion_request">Demande de promotion</option>
+              <option value="training_request">Demande de formation</option>
+            </optgroup>
+          </select>
+          {errors.formType && <p className="field-error">{errors.formType}</p>}
+        </div>
 
-          {/* Question list */}
-          {questions.map((q, idx) => (
-            <QuestionCard
-              key={q.id}
-              question={q}
-              index={idx}
-              total={questions.length}
-              onChange={(updated) =>
-                setQuestions((qs) =>
-                  qs.map((x) => (x.id === updated.id ? updated : x)),
-                )
+        {/* Campagne liée */}
+        <div className="field" style={{ marginBottom: 16 }}>
+          <label htmlFor="form-campaign">Campagne liée</label>
+          <select
+            id="form-campaign"
+            className="input"
+            value={meta.campaignId}
+            onChange={(e) =>
+              setMeta((m) => ({ ...m, campaignId: e.target.value }))
+            }
+          >
+            <option value="">Aucune campagne</option>
+            {activeCampaigns.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Anonyme */}
+        <div style={{ marginBottom: 16 }}>
+          <label
+            className="row"
+            style={{ gap: 8, cursor: "pointer", alignItems: "center" }}
+          >
+            <input
+              type="checkbox"
+              checked={meta.isAnonymous}
+              onChange={(e) =>
+                setMeta((m) => ({ ...m, isAnonymous: e.target.checked }))
               }
-              onDelete={() =>
-                setQuestions((qs) => qs.filter((x) => x.id !== q.id))
-              }
-              onMoveUp={() => moveQuestion(idx, -1)}
-              onMoveDown={() => moveQuestion(idx, 1)}
             />
-          ))}
-
-          {/* Add question footer button */}
-          {questions.length > 0 && (
-            <button
-              onClick={() => setQuestions((qs) => [...qs, newQuestion()])}
-              className="w-full py-3 border-2 border-dashed border-slate-200 rounded-md text-sm text-slate-500 hover:text-primary-600 hover:border-primary-300 transition-colors mt-2"
-            >
-              + Ajouter une question
-            </button>
-          )}
+            <span style={{ fontWeight: 600, color: "var(--ink)" }}>
+              Formulaire anonyme
+            </span>
+          </label>
+          <p className="small" style={{ marginTop: 4, marginLeft: 24 }}>
+            Les réponses ne seront pas attribuées nominativement
+          </p>
         </div>
+
+        {/* Rempli par */}
+        <div className="field" style={{ marginBottom: 16 }}>
+          <label htmlFor="form-filled-by">Rempli par</label>
+          <select
+            id="form-filled-by"
+            className="input"
+            value={meta.filledBy}
+            onChange={(e) =>
+              setMeta((m) => ({
+                ...m,
+                filledBy: e.target.value as "employee" | "manager" | "hr",
+              }))
+            }
+          >
+            <option value="employee">L'employé (auto-évaluation)</option>
+            <option value="manager">Le manager</option>
+            <option value="hr">Les RH</option>
+          </select>
+        </div>
+
+        {/* Visible par l'évalué */}
+        <div style={{ marginBottom: 16 }}>
+          <label
+            className="row"
+            style={{ gap: 8, cursor: "pointer", alignItems: "center" }}
+          >
+            <input
+              type="checkbox"
+              checked={meta.visibleToEvaluatee}
+              onChange={(e) =>
+                setMeta((m) => ({
+                  ...m,
+                  visibleToEvaluatee: e.target.checked,
+                }))
+              }
+            />
+            <span style={{ fontWeight: 600, color: "var(--ink)" }}>
+              Visible par l'évalué
+            </span>
+          </label>
+          <p className="small" style={{ marginTop: 4, marginLeft: 24 }}>
+            Si décoché, l'évalué ne verra pas les réponses de ce formulaire
+          </p>
+        </div>
+
+        {/* Objectifs N-1 (si type = objectives) */}
+        {meta.formType === "objectives" && (
+          <div
+            style={{
+              marginBottom: 16,
+              padding: 12,
+              background: "var(--bg-alt)",
+              borderRadius: "var(--radius)",
+              border: "1px solid var(--line)",
+            }}
+          >
+            <label
+              className="row"
+              style={{ gap: 8, cursor: "pointer", alignItems: "flex-start" }}
+            >
+              <input
+                type="checkbox"
+                aria-label="Importer automatiquement les objectifs N-1"
+                style={{ marginTop: 2 }}
+              />
+              <span className="body">
+                Importer automatiquement les objectifs N-1
+              </span>
+            </label>
+          </div>
+        )}
+
+        {/* Import JSON */}
+        <Link
+          to="/admin/forms/import"
+          className="link row"
+          style={{ gap: 8, marginTop: 16, alignItems: "center" }}
+        >
+          <Upload size={16} strokeWidth={1.5} aria-hidden="true" /> Importer un
+          JSON
+        </Link>
+      </Tile>
+
+      {/* ── FormBuilder ── */}
+      <div className="row between" style={{ marginBottom: 16 }}>
+        <h2 className="h3">Questions ({questions.length})</h2>
+        <button
+          type="button"
+          onClick={() => setQuestions((qs) => [...qs, newQuestion()])}
+          className="btn btn-ghost btn-sm"
+        >
+          <Plus size={16} strokeWidth={1.5} aria-hidden="true" /> Ajouter une
+          question
+        </button>
       </div>
+
+      {/* Empty state */}
+      {questions.length === 0 && (
+        <Tile
+          style={{
+            textAlign: "center",
+            padding: 64,
+            border: "2px dashed var(--line)",
+          }}
+        >
+          <FileText
+            size={40}
+            strokeWidth={1.5}
+            aria-hidden="true"
+            style={{ color: "var(--ink-3)", margin: "0 auto 12px" }}
+          />
+          <p className="body">Aucune question pour l'instant</p>
+          <button
+            type="button"
+            onClick={() => setQuestions([newQuestion()])}
+            className="link small"
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              marginTop: 12,
+            }}
+          >
+            + Ajouter la première question
+          </button>
+        </Tile>
+      )}
+
+      {/* Question list */}
+      {questions.map((q, idx) => (
+        <QuestionCard
+          key={q.id}
+          question={q}
+          index={idx}
+          total={questions.length}
+          onChange={(updated) =>
+            setQuestions((qs) =>
+              qs.map((x) => (x.id === updated.id ? updated : x)),
+            )
+          }
+          onDelete={() => setQuestions((qs) => qs.filter((x) => x.id !== q.id))}
+          onMoveUp={() => moveQuestion(idx, -1)}
+          onMoveDown={() => moveQuestion(idx, 1)}
+        />
+      ))}
+
+      {/* Add question footer button */}
+      {questions.length > 0 && (
+        <button
+          type="button"
+          onClick={() => setQuestions((qs) => [...qs, newQuestion()])}
+          className="btn btn-ghost btn-block"
+          style={{
+            border: "2px dashed var(--line)",
+            marginTop: 8,
+          }}
+        >
+          + Ajouter une question
+        </button>
+      )}
     </div>
   );
 }

@@ -1,120 +1,144 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useQuery, useMutation } from '@tanstack/react-query'
-import { evaluationsApi } from '../api/evaluations'
-import { campaignsApi } from '../api/campaigns'
-import { usersApi } from '../api/users'
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { evaluationsApi } from "../api/evaluations";
+import { campaignsApi } from "../api/campaigns";
+import { usersApi } from "../api/users";
+import { PageHead, Tile, Callout } from "../components/shell";
 
 export default function EvaluationNewPage() {
-  const navigate = useNavigate()
-  const [campaignId, setCampaignId] = useState('')
-  const [evaluateeId, setEvaluateeId] = useState('')
-  const [evaluatorId, setEvaluatorId] = useState('')
+  const navigate = useNavigate();
+  const [campaignId, setCampaignId] = useState("");
+  const [evaluateeId, setEvaluateeId] = useState("");
+  const [evaluatorId, setEvaluatorId] = useState("");
 
   const { data: campaigns } = useQuery({
-    queryKey: ['campaigns', 'active'],
-    queryFn: () => campaignsApi.getCampaigns({ status: 'active' }).then(r => r.data),
-  })
+    queryKey: ["campaigns", "active"],
+    queryFn: () =>
+      campaignsApi.getCampaigns({ status: "active" }).then((r) => r.data),
+  });
 
   const { data: users } = useQuery({
-    queryKey: ['users', 'list'],
-    queryFn: () => usersApi.getUsers({ limit: 200 }).then(r => r.data),
-  })
+    queryKey: ["users", "list"],
+    queryFn: () => usersApi.getUsers({ limit: 200 }).then((r) => r.data),
+  });
 
   const createMutation = useMutation({
-    mutationFn: () => evaluationsApi.createEvaluation({ campaignId, evaluateeId, evaluatorId }),
+    mutationFn: () =>
+      evaluationsApi.createEvaluation({ campaignId, evaluateeId, evaluatorId }),
     onSuccess: (res) => navigate(`/evaluations/${res.data.id}`),
-  })
+  });
 
-  const usersList = users?.data ?? []
-  const campaignsList = campaigns?.data ?? []
+  const usersList = users?.data ?? [];
+  const campaignsList = campaigns?.data ?? [];
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!campaignId || !evaluateeId || !evaluatorId) return
-    createMutation.mutate()
-  }
+    e.preventDefault();
+    if (!campaignId || !evaluateeId || !evaluatorId) return;
+    createMutation.mutate();
+  };
 
   return (
-    <div className="max-w-xl">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-900">Nouvelle évaluation</h1>
-        <p className="text-slate-500 mt-1 text-sm">Créer une évaluation individuelle</p>
-      </div>
+    <div className="nx-app">
+      <PageHead
+        title="Nouvelle évaluation"
+        desc="Créer une évaluation individuelle"
+      />
 
-      <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-slate-200 p-6 space-y-5">
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">
-            Campagne <span className="text-error-500">*</span>
-          </label>
-          <select
-            value={campaignId}
-            onChange={e => setCampaignId(e.target.value)}
-            required
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-200"
-          >
-            <option value="">Sélectionner une campagne…</option>
-            {campaignsList.map(c => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
-          </select>
-        </div>
+      <Tile>
+        <form
+          onSubmit={handleSubmit}
+          style={{ display: "flex", flexDirection: "column", gap: 20 }}
+        >
+          <div className="field">
+            <label htmlFor="campaign">
+              Campagne <span style={{ color: "var(--red)" }}>*</span>
+            </label>
+            <select
+              id="campaign"
+              className="input"
+              value={campaignId}
+              onChange={(e) => setCampaignId(e.target.value)}
+              required
+            >
+              <option value="">Sélectionner une campagne…</option>
+              {campaignsList.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </div>
 
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">
-            Évalué <span className="text-error-500">*</span>
-          </label>
-          <select
-            value={evaluateeId}
-            onChange={e => setEvaluateeId(e.target.value)}
-            required
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-200"
-          >
-            <option value="">Sélectionner un collaborateur…</option>
-            {usersList.map(u => (
-              <option key={u.id} value={u.id}>{u.firstName} {u.lastName}</option>
-            ))}
-          </select>
-        </div>
+          <div className="field">
+            <label htmlFor="evaluatee">
+              Évalué <span style={{ color: "var(--red)" }}>*</span>
+            </label>
+            <select
+              id="evaluatee"
+              className="input"
+              value={evaluateeId}
+              onChange={(e) => setEvaluateeId(e.target.value)}
+              required
+            >
+              <option value="">Sélectionner un collaborateur…</option>
+              {usersList.map((u) => (
+                <option key={u.id} value={u.id}>
+                  {u.firstName} {u.lastName}
+                </option>
+              ))}
+            </select>
+          </div>
 
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">
-            Évaluateur <span className="text-error-500">*</span>
-          </label>
-          <select
-            value={evaluatorId}
-            onChange={e => setEvaluatorId(e.target.value)}
-            required
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-200"
-          >
-            <option value="">Sélectionner un évaluateur…</option>
-            {usersList.map(u => (
-              <option key={u.id} value={u.id}>{u.firstName} {u.lastName} ({u.role})</option>
-            ))}
-          </select>
-        </div>
+          <div className="field">
+            <label htmlFor="evaluator">
+              Évaluateur <span style={{ color: "var(--red)" }}>*</span>
+            </label>
+            <select
+              id="evaluator"
+              className="input"
+              value={evaluatorId}
+              onChange={(e) => setEvaluatorId(e.target.value)}
+              required
+            >
+              <option value="">Sélectionner un évaluateur…</option>
+              {usersList.map((u) => (
+                <option key={u.id} value={u.id}>
+                  {u.firstName} {u.lastName} ({u.role})
+                </option>
+              ))}
+            </select>
+          </div>
 
-        {createMutation.isError && (
-          <p className="text-sm text-error-600">Une erreur est survenue. Veuillez réessayer.</p>
-        )}
+          {createMutation.isError && (
+            <Callout tone="red">
+              Une erreur est survenue. Veuillez réessayer.
+            </Callout>
+          )}
 
-        <div className="flex gap-3 pt-2">
-          <button
-            type="button"
-            onClick={() => navigate('/evaluations')}
-            className="px-4 py-2 border border-slate-300 rounded-lg text-sm text-slate-700 hover:bg-slate-50"
-          >
-            Annuler
-          </button>
-          <button
-            type="submit"
-            disabled={createMutation.isPending || !campaignId || !evaluateeId || !evaluatorId}
-            className="px-6 py-2 bg-primary-500 text-white rounded-lg text-sm font-semibold hover:bg-primary-600 disabled:opacity-50"
-          >
-            {createMutation.isPending ? 'Création…' : 'Créer l\'évaluation'}
-          </button>
-        </div>
-      </form>
+          <div className="row" style={{ gap: 12, paddingTop: 4 }}>
+            <button
+              type="button"
+              onClick={() => navigate("/evaluations")}
+              className="btn btn-ghost"
+            >
+              Annuler
+            </button>
+            <button
+              type="submit"
+              disabled={
+                createMutation.isPending ||
+                !campaignId ||
+                !evaluateeId ||
+                !evaluatorId
+              }
+              className="btn btn-primary"
+            >
+              {createMutation.isPending ? "Création…" : "Créer l'évaluation"}
+            </button>
+          </div>
+        </form>
+      </Tile>
     </div>
-  )
+  );
 }

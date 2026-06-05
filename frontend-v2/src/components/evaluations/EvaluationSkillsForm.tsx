@@ -24,6 +24,13 @@ function objField(value: unknown, key: string): string {
   return "";
 }
 
+// Retourne la valeur courante comme objet « spreadable », {} sinon.
+function objBase(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object"
+    ? (value as Record<string, unknown>)
+    : {};
+}
+
 interface EvaluationSkillsFormProps {
   evaluation: Evaluation;
   answers: Record<string, unknown>;
@@ -228,9 +235,7 @@ export function EvaluationSkillsForm({
                   value={objField(answers[currentQuestion.id], "description")}
                   onChange={(e) =>
                     setAnswer(currentQuestion.id, {
-                      ...(typeof answers[currentQuestion.id] === "object"
-                        ? answers[currentQuestion.id]
-                        : {}),
+                      ...objBase(answers[currentQuestion.id]),
                       description: e.target.value,
                     })
                   }
@@ -257,9 +262,7 @@ export function EvaluationSkillsForm({
                   )}
                   onChange={(e) =>
                     setAnswer(currentQuestion.id, {
-                      ...(typeof answers[currentQuestion.id] === "object"
-                        ? answers[currentQuestion.id]
-                        : {}),
+                      ...objBase(answers[currentQuestion.id]),
                       progress: Number(e.target.value),
                     })
                   }
@@ -283,9 +286,7 @@ export function EvaluationSkillsForm({
                   value={objField(answers[currentQuestion.id], "wish")}
                   onChange={(e) =>
                     setAnswer(currentQuestion.id, {
-                      ...(typeof answers[currentQuestion.id] === "object"
-                        ? answers[currentQuestion.id]
-                        : {}),
+                      ...objBase(answers[currentQuestion.id]),
                       wish: e.target.value,
                     })
                   }
@@ -315,9 +316,7 @@ export function EvaluationSkillsForm({
                   value={objField(answers[currentQuestion.id], "details")}
                   onChange={(e) =>
                     setAnswer(currentQuestion.id, {
-                      ...(typeof answers[currentQuestion.id] === "object"
-                        ? answers[currentQuestion.id]
-                        : {}),
+                      ...objBase(answers[currentQuestion.id]),
                       details: e.target.value,
                     })
                   }

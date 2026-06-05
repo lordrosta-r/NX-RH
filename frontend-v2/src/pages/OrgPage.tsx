@@ -20,6 +20,7 @@ import {
 } from "../components/org";
 import { useOrgChart } from "../hooks/useOrgChart";
 import type { OrgNodeData } from "../hooks/useOrgLayout";
+import { PageHead } from "../components/shell";
 
 const nodeTypes: NodeTypes = {
   orgCircle: OrgCircleNode as ComponentType<
@@ -48,12 +49,27 @@ function OrgFlowInner() {
 
   if (chart.isLoading) {
     return (
-      <div className="h-full flex items-center justify-center">
-        <div className="text-center space-y-3">
-          <div className="w-10 h-10 border-4 border-teal-200 border-t-teal-600 rounded-full animate-spin mx-auto" />
-          <p className="text-slate-500 text-sm">
-            Chargement de l'organigramme…
-          </p>
+      <div
+        className="row"
+        style={{
+          flex: 1,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <div style={{ textAlign: "center" }}>
+          <div
+            className="animate-spin"
+            style={{
+              width: 40,
+              height: 40,
+              margin: "0 auto 12px",
+              borderRadius: "50%",
+              border: "4px solid var(--line)",
+              borderTopColor: "var(--blue)",
+            }}
+          />
+          <p className="small">Chargement de l'organigramme…</p>
         </div>
       </div>
     );
@@ -65,7 +81,15 @@ function OrgFlowInner() {
     return <OrgSectorsView data={chart.sectorData} toolbar={toolbar} />;
 
   return (
-    <div className="relative flex-1" style={{ overflow: "hidden" }}>
+    <div
+      className="relative flex-1"
+      style={{
+        overflow: "hidden",
+        border: "1px solid var(--line)",
+        borderRadius: "var(--radius-lg)",
+        background: "var(--bg-alt)",
+      }}
+    >
       <div style={{ position: "absolute", inset: 0 }}>
         <ReactFlow
           nodes={chart.styledNodes}
@@ -121,14 +145,21 @@ function OrgFlowInner() {
 export default function OrgPage() {
   return (
     <div
+      className="nx-app"
       style={{
         flex: 1,
         display: "flex",
         flexDirection: "column",
         minHeight: 0,
         overflow: "hidden",
+        width: "100%",
       }}
     >
+      <PageHead
+        eyebrow="Organisation"
+        title="Organigramme"
+        desc="Visualisez la structure hiérarchique, les équipes et les secteurs."
+      />
       <ReactFlowProvider>
         <OrgFlowInner />
       </ReactFlowProvider>

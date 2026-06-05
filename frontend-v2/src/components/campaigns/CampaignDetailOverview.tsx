@@ -1,4 +1,5 @@
 import type { Campaign } from "../../types";
+import { StatTile, Tile } from "../shell";
 
 interface CampaignAnalytics {
   statusDistribution?: {
@@ -29,91 +30,127 @@ export default function CampaignDetailOverview({
     analytics?.completedEvaluations ?? statusDist.validated ?? 0;
 
   return (
-    <div className="space-y-6">
+    <div className="section-gap">
       {analyticsLoading ? (
-        <div className="grid grid-cols-12 gap-4">
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(4, 1fr)",
+            gap: 16,
+          }}
+        >
           {[...Array(4)].map((_, i) => (
             <div
               key={i}
-              className="col-span-6 sm:col-span-3 h-24 bg-gray-200 animate-pulse rounded-xl"
+              style={{
+                height: 96,
+                background: "var(--bg-alt-2)",
+                borderRadius: "var(--radius-lg)",
+              }}
             />
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-12 gap-4">
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(4, 1fr)",
+            gap: 16,
+          }}
+        >
           {[
-            { label: "Total", value: kpiTotal },
-            { label: "En cours", value: kpiInProgress },
-            { label: "Soumis", value: kpiSubmitted },
-            { label: "Validés", value: kpiValidated },
+            { label: "Total", value: kpiTotal, tone: undefined },
+            { label: "En cours", value: kpiInProgress, tone: "var(--blue)" },
+            { label: "Soumis", value: kpiSubmitted, tone: "var(--amber)" },
+            { label: "Validés", value: kpiValidated, tone: "var(--green)" },
           ].map((kpi) => (
-            <div
+            <StatTile
               key={kpi.label}
-              className="col-span-6 sm:col-span-3 bg-white rounded-xl shadow-sm border border-slate-100 p-6 text-center"
-            >
-              <p className="text-3xl font-bold text-slate-900">{kpi.value}</p>
-              <p className="text-sm text-slate-500 mt-1">{kpi.label}</p>
-            </div>
+              value={kpi.value}
+              label={kpi.label}
+              tone={kpi.tone}
+            />
           ))}
         </div>
       )}
 
-      <div className="grid grid-cols-12 gap-4">
-        <div className="col-span-12 sm:col-span-8 bg-white rounded-xl shadow-sm border border-slate-100 p-6">
-          <p className="text-sm font-medium text-slate-700 mb-3">
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "2fr 1fr",
+          gap: 16,
+        }}
+      >
+        <Tile>
+          <p className="small" style={{ fontWeight: 600, marginBottom: 12 }}>
             Progression globale
           </p>
-          <div className="h-2.5 rounded-full overflow-hidden flex bg-slate-100">
+          <div
+            className="track"
+            style={{ height: 10, display: "flex" }}
+            role="img"
+            aria-label="Répartition de la progression"
+          >
             {kpiTotal > 0 ? (
               <>
-                <div
-                  className="bg-blue-500"
-                  style={{ width: `${(kpiInProgress / kpiTotal) * 100}%` }}
+                <i
+                  style={{
+                    width: `${(kpiInProgress / kpiTotal) * 100}%`,
+                    background: "var(--blue)",
+                    borderRadius: 0,
+                  }}
                 />
-                <div
-                  className="bg-amber-500"
-                  style={{ width: `${(kpiSubmitted / kpiTotal) * 100}%` }}
+                <i
+                  style={{
+                    width: `${(kpiSubmitted / kpiTotal) * 100}%`,
+                    background: "var(--amber)",
+                    borderRadius: 0,
+                  }}
                 />
-                <div
-                  className="bg-green-500"
-                  style={{ width: `${(kpiValidated / kpiTotal) * 100}%` }}
+                <i
+                  style={{
+                    width: `${(kpiValidated / kpiTotal) * 100}%`,
+                    background: "var(--green)",
+                    borderRadius: 0,
+                  }}
                 />
               </>
-            ) : (
-              <div className="w-full bg-slate-100" />
-            )}
+            ) : null}
           </div>
-          <div className="flex items-center gap-4 mt-3 flex-wrap">
+          <div className="row wrap" style={{ gap: 16, marginTop: 12 }}>
             {[
-              { color: "bg-blue-500", label: "En cours" },
-              { color: "bg-amber-500", label: "Soumis" },
-              { color: "bg-green-500", label: "Validés" },
+              { color: "var(--blue)", label: "En cours" },
+              { color: "var(--amber)", label: "Soumis" },
+              { color: "var(--green)", label: "Validés" },
             ].map((item) => (
-              <div
-                key={item.label}
-                className="flex items-center gap-1.5 text-xs text-slate-500"
-              >
-                <span className={`w-2.5 h-2.5 rounded-full ${item.color}`} />
+              <div key={item.label} className="row small" style={{ gap: 6 }}>
+                <span
+                  style={{
+                    width: 10,
+                    height: 10,
+                    borderRadius: "50%",
+                    background: item.color,
+                  }}
+                />
                 {item.label}
               </div>
             ))}
           </div>
-        </div>
+        </Tile>
 
-        <div className="col-span-12 sm:col-span-4 bg-white rounded-xl shadow-sm border border-slate-100 p-6">
-          <p className="text-sm font-medium text-slate-700 mb-3">Répartition</p>
-          <div className="space-y-2 text-sm">
+        <Tile>
+          <p className="small" style={{ fontWeight: 600, marginBottom: 12 }}>
+            Répartition
+          </p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {[
               { label: "En cours", value: kpiInProgress, total: kpiTotal },
               { label: "Soumis", value: kpiSubmitted, total: kpiTotal },
               { label: "Validés", value: kpiValidated, total: kpiTotal },
             ].map((item) => (
-              <div
-                key={item.label}
-                className="flex justify-between text-slate-600"
-              >
+              <div key={item.label} className="row between small">
                 <span>{item.label}</span>
-                <span className="font-medium text-slate-900">
+                <span style={{ fontWeight: 700, color: "var(--ink)" }}>
                   {item.total > 0
                     ? `${Math.round((item.value / item.total) * 100)}%`
                     : "—"}
@@ -121,25 +158,22 @@ export default function CampaignDetailOverview({
               </div>
             ))}
           </div>
-        </div>
+        </Tile>
       </div>
 
       {(campaign.targetDepartments ?? []).length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
-          <p className="text-sm font-medium text-slate-700 mb-3">
+        <Tile>
+          <p className="small" style={{ fontWeight: 600, marginBottom: 12 }}>
             Départements ciblés
           </p>
-          <div className="flex flex-wrap gap-2">
+          <div className="row wrap" style={{ gap: 8 }}>
             {campaign.targetDepartments!.map((dept) => (
-              <span
-                key={dept}
-                className="px-3 py-1 bg-slate-100 text-slate-700 rounded-full text-sm"
-              >
+              <span key={dept} className="badge grey">
                 {dept}
               </span>
             ))}
           </div>
-        </div>
+        </Tile>
       )}
     </div>
   );

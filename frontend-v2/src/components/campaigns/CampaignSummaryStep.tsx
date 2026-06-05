@@ -36,29 +36,36 @@ export default function CampaignSummaryStep({
 
   return (
     <CampaignFormCard title="Récapitulatif">
-      <dl className="space-y-3">
+      <dl
+        className="tile"
+        style={{ display: "flex", flexDirection: "column", gap: 18 }}
+      >
         <SummaryRow label="Nom">
-          <span className="font-semibold">
-            {form.name || <em className="text-slate-500">—</em>}
+          <span className="h3">
+            {form.name || <em style={{ color: "var(--ink-3)" }}>—</em>}
           </span>
         </SummaryRow>
 
         {form.description && (
           <SummaryRow label="Description">
-            <span className="max-w-xs text-right">{form.description}</span>
+            <span className="body">{form.description}</span>
           </SummaryRow>
         )}
 
         <SummaryRow label="Statut initial">
-          {form.status === "draft" ? "Brouillon" : "Actif"}
+          {form.status === "draft" ? (
+            <span className="badge grey">Brouillon</span>
+          ) : (
+            <span className="badge green">Actif</span>
+          )}
         </SummaryRow>
 
         <SummaryRow label="Début">
-          {form.startDate || <em className="text-slate-500">—</em>}
+          {form.startDate || <em style={{ color: "var(--ink-3)" }}>—</em>}
         </SummaryRow>
 
         <SummaryRow label="Fin">
-          {form.endDate || <em className="text-slate-500">—</em>}
+          {form.endDate || <em style={{ color: "var(--ink-3)" }}>—</em>}
         </SummaryRow>
 
         {form.deadlineEmployee && (
@@ -97,9 +104,20 @@ function SummaryRow({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex justify-between text-sm">
-      <dt className="text-slate-500 font-medium">{label}</dt>
-      <dd className="text-slate-800">{children}</dd>
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "baseline",
+        gap: 24,
+        paddingBottom: 14,
+        borderBottom: "1px solid var(--line)",
+      }}
+    >
+      <dt className="eyebrow">{label}</dt>
+      <dd className="body" style={{ textAlign: "right", color: "var(--ink)" }}>
+        {children}
+      </dd>
     </div>
   );
 }

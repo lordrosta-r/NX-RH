@@ -55,9 +55,9 @@ export default function CampaignFormsTab({
   const linkedForms: Form[] = linkedFormsData ?? [];
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-slate-500">
+    <div className="section-gap">
+      <div className="row between wrap nxgap-12">
+        <p className="small">
           {formIds.length === 0
             ? "Aucun formulaire associé."
             : `${formIds.length} formulaire${formIds.length > 1 ? "s" : ""} associé${formIds.length > 1 ? "s" : ""}`}
@@ -65,23 +65,37 @@ export default function CampaignFormsTab({
         {isAdminOrHr && campaign?.status !== "archived" && (
           <button
             onClick={() => setAddFormModal(true)}
-            className="flex items-center gap-1.5 text-sm font-medium text-primary-600 hover:text-primary-700 border border-primary-200 rounded-lg px-3 py-1.5 hover:bg-primary-50 transition-colors"
+            className="btn btn-secondary btn-sm"
           >
-            <Plus size={14} />
+            <Plus className="ico" style={{ width: 14, height: 14 }} />
             Ajouter un formulaire
           </button>
         )}
       </div>
 
       {formIds.length === 0 ? (
-        <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-8 text-center text-slate-600 text-sm">
-          <FileText className="w-10 h-10 mx-auto mb-3 text-slate-200" />
-          Aucun formulaire associé à cette campagne.
+        <div className="tile" style={{ textAlign: "center" }}>
+          <FileText
+            size={40}
+            strokeWidth={1.5}
+            aria-hidden="true"
+            style={{
+              display: "block",
+              margin: "0 auto 12px",
+              color: "var(--line-strong)",
+            }}
+          />
+          <p className="small">Aucun formulaire associé à cette campagne.</p>
           {isAdminOrHr && campaign?.status !== "archived" && (
-            <p className="mt-2">
+            <p style={{ marginTop: 8 }}>
               <button
                 onClick={() => setAddFormModal(true)}
-                className="text-primary-600 hover:underline"
+                className="link"
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                }}
               >
                 Ajouter un formulaire depuis la bibliothèque
               </button>
@@ -89,45 +103,53 @@ export default function CampaignFormsTab({
           )}
         </div>
       ) : (
-        <div className="bg-white rounded-xl shadow-sm border border-slate-100 divide-y divide-slate-100">
+        <div className="tile" style={{ padding: 0, overflow: "hidden" }}>
           {formIds.map((fid) => {
             const form = linkedForms.find((f) => f.id === fid);
             return (
               <div
                 key={fid}
-                className="flex items-center justify-between p-4 hover:bg-slate-50 group"
+                className="tbl-row row between"
+                style={{ gridTemplateColumns: undefined, display: "flex" }}
               >
                 <Link
                   to={`/forms/${fid}`}
-                  className="flex items-center gap-3 min-w-0"
+                  className="row nxgap-12"
+                  style={{ minWidth: 0, color: "inherit" }}
                 >
-                  <FileText size={16} className="text-slate-400 shrink-0" />
-                  <div className="min-w-0">
-                    <p className="font-medium text-slate-700 group-hover:text-slate-900 truncate">
+                  <FileText
+                    size={16}
+                    strokeWidth={1.5}
+                    aria-hidden="true"
+                    style={{ color: "var(--ink-3)", flex: "none" }}
+                  />
+                  <div style={{ minWidth: 0 }}>
+                    <p
+                      className="body truncate"
+                      style={{ fontWeight: 600, color: "var(--ink)" }}
+                    >
                       {form?.title ?? `Formulaire #${fid.slice(-6)}`}
                     </p>
                     {form?.formType && (
-                      <p className="text-xs text-slate-500">
+                      <p className="small">
                         {FORM_TYPE_LABELS[form.formType] ?? form.formType}
                       </p>
                     )}
                   </div>
                 </Link>
-                <div className="flex items-center gap-2 shrink-0">
-                  <Link
-                    to={`/forms/${fid}`}
-                    className="text-xs text-primary-600 hover:text-primary-700 font-medium"
-                  >
+                <div className="row nxgap-12" style={{ flex: "none", gap: 12 }}>
+                  <Link to={`/forms/${fid}`} className="link small">
                     Consulter
                   </Link>
                   {isAdminOrHr && campaign?.status !== "archived" && (
                     <button
                       onClick={() => unlinkFormMutation.mutate(fid)}
                       disabled={unlinkFormMutation.isPending}
-                      className="p-1.5 rounded text-slate-300 hover:text-error-500 hover:bg-error-50 transition-colors"
+                      className="btn btn-ghost btn-sm"
+                      style={{ padding: 6, color: "var(--red)" }}
                       aria-label="Retirer ce formulaire"
                     >
-                      <X size={14} />
+                      <X className="ico" style={{ width: 14, height: 14 }} />
                     </button>
                   )}
                 </div>
@@ -138,22 +160,53 @@ export default function CampaignFormsTab({
       )}
 
       {addFormModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 flex flex-col max-h-[80vh]">
-            <div className="flex items-center justify-between p-5 border-b border-slate-100">
-              <h3 className="text-base font-semibold text-slate-900">
-                Ajouter un formulaire
-              </h3>
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 50,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "rgba(0,0,0,0.5)",
+            padding: 16,
+          }}
+        >
+          <div
+            className="tile"
+            style={{
+              padding: 0,
+              width: "100%",
+              maxWidth: 512,
+              display: "flex",
+              flexDirection: "column",
+              maxHeight: "80vh",
+              boxShadow: "var(--shadow-lg)",
+            }}
+          >
+            <div
+              className="row between"
+              style={{
+                padding: 20,
+                borderBottom: "1px solid var(--line)",
+              }}
+            >
+              <h3 className="h3">Ajouter un formulaire</h3>
               <button
                 onClick={() => setAddFormModal(false)}
-                className="p-1.5 rounded hover:bg-slate-100 text-slate-400"
+                className="btn btn-ghost btn-sm"
+                style={{ padding: 6 }}
+                aria-label="Fermer"
               >
-                <X size={16} />
+                <X className="ico" style={{ width: 16, height: 16 }} />
               </button>
             </div>
-            <div className="overflow-y-auto flex-1 divide-y divide-slate-100">
+            <div style={{ overflowY: "auto", flex: 1 }}>
               {availableForms.length === 0 ? (
-                <p className="p-6 text-center text-slate-600 text-sm">
+                <p
+                  className="small"
+                  style={{ padding: 24, textAlign: "center" }}
+                >
                   Tous les formulaires disponibles sont déjà liés à cette
                   campagne.
                 </p>
@@ -163,28 +216,46 @@ export default function CampaignFormsTab({
                     key={f.id}
                     onClick={() => linkFormMutation.mutate(f.id)}
                     disabled={linkFormMutation.isPending}
-                    className="w-full flex items-center justify-between p-4 hover:bg-slate-50 text-left transition-colors disabled:opacity-50"
+                    className="tbl-row row between"
+                    style={{
+                      gridTemplateColumns: undefined,
+                      display: "flex",
+                      width: "100%",
+                      textAlign: "left",
+                      background: "none",
+                      cursor: "pointer",
+                      borderTop: "1px solid var(--line)",
+                    }}
                   >
-                    <div className="min-w-0">
-                      <p className="font-medium text-slate-700 truncate">
+                    <div style={{ minWidth: 0 }}>
+                      <p
+                        className="body truncate"
+                        style={{ fontWeight: 600, color: "var(--ink)" }}
+                      >
                         {f.title}
                       </p>
-                      <p className="text-xs text-slate-500">
+                      <p className="small">
                         {FORM_TYPE_LABELS[f.formType] ?? f.formType}
                       </p>
                     </div>
                     <Plus
                       size={16}
-                      className="text-primary-500 shrink-0 ml-3"
+                      strokeWidth={1.5}
+                      aria-hidden="true"
+                      style={{
+                        color: "var(--blue)",
+                        flex: "none",
+                        marginLeft: 12,
+                      }}
                     />
                   </button>
                 ))
               )}
             </div>
-            <div className="p-4 border-t border-slate-100">
+            <div style={{ padding: 16, borderTop: "1px solid var(--line)" }}>
               <button
                 onClick={() => setAddFormModal(false)}
-                className="w-full border border-slate-200 hover:bg-slate-50 px-4 py-2 rounded-lg text-sm font-medium"
+                className="btn btn-ghost btn-block"
               >
                 Fermer
               </button>

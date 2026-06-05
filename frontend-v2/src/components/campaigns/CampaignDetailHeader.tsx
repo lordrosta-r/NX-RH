@@ -35,106 +35,147 @@ export default function CampaignDetailHeader({
   const [actionsOpen, setActionsOpen] = useState(false);
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6 mb-6">
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          <div className="flex items-center gap-3 mb-2 flex-wrap">
-            <h1 className="text-2xl font-bold text-slate-900 truncate">
-              {campaign.name}
-            </h1>
-            <StatusBadge status={campaign.status} />
-          </div>
-          <p className="text-sm text-slate-500">
-            {formatDate(campaign.startDate)} – {formatDate(campaign.endDate)}
-            {campaign.createdAt &&
-              ` · Créée le ${formatDate(campaign.createdAt)}`}
-          </p>
+    <div
+      className="tile"
+      style={{
+        marginBottom: 24,
+        display: "flex",
+        alignItems: "flex-start",
+        justifyContent: "space-between",
+        gap: 16,
+        flexWrap: "wrap",
+      }}
+    >
+      <div style={{ minWidth: 0 }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            marginBottom: 8,
+            flexWrap: "wrap",
+          }}
+        >
+          <h1 className="h1" style={{ minWidth: 0 }}>
+            {campaign.name}
+          </h1>
+          <StatusBadge status={campaign.status} />
         </div>
+        <p className="small">
+          {formatDate(campaign.startDate)} – {formatDate(campaign.endDate)}
+          {campaign.createdAt &&
+            ` · Créée le ${formatDate(campaign.createdAt)}`}
+        </p>
+      </div>
 
-        <div className="flex items-center gap-2 flex-shrink-0 flex-wrap justify-end">
-          {isAdminOrHr && campaign.status === "draft" && (
-            <button
-              onClick={onActivate}
-              disabled={isActivating}
-              className="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50"
-            >
-              {isActivating ? "Activation…" : "Activer la campagne"}
-            </button>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          flexShrink: 0,
+          flexWrap: "wrap",
+          justifyContent: "flex-end",
+        }}
+      >
+        {isAdminOrHr && campaign.status === "draft" && (
+          <button
+            onClick={onActivate}
+            disabled={isActivating}
+            className="btn btn-primary btn-sm"
+          >
+            {isActivating ? "Activation…" : "Activer la campagne"}
+          </button>
+        )}
+        {isAdminOrHr && campaign.status === "active" && (
+          <button
+            onClick={onClose}
+            disabled={isClosing}
+            className="btn btn-ghost btn-sm"
+          >
+            {isClosing ? "Clôture…" : "Clôturer la campagne"}
+          </button>
+        )}
+        {isAdminOrHr && campaign.status === "closed" && (
+          <button
+            onClick={onArchive}
+            disabled={isArchiving}
+            className="btn btn-ghost btn-sm"
+          >
+            {isArchiving ? "Archivage…" : "Archiver"}
+          </button>
+        )}
+        {isAdminOrHr &&
+          campaign.status !== "closed" &&
+          campaign.status !== "archived" && (
+            <Link to={`/campaigns/${id}/edit`} className="btn btn-ghost btn-sm">
+              Modifier
+            </Link>
           )}
-          {isAdminOrHr && campaign.status === "active" && (
-            <button
-              onClick={onClose}
-              disabled={isClosing}
-              className="border border-slate-200 hover:bg-slate-50 px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50"
+
+        <div style={{ position: "relative" }}>
+          <button
+            onClick={() => setActionsOpen((o) => !o)}
+            className="btn btn-ghost btn-sm"
+            style={{ padding: 9 }}
+            aria-label="Actions"
+          >
+            <MoreVertical className="ico" aria-hidden="true" />
+          </button>
+          {actionsOpen && (
+            <div
+              className="tile"
+              style={{
+                position: "absolute",
+                right: 0,
+                top: 44,
+                width: 200,
+                padding: 4,
+                zIndex: 10,
+                boxShadow: "var(--shadow-lg)",
+              }}
+              onMouseLeave={() => setActionsOpen(false)}
             >
-              {isClosing ? "Clôture…" : "Clôturer la campagne"}
-            </button>
-          )}
-          {isAdminOrHr && campaign.status === "closed" && (
-            <button
-              onClick={onArchive}
-              disabled={isArchiving}
-              className="border border-slate-200 hover:bg-slate-50 text-slate-500 px-4 py-2 rounded-lg text-xs font-medium disabled:opacity-50"
-            >
-              {isArchiving ? "Archivage…" : "Archiver"}
-            </button>
-          )}
-          {isAdminOrHr &&
-            campaign.status !== "closed" &&
-            campaign.status !== "archived" && (
+              <button
+                onClick={() => {
+                  onCloneClick();
+                  setActionsOpen(false);
+                }}
+                className="btn btn-ghost btn-sm btn-block"
+                style={{ justifyContent: "flex-start", border: "none" }}
+              >
+                <Copy className="ico" aria-hidden="true" /> Cloner
+              </button>
               <Link
-                to={`/campaigns/${id}/edit`}
-                className="border border-slate-200 hover:bg-slate-50 px-4 py-2 rounded-lg text-sm font-medium"
+                to={`/campaigns/${id}/analytics`}
+                className="btn btn-ghost btn-sm btn-block"
+                style={{ justifyContent: "flex-start", border: "none" }}
+                onClick={() => setActionsOpen(false)}
               >
-                Modifier
+                <BarChart2 className="ico" aria-hidden="true" /> Voir les
+                analytics
               </Link>
-            )}
-
-          <div className="relative">
-            <button
-              onClick={() => setActionsOpen((o) => !o)}
-              className="p-2 hover:bg-slate-50 rounded-lg border border-slate-200"
-              aria-label="Actions"
-            >
-              <MoreVertical className="w-4 h-4 text-slate-500" />
-            </button>
-            {actionsOpen && (
-              <div
-                className="absolute right-0 top-10 bg-white rounded-xl shadow-lg border border-slate-100 w-48 z-10"
-                onMouseLeave={() => setActionsOpen(false)}
-              >
-                <button
-                  onClick={() => {
-                    onCloneClick();
-                    setActionsOpen(false);
-                  }}
-                  className="flex items-center gap-2 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 w-full text-left"
-                >
-                  <Copy className="w-4 h-4" /> Cloner
-                </button>
-                <Link
-                  to={`/campaigns/${id}/analytics`}
-                  className="flex items-center gap-2 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50"
-                  onClick={() => setActionsOpen(false)}
-                >
-                  <BarChart2 className="w-4 h-4" /> Voir les analytics
-                </Link>
-                {isAdminOrHr &&
-                  (campaign.status === "draft" ||
-                    campaign.status === "archived") && (
-                    <button
-                      onClick={() => {
-                        onDeleteClick();
-                        setActionsOpen(false);
-                      }}
-                      className="flex items-center gap-2 px-4 py-2.5 text-sm text-error-600 hover:bg-error-50 w-full text-left border-t border-slate-100"
-                    >
-                      <Trash2 className="w-4 h-4" /> Supprimer
-                    </button>
-                  )}
-              </div>
-            )}
-          </div>
+              {isAdminOrHr &&
+                (campaign.status === "draft" ||
+                  campaign.status === "archived") && (
+                  <button
+                    onClick={() => {
+                      onDeleteClick();
+                      setActionsOpen(false);
+                    }}
+                    className="btn btn-ghost btn-sm btn-block"
+                    style={{
+                      justifyContent: "flex-start",
+                      border: "none",
+                      borderTop: "1px solid var(--line)",
+                      color: "var(--red)",
+                    }}
+                  >
+                    <Trash2 className="ico" aria-hidden="true" /> Supprimer
+                  </button>
+                )}
+            </div>
+          )}
         </div>
       </div>
     </div>

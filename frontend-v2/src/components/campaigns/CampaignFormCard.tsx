@@ -8,13 +8,28 @@ export default function CampaignFormCard({
   children,
 }: CampaignFormCardProps) {
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-100">
-      <div className="px-6 py-4 border-b border-slate-100">
-        <h2 className="text-sm font-semibold text-slate-800 uppercase tracking-wide">
-          {title}
-        </h2>
+    <div
+      style={{
+        background: "#fff",
+        border: "1px solid var(--line)",
+        borderRadius: "var(--radius-lg)",
+      }}
+    >
+      <div
+        style={{ padding: "16px 24px", borderBottom: "1px solid var(--line)" }}
+      >
+        <h2 className="eyebrow">{title}</h2>
       </div>
-      <div className="p-6 space-y-4">{children}</div>
+      <div
+        style={{
+          padding: "24px",
+          display: "flex",
+          flexDirection: "column",
+          gap: "16px",
+        }}
+      >
+        {children}
+      </div>
     </div>
   );
 }

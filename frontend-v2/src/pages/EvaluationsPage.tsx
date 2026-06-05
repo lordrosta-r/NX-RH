@@ -18,18 +18,21 @@ import type { Evaluation } from "../types";
 import PageGuide from "../components/shared/PageGuide";
 import { queryKeys } from "../lib/queryKeys";
 import { useTranslation } from "react-i18next";
+import { PageHead, Tile, Badge } from "../components/shell";
 
-const EVAL_STATUS_COLOR: Record<string, string> = {
-  assigned: "bg-slate-100 text-slate-600",
-  in_progress: "bg-primary-50 text-primary-700",
-  submitted: "bg-warning-50 text-warning-700",
-  reviewed: "bg-info-50 text-info-700",
-  signed_evaluatee: "bg-purple-50 text-purple-700",
-  signed_manager: "bg-indigo-50 text-indigo-700",
-  signed_hr: "bg-teal-50 text-teal-700",
-  validated: "bg-success-50 text-success-700",
-  expired: "bg-error-50 text-error-600",
-  archived: "bg-slate-50 text-slate-500",
+type Tone = "blue" | "green" | "amber" | "red" | "grey";
+
+const EVAL_STATUS_TONE: Record<string, Tone> = {
+  assigned: "amber",
+  in_progress: "blue",
+  submitted: "blue",
+  reviewed: "blue",
+  signed_evaluatee: "blue",
+  signed_manager: "blue",
+  signed_hr: "blue",
+  validated: "green",
+  expired: "grey",
+  archived: "grey",
 };
 
 export default function EvaluationsPage() {
@@ -53,7 +56,7 @@ export default function EvaluationsPage() {
   const queryClient = useQueryClient();
 
   // Reset page when debounced search changes
-  // eslint-disable-next-line react-hooks/set-state-in-effect
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- reset volontaire de la pagination quand la recherche change
   useEffect(() => setPage(1), [searchDebounced]);
 
   const { data, isLoading } = useQuery({
@@ -200,7 +203,7 @@ export default function EvaluationsPage() {
   const totalPages = data?.totalPages ?? 1;
 
   function exportToCSV(rows: Evaluation[]) {
-    const BOM = "\uFEFF";
+    const BOM = "﻿";
     const headers = [
       "Évalué",
       "Évaluateur",
@@ -265,8 +268,12 @@ export default function EvaluationsPage() {
       s.includes(id) ? s.filter((x) => x !== id) : [...s, id],
     );
 
+  const tblCols = isAdminOrHr
+    ? "32px 1.6fr 1.2fr 1.4fr 130px 110px 40px"
+    : "1.6fr 1.2fr 1.4fr 130px 110px 40px";
+
   return (
-    <div>
+    <div className="nx-app">
       <PageGuide
         id="evaluations"
         title="Les évaluations"
@@ -277,67 +284,72 @@ export default function EvaluationsPage() {
           "Vous pouvez suivre l'avancement ici et envoyer des rappels groupés",
         ]}
       />
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
-        <h1 className="text-2xl font-bold text-slate-900">
-          {isEmployee ? t("evaluations.myTitle") : t("evaluations.title")}
-        </h1>
-        <div className="flex items-center gap-2">
-          {isAdminOrHr && selected.length > 0 && (
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-slate-600">
-                {t("evaluations.selected", { count: selected.length })}
-              </span>
-              <button
-                onClick={() => setBulkModal("archive")}
-                disabled={
-                  bulkArchiveMutation.isPending || bulkSignHrMutation.isPending
-                }
-                className="text-sm px-3 py-1.5 border border-slate-200 rounded-md hover:bg-slate-50 disabled:opacity-50"
-              >
-                {t("evaluations.archiveSelected")}
-              </button>
-              <button
-                onClick={() => setBulkModal("sign")}
-                disabled={
-                  bulkArchiveMutation.isPending || bulkSignHrMutation.isPending
-                }
-                className="text-sm px-3 py-1.5 border border-slate-200 rounded-md hover:bg-slate-50 disabled:opacity-50"
-              >
-                {t("evaluations.signHr")}
-              </button>
-            </div>
-          )}
-          {isAdminOrHr && (
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => exportToCSV(evaluations)}
-                disabled={isLoading}
-                className="inline-flex items-center gap-2 border border-slate-200 hover:bg-slate-50 px-3 py-1.5 rounded-md text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                <Download className="w-4 h-4" /> {t("evaluations.exportCsv")}
-              </button>
-              <button
-                onClick={() => exportListPdf(evaluations)}
-                disabled={isLoading}
-                className="inline-flex items-center gap-2 border border-slate-200 hover:bg-slate-50 px-3 py-1.5 rounded-md text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                <Download className="w-4 h-4" /> {t("evaluations.exportPdf")}
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
+
+      <PageHead
+        eyebrow="Suivi RH"
+        title={isEmployee ? t("evaluations.myTitle") : t("evaluations.title")}
+        actions={
+          <>
+            {isAdminOrHr && selected.length > 0 && (
+              <>
+                <span className="small">
+                  {t("evaluations.selected", { count: selected.length })}
+                </span>
+                <button
+                  onClick={() => setBulkModal("archive")}
+                  disabled={
+                    bulkArchiveMutation.isPending ||
+                    bulkSignHrMutation.isPending
+                  }
+                  className="btn btn-ghost btn-sm"
+                >
+                  {t("evaluations.archiveSelected")}
+                </button>
+                <button
+                  onClick={() => setBulkModal("sign")}
+                  disabled={
+                    bulkArchiveMutation.isPending ||
+                    bulkSignHrMutation.isPending
+                  }
+                  className="btn btn-ghost btn-sm"
+                >
+                  {t("evaluations.signHr")}
+                </button>
+              </>
+            )}
+            {isAdminOrHr && (
+              <>
+                <button
+                  onClick={() => exportToCSV(evaluations)}
+                  disabled={isLoading}
+                  className="btn btn-ghost btn-sm"
+                >
+                  <Download className="ico" /> {t("evaluations.exportCsv")}
+                </button>
+                <button
+                  onClick={() => exportListPdf(evaluations)}
+                  disabled={isLoading}
+                  className="btn btn-ghost btn-sm"
+                >
+                  <Download className="ico" /> {t("evaluations.exportPdf")}
+                </button>
+              </>
+            )}
+          </>
+        }
+      />
 
       {/* Filtres */}
-      <div className="flex flex-wrap gap-3 mb-6">
+      <div className="row wrap" style={{ gap: 12, marginBottom: 24 }}>
         <select
           value={campaignFilter}
           onChange={(e) => {
             setCampaignFilter(e.target.value);
             setPage(1);
           }}
-          className="h-9 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-200"
+          aria-label={t("evaluations.allCampaigns")}
+          className="input"
+          style={{ width: "auto", minWidth: 180 }}
         >
           <option value="">{t("evaluations.allCampaigns")}</option>
         </select>
@@ -353,10 +365,16 @@ export default function EvaluationsPage() {
             setPage(1);
           }}
           aria-label="Filtrer par statut"
-          className="h-9 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-200 min-w-[140px]"
-          style={{ height: "auto", minHeight: "2.25rem", maxHeight: "7rem" }}
+          className="input"
+          style={{
+            width: "auto",
+            minWidth: 140,
+            height: "auto",
+            minHeight: "2.75rem",
+            maxHeight: "7rem",
+          }}
         >
-          {Object.keys(EVAL_STATUS_COLOR).map((k) => (
+          {Object.keys(EVAL_STATUS_TONE).map((k) => (
             <option key={k} value={k}>
               {t(`evaluations.status.${k}`)}
             </option>
@@ -371,7 +389,9 @@ export default function EvaluationsPage() {
               setDeptFilter(e.target.value);
               setPage(1);
             }}
-            className="h-9 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-200 w-36"
+            aria-label={t("evaluations.filterDepartment")}
+            className="input"
+            style={{ width: 160 }}
           />
         )}
         {!isEmployee && (
@@ -380,260 +400,139 @@ export default function EvaluationsPage() {
             placeholder={t("evaluations.filterSearch")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="h-9 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-200 w-48"
+            aria-label={t("evaluations.filterSearch")}
+            className="input"
+            style={{ width: 220 }}
           />
         )}
       </div>
 
       {/* Table (admin / hr / manager) */}
       {!isEmployee && (
-        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-          <div className="overflow-x-auto hidden sm:block">
-            <table className="w-full text-sm">
-              <thead className="bg-slate-50 border-b border-slate-200">
-                <tr>
-                  {isAdminOrHr && (
-                    <th className="w-10 px-4 py-3">
-                      <input
-                        type="checkbox"
-                        checked={allSelected}
-                        onChange={toggleAll}
-                        className="rounded border-slate-300"
-                      />
-                    </th>
-                  )}
-                  <th className="px-4 py-3 text-left font-medium text-slate-600">
-                    Évalué
-                  </th>
-                  <th className="px-4 py-3 text-left font-medium text-slate-600">
-                    Évaluateur
-                  </th>
-                  <th className="px-4 py-3 text-left font-medium text-slate-600">
-                    Campagne
-                  </th>
-                  <th className="px-4 py-3 text-left font-medium text-slate-600">
-                    Statut
-                  </th>
-                  <th className="px-4 py-3 text-left font-medium text-slate-600">
-                    Date
-                  </th>
-                  <th className="w-10 px-4 py-3" />
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {isLoading ? (
-                  [...Array(5)].map((_, i) => (
-                    <tr key={i}>
-                      <td colSpan={isAdminOrHr ? 7 : 6} className="px-4 py-3">
-                        <div className="h-5 bg-slate-100 rounded animate-pulse" />
-                      </td>
-                    </tr>
-                  ))
-                ) : evaluations.length === 0 ? (
-                  <tr>
-                    <td colSpan={isAdminOrHr ? 7 : 6} className="px-4 py-4">
-                      <EmptyState
-                        icon={<ClipboardList className="w-8 h-8" />}
-                        title={t("evaluations.empty")}
-                        description="Aucune évaluation ne correspond aux critères sélectionnés."
-                      />
-                    </td>
-                  </tr>
-                ) : (
-                  evaluations.map((ev) => (
-                    <tr
-                      key={ev.id}
-                      className={`hover:bg-slate-50 ${selected.includes(ev.id) ? "bg-primary-50" : ""}`}
-                    >
-                      {isAdminOrHr && (
-                        <td className="px-4 py-3">
-                          <input
-                            type="checkbox"
-                            checked={selected.includes(ev.id)}
-                            onChange={() => toggleOne(ev.id)}
-                            className="rounded border-slate-300"
-                          />
-                        </td>
-                      )}
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-full bg-primary-100 text-primary-700 text-xs font-semibold flex items-center justify-center flex-shrink-0">
-                            {ev.evaluatee?.firstName?.[0]}
-                            {ev.evaluatee?.lastName?.[0]}
-                          </div>
-                          <Link
-                            to={`/evaluations/${ev.id}`}
-                            className="font-medium text-slate-900 hover:text-primary-600"
-                          >
-                            {ev.evaluatee?.firstName} {ev.evaluatee?.lastName}
-                          </Link>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-slate-600">
-                        {ev.evaluator?.firstName} {ev.evaluator?.lastName}
-                      </td>
-                      <td className="px-4 py-3 text-slate-600">
-                        {typeof ev.campaignId === "string"
-                          ? ev.campaignId
-                          : ev.campaignId.name}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${EVAL_STATUS_COLOR[ev.status] ?? "bg-slate-100 text-slate-600"}`}
-                        >
-                          {t(`evaluations.status.${ev.status}`)}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-slate-500 text-xs">
-                        {ev.updatedAt
-                          ? new Date(ev.updatedAt).toLocaleDateString("fr-FR")
-                          : "—"}
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="relative group">
-                          <button
-                            aria-label="Actions évaluation"
-                            className="p-1 text-slate-400 hover:text-slate-600 rounded"
-                          >
-                            <MoreHorizontal className="w-4 h-4" />
-                          </button>
-                          <div className="absolute right-0 top-8 bg-white border border-slate-200 rounded-lg shadow-lg z-10 min-w-36 py-1 hidden group-hover:block">
-                            <Link
-                              to={`/evaluations/${ev.id}`}
-                              className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
-                            >
-                              {t("common.view")}
-                            </Link>
-                            <button
-                              onClick={() =>
-                                window.open(
-                                  `/api/evaluations/${ev.id}/pdf`,
-                                  "_blank",
-                                )
-                              }
-                              className="block w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
-                            >
-                              PDF
-                            </button>
-                            {isAdminOrHr && (
-                              <>
-                                <hr className="my-1 border-slate-100" />
-                                <button
-                                  onClick={() => {
-                                    setReassignTarget(ev.id);
-                                    setReassignUserId("");
-                                  }}
-                                  className="block w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
-                                >
-                                  Réaffecter
-                                </button>
-                                <button
-                                  onClick={() => setExpireConfirm(ev.id)}
-                                  className="block w-full text-left px-4 py-2 text-sm text-error-600 hover:bg-error-50"
-                                >
-                                  Expirer
-                                </button>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+        <Tile style={{ padding: 0, overflow: "hidden" }}>
+          <div className="tbl-head" style={{ gridTemplateColumns: tblCols }}>
+            {isAdminOrHr && (
+              <input
+                type="checkbox"
+                checked={allSelected}
+                onChange={toggleAll}
+                aria-label="Tout sélectionner"
+              />
+            )}
+            <span>Évalué</span>
+            <span>Évaluateur</span>
+            <span>Campagne</span>
+            <span>Statut</span>
+            <span>Date</span>
+            <span />
           </div>
 
-          {/* Mobile cards */}
-          <div className="sm:hidden divide-y divide-slate-100">
-            {isLoading ? (
-              [...Array(3)].map((_, i) => (
-                <div
-                  key={i}
-                  className="h-20 bg-slate-100 rounded m-3 animate-pulse"
-                />
-              ))
-            ) : evaluations.length === 0 ? (
-              <div className="p-6">
-                <EmptyState
-                  icon={<ClipboardList className="w-8 h-8" />}
-                  title={t("evaluations.empty")}
-                  description="Aucune évaluation ne correspond aux critères sélectionnés."
-                />
+          {isLoading ? (
+            [...Array(5)].map((_, i) => (
+              <div
+                key={i}
+                className="tbl-row"
+                style={{ gridTemplateColumns: "1fr" }}
+              >
+                <div className="h-5 bg-slate-100 rounded animate-pulse" />
               </div>
-            ) : (
-              evaluations.map((ev) => (
-                <div
-                  key={ev.id}
-                  className={`p-4 ${selected.includes(ev.id) ? "bg-primary-50" : ""}`}
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      {isAdminOrHr && (
-                        <input
-                          type="checkbox"
-                          checked={selected.includes(ev.id)}
-                          onChange={() => toggleOne(ev.id)}
-                          className="rounded border-slate-300 mt-0.5"
-                        />
-                      )}
-                      <div className="w-7 h-7 rounded-full bg-primary-100 text-primary-700 text-xs font-semibold flex items-center justify-center flex-shrink-0">
-                        {ev.evaluatee?.firstName?.[0]}
-                        {ev.evaluatee?.lastName?.[0]}
-                      </div>
-                      <Link
-                        to={`/evaluations/${ev.id}`}
-                        className="font-medium text-slate-900 hover:text-primary-600 text-sm"
-                      >
-                        {ev.evaluatee?.firstName} {ev.evaluatee?.lastName}
-                      </Link>
-                    </div>
-                    <span
-                      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${EVAL_STATUS_COLOR[ev.status] ?? "bg-slate-100 text-slate-600"}`}
-                    >
-                      {t(`evaluations.status.${ev.status}`)}
-                    </span>
-                  </div>
-                  <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm mt-2">
-                    <dt className="text-slate-500">Évaluateur</dt>
-                    <dd className="text-slate-700">
-                      {ev.evaluator?.firstName} {ev.evaluator?.lastName}
-                    </dd>
-                    <dt className="text-slate-500">Campagne</dt>
-                    <dd className="text-slate-700 truncate">
-                      {typeof ev.campaignId === "string"
-                        ? ev.campaignId
-                        : ev.campaignId.name}
-                    </dd>
-                    <dt className="text-slate-500">Date</dt>
-                    <dd className="text-slate-500 text-xs">
-                      {ev.updatedAt
-                        ? new Date(ev.updatedAt).toLocaleDateString("fr-FR")
-                        : "—"}
-                    </dd>
-                  </dl>
-                  <div className="flex gap-2 mt-3 pt-3 border-t border-slate-100">
-                    <Link
-                      to={`/evaluations/${ev.id}`}
-                      className="flex-1 text-center px-3 py-1.5 text-xs border border-slate-200 rounded-md hover:bg-slate-50 text-slate-700"
-                    >
+            ))
+          ) : evaluations.length === 0 ? (
+            <div style={{ padding: 24 }}>
+              <EmptyState
+                icon={<ClipboardList className="w-8 h-8" />}
+                title={t("evaluations.empty")}
+                description="Aucune évaluation ne correspond aux critères sélectionnés."
+              />
+            </div>
+          ) : (
+            evaluations.map((ev) => (
+              <div
+                key={ev.id}
+                className="tbl-row"
+                style={{
+                  gridTemplateColumns: tblCols,
+                  background: selected.includes(ev.id)
+                    ? "var(--blue-soft)"
+                    : undefined,
+                }}
+              >
+                {isAdminOrHr && (
+                  <input
+                    type="checkbox"
+                    checked={selected.includes(ev.id)}
+                    onChange={() => toggleOne(ev.id)}
+                    aria-label="Sélectionner cette évaluation"
+                  />
+                )}
+                <div className="row" style={{ gap: 8, minWidth: 0 }}>
+                  <span
+                    className="avatar"
+                    style={{ width: 28, height: 28, fontSize: 11 }}
+                  >
+                    {ev.evaluatee?.firstName?.[0]}
+                    {ev.evaluatee?.lastName?.[0]}
+                  </span>
+                  <Link to={`/evaluations/${ev.id}`} className="link truncate">
+                    {ev.evaluatee?.firstName} {ev.evaluatee?.lastName}
+                  </Link>
+                </div>
+                <span className="small truncate">
+                  {ev.evaluator?.firstName} {ev.evaluator?.lastName}
+                </span>
+                <span className="small truncate">
+                  {typeof ev.campaignId === "string"
+                    ? ev.campaignId
+                    : ev.campaignId.name}
+                </span>
+                <span>
+                  <Badge tone={EVAL_STATUS_TONE[ev.status] ?? "grey"} dot>
+                    {t(`evaluations.status.${ev.status}`)}
+                  </Badge>
+                </span>
+                <span className="small">
+                  {ev.updatedAt
+                    ? new Date(ev.updatedAt).toLocaleDateString("fr-FR")
+                    : "—"}
+                </span>
+                <div className="relative group">
+                  <button
+                    aria-label="Actions évaluation"
+                    className="icon-btn"
+                    style={{ width: 32, height: 32 }}
+                  >
+                    <MoreHorizontal className="w-4 h-4" />
+                  </button>
+                  <div
+                    className="menu-pop hidden group-hover:block"
+                    style={{ right: 0 }}
+                  >
+                    <Link to={`/evaluations/${ev.id}`} className="menu-item">
                       {t("common.view")}
                     </Link>
+                    <button
+                      onClick={() =>
+                        window.open(`/api/evaluations/${ev.id}/pdf`, "_blank")
+                      }
+                      className="menu-item"
+                    >
+                      PDF
+                    </button>
                     {isAdminOrHr && (
                       <>
+                        <hr className="divider-h" />
                         <button
                           onClick={() => {
                             setReassignTarget(ev.id);
                             setReassignUserId("");
                           }}
-                          className="px-3 py-1.5 text-xs border border-slate-200 rounded-md hover:bg-slate-50 text-slate-700"
+                          className="menu-item"
                         >
                           Réaffecter
                         </button>
                         <button
                           onClick={() => setExpireConfirm(ev.id)}
-                          className="px-3 py-1.5 text-xs border border-error-200 rounded-md hover:bg-error-50 text-error-600"
+                          className="menu-item danger"
                         >
                           Expirer
                         </button>
@@ -641,43 +540,49 @@ export default function EvaluationsPage() {
                     )}
                   </div>
                 </div>
-              ))
-            )}
-          </div>
+              </div>
+            ))
+          )}
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between px-4 py-3 border-t border-slate-100">
-              <span className="text-sm text-slate-500">{total} résultats</span>
-              <div className="flex items-center gap-1">
+            <div
+              className="row between"
+              style={{
+                padding: "13px 22px",
+                borderTop: "1px solid var(--line)",
+              }}
+            >
+              <span className="small">{total} résultats</span>
+              <div className="row" style={{ gap: 8 }}>
                 <button
                   disabled={page === 1}
                   onClick={() => setPage((p) => p - 1)}
                   aria-label="Page précédente"
-                  className="px-3 py-1.5 text-sm border border-slate-200 rounded-md disabled:opacity-40 hover:bg-slate-50"
+                  className="btn btn-ghost btn-sm"
                 >
                   ←
                 </button>
-                <span className="px-3 py-1.5 text-sm">
+                <span className="small">
                   {page} / {totalPages}
                 </span>
                 <button
                   disabled={page === totalPages}
                   onClick={() => setPage((p) => p + 1)}
                   aria-label="Page suivante"
-                  className="px-3 py-1.5 text-sm border border-slate-200 rounded-md disabled:opacity-40 hover:bg-slate-50"
+                  className="btn btn-ghost btn-sm"
                 >
                   →
                 </button>
               </div>
             </div>
           )}
-        </div>
+        </Tile>
       )}
 
       {/* Cards employee */}
       {isEmployee && (
-        <div className="space-y-3">
+        <div className="section-gap" style={{ gap: 12 }}>
           {isLoading ? (
             [...Array(3)].map((_, i) => (
               <div
@@ -693,38 +598,37 @@ export default function EvaluationsPage() {
             />
           ) : (
             evaluations.map((ev) => (
-              <div
+              <Tile
                 key={ev.id}
-                className="bg-white rounded-xl border border-slate-200 p-4 flex items-center justify-between"
+                className="row between wrap"
+                style={{ gap: 12 }}
               >
-                <div>
-                  <p className="font-medium text-slate-900">
+                <div style={{ minWidth: 0 }}>
+                  <p style={{ fontWeight: 700, fontSize: 15 }}>
                     {typeof ev.campaignId === "string"
                       ? ev.campaignId
                       : ev.campaignId.name}
                   </p>
-                  <p className="text-sm text-slate-500 mt-0.5">
+                  <p className="small" style={{ marginTop: 2 }}>
                     {ev.form?.title ?? ev.formId}
                   </p>
                   {ev.deadline && (
-                    <p className="text-xs text-slate-500 mt-0.5">
+                    <p className="small" style={{ marginTop: 2 }}>
                       Deadline :{" "}
                       {new Date(ev.deadline).toLocaleDateString("fr-FR")}
                     </p>
                   )}
                 </div>
-                <div className="flex items-center gap-3">
-                  <span
-                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${EVAL_STATUS_COLOR[ev.status] ?? "bg-slate-100 text-slate-600"}`}
-                  >
+                <div className="row" style={{ gap: 12 }}>
+                  <Badge tone={EVAL_STATUS_TONE[ev.status] ?? "grey"} dot>
                     {t(`evaluations.status.${ev.status}`)}
-                  </span>
+                  </Badge>
                   <Link
                     to={`/evaluations/${ev.id}`}
-                    className={`px-3 py-1.5 rounded-lg text-sm font-medium ${
+                    className={`btn btn-sm ${
                       ["assigned", "in_progress"].includes(ev.status)
-                        ? "bg-primary-500 text-white hover:bg-primary-600"
-                        : "border border-slate-200 text-slate-700 hover:bg-slate-50"
+                        ? "btn-primary"
+                        : "btn-ghost"
                     }`}
                   >
                     {["assigned", "in_progress"].includes(ev.status)
@@ -732,7 +636,7 @@ export default function EvaluationsPage() {
                       : t("common.view")}
                   </Link>
                 </div>
-              </div>
+              </Tile>
             ))
           )}
         </div>
@@ -741,23 +645,29 @@ export default function EvaluationsPage() {
       {/* Modal bulk */}
       {bulkModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-xl">
-            <h3 className="text-lg font-semibold text-slate-900 mb-2">
+          <Tile
+            className="w-full max-w-md"
+            style={{ boxShadow: "var(--shadow-lg)" }}
+          >
+            <h3 className="h3" style={{ marginBottom: 8 }}>
               {bulkModal === "archive"
                 ? t("evaluations.archiveSelected")
                 : t("evaluations.signHr")}{" "}
               {selected.length} évaluation(s) ?
             </h3>
-            <p className="text-sm text-slate-600 mb-4">
+            <p className="small" style={{ marginBottom: 16 }}>
               Cette action s'appliquera aux évaluations sélectionnées.
             </p>
-            <div className="flex gap-3 justify-end">
+            <div
+              className="row"
+              style={{ gap: 12, justifyContent: "flex-end" }}
+            >
               <button
                 onClick={() => setBulkModal(null)}
                 disabled={
                   bulkArchiveMutation.isPending || bulkSignHrMutation.isPending
                 }
-                className="px-4 py-2 text-sm border border-slate-200 rounded-md hover:bg-slate-50 disabled:opacity-50"
+                className="btn btn-ghost btn-sm"
               >
                 {t("common.cancel")}
               </button>
@@ -770,43 +680,50 @@ export default function EvaluationsPage() {
                 disabled={
                   bulkArchiveMutation.isPending || bulkSignHrMutation.isPending
                 }
-                className="px-4 py-2 text-sm bg-primary-500 text-white rounded-md hover:bg-primary-600 disabled:opacity-50"
+                className="btn btn-primary btn-sm"
               >
                 {bulkArchiveMutation.isPending || bulkSignHrMutation.isPending
                   ? "Traitement…"
                   : t("common.confirm")}
               </button>
             </div>
-          </div>
+          </Tile>
         </div>
       )}
 
       {/* Modal Réaffecter */}
       {reassignTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-xl">
-            <h3 className="text-lg font-semibold text-slate-900 mb-4">
+          <Tile
+            className="w-full max-w-md"
+            style={{ boxShadow: "var(--shadow-lg)" }}
+          >
+            <h3 className="h3" style={{ marginBottom: 16 }}>
               Réaffecter l'évaluation
             </h3>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Nouvel évaluateur
-            </label>
-            <select
-              value={reassignUserId}
-              onChange={(e) => setReassignUserId(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-200 mb-4"
+            <div className="field" style={{ marginBottom: 16 }}>
+              <label htmlFor="reassign-user">Nouvel évaluateur</label>
+              <select
+                id="reassign-user"
+                value={reassignUserId}
+                onChange={(e) => setReassignUserId(e.target.value)}
+                className="input"
+              >
+                <option value="">Sélectionner un évaluateur…</option>
+                {usersList.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.firstName} {u.lastName} ({u.role})
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div
+              className="row"
+              style={{ gap: 12, justifyContent: "flex-end" }}
             >
-              <option value="">Sélectionner un évaluateur…</option>
-              {usersList.map((u) => (
-                <option key={u.id} value={u.id}>
-                  {u.firstName} {u.lastName} ({u.role})
-                </option>
-              ))}
-            </select>
-            <div className="flex gap-3 justify-end">
               <button
                 onClick={() => setReassignTarget(null)}
-                className="px-4 py-2 text-sm border border-slate-200 rounded-md hover:bg-slate-50"
+                className="btn btn-ghost btn-sm"
               >
                 {t("common.cancel")}
               </button>
@@ -818,42 +735,49 @@ export default function EvaluationsPage() {
                   })
                 }
                 disabled={!reassignUserId || reassignMutation.isPending}
-                className="px-4 py-2 text-sm bg-primary-500 text-white rounded-md hover:bg-primary-600 disabled:opacity-50"
+                className="btn btn-primary btn-sm"
               >
                 {reassignMutation.isPending ? "Traitement…" : "Réaffecter"}
               </button>
             </div>
-          </div>
+          </Tile>
         </div>
       )}
 
       {/* Modal Expirer */}
       {expireConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-sm shadow-xl">
-            <h3 className="text-lg font-semibold text-slate-900 mb-2">
+          <Tile
+            className="w-full max-w-sm"
+            style={{ boxShadow: "var(--shadow-lg)" }}
+          >
+            <h3 className="h3" style={{ marginBottom: 8 }}>
               Expirer cette évaluation ?
             </h3>
-            <p className="text-sm text-slate-600 mb-4">
+            <p className="small" style={{ marginBottom: 16 }}>
               Cette action est irréversible. L'évaluation sera marquée comme
               expirée.
             </p>
-            <div className="flex gap-3 justify-end">
+            <div
+              className="row"
+              style={{ gap: 12, justifyContent: "flex-end" }}
+            >
               <button
                 onClick={() => setExpireConfirm(null)}
-                className="px-4 py-2 text-sm border border-slate-200 rounded-md hover:bg-slate-50"
+                className="btn btn-ghost btn-sm"
               >
                 {t("common.cancel")}
               </button>
               <button
                 onClick={() => expireMutation.mutate(expireConfirm)}
                 disabled={expireMutation.isPending}
-                className="px-4 py-2 text-sm bg-error-500 text-white rounded-md hover:bg-error-600 disabled:opacity-50"
+                className="btn btn-sm"
+                style={{ background: "var(--red)", color: "#fff" }}
               >
                 {expireMutation.isPending ? "Traitement…" : "Expirer"}
               </button>
             </div>
-          </div>
+          </Tile>
         </div>
       )}
     </div>

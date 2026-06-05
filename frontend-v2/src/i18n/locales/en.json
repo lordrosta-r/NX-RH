@@ -36,7 +36,18 @@
     "search": "Search",
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
-    "language": "Language"
+    "language": "Language",
+    "more": "More",
+    "perspectiveMe": "My space",
+    "perspectiveRh": "HR steering",
+    "changeSpace": "Change space",
+    "monParcours": "My path",
+    "mailTemplates": "Email templates",
+    "ldap": "LDAP directory",
+    "systemConfig": "System configuration",
+    "mailConfig": "Email configuration",
+    "systemStatus": "System status",
+    "setupWizard": "Setup wizard"
   },
   "common": {
     "save": "Save",

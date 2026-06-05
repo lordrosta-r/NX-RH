@@ -1,41 +1,42 @@
-import { useState } from 'react'
-import { useQuery, keepPreviousData } from '@tanstack/react-query'
-import { Download, Search } from 'lucide-react'
-import { adminApi } from '../api/admin'
-import type { AuditLogEntry, PaginatedResponse } from '../types'
+import { useState } from "react";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
+import { Download, Search } from "lucide-react";
+import { adminApi } from "../api/admin";
+import type { AuditLogEntry, PaginatedResponse } from "../types";
+import { PageHead, Tile, Badge } from "../components/shell";
 
-function SkeletonRow() {
-  return (
-    <tr>
-      {Array.from({ length: 4 }).map((_, i) => (
-        <td key={i} className="px-4 py-3"><div className="h-4 bg-slate-200 rounded animate-pulse" /></td>
-      ))}
-    </tr>
-  )
-}
+const COLS = "1.2fr 1.4fr 1fr 1.6fr";
+
+const ACTION_TONE: Record<string, "blue" | "green" | "amber" | "red" | "grey"> =
+  {
+    create: "green",
+    update: "blue",
+    delete: "red",
+    login: "amber",
+    logout: "grey",
+  };
 
 function ActionBadge({ action }: { action: string }) {
-  const colors: Record<string, string> = {
-    create: 'bg-green-100 text-green-700',
-    update: 'bg-blue-100 text-blue-700',
-    delete: 'bg-red-100 text-red-700',
-    login: 'bg-primary-100 text-primary-700',
-    logout: 'bg-slate-100 text-slate-700',
-  }
-  const base = action.toLowerCase().split('_')[0]
-  const cls = colors[base] ?? 'bg-slate-100 text-slate-700'
-  return <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${cls}`}>{action}</span>
+  const base = action.toLowerCase().split("_")[0];
+  return <Badge tone={ACTION_TONE[base] ?? "grey"}>{action}</Badge>;
 }
 
 export default function AdminAuditPage() {
-  const [page, setPage] = useState(1)
-  const [filters, setFilters] = useState({ action: '', targetType: '', actorId: '', from: '', to: '' })
+  const [page, setPage] = useState(1);
+  const [filters, setFilters] = useState({
+    action: "",
+    targetType: "",
+    actorId: "",
+    from: "",
+    to: "",
+  });
 
   const { data, isLoading } = useQuery<PaginatedResponse<AuditLogEntry>>({
-    queryKey: ['audit-log', page, filters],
-    queryFn: () => adminApi.getAuditLog({ page, limit: 20, ...filters }).then(r => r.data),
+    queryKey: ["audit-log", page, filters],
+    queryFn: () =>
+      adminApi.getAuditLog({ page, limit: 20, ...filters }).then((r) => r.data),
     placeholderData: keepPreviousData,
-  })
+  });
 
   async function exportCsv() {
     const res = await adminApi.exportAuditCsv({
@@ -44,117 +45,191 @@ export default function AdminAuditPage() {
       targetType: filters.targetType || undefined,
       from: filters.from || undefined,
       to: filters.to || undefined,
-    })
-    const url = URL.createObjectURL(res.data as Blob)
-    const a = document.createElement('a')
-    a.href = url; a.download = 'audit.csv'; a.click()
-    URL.revokeObjectURL(url)
+    });
+    const url = URL.createObjectURL(res.data as Blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "audit.csv";
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
+  const entries = data?.data ?? [];
+
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold text-slate-900">Journal d'audit</h1>
-        <button onClick={exportCsv} className="flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-50 transition">
-          <Download size={16} /> Exporter CSV
-        </button>
-      </div>
+    <div className="nx-app">
+      <PageHead
+        title="Journal d'audit"
+        actions={
+          <button onClick={exportCsv} className="btn btn-ghost">
+            <Download className="ico" style={{ width: 18, height: 18 }} />{" "}
+            Exporter CSV
+          </button>
+        }
+      />
 
       {/* Filtres */}
-      <div className="bg-white rounded-2xl shadow p-4 mb-6 flex flex-wrap gap-3">
-        <div className="relative">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input
-            className="pl-8 pr-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-400 w-44"
-            placeholder="Acteur..."
-            value={filters.actorId}
-            onChange={e => { setFilters(f => ({ ...f, actorId: e.target.value })); setPage(1) }}
-          />
+      <Tile style={{ marginBottom: 16 }}>
+        <div className="row wrap" style={{ gap: 16, alignItems: "flex-end" }}>
+          <div className="field" style={{ flex: "1 1 200px" }}>
+            <label htmlFor="audit-actor">Acteur</label>
+            <div style={{ position: "relative" }}>
+              <Search
+                className="ico"
+                style={{
+                  position: "absolute",
+                  left: 12,
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  width: 16,
+                  height: 16,
+                  color: "var(--ink-3)",
+                }}
+              />
+              <input
+                id="audit-actor"
+                className="input"
+                style={{ paddingLeft: 36 }}
+                placeholder="Acteur…"
+                value={filters.actorId}
+                onChange={(e) => {
+                  setFilters((f) => ({ ...f, actorId: e.target.value }));
+                  setPage(1);
+                }}
+              />
+            </div>
+          </div>
+          <div className="field" style={{ flex: "1 1 180px" }}>
+            <label htmlFor="audit-action">Action</label>
+            <input
+              id="audit-action"
+              className="input"
+              placeholder="Action…"
+              value={filters.action}
+              onChange={(e) => {
+                setFilters((f) => ({ ...f, action: e.target.value }));
+                setPage(1);
+              }}
+            />
+          </div>
+          <div className="field" style={{ flex: "1 1 160px" }}>
+            <label htmlFor="audit-target">Type cible</label>
+            <input
+              id="audit-target"
+              className="input"
+              placeholder="Type cible…"
+              value={filters.targetType}
+              onChange={(e) => {
+                setFilters((f) => ({ ...f, targetType: e.target.value }));
+                setPage(1);
+              }}
+            />
+          </div>
+          <div className="field" style={{ flex: "1 1 160px" }}>
+            <label htmlFor="audit-from">Du</label>
+            <input
+              id="audit-from"
+              type="date"
+              className="input"
+              value={filters.from}
+              onChange={(e) => {
+                setFilters((f) => ({ ...f, from: e.target.value }));
+                setPage(1);
+              }}
+            />
+          </div>
+          <div className="field" style={{ flex: "1 1 160px" }}>
+            <label htmlFor="audit-to">Au</label>
+            <input
+              id="audit-to"
+              type="date"
+              className="input"
+              value={filters.to}
+              onChange={(e) => {
+                setFilters((f) => ({ ...f, to: e.target.value }));
+                setPage(1);
+              }}
+            />
+          </div>
         </div>
-        <input
-          className="px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-400 w-40"
-          placeholder="Action..."
-          value={filters.action}
-          onChange={e => { setFilters(f => ({ ...f, action: e.target.value })); setPage(1) }}
-        />
-        <input
-          className="px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-400 w-36"
-          placeholder="Type cible..."
-          value={filters.targetType}
-          onChange={e => { setFilters(f => ({ ...f, targetType: e.target.value })); setPage(1) }}
-        />
-        <input type="date" className="px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-400" value={filters.from} onChange={e => { setFilters(f => ({ ...f, from: e.target.value })); setPage(1) }} />
-        <input type="date" className="px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-400" value={filters.to} onChange={e => { setFilters(f => ({ ...f, to: e.target.value })); setPage(1) }} />
-      </div>
+      </Tile>
 
-      <div className="bg-white rounded-2xl shadow overflow-hidden">
-        <div className="overflow-x-auto hidden sm:block">
-        <table className="w-full text-sm">
-          <thead className="bg-slate-50 border-b border-slate-100">
-            <tr>
-              {['Date/Heure', 'Acteur', 'Action', 'Cible'].map(h => (
-                <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {isLoading ? Array.from({ length: 10 }).map((_, i) => <SkeletonRow key={i} />) :
-             !data?.data?.length ? (
-               <tr><td colSpan={4} className="px-4 py-16 text-center text-slate-600">Aucune entrée dans le journal d'audit.</td></tr>
-             ) : data.data.map(entry => (
-               <tr key={entry.id} className="hover:bg-slate-50 transition">
-                 <td className="px-4 py-3 text-slate-500 whitespace-nowrap text-xs">{new Date(entry.createdAt).toLocaleString('fr-FR')}</td>
-                 <td className="px-4 py-3">
-                   <div className="font-medium text-slate-800">{entry.actorName ?? entry.actorEmail ?? entry.actorId}</div>
-                 </td>
-                 <td className="px-4 py-3"><ActionBadge action={entry.action} /></td>
-                 <td className="px-4 py-3 text-slate-600">
-                   {entry.targetLabel ?? entry.targetId ?? '—'}
-                   {entry.targetType && <span className="ml-2 text-xs text-slate-500">({entry.targetType})</span>}
-                 </td>
-               </tr>
-             ))
-            }
-          </tbody>
-        </table>
+      <Tile style={{ padding: 0, overflow: "hidden" }}>
+        <div className="tbl-head" style={{ gridTemplateColumns: COLS }}>
+          <div>Date/Heure</div>
+          <div>Acteur</div>
+          <div>Action</div>
+          <div>Cible</div>
         </div>
 
-        {/* Mobile cards */}
-        <div className="sm:hidden divide-y divide-slate-100">
-          {isLoading ? Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="p-4"><div className="h-12 bg-slate-200 rounded animate-pulse" /></div>
-          )) : !data?.data?.length ? (
-            <p className="px-4 py-8 text-center text-slate-600">Aucune entrée dans le journal d'audit.</p>
-          ) : data.data.map(entry => (
-            <div key={entry.id} className="p-4">
-              <div className="flex items-start justify-between mb-1">
-                <span className="font-medium text-slate-800">{entry.actorName ?? entry.actorEmail ?? entry.actorId}</span>
+        {isLoading ? (
+          <div className="small" style={{ padding: 40, textAlign: "center" }}>
+            Chargement…
+          </div>
+        ) : !entries.length ? (
+          <div
+            className="body"
+            style={{ padding: 40, textAlign: "center", color: "var(--ink-3)" }}
+          >
+            Aucune entrée dans le journal d'audit.
+          </div>
+        ) : (
+          entries.map((entry) => (
+            <div
+              key={entry.id}
+              className="tbl-row"
+              style={{ gridTemplateColumns: COLS }}
+            >
+              <div className="small" style={{ whiteSpace: "nowrap" }}>
+                {new Date(entry.createdAt).toLocaleString("fr-FR")}
+              </div>
+              <div
+                style={{ fontWeight: 600, color: "var(--ink)", minWidth: 0 }}
+              >
+                {entry.actorName ?? entry.actorEmail ?? entry.actorId}
+              </div>
+              <div>
                 <ActionBadge action={entry.action} />
               </div>
-              <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm mt-2">
-                <dt className="text-slate-500">Date</dt>
-                <dd className="text-slate-500 text-xs whitespace-nowrap">{new Date(entry.createdAt).toLocaleString('fr-FR')}</dd>
-                <dt className="text-slate-500">Cible</dt>
-                <dd className="text-slate-600 truncate">
-                  {entry.targetLabel ?? entry.targetId ?? '—'}
-                  {entry.targetType && <span className="ml-1 text-xs text-slate-500">({entry.targetType})</span>}
-                </dd>
-              </dl>
+              <div style={{ color: "var(--ink-2)", minWidth: 0 }}>
+                {entry.targetLabel ?? entry.targetId ?? "—"}
+                {entry.targetType && (
+                  <span className="small" style={{ marginLeft: 8 }}>
+                    ({entry.targetType})
+                  </span>
+                )}
+              </div>
             </div>
-          ))}
-        </div>
+          ))
+        )}
 
         {data && data.totalPages && data.totalPages > 1 && (
-          <div className="flex items-center justify-between px-4 py-3 border-t border-slate-100">
-            <p className="text-xs text-slate-500">Page {page} sur {data.totalPages}</p>
-            <div className="flex gap-2">
-              <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="px-3 py-1 text-sm border border-slate-200 rounded-md disabled:opacity-40 hover:bg-slate-50">Précédent</button>
-              <button onClick={() => setPage(p => p + 1)} disabled={page >= (data.totalPages ?? 1)} className="px-3 py-1 text-sm border border-slate-200 rounded-md disabled:opacity-40 hover:bg-slate-50">Suivant</button>
+          <div
+            className="row between"
+            style={{ padding: "13px 22px", borderTop: "1px solid var(--line)" }}
+          >
+            <p className="small">
+              Page {page} sur {data.totalPages}
+            </p>
+            <div className="row" style={{ gap: 8 }}>
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="btn btn-ghost btn-sm"
+              >
+                Précédent
+              </button>
+              <button
+                onClick={() => setPage((p) => p + 1)}
+                disabled={page >= (data.totalPages ?? 1)}
+                className="btn btn-ghost btn-sm"
+              >
+                Suivant
+              </button>
             </div>
           </div>
         )}
-      </div>
+      </Tile>
     </div>
-  )
+  );
 }
-

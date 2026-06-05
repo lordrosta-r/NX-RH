@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { adminApi } from "../api/admin";
+import { PageHead, Tile, Callout } from "../components/shell";
 
 type FormJson = {
   title?: string;
@@ -151,181 +152,297 @@ export default function AdminFormsImportPage() {
     : [];
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-slate-900">
-          Import formulaires
-        </h1>
-        <button
-          onClick={downloadTemplate}
-          className="inline-flex items-center gap-2 border border-slate-200 hover:bg-slate-50 px-3 py-2 rounded-md text-sm"
-        >
-          <Download className="w-4 h-4" /> Télécharger le template JSON
-        </button>
-      </div>
-
-      {/* Onglets */}
-      <div className="flex border-b border-slate-200 mb-6">
-        <button
-          onClick={() => setTab("file")}
-          className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${tab === "file" ? "border-primary-500 text-primary-600" : "border-transparent text-slate-500 hover:text-slate-700"}`}
-        >
-          <FileText className="w-4 h-4" /> 📁 Fichier
-        </button>
-        <button
-          onClick={() => setTab("paste")}
-          className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${tab === "paste" ? "border-primary-500 text-primary-600" : "border-transparent text-slate-500 hover:text-slate-700"}`}
-        >
-          <ClipboardList className="w-4 h-4" /> 📋 Coller JSON
-        </button>
-      </div>
-
-      {/* Tab: Fichier */}
-      {tab === "file" && (
-        <div
-          className={`border-2 border-dashed rounded-2xl p-10 text-center transition cursor-pointer ${isDragging ? "border-primary-400 bg-primary-50" : "border-slate-200 hover:border-primary-300 hover:bg-slate-50"}`}
-          onDragOver={(e) => {
-            e.preventDefault();
-            setIsDragging(true);
-          }}
-          onDragLeave={() => setIsDragging(false)}
-          onDrop={onDrop}
-          onClick={() => inputRef.current?.click()}
-        >
-          <Upload size={40} className="mx-auto mb-3 text-slate-300" />
-          <p className="font-medium text-slate-700">
-            Glissez-déposez un fichier JSON
-          </p>
-          <p className="text-sm text-slate-500 mt-1">
-            ou cliquez pour sélectionner
-          </p>
-          <input
-            ref={inputRef}
-            type="file"
-            accept=".json"
-            className="hidden"
-            onChange={(e) => {
-              if (e.target.files?.[0]) processFile(e.target.files[0]);
-            }}
-          />
-        </div>
-      )}
-
-      {/* Tab: Paste */}
-      {tab === "paste" && (
-        <div>
-          <textarea
-            value={pasteText}
-            onChange={(e) => setPasteText(e.target.value)}
-            placeholder='Collez votre JSON ici…\n{\n  "title": "...",\n  "formType": "self_evaluation",\n  "questions": [...]\n}'
-            rows={12}
-            className="w-full font-mono text-xs border border-slate-300 rounded-xl p-4 focus:outline-none focus:ring-2 focus:ring-primary-200 resize-y"
-          />
+    <div className="nx-app">
+      <PageHead
+        title="Import formulaires"
+        desc="Importez un formulaire d'évaluation au format JSON, par fichier ou par copier-coller."
+        actions={
           <button
-            onClick={handlePaste}
-            disabled={!pasteText.trim()}
-            className="mt-3 px-4 py-2 bg-slate-700 text-white rounded-md text-sm hover:bg-slate-800 disabled:opacity-50"
+            type="button"
+            onClick={downloadTemplate}
+            className="btn btn-ghost"
           >
-            Valider
+            <Download className="ico" style={{ width: 18, height: 18 }} />{" "}
+            Télécharger le template JSON
+          </button>
+        }
+      />
+
+      <Tile>
+        {/* Onglets */}
+        <div
+          className="row"
+          style={{
+            gap: 0,
+            borderBottom: "1px solid var(--line)",
+            marginBottom: 24,
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => setTab("file")}
+            className="small"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              padding: "12px 16px",
+              background: "none",
+              border: "none",
+              borderBottom:
+                tab === "file"
+                  ? "2px solid var(--blue)"
+                  : "2px solid transparent",
+              color: tab === "file" ? "var(--blue)" : "var(--ink-3)",
+              fontWeight: tab === "file" ? 700 : 500,
+              cursor: "pointer",
+            }}
+          >
+            <FileText className="ico" style={{ width: 16, height: 16 }} />{" "}
+            Fichier
+          </button>
+          <button
+            type="button"
+            onClick={() => setTab("paste")}
+            className="small"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              padding: "12px 16px",
+              background: "none",
+              border: "none",
+              borderBottom:
+                tab === "paste"
+                  ? "2px solid var(--blue)"
+                  : "2px solid transparent",
+              color: tab === "paste" ? "var(--blue)" : "var(--ink-3)",
+              fontWeight: tab === "paste" ? 700 : 500,
+              cursor: "pointer",
+            }}
+          >
+            <ClipboardList className="ico" style={{ width: 16, height: 16 }} />{" "}
+            Coller JSON
           </button>
         </div>
-      )}
+
+        {/* Tab: Fichier */}
+        {tab === "file" && (
+          <button
+            type="button"
+            aria-label="Glissez-déposez ou cliquez pour sélectionner un fichier JSON"
+            style={{
+              display: "block",
+              width: "100%",
+              border: isDragging
+                ? "2px dashed var(--blue)"
+                : "2px dashed var(--line)",
+              background: isDragging ? "var(--bg-alt)" : "transparent",
+              borderRadius: "var(--radius)",
+              padding: 40,
+              textAlign: "center",
+              cursor: "pointer",
+              transition: "all 0.12s",
+            }}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setIsDragging(true);
+            }}
+            onDragLeave={() => setIsDragging(false)}
+            onDrop={onDrop}
+            onClick={() => inputRef.current?.click()}
+          >
+            <Upload
+              size={40}
+              className="ico"
+              style={{ margin: "0 auto 12px", color: "var(--ink-3)" }}
+            />
+            <p className="body" style={{ fontWeight: 600 }}>
+              Glissez-déposez un fichier JSON
+            </p>
+            <p className="small" style={{ marginTop: 4 }}>
+              ou cliquez pour sélectionner
+            </p>
+            <input
+              ref={inputRef}
+              type="file"
+              accept=".json"
+              aria-label="Fichier JSON du formulaire"
+              style={{ display: "none" }}
+              onChange={(e) => {
+                if (e.target.files?.[0]) processFile(e.target.files[0]);
+              }}
+            />
+          </button>
+        )}
+
+        {/* Tab: Paste */}
+        {tab === "paste" && (
+          <div className="field">
+            <label htmlFor="paste-json">JSON du formulaire</label>
+            <textarea
+              id="paste-json"
+              value={pasteText}
+              onChange={(e) => setPasteText(e.target.value)}
+              placeholder='Collez votre JSON ici…\n{\n  "title": "...",\n  "formType": "self_evaluation",\n  "questions": [...]\n}'
+              rows={12}
+              className="input"
+              style={{
+                fontFamily: "monospace",
+                fontSize: 12,
+                resize: "vertical",
+              }}
+            />
+            <button
+              type="button"
+              onClick={handlePaste}
+              disabled={!pasteText.trim()}
+              className="btn btn-primary"
+              style={{ marginTop: 12 }}
+            >
+              Valider
+            </button>
+          </div>
+        )}
+      </Tile>
 
       {/* Erreurs */}
       {errors.length > 0 && (
-        <div className="mt-4 p-4 bg-red-50 rounded-xl">
-          <div className="flex items-center gap-2 mb-2">
-            <AlertCircle size={16} className="text-red-500" />
-            <p className="text-sm font-semibold text-red-700">
+        <Callout tone="red" style={{ marginTop: 24 }}>
+          <div
+            className="row"
+            style={{ gap: 8, marginBottom: 8, alignItems: "center" }}
+          >
+            <AlertCircle className="ico" style={{ width: 16, height: 16 }} />
+            <p className="body" style={{ fontWeight: 700 }}>
               Erreurs de validation
             </p>
           </div>
-          <ul className="text-sm text-red-600 list-disc list-inside space-y-1">
+          <ul
+            className="small"
+            style={{
+              listStyle: "disc",
+              paddingLeft: 20,
+              display: "flex",
+              flexDirection: "column",
+              gap: 4,
+            }}
+          >
             {errors.map((e, i) => (
               <li key={`${e}-${i}`}>{e}</li>
             ))}
           </ul>
-        </div>
+        </Callout>
       )}
 
       {/* Aperçu riche */}
       {json && !errors.length && (
-        <div className="mt-6 space-y-4">
-          <div className="bg-white rounded-xl border border-slate-200 p-4">
-            <p className="text-xs text-slate-500 uppercase tracking-wider mb-3 font-semibold">
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 24,
+            marginTop: 24,
+          }}
+        >
+          <Tile>
+            <p className="eyebrow" style={{ marginBottom: 16 }}>
               Aperçu
             </p>
-            <div className="grid grid-cols-3 gap-4">
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+                gap: 16,
+              }}
+            >
               <div>
-                <p className="text-xs text-slate-500">Titre</p>
-                <p className="text-sm font-medium text-slate-900">
+                <p className="small">Titre</p>
+                <p className="body" style={{ fontWeight: 600 }}>
                   {json.title}
                 </p>
               </div>
               <div>
-                <p className="text-xs text-slate-500">Type</p>
-                <p className="text-sm font-medium text-slate-900">
+                <p className="small">Type</p>
+                <p className="body" style={{ fontWeight: 600 }}>
                   {json.formType}
                 </p>
               </div>
               <div>
-                <p className="text-xs text-slate-500">Questions</p>
-                <p className="text-sm font-medium text-slate-900">
+                <p className="small">Questions</p>
+                <p className="body" style={{ fontWeight: 600 }}>
                   {questions.length}
                 </p>
               </div>
             </div>
-          </div>
+          </Tile>
 
           {questions.length > 0 && (
-            <div className="bg-slate-50 rounded-xl border border-slate-200 p-4">
-              <p className="text-xs text-slate-500 uppercase tracking-wider mb-2 font-semibold">
-                Questions ({questions.length})
-              </p>
-              <ul className="space-y-1">
-                {questions.slice(0, 5).map((q, i) => (
-                  <li
-                    key={q.id ?? `q-${i}`}
-                    className="flex items-center gap-2 text-sm"
-                  >
-                    <span className="text-xs bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded font-mono">
+            <Tile style={{ padding: 0, overflow: "hidden" }}>
+              <div
+                className="tbl-head"
+                style={{ gridTemplateColumns: "160px 1fr" }}
+              >
+                <div>Type</div>
+                <div>Intitulé</div>
+              </div>
+              {questions.slice(0, 5).map((q, i) => (
+                <div
+                  key={q.id ?? `q-${i}`}
+                  className="tbl-row"
+                  style={{ gridTemplateColumns: "160px 1fr" }}
+                >
+                  <div>
+                    <span
+                      className="small"
+                      style={{
+                        fontFamily: "monospace",
+                        background: "var(--bg-alt)",
+                        color: "var(--ink-2)",
+                        padding: "2px 6px",
+                        borderRadius: 4,
+                      }}
+                    >
                       {q.type}
                     </span>
-                    <span className="text-slate-700 truncate">{q.text}</span>
-                  </li>
-                ))}
-                {questions.length > 5 && (
-                  <li className="text-xs text-slate-500">
+                  </div>
+                  <div className="small truncate">{q.text}</div>
+                </div>
+              ))}
+              {questions.length > 5 && (
+                <div className="tbl-row" style={{ gridTemplateColumns: "1fr" }}>
+                  <div className="small">
                     … et {questions.length - 5} autres
-                  </li>
-                )}
-              </ul>
-            </div>
+                  </div>
+                </div>
+              )}
+            </Tile>
           )}
 
-          <div className="flex gap-3">
+          <div className="row" style={{ gap: 12 }}>
             <button
+              type="button"
               onClick={doImport}
               disabled={isImporting || !!importedId}
-              className="px-5 py-2 bg-primary-500 text-white rounded-md text-sm font-medium hover:bg-primary-600 disabled:opacity-50 transition flex items-center gap-2"
+              className="btn btn-primary"
             >
               {isImporting ? "Import en cours…" : "Importer le formulaire"}
             </button>
-            <button
-              onClick={reset}
-              className="px-4 py-2 text-sm text-slate-600 border border-slate-200 rounded-md hover:bg-slate-50"
-            >
+            <button type="button" onClick={reset} className="btn btn-ghost">
               Réinitialiser
             </button>
           </div>
 
           {importedId && (
-            <div className="p-3 bg-green-50 rounded-xl flex items-center gap-2">
-              <CheckCircle size={16} className="text-green-500" />
-              <p className="text-sm text-green-700">
-                Formulaire importé ! Redirection…
-              </p>
-            </div>
+            <Callout tone="green">
+              <div className="row" style={{ gap: 8, alignItems: "center" }}>
+                <CheckCircle
+                  className="ico"
+                  style={{ width: 16, height: 16 }}
+                />
+                <p className="body">Formulaire importé ! Redirection…</p>
+              </div>
+            </Callout>
           )}
         </div>
       )}

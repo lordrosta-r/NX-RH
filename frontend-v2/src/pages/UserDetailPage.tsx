@@ -133,6 +133,7 @@ export default function UserDetailPage() {
   const gdprDeleteMutation = useMutation({
     mutationFn: () => usersApi.gdprAnonymize(id!),
     onSuccess: () => {
+      setGdprDeleteModal(false);
       toast.show("Utilisateur supprimé (RGPD).");
       navigate("/users");
     },

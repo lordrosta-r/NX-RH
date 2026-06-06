@@ -64,65 +64,80 @@ async function handleN1Context(req, res, next) {
     if (campaign?.enableN1Context === false) return res.status(204).end()
 
     const evaluateeId = new mongoose.Types.ObjectId(evaluation.evaluateeId)
-    let n1Eval = null
+    let n1Evals = []
 
-    // 4a. Stratégie explicite : previousCampaignId renseigné
+    const populateEval = q => q
+      .populate('campaignId', 'name startDate endDate')
+      .populate('formId',     'title formType questions')
+      .lean()
+
+    // 4a. Stratégie explicite : previousCampaignId renseigné → TOUTES les évals
+    //     de la personne dans cette campagne (multi-formulaires).
     if (campaign?.previousCampaignId) {
-      n1Eval = await Evaluation.findOne({
+      n1Evals = await populateEval(Evaluation.find({
         evaluateeId,
         campaignId: campaign.previousCampaignId,
         status:     { $in: N1_VALID_STATUSES },
-      })
-        .populate('campaignId', 'name startDate endDate')
-        .populate('formId',     'title formType questions')
-        .lean()
+      }))
     }
 
-    // 4b. Fallback auto : dernière campagne clôturée avant startDate
-    if (!n1Eval) {
+    // 4b. Fallback auto : campagne clôturée la plus récente avant startDate.
+    //     On prend toutes les évals de la personne issues de CETTE campagne.
+    if (!n1Evals.length) {
       const prevCampaigns = await Campaign.find(
         { status: { $in: ['closed', 'archived'] }, endDate: { $lt: campaign?.startDate } },
         '_id'
       ).lean()
 
       if (prevCampaigns.length > 0) {
-        n1Eval = await Evaluation.findOne({
+        const all = await populateEval(Evaluation.find({
           evaluateeId,
           campaignId: { $in: prevCampaigns.map(c => c._id) },
           status:     { $in: N1_VALID_STATUSES },
-        })
-          .sort({ updatedAt: -1 })
-          .populate('campaignId', 'name startDate endDate')
-          .populate('formId',     'title formType questions')
-          .lean()
+        }).sort({ updatedAt: -1 }))
+
+        if (all.length) {
+          const targetCid = String(all[0].campaignId?._id ?? all[0].campaignId)
+          n1Evals = all.filter(e => String(e.campaignId?._id ?? e.campaignId) === targetCid)
+        }
       }
     }
 
-    if (!n1Eval) return res.status(204).end()
+    if (!n1Evals.length) return res.status(204).end()
 
-    // 5. Filtrer les réponses : phase objectives ou type n1_import (legacy)
-    const questions = n1Eval.formId?.questions ?? []
-    const relevantQIds = new Set(
-      questions
-        .filter(q => q.phase === 'objectives' || q.type === 'n1_import')
-        .map(q => q.id)
-    )
+    const primary = n1Evals[0]
 
-    const objectivesAnswers = (n1Eval.answers ?? [])
-      .filter(a => relevantQIds.has(a.questionId))
-      .map(a => {
-        const q = questions.find(q => q.id === a.questionId)
-        return { questionId: a.questionId, questionLabel: q?.label ?? a.questionId, questionType: q?.type, value: a.value }
-      })
+    // 5. Agrégation des réponses et questions sur TOUS les formulaires de l'an
+    //    dernier (un évalué a pu remplir plusieurs formulaires). Les ids de
+    //    question sont uniques par formulaire → pas de collision à l'agrégation.
+    const prevAnswerByQid = new Map()
+    const prevQuestionById = new Map()
+    for (const ev of n1Evals) {
+      for (const a of ev.answers ?? []) {
+        if (!prevAnswerByQid.has(a.questionId)) prevAnswerByQid.set(a.questionId, a.value)
+      }
+      for (const q of ev.formId?.questions ?? []) {
+        if (!prevQuestionById.has(q.id)) prevQuestionById.set(q.id, q)
+      }
+    }
+
+    // Bloc legacy (N1ImportView) : objectifs / n1_import sur l'ensemble.
+    const objectivesAnswers = []
+    for (const ev of n1Evals) {
+      const qs = ev.formId?.questions ?? []
+      const relevant = new Set(qs.filter(q => q.phase === 'objectives' || q.type === 'n1_import').map(q => q.id))
+      for (const a of ev.answers ?? []) {
+        if (!relevant.has(a.questionId)) continue
+        const q = qs.find(q => q.id === a.questionId)
+        objectivesAnswers.push({ questionId: a.questionId, questionLabel: q?.label ?? a.questionId, questionType: q?.type, value: a.value })
+      }
+    }
 
     // 5bis. Résolution PAR QUESTION pour l'accordéon « Édition précédente ».
     //   Pour chaque question du form COURANT marquée carryPrevious, on retrouve
-    //   la réponse de l'édition précédente via la lignée parentQuestionId
-    //   (fallback : même id). Clé du map = id de la question COURANTE → le front
-    //   pioche byQuestion[currentQuestionId] sans requête supplémentaire.
+    //   la réponse via la lignée parentQuestionId (fallback : même id), parmi
+    //   TOUTES les réponses agrégées de l'an dernier.
     const currentQuestions = evaluation.formId?.questions ?? []
-    const prevAnswerByQid = new Map((n1Eval.answers ?? []).map(a => [a.questionId, a.value]))
-    const prevQuestionById = new Map(questions.map(q => [q.id, q]))
     const byQuestion = {}
     for (const cq of currentQuestions) {
       if (!cq.carryPrevious) continue
@@ -141,23 +156,23 @@ async function handleN1Context(req, res, next) {
     const isEmployee = role === 'employee'
     const payload = {
       n1Campaign: {
-        id:        n1Eval.campaignId?._id,
-        name:      n1Eval.campaignId?.name,
-        startDate: n1Eval.campaignId?.startDate,
-        endDate:   n1Eval.campaignId?.endDate,
+        id:        primary.campaignId?._id,
+        name:      primary.campaignId?.name,
+        startDate: primary.campaignId?.startDate,
+        endDate:   primary.campaignId?.endDate,
       },
-      reviewerScore:    n1Eval.reviewerScore    ?? null,
-      reviewerComment:  n1Eval.reviewerComment  ?? null,
-      nextYearObjectives: n1Eval.nextYearObjectives ?? null,
-      objectiveRatings: n1Eval.objectiveRatings  ?? {},
-      status:           n1Eval.status,
+      reviewerScore:    primary.reviewerScore    ?? null,
+      reviewerComment:  primary.reviewerComment  ?? null,
+      nextYearObjectives: primary.nextYearObjectives ?? null,
+      objectiveRatings: primary.objectiveRatings  ?? {},
+      status:           primary.status,
       objectivesAnswers,
       byQuestion,
-      formTitle:  n1Eval.formId?.title    ?? null,
-      formType:   n1Eval.formId?.formType ?? null,
+      formTitle:  primary.formId?.title    ?? null,
+      formType:   primary.formId?.formType ?? null,
       ...(isEmployee ? {} : {
-        evaluateeComment: n1Eval.evaluateeComment ?? null,
-        disagreementFlag: n1Eval.disagreementFlag  ?? false,
+        evaluateeComment: primary.evaluateeComment ?? null,
+        disagreementFlag: primary.disagreementFlag  ?? false,
       }),
     }
 

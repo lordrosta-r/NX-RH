@@ -26,15 +26,17 @@ export function EvaluationHeader({ evaluation }: EvaluationHeaderProps) {
             {firstName} {lastName}
           </div>
         </div>
-        <div>
-          <div className="small">Campagne</div>
-          <div
-            className="body"
-            style={{ fontWeight: 600, color: "var(--ink)" }}
-          >
-            {evaluation.campaign?.name}
+        {evaluation.campaign?.name && (
+          <div>
+            <div className="small">Campagne</div>
+            <div
+              className="body"
+              style={{ fontWeight: 600, color: "var(--ink)" }}
+            >
+              {evaluation.campaign.name}
+            </div>
           </div>
-        </div>
+        )}
         {evaluation.deadline && (
           <div>
             <div className="small">Deadline</div>

@@ -39,6 +39,7 @@ function formatAnswer(value: unknown, question: FormQuestion): string {
       .join(" · ");
   }
   if (typeof value === "number" && question.type === "rating") {
+    // (rating affiché sur 5)
     return `${value} / 5`;
   }
   if (typeof value === "number" && question.type === "scale") {
@@ -310,7 +311,7 @@ function InterviewWorkspace({
           >
             {savedOk ? (
               <>
-                <CheckCircle size={14} strokeWidth={1.5} /> Enregistré ✓
+                <CheckCircle size={14} strokeWidth={1.5} /> Enregistré
               </>
             ) : (
               <>
@@ -328,7 +329,7 @@ function InterviewWorkspace({
           className="mb-6"
           style={{
             borderLeft: "4px solid var(--color-danger)",
-            background: "var(--color-danger-soft, #fef2f2)",
+            background: "var(--red-soft)",
           }}
         >
           <div className="row" style={{ gap: 8, alignItems: "center" }}>
@@ -374,7 +375,7 @@ function InterviewWorkspace({
       />
       {questions.length === 0 ? (
         <Tile className="mb-8">
-          <p className="body" style={{ color: "var(--color-text-2)" }}>
+          <p className="body" style={{ color: "var(--color-text-secondary)" }}>
             Aucune question dans les formulaires associés.
           </p>
         </Tile>
@@ -396,7 +397,7 @@ function InterviewWorkspace({
               <Tile key={question.id}>
                 <p
                   className="label"
-                  style={{ color: "var(--color-text-1)", marginBottom: 12 }}
+                  style={{ color: "var(--color-text)", marginBottom: 12 }}
                 >
                   {idx + 1}. {question.text}
                 </p>
@@ -414,13 +415,13 @@ function InterviewWorkspace({
                     icon={<Eye size={14} strokeWidth={1.5} />}
                     label={`Auto-éval — ${evaluateeName}`}
                     value={formatAnswer(selfAnswer, question)}
-                    color="var(--color-secondary)"
+                    color="var(--blue)"
                   />
                   <ReadonlyBlock
                     icon={<UserCheck size={14} strokeWidth={1.5} />}
                     label={`Manager — ${managerName}`}
                     value={formatAnswer(managerAnswer, question)}
-                    color="var(--color-text-2)"
+                    color="var(--color-text-secondary)"
                   />
                 </div>
 
@@ -432,7 +433,7 @@ function InterviewWorkspace({
                     gap: 12,
                   }}
                 >
-                  <Field label={`💬 ${evaluateeName}`}>
+                  <Field label={`Commentaire — ${evaluateeName}`}>
                     <textarea
                       className="textarea"
                       rows={2}
@@ -443,7 +444,7 @@ function InterviewWorkspace({
                       placeholder="Remarque de l'évalué(e)…"
                     />
                   </Field>
-                  <Field label={`💬 ${managerName}`}>
+                  <Field label={`Commentaire — ${managerName}`}>
                     <textarea
                       className="textarea"
                       rows={2}
@@ -455,7 +456,7 @@ function InterviewWorkspace({
                     />
                   </Field>
                 </div>
-                <Field label="🤝 Position retenue (commune)">
+                <Field label="Position retenue (commune)">
                   <textarea
                     className="textarea"
                     rows={2}
@@ -479,7 +480,7 @@ function InterviewWorkspace({
       />
       <Tile className="mb-8">
         {objReview.length === 0 ? (
-          <p className="body" style={{ color: "var(--color-text-2)" }}>
+          <p className="body" style={{ color: "var(--color-text-secondary)" }}>
             Aucun objectif fixé à l'édition précédente.
           </p>
         ) : (
@@ -736,17 +737,29 @@ function ReadonlyBlock({
 }) {
   return (
     <div
-      className="tile"
-      style={{ borderTop: `3px solid ${color}`, background: "var(--bg-alt)" }}
+      style={{
+        borderLeft: `3px solid ${color}`,
+        background: "var(--bg-alt)",
+        borderRadius: "var(--radius)",
+        padding: "12px 14px",
+        display: "flex",
+        flexDirection: "column",
+        gap: 6,
+      }}
     >
-      <div
-        className="row"
-        style={{ gap: 6, alignItems: "center", marginBottom: 4 }}
-      >
-        <span style={{ color }}>{icon}</span>
-        <span className="label">{label}</span>
+      <div className="row" style={{ gap: 6, alignItems: "center" }}>
+        <span style={{ color, display: "inline-flex" }}>{icon}</span>
+        <span
+          className="label"
+          style={{ color: "var(--color-text-secondary)" }}
+        >
+          {label}
+        </span>
       </div>
-      <p className="body" style={{ whiteSpace: "pre-wrap" }}>
+      <p
+        className="body"
+        style={{ whiteSpace: "pre-wrap", color: "var(--color-text)" }}
+      >
         {value}
       </p>
     </div>
@@ -769,10 +782,7 @@ function SignatureBlock({
           className="row"
           style={{ gap: 6, alignItems: "center", marginBottom: 6 }}
         >
-          <CheckCircle
-            size={14}
-            style={{ color: "var(--color-success, #16a34a)" }}
-          />
+          <CheckCircle size={14} style={{ color: "var(--color-success)" }} />
           <span className="label">{title} — signé</span>
         </div>
         <img
@@ -790,7 +800,7 @@ function SignatureBlock({
         />
         <p
           className="small"
-          style={{ color: "var(--color-text-2)", marginTop: 4 }}
+          style={{ color: "var(--color-text-secondary)", marginTop: 4 }}
         >
           {new Date(existing.signedAt).toLocaleString("fr-FR")}
         </p>

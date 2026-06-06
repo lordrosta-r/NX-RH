@@ -5,7 +5,6 @@ import {
   CampaignDetailOverview,
   CampaignFormsTab,
   CampaignCloneModal,
-  CampaignDeleteModal,
 } from "../components/campaigns";
 import { useCampaignDetail } from "../hooks/useCampaignDetail";
 import { Tile } from "../components/shell";
@@ -22,7 +21,6 @@ export default function CampaignDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [tab, setTab] = useState<Tab>("overview");
   const [cloneModal, setCloneModal] = useState(false);
-  const [deleteModal, setDeleteModal] = useState(false);
 
   const detail = useCampaignDetail(id);
 
@@ -58,7 +56,7 @@ export default function CampaignDetailPage() {
         onClose={detail.close}
         onArchive={detail.archive}
         onCloneClick={() => setCloneModal(true)}
-        onDeleteClick={() => setDeleteModal(true)}
+        onDelete={detail.remove}
       />
 
       <div
@@ -143,15 +141,6 @@ export default function CampaignDetailPage() {
             detail.clone();
             setCloneModal(false);
           }}
-        />
-      )}
-
-      {deleteModal && (
-        <CampaignDeleteModal
-          campaignName={detail.campaign.name}
-          isPending={detail.isDeleting}
-          onClose={() => setDeleteModal(false)}
-          onDelete={detail.remove}
         />
       )}
     </div>

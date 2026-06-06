@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { useConfirm } from "../contexts/ConfirmContext";
 import { resourcesApi } from "../api/resources";
 import EmptyState from "../components/ui/EmptyState";
 import { toast } from "../hooks/useToast";
@@ -651,6 +652,7 @@ function NewResourceSlideOver({ open, onClose }: NewResourceSlideOverProps) {
 export default function ResourcesPage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const confirm = useConfirm();
   const isAdminHr = user?.role === "admin" || user?.role === "hr";
 
   const [typeFilter, setTypeFilter] = useState<string>("all");
@@ -724,6 +726,18 @@ export default function ResourcesPage() {
     onError: () =>
       toast.error("Erreur lors de la suppression", "Veuillez réessayer."),
   });
+
+  const handleDeleteResource = async (id: string) => {
+    if (
+      await confirm({
+        title: "Supprimer la ressource ?",
+        description: "Cette action est irréversible.",
+        variant: "danger",
+        confirmLabel: "Supprimer",
+      })
+    )
+      deleteResource(id);
+  };
 
   return (
     <div
@@ -897,7 +911,7 @@ export default function ResourcesPage() {
               isAdminHr={!!isAdminHr}
               onPublish={publishResource}
               onUnpublish={unpublishResource}
-              onDelete={deleteResource}
+              onDelete={handleDeleteResource}
             />
           ))}
         </div>

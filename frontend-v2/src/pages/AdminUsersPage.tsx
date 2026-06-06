@@ -1,16 +1,10 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  Search,
-  Download,
-  UserX,
-  X,
-  ShieldOff,
-  AlertTriangle,
-} from "lucide-react";
+import { Search, Download, UserX, ShieldOff } from "lucide-react";
 import { adminApi } from "../api/admin";
 import type { User, PaginatedResponse } from "../types";
 import { useAuth } from "../contexts/AuthContext";
+import { useConfirm } from "../contexts/ConfirmContext";
 import ActionMenu from "../components/ui/ActionMenu";
 import { queryKeys } from "../lib/queryKeys";
 import { PageHead, Tile, Badge, Callout } from "../components/shell";
@@ -35,11 +29,9 @@ function AuthSourceBadge({ source }: { source: string }) {
 export default function AdminUsersPage() {
   const qc = useQueryClient();
   const { user: currentUser } = useAuth();
+  const confirm = useConfirm();
   const [q, setQ] = useState("");
   const [authSourceFilter, setAuthSourceFilter] = useState("");
-  const [confirmUser, setConfirmUser] = useState<User | null>(null);
-  const [confirmText, setConfirmText] = useState("");
-  const [deactivateTarget, setDeactivateTarget] = useState<User | null>(null);
 
   const isAdminOrHr =
     currentUser?.role === "admin" || currentUser?.role === "hr";
@@ -59,8 +51,6 @@ export default function AdminUsersPage() {
     mutationFn: (id: string) => adminApi.anonymizeUser(id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.adminUsers.all });
-      setConfirmUser(null);
-      setConfirmText("");
     },
   });
 
@@ -68,9 +58,35 @@ export default function AdminUsersPage() {
     mutationFn: (id: string) => adminApi.forceDeactivateUser(id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.adminUsers.all });
-      setDeactivateTarget(null);
     },
   });
+
+  async function handleAnonymize(user: User) {
+    if (
+      await confirm({
+        title: "Anonymiser l'utilisateur ?",
+        description:
+          "Les données personnelles seront effacées (RGPD, irréversible).",
+        variant: "danger",
+        confirmLabel: "Anonymiser",
+      })
+    ) {
+      anonymizeMut.mutate(user.id);
+    }
+  }
+
+  async function handleDeactivate(user: User) {
+    if (
+      await confirm({
+        title: "Désactiver l'utilisateur ?",
+        description: "L'utilisateur ne pourra plus se connecter (réversible).",
+        variant: "warning",
+        confirmLabel: "Désactiver",
+      })
+    ) {
+      forceDeactivateMut.mutate(user.id);
+    }
+  }
 
   async function exportGdpr(user: User) {
     const res = await adminApi.exportUserGdpr(user.id);
@@ -230,10 +246,7 @@ export default function AdminUsersPage() {
                     {
                       label: "Anonymiser RGPD",
                       icon: <UserX size={14} />,
-                      onClick: () => {
-                        setConfirmUser(user);
-                        setConfirmText("");
-                      },
+                      onClick: () => handleAnonymize(user),
                       disabled: !!user.gdprAnonymized,
                       danger: true,
                     },
@@ -242,7 +255,7 @@ export default function AdminUsersPage() {
                           {
                             label: "Forcer désactivation",
                             icon: <ShieldOff size={14} />,
-                            onClick: () => setDeactivateTarget(user),
+                            onClick: () => handleDeactivate(user),
                             disabled: !user.isActive,
                             danger: true,
                             separator: true,
@@ -256,167 +269,6 @@ export default function AdminUsersPage() {
           ))
         )}
       </Tile>
-
-      {/* Confirm anonymize modal */}
-      {confirmUser && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 50,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            background: "rgba(0,0,0,0.4)",
-            padding: 16,
-          }}
-        >
-          <Tile style={{ width: "100%", maxWidth: 460 }}>
-            <div
-              className="row between"
-              style={{ alignItems: "center", marginBottom: 16 }}
-            >
-              <h2 className="h3" style={{ color: "var(--red)", margin: 0 }}>
-                Anonymisation RGPD
-              </h2>
-              <button
-                onClick={() => setConfirmUser(null)}
-                className="btn btn-ghost btn-sm"
-                aria-label="Fermer"
-                style={{ padding: 6 }}
-              >
-                <X size={18} className="ico" />
-              </button>
-            </div>
-            <p className="body" style={{ marginBottom: 8 }}>
-              Vous êtes sur le point d'anonymiser{" "}
-              <strong>
-                {confirmUser.firstName} {confirmUser.lastName}
-              </strong>
-              .
-            </p>
-            <p
-              className="small row"
-              style={{
-                color: "var(--red)",
-                fontWeight: 600,
-                gap: 6,
-                alignItems: "center",
-                marginBottom: 16,
-              }}
-            >
-              <AlertTriangle
-                className="ico"
-                style={{ width: 16, height: 16 }}
-              />{" "}
-              Cette action est irréversible. Toutes les données personnelles
-              seront effacées.
-            </p>
-            <div className="field" style={{ marginBottom: 16 }}>
-              <label htmlFor="anonymize-confirm">
-                Saisissez <strong>CONFIRMER</strong> pour continuer
-              </label>
-              <input
-                id="anonymize-confirm"
-                className="input"
-                value={confirmText}
-                onChange={(e) => setConfirmText(e.target.value)}
-                placeholder="CONFIRMER"
-              />
-            </div>
-            <div
-              className="row"
-              style={{ justifyContent: "flex-end", gap: 12 }}
-            >
-              <button
-                onClick={() => setConfirmUser(null)}
-                className="btn btn-ghost"
-              >
-                Annuler
-              </button>
-              <button
-                onClick={() => anonymizeMut.mutate(confirmUser.id)}
-                disabled={confirmText !== "CONFIRMER" || anonymizeMut.isPending}
-                className="btn btn-primary"
-              >
-                {anonymizeMut.isPending ? "Anonymisation…" : "Anonymiser"}
-              </button>
-            </div>
-          </Tile>
-        </div>
-      )}
-
-      {/* Confirm force deactivate modal */}
-      {deactivateTarget && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 50,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            background: "rgba(0,0,0,0.4)",
-            padding: 16,
-          }}
-        >
-          <Tile style={{ width: "100%", maxWidth: 460 }}>
-            <div
-              className="row between"
-              style={{ alignItems: "center", marginBottom: 16 }}
-            >
-              <h2 className="h3" style={{ margin: 0 }}>
-                Forcer la désactivation
-              </h2>
-              <button
-                onClick={() => setDeactivateTarget(null)}
-                className="btn btn-ghost btn-sm"
-                aria-label="Fermer"
-                style={{ padding: 6 }}
-              >
-                <X size={18} className="ico" />
-              </button>
-            </div>
-            <p className="body" style={{ marginBottom: 16 }}>
-              Forcer la désactivation désactivera immédiatement l'accès de{" "}
-              <strong>
-                {deactivateTarget.firstName} {deactivateTarget.lastName}
-              </strong>
-              .
-            </p>
-            <p
-              className="small"
-              style={{
-                color: "var(--amber)",
-                fontWeight: 600,
-                marginBottom: 24,
-              }}
-            >
-              Cette action désactivera immédiatement l'accès de cet utilisateur.
-            </p>
-            <div
-              className="row"
-              style={{ justifyContent: "flex-end", gap: 12 }}
-            >
-              <button
-                onClick={() => setDeactivateTarget(null)}
-                className="btn btn-ghost"
-              >
-                Annuler
-              </button>
-              <button
-                onClick={() => forceDeactivateMut.mutate(deactivateTarget.id)}
-                disabled={forceDeactivateMut.isPending}
-                className="btn btn-primary"
-              >
-                {forceDeactivateMut.isPending
-                  ? "Désactivation…"
-                  : "Forcer la désactivation"}
-              </button>
-            </div>
-          </Tile>
-        </div>
-      )}
     </div>
   );
 }

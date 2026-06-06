@@ -8,23 +8,23 @@ import {
   UserGroupsList,
   UserGroupFormModal,
   UserGroupMembersPanel,
-  UserGroupDeleteModal,
 } from "../components/users";
 import type { UserGroup } from "../types";
 import { queryKeys } from "../lib/queryKeys";
 import { PageHead, Callout } from "../components/shell";
+import { useConfirm } from "../contexts/ConfirmContext";
 
 export default function UserGroupsPage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const canManage = user?.role === "admin" || user?.role === "hr";
+  const confirm = useConfirm();
 
   const [formModal, setFormModal] = useState<{
     open: boolean;
     group?: UserGroup | null;
   }>({ open: false });
   const [membersModal, setMembersModal] = useState<UserGroup | null>(null);
-  const [deleteConfirm, setDeleteConfirm] = useState<UserGroup | null>(null);
 
   const {
     data: groups,
@@ -67,7 +67,6 @@ export default function UserGroupsPage() {
     mutationFn: (id: string) => groupsApi.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.groups.all });
-      setDeleteConfirm(null);
       toast.success("Groupe supprimé", "Le groupe a été supprimé.");
     },
     onError: () => toast.error("Erreur", "Impossible de supprimer le groupe."),
@@ -144,7 +143,18 @@ export default function UserGroupsPage() {
         canManage={canManage}
         onEdit={(g) => setFormModal({ open: true, group: g })}
         onManageMembers={(g) => setMembersModal(g)}
-        onDelete={(g) => setDeleteConfirm(g)}
+        onDelete={async (g) => {
+          if (
+            await confirm({
+              title: "Supprimer le groupe ?",
+              description: "Cette action est irréversible.",
+              variant: "danger",
+              confirmLabel: "Supprimer",
+            })
+          ) {
+            deleteMutation.mutate(g._id);
+          }
+        }}
         onCreateFirst={() => setFormModal({ open: true, group: null })}
       />
 
@@ -175,15 +185,6 @@ export default function UserGroupsPage() {
               userIds: [userId],
             })
           }
-        />
-      )}
-
-      {deleteConfirm && (
-        <UserGroupDeleteModal
-          group={deleteConfirm}
-          onClose={() => setDeleteConfirm(null)}
-          onConfirm={() => deleteMutation.mutate(deleteConfirm._id)}
-          isPending={deleteMutation.isPending}
         />
       )}
     </div>

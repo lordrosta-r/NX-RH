@@ -42,7 +42,6 @@ export function useUsersPage() {
     setPage(1);
   }
 
-  const [anonymizeTarget, setAnonymizeTarget] = useState<User | null>(null);
   const [importOpen, setImportOpen] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
@@ -81,7 +80,6 @@ export function useUsersPage() {
     mutationFn: (id: string) => usersApi.anonymize(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.users.lists() });
-      setAnonymizeTarget(null);
     },
     onError: () =>
       toast.error("Erreur lors de l'anonymisation", "Veuillez réessayer."),
@@ -230,8 +228,6 @@ export function useUsersPage() {
     toggleSelect,
     toggleSelectAll,
     clearSelection,
-    anonymizeTarget,
-    setAnonymizeTarget,
     importOpen,
     setImportOpen,
     anonymizeMutation,

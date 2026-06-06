@@ -4,6 +4,7 @@ import { Plus, Pencil, Trash2, X, Settings2 } from "lucide-react";
 import { adminApi } from "../api/admin";
 import { queryKeys } from "../lib/queryKeys";
 import { PageHead, Tile, Badge } from "../components/shell";
+import { useConfirm } from "../contexts/ConfirmContext";
 
 type ConfigKey = { key: string; value: string };
 
@@ -222,9 +223,9 @@ function EnvCheckSection() {
 
 export default function AdminConfigPage() {
   const qc = useQueryClient();
+  const confirm = useConfirm();
   const [showKeyModal, setShowKeyModal] = useState(false);
   const [editingKey, setEditingKey] = useState<ConfigKey | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [keyForm, setKeyForm] = useState({ key: "", value: "" });
   const [expandedKey, setExpandedKey] = useState<string | null>(null);
 
@@ -247,9 +248,21 @@ export default function AdminConfigPage() {
     mutationFn: (key: string) => adminApi.deleteConfigKey(key),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.configKeys.all });
-      setDeleteTarget(null);
     },
   });
+
+  async function handleDeleteKey(key: string) {
+    if (
+      await confirm({
+        title: "Supprimer la clé de configuration ?",
+        description: `La clé « ${key} » sera définitivement supprimée.`,
+        variant: "danger",
+        confirmLabel: "Supprimer",
+      })
+    ) {
+      deleteKeyMut.mutate(key);
+    }
+  }
 
   function openNew() {
     setKeyForm({ key: "", value: "" });
@@ -433,7 +446,7 @@ export default function AdminConfigPage() {
                             </button>
                             <button
                               type="button"
-                              onClick={() => setDeleteTarget(k.key)}
+                              onClick={() => handleDeleteKey(k.key)}
                               aria-label={`Supprimer ${k.key}`}
                               className="btn btn-ghost btn-sm"
                               style={{ color: "var(--red)" }}
@@ -561,72 +574,6 @@ export default function AdminConfigPage() {
       )}
 
       {/* Modal email de test supprimé — utiliser Admin › Modèles email pour tester l'envoi SMTP */}
-
-      {/* ── Confirmation suppression ── */}
-      {deleteTarget && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 50,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            background: "rgba(0,0,0,0.45)",
-          }}
-          onClick={() => setDeleteTarget(null)}
-        >
-          <Tile
-            style={{ width: "100%", maxWidth: 420, margin: 16 }}
-            onClick={(e: React.MouseEvent) => e.stopPropagation()}
-          >
-            <h2 className="h3" style={{ marginBottom: 12 }}>
-              Supprimer la clé
-            </h2>
-            <p className="body" style={{ marginBottom: 8 }}>
-              Cette action est irréversible. Voulez-vous supprimer la clé :
-            </p>
-            <p style={{ marginBottom: 24 }}>
-              <code
-                style={{
-                  fontFamily: "monospace",
-                  fontSize: 13,
-                  fontWeight: 600,
-                  color: "var(--red)",
-                  background: "color-mix(in srgb, var(--red) 8%, transparent)",
-                  padding: "3px 8px",
-                  borderRadius: "var(--radius)",
-                  border:
-                    "1px solid color-mix(in srgb, var(--red) 20%, transparent)",
-                }}
-              >
-                {deleteTarget}
-              </code>
-            </p>
-            <div
-              className="row"
-              style={{ justifyContent: "flex-end", gap: 10 }}
-            >
-              <button
-                type="button"
-                onClick={() => setDeleteTarget(null)}
-                className="btn btn-ghost"
-              >
-                Annuler
-              </button>
-              <button
-                type="button"
-                onClick={() => deleteKeyMut.mutate(deleteTarget)}
-                disabled={deleteKeyMut.isPending}
-                className="btn btn-primary"
-                style={{ background: "var(--red)", borderColor: "var(--red)" }}
-              >
-                {deleteKeyMut.isPending ? "Suppression…" : "Supprimer"}
-              </button>
-            </div>
-          </Tile>
-        </div>
-      )}
     </div>
   );
 }

@@ -1,4 +1,7 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { formsApi } from "../../api/forms";
+import type { Form as FormType } from "../../types";
 import {
   DndContext,
   closestCenter,
@@ -500,6 +503,152 @@ function QUESTION_TYPE_FALLBACK_LABEL(t: string): string {
   return MAP[t] ?? t;
 }
 
+// ─── Sélecteur de question parente (filiation manuelle) ──────────────────────
+
+function LinkPreviousQuestion({
+  currentParentId,
+  readOnly,
+  onChange,
+}: {
+  currentParentId: string | null | undefined;
+  readOnly: boolean;
+  onChange: (parentQuestionId: string | null) => void;
+}) {
+  const [selectedFormId, setSelectedFormId] = useState<string>("");
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["forms-list-for-link"],
+    queryFn: () => formsApi.getForms({ limit: 200 }).then((r) => r.data.data),
+  });
+
+  const forms: FormType[] = data ?? [];
+  const selectedForm = forms.find((f) => f.id === selectedFormId) ?? null;
+
+  const isLinked = !!currentParentId;
+
+  return (
+    <div
+      style={{
+        marginTop: 12,
+        padding: 12,
+        border: "1px solid var(--line)",
+        borderRadius: "var(--radius)",
+        background: "var(--bg-alt)",
+        display: "flex",
+        flexDirection: "column",
+        gap: 10,
+      }}
+    >
+      <p
+        style={{
+          fontSize: 12,
+          fontWeight: 600,
+          color: "var(--blue)",
+          margin: 0,
+          display: "flex",
+          alignItems: "center",
+          gap: 6,
+        }}
+      >
+        <History size={13} />
+        Lier à une question existante{" "}
+        <span style={{ color: "var(--ink-3)", fontWeight: 400 }}>
+          (optionnel)
+        </span>
+      </p>
+
+      <p style={{ fontSize: 11, color: "var(--ink-3)", margin: 0 }}>
+        Par défaut, la filiation vient de la duplication. Utilise ceci seulement
+        pour un formulaire créé de zéro.
+      </p>
+
+      {isLinked ? (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            fontSize: 13,
+          }}
+        >
+          <span
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 4,
+              color: "var(--blue)",
+              fontWeight: 600,
+            }}
+          >
+            <Check size={14} /> Lié ✓
+          </span>
+          <span style={{ color: "var(--ink-3)", fontSize: 11, flex: 1 }}>
+            ID : {currentParentId}
+          </span>
+          {!readOnly && (
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              style={{ color: "var(--color-danger)", fontSize: 12 }}
+              onClick={() => onChange(null)}
+            >
+              Délier
+            </button>
+          )}
+        </div>
+      ) : (
+        <>
+          {isLoading ? (
+            <p style={{ fontSize: 12, color: "var(--ink-3)", margin: 0 }}>
+              Chargement des formulaires…
+            </p>
+          ) : (
+            <>
+              <div className="field" style={{ margin: 0 }}>
+                <label style={{ fontSize: 12 }}>Formulaire source</label>
+                <select
+                  className="input"
+                  disabled={readOnly}
+                  value={selectedFormId}
+                  onChange={(e) => setSelectedFormId(e.target.value)}
+                >
+                  <option value="">Choisir un formulaire…</option>
+                  {forms.map((f) => (
+                    <option key={f.id} value={f.id}>
+                      {f.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {selectedForm && (
+                <div className="field" style={{ margin: 0 }}>
+                  <label style={{ fontSize: 12 }}>Question à lier</label>
+                  <select
+                    className="input"
+                    disabled={readOnly}
+                    defaultValue=""
+                    onChange={(e) => {
+                      if (e.target.value) onChange(e.target.value);
+                    }}
+                  >
+                    <option value="">Choisir une question…</option>
+                    {selectedForm.questions.map((sq) => (
+                      <option key={sq.id} value={sq.id}>
+                        {sq.text || "(sans titre)"}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
 // ─── Panneau de configuration (colonne droite) ───────────────────────────────
 
 function ConfigPanel({
@@ -730,6 +879,16 @@ function ConfigPanel({
           (pour comparer). Le lien se crée en <strong>dupliquant</strong> un
           formulaire existant. Survole le « ? » pour le détail.
         </p>
+
+        {q.carryPrevious && (
+          <LinkPreviousQuestion
+            currentParentId={q.parentQuestionId}
+            readOnly={readOnly}
+            onChange={(parentQuestionId) =>
+              onChange({ ...q, parentQuestionId })
+            }
+          />
+        )}
       </div>
     </div>
   );

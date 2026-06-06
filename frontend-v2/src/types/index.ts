@@ -44,6 +44,12 @@ export interface AuthPayload {
 // ─── Campagnes ─────────────────────────────────────────────────────────────────
 export type CampaignStatus = "draft" | "active" | "closed" | "archived";
 
+/** Format objet stocké en base et renvoyé par l'API */
+export interface TargetScope {
+  scopeType: "all" | "role" | "department" | "sector" | "users" | "group";
+  ids: string[];
+}
+
 export interface Campaign {
   id: string;
   _id?: string;
@@ -59,7 +65,14 @@ export interface Campaign {
   enableN1Context?: boolean;
   n1VisibleToEmployee?: boolean;
   previousCampaignId?: string;
-  targetScope?: "all" | "department" | "sector" | "users" | "group";
+  /**
+   * Périmètre de la campagne — format objet renvoyé par l'API.
+   * Pour la création/mise à jour, le payload envoie les champs plats
+   * (targetScope = scopeType string + targetRoleIds/targetSectorIds/…).
+   */
+  targetScope?: TargetScope;
+  /** Champs plats utilisés uniquement dans les payloads d'écriture (POST/PATCH). */
+  targetRoleIds?: string[];
   targetSectorIds?: string[];
   targetUserIds?: string[];
   targetGroupIds?: string[];

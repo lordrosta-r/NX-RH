@@ -11,6 +11,7 @@ jest.mock('../../models', () => {
   const Evaluation = {
     findById: jest.fn(),
     findOne:  jest.fn(),
+    find:     jest.fn(),
   }
   const Campaign = {
     find: jest.fn(),
@@ -80,7 +81,7 @@ function buildApp() {
   app.use(express.json())
   app.use(cookieParser())
   app.get('/:id/n1-context', authGuard(ALL_ROLES), handleN1Context)
-  // eslint-disable-next-line no-unused-vars
+   
   app.use((err, _req, res, _next) => {
     const status = err.status || 500
     res.status(status).json({ error: err.message || 'Internal server error' })
@@ -160,7 +161,7 @@ describe('GET /:id/n1-context — N-1 context endpoint', () => {
 
   beforeEach(() => {
     Evaluation.findById.mockReturnValue(makeChain(mockCurrentEval()))
-    Evaluation.findOne.mockReturnValue(makeChain(mockN1Eval()))
+    Evaluation.find.mockReturnValue(makeChain([mockN1Eval()]))
     Campaign.find.mockReturnValue(makeChain([]))
     getVisibleUserIds.mockResolvedValue([])
   })
@@ -257,8 +258,8 @@ describe('GET /:id/n1-context — N-1 context endpoint', () => {
       },
     })))
     Campaign.find.mockReturnValue(makeChain([{ _id: PREV_CAMP_ID }]))
-    // findOne is called for the fallback lookup
-    Evaluation.findOne.mockReturnValue(makeChain(mockN1Eval()))
+    // find est appelé pour le lookup de repli (agrégation multi-formulaires)
+    Evaluation.find.mockReturnValue(makeChain([mockN1Eval()]))
 
     const res = await request(app)
       .get(`/${EVAL_ID}/n1-context`)
@@ -296,8 +297,8 @@ describe('GET /:id/n1-context — N-1 context endpoint', () => {
   // ── 7. No N-1 eval found → 204 ──────────────────────────────────────────────
 
   it('204 — no N-1 evaluation found (no previous campaign match, no fallback)', async () => {
-    // findOne returns null (direct lookup fails), Campaign.find returns [] (no fallback)
-    Evaluation.findOne.mockReturnValue(makeChain(null))
+    // find renvoie [] (lookup direct vide), Campaign.find renvoie [] (pas de repli)
+    Evaluation.find.mockReturnValue(makeChain([]))
     Campaign.find.mockReturnValue(makeChain([]))
 
     const res = await request(app)

@@ -115,6 +115,11 @@ export function getPerspectiveNav(
     { label: t("nav.calendar"), href: "/events", group: t("nav.pilotage") },
     { label: t("nav.resources"), href: "/resources", group: t("nav.pilotage") },
     { label: t("nav.analytics"), href: "/analytics", group: t("nav.pilotage") },
+    {
+      label: "Départements",
+      href: "/admin/departments",
+      group: t("nav.administration"),
+    },
   ];
 
   if (role === "hr") {

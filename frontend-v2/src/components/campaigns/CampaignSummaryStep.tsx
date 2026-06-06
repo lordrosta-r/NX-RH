@@ -19,10 +19,19 @@ export default function CampaignSummaryStep({
     return g ? g.name : form.targetGroupId || "—";
   })();
 
+  const roleLabels: Record<string, string> = {
+    employee: "Employé",
+    manager: "Manager",
+    hr: "RH",
+    admin: "Admin",
+  };
+
   const scopeLabel = (() => {
     switch (form.targetScope) {
       case "all":
         return "Tous les collaborateurs";
+      case "role":
+        return `Par rôle (${form.targetRoleIds.map((r) => roleLabels[r] ?? r).join(", ") || "—"})`;
       case "department":
         return `Départements (${form.targetDepartments.join(", ") || "—"})`;
       case "sector":

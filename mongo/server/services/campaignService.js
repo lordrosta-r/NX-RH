@@ -132,6 +132,43 @@ async function generateEvaluationsForCampaign(campaign) {
 // ── CRUD campagnes ─────────────────────────────────────────────────────────────
 
 /**
+ * Assemble l'objet `targetScope: { scopeType, ids }` à partir des champs plats
+ * envoyés par le frontend. Le frontend envoie `targetScope` comme une chaîne
+ * (le scopeType) + les tableaux correspondants selon le type.
+ *
+ * @param {object} data — body validé par Joi
+ * @returns {{ scopeType: string, ids: string[] }}
+ */
+function buildTargetScope(data) {
+  const scopeType = (typeof data.targetScope === 'string' ? data.targetScope : null)
+    || (data.targetScope && typeof data.targetScope === 'object' ? data.targetScope.scopeType : null)
+    || 'all'
+
+  let ids
+  switch (scopeType) {
+    case 'role':
+      ids = data.targetRoleIds || []
+      break
+    case 'department':
+      ids = data.targetDepartments || []
+      break
+    case 'sector':
+      ids = data.targetSectorIds || []
+      break
+    case 'users':
+      ids = data.targetUserIds || []
+      break
+    case 'group':
+      ids = data.targetGroupIds || []
+      break
+    default:
+      ids = [] // 'all' → aucun filtre
+  }
+
+  return { scopeType, ids }
+}
+
+/**
  * Crée une campagne.
  * @param {object} data  — champs validés par le validateur de route
  * @param {string} createdBy — req.user.id
@@ -139,7 +176,7 @@ async function generateEvaluationsForCampaign(campaign) {
  */
 async function createCampaign(data, createdBy) {
   const { name, description, startDate, endDate, targetDepartments, extendedVisibility,
-    deadlineEmployee, deadlineManager, status, targetScope, objectivesFormId } = data
+    deadlineEmployee, deadlineManager, status, objectivesFormId } = data
 
   if (!name || !startDate || !endDate) {
     throw makeError('name, startDate et endDate sont requis', 400)
@@ -151,18 +188,24 @@ async function createCampaign(data, createdBy) {
     throw makeError('Le statut initial doit être draft ou active', 400)
   }
 
+  const targetScope = buildTargetScope(data)
+
   const campaign = await Campaign.create({
     name,
     description:        description || '',
     startDate,
     endDate,
-    targetDepartments:  targetDepartments || [],
+    // Pour le scope 'department', on utilise les ids issus de targetScope.ids
+    // mais on conserve aussi targetDepartments pour compat legacy (Overview).
+    targetDepartments:  targetScope.scopeType === 'department'
+      ? targetScope.ids
+      : (targetDepartments || []),
     extendedVisibility: extendedVisibility || [],
     deadlineEmployee:   deadlineEmployee   || null,
     deadlineManager:    deadlineManager    || null,
     createdBy,
+    targetScope,
     ...(status           ? { status }           : {}),
-    ...(targetScope      ? { targetScope }      : {}),
     ...(objectivesFormId ? { objectivesFormId } : {}),
   })
 
@@ -224,12 +267,30 @@ async function updateCampaign(id, data) {
     }
   }
 
+  // Si le payload contient targetScope (chaîne) ou l'un des tableaux plats,
+  // on assemble l'objet { scopeType, ids } avant de persister.
+  const hasScopeData = data.targetScope !== undefined
+    || data.targetRoleIds !== undefined
+    || data.targetDepartments !== undefined
+    || data.targetSectorIds !== undefined
+    || data.targetUserIds !== undefined
+    || data.targetGroupIds !== undefined
+
   const EDITABLE = ['name', 'description', 'status', 'startDate', 'endDate',
-    'targetDepartments', 'extendedVisibility', 'deadlineEmployee', 'deadlineManager',
-    'previousCampaignId', 'enableN1Context', 'n1VisibleToEmployee', 'targetScope']
+    'extendedVisibility', 'deadlineEmployee', 'deadlineManager',
+    'previousCampaignId', 'enableN1Context', 'n1VisibleToEmployee']
   EDITABLE.forEach(key => {
     if (data[key] !== undefined) campaign[key] = data[key]
   })
+
+  if (hasScopeData) {
+    const assembled = buildTargetScope(data)
+    campaign.targetScope = assembled
+    // Maintenir targetDepartments en sync pour compat legacy (CampaignDetailOverview)
+    if (assembled.scopeType === 'department') {
+      campaign.targetDepartments = assembled.ids
+    }
+  }
 
   await campaign.save()
 

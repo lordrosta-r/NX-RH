@@ -186,6 +186,10 @@ export default function CampaignGeneralInfoForm({
             Activer la reprise de l'édition précédente
           </span>
         </div>
+        <p className="small" style={{ marginTop: 8, color: "var(--ink-3)" }}>
+          Le rappel n'apparaît que sur les formulaires DUPLIQUÉS de la campagne
+          source (la filiation des questions est alors conservée).
+        </p>
 
         {form.enableN1Context && (
           <div

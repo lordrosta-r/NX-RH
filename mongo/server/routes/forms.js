@@ -17,6 +17,7 @@ const router      = require('express').Router()
 const mongoose    = require('mongoose')
 const { Form, Evaluation } = require('../models')
 const { ADMIN_ROLES } = require('../config/constants')
+const { isValidCategory } = require('../services/formCategoriesService')
 
 // GET /api/forms — Liste des formulaires (filtrable par campaignId, formType, search)
 // ?campaignId=X → retourne uniquement les forms liés à cette campagne
@@ -80,7 +81,7 @@ router.post('/', async (req, res, next) => {
       return res.status(403).json({ error: 'Réservé aux admins et RH' })
     }
 
-    const { title, description, formType, isAnonymous, questions, campaignId, filledBy, visibleToEvaluatee } = req.body
+    const { title, description, formType, category, isAnonymous, questions, campaignId, filledBy, visibleToEvaluatee } = req.body
 
     if (!title || !formType) {
       return res.status(400).json({ error: 'title et formType sont requis' })
@@ -94,11 +95,15 @@ router.post('/', async (req, res, next) => {
     if (filledBy !== undefined && !['employee', 'manager', 'hr'].includes(filledBy)) {
       return res.status(400).json({ error: 'filledBy invalide (employee|manager|hr)' })
     }
+    if (category !== undefined && !(await isValidCategory(category))) {
+      return res.status(400).json({ error: 'category inconnue' })
+    }
 
     const form = await Form.create({
       title,
       description:  description || '',
       formType,
+      category:     category || null,
       isAnonymous:  formType === 'upward_feedback' ? true : (isAnonymous || false),
       questions:    Array.isArray(questions) ? questions : [],
       filledBy:     filledBy || 'employee',
@@ -117,8 +122,9 @@ router.post('/', async (req, res, next) => {
   }
 })
 
-// PATCH /api/forms/:id — Modifier un formulaire (admin/hr, bloqué si frozenAt)
-router.patch('/:id', async (req, res, next) => {
+// PATCH|PUT /api/forms/:id — Modifier un formulaire (admin/hr, bloqué si frozenAt)
+// PUT est un alias de PATCH (le client front utilise PUT).
+async function updateForm(req, res, next) {
   try {
     if (!ADMIN_ROLES.includes(req.user.role)) {
       return res.status(403).json({ error: 'Réservé aux admins et RH' })
@@ -141,9 +147,12 @@ router.patch('/:id', async (req, res, next) => {
     if (req.body.filledBy !== undefined && !['employee', 'manager', 'hr'].includes(req.body.filledBy)) {
       return res.status(400).json({ error: 'filledBy invalide (employee|manager|hr)' })
     }
+    if (req.body.category !== undefined && !(await isValidCategory(req.body.category))) {
+      return res.status(400).json({ error: 'category inconnue' })
+    }
 
     // Champs modifiables librement (indépendants du gel des questions)
-    const EDITABLE_FREE = ['title', 'description', 'filledBy']
+    const EDITABLE_FREE = ['title', 'description', 'filledBy', 'category']
     EDITABLE_FREE.forEach(key => {
       if (req.body[key] !== undefined) form[key] = req.body[key]
     })
@@ -164,7 +173,9 @@ router.patch('/:id', async (req, res, next) => {
     }
     next(err)
   }
-})
+}
+router.patch('/:id', updateForm)
+router.put('/:id', updateForm)
 
 // POST /api/forms/:id/freeze — Geler un formulaire (admin seulement)
 router.post('/:id/freeze', async (req, res, next) => {

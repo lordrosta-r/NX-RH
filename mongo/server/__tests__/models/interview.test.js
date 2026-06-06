@@ -111,3 +111,70 @@ describe('Interview model — refs Mongoose', () => {
     expect(Interview.schema.paths.managerId.options.ref).toBe('User')
   })
 })
+
+describe('Interview model — nouveaux champs qualitatifs', () => {
+  let schemaPaths
+
+  beforeAll(() => {
+    const { Interview } = require('../../models/Interview')
+    schemaPaths = Interview.schema.paths
+  })
+
+  it('a un champ discussion (tableau, default [])', () => {
+    expect(schemaPaths['discussion']).toBeDefined()
+  })
+
+  it('discussion.$.questionId est un String (sous-schéma)', () => {
+    const { Interview } = require('../../models/Interview')
+    const discussionSchema = Interview.schema.path('discussion').schema
+    expect(discussionSchema.path('questionId')).toBeDefined()
+    expect(discussionSchema.path('questionId').instance).toBe('String')
+  })
+
+  it('a un champ objectivesReview (tableau, default [])', () => {
+    expect(schemaPaths['objectivesReview']).toBeDefined()
+  })
+
+  it('objectivesReview.$.status a bien son enum (sous-schéma)', () => {
+    const { Interview } = require('../../models/Interview')
+    const reviewSchema = Interview.schema.path('objectivesReview').schema
+    const statusPath = reviewSchema.path('status')
+    expect(statusPath).toBeDefined()
+    expect(statusPath.enumValues).toEqual(expect.arrayContaining(['achieved', 'partial', 'not_achieved']))
+  })
+
+  it('a un champ nextYearObjectives (tableau, default [])', () => {
+    expect(schemaPaths['nextYearObjectives']).toBeDefined()
+  })
+
+  it('a un champ synthesis.text (String, default "")', () => {
+    expect(schemaPaths['synthesis.text']).toBeDefined()
+    expect(schemaPaths['synthesis.text'].instance).toBe('String')
+    expect(schemaPaths['synthesis.text'].defaultValue).toBe('')
+  })
+
+  it('a un champ signatures (tableau, default [])', () => {
+    expect(schemaPaths['signatures']).toBeDefined()
+  })
+
+  it('signatures.$.role a bien son enum (sous-schéma)', () => {
+    const { Interview } = require('../../models/Interview')
+    const sigSchema = Interview.schema.path('signatures').schema
+    const rolePath = sigSchema.path('role')
+    expect(rolePath).toBeDefined()
+    expect(rolePath.enumValues).toEqual(expect.arrayContaining(['evaluatee', 'manager']))
+  })
+
+  it('a un champ disagreement.flagged (Boolean, default false)', () => {
+    expect(schemaPaths['disagreement.flagged']).toBeDefined()
+    expect(schemaPaths['disagreement.flagged'].instance).toBe('Boolean')
+    expect(schemaPaths['disagreement.flagged'].defaultValue).toBe(false)
+  })
+
+  it('a un champ status avec enum draft/signed/disputed/done', () => {
+    const statusPath = schemaPaths['status']
+    expect(statusPath).toBeDefined()
+    expect(statusPath.enumValues).toEqual(expect.arrayContaining(['draft', 'signed', 'disputed', 'done']))
+    expect(statusPath.defaultValue).toBe('draft')
+  })
+})

@@ -57,8 +57,13 @@ export default function FormDetailPage() {
   const addCategoryMutation = useMutation({
     mutationFn: (label: string) =>
       formCategoriesApi.addCategory(label).then((r) => r.data),
-    onSuccess: (data) => {
+    onSuccess: (data, label) => {
       queryClient.setQueryData(["form-categories"], data);
+      const created = data.categories.find((c) => c.label === label);
+      if (created) {
+        setMeta((m) => ({ ...m, category: created.id }));
+        setIsDirty(true);
+      }
     },
   });
 

@@ -33,7 +33,16 @@ import {
   Target,
   Check,
   History,
+  HelpCircle,
 } from "lucide-react";
+
+// Explication réutilisée (tooltip + aide) du rappel d'édition précédente.
+const CARRY_HELP =
+  "Affiche, sous cette question, la réponse donnée à la même question lors de la " +
+  "campagne précédente — en lecture seule, pour comparer. Le lien avec l'an dernier " +
+  "se crée automatiquement quand tu DUPLIQUES un formulaire (les questions gardent " +
+  "leur filiation). Sur un formulaire créé entièrement de zéro, ce lien n'existe pas " +
+  "et le rappel ne s'affiche simplement pas. Si rien ne correspond, aucun rappel.";
 import type {
   FormQuestion,
   QuestionType,
@@ -709,11 +718,17 @@ function ConfigPanel({
           <span style={{ fontWeight: 600, color: "var(--ink)" }}>
             Reprendre l'édition précédente
           </span>
+          <HelpCircle
+            size={15}
+            style={{ color: "var(--ink-3)", cursor: "help" }}
+            title={CARRY_HELP}
+            aria-label={CARRY_HELP}
+          />
         </label>
         <p className="small" style={{ color: "var(--ink-3)", marginLeft: 26 }}>
-          Affiche la réponse de la campagne précédente en rappel, sous cette
-          question. À activer uniquement sur les questions à comparer d'une
-          édition à l'autre.
+          Rappelle, sous cette question, la réponse de la campagne précédente
+          (pour comparer). Le lien se crée en <strong>dupliquant</strong> un
+          formulaire existant. Survole le « ? » pour le détail.
         </p>
       </div>
     </div>

@@ -7,7 +7,15 @@ import {
   keepPreviousData,
 } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import { LogOut, MoreVertical, X, Plus } from "lucide-react";
+import {
+  LogOut,
+  Inbox,
+  MoreVertical,
+  X,
+  Plus,
+  Search,
+  Filter,
+} from "lucide-react";
 import {
   offboardingApi,
   type OffboardingRecord,
@@ -141,19 +149,27 @@ function SlideOverForm({
         <div
           className="row between"
           style={{
-            padding: "16px 24px",
+            padding: "18px 24px",
             borderBottom: "1px solid var(--line)",
             alignItems: "center",
+            background: "var(--blue)",
           }}
         >
-          <h2 className="h3">Nouvelle demande de départ</h2>
+          <div className="row" style={{ gap: 10, alignItems: "center" }}>
+            <LogOut
+              style={{ width: 18, height: 18, color: "#fff", opacity: 0.85 }}
+            />
+            <h2 className="h3" style={{ color: "#fff", margin: 0 }}>
+              Nouvelle demande de départ
+            </h2>
+          </div>
           <button
             onClick={onClose}
             aria-label="Fermer"
             className="btn btn-ghost btn-sm"
-            style={{ padding: 6 }}
+            style={{ padding: 6, color: "#fff", opacity: 0.7 }}
           >
-            <X className="ico" style={{ width: 18, height: 18 }} />
+            <X style={{ width: 18, height: 18 }} />
           </button>
         </div>
         <form
@@ -353,88 +369,186 @@ export default function OffboardingPage() {
   return (
     <div className="nx-app">
       <PageHead
+        eyebrow="Ressources humaines"
         title="Offboarding"
         desc="Gestion des départs de collaborateurs"
         actions={
           <button onClick={() => setShowForm(true)} className="btn btn-primary">
-            <Plus className="ico" style={{ width: 18, height: 18 }} /> Nouvelle
-            demande
+            <Plus style={{ width: 18, height: 18 }} /> Nouvelle demande
           </button>
         }
       />
 
       {/* Filters */}
-      <Tile className="row wrap" style={{ gap: 12, alignItems: "center" }}>
-        <input
-          type="search"
-          aria-label="Rechercher un collaborateur"
-          placeholder="Rechercher un collaborateur…"
-          value={searchInput}
-          onChange={(e) => setSearchInput(e.target.value)}
-          className="input"
-          style={{ flex: 1, minWidth: 160 }}
-        />
-        <select
-          aria-label="Filtrer par statut"
-          value={filters.status ?? ""}
-          onChange={(e) =>
-            setFilters((f) => ({
-              ...f,
-              status: e.target.value || undefined,
-              page: 1,
-            }))
-          }
-          className="input"
-          style={{ width: "auto" }}
-        >
-          <option value="">Tous les statuts</option>
-          <option value="pending">En attente</option>
-          <option value="in_progress">En cours</option>
-          <option value="completed">Terminé</option>
-        </select>
-        <select
-          aria-label="Filtrer par motif"
-          value={filters.reason ?? ""}
-          onChange={(e) =>
-            setFilters((f) => ({
-              ...f,
-              reason: e.target.value || undefined,
-              page: 1,
-            }))
-          }
-          className="input"
-          style={{ width: "auto" }}
-        >
-          <option value="">Tous les motifs</option>
-          <option value="resignation">Démission</option>
-          <option value="termination">Licenciement</option>
-          <option value="retirement">Retraite</option>
-          <option value="other">Autre</option>
-        </select>
+      <Tile style={{ padding: "14px 20px" }}>
+        <div className="row wrap" style={{ gap: 10, alignItems: "center" }}>
+          <div
+            className="row"
+            style={{
+              flex: 1,
+              minWidth: 200,
+              position: "relative",
+              alignItems: "center",
+            }}
+          >
+            <Search
+              style={{
+                position: "absolute",
+                left: 10,
+                width: 16,
+                height: 16,
+                color: "var(--ink-3)",
+                pointerEvents: "none",
+              }}
+            />
+            <input
+              type="search"
+              aria-label="Rechercher un collaborateur"
+              placeholder="Rechercher un collaborateur…"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              className="input"
+              style={{ paddingLeft: 34, width: "100%" }}
+            />
+          </div>
+          <div
+            className="row"
+            style={{
+              gap: 8,
+              alignItems: "center",
+              flexShrink: 0,
+              padding: "0 2px",
+            }}
+          >
+            <Filter
+              style={{ width: 14, height: 14, color: "var(--ink-3)" }}
+              aria-hidden
+            />
+            <span className="small" style={{ color: "var(--ink-3)" }}>
+              Filtrer :
+            </span>
+          </div>
+          <select
+            aria-label="Filtrer par statut"
+            value={filters.status ?? ""}
+            onChange={(e) =>
+              setFilters((f) => ({
+                ...f,
+                status: e.target.value || undefined,
+                page: 1,
+              }))
+            }
+            className="input"
+            style={{ width: "auto", minWidth: 150 }}
+          >
+            <option value="">Tous les statuts</option>
+            <option value="pending">En attente</option>
+            <option value="in_progress">En cours</option>
+            <option value="completed">Terminé</option>
+          </select>
+          <select
+            aria-label="Filtrer par motif"
+            value={filters.reason ?? ""}
+            onChange={(e) =>
+              setFilters((f) => ({
+                ...f,
+                reason: e.target.value || undefined,
+                page: 1,
+              }))
+            }
+            className="input"
+            style={{ width: "auto", minWidth: 150 }}
+          >
+            <option value="">Tous les motifs</option>
+            <option value="resignation">Démission</option>
+            <option value="termination">Licenciement</option>
+            <option value="retirement">Retraite</option>
+            <option value="other">Autre</option>
+          </select>
+        </div>
       </Tile>
 
       {/* Table */}
       {isLoading ? (
-        <div className="small" style={{ padding: 40, textAlign: "center" }}>
-          Chargement…
-        </div>
+        <Tile
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 12,
+            padding: "20px 24px",
+          }}
+        >
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              style={{
+                height: 44,
+                borderRadius: "var(--radius)",
+                background: "var(--bg-alt)",
+                opacity: 1 - i * 0.2,
+                animation: "pulse 1.6s ease-in-out infinite",
+              }}
+            />
+          ))}
+        </Tile>
       ) : records.length === 0 ? (
         <Tile
-          className="col"
           style={{
-            padding: 48,
+            display: "flex",
+            flexDirection: "column",
+            padding: "56px 32px",
             alignItems: "center",
-            gap: 12,
+            gap: 16,
             textAlign: "center",
           }}
         >
-          <LogOut
-            className="ico"
-            style={{ width: 48, height: 48, opacity: 0.3 }}
-          />
-          <p className="body" style={{ fontWeight: 600 }}>
-            Aucune demande de départ en cours.
-          </p>
+          <div
+            style={{
+              width: 64,
+              height: 64,
+              borderRadius: "var(--radius-lg)",
+              background: "var(--blue-soft)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+            }}
+          >
+            <Inbox
+              style={{
+                width: 28,
+                height: 28,
+                color: "var(--blue)",
+                strokeWidth: 1.5,
+              }}
+            />
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <p
+              className="body"
+              style={{ fontWeight: 600, color: "var(--ink)" }}
+            >
+              Aucune demande de départ en cours
+            </p>
+            <p
+              className="small"
+              style={{ color: "var(--ink-3)", maxWidth: 360 }}
+            >
+              {filters.q || filters.status || filters.reason
+                ? "Aucun résultat ne correspond à vos filtres. Essayez d'élargir votre recherche."
+                : "Les demandes d'offboarding apparaîtront ici. Créez une première demande pour commencer."}
+            </p>
+          </div>
+          {!filters.q && !filters.status && !filters.reason && (
+            <button
+              onClick={() => setShowForm(true)}
+              className="btn btn-primary btn-sm"
+              style={{ marginTop: 4 }}
+            >
+              <Plus style={{ width: 15, height: 15 }} />
+              Créer une demande
+            </button>
+          )}
         </Tile>
       ) : (
         <Tile style={{ padding: 0, overflow: "hidden" }}>
@@ -455,9 +569,21 @@ export default function OffboardingPage() {
             const done = rec.checklist.filter((c) => c.done).length;
             const total = rec.checklist.length;
             const pct = total ? (done / total) * 100 : 0;
+            const userName = getRecordUserName(rec);
+            const userInitial = getRecordUserInitial(rec);
+            const recId = rid(rec);
+            // Try to get department from populated userId
+            const populatedUser =
+              rec.userId &&
+              typeof rec.userId === "object" &&
+              (rec.userId as PopulatedUser);
+            const department =
+              populatedUser && populatedUser.department
+                ? populatedUser.department
+                : undefined;
             return (
               <div
-                key={rid(rec)}
+                key={recId}
                 className="tbl-row"
                 style={{
                   gridTemplateColumns: "2fr 1fr 1.2fr 1.2fr 1.4fr 48px",
@@ -466,43 +592,65 @@ export default function OffboardingPage() {
                 <div className="row" style={{ gap: 12, alignItems: "center" }}>
                   <div
                     style={{
-                      width: 32,
-                      height: 32,
+                      width: 34,
+                      height: 34,
                       borderRadius: "50%",
                       background: "var(--blue-soft)",
-                      color: "var(--blue-text)",
+                      color: "var(--blue)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      fontSize: 12,
+                      fontSize: 13,
                       fontWeight: 700,
                       flexShrink: 0,
+                      border: "1.5px solid var(--line)",
                     }}
                   >
-                    {getRecordUserInitial(rec)}
+                    {userInitial}
                   </div>
-                  <Link
-                    to={`/offboarding/${rid(rec)}`}
-                    className="link"
-                    style={{ fontWeight: 600 }}
-                  >
-                    {getRecordUserName(rec)}
-                  </Link>
+                  <div style={{ minWidth: 0 }}>
+                    <Link
+                      to={`/offboarding/${recId}`}
+                      className="link"
+                      style={{ fontWeight: 600, display: "block" }}
+                    >
+                      {userName}
+                    </Link>
+                    {department && (
+                      <span className="small" style={{ color: "var(--ink-3)" }}>
+                        {department}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <div>
                   <ReasonBadge reason={rec.reason} />
                 </div>
-                <div className="small">{formatDate(rec.lastDay)}</div>
+                <div
+                  className="small"
+                  style={{
+                    color: "var(--ink-2)",
+                    fontVariantNumeric: "tabular-nums",
+                  }}
+                >
+                  {formatDate(rec.lastDay)}
+                </div>
                 <div>
                   <StatusBadge status={rec.status} />
                 </div>
                 <div className="row" style={{ gap: 8, alignItems: "center" }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <Bar pct={pct} tone="var(--blue)" height={6} />
+                    <Bar pct={pct} tone="var(--blue)" height={5} />
                   </div>
                   <span
                     className="small"
-                    style={{ width: 36, textAlign: "right" }}
+                    style={{
+                      width: 36,
+                      textAlign: "right",
+                      color: pct === 100 ? "var(--green)" : "var(--ink-3)",
+                      fontVariantNumeric: "tabular-nums",
+                      fontWeight: pct === 100 ? 600 : undefined,
+                    }}
                   >
                     {done}/{total}
                   </span>
@@ -510,18 +658,15 @@ export default function OffboardingPage() {
                 <div style={{ textAlign: "right", position: "relative" }}>
                   <button
                     onClick={() =>
-                      setOpenMenu(openMenu === rid(rec) ? null : rid(rec))
+                      setOpenMenu(openMenu === recId ? null : recId)
                     }
                     aria-label="Afficher les actions"
                     className="btn btn-ghost btn-sm"
                     style={{ padding: 6 }}
                   >
-                    <MoreVertical
-                      className="ico"
-                      style={{ width: 16, height: 16 }}
-                    />
+                    <MoreVertical style={{ width: 16, height: 16 }} />
                   </button>
-                  {openMenu === rid(rec) && (
+                  {openMenu === recId && (
                     <div
                       style={{
                         position: "absolute",
@@ -537,7 +682,7 @@ export default function OffboardingPage() {
                       }}
                     >
                       <Link
-                        to={`/offboarding/${rid(rec)}`}
+                        to={`/offboarding/${recId}`}
                         onClick={() => setOpenMenu(null)}
                         style={menuItemStyle}
                       >
@@ -548,7 +693,7 @@ export default function OffboardingPage() {
                           onClick={() => {
                             setOpenMenu(null);
                             setStatusTarget({
-                              id: rid(rec),
+                              id: recId,
                               current: rec.status,
                             });
                             setNewStatus(rec.status);
@@ -562,7 +707,7 @@ export default function OffboardingPage() {
                         <button
                           onClick={() => {
                             setOpenMenu(null);
-                            setDeleteConfirm(rid(rec));
+                            setDeleteConfirm(recId);
                           }}
                           style={{ ...menuItemStyle, color: "var(--red)" }}
                         >

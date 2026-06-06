@@ -2,7 +2,7 @@
  * Composants de présentation "institutionnels" partagés (design NX Design).
  * À utiliser à l'intérieur d'un conteneur `.nx-app` (styles dans styles/app.css).
  */
-import type { CSSProperties, ReactNode } from "react";
+import type { CSSProperties, MouseEventHandler, ReactNode } from "react";
 
 type Tone = "blue" | "green" | "amber" | "red" | "grey";
 
@@ -74,13 +74,15 @@ export function Tile({
   children,
   className = "",
   style,
+  onClick,
 }: {
   children: ReactNode;
   className?: string;
   style?: CSSProperties;
+  onClick?: MouseEventHandler<HTMLDivElement>;
 }) {
   return (
-    <div className={`tile ${className}`.trim()} style={style}>
+    <div className={`tile ${className}`.trim()} style={style} onClick={onClick}>
       {children}
     </div>
   );

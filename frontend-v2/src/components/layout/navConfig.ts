@@ -107,12 +107,12 @@ export function getPerspectiveNav(
       { label: t("nav.forms"), href: "/forms" },
     ],
   };
-  const calendar: SubLink = { label: t("nav.calendar"), href: "/events" };
   const administration: SubLink = {
     label: t("nav.administration"),
     href: "/admin",
   };
   const pilotageMore: MoreItem[] = [
+    { label: t("nav.calendar"), href: "/events", group: t("nav.pilotage") },
     { label: t("nav.resources"), href: "/resources", group: t("nav.pilotage") },
     { label: t("nav.analytics"), href: "/analytics", group: t("nav.pilotage") },
   ];
@@ -133,7 +133,6 @@ export function getPerspectiveNav(
         collaborateurs,
         campagnes,
         evaluations,
-        calendar,
         administration,
       ],
       more: pilotageMore,
@@ -157,7 +156,6 @@ export function getPerspectiveNav(
       collaborateurs,
       campagnes,
       evaluations,
-      calendar,
       administration,
     ],
     more: pilotageMore,

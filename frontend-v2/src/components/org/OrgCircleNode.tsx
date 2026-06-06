@@ -84,11 +84,15 @@ function OrgCircleNode({ data, selected }: NodeProps<Node<OrgNodeData>>) {
             width: size,
             height: size,
             backgroundColor: color,
+            color: "#fff",
             fontSize,
+            border: "2px solid #fff",
             boxShadow: selected
-              ? `0 0 0 3px #fff, 0 0 0 5px var(--blue)`
-              : "var(--shadow-sm)",
-            transform: showTooltip ? "scale(1.05)" : "scale(1)",
+              ? `0 0 0 2px #fff, 0 0 0 4px var(--blue), 0 6px 16px -6px rgba(27,27,120,0.45)`
+              : showTooltip
+                ? "var(--shadow)"
+                : "var(--shadow-sm)",
+            transform: showTooltip ? "scale(1.06)" : "scale(1)",
           }}
         >
           {initials}
@@ -97,21 +101,29 @@ function OrgCircleNode({ data, selected }: NodeProps<Node<OrgNodeData>>) {
 
       {/* Name */}
       <span
-        className="body mt-1.5 text-center leading-tight"
-        style={{ maxWidth: size + 40, fontSize: 12, color: "var(--ink)" }}
+        className="mt-2 text-center leading-tight"
+        style={{
+          maxWidth: size + 56,
+          fontSize: 12,
+          fontWeight: 600,
+          color: "var(--ink)",
+        }}
       >
         {truncatedName}
       </span>
 
       {/* Role badge */}
       <span
-        className="small mt-0.5 px-1.5 py-0.5"
+        className="mt-1 px-1.5 py-0.5"
         style={{
           fontSize: 9,
+          lineHeight: 1.2,
+          letterSpacing: "0.02em",
           background: "#fff",
           border: "1px solid var(--line)",
-          borderRadius: "var(--radius)",
+          borderRadius: 999,
           color: "var(--ink-3)",
+          boxShadow: "var(--shadow-sm)",
         }}
       >
         {ROLE_LABELS[role] ?? role}

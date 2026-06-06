@@ -167,13 +167,19 @@ export function useOrgChart(): UseOrgChartReturn {
     setEdges(layoutEdges);
   }, [layoutNodes, layoutEdges, setNodes, setEdges]);
 
-  // Fit view on first load — cleanup prevents memory leak on fast unmount
-  const hasNodes = layoutNodes.length > 0;
+  // Recadrage automatique : se relance quand le nombre de nœuds change (premier
+  // chargement, bascule de vue, refetch). On laisse React Flow mesurer les
+  // nœuds avant d'ajuster, sinon le fitView se cale sur des dimensions vides et
+  // tasse le graphe en bas du canvas.
+  const nodeCount = layoutNodes.length;
   useEffect(() => {
-    if (!hasNodes) return;
-    const id = setTimeout(() => fitView({ padding: 0.15, duration: 400 }), 100);
+    if (nodeCount === 0) return;
+    const id = setTimeout(
+      () => fitView({ padding: 0.18, duration: 400, maxZoom: 1 }),
+      160,
+    );
     return () => clearTimeout(id);
-  }, [hasNodes, fitView]);
+  }, [nodeCount, fitView]);
 
   const allUsersData = useMemo(
     () => layoutNodes.map((n) => n.data),
@@ -266,12 +272,20 @@ export function useOrgChart(): UseOrgChartReturn {
           chainIds !== null && chainIds.has(e.source) && chainIds.has(e.target);
         const dimmedByFilter =
           dimmedIds.has(e.source) || dimmedIds.has(e.target);
+        // Les liens transverses portent leur propre pointillé fin via le layout.
+        // On le préserve ; seuls les liens hiérarchiques restent pleins.
+        const isTransverse = e.id.startsWith("dotted-");
         return {
           ...e,
           style: {
-            stroke: bothInChain ? "#6366f1" : "#94a3b8",
-            strokeWidth: bothInChain ? 2.5 : 1.5,
-            strokeDasharray: bothInChain ? undefined : "6 3",
+            ...e.style,
+            stroke: bothInChain
+              ? "var(--blue)"
+              : isTransverse
+                ? "var(--amber)"
+                : "var(--line-strong)",
+            strokeWidth: bothInChain ? 2.5 : isTransverse ? 1.5 : 1.5,
+            strokeDasharray: isTransverse ? "1 5" : undefined,
             opacity:
               chainIds !== null && !bothInChain
                 ? 0.1

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Pencil, Trash2, X, CheckCircle2, XCircle } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Settings2 } from "lucide-react";
 import { adminApi } from "../api/admin";
 import { queryKeys } from "../lib/queryKeys";
 import { PageHead, Tile, Badge } from "../components/shell";
@@ -14,42 +14,61 @@ type EnvVar = {
   description: string;
 };
 
-function SkeletonRow() {
+// ─── Helpers ────────────────────────────────────────────────────────────────
+
+const TH_STYLE: React.CSSProperties = {
+  padding: "10px 16px",
+  textAlign: "left",
+  fontSize: 11,
+  fontWeight: 700,
+  color: "var(--ink-3)",
+  textTransform: "uppercase",
+  letterSpacing: "0.07em",
+  borderBottom: "2px solid var(--line-strong)",
+  whiteSpace: "nowrap",
+};
+
+const TD_STYLE: React.CSSProperties = {
+  padding: "14px 16px",
+  verticalAlign: "middle",
+  borderBottom: "1px solid var(--line)",
+};
+
+/** Tronque et formate joliment les valeurs longues (ex : JSON ldap). */
+function formatValue(raw: unknown, expanded: boolean): string {
+  const str =
+    typeof raw === "object" && raw !== null
+      ? JSON.stringify(raw, null, 2)
+      : String(raw ?? "");
+  if (expanded) return str;
+  const oneLine = str.replace(/\s+/g, " ");
+  return oneLine.length > 80 ? oneLine.slice(0, 80) + "…" : oneLine;
+}
+
+// ─── Skeleton ───────────────────────────────────────────────────────────────
+
+function SkeletonRow({ cols = 3 }: { cols?: number }) {
+  const widths = [128, 200, 64];
   return (
     <tr>
-      <td style={{ padding: "12px 16px" }}>
-        <div
-          style={{
-            height: 16,
-            width: 128,
-            borderRadius: 6,
-            background: "var(--bg-alt)",
-          }}
-        />
-      </td>
-      <td style={{ padding: "12px 16px" }}>
-        <div
-          style={{
-            height: 16,
-            width: 192,
-            borderRadius: 6,
-            background: "var(--bg-alt)",
-          }}
-        />
-      </td>
-      <td style={{ padding: "12px 16px" }}>
-        <div
-          style={{
-            height: 16,
-            width: 64,
-            borderRadius: 6,
-            background: "var(--bg-alt)",
-          }}
-        />
-      </td>
+      {Array.from({ length: cols }).map((_, i) => (
+        <td key={i} style={TD_STYLE}>
+          <div
+            style={{
+              height: 14,
+              width: widths[i] ?? 96,
+              borderRadius: 6,
+              background: "var(--bg-alt)",
+              animation: "pulse 1.5s ease-in-out infinite",
+            }}
+          />
+        </td>
+      ))}
     </tr>
   );
 }
+
+// ─── Env check ──────────────────────────────────────────────────────────────
 
 function EnvCheckSection() {
   const {
@@ -62,166 +81,131 @@ function EnvCheckSection() {
     retry: false,
   });
 
+  const missing = envVars?.filter((v) => !v.set).length ?? 0;
+  const total = envVars?.length ?? 0;
+
   return (
     <Tile>
-      <h2 className="h3" style={{ marginBottom: 16 }}>
-        Variables d'environnement
-      </h2>
-      {isLoading && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {Array.from({ length: 7 }).map((_, i) => (
-            <div
-              key={i}
-              className="row"
-              style={{ gap: 12, alignItems: "center" }}
+      {/* En-tête de section */}
+      <div
+        className="row between"
+        style={{ marginBottom: 20, alignItems: "center", gap: 12 }}
+      >
+        <div>
+          <h2 className="h3" style={{ marginBottom: 2 }}>
+            Variables d'environnement
+          </h2>
+          {envVars && (
+            <p
+              className="small"
+              style={{ color: "var(--ink-3)", marginTop: 4 }}
             >
-              <div
-                style={{
-                  height: 20,
-                  width: 20,
-                  borderRadius: 9999,
-                  background: "var(--bg-alt)",
-                }}
-              />
-              <div
-                style={{
-                  height: 16,
-                  width: 160,
-                  borderRadius: 6,
-                  background: "var(--bg-alt)",
-                }}
-              />
-              <div
-                style={{
-                  height: 16,
-                  width: 256,
-                  borderRadius: 6,
-                  background: "var(--bg-alt)",
-                  marginLeft: 16,
-                }}
-              />
-            </div>
-          ))}
+              {total - missing} / {total} définies
+              {missing > 0 && (
+                <span style={{ color: "var(--red)", marginLeft: 8 }}>
+                  · {missing} manquante{missing > 1 ? "s" : ""}
+                </span>
+              )}
+            </p>
+          )}
+        </div>
+        {envVars && missing > 0 && (
+          <Badge tone="red" dot>
+            {missing} manquante{missing > 1 ? "s" : ""}
+          </Badge>
+        )}
+        {envVars && missing === 0 && (
+          <Badge tone="green" dot>
+            Tout est défini
+          </Badge>
+        )}
+      </div>
+
+      {isLoading && (
+        <div style={{ overflowX: "auto" }}>
+          <table
+            style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}
+          >
+            <tbody>
+              {Array.from({ length: 7 }).map((_, i) => (
+                <SkeletonRow key={i} cols={3} />
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
+
       {isError && (
         <p
           className="body"
-          style={{ textAlign: "center", color: "var(--ink-2)" }}
+          style={{
+            padding: "32px 0",
+            textAlign: "center",
+            color: "var(--ink-3)",
+          }}
         >
           Endpoint non disponible — les variables d'environnement ne peuvent pas
           être vérifiées pour l'instant.
         </p>
       )}
+
       {envVars && (
         <div style={{ overflowX: "auto" }}>
           <table
             style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}
           >
             <thead>
-              <tr style={{ borderBottom: "1px solid var(--line)" }}>
-                <th
-                  style={{
-                    padding: "12px 16px",
-                    textAlign: "left",
-                    fontSize: 12,
-                    fontWeight: 600,
-                    color: "var(--ink-3)",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.05em",
-                  }}
-                >
-                  Variable
-                </th>
-                <th
-                  style={{
-                    padding: "12px 16px",
-                    textAlign: "left",
-                    fontSize: 12,
-                    fontWeight: 600,
-                    color: "var(--ink-3)",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.05em",
-                  }}
-                >
-                  Description
-                </th>
-                <th
-                  style={{
-                    padding: "12px 16px",
-                    textAlign: "left",
-                    fontSize: 12,
-                    fontWeight: 600,
-                    color: "var(--ink-3)",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.05em",
-                  }}
-                >
-                  Statut
-                </th>
+              <tr>
+                <th style={TH_STYLE}>Variable</th>
+                <th style={TH_STYLE}>Description</th>
+                <th style={{ ...TH_STYLE, textAlign: "right" }}>Statut</th>
               </tr>
             </thead>
             <tbody>
               {envVars.map((v) => (
                 <tr
                   key={v.key}
-                  style={{ borderBottom: "1px solid var(--line)" }}
+                  style={{
+                    background:
+                      !v.set && v.required
+                        ? "color-mix(in srgb, var(--red) 4%, transparent)"
+                        : undefined,
+                  }}
                 >
-                  <td style={{ padding: "12px 16px" }}>
-                    <span
-                      style={{
-                        fontFamily: "monospace",
-                        color: "var(--ink)",
-                        fontWeight: v.required ? 700 : 400,
-                      }}
+                  <td style={TD_STYLE}>
+                    <div
+                      className="row"
+                      style={{ gap: 8, alignItems: "center" }}
                     >
-                      {v.key}
-                    </span>
-                    {v.required && (
-                      <span
+                      <code
                         style={{
-                          marginLeft: 8,
-                          fontSize: 10,
-                          color: "var(--ink-3)",
-                          textTransform: "uppercase",
+                          fontFamily: "monospace",
+                          fontSize: 13,
+                          fontWeight: 600,
+                          color: "var(--ink)",
+                          background: "var(--bg-alt)",
+                          padding: "2px 6px",
+                          borderRadius: "var(--radius)",
+                          border: "1px solid var(--line)",
                         }}
                       >
-                        requis
-                      </span>
-                    )}
+                        {v.key}
+                      </code>
+                      {v.required && <Badge tone="amber">requis</Badge>}
+                    </div>
                   </td>
-                  <td style={{ padding: "12px 16px", color: "var(--ink-2)" }}>
+                  <td style={{ ...TD_STYLE, color: "var(--ink-2)" }}>
                     {v.description}
                   </td>
-                  <td style={{ padding: "12px 16px" }}>
+                  <td style={{ ...TD_STYLE, textAlign: "right" }}>
                     {v.set ? (
-                      <span
-                        className="row"
-                        style={{
-                          gap: 6,
-                          color: "var(--green)",
-                          alignItems: "center",
-                        }}
-                      >
-                        <CheckCircle2 size={16} aria-hidden="true" />
-                        <span className="small" style={{ fontWeight: 600 }}>
-                          Définie
-                        </span>
-                      </span>
+                      <Badge tone="green" dot>
+                        Définie
+                      </Badge>
                     ) : (
-                      <span
-                        className="row"
-                        style={{
-                          gap: 6,
-                          color: "var(--red)",
-                          alignItems: "center",
-                        }}
-                      >
-                        <XCircle size={16} aria-hidden="true" />
-                        <span className="small" style={{ fontWeight: 600 }}>
-                          Manquante
-                        </span>
-                      </span>
+                      <Badge tone="red" dot>
+                        Manquante
+                      </Badge>
                     )}
                   </td>
                 </tr>
@@ -234,12 +218,15 @@ function EnvCheckSection() {
   );
 }
 
+// ─── Page principale ─────────────────────────────────────────────────────────
+
 export default function AdminConfigPage() {
   const qc = useQueryClient();
   const [showKeyModal, setShowKeyModal] = useState(false);
   const [editingKey, setEditingKey] = useState<ConfigKey | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [keyForm, setKeyForm] = useState({ key: "", value: "" });
+  const [expandedKey, setExpandedKey] = useState<string | null>(null);
 
   const { data: keys, isLoading } = useQuery({
     queryKey: queryKeys.configKeys.all,
@@ -279,7 +266,9 @@ export default function AdminConfigPage() {
   return (
     <div className="nx-app">
       <PageHead
+        eyebrow="Administration"
         title="Configuration système"
+        desc="Gérez les clés de configuration applicatives et vérifiez les variables d'environnement du serveur."
         actions={
           <button type="button" onClick={openNew} className="btn btn-primary">
             <Plus size={16} aria-hidden="true" /> Nouvelle clé
@@ -288,7 +277,28 @@ export default function AdminConfigPage() {
       />
 
       <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+        {/* ── Clés de configuration ── */}
         <Tile>
+          <div
+            className="row between"
+            style={{ marginBottom: 20, alignItems: "center", gap: 12 }}
+          >
+            <div className="row" style={{ gap: 10, alignItems: "center" }}>
+              <Settings2
+                size={18}
+                strokeWidth={1.5}
+                aria-hidden="true"
+                style={{ color: "var(--blue)" }}
+              />
+              <h2 className="h3">Clés de configuration</h2>
+            </div>
+            {keys && keys.length > 0 && (
+              <span className="small" style={{ color: "var(--ink-3)" }}>
+                {keys.length} clé{keys.length > 1 ? "s" : ""}
+              </span>
+            )}
+          </div>
+
           <div style={{ overflowX: "auto" }}>
             <table
               style={{
@@ -298,52 +308,18 @@ export default function AdminConfigPage() {
               }}
             >
               <thead>
-                <tr style={{ borderBottom: "1px solid var(--line)" }}>
-                  <th
-                    style={{
-                      padding: "12px 16px",
-                      textAlign: "left",
-                      fontSize: 12,
-                      fontWeight: 600,
-                      color: "var(--ink-3)",
-                      textTransform: "uppercase",
-                      letterSpacing: "0.05em",
-                    }}
-                  >
-                    Clé
-                  </th>
-                  <th
-                    style={{
-                      padding: "12px 16px",
-                      textAlign: "left",
-                      fontSize: 12,
-                      fontWeight: 600,
-                      color: "var(--ink-3)",
-                      textTransform: "uppercase",
-                      letterSpacing: "0.05em",
-                    }}
-                  >
-                    Valeur
-                  </th>
-                  <th
-                    style={{
-                      padding: "12px 16px",
-                      textAlign: "right",
-                      fontSize: 12,
-                      fontWeight: 600,
-                      color: "var(--ink-3)",
-                      textTransform: "uppercase",
-                      letterSpacing: "0.05em",
-                    }}
-                  >
+                <tr>
+                  <th style={{ ...TH_STYLE, width: "20%" }}>Clé</th>
+                  <th style={TH_STYLE}>Valeur</th>
+                  <th style={{ ...TH_STYLE, textAlign: "right", width: "10%" }}>
                     Actions
                   </th>
                 </tr>
               </thead>
               <tbody>
                 {isLoading ? (
-                  Array.from({ length: 5 }).map((_, i) => (
-                    <SkeletonRow key={i} />
+                  Array.from({ length: 4 }).map((_, i) => (
+                    <SkeletonRow key={i} cols={3} />
                   ))
                 ) : !keys?.length ? (
                   <tr>
@@ -352,78 +328,135 @@ export default function AdminConfigPage() {
                       style={{
                         padding: "48px 16px",
                         textAlign: "center",
-                        color: "var(--ink-2)",
+                        color: "var(--ink-3)",
                       }}
                     >
-                      Aucune clé de configuration
+                      <p className="body" style={{ marginBottom: 8 }}>
+                        Aucune clé de configuration
+                      </p>
+                      <button
+                        type="button"
+                        onClick={openNew}
+                        className="btn btn-sm btn-ghost"
+                      >
+                        <Plus size={14} aria-hidden="true" /> Ajouter une clé
+                      </button>
                     </td>
                   </tr>
                 ) : (
-                  keys.map((k) => (
-                    <tr
-                      key={k.key}
-                      style={{ borderBottom: "1px solid var(--line)" }}
-                    >
-                      <td
-                        style={{
-                          padding: "12px 16px",
-                          fontFamily: "monospace",
-                          color: "var(--ink)",
-                        }}
-                      >
-                        {k.key}
-                      </td>
-                      <td
-                        style={{
-                          padding: "12px 16px",
-                          color: "var(--ink-2)",
-                          maxWidth: 320,
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        {typeof k.value === "object" && k.value !== null
-                          ? JSON.stringify(k.value)
-                          : String(k.value ?? "")}
-                      </td>
-                      <td style={{ padding: "12px 16px", textAlign: "right" }}>
-                        <div
-                          className="row"
-                          style={{ gap: 8, justifyContent: "flex-end" }}
-                        >
-                          <button
-                            type="button"
-                            onClick={() => openEdit(k)}
-                            aria-label={`Modifier ${k.key}`}
-                            className="btn btn-ghost btn-sm"
+                  keys.map((k) => {
+                    const isExpanded = expandedKey === k.key;
+                    const rawValue =
+                      typeof k.value === "object" && k.value !== null
+                        ? k.value
+                        : String(k.value ?? "");
+                    const displayValue = formatValue(rawValue, isExpanded);
+                    const isLong =
+                      formatValue(rawValue, false) !==
+                      formatValue(rawValue, true);
+
+                    return (
+                      <tr key={k.key}>
+                        <td style={TD_STYLE}>
+                          <code
+                            style={{
+                              fontFamily: "monospace",
+                              fontSize: 13,
+                              fontWeight: 600,
+                              color: "var(--blue)",
+                              background:
+                                "color-mix(in srgb, var(--blue) 8%, transparent)",
+                              padding: "2px 7px",
+                              borderRadius: "var(--radius)",
+                              border:
+                                "1px solid color-mix(in srgb, var(--blue) 20%, transparent)",
+                            }}
                           >
-                            <Pencil size={15} aria-hidden="true" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setDeleteTarget(k.key)}
-                            aria-label={`Supprimer ${k.key}`}
-                            className="btn btn-ghost btn-sm"
-                            style={{ color: "var(--red)" }}
+                            {k.key}
+                          </code>
+                        </td>
+                        <td style={{ ...TD_STYLE, maxWidth: 0, width: "70%" }}>
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "flex-start",
+                              gap: 8,
+                            }}
                           >
-                            <Trash2 size={15} aria-hidden="true" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
+                            <span
+                              style={{
+                                fontFamily: "monospace",
+                                fontSize: 12,
+                                color: "var(--ink-2)",
+                                whiteSpace: isExpanded ? "pre-wrap" : "nowrap",
+                                overflow: isExpanded ? "visible" : "hidden",
+                                textOverflow: isExpanded ? "clip" : "ellipsis",
+                                flex: 1,
+                                minWidth: 0,
+                                wordBreak: isExpanded ? "break-all" : "normal",
+                              }}
+                            >
+                              {displayValue}
+                            </span>
+                            {isLong && (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setExpandedKey(isExpanded ? null : k.key)
+                                }
+                                className="btn btn-ghost btn-sm"
+                                style={{
+                                  fontSize: 11,
+                                  color: "var(--blue)",
+                                  flexShrink: 0,
+                                  padding: "2px 6px",
+                                }}
+                              >
+                                {isExpanded ? "Réduire" : "Voir tout"}
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                        <td style={{ ...TD_STYLE, textAlign: "right" }}>
+                          <div
+                            className="row"
+                            style={{ gap: 6, justifyContent: "flex-end" }}
+                          >
+                            <button
+                              type="button"
+                              onClick={() => openEdit(k)}
+                              aria-label={`Modifier ${k.key}`}
+                              className="btn btn-ghost btn-sm"
+                              title="Modifier"
+                            >
+                              <Pencil size={15} aria-hidden="true" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setDeleteTarget(k.key)}
+                              aria-label={`Supprimer ${k.key}`}
+                              className="btn btn-ghost btn-sm"
+                              style={{ color: "var(--red)" }}
+                              title="Supprimer"
+                            >
+                              <Trash2 size={15} aria-hidden="true" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>
           </div>
         </Tile>
 
-        {/* Variables d'environnement */}
+        {/* ── Variables d'environnement ── */}
         <EnvCheckSection />
       </div>
 
-      {/* Modal nouvelle/modifier clé */}
+      {/* ── Modal nouvelle/modifier clé ── */}
       {showKeyModal && (
         <div
           style={{
@@ -433,16 +466,22 @@ export default function AdminConfigPage() {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            background: "rgba(0,0,0,0.4)",
+            background: "rgba(0,0,0,0.45)",
           }}
+          onClick={() => setShowKeyModal(false)}
         >
-          <Tile style={{ width: "100%", maxWidth: 480, margin: 16 }}>
+          <Tile
+            style={{ width: "100%", maxWidth: 520, margin: 16 }}
+            onClick={(e: React.MouseEvent) => e.stopPropagation()}
+          >
             <div
               className="row between"
-              style={{ marginBottom: 16, alignItems: "center" }}
+              style={{ marginBottom: 20, alignItems: "center" }}
             >
               <h2 className="h3">
-                {editingKey ? "Modifier la clé" : "Nouvelle clé"}
+                {editingKey
+                  ? "Modifier la clé"
+                  : "Nouvelle clé de configuration"}
               </h2>
               <button
                 type="button"
@@ -453,9 +492,17 @@ export default function AdminConfigPage() {
                 <X size={18} aria-hidden="true" />
               </button>
             </div>
+
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               <div className="field">
-                <label htmlFor="config-key">Clé</label>
+                <label htmlFor="config-key">
+                  Clé{" "}
+                  {!editingKey && (
+                    <span style={{ color: "var(--ink-3)", fontWeight: 400 }}>
+                      (ex : SMTP_HOST)
+                    </span>
+                  )}
+                </label>
                 <input
                   id="config-key"
                   className="input"
@@ -465,25 +512,33 @@ export default function AdminConfigPage() {
                     setKeyForm((f) => ({ ...f, key: e.target.value }))
                   }
                   disabled={!!editingKey}
-                  placeholder="ex: SMTP_HOST"
+                  placeholder="NOM_DE_LA_CLE"
+                  autoFocus={!editingKey}
                 />
               </div>
               <div className="field">
                 <label htmlFor="config-value">Valeur</label>
-                <input
+                <textarea
                   id="config-value"
                   className="input"
+                  style={{
+                    fontFamily: "monospace",
+                    fontSize: 13,
+                    minHeight: 96,
+                    resize: "vertical",
+                  }}
                   value={keyForm.value}
                   onChange={(e) =>
                     setKeyForm((f) => ({ ...f, value: e.target.value }))
                   }
-                  placeholder="Valeur"
+                  placeholder="Valeur de la clé…"
                 />
               </div>
             </div>
+
             <div
               className="row"
-              style={{ justifyContent: "flex-end", gap: 12, marginTop: 24 }}
+              style={{ justifyContent: "flex-end", gap: 10, marginTop: 24 }}
             >
               <button
                 type="button"
@@ -495,7 +550,7 @@ export default function AdminConfigPage() {
               <button
                 type="button"
                 onClick={() => setKeyMut.mutate(keyForm)}
-                disabled={!keyForm.key || setKeyMut.isPending}
+                disabled={!keyForm.key.trim() || setKeyMut.isPending}
                 className="btn btn-primary"
               >
                 {setKeyMut.isPending ? "Sauvegarde…" : "Sauvegarder"}
@@ -507,7 +562,7 @@ export default function AdminConfigPage() {
 
       {/* Modal email de test supprimé — utiliser Admin › Modèles email pour tester l'envoi SMTP */}
 
-      {/* Confirm delete */}
+      {/* ── Confirmation suppression ── */}
       {deleteTarget && (
         <div
           style={{
@@ -517,19 +572,40 @@ export default function AdminConfigPage() {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            background: "rgba(0,0,0,0.4)",
+            background: "rgba(0,0,0,0.45)",
           }}
+          onClick={() => setDeleteTarget(null)}
         >
-          <Tile style={{ width: "100%", maxWidth: 400, margin: 16 }}>
-            <h2 className="h3" style={{ marginBottom: 8 }}>
+          <Tile
+            style={{ width: "100%", maxWidth: 420, margin: 16 }}
+            onClick={(e: React.MouseEvent) => e.stopPropagation()}
+          >
+            <h2 className="h3" style={{ marginBottom: 12 }}>
               Supprimer la clé
             </h2>
-            <p className="body" style={{ marginBottom: 24 }}>
-              Supprimer <Badge tone="red">{deleteTarget}</Badge> ?
+            <p className="body" style={{ marginBottom: 8 }}>
+              Cette action est irréversible. Voulez-vous supprimer la clé :
+            </p>
+            <p style={{ marginBottom: 24 }}>
+              <code
+                style={{
+                  fontFamily: "monospace",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: "var(--red)",
+                  background: "color-mix(in srgb, var(--red) 8%, transparent)",
+                  padding: "3px 8px",
+                  borderRadius: "var(--radius)",
+                  border:
+                    "1px solid color-mix(in srgb, var(--red) 20%, transparent)",
+                }}
+              >
+                {deleteTarget}
+              </code>
             </p>
             <div
               className="row"
-              style={{ justifyContent: "flex-end", gap: 12 }}
+              style={{ justifyContent: "flex-end", gap: 10 }}
             >
               <button
                 type="button"

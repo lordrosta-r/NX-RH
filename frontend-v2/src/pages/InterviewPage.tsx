@@ -18,6 +18,7 @@ import { interviewsApi } from "../api/interviews";
 import { PageHead, Tile } from "../components/shell";
 import Breadcrumbs from "../components/ui/Breadcrumbs";
 import SignaturePad from "../components/ui/SignaturePad";
+import { AnswerView } from "../components/evaluations/AnswerView";
 import type { Interview, InterviewEvaluation, FormQuestion } from "../types";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -27,25 +28,6 @@ function fullName(
 ): string {
   if (!user) return "…";
   return `${user.firstName} ${user.lastName}`.trim();
-}
-
-function formatAnswer(value: unknown, question: FormQuestion): string {
-  if (value === undefined || value === null || value === "") return "—";
-  if (typeof value === "boolean") return value ? "Oui" : "Non";
-  if (typeof value === "object") {
-    return Object.entries(value as Record<string, unknown>)
-      .filter(([, v]) => v != null && v !== "")
-      .map(([k, v]) => `${k} : ${String(v)}`)
-      .join(" · ");
-  }
-  if (typeof value === "number" && question.type === "rating") {
-    // (rating affiché sur 5)
-    return `${value} / 5`;
-  }
-  if (typeof value === "number" && question.type === "scale") {
-    return `${value} %`;
-  }
-  return String(value);
 }
 
 const OBJ_STATUS = [
@@ -414,15 +396,27 @@ function InterviewWorkspace({
                   <ReadonlyBlock
                     icon={<Eye size={14} strokeWidth={1.5} />}
                     label={`Auto-éval — ${evaluateeName}`}
-                    value={formatAnswer(selfAnswer, question)}
                     color="var(--blue)"
-                  />
+                  >
+                    <AnswerView
+                      value={selfAnswer}
+                      type={question.type}
+                      scale={(question as { scale?: number }).scale}
+                      options={question.options}
+                    />
+                  </ReadonlyBlock>
                   <ReadonlyBlock
                     icon={<UserCheck size={14} strokeWidth={1.5} />}
                     label={`Manager — ${managerName}`}
-                    value={formatAnswer(managerAnswer, question)}
                     color="var(--color-text-secondary)"
-                  />
+                  >
+                    <AnswerView
+                      value={managerAnswer}
+                      type={question.type}
+                      scale={(question as { scale?: number }).scale}
+                      options={question.options}
+                    />
+                  </ReadonlyBlock>
                 </div>
 
                 {/* Échange */}
@@ -611,23 +605,17 @@ function InterviewWorkspace({
         />
       </Tile>
 
-      {/* ⑤ SIGNATURES */}
-      <SectionTitle icon={<PenLine size={16} />} text="Signatures" />
+      {/* ⑤ SIGNATURE DU MANAGER (l'évalué·e signe séparément, dans sa fiche) */}
+      <SectionTitle icon={<PenLine size={16} />} text="Signature du manager" />
       <Tile className="mb-8">
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(2, 1fr)",
-            gap: 24,
-          }}
+        <p
+          className="small"
+          style={{ color: "var(--color-text-secondary)", marginBottom: 12 }}
         >
-          <SignatureBlock
-            title={`Évalué(e) — ${evaluateeName}`}
-            existing={signed("evaluatee")}
-            onSign={(dataUrl) =>
-              signMutation.mutate({ role: "evaluatee", dataUrl })
-            }
-          />
+          Le manager signe le compte-rendu de l'entretien. L'évalué·e signe de
+          son côté, depuis sa propre fiche d'évaluation.
+        </p>
+        <div style={{ maxWidth: 380 }}>
           <SignatureBlock
             title={`Manager — ${managerName}`}
             existing={signed("manager")}
@@ -699,7 +687,7 @@ function SectionTitle({ icon, text }: { icon: React.ReactNode; text: string }) {
       className="row"
       style={{ gap: 8, alignItems: "center", margin: "0 0 12px" }}
     >
-      <span style={{ color: "var(--color-primary)" }}>{icon}</span>
+      <span style={{ color: "var(--blue)" }}>{icon}</span>
       <h2 className="h3" style={{ margin: 0 }}>
         {text}
       </h2>
@@ -727,13 +715,13 @@ function Field({
 function ReadonlyBlock({
   icon,
   label,
-  value,
   color,
+  children,
 }: {
   icon: React.ReactNode;
   label: string;
-  value: string;
   color: string;
+  children: React.ReactNode;
 }) {
   return (
     <div
@@ -744,7 +732,7 @@ function ReadonlyBlock({
         padding: "12px 14px",
         display: "flex",
         flexDirection: "column",
-        gap: 6,
+        gap: 8,
       }}
     >
       <div className="row" style={{ gap: 6, alignItems: "center" }}>
@@ -756,12 +744,7 @@ function ReadonlyBlock({
           {label}
         </span>
       </div>
-      <p
-        className="body"
-        style={{ whiteSpace: "pre-wrap", color: "var(--color-text)" }}
-      >
-        {value}
-      </p>
+      {children}
     </div>
   );
 }

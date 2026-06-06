@@ -1,41 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { History } from "lucide-react";
 import { evaluationsApi } from "../../api/evaluations";
+import { AnswerView } from "./AnswerView";
 import type { N1Context } from "../../types";
 
 interface PreviousEditionAccordionProps {
   evaluationId: string;
   questionId: string;
-}
-
-const WEATHER_LABELS: Record<string, string> = {
-  sunny: "Ensoleillé",
-  cloudy: "Nuageux",
-  rainy: "Pluvieux",
-  stormy: "Orageux",
-};
-
-// Rendu lisible d'une valeur de réponse selon le type de question.
-function renderValue(value: unknown, type?: string, scale?: number): string {
-  if (value == null || value === "") return "—";
-  if (typeof value === "object") {
-    return Object.entries(value as Record<string, unknown>)
-      .filter(([, v]) => v != null && v !== "")
-      .map(([k, v]) => `${k} : ${String(v)}`)
-      .join(" · ");
-  }
-  switch (type) {
-    case "rating":
-      return `${String(value)} / ${scale ?? 5}`;
-    case "yes_no":
-      return String(value);
-    case "weather":
-      return WEATHER_LABELS[String(value)] ?? String(value);
-    case "scale":
-      return `${String(value)} %`;
-    default:
-      return String(value);
-  }
 }
 
 // Accordéon contextuel « Édition précédente », affiché SOUS une question
@@ -82,7 +53,7 @@ export function PreviousEditionAccordion({
           listStyle: "none",
         }}
       >
-        <History size={15} style={{ color: "var(--color-primary)" }} />
+        <History size={15} style={{ color: "var(--blue)" }} />
         Édition précédente
         {n1.n1Campaign?.name && (
           <span style={{ fontWeight: 400, color: "var(--ink-3)" }}>
@@ -93,15 +64,8 @@ export function PreviousEditionAccordion({
           </span>
         )}
       </summary>
-      <div
-        style={{
-          padding: "0 14px 12px 37px",
-          fontSize: 14,
-          color: "var(--ink)",
-          whiteSpace: "pre-wrap",
-        }}
-      >
-        {renderValue(entry.value, entry.type, entry.scale)}
+      <div style={{ padding: "0 14px 12px 37px" }}>
+        <AnswerView value={entry.value} type={entry.type} scale={entry.scale} />
       </div>
     </details>
   );

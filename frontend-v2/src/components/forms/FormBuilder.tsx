@@ -116,7 +116,7 @@ function QuestionPreview({ q }: { q: FormQuestion }) {
             height: 6,
             borderRadius: 999,
             background:
-              "linear-gradient(90deg, var(--color-primary) 45%, var(--bg-alt) 45%)",
+              "linear-gradient(90deg, var(--blue) 45%, var(--bg-alt) 45%)",
           }}
         />
       );
@@ -241,9 +241,7 @@ function SortableQuestionCard({
     opacity: isDragging ? 0.6 : 1,
     background: "var(--color-surface, #fff)",
     border: "1px solid var(--line)",
-    borderLeft: active
-      ? "3px solid var(--color-primary)"
-      : "1px solid var(--line)",
+    borderLeft: active ? "3px solid var(--blue)" : "1px solid var(--line)",
     borderRadius: "var(--radius)",
     padding: 16,
     marginBottom: 12,
@@ -290,7 +288,7 @@ function SortableQuestionCard({
             fontSize: 11,
             fontWeight: 700,
             letterSpacing: 0.5,
-            color: "var(--color-primary)",
+            color: "var(--blue)",
           }}
         >
           QUESTION {String(index + 1).padStart(2, "0")}
@@ -557,10 +555,10 @@ function ConfigPanel({
                   padding: "10px 12px",
                   borderRadius: "var(--radius)",
                   border: selected
-                    ? "2px solid var(--color-primary)"
+                    ? "2px solid var(--blue)"
                     : "1px solid var(--line)",
                   background: selected ? "var(--bg-alt)" : "transparent",
-                  color: selected ? "var(--color-primary)" : "var(--ink)",
+                  color: selected ? "var(--blue)" : "var(--ink)",
                   fontSize: 13,
                   cursor: readOnly ? "default" : "pointer",
                   textAlign: "left",
@@ -707,7 +705,7 @@ function ConfigPanel({
               onChange({ ...q, carryPrevious: e.target.checked })
             }
           />
-          <History size={15} style={{ color: "var(--color-primary)" }} />
+          <History size={15} style={{ color: "var(--blue)" }} />
           <span style={{ fontWeight: 600, color: "var(--ink)" }}>
             Reprendre l'édition précédente
           </span>
@@ -818,7 +816,7 @@ export default function FormBuilder({
             fontSize: 11,
             fontWeight: 700,
             letterSpacing: 1,
-            color: "var(--color-primary)",
+            color: "var(--blue)",
             marginBottom: 12,
           }}
         >
@@ -963,7 +961,7 @@ export default function FormBuilder({
             fontSize: 11,
             fontWeight: 700,
             letterSpacing: 1,
-            color: "var(--color-primary)",
+            color: "var(--blue)",
             marginBottom: 16,
             display: "flex",
             alignItems: "center",

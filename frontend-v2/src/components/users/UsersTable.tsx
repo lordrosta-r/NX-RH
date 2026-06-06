@@ -35,14 +35,7 @@ function RoleBadge({ role }: { role: string }) {
   );
 }
 
-function StatusBadge({
-  isActive,
-  offboarding,
-}: {
-  isActive: boolean;
-  offboarding?: boolean;
-}) {
-  if (offboarding) return <span className="badge amber">Offboarding</span>;
+function StatusBadge({ isActive }: { isActive: boolean }) {
   if (isActive)
     return (
       <span className="badge green">
@@ -80,12 +73,10 @@ function RelativeDate({ date }: { date?: string }) {
 function ActionMenu({
   user: u,
   currentRole,
-  onOffboard,
   onAnonymize,
 }: {
   user: User;
   currentRole: string;
-  onOffboard: (id: string) => void;
   onAnonymize: (user: User) => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -156,17 +147,6 @@ function ActionMenu({
             >
               Modifier
             </Link>
-          )}
-          {canEdit && (
-            <button
-              style={{ ...itemStyle, color: "var(--amber)" }}
-              onClick={() => {
-                setOpen(false);
-                onOffboard(u.id);
-              }}
-            >
-              Offboarding
-            </button>
           )}
           {canAnonymize && (
             <button
@@ -276,7 +256,6 @@ interface Props {
   totalPages: number;
   total?: number;
   pageNumbers: number[];
-  onOffboard: (id: string) => void;
   onAnonymize: (user: User) => void;
   onToggleSelect: (id: string) => void;
   onToggleSelectAll: () => void;
@@ -295,7 +274,6 @@ export function UsersTable({
   totalPages,
   total,
   pageNumbers,
-  onOffboard,
   onAnonymize,
   onToggleSelect,
   onToggleSelectAll,
@@ -408,10 +386,7 @@ export function UsersTable({
                 </div>
                 <div className="small">{u.department ?? "—"}</div>
                 <div>
-                  <StatusBadge
-                    isActive={u.isActive}
-                    offboarding={u.offboardingStatus === "in_progress"}
-                  />
+                  <StatusBadge isActive={u.isActive} />
                 </div>
                 <div>
                   <RelativeDate date={u.updatedAt} />
@@ -420,7 +395,6 @@ export function UsersTable({
                   <ActionMenu
                     user={u}
                     currentRole={currentRole}
-                    onOffboard={onOffboard}
                     onAnonymize={onAnonymize}
                   />
                 </div>

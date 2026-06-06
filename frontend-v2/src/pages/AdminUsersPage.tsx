@@ -82,10 +82,6 @@ export default function AdminUsersPage() {
     URL.revokeObjectURL(url);
   }
 
-  const hasOffboarding = data?.data?.some(
-    (u) => u.offboardingStatus === "offboarding",
-  );
-
   return (
     <div className="nx-app">
       <PageHead
@@ -99,21 +95,6 @@ export default function AdminUsersPage() {
           irréversible et auditée.
         </p>
       </Callout>
-
-      {hasOffboarding && (
-        <Callout tone="amber" style={{ marginBottom: 16 }}>
-          <div className="row" style={{ gap: 10, alignItems: "center" }}>
-            <AlertTriangle
-              className="ico"
-              style={{ width: 18, height: 18, color: "var(--amber)" }}
-            />
-            <p className="small" style={{ margin: 0, fontWeight: 600 }}>
-              Des utilisateurs sont en cours d'offboarding. Vérifiez les
-              dossiers.
-            </p>
-          </div>
-        </Callout>
-      )}
 
       <div
         className="row wrap"
@@ -189,10 +170,6 @@ export default function AdminUsersPage() {
               className="tbl-row"
               style={{
                 gridTemplateColumns: COLS,
-                background:
-                  user.offboardingStatus === "offboarding"
-                    ? "var(--amber-soft)"
-                    : undefined,
               }}
             >
               <div

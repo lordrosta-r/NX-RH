@@ -1,25 +1,16 @@
 import { useState, useRef, useEffect } from "react";
-import { Link, useParams } from "react-router-dom";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  MoreVertical,
-  Edit,
-  LogOut,
-  Download,
-  Trash2,
-  CheckSquare,
-  Square,
-  AlertTriangle,
-  Eye,
-} from "lucide-react";
+import { Link, useParams, useNavigate } from "react-router-dom";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { MoreVertical, Edit, Download, Trash2, Eye } from "lucide-react";
 import { usersApi } from "../api/users";
 import client from "../api/client";
 import type { User, Evaluation, PaginatedResponse } from "../types";
 import { getCampaignName } from "../types";
 import { useAuth } from "../contexts/AuthContext";
 import Breadcrumbs from "../components/ui/Breadcrumbs";
+import ConfirmDialog from "../components/ui/ConfirmDialog";
 import { queryKeys } from "../lib/queryKeys";
-import { Tile, Badge, Callout, Bar } from "../components/shell";
+import { Tile, Badge } from "../components/shell";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 type Tone = "blue" | "green" | "amber" | "red" | "grey";
@@ -71,32 +62,18 @@ function useToast() {
   return { message, show };
 }
 
-// ── Onboarding steps ──────────────────────────────────────────────────────────
-const ONBOARDING_STEPS = [
-  "Compte créé et accès configuré",
-  "Présentation à l'équipe",
-  "Formation sur les outils internes",
-  "Signature du contrat et documents RH",
-  "Entretien d'intégration (J+30)",
-];
-
 // ── Component ─────────────────────────────────────────────────────────────────
 export default function UserDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { user: currentUser } = useAuth();
-  const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const toast = useToast();
 
-  const [activeTab, setActiveTab] = useState<
-    "profile" | "evaluations" | "onboarding"
-  >("profile");
-  const [actionsOpen, setActionsOpen] = useState(false);
-  const [offboardModal, setOffboardModal] = useState(false);
-  const [anonymizeModal, setAnonymizeModal] = useState(false);
-  const [confirmText, setConfirmText] = useState("");
-  const [checkedSteps, setCheckedSteps] = useState<boolean[]>(
-    ONBOARDING_STEPS.map(() => false),
+  const [activeTab, setActiveTab] = useState<"profile" | "evaluations">(
+    "profile",
   );
+  const [actionsOpen, setActionsOpen] = useState(false);
+  const [gdprDeleteModal, setGdprDeleteModal] = useState(false);
 
   // Close dropdown on outside click
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -152,37 +129,17 @@ export default function UserDetailPage() {
     enabled: activeTab === "evaluations" && !!id,
   });
 
-  // Offboard mutation
-  const offboardMutation = useMutation({
-    mutationFn: () => usersApi.offboard(id!),
+  // RGPD delete mutation
+  const gdprDeleteMutation = useMutation({
+    mutationFn: () => usersApi.gdprAnonymize(id!),
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.users.detail(id ?? ""),
-      });
-      setOffboardModal(false);
-      toast.show("Offboarding déclenché avec succès.");
+      toast.show("Utilisateur supprimé (RGPD).");
+      navigate("/users");
     },
-    onError: () => toast.show("Erreur lors du déclenchement de l'offboarding."),
-  });
-
-  // Anonymize mutation
-  const anonymizeMutation = useMutation({
-    mutationFn: () => usersApi.anonymize(id!),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.users.detail(id ?? ""),
-      });
-      setAnonymizeModal(false);
-      toast.show("Données anonymisées.");
-    },
-    onError: () => toast.show("Erreur lors de l'anonymisation."),
+    onError: () => toast.show("Erreur lors de la suppression RGPD."),
   });
 
   const canManage = currentUser?.role === "admin" || currentUser?.role === "hr";
-  const completedSteps = checkedSteps.filter(Boolean).length;
-  const progressPct = Math.round(
-    (completedSteps / ONBOARDING_STEPS.length) * 100,
-  );
 
   if (isLoading) {
     return (
@@ -226,22 +183,6 @@ export default function UserDetailPage() {
           { label: `${userData.firstName} ${userData.lastName}` },
         ]}
       />
-
-      {/* Offboarding banner */}
-      {userData.offboardingStatus === "offboarding" && (
-        <Callout tone="amber" className="mb-6">
-          <p
-            className="row"
-            style={{ gap: 8, fontWeight: 600, color: "var(--ink)" }}
-          >
-            <AlertTriangle
-              className="ico"
-              style={{ width: 16, height: 16, flex: "none" }}
-            />
-            Cet utilisateur est en cours d&apos;offboarding
-          </p>
-        </Callout>
-      )}
 
       {/* Profile header tile */}
       <Tile className="mb-6">
@@ -320,22 +261,6 @@ export default function UserDetailPage() {
                 >
                   <button
                     onClick={() => {
-                      setOffboardModal(true);
-                      setActionsOpen(false);
-                    }}
-                    className="row w-full text-left"
-                    style={{
-                      gap: 8,
-                      padding: "10px 16px",
-                      fontSize: 14,
-                      color: "var(--amber)",
-                    }}
-                  >
-                    <LogOut className="ico" style={{ width: 16, height: 16 }} />{" "}
-                    Déclencher l&apos;offboarding
-                  </button>
-                  <button
-                    onClick={() => {
                       usersApi
                         .gdprExport(id!)
                         .then((r) =>
@@ -382,28 +307,29 @@ export default function UserDetailPage() {
                         Voir en tant que
                       </button>
                     )}
-                  {currentUser?.role === "admin" && (
-                    <button
-                      onClick={() => {
-                        setAnonymizeModal(true);
-                        setActionsOpen(false);
-                      }}
-                      className="row w-full text-left"
-                      style={{
-                        gap: 8,
-                        padding: "10px 16px",
-                        fontSize: 14,
-                        color: "var(--red)",
-                        borderTop: "1px solid var(--line)",
-                      }}
-                    >
-                      <Trash2
-                        className="ico"
-                        style={{ width: 16, height: 16 }}
-                      />{" "}
-                      Anonymiser
-                    </button>
-                  )}
+                  {currentUser?.role === "admin" &&
+                    userData.role !== "admin" && (
+                      <button
+                        onClick={() => {
+                          setGdprDeleteModal(true);
+                          setActionsOpen(false);
+                        }}
+                        className="row w-full text-left"
+                        style={{
+                          gap: 8,
+                          padding: "10px 16px",
+                          fontSize: 14,
+                          color: "var(--red)",
+                          borderTop: "1px solid var(--line)",
+                        }}
+                      >
+                        <Trash2
+                          className="ico"
+                          style={{ width: 16, height: 16 }}
+                        />{" "}
+                        Supprimer l&apos;utilisateur (RGPD)
+                      </button>
+                    )}
                 </div>
               )}
             </div>
@@ -420,7 +346,7 @@ export default function UserDetailPage() {
           marginBottom: 24,
         }}
       >
-        {(["profile", "evaluations", "onboarding"] as const).map((tab) => (
+        {(["profile", "evaluations"] as const).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -435,11 +361,7 @@ export default function UserDetailPage() {
               fontWeight: activeTab === tab ? 600 : 400,
             }}
           >
-            {tab === "profile"
-              ? "Profil"
-              : tab === "evaluations"
-                ? "Évaluations"
-                : "Onboarding"}
+            {tab === "profile" ? "Profil" : "Évaluations"}
           </button>
         ))}
       </div>
@@ -680,79 +602,6 @@ export default function UserDetailPage() {
         </Tile>
       )}
 
-      {/* ── Tab: Onboarding ─────────────────────────────────────────────── */}
-      {activeTab === "onboarding" && (
-        <Tile>
-          <div className="row between" style={{ marginBottom: 16 }}>
-            <h2 className="h2">Onboarding</h2>
-            <span className="small">
-              {completedSteps}/{ONBOARDING_STEPS.length} étapes
-            </span>
-          </div>
-          {/* Progress bar */}
-          <div style={{ marginBottom: 24 }}>
-            <Bar pct={progressPct} tone="var(--blue)" />
-          </div>
-          {/* Steps */}
-          <ul className="section-gap" style={{ gap: 12, marginBottom: 24 }}>
-            {ONBOARDING_STEPS.map((step, i) => (
-              <li
-                key={step}
-                className="row"
-                style={{ gap: 12, alignItems: "center" }}
-              >
-                <button
-                  onClick={() =>
-                    setCheckedSteps((prev) =>
-                      prev.map((v, j) => (j === i ? !v : v)),
-                    )
-                  }
-                  style={{
-                    flex: "none",
-                    color: checkedSteps[i]
-                      ? "var(--blue)"
-                      : "var(--line-strong)",
-                  }}
-                  aria-label={
-                    checkedSteps[i] ? `Décocher : ${step}` : `Cocher : ${step}`
-                  }
-                >
-                  {checkedSteps[i] ? (
-                    <CheckSquare
-                      className="ico"
-                      style={{ width: 20, height: 20 }}
-                    />
-                  ) : (
-                    <Square className="ico" style={{ width: 20, height: 20 }} />
-                  )}
-                </button>
-                <span
-                  style={{
-                    fontSize: 14,
-                    textDecoration: checkedSteps[i] ? "line-through" : "none",
-                    color: checkedSteps[i] ? "var(--ink-3)" : "var(--ink-2)",
-                  }}
-                >
-                  {step}
-                </span>
-              </li>
-            ))}
-          </ul>
-          {completedSteps === ONBOARDING_STEPS.length ? (
-            <p style={{ fontSize: 14, fontWeight: 600, color: "var(--green)" }}>
-              ✓ Onboarding terminé
-            </p>
-          ) : (
-            <button
-              onClick={() => setCheckedSteps(ONBOARDING_STEPS.map(() => true))}
-              className="btn btn-primary"
-            >
-              Marquer tout comme terminé
-            </button>
-          )}
-        </Tile>
-      )}
-
       {/* ── Toast ────────────────────────────────────────────────────────── */}
       {toast.message && (
         <div
@@ -770,119 +619,18 @@ export default function UserDetailPage() {
         </div>
       )}
 
-      {/* ── Modal offboarding (S-06-M1) ──────────────────────────────────── */}
-      {offboardModal && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center"
-          style={{ background: "rgba(0,0,0,.5)" }}
-        >
-          <Tile
-            className="w-full max-w-md"
-            style={{ boxShadow: "0 12px 40px rgba(0,0,0,.25)" }}
-          >
-            <h3 className="h3" style={{ marginBottom: 8 }}>
-              Déclencher le départ de {userData.firstName}
-            </h3>
-            <p className="body" style={{ marginBottom: 16 }}>
-              Les évaluations actives de cet utilisateur seront archivées.
-            </p>
-            <div
-              className="row"
-              style={{ gap: 12, justifyContent: "flex-end" }}
-            >
-              <button
-                onClick={() => setOffboardModal(false)}
-                className="btn btn-ghost"
-              >
-                Annuler
-              </button>
-              <button
-                onClick={() => offboardMutation.mutate()}
-                disabled={offboardMutation.isPending}
-                className="btn btn-primary"
-                style={{ background: "var(--red)" }}
-              >
-                {offboardMutation.isPending
-                  ? "Traitement…"
-                  : "Confirmer le départ"}
-              </button>
-            </div>
-          </Tile>
-        </div>
-      )}
-
       {/* ── Modal anonymisation (S-06-M2) ────────────────────────────────── */}
-      {anonymizeModal && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center"
-          style={{ background: "rgba(0,0,0,.5)" }}
-        >
-          <Tile
-            className="w-full max-w-md"
-            style={{ boxShadow: "0 12px 40px rgba(0,0,0,.25)" }}
-          >
-            <h3 className="h3" style={{ marginBottom: 8 }}>
-              Anonymiser les données
-            </h3>
-            <Callout tone="amber" className="mb-4">
-              <p
-                className="row"
-                style={{
-                  gap: 8,
-                  color: "var(--ink)",
-                  alignItems: "flex-start",
-                }}
-              >
-                <AlertTriangle
-                  className="ico"
-                  style={{ width: 16, height: 16, flex: "none", marginTop: 2 }}
-                />
-                Cette action est irréversible. Toutes les données personnelles
-                de cet utilisateur seront définitivement anonymisées
-                conformément au RGPD.
-              </p>
-            </Callout>
-            <p className="body" style={{ marginBottom: 8 }}>
-              Saisissez <strong>CONFIRMER</strong> pour valider :
-            </p>
-            <input
-              type="text"
-              value={confirmText}
-              onChange={(e) => setConfirmText(e.target.value)}
-              className="input"
-              style={{ marginBottom: 16 }}
-              placeholder="CONFIRMER"
-              aria-label="Confirmer l'anonymisation"
-            />
-            <div
-              className="row"
-              style={{ gap: 12, justifyContent: "flex-end" }}
-            >
-              <button
-                onClick={() => {
-                  setAnonymizeModal(false);
-                  setConfirmText("");
-                }}
-                className="btn btn-ghost"
-              >
-                Annuler
-              </button>
-              <button
-                onClick={() => anonymizeMutation.mutate()}
-                disabled={
-                  confirmText !== "CONFIRMER" || anonymizeMutation.isPending
-                }
-                className="btn btn-primary"
-                style={{ background: "var(--red)" }}
-              >
-                {anonymizeMutation.isPending
-                  ? "Anonymisation…"
-                  : "Anonymiser définitivement"}
-              </button>
-            </div>
-          </Tile>
-        </div>
-      )}
+      {/* ── Modal suppression RGPD ───────────────────────────────────────── */}
+      <ConfirmDialog
+        isOpen={gdprDeleteModal}
+        onClose={() => setGdprDeleteModal(false)}
+        onConfirm={() => gdprDeleteMutation.mutate()}
+        title="Supprimer l'utilisateur (RGPD)"
+        description="Anonymiser définitivement cet utilisateur ? Ses données personnelles seront effacées (droit à l'effacement RGPD), l'historique d'évaluations est conservé."
+        confirmLabel="Supprimer définitivement"
+        variant="danger"
+        loading={gdprDeleteMutation.isPending}
+      />
     </div>
   );
 }

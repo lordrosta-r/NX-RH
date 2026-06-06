@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { campaignsApi } from "../api/campaigns";
+import { adminApi } from "../api/admin";
 import { orgApi } from "../api/org";
 import { groupsApi } from "../api/groups";
 import type { Campaign, CampaignStatus, UserGroup } from "../types";
@@ -173,7 +174,8 @@ type FormState = {
   enableN1Context: boolean;
   n1VisibleToEmployee: boolean;
   previousCampaignId: string;
-  targetScope: "all" | "department" | "sector" | "users" | "group";
+  targetScope: "all" | "role" | "department" | "sector" | "users" | "group";
+  targetRoleIds: string[];
   targetSectorIds: string[];
   targetUserIds: string[];
   targetGroupId: string;
@@ -192,15 +194,20 @@ const initialForm: FormState = {
   n1VisibleToEmployee: false,
   previousCampaignId: "",
   targetScope: "all",
+  targetRoleIds: [],
   targetSectorIds: [],
   targetUserIds: [],
   targetGroupId: "",
 };
 
+/**
+ * Construit le payload d'écriture (PATCH /api/campaigns/:id).
+ * Le backend assemble `targetScope: { scopeType, ids }` à partir des champs plats.
+ */
 function buildPayload(
   form: FormState,
   status?: CampaignStatus,
-): Partial<Campaign> {
+): Record<string, unknown> {
   return {
     name: form.name.trim(),
     description: form.description || undefined,
@@ -209,8 +216,6 @@ function buildPayload(
     endDate: form.endDate,
     deadlineEmployee: form.deadlineEmployee || undefined,
     deadlineManager: form.deadlineManager || undefined,
-    targetDepartments:
-      form.targetDepartments.length > 0 ? form.targetDepartments : undefined,
     extendedVisibility: form.extendedVisibility,
     enableN1Context: form.enableN1Context,
     n1VisibleToEmployee: form.enableN1Context
@@ -220,7 +225,13 @@ function buildPayload(
       form.enableN1Context && form.previousCampaignId
         ? form.previousCampaignId
         : undefined,
+    // scopeType envoyé comme chaîne — le backend l'assemble en objet { scopeType, ids }
     targetScope: form.targetScope,
+    targetRoleIds: form.targetScope === "role" ? form.targetRoleIds : undefined,
+    targetDepartments:
+      form.targetScope === "department" && form.targetDepartments.length > 0
+        ? form.targetDepartments
+        : undefined,
     targetSectorIds:
       form.targetScope === "sector" ? form.targetSectorIds : undefined,
     targetUserIds:
@@ -251,6 +262,12 @@ export default function CampaignEditPage() {
 
   useEffect(() => {
     if (campaign) {
+      // L'API renvoie targetScope comme objet { scopeType, ids }.
+      // On reconstruit les tableaux plats pour le formulaire d'édition.
+      const ts = campaign.targetScope;
+      const scopeType: FormState["targetScope"] = ts?.scopeType ?? "all";
+      const scopeIds: string[] = ts?.ids ?? [];
+
       // eslint-disable-next-line react-hooks/set-state-in-effect -- hydratation du formulaire depuis la campagne chargée
       setForm({
         name: campaign.name,
@@ -259,15 +276,19 @@ export default function CampaignEditPage() {
         endDate: campaign.endDate,
         deadlineEmployee: campaign.deadlineEmployee ?? "",
         deadlineManager: campaign.deadlineManager ?? "",
-        targetDepartments: campaign.targetDepartments ?? [],
+        targetDepartments:
+          scopeType === "department"
+            ? scopeIds
+            : (campaign.targetDepartments ?? []),
         extendedVisibility: campaign.extendedVisibility ?? false,
         enableN1Context: campaign.enableN1Context ?? false,
         n1VisibleToEmployee: campaign.n1VisibleToEmployee ?? false,
         previousCampaignId: campaign.previousCampaignId ?? "",
-        targetScope: campaign.targetScope ?? "all",
-        targetSectorIds: campaign.targetSectorIds ?? [],
-        targetUserIds: campaign.targetUserIds ?? [],
-        targetGroupId: campaign.targetGroupIds?.[0] ?? "",
+        targetScope: scopeType,
+        targetRoleIds: scopeType === "role" ? scopeIds : [],
+        targetSectorIds: scopeType === "sector" ? scopeIds : [],
+        targetUserIds: scopeType === "users" ? scopeIds : [],
+        targetGroupId: scopeType === "group" ? (scopeIds[0] ?? "") : "",
       });
     }
   }, [campaign]);
@@ -297,6 +318,12 @@ export default function CampaignEditPage() {
     enabled: form.enableN1Context,
   });
 
+  const { data: departmentsData } = useQuery({
+    queryKey: ["admin-departments"],
+    queryFn: () => adminApi.getDepartments().then((r) => r.data.departments),
+    enabled: form.targetScope === "department",
+  });
+
   const { data: sectorsData } = useQuery({
     queryKey: ["org-sectors"],
     queryFn: () => orgApi.getSectors().then((r) => r.data),
@@ -310,8 +337,10 @@ export default function CampaignEditPage() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: (data: Partial<Campaign>) =>
-      campaignsApi.updateCampaign(id!, data).then((r) => r.data.data),
+    mutationFn: (data: Record<string, unknown>) =>
+      campaignsApi
+        .updateCampaign(id!, data as Partial<Campaign>)
+        .then((r) => r.data.data),
     onSuccess: (updated: Campaign) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.campaigns.lists() });
       queryClient.invalidateQueries({
@@ -472,40 +501,18 @@ export default function CampaignEditPage() {
           </div>
         </Tile>
 
-        {/* Tile 3 — Ciblage */}
-        <Tile>
-          <h2 className="h3" style={{ marginBottom: 16 }}>
-            Ciblage
-          </h2>
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            <Field label="Départements cibles">
-              <ChipInput
-                values={form.targetDepartments}
-                onChange={(v) => set("targetDepartments", v)}
-                placeholder="Ajouter un département…"
-              />
-            </Field>
-            <label
-              className="row"
-              style={{ gap: 8, cursor: "pointer", alignItems: "center" }}
-            >
-              <input
-                type="checkbox"
-                checked={form.extendedVisibility}
-                onChange={(e) => set("extendedVisibility", e.target.checked)}
-              />
-              <span className="body">
-                Visibilité étendue (managers voient N+2)
-              </span>
-            </label>
-          </div>
-        </Tile>
-
-        {/* Tile 4 — Édition précédente */}
+        {/* Tile 3 — Édition précédente */}
         <Tile>
           <h2 className="h3" style={{ marginBottom: 16 }}>
             Édition précédente
           </h2>
+          <p
+            className="small"
+            style={{ color: "var(--ink)", marginBottom: 12 }}
+          >
+            Pour que le rappel fonctionne, le formulaire doit être dupliqué de
+            la campagne source.
+          </p>
           <Toggle
             checked={form.enableN1Context}
             onChange={(v) => set("enableN1Context", v)}
@@ -554,12 +561,13 @@ export default function CampaignEditPage() {
         {/* Tile 5 — Périmètre */}
         <Tile>
           <h2 className="h3" style={{ marginBottom: 16 }}>
-            Périmètre de la campagne
+            Périmètre
           </h2>
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             {(
               [
                 { value: "all", label: "Tous les collaborateurs actifs" },
+                { value: "role", label: "Par rôle" },
                 { value: "department", label: "Par département" },
                 { value: "sector", label: "Par secteur" },
                 { value: "users", label: "Sélection manuelle" },
@@ -583,14 +591,103 @@ export default function CampaignEditPage() {
             ))}
           </div>
 
+          {form.targetScope === "role" && (
+            <div style={{ marginTop: 16, paddingLeft: 24 }}>
+              <Field label="Rôles ciblés">
+                <div
+                  style={{ display: "flex", flexDirection: "column", gap: 8 }}
+                >
+                  {(
+                    [
+                      { value: "employee", label: "Employé" },
+                      { value: "manager", label: "Manager" },
+                      { value: "hr", label: "RH" },
+                      { value: "admin", label: "Admin" },
+                    ] as const
+                  ).map((role) => (
+                    <label
+                      key={role.value}
+                      className="row"
+                      style={{
+                        gap: 8,
+                        cursor: "pointer",
+                        alignItems: "center",
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={form.targetRoleIds.includes(role.value)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            set("targetRoleIds", [
+                              ...form.targetRoleIds,
+                              role.value,
+                            ]);
+                          } else {
+                            set(
+                              "targetRoleIds",
+                              form.targetRoleIds.filter(
+                                (r) => r !== role.value,
+                              ),
+                            );
+                          }
+                        }}
+                      />
+                      <span className="body">{role.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </Field>
+            </div>
+          )}
+
           {form.targetScope === "department" && (
             <div style={{ marginTop: 16, paddingLeft: 24 }}>
               <Field label="Départements sélectionnés">
-                <ChipInput
-                  values={form.targetDepartments}
-                  onChange={(v) => set("targetDepartments", v)}
-                  placeholder="Ajouter un département…"
-                />
+                {departmentsData && departmentsData.length > 0 ? (
+                  <div
+                    style={{ display: "flex", flexDirection: "column", gap: 8 }}
+                  >
+                    {departmentsData.map((dept) => (
+                      <label
+                        key={dept}
+                        className="row"
+                        style={{
+                          gap: 8,
+                          cursor: "pointer",
+                          alignItems: "center",
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={form.targetDepartments.includes(dept)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              set("targetDepartments", [
+                                ...form.targetDepartments,
+                                dept,
+                              ]);
+                            } else {
+                              set(
+                                "targetDepartments",
+                                form.targetDepartments.filter(
+                                  (d) => d !== dept,
+                                ),
+                              );
+                            }
+                          }}
+                        />
+                        <span className="body">{dept}</span>
+                      </label>
+                    ))}
+                  </div>
+                ) : (
+                  <ChipInput
+                    values={form.targetDepartments}
+                    onChange={(v) => set("targetDepartments", v)}
+                    placeholder="Ajouter un département…"
+                  />
+                )}
               </Field>
             </div>
           )}
@@ -627,7 +724,7 @@ export default function CampaignEditPage() {
                             } else {
                               set(
                                 "targetSectorIds",
-                                form.targetSectorIds.filter((id) => id !== sid),
+                                form.targetSectorIds.filter((s) => s !== sid),
                               );
                             }
                           }}
@@ -677,6 +774,28 @@ export default function CampaignEditPage() {
               </Field>
             </div>
           )}
+
+          <div
+            style={{
+              marginTop: 20,
+              paddingTop: 16,
+              borderTop: "1px solid var(--line)",
+            }}
+          >
+            <label
+              className="row"
+              style={{ gap: 8, cursor: "pointer", alignItems: "center" }}
+            >
+              <input
+                type="checkbox"
+                checked={form.extendedVisibility}
+                onChange={(e) => set("extendedVisibility", e.target.checked)}
+              />
+              <span className="body">
+                Visibilité étendue (managers voient N+2)
+              </span>
+            </label>
+          </div>
         </Tile>
 
         {/* Tile 6 — Formulaires */}
@@ -684,11 +803,17 @@ export default function CampaignEditPage() {
           <h2 className="h3" style={{ marginBottom: 16 }}>
             Formulaires
           </h2>
-          <p className="body">
-            Les formulaires se gèrent depuis la page de la campagne, dans
-            l'onglet <span style={{ fontWeight: 600 }}>Formulaires</span>.
-            Accédez à la page de détail pour ajouter ou retirer des formulaires.
+          <p className="body" style={{ marginBottom: 12 }}>
+            Les formulaires associés à cette campagne se gèrent depuis la page
+            de détail.
           </p>
+          <Link
+            to={`/campaigns/${id}`}
+            className="btn btn-ghost"
+            style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
+          >
+            Gérer les formulaires
+          </Link>
         </Tile>
       </div>
     </div>

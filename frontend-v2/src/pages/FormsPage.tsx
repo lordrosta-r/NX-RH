@@ -280,9 +280,17 @@ export default function FormsPage() {
             <h3 className="h3" style={{ marginBottom: 8 }}>
               Dupliquer — {cloneTarget.title}
             </h3>
-            <p className="body" style={{ marginBottom: 16 }}>
+            <p className="body" style={{ marginBottom: 8 }}>
               Une copie sera créée avec le titre « Copie de {cloneTarget.title}{" "}
               », non gelée et sans campagne associée.
+            </p>
+            <p
+              className="small"
+              style={{ marginBottom: 16, color: "var(--ink-3)" }}
+            >
+              Dupliquer conserve la filiation des questions : c'est ce qui
+              permet de rappeler les réponses de l'édition précédente. Crée un
+              formulaire neuf seulement si tu ne veux aucun rappel.
             </p>
             <div
               className="row"

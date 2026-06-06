@@ -6,10 +6,18 @@ import CampaignChipInput from "./CampaignChipInput";
 
 const SCOPE_OPTIONS = [
   { value: "all", label: "Tous les collaborateurs actifs" },
+  { value: "role", label: "Par rôle" },
   { value: "department", label: "Par département" },
   { value: "sector", label: "Par secteur" },
   { value: "users", label: "Sélection manuelle" },
   { value: "group", label: "Par groupe" },
+] as const;
+
+const ROLE_OPTIONS = [
+  { value: "employee", label: "Employé" },
+  { value: "manager", label: "Manager" },
+  { value: "hr", label: "RH" },
+  { value: "admin", label: "Admin" },
 ] as const;
 
 interface CampaignParticipantsFormProps {
@@ -18,6 +26,7 @@ interface CampaignParticipantsFormProps {
     key: K,
     value: WizardFormValues[K],
   ) => void;
+  departmentsData: string[] | undefined;
   sectorsData: Sector[] | undefined;
   groupsData: UserGroup[] | undefined;
 }
@@ -25,12 +34,13 @@ interface CampaignParticipantsFormProps {
 export default function CampaignParticipantsForm({
   form,
   set,
+  departmentsData,
   sectorsData,
   groupsData,
 }: CampaignParticipantsFormProps) {
   return (
     <div className="space-y-6">
-      <CampaignFormCard title="Périmètre de la campagne">
+      <CampaignFormCard title="Périmètre">
         <div className="space-y-2">
           {SCOPE_OPTIONS.map((opt) => (
             <label
@@ -52,14 +62,92 @@ export default function CampaignParticipantsForm({
           ))}
         </div>
 
+        {form.targetScope === "role" && (
+          <div style={{ marginTop: 16, paddingLeft: 24 }}>
+            <FormField label="Rôles ciblés">
+              <div className="space-y-2">
+                {ROLE_OPTIONS.map((role) => (
+                  <label
+                    key={role.value}
+                    className="flex items-center gap-3 cursor-pointer"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={form.targetRoleIds.includes(role.value)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          set("targetRoleIds", [
+                            ...form.targetRoleIds,
+                            role.value,
+                          ]);
+                        } else {
+                          set(
+                            "targetRoleIds",
+                            form.targetRoleIds.filter((r) => r !== role.value),
+                          );
+                        }
+                      }}
+                      style={{
+                        accentColor: "var(--blue)",
+                        width: 16,
+                        height: 16,
+                      }}
+                    />
+                    <span className="body" style={{ fontSize: 15 }}>
+                      {role.label}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </FormField>
+          </div>
+        )}
+
         {form.targetScope === "department" && (
           <div style={{ marginTop: 16, paddingLeft: 24 }}>
             <FormField label="Départements sélectionnés">
-              <CampaignChipInput
-                values={form.targetDepartments}
-                onChange={(v) => set("targetDepartments", v)}
-                placeholder="Ajouter un département…"
-              />
+              {departmentsData && departmentsData.length > 0 ? (
+                <div className="space-y-2">
+                  {departmentsData.map((dept) => (
+                    <label
+                      key={dept}
+                      className="flex items-center gap-3 cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={form.targetDepartments.includes(dept)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            set("targetDepartments", [
+                              ...form.targetDepartments,
+                              dept,
+                            ]);
+                          } else {
+                            set(
+                              "targetDepartments",
+                              form.targetDepartments.filter((d) => d !== dept),
+                            );
+                          }
+                        }}
+                        style={{
+                          accentColor: "var(--blue)",
+                          width: 16,
+                          height: 16,
+                        }}
+                      />
+                      <span className="body" style={{ fontSize: 15 }}>
+                        {dept}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              ) : (
+                <CampaignChipInput
+                  values={form.targetDepartments}
+                  onChange={(v) => set("targetDepartments", v)}
+                  placeholder="Ajouter un département…"
+                />
+              )}
             </FormField>
           </div>
         )}

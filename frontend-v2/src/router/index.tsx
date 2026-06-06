@@ -94,6 +94,7 @@ const AdminSetupWizardPage = lazy(
 const MobilityPage = lazy(() => import("../pages/MobilityPage"));
 const AdminMailTestPage = lazy(() => import("../pages/AdminMailTestPage"));
 const AdminStatsPage = lazy(() => import("../pages/AdminStatsPage"));
+const DepartmentsPage = lazy(() => import("../pages/DepartmentsPage"));
 const UnauthorizedPage = lazy(() => import("../pages/UnauthorizedPage"));
 const PDIPage = lazy(() => import("../pages/PDIPage"));
 const PDIDetailPage = lazy(() => import("../pages/PDIDetailPage"));
@@ -639,6 +640,16 @@ export const router = createBrowserRouter([
           <AuthGuard roles={["admin", "hr"]}>
             <S>
               <AdminStatsPage />
+            </S>
+          </AuthGuard>
+        ),
+      },
+      {
+        path: "/admin/departments",
+        element: (
+          <AuthGuard roles={["admin", "hr"]}>
+            <S>
+              <DepartmentsPage />
             </S>
           </AuthGuard>
         ),

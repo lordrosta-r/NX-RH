@@ -22,6 +22,7 @@ export default function CampaignNewPage() {
     handlePrev,
     handleSubmit,
     prevCampaigns,
+    departmentsData,
     sectorsData,
     groupsData,
     isCreating,
@@ -76,6 +77,7 @@ export default function CampaignNewPage() {
         <CampaignParticipantsForm
           form={form}
           set={set}
+          departmentsData={departmentsData}
           sectorsData={sectorsData}
           groupsData={groupsData}
         />

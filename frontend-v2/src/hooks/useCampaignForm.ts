@@ -10,6 +10,7 @@ import {
 } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { campaignsApi } from "../api/campaigns";
+import { adminApi } from "../api/admin";
 import { orgApi } from "../api/org";
 import { groupsApi } from "../api/groups";
 import type { Campaign, CampaignStatus, UserGroup, Sector } from "../types";
@@ -34,11 +35,13 @@ export const campaignWizardSchema = z
     previousCampaignId: z.string(),
     targetScope: z.enum([
       "all",
+      "role",
       "department",
       "sector",
       "users",
       "group",
     ] as const),
+    targetRoleIds: z.array(z.string()),
     targetSectorIds: z.array(z.string()),
     targetUserIds: z.array(z.string()),
     targetGroupId: z.string(),
@@ -79,12 +82,18 @@ const initialValues: WizardFormValues = {
   n1VisibleToEmployee: false,
   previousCampaignId: "",
   targetScope: "all",
+  targetRoleIds: [],
   targetSectorIds: [],
   targetUserIds: [],
   targetGroupId: "",
 };
 
-function buildPayload(form: WizardFormValues): Partial<Campaign> {
+/**
+ * Construit le payload d'écriture (POST /api/campaigns).
+ * Le backend assemble `targetScope: { scopeType, ids }` à partir des champs
+ * plats ci-dessous — on lui envoie donc la chaîne scopeType + les tableaux.
+ */
+function buildPayload(form: WizardFormValues): Record<string, unknown> {
   return {
     name: form.name.trim(),
     description: form.description || undefined,
@@ -93,8 +102,6 @@ function buildPayload(form: WizardFormValues): Partial<Campaign> {
     endDate: form.endDate,
     deadlineEmployee: form.deadlineEmployee || undefined,
     deadlineManager: form.deadlineManager || undefined,
-    targetDepartments:
-      form.targetDepartments.length > 0 ? form.targetDepartments : undefined,
     extendedVisibility: form.extendedVisibility,
     enableN1Context: form.enableN1Context,
     n1VisibleToEmployee: form.enableN1Context
@@ -104,7 +111,13 @@ function buildPayload(form: WizardFormValues): Partial<Campaign> {
       form.enableN1Context && form.previousCampaignId
         ? form.previousCampaignId
         : undefined,
+    // scopeType envoyé comme chaîne — le backend l'assemble en objet { scopeType, ids }
     targetScope: form.targetScope,
+    targetRoleIds: form.targetScope === "role" ? form.targetRoleIds : undefined,
+    targetDepartments:
+      form.targetScope === "department" && form.targetDepartments.length > 0
+        ? form.targetDepartments
+        : undefined,
     targetSectorIds:
       form.targetScope === "sector" ? form.targetSectorIds : undefined,
     targetUserIds:
@@ -131,6 +144,7 @@ export interface UseCampaignFormReturn {
   handlePrev: () => void;
   handleSubmit: () => void;
   prevCampaigns: Campaign[] | undefined;
+  departmentsData: string[] | undefined;
   sectorsData: Sector[] | undefined;
   groupsData: UserGroup[] | undefined;
   isCreating: boolean;
@@ -174,6 +188,12 @@ export function useCampaignForm(): UseCampaignFormReturn {
     enabled: form.enableN1Context,
   });
 
+  const { data: departmentsData } = useQuery({
+    queryKey: ["admin-departments"],
+    queryFn: () => adminApi.getDepartments().then((r) => r.data.departments),
+    enabled: form.targetScope === "department",
+  });
+
   const { data: sectorsData } = useQuery({
     queryKey: ["org-sectors"],
     queryFn: () => orgApi.getSectors().then((r) => r.data),
@@ -187,8 +207,10 @@ export function useCampaignForm(): UseCampaignFormReturn {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data: Partial<Campaign>) =>
-      campaignsApi.createCampaign(data).then((r) => r.data.data),
+    mutationFn: (data: Record<string, unknown>) =>
+      campaignsApi
+        .createCampaign(data as Partial<Campaign>)
+        .then((r) => r.data.data),
     onSuccess: (campaign: Campaign) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.campaigns.lists() });
       navigate(`/campaigns/${campaign.id}`);
@@ -223,6 +245,7 @@ export function useCampaignForm(): UseCampaignFormReturn {
     handlePrev,
     handleSubmit,
     prevCampaigns,
+    departmentsData,
     sectorsData,
     groupsData,
     isCreating: createMutation.isPending,

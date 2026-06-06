@@ -147,6 +147,11 @@ test.describe.serial("Admin — cycle de vie utilisateur", () => {
       .getByRole("button", { name: /Supprimer définitivement/i })
       .click();
     await page.waitForURL(/\/users(\?|$)/, { timeout: 10000 });
+    await page.waitForLoadState("networkidle");
+    // S'assurer que la liste est chargée (plus de spinner ni d'overlay résiduel).
+    await expect(
+      page.getByRole("heading", { name: /Collaborateurs/i }),
+    ).toBeVisible();
     await page.screenshot({
       path: `${SHOTS}/flow-09-apres-suppression.png`,
       fullPage: true,

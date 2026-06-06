@@ -105,7 +105,41 @@ export default function ManagerTodoPage() {
     (ev) => ev.status === "submitted",
   ).length;
 
-  const tblCols = "1.6fr 1.4fr 1.2fr 120px 120px 140px";
+  // Regroupement par collaborateur + campagne (= un entretien)
+  type Group = {
+    key: string;
+    name: string;
+    initials: string;
+    campaignId: string;
+    campaignName: string;
+    evaluateeId: string;
+    evals: Evaluation[];
+  };
+  const groupMap = new Map<string, Group>();
+  for (const ev of actionEvals) {
+    const cid = idOf(ev.campaignId);
+    const key = `${cid}__${ev.evaluateeId}`;
+    let g = groupMap.get(key);
+    if (!g) {
+      const fn = ev.evaluatee?.firstName ?? "";
+      const ln = ev.evaluatee?.lastName ?? "";
+      g = {
+        key,
+        name: `${fn} ${ln}`.trim() || "Collaborateur",
+        initials: `${fn[0] ?? ""}${ln[0] ?? ""}`.toUpperCase() || "?",
+        campaignId: cid,
+        campaignName:
+          typeof ev.campaignId === "string"
+            ? ev.campaignId
+            : ev.campaignId.name,
+        evaluateeId: ev.evaluateeId,
+        evals: [],
+      };
+      groupMap.set(key, g);
+    }
+    g.evals.push(ev);
+  }
+  const groups = [...groupMap.values()];
 
   return (
     <div className="nx-app">
@@ -161,27 +195,17 @@ export default function ManagerTodoPage() {
         </div>
       )}
 
-      <Tile style={{ padding: 0, overflow: "hidden" }}>
-        <div className="tbl-head" style={{ gridTemplateColumns: tblCols }}>
-          <span>Collaborateur</span>
-          <span>Campagne</span>
-          <span>Formulaire</span>
-          <span>Statut</span>
-          <span>Échéance</span>
-          <span>Actions</span>
-        </div>
-
-        {isLoading ? (
-          [...Array(5)].map((_, i) => (
+      {isLoading ? (
+        <div className="section-gap" style={{ gap: 16 }}>
+          {[...Array(3)].map((_, i) => (
             <div
               key={i}
-              className="tbl-row"
-              style={{ gridTemplateColumns: "1fr" }}
-            >
-              <div className="h-5 bg-slate-100 rounded animate-pulse" />
-            </div>
-          ))
-        ) : actionEvals.length === 0 ? (
+              className="h-24 bg-slate-100 rounded-xl animate-pulse"
+            />
+          ))}
+        </div>
+      ) : groups.length === 0 ? (
+        <Tile>
           <div style={{ padding: 24 }}>
             <EmptyState
               icon={<ClipboardCheck className="w-8 h-8" />}
@@ -189,107 +213,123 @@ export default function ManagerTodoPage() {
               description="Toutes les évaluations de votre équipe sont à jour."
             />
           </div>
-        ) : (
-          actionEvals.map((ev) => {
-            const overdue = isOverdue(ev);
-            const nearExpiry = isNearExpiry(ev);
-            const dlTone = deadlineTone(ev);
-            const campaignName =
-              typeof ev.campaignId === "string"
-                ? ev.campaignId
-                : ev.campaignId.name;
-
+        </Tile>
+      ) : (
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(380px, 1fr))",
+            gap: 16,
+          }}
+        >
+          {groups.map((g) => {
+            const hasOverdue = g.evals.some(isOverdue);
+            const hasSubmitted = g.evals.some((e) => e.status === "submitted");
+            const accent = hasOverdue
+              ? "var(--red)"
+              : hasSubmitted
+                ? "var(--blue)"
+                : "var(--line)";
             return (
-              <div
-                key={ev.id}
-                className="tbl-row"
-                style={{
-                  gridTemplateColumns: tblCols,
-                  borderLeft: overdue
-                    ? "3px solid var(--red)"
-                    : ev.status === "submitted"
-                      ? "3px solid var(--blue)"
-                      : nearExpiry
-                        ? "3px solid var(--amber)"
-                        : "3px solid transparent",
-                }}
+              <Tile
+                key={g.key}
+                style={{ borderTop: `3px solid ${accent}`, padding: 18 }}
               >
-                {/* Collaborateur */}
-                <div className="row" style={{ gap: 8, minWidth: 0 }}>
-                  <span
-                    className="avatar"
-                    style={{ width: 28, height: 28, fontSize: 11 }}
-                  >
-                    {ev.evaluatee?.firstName?.[0]}
-                    {ev.evaluatee?.lastName?.[0]}
+                {/* En-tête collaborateur */}
+                <div
+                  className="row"
+                  style={{ gap: 10, alignItems: "center", marginBottom: 14 }}
+                >
+                  <span className="avatar" aria-hidden="true">
+                    {g.initials}
                   </span>
-                  <Link to={`/evaluations/${ev.id}`} className="link truncate">
-                    {ev.evaluatee?.firstName} {ev.evaluatee?.lastName}
-                  </Link>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div className="body" style={{ fontWeight: 600 }}>
+                      {g.name}
+                    </div>
+                    <div
+                      className="small truncate"
+                      style={{ color: "var(--ink-3)" }}
+                    >
+                      {g.campaignName}
+                    </div>
+                  </div>
                 </div>
 
-                {/* Campagne */}
-                <span className="small truncate">{campaignName}</span>
+                {/* Liste des évaluations du collaborateur */}
+                <div
+                  style={{ display: "flex", flexDirection: "column", gap: 8 }}
+                >
+                  {g.evals.map((ev) => {
+                    const overdue = isOverdue(ev);
+                    const nearExpiry = isNearExpiry(ev);
+                    const dlTone = deadlineTone(ev);
+                    return (
+                      <Link
+                        key={ev.id}
+                        to={`/evaluations/${ev.id}`}
+                        className="row between"
+                        style={{
+                          gap: 8,
+                          padding: "8px 10px",
+                          borderRadius: "var(--radius)",
+                          background: "var(--bg-alt)",
+                          textDecoration: "none",
+                          color: "inherit",
+                        }}
+                      >
+                        <span className="small truncate" style={{ flex: 1 }}>
+                          {ev.form?.title ?? "Évaluation"}
+                        </span>
+                        <Badge tone={EVAL_STATUS_TONE[ev.status] ?? "grey"} dot>
+                          {t(`evaluations.status.${ev.status}`)}
+                        </Badge>
+                        {ev.deadline && (overdue || nearExpiry) && (
+                          <span
+                            className="row"
+                            style={{ gap: 3, display: "inline-flex" }}
+                          >
+                            <Clock
+                              size={12}
+                              style={{
+                                color:
+                                  dlTone === "red"
+                                    ? "var(--red)"
+                                    : "var(--amber)",
+                              }}
+                              aria-hidden="true"
+                            />
+                            <Badge tone={dlTone}>
+                              {new Date(ev.deadline).toLocaleDateString(
+                                "fr-FR",
+                              )}
+                            </Badge>
+                          </span>
+                        )}
+                      </Link>
+                    );
+                  })}
+                </div>
 
-                {/* Formulaire */}
-                <span className="small truncate">{ev.form?.title ?? "—"}</span>
-
-                {/* Statut */}
-                <span>
-                  <Badge tone={EVAL_STATUS_TONE[ev.status] ?? "grey"} dot>
-                    {t(`evaluations.status.${ev.status}`)}
-                  </Badge>
-                </span>
-
-                {/* Échéance */}
-                <span>
-                  {ev.deadline ? (
-                    <span
-                      className="row"
-                      style={{ gap: 4, display: "inline-flex" }}
-                    >
-                      {(overdue || nearExpiry) && (
-                        <Clock
-                          size={13}
-                          style={{
-                            color:
-                              dlTone === "red" ? "var(--red)" : "var(--amber)",
-                            flexShrink: 0,
-                          }}
-                          aria-hidden="true"
-                        />
-                      )}
-                      <Badge tone={dlTone}>
-                        {new Date(ev.deadline).toLocaleDateString("fr-FR")}
-                      </Badge>
-                    </span>
-                  ) : (
-                    <span className="small" style={{ color: "var(--muted)" }}>
-                      —
-                    </span>
-                  )}
-                </span>
-
-                {/* Actions */}
-                <span>
-                  <Link
-                    to={`/interview?campaignId=${idOf(ev.campaignId)}&evaluateeId=${ev.evaluateeId}`}
-                    className="link row"
-                    style={{
-                      gap: 4,
-                      display: "inline-flex",
-                      alignItems: "center",
-                    }}
-                  >
-                    <MessagesSquare size={14} aria-hidden="true" />
-                    <span className="small">Entretien</span>
-                  </Link>
-                </span>
-              </div>
+                {/* Action entretien */}
+                <Link
+                  to={`/interview?campaignId=${g.campaignId}&evaluateeId=${g.evaluateeId}`}
+                  className="btn btn-ghost btn-block"
+                  style={{
+                    marginTop: 14,
+                    border: "1px solid var(--line)",
+                    justifyContent: "center",
+                    gap: 6,
+                  }}
+                >
+                  <MessagesSquare size={15} aria-hidden="true" />
+                  Ouvrir l'entretien
+                </Link>
+              </Tile>
             );
-          })
-        )}
-      </Tile>
+          })}
+        </div>
+      )}
     </div>
   );
 }

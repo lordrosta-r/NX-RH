@@ -31,6 +31,9 @@ const updateUser = Joi.object({
   department: Joi.string().max(120).optional().allow('', null),
   position:   Joi.string().max(150).optional().allow('', null),
   managerId:  objectId.optional().allow(null),
+  // Champ d'instruction (non persisté) : remplaçant qui récupère l'équipe
+  // lorsqu'on retire le rôle manager à un utilisateur ayant des subordonnés.
+  replacementManagerId: objectId.optional().allow(null),
   isActive:   Joi.boolean().optional(),
   canViewSubtree: Joi.boolean().optional(),
   phone:      Joi.string().max(30).optional().allow('', null),

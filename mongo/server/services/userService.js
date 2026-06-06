@@ -122,6 +122,21 @@ async function updateUser(id, data, requestingUser) {
     throw AppError.conflict("Action refusée : c'est le dernier administrateur actif. Promouvez un autre administrateur avant de changer son rôle ou de le désactiver.")
   }
 
+  // Retrait du rôle manager : un manager qui perd son rôle ne peut plus garder
+  // ses subordonnés (ils pointeraient vers un non-manager). On exige alors un
+  // remplaçant qui récupère l'équipe avant d'appliquer le changement.
+  const losesManagerRole =
+    user.role === 'manager' &&
+    updates.role !== undefined &&
+    updates.role !== 'manager'
+
+  if (losesManagerRole) {
+    const subordinateCount = await User.countDocuments({ managerId: id, isActive: true })
+    if (subordinateCount > 0) {
+      await reassignSubordinates(id, data.replacementManagerId)
+    }
+  }
+
   Object.assign(user, updates)
   await user.save()
 
@@ -142,6 +157,32 @@ async function wouldRemoveLastActiveAdmin(user, { role, isActive } = {}) {
     _id: { $ne: user._id }, role: 'admin', isActive: true,
   })
   return otherAdmins === 0
+}
+
+// Réassigne tous les subordonnés d'un manager (qui perd son rôle) vers un
+// remplaçant. Valide le remplaçant : ObjectId, différent du manager, existant,
+// actif et lui-même manager/hr/admin. Lève une 400 en cas de problème.
+const MANAGER_ROLES = ['manager', 'hr', 'admin']
+async function reassignSubordinates(managerId, replacementManagerId) {
+  if (!replacementManagerId) {
+    throw AppError.badRequest("Un remplaçant est requis pour réassigner l'équipe du manager.")
+  }
+  if (!mongoose.isValidObjectId(replacementManagerId)) {
+    throw AppError.badRequest('replacementManagerId invalide')
+  }
+  if (String(replacementManagerId) === String(managerId)) {
+    throw AppError.badRequest('Le remplaçant doit être différent du manager retiré.')
+  }
+
+  const replacement = await User.findById(replacementManagerId).select('role isActive').lean()
+  if (!replacement || !replacement.isActive) {
+    throw AppError.badRequest('Le remplaçant doit être un utilisateur actif existant.')
+  }
+  if (!MANAGER_ROLES.includes(replacement.role)) {
+    throw AppError.badRequest('Le remplaçant doit avoir le rôle manager, hr ou admin.')
+  }
+
+  await User.updateMany({ managerId }, { $set: { managerId: replacementManagerId } })
 }
 
 // ── Suppression (soft delete) ─────────────────────────────────────────────────

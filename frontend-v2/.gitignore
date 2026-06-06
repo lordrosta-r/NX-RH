@@ -29,3 +29,5 @@ test-results/
 /playwright/.cache/
 
 e2e/.auth-admin.json
+
+e2e/.n1demo.json

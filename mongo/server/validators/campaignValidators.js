@@ -23,6 +23,10 @@ const createCampaign = Joi.object({
     .messages({ 'date.min': 'endDate doit être postérieure à startDate' }),
   participants: Joi.array().items(objectId).optional(),
   status:       Joi.string().valid(...VALID_STATUSES).optional().default('draft'),
+  // Contexte N-1 (import des données de l'évaluation précédente)
+  enableN1Context:     Joi.boolean().optional(),
+  n1VisibleToEmployee: Joi.boolean().optional(),
+  previousCampaignId:  objectId.optional().allow(null, ''),
 })
 
 const updateCampaign = Joi.object({
@@ -33,6 +37,10 @@ const updateCampaign = Joi.object({
   endDate:      Joi.date().iso().optional(),
   participants: Joi.array().items(objectId).optional(),
   status:       Joi.string().valid(...VALID_TRANSITIONS).optional(),
+  // Contexte N-1 — sans ces clés, le toggle RH était silencieusement ignoré.
+  enableN1Context:     Joi.boolean().optional(),
+  n1VisibleToEmployee: Joi.boolean().optional(),
+  previousCampaignId:  objectId.optional().allow(null, ''),
 }).min(1).messages({ 'object.min': 'Au moins un champ doit être modifié' })
 
 module.exports = { createCampaign, updateCampaign }

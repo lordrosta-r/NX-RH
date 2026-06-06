@@ -515,10 +515,9 @@ describe("EvaluationDetailPage", () => {
     expect(screen.getByText("Souhait de mobilité ?")).toBeInTheDocument();
     expect(screen.getByRole("combobox")).toBeInTheDocument();
 
-    // n1_import → lecture seule des données N-1
+    // n1_import → la question s'affiche (N1ImportView supprimé — carryPrevious gère le contexte N-1)
     await user.click(screen.getByRole("button", { name: "Suivant →" }));
-    expect(await screen.findByText("88")).toBeInTheDocument();
-    expect(screen.getByText("Excellente progression.")).toBeInTheDocument();
+    expect(await screen.findByText("Données N-1")).toBeInTheDocument();
   });
 
   it("mode B: affiche les réponses et les champs de révision", async () => {

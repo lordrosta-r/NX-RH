@@ -5,7 +5,7 @@ import type { Evaluation, FormQuestion } from "../../types";
 import type { EvalMutationHandle } from "../../types/evaluation";
 import type { SaveState } from "../../hooks/useEvaluationForm";
 import { EvaluationProgress } from "./EvaluationProgress";
-import { N1ImportView } from "./N1ImportView";
+import { PreviousEditionAccordion } from "./PreviousEditionAccordion";
 
 // États de la « météo humeur » (type de question `weather`).
 const WEATHER_OPTIONS = [
@@ -391,10 +391,6 @@ export function EvaluationSkillsForm({
             </div>
           )}
 
-          {currentQuestion.type === "n1_import" && (
-            <N1ImportView evaluationId={evaluation.id} />
-          )}
-
           {currentQuestion.type === "rating" && (
             <div className="field" style={{ marginTop: 16 }}>
               <label htmlFor={`${currentQuestion.id}-note`}>
@@ -411,6 +407,15 @@ export function EvaluationSkillsForm({
                 className="input"
               />
             </div>
+          )}
+
+          {/* Rappel contextuel de l'édition précédente — seulement si la RH
+              l'a coché sur cette question et qu'une réponse antérieure existe. */}
+          {currentQuestion.carryPrevious && (
+            <PreviousEditionAccordion
+              evaluationId={evaluation.id}
+              questionId={currentQuestion.id}
+            />
           )}
         </div>
       )}

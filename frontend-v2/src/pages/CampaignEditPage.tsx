@@ -501,15 +501,15 @@ export default function CampaignEditPage() {
           </div>
         </Tile>
 
-        {/* Tile 4 — Contexte N-1 */}
+        {/* Tile 4 — Édition précédente */}
         <Tile>
           <h2 className="h3" style={{ marginBottom: 16 }}>
-            Contexte N-1
+            Édition précédente
           </h2>
           <Toggle
             checked={form.enableN1Context}
             onChange={(v) => set("enableN1Context", v)}
-            label="Activer le contexte N-1"
+            label="Activer la reprise de l'édition précédente"
           />
           {form.enableN1Context && (
             <div

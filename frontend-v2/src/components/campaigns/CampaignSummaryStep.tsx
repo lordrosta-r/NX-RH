@@ -83,7 +83,7 @@ export default function CampaignSummaryStep({
         <SummaryRow label="Périmètre">{scopeLabel}</SummaryRow>
 
         {form.enableN1Context && (
-          <SummaryRow label="Contexte N-1">
+          <SummaryRow label="Édition précédente">
             Activé{form.n1VisibleToEmployee ? ", visible par l'employé" : ""}
           </SummaryRow>
         )}

@@ -273,9 +273,21 @@ router.post('/:id/clone', async (req, res, next) => {
     if (!original) return res.status(404).json({ error: 'Formulaire introuvable' })
 
     // eslint-disable-next-line no-unused-vars
-    const { _id, createdAt, updatedAt, frozenAt, isFrozen, ...rest } = original
+    const { _id, createdAt, updatedAt, frozenAt, isFrozen, questions, ...rest } = original
+
+    // Lignée : chaque question du clone reçoit un nouvel id et garde une
+    // référence (parentQuestionId) vers la question d'origine. C'est ce qui
+    // permet à l'« édition précédente » de retrouver la réponse de la campagne
+    // source même après évolution du questionnaire d'une édition à l'autre.
+    const clonedQuestions = (questions ?? []).map(q => ({
+      ...q,
+      id:               new mongoose.Types.ObjectId().toString(),
+      parentQuestionId: q.id,
+    }))
+
     const clone = await Form.create({
       ...rest,
+      questions: clonedQuestions,
       title:    `Copie de ${original.title}`,
       isFrozen: false,
       frozenAt: null,

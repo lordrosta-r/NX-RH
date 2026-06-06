@@ -9,6 +9,7 @@ const { Evaluation, Form, Campaign } = require('../../../models')
 const { ADMIN_ROLES, REQUEST_FORM_TYPES } = require('../../../config/constants')
 const { notify: notifyInApp } = require('../../../services/notificationHelper')
 const { resolveExpiry, resolvePhaseDeadline } = require('../../../services/evaluationService')
+const { upsertInterviewForEvaluation } = require('../../../services/interviewService')
 const cache = require('../../../utils/cache')
 
 /**
@@ -74,6 +75,9 @@ async function handleCreate(req, res, next) {
     cache.invalidatePattern('GET:/api/v1/dashboard')
 
     res.status(201).json({ id: evaluation._id })
+
+    // Upsert entretien (fire-and-forget — ne bloque pas la réponse)
+    upsertInterviewForEvaluation(evaluation).catch(() => {})
 
     // Notification in-app (fire-and-forget)
     notifyInApp(

@@ -55,6 +55,7 @@ const evaluationBulkRoutes    = require('./routes/evaluations/bulk')
 const searchRoutes        = require('./routes/search')
 const mobilityRoutes      = require('./routes/mobility')
 const pdiRoutes           = require('./routes/pdi')
+const interviewRoutes     = require('./routes/interviews')
 
 // ─── App setup ───────────────────────────────────────────────────────────────
 
@@ -284,6 +285,7 @@ v1Router.use('/dashboard',        apiLimiter, authenticated, dashboardRouter)
 v1Router.use('/search',           apiLimiter, authGuard(['admin', 'hr', 'manager', 'employee']), searchRoutes)
 v1Router.use('/mobility',         mutationLimiter, authenticated, mobilityRoutes)
 v1Router.use('/pdi',              mutationLimiter, authenticated, pdiRoutes)
+v1Router.use('/interviews',       apiLimiter,      authenticated, interviewRoutes)
 v1Router.use('/departments',      mutationLimiter, authenticated, require('./routes/departments'))
 v1Router.use('/form-categories',  mutationLimiter, authenticated, require('./routes/formCategories'))
 

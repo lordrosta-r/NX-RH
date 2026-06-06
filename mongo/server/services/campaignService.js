@@ -109,7 +109,20 @@ async function generateEvaluationsForCampaign(campaign) {
 
   if (ops.length) {
     const result = await Evaluation.bulkWrite(ops, { ordered: false })
-    return result.upsertedCount || 0
+    const created = result.upsertedCount || 0
+
+    // Générer les entretiens correspondants (best-effort)
+    if (created > 0) {
+      const { generateInterviewsForCampaign } = require('./interviewService')
+      generateInterviewsForCampaign(campaign._id).catch(err => {
+        logger.warn('[campaign-scope] Erreur génération entretiens', {
+          error: err instanceof Error ? err.message : String(err),
+          campaignId: campaign._id,
+        })
+      })
+    }
+
+    return created
   }
   return 0
 }

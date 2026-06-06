@@ -26,9 +26,12 @@ async function handleN1Context(req, res, next) {
       return res.status(400).json({ error: 'ID invalide' })
     }
 
-    // 1. Charger l'évaluation courante avec sa campagne
+    // 1. Charger l'évaluation courante avec sa campagne ET son formulaire
+    //    (le formulaire courant porte la curation carryPrevious + la lignée
+    //    parentQuestionId nécessaires à la résolution par question).
     const evaluation = await Evaluation.findById(req.params.id)
       .populate('campaignId', 'name startDate enableN1Context n1VisibleToEmployee previousCampaignId')
+      .populate('formId', 'questions')
       .lean()
 
     if (!evaluation) return res.status(404).json({ error: 'Évaluation introuvable' })
@@ -97,7 +100,7 @@ async function handleN1Context(req, res, next) {
 
     if (!n1Eval) return res.status(204).end()
 
-    // 5. Filtrer les réponses : phase objectives ou type n1_import uniquement
+    // 5. Filtrer les réponses : phase objectives ou type n1_import (legacy)
     const questions = n1Eval.formId?.questions ?? []
     const relevantQIds = new Set(
       questions
@@ -111,6 +114,28 @@ async function handleN1Context(req, res, next) {
         const q = questions.find(q => q.id === a.questionId)
         return { questionId: a.questionId, questionLabel: q?.label ?? a.questionId, questionType: q?.type, value: a.value }
       })
+
+    // 5bis. Résolution PAR QUESTION pour l'accordéon « Édition précédente ».
+    //   Pour chaque question du form COURANT marquée carryPrevious, on retrouve
+    //   la réponse de l'édition précédente via la lignée parentQuestionId
+    //   (fallback : même id). Clé du map = id de la question COURANTE → le front
+    //   pioche byQuestion[currentQuestionId] sans requête supplémentaire.
+    const currentQuestions = evaluation.formId?.questions ?? []
+    const prevAnswerByQid = new Map((n1Eval.answers ?? []).map(a => [a.questionId, a.value]))
+    const prevQuestionById = new Map(questions.map(q => [q.id, q]))
+    const byQuestion = {}
+    for (const cq of currentQuestions) {
+      if (!cq.carryPrevious) continue
+      const prevQid = cq.parentQuestionId || cq.id
+      if (!prevAnswerByQid.has(prevQid)) continue
+      const prevQ = prevQuestionById.get(prevQid)
+      byQuestion[cq.id] = {
+        value: prevAnswerByQid.get(prevQid),
+        label: prevQ?.label ?? cq.label ?? null,
+        type:  prevQ?.type  ?? null,
+        scale: prevQ?.scale ?? null,
+      }
+    }
 
     // 6. Payload (pas d'evaluateeComment/disagreementFlag pour employee)
     const isEmployee = role === 'employee'
@@ -127,6 +152,7 @@ async function handleN1Context(req, res, next) {
       objectiveRatings: n1Eval.objectiveRatings  ?? {},
       status:           n1Eval.status,
       objectivesAnswers,
+      byQuestion,
       formTitle:  n1Eval.formId?.title    ?? null,
       formType:   n1Eval.formId?.formType ?? null,
       ...(isEmployee ? {} : {

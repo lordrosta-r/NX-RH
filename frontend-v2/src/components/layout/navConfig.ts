@@ -70,6 +70,7 @@ export function getPerspectiveNav(
     return {
       primary: [
         dashboard,
+        { label: t("nav.toProcess"), href: "/manager/todo" },
         { label: t("nav.myTeamLink"), href: "/users" },
         { label: t("nav.org"), href: "/org" },
         { label: t("nav.campaigns"), href: "/campaigns" },

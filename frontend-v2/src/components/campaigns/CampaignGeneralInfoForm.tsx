@@ -170,20 +170,20 @@ export default function CampaignGeneralInfoForm({
 
       <section className="tile" style={{ padding: 24 }}>
         <h2 className="h3" style={{ marginBottom: 20 }}>
-          Contexte N-1
+          Édition précédente
         </h2>
 
         <div className="flex items-center gap-3">
           <UIToggle
             checked={form.enableN1Context}
             onChange={(v) => set("enableN1Context", v)}
-            label="Activer le contexte N-1"
+            label="Activer la reprise de l'édition précédente"
           />
           <span
             className="body"
             style={{ color: "var(--ink-2)", fontWeight: 600 }}
           >
-            Activer le contexte N-1
+            Activer la reprise de l'édition précédente
           </span>
         </div>
 

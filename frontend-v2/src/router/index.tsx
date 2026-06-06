@@ -97,6 +97,8 @@ const AdminStatsPage = lazy(() => import("../pages/AdminStatsPage"));
 const UnauthorizedPage = lazy(() => import("../pages/UnauthorizedPage"));
 const PDIPage = lazy(() => import("../pages/PDIPage"));
 const PDIDetailPage = lazy(() => import("../pages/PDIDetailPage"));
+const ManagerTodoPage = lazy(() => import("../pages/ManagerTodoPage"));
+const InterviewPage = lazy(() => import("../pages/InterviewPage"));
 
 function S({ children }: { children: React.ReactNode }) {
   return <Suspense fallback={<PageLoader />}>{children}</Suspense>;
@@ -382,6 +384,28 @@ export const router = createBrowserRouter([
           <S>
             <MobilityPage />
           </S>
+        ),
+      },
+      // Manager — À traiter
+      {
+        path: "/manager/todo",
+        element: (
+          <AuthGuard roles={["manager", "hr", "admin"]}>
+            <S>
+              <ManagerTodoPage />
+            </S>
+          </AuthGuard>
+        ),
+      },
+      // Vue Entretien — face-à-face (lit campaignId & evaluateeId en query string)
+      {
+        path: "/interview",
+        element: (
+          <AuthGuard roles={["manager", "hr", "admin"]}>
+            <S>
+              <InterviewPage />
+            </S>
+          </AuthGuard>
         ),
       },
       // PDI — Plans de Développement Individuel

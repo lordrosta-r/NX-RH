@@ -14,9 +14,9 @@ export const GLOSSARY: GlossaryEntry[] = [
       "Plan de Développement Individuel : vos objectifs de développement et les actions de suivi, co-signés avec votre responsable.",
   },
   {
-    term: "N-1",
+    term: "Édition précédente",
     definition:
-      "L'évaluation de l'année précédente, fournie comme contexte lors de l'évaluation en cours.",
+      "La réponse de la campagne précédente, reprise en rappel contextuel sous une question lors de l'évaluation en cours.",
   },
   {
     term: "N+1",

@@ -32,6 +32,7 @@ import {
   SlidersHorizontal,
   Target,
   Check,
+  History,
 } from "lucide-react";
 import type {
   FormQuestion,
@@ -54,11 +55,6 @@ const QUESTION_TYPES: {
   { value: "weather", label: "Météo humeur", icon: <CloudSun size={16} /> },
   { value: "mobility", label: "Souhait mobilité", icon: <MapPin size={16} /> },
   {
-    value: "n1_import",
-    label: "Import N-1 (auto)",
-    icon: <Download size={16} />,
-  },
-  {
     value: "scale",
     label: "Curseur 0-100%",
     icon: <SlidersHorizontal size={16} />,
@@ -72,7 +68,6 @@ const QUESTION_TYPES: {
 
 const PHASES: { value: QuestionPhase; label: string }[] = [
   { value: "self", label: "Auto-évaluation" },
-  { value: "n-1", label: "Évaluation N-1" },
   { value: "objectives", label: "Objectifs" },
   { value: "aspirations", label: "Aspirations" },
   { value: "all", label: "Toutes phases" },
@@ -199,7 +194,7 @@ function QuestionPreview({ q }: { q: FormQuestion }) {
             background: "var(--bg-alt)",
           }}
         >
-          <Download size={14} /> Import automatique N-1
+          <Download size={14} /> Édition précédente (hérité)
         </span>
       );
     case "objective_item":
@@ -685,6 +680,44 @@ function ConfigPanel({
           Réponse obligatoire
         </span>
       </label>
+
+      {/* Édition précédente — curation RH par question (OFF par défaut) */}
+      <div
+        style={{
+          borderTop: "1px solid var(--line)",
+          paddingTop: 16,
+          display: "flex",
+          flexDirection: "column",
+          gap: 6,
+        }}
+      >
+        <label
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            cursor: readOnly ? "default" : "pointer",
+          }}
+        >
+          <input
+            type="checkbox"
+            checked={q.carryPrevious ?? false}
+            disabled={readOnly}
+            onChange={(e) =>
+              onChange({ ...q, carryPrevious: e.target.checked })
+            }
+          />
+          <History size={15} style={{ color: "var(--color-primary)" }} />
+          <span style={{ fontWeight: 600, color: "var(--ink)" }}>
+            Reprendre l'édition précédente
+          </span>
+        </label>
+        <p className="small" style={{ color: "var(--ink-3)", marginLeft: 26 }}>
+          Affiche la réponse de la campagne précédente en rappel, sous cette
+          question. À activer uniquement sur les questions à comparer d'une
+          édition à l'autre.
+        </p>
+      </div>
     </div>
   );
 }
@@ -736,6 +769,7 @@ export default function FormBuilder({
       phase: "all",
       options: [],
       order: questions.length,
+      carryPrevious: false,
     };
   }
 

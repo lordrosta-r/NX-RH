@@ -36,11 +36,23 @@ const questionSchema = new Schema({
 
   // Phase de l'évaluation dans laquelle cette question apparaît.
   // 'all' = présente dans toutes les phases.
+  // ('n-1' conservé pour la rétrocompatibilité — déprécié au profit de carryPrevious.)
   phase: {
     type: String,
     enum: ['self', 'n-1', 'objectives', 'aspirations', 'all'],
     default: 'all',
   },
+
+  // ── Édition précédente (ex « N-1 ») ──────────────────────────────────────
+  // Curation RH : si true, la réponse de l'édition précédente de cette question
+  // est affichée en accordéon contextuel pendant le remplissage. false par
+  // défaut → aucune reprise, pour ne pas surcharger les campagnes courtes.
+  carryPrevious: { type: Boolean, default: false },
+
+  // Lignée de la question à travers les campagnes. Renseigné lors du clonage
+  // d'un formulaire : pointe vers l'id de la question source dans le form parent.
+  // Sert à retrouver la réponse de l'édition précédente même si l'id a changé.
+  parentQuestionId: { type: String, default: null },
 }, { _id: false })  // pas d'ObjectId sur les sous-documents, l'id suffit
 
 const formSchema = new Schema({

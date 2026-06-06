@@ -27,10 +27,10 @@ const COMMON: HelpSection[] = [
     ],
   },
   {
-    title: "Le vocabulaire (PDI, N-1, N+1, aspirations)",
+    title: "Le vocabulaire (PDI, Édition précédente, N+1, aspirations)",
     body: [
       "PDI : Plan de Développement Individuel — vos objectifs de développement et les actions associées.",
-      "N-1 : l'évaluation de l'année précédente, fournie comme contexte.",
+      "Édition précédente : la réponse de la campagne précédente, reprise en rappel sous une question.",
       "N+1 : les objectifs fixés pour la période suivante.",
       "Feedback ascendant : retour donné par un collaborateur sur son responsable (souvent anonyme).",
     ],

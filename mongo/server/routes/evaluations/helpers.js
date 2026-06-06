@@ -21,12 +21,19 @@ function idOf(ref) {
  *  côté client compare un objet à une string et le mode « remplir » ne se
  *  déclenche jamais pour l'évaluateur. */
 function sanitizeAnonymity(doc) {
+  // Le modèle stocke `label` sur les questions ; le frontend lit `text`.
+  // On traduit ici (comme routes/forms.js le fait à sa frontière) pour que la
+  // vue de remplissage affiche bien l'intitulé des questions.
+  const form = doc.formId ?? null
+  const mappedForm = form && Array.isArray(form.questions)
+    ? { ...form, questions: form.questions.map(q => ({ ...q, text: q.text ?? q.label })) }
+    : form
   const out = {
     ...doc,
     id:          idOf(doc._id),
     evaluatee:   doc.evaluateeId ?? null,
     evaluator:   doc.evaluatorId ?? null,
-    form:        doc.formId ?? null,
+    form:        mappedForm,
     evaluateeId: idOf(doc.evaluateeId),
     evaluatorId: idOf(doc.evaluatorId),
     formId:      idOf(doc.formId),

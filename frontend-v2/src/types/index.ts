@@ -155,6 +155,12 @@ export interface N1Context {
     questionType?: string;
     value: unknown;
   }>;
+  // Résolution par question (clé = id de la question COURANTE) pour
+  // l'accordéon inline « Édition précédente ».
+  byQuestion?: Record<
+    string,
+    { value: unknown; label: string | null; type?: string; scale?: number }
+  >;
   formTitle: string | null;
   formType: string | null;
   evaluateeComment?: string | null;
@@ -188,6 +194,10 @@ export interface FormQuestion {
   phase?: QuestionPhase;
   options?: string[];
   order?: number;
+  // Édition précédente (ex « N-1 ») — curation RH par question.
+  carryPrevious?: boolean;
+  // Lignée de la question à travers les campagnes (clonage de formulaire).
+  parentQuestionId?: string | null;
 }
 
 /** Catégorie de formulaire (groupe du sélecteur de type, gérée en DB). */
@@ -593,6 +603,65 @@ export interface UserGroup {
   createdBy?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+// ─── Entretiens ───────────────────────────────────────────────────────────────
+
+/**
+ * Un entretien matérialise le duo Manager/Évalué au sein d'une campagne.
+ * Le champ `evaluations` est la version peuplée de `evaluationIds` (renvoyée par
+ * GET /api/interviews?campaignId=&evaluateeId=).
+ */
+export interface Interview {
+  _id: string;
+  id?: string;
+  campaignId: string;
+  evaluateeId: string | User;
+  managerId?: string | User | null;
+  /** Évaluations peuplées (formId, evaluatorId, evaluateeId renseignés).
+   *  L'API renvoie le champ sous le nom `evaluationIds` (réf peuplée Mongoose). */
+  evaluationIds: InterviewEvaluation[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+/**
+ * Version d'une Evaluation telle que peuplée dans un Interview.
+ * formId → { title, questions }, evaluatorId → { firstName, lastName }, etc.
+ */
+export interface InterviewEvaluation {
+  _id: string;
+  id?: string;
+  formId: {
+    _id: string;
+    title: string;
+    questions: FormQuestion[];
+  };
+  evaluatorId: {
+    _id: string;
+    firstName: string;
+    lastName: string;
+  };
+  evaluateeId: {
+    _id: string;
+    firstName: string;
+    lastName: string;
+  };
+  status: EvaluationStatus;
+  /** Réponses stockées en tableau {questionId, value} (forme Mongoose brute). */
+  answers?: Array<{ questionId: string; value: unknown }>;
+  reviewerScore?: number | null;
+  reviewerComment?: string | null;
+  nextYearObjectives?: string | null;
+  objectiveRatings?: Record<string, string>;
+  signatureStatus?:
+    | "none"
+    | "pending_evaluatee"
+    | "pending_evaluator"
+    | "complete";
+  lastSavedAt?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 // ─── Utilities ────────────────────────────────────────────────────────────────

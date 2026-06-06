@@ -113,7 +113,7 @@ export const QUESTION_TYPE_CONFIG = {
   objective_item: { label: "Objectif structuré" },
   weather: { label: "Météo humeur" },
   mobility: { label: "Souhait mobilité" },
-  n1_import: { label: "Import N-1 (auto)" },
+  n1_import: { label: "Édition précédente (hérité)" },
 } as const;
 
 // Types de notifications

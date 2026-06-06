@@ -1,20 +1,19 @@
-import { useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useUsersPage } from "../hooks/useUsersPage";
 import {
   UsersPageHeader,
   UsersFilterBar,
   UsersTable,
-  UserAnonymizeModal,
   UserImportModal,
 } from "../components/users";
 import { useTranslation } from "react-i18next";
 import { Callout } from "../components/shell";
+import { useConfirm } from "../contexts/ConfirmContext";
 
 export default function UsersPage() {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const [confirmText, setConfirmText] = useState("");
+  const confirm = useConfirm();
   const p = useUsersPage();
 
   return (
@@ -58,9 +57,18 @@ export default function UsersPage() {
         totalPages={p.totalPages}
         total={p.data?.total}
         pageNumbers={p.getPageNumbers()}
-        onAnonymize={(target) => {
-          p.setAnonymizeTarget(target);
-          setConfirmText("");
+        onAnonymize={async (target) => {
+          if (
+            await confirm({
+              title: "Anonymiser l'utilisateur ?",
+              description:
+                "Les données personnelles seront effacées (RGPD, irréversible). L'historique d'évaluations est conservé.",
+              variant: "danger",
+              confirmLabel: "Anonymiser",
+            })
+          ) {
+            p.anonymizeMutation.mutate(target.id);
+          }
         }}
         onToggleSelect={p.toggleSelect}
         onToggleSelectAll={p.toggleSelectAll}
@@ -69,19 +77,6 @@ export default function UsersPage() {
         onBulkExport={p.handleBulkExport}
         onClearSelection={p.clearSelection}
       />
-      {p.anonymizeTarget && (
-        <UserAnonymizeModal
-          user={p.anonymizeTarget}
-          confirmText={confirmText}
-          onConfirmChange={setConfirmText}
-          isPending={p.anonymizeMutation.isPending}
-          onConfirm={() => p.anonymizeMutation.mutate(p.anonymizeTarget!.id)}
-          onClose={() => {
-            p.setAnonymizeTarget(null);
-            setConfirmText("");
-          }}
-        />
-      )}
       {p.importOpen && (
         <UserImportModal onClose={() => p.setImportOpen(false)} />
       )}

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../contexts/AuthContext";
+import { useConfirm } from "../contexts/ConfirmContext";
 import { campaignsApi } from "../api/campaigns";
 import { formsApi } from "../api/forms";
 import type { Campaign, Form } from "../types";
@@ -51,13 +52,16 @@ export function useCampaignDetail(
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const confirm = useConfirm();
   const [addFormModal, setAddFormModal] = useState(false);
 
   const invalidate = () =>
-    queryClient.invalidateQueries({ queryKey: queryKeys.campaigns.detail(id ?? '') });
+    queryClient.invalidateQueries({
+      queryKey: queryKeys.campaigns.detail(id ?? ""),
+    });
 
   const { data: campaign, isLoading } = useQuery({
-    queryKey: queryKeys.campaigns.detail(id ?? ''),
+    queryKey: queryKeys.campaigns.detail(id ?? ""),
     queryFn: () => campaignsApi.getCampaign(id!).then((r) => r.data.data),
     enabled: !!id,
   });
@@ -66,7 +70,7 @@ export function useCampaignDetail(
 
   const { data: analytics, isLoading: analyticsLoading } =
     useQuery<CampaignAnalytics>({
-      queryKey: queryKeys.campaigns.analytics(id ?? ''),
+      queryKey: queryKeys.campaigns.analytics(id ?? ""),
       queryFn: () => campaignsApi.getCampaignAnalytics(id!).then((r) => r.data),
       enabled: !!campaign?._id && isAdminOrHr,
       staleTime: 2 * 60 * 1000,
@@ -130,9 +134,35 @@ export function useCampaignDetail(
     isActivating: activateMutation.isPending,
     close: () => closeMutation.mutate(),
     isClosing: closeMutation.isPending,
-    archive: () => archiveMutation.mutate(),
+    archive: () => {
+      void (async () => {
+        if (
+          await confirm({
+            title: "Archiver la campagne ?",
+            description: "La campagne sera archivée (réversible).",
+            variant: "warning",
+            confirmLabel: "Archiver",
+          })
+        ) {
+          archiveMutation.mutate();
+        }
+      })();
+    },
     isArchiving: archiveMutation.isPending,
-    remove: () => deleteMutation.mutate(),
+    remove: () => {
+      void (async () => {
+        if (
+          await confirm({
+            title: "Supprimer la campagne ?",
+            description: "Cette action est irréversible.",
+            variant: "danger",
+            confirmLabel: "Supprimer",
+          })
+        ) {
+          deleteMutation.mutate();
+        }
+      })();
+    },
     isDeleting: deleteMutation.isPending,
     clone: () => cloneMutation.mutate(),
     isCloning: cloneMutation.isPending,

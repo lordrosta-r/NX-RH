@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { BarChart2, Search, Plus, MoreVertical, Download } from "lucide-react";
 import EmptyState from "../components/ui/EmptyState";
 import { useAuth } from "../contexts/AuthContext";
+import { useConfirm } from "../contexts/ConfirmContext";
 import { campaignsApi } from "../api/campaigns";
 import { toast } from "../hooks/useToast";
 import type { Campaign } from "../types";
@@ -182,6 +183,7 @@ export default function CampaignsPage() {
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 400);
   const { user } = useAuth();
+  const confirm = useConfirm();
   const queryClient = useQueryClient();
 
   const canManage = user?.role === "admin" || user?.role === "hr";
@@ -224,6 +226,32 @@ export default function CampaignsPage() {
     onError: () =>
       toast.error("Erreur lors de la suppression", "Veuillez réessayer."),
   });
+
+  const handleArchive = async (id: string) => {
+    if (
+      await confirm({
+        title: "Archiver la campagne ?",
+        description: "La campagne sera archivée (réversible).",
+        variant: "warning",
+        confirmLabel: "Archiver",
+      })
+    ) {
+      archiveMutation.mutate(id);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (
+      await confirm({
+        title: "Supprimer la campagne ?",
+        description: "Cette action est irréversible.",
+        variant: "danger",
+        confirmLabel: "Supprimer",
+      })
+    ) {
+      deleteMutation.mutate(id);
+    }
+  };
 
   const campaigns = data?.data ?? [];
   const isEmpty = !isLoading && campaigns.length === 0;
@@ -448,8 +476,8 @@ export default function CampaignsPage() {
                         campaign={campaign}
                         canManage={canManage}
                         onClone={(id) => cloneMutation.mutate(id)}
-                        onArchive={(id) => archiveMutation.mutate(id)}
-                        onDelete={(id) => deleteMutation.mutate(id)}
+                        onArchive={(id) => void handleArchive(id)}
+                        onDelete={(id) => void handleDelete(id)}
                         labels={actionLabels}
                       />
                     </div>

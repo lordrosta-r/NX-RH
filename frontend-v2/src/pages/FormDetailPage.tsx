@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Lock, Unlock, Download, Trash2 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
+import { useConfirm } from "../contexts/ConfirmContext";
 import { formsApi } from "../api/forms";
 import { formCategoriesApi } from "../api/formCategories";
 import type { FormQuestion, FormCategory } from "../types";
@@ -28,6 +29,7 @@ const FORM_TYPE_CONFIG: Record<string, { label: string; tone: FormTone }> = {
 export default function FormDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
+  const confirm = useConfirm();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -66,10 +68,6 @@ export default function FormDetailPage() {
       }
     },
   });
-
-  const [deleteModal, setDeleteModal] = useState(false);
-  const [freezeModal, setFreezeModal] = useState(false);
-  const [unfreezeModal, setUnfreezeModal] = useState(false);
 
   useEffect(() => {
     if (form) {
@@ -125,7 +123,6 @@ export default function FormDetailPage() {
       queryClient.invalidateQueries({
         queryKey: queryKeys.forms.detail(id ?? ""),
       });
-      setFreezeModal(false);
     },
   });
 
@@ -135,9 +132,38 @@ export default function FormDetailPage() {
       queryClient.invalidateQueries({
         queryKey: queryKeys.forms.detail(id ?? ""),
       });
-      setUnfreezeModal(false);
     },
   });
+
+  async function handleDelete() {
+    const ok = await confirm({
+      title: "Supprimer le formulaire ?",
+      description: "Cette action est irréversible.",
+      variant: "danger",
+      confirmLabel: "Supprimer",
+    });
+    if (ok) deleteMutation.mutate();
+  }
+
+  async function handleFreeze() {
+    const ok = await confirm({
+      title: "Geler le formulaire ?",
+      description: "Le formulaire ne pourra plus être modifié.",
+      variant: "warning",
+      confirmLabel: "Geler",
+    });
+    if (ok) freezeMutation.mutate();
+  }
+
+  async function handleUnfreeze() {
+    const ok = await confirm({
+      title: "Dégeler le formulaire ?",
+      description: "Le formulaire redeviendra modifiable.",
+      variant: "warning",
+      confirmLabel: "Dégeler",
+    });
+    if (ok) unfreezeMutation.mutate();
+  }
 
   function handleExport() {
     formsApi.exportForm(id!).then((r) => {
@@ -228,7 +254,7 @@ export default function FormDetailPage() {
             )}
             {isAdmin && !isFrozen && (
               <button
-                onClick={() => setFreezeModal(true)}
+                onClick={handleFreeze}
                 className="btn btn-sm"
                 style={{ background: "var(--red)", color: "#fff" }}
               >
@@ -237,7 +263,7 @@ export default function FormDetailPage() {
             )}
             {isAdmin && isFrozen && (
               <button
-                onClick={() => setUnfreezeModal(true)}
+                onClick={handleUnfreeze}
                 className="btn btn-sm"
                 style={{ background: "var(--amber)", color: "#fff" }}
               >
@@ -375,7 +401,7 @@ export default function FormDetailPage() {
             }}
           >
             <button
-              onClick={() => setDeleteModal(true)}
+              onClick={handleDelete}
               className="btn btn-ghost btn-sm"
               style={{ color: "var(--red)" }}
             >
@@ -385,192 +411,6 @@ export default function FormDetailPage() {
           </div>
         )}
       </Tile>
-
-      {/* Modal suppression */}
-      {deleteModal && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 50,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            background: "rgba(0,0,0,0.5)",
-          }}
-        >
-          <Tile style={{ width: "100%", maxWidth: 448, margin: 16 }}>
-            <h3 className="h3" style={{ marginBottom: 8 }}>
-              Supprimer ce formulaire ?
-            </h3>
-            <p className="body" style={{ marginBottom: 16 }}>
-              Cette action est irréversible. Les campagnes liées ne seront pas
-              affectées.
-            </p>
-            <div
-              className="row"
-              style={{ gap: 12, justifyContent: "flex-end" }}
-            >
-              <button
-                onClick={() => setDeleteModal(false)}
-                className="btn btn-ghost btn-sm"
-              >
-                Annuler
-              </button>
-              <button
-                onClick={() => deleteMutation.mutate()}
-                disabled={deleteMutation.isPending}
-                className="btn btn-sm"
-                style={{ background: "var(--red)", color: "#fff" }}
-              >
-                {deleteMutation.isPending ? "Suppression…" : "Supprimer"}
-              </button>
-            </div>
-          </Tile>
-        </div>
-      )}
-
-      {/* Modal gel */}
-      {freezeModal && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 50,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            background: "rgba(0,0,0,0.5)",
-          }}
-        >
-          <Tile style={{ width: "100%", maxWidth: 448, margin: 16 }}>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 12,
-                marginBottom: 16,
-              }}
-            >
-              <div
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 999,
-                  background: "var(--bg-alt)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  flexShrink: 0,
-                }}
-              >
-                <Lock
-                  size={20}
-                  strokeWidth={1.5}
-                  aria-hidden="true"
-                  color="var(--red)"
-                />
-              </div>
-              <h3 className="h3">Geler ce formulaire ?</h3>
-            </div>
-            <p className="body" style={{ marginBottom: 16 }}>
-              Une fois gelé, les questions ne seront plus modifiables. Cette
-              version sera utilisée pour toutes les évaluations associées.
-            </p>
-            <div
-              className="row"
-              style={{ gap: 12, justifyContent: "flex-end" }}
-            >
-              <button
-                onClick={() => setFreezeModal(false)}
-                className="btn btn-ghost btn-sm"
-              >
-                Annuler
-              </button>
-              <button
-                onClick={() => freezeMutation.mutate()}
-                disabled={freezeMutation.isPending}
-                className="btn btn-sm"
-                style={{ background: "var(--red)", color: "#fff" }}
-              >
-                {freezeMutation.isPending
-                  ? "Gel en cours…"
-                  : "Geler le formulaire"}
-              </button>
-            </div>
-          </Tile>
-        </div>
-      )}
-
-      {/* Modal dégel */}
-      {unfreezeModal && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 50,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            background: "rgba(0,0,0,0.5)",
-          }}
-        >
-          <Tile style={{ width: "100%", maxWidth: 448, margin: 16 }}>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 12,
-                marginBottom: 16,
-              }}
-            >
-              <div
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 999,
-                  background: "var(--bg-alt)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  flexShrink: 0,
-                }}
-              >
-                <Unlock
-                  size={20}
-                  strokeWidth={1.5}
-                  aria-hidden="true"
-                  color="var(--amber)"
-                />
-              </div>
-              <h3 className="h3">Dégeler ce formulaire ?</h3>
-            </div>
-            <p className="body" style={{ marginBottom: 16 }}>
-              Les questions redeviendront modifiables. Les évaluations en cours
-              conserveront leurs réponses.
-            </p>
-            <div
-              className="row"
-              style={{ gap: 12, justifyContent: "flex-end" }}
-            >
-              <button
-                onClick={() => setUnfreezeModal(false)}
-                className="btn btn-ghost btn-sm"
-              >
-                Annuler
-              </button>
-              <button
-                onClick={() => unfreezeMutation.mutate()}
-                disabled={unfreezeMutation.isPending}
-                className="btn btn-sm"
-                style={{ background: "var(--amber)", color: "#fff" }}
-              >
-                {unfreezeMutation.isPending ? "Dégel en cours…" : "Dégeler"}
-              </button>
-            </div>
-          </Tile>
-        </div>
-      )}
     </div>
   );
 }

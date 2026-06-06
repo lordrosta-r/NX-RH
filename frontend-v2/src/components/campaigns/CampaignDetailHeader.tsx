@@ -16,7 +16,7 @@ interface CampaignDetailHeaderProps {
   onClose: () => void;
   onArchive: () => void;
   onCloneClick: () => void;
-  onDeleteClick: () => void;
+  onDelete: () => void;
 }
 
 export default function CampaignDetailHeader({
@@ -30,7 +30,7 @@ export default function CampaignDetailHeader({
   onClose,
   onArchive,
   onCloneClick,
-  onDeleteClick,
+  onDelete,
 }: CampaignDetailHeaderProps) {
   const [actionsOpen, setActionsOpen] = useState(false);
 
@@ -160,7 +160,7 @@ export default function CampaignDetailHeader({
                   campaign.status === "archived") && (
                   <button
                     onClick={() => {
-                      onDeleteClick();
+                      onDelete();
                       setActionsOpen(false);
                     }}
                     className="btn btn-ghost btn-sm btn-block"

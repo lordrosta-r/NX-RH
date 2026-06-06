@@ -5,12 +5,12 @@ import type { OrgTreeNode, OrgLegend, Role } from "../types";
 
 const DEFAULT_ROLE_COLORS: Record<Role, string> = {
   admin: "#0D9488",
-  hr: "#059669",
-  manager: "#2563EB",
-  employee: "#64748B",
+  hr: "#18753c",
+  manager: "#1b1b78",
+  employee: "#6a6a76",
 };
-const DEFAULT_HIERARCHICAL_COLOR = "#94A3B8";
-const DEFAULT_TRANSVERSE_COLOR = "#D97706";
+const DEFAULT_HIERARCHICAL_COLOR = "#929299";
+const DEFAULT_TRANSVERSE_COLOR = "#b34000";
 
 function getNodeSize(reportCount: number): number {
   if (reportCount === 0) return 48;
@@ -93,14 +93,24 @@ export function useOrgLayout(
 
     const useVirtualRoot = rootIds.length > 1;
 
+    // Largeur/hauteur de la « boîte » dagre par nœud. On garde une boîte
+    // compacte (centrée sur le cercle + son label) pour éviter les grands
+    // vides verticaux et resserrer l'arbre.
+    const BOX_PAD_X = 28;
+    const BOX_PAD_Y = 34; // place pour le nom + le badge de rôle sous le cercle
+    const boxWidth = (size: number) => size + BOX_PAD_X;
+    const boxHeight = (size: number) => size + BOX_PAD_Y;
+
     // Build dagre graph
     const g = new dagre.graphlib.Graph();
     g.setGraph({
       rankdir: "TB",
-      ranksep: 140,
-      nodesep: 70,
-      marginx: 60,
-      marginy: 60,
+      ranksep: 90,
+      nodesep: 44,
+      edgesep: 20,
+      ranker: "tight-tree",
+      marginx: 48,
+      marginy: 48,
     });
     g.setDefaultEdgeLabel(() => ({}));
 
@@ -110,7 +120,9 @@ export function useOrgLayout(
       reportCountMap.set(node._id, node.children?.length ?? 0);
     }
 
-    // Add virtual root if needed
+    // Virtual root : on lui donne une boîte minuscule et invisible. Il sert
+    // uniquement à regrouper plusieurs racines sous un même point d'ancrage
+    // pour que dagre les centre les unes par rapport aux autres.
     if (useVirtualRoot) {
       g.setNode(VIRTUAL_ROOT, { width: 1, height: 1 });
     }
@@ -118,7 +130,7 @@ export function useOrgLayout(
     // Add real nodes to dagre
     for (const { node } of allNodes) {
       const size = getNodeSize(reportCountMap.get(node._id) ?? 0);
-      g.setNode(node._id, { width: size + 80, height: size + 60 });
+      g.setNode(node._id, { width: boxWidth(size), height: boxHeight(size) });
     }
 
     // Add real edges to dagre
@@ -129,7 +141,7 @@ export function useOrgLayout(
     // Add virtual edges from virtual root to each real root
     if (useVirtualRoot) {
       for (const rid of rootIds) {
-        g.setEdge(VIRTUAL_ROOT, rid);
+        g.setEdge(VIRTUAL_ROOT, rid, { minlen: 1 });
       }
     }
 
@@ -148,8 +160,8 @@ export function useOrgLayout(
         id: node._id,
         type: "orgCircle",
         position: {
-          x: gNode.x - (size + 80) / 2,
-          y: gNode.y - (size + 60) / 2,
+          x: gNode.x - boxWidth(size) / 2,
+          y: gNode.y - boxHeight(size) / 2,
         },
         data: {
           id: node._id,
@@ -177,10 +189,10 @@ export function useOrgLayout(
       source,
       target,
       type: "smoothstep",
+      pathOptions: { borderRadius: 16, offset: 8 },
       style: {
         stroke: hierarchicalColor,
         strokeWidth: 1.5,
-        strokeDasharray: "6 3",
       },
     }));
 

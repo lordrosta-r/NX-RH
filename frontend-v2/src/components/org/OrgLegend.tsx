@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Pencil, Check, X } from "lucide-react";
+import { Pencil, Check, X, ChevronDown, ChevronUp } from "lucide-react";
 import { orgApi } from "../../api/org";
 import type { OrgLegend as OrgLegendData } from "../../types";
 
@@ -20,6 +20,7 @@ const ROLE_ORDER = ["admin", "hr", "manager", "employee"] as const;
 export default function OrgLegend({ legend, canEdit }: OrgLegendProps) {
   const queryClient = useQueryClient();
   const [editing, setEditing] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   const [draft, setDraft] = useState<OrgLegendData | null>(null);
 
   const mutation = useMutation({
@@ -59,7 +60,7 @@ export default function OrgLegend({ legend, canEdit }: OrgLegendProps) {
   };
 
   const rows: { group: "edges" | "roles"; key: string; dash?: string }[] = [
-    { group: "edges", key: "hierarchical", dash: "6 3" },
+    { group: "edges", key: "hierarchical" },
     { group: "edges", key: "transverse", dash: "1 4" },
     ...ROLE_ORDER.map((r) => ({ group: "roles" as const, key: r })),
   ];
@@ -74,61 +75,81 @@ export default function OrgLegend({ legend, canEdit }: OrgLegendProps) {
         border: "1px solid var(--line)",
         borderRadius: "var(--radius-lg)",
         boxShadow: "var(--shadow)",
-        padding: 12,
-        minWidth: 200,
+        padding: collapsed ? "8px 12px" : 12,
+        minWidth: collapsed ? "auto" : 200,
         fontSize: 13,
       }}
     >
       <div
         className="row between"
-        style={{ marginBottom: 8, alignItems: "center" }}
+        style={{
+          marginBottom: collapsed ? 0 : 8,
+          alignItems: "center",
+          gap: 8,
+        }}
       >
         <span className="eyebrow" style={{ fontSize: 11 }}>
           Légende
         </span>
-        {canEdit && !editing && (
-          <button
-            type="button"
-            onClick={startEdit}
-            className="icon-btn"
-            aria-label="Modifier la légende"
-            title="Modifier la légende"
-            style={{ width: 24, height: 24 }}
-          >
-            <Pencil size={13} />
-          </button>
-        )}
-        {editing && (
-          <span className="row" style={{ gap: 4 }}>
+        <span className="row" style={{ gap: 4 }}>
+          {canEdit && !editing && !collapsed && (
             <button
               type="button"
-              onClick={() => draft && mutation.mutate(draft)}
-              disabled={mutation.isPending}
+              onClick={startEdit}
               className="icon-btn"
-              aria-label="Enregistrer"
-              title="Enregistrer"
-              style={{ width: 24, height: 24, color: "var(--green)" }}
+              aria-label="Modifier la légende"
+              title="Modifier la légende"
+              style={{ width: 24, height: 24 }}
             >
-              <Check size={14} />
+              <Pencil size={13} />
             </button>
+          )}
+          {editing && (
+            <>
+              <button
+                type="button"
+                onClick={() => draft && mutation.mutate(draft)}
+                disabled={mutation.isPending}
+                className="icon-btn"
+                aria-label="Enregistrer"
+                title="Enregistrer"
+                style={{ width: 24, height: 24, color: "var(--green)" }}
+              >
+                <Check size={14} />
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setEditing(false);
+                  setDraft(null);
+                }}
+                className="icon-btn"
+                aria-label="Annuler"
+                title="Annuler"
+                style={{ width: 24, height: 24, color: "var(--ink-3)" }}
+              >
+                <X size={14} />
+              </button>
+            </>
+          )}
+          {!editing && (
             <button
               type="button"
-              onClick={() => {
-                setEditing(false);
-                setDraft(null);
-              }}
+              onClick={() => setCollapsed((c) => !c)}
               className="icon-btn"
-              aria-label="Annuler"
-              title="Annuler"
+              aria-label={
+                collapsed ? "Déplier la légende" : "Replier la légende"
+              }
+              title={collapsed ? "Déplier" : "Replier"}
               style={{ width: 24, height: 24, color: "var(--ink-3)" }}
             >
-              <X size={14} />
+              {collapsed ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
             </button>
-          </span>
-        )}
+          )}
+        </span>
       </div>
 
-      <div style={{ display: "grid", gap: 6 }}>
+      <div style={{ display: collapsed ? "none" : "grid", gap: 6 }}>
         {rows.map(({ group, key, dash }) => {
           const entry =
             group === "edges"

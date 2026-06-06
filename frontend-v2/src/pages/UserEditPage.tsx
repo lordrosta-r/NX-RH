@@ -43,6 +43,7 @@ export default function UserEditPage() {
   const [isActive, setIsActive] = useState(true);
   const [canViewSubtree, setCanViewSubtree] = useState(false);
   const [authSource, setAuthSource] = useState<"local" | "ldap">("local");
+  const [replacementManagerId, setReplacementManagerId] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Fetch current user data
@@ -83,6 +84,16 @@ export default function UserEditPage() {
     currentUser?.role === "admin" || currentUser?.role === "hr";
   const isAdmin = currentUser?.role === "admin";
 
+  // Subordonnés rattachés à l'utilisateur édité
+  const subordinates =
+    activeUsers?.data?.filter((u: User) => u.managerId === id) ?? [];
+  // Un remplaçant est requis si on retire le rôle manager à qqn qui a une équipe
+  const needsReplacement =
+    canEditAll &&
+    userData?.role === "manager" &&
+    role !== "manager" &&
+    subordinates.length > 0;
+
   function isDisabled(field: string): boolean {
     if (canEditAll) return false;
     if (isSelf && (field === "firstName" || field === "lastName")) return false;
@@ -97,6 +108,8 @@ export default function UserEditPage() {
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
       e.email = "Email invalide";
     if (!role) e.role = "Le rôle est requis";
+    if (needsReplacement && !replacementManagerId)
+      e.replacementManagerId = "Un remplaçant pour l'équipe est requis";
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -111,8 +124,19 @@ export default function UserEditPage() {
       toast.show("Modifications enregistrées.");
       setTimeout(() => navigate(`/users/${id}`), 800);
     },
-    onError: () => {
-      setErrors({ submit: "Une erreur est survenue. Veuillez réessayer." });
+    onError: (err: unknown) => {
+      const status =
+        typeof err === "object" && err !== null && "response" in err
+          ? (err as { response?: { status?: number } }).response?.status
+          : undefined;
+      if (status === 400 && needsReplacement) {
+        setErrors({
+          replacementManagerId:
+            "Un remplaçant pour l'équipe est requis pour retirer le rôle Responsable.",
+        });
+      } else {
+        setErrors({ submit: "Une erreur est survenue. Veuillez réessayer." });
+      }
     },
   });
 
@@ -130,6 +154,9 @@ export default function UserEditPage() {
       });
       if (role === "manager") {
         Object.assign(payload, { canViewSubtree });
+      }
+      if (needsReplacement) {
+        Object.assign(payload, { replacementManagerId });
       }
     }
     if (isAdmin) {
@@ -336,6 +363,35 @@ export default function UserEditPage() {
                 ))}
             </select>
           </div>
+
+          {/* Remplaçant — requis quand on retire le rôle manager à qqn qui a une équipe */}
+          {needsReplacement && (
+            <div className="field" style={{ marginTop: 16 }}>
+              <label htmlFor="replacementManagerId">
+                Remplaçant pour l&apos;équipe ({subordinates.length}{" "}
+                collaborateur{subordinates.length > 1 ? "·s" : ""}){" "}
+                <span style={{ color: "var(--red)" }}>*</span>
+              </label>
+              <select
+                id="replacementManagerId"
+                value={replacementManagerId}
+                onChange={(e) => setReplacementManagerId(e.target.value)}
+                className={inputCls("replacementManagerId")}
+              >
+                <option value="">Sélectionner un remplaçant…</option>
+                {activeUsers?.data
+                  ?.filter((u: User) => u.role === "manager" && u.id !== id)
+                  .map((u: User) => (
+                    <option key={u.id} value={u.id}>
+                      {u.firstName} {u.lastName}
+                    </option>
+                  ))}
+              </select>
+              {errors.replacementManagerId && (
+                <p className="field-error">{errors.replacementManagerId}</p>
+              )}
+            </div>
+          )}
 
           {/* Visibilité hiérarchique — managers uniquement, réglable par hr/admin */}
           {canEditAll && role === "manager" && (

@@ -73,14 +73,16 @@ async function setCategories(list) {
   return cleaned
 }
 
-/** Ajoute une catégorie personnalisée (label) et retourne la liste complète. */
+/**
+ * Ajoute une catégorie personnalisée (label) et retourne la liste complète.
+ * Idempotent : si la catégorie existe déjà, on renvoie simplement la liste
+ * courante (l'UI la sélectionnera) plutôt que d'échouer.
+ */
 async function addCategory(label) {
   const cat = normalize({ label })
   if (!cat) throw new Error('Le label de catégorie est requis')
   const list = await getCategories()
-  if (list.some((c) => c.id === cat.id)) {
-    throw new Error('Cette catégorie existe déjà')
-  }
+  if (list.some((c) => c.id === cat.id)) return list
   return setCategories([...list, cat])
 }
 

@@ -29,8 +29,17 @@ export default function FormNewPage() {
   const addCategoryMutation = useMutation({
     mutationFn: (label: string) =>
       formCategoriesApi.addCategory(label).then((r) => r.data),
-    onSuccess: (data) => {
+    onSuccess: (data, label) => {
       queryClient.setQueryData(["form-categories"], data);
+      // Auto-sélectionne la catégorie fraîchement créée (custom → type 'custom').
+      const created = data.categories.find((c) => c.label === label);
+      if (created) {
+        setMeta((m) => ({
+          ...m,
+          category: created.id,
+          formType: (created.types?.length ?? 0) > 0 ? m.formType : "custom",
+        }));
+      }
     },
   });
 
@@ -51,13 +60,31 @@ export default function FormNewPage() {
     const e: Record<string, string> = {};
     if (!meta.title.trim()) e.title = "Le titre est requis";
     if (!meta.formType) e.formType = "Choisissez une catégorie et un type";
+    if (questions.some((q) => !q.text.trim()))
+      e.questions = "Chaque question doit avoir un intitulé";
+    if (
+      questions.some(
+        (q) =>
+          q.type === "choice" &&
+          (q.options ?? []).filter((o) => o.trim()).length < 2,
+      )
+    )
+      e.questions = "Une question à choix doit avoir au moins 2 options";
     setErrors(e);
     return Object.keys(e).length === 0;
   }
 
   const createMutation = useMutation({
-    mutationFn: () =>
-      formsApi.createForm({ ...meta, questions }).then((r) => r.data),
+    mutationFn: () => {
+      // On n'envoie pas de campaignId vide ("" est rejeté par le backend).
+      const { campaignId, ...rest } = meta;
+      const payload = {
+        ...rest,
+        questions,
+        ...(campaignId ? { campaignId } : {}),
+      };
+      return formsApi.createForm(payload).then((r) => r.data);
+    },
     onSuccess: (form: Form) => navigate(`/forms/${form.id}`),
   });
 
@@ -87,7 +114,7 @@ export default function FormNewPage() {
         }
       />
 
-      {(errors.title || errors.formType) && (
+      {(errors.title || errors.formType || errors.questions) && (
         <Tile
           style={{
             marginBottom: 16,
@@ -96,6 +123,9 @@ export default function FormNewPage() {
         >
           {errors.title && <p className="field-error">{errors.title}</p>}
           {errors.formType && <p className="field-error">{errors.formType}</p>}
+          {errors.questions && (
+            <p className="field-error">{errors.questions}</p>
+          )}
         </Tile>
       )}
 

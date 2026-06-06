@@ -19,6 +19,26 @@ const { Form, Evaluation } = require('../models')
 const { ADMIN_ROLES } = require('../config/constants')
 const { isValidCategory } = require('../services/formCategoriesService')
 
+// Le frontend utilise `text` pour l'intitulé d'une question ; le modèle stocke
+// `label` (requis). On traduit aux deux frontières (écriture / lecture).
+function questionToDb(q) {
+  if (!q || typeof q !== 'object') return q
+  const { text, ...rest } = q
+  return { ...rest, label: rest.label ?? text ?? '' }
+}
+function questionToApi(q) {
+  if (!q || typeof q !== 'object') return q
+  return { ...q, text: q.text ?? q.label }
+}
+function formToApi(form) {
+  if (!form || typeof form !== 'object') return form
+  const out = { ...form }
+  // Expose `id` (le frontend l'attend) en plus de `_id` renvoyé par .lean().
+  if (out._id !== undefined && out.id === undefined) out.id = String(out._id)
+  if (Array.isArray(out.questions)) out.questions = out.questions.map(questionToApi)
+  return out
+}
+
 // GET /api/forms — Liste des formulaires (filtrable par campaignId, formType, search)
 // ?campaignId=X → retourne uniquement les forms liés à cette campagne
 router.get('/', async (req, res, next) => {
@@ -50,7 +70,7 @@ router.get('/', async (req, res, next) => {
       Form.find(filter).populate('createdBy', 'firstName lastName').sort({ createdAt: 1 }).skip(skip).limit(limit).lean(),
       Form.countDocuments(filter),
     ])
-    res.json({ data: forms, total, page, limit })
+    res.json({ data: forms.map(formToApi), total, page, limit })
   } catch (err) {
     next(err)
   }
@@ -68,7 +88,7 @@ router.get('/:id', async (req, res, next) => {
       .lean()
 
     if (!form) return res.status(404).json({ error: 'Formulaire introuvable' })
-    res.json(form)
+    res.json(formToApi(form))
   } catch (err) {
     next(err)
   }
@@ -86,7 +106,7 @@ router.post('/', async (req, res, next) => {
     if (!title || !formType) {
       return res.status(400).json({ error: 'title et formType sont requis' })
     }
-    if (campaignId !== undefined && !mongoose.isValidObjectId(campaignId)) {
+    if (campaignId !== undefined && campaignId !== null && campaignId !== '' && !mongoose.isValidObjectId(campaignId)) {
       return res.status(400).json({ error: 'campaignId invalide' })
     }
     if (questions !== undefined && !Array.isArray(questions)) {
@@ -105,14 +125,14 @@ router.post('/', async (req, res, next) => {
       formType,
       category:     category || null,
       isAnonymous:  formType === 'upward_feedback' ? true : (isAnonymous || false),
-      questions:    Array.isArray(questions) ? questions : [],
+      questions:    Array.isArray(questions) ? questions.map(questionToDb) : [],
       filledBy:     filledBy || 'employee',
       visibleToEvaluatee: visibleToEvaluatee !== undefined ? !!visibleToEvaluatee : true,
       createdBy:    req.user.id,
     })
 
     const created = await Form.findById(form._id).populate('createdBy', 'firstName lastName').lean()
-    res.status(201).json(created)
+    res.status(201).json(formToApi(created))
   } catch (err) {
     // Erreurs de validation Mongoose (pre-save, required, enum)
     if (err.name === 'ValidationError') {
@@ -162,7 +182,7 @@ async function updateForm(req, res, next) {
 
     // Questions : modifiables seulement si pas gelées
     if (req.body.questions !== undefined && !form.frozenAt) {
-      form.questions = req.body.questions
+      form.questions = req.body.questions.map(questionToDb)
     }
 
     await form.save()

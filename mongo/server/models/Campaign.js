@@ -121,7 +121,7 @@ const campaignSchema = new Schema({
   targetScope: {
     scopeType: {
       type: String,
-      enum: ['all', 'department', 'sector', 'users', 'group'],
+      enum: ['all', 'role', 'department', 'sector', 'users', 'group'],
       default: 'all',
     },
     ids: {

@@ -56,7 +56,9 @@ async function generateEvaluationsForCampaign(campaign) {
   const userFilter = { isActive: true }
   const { scopeType, ids } = campaign.targetScope || {}
 
-  if (scopeType === 'department' && ids?.length) {
+  if (scopeType === 'role' && ids?.length) {
+    userFilter.role = { $in: ids }
+  } else if (scopeType === 'department' && ids?.length) {
     userFilter.department = { $in: ids }
   } else if (scopeType === 'sector' && ids?.length) {
     userFilter.sectorId = { $in: ids }

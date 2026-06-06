@@ -137,10 +137,9 @@ test.describe.serial("Admin — cycle de vie utilisateur", () => {
     await expect(
       page.getByRole("button", { name: /Supprimer définitivement/i }),
     ).toBeVisible();
-    await page.screenshot({
-      path: `${SHOTS}/flow-08-confirmation.png`,
-      fullPage: true,
-    });
+    // Capture en viewport (pas fullPage) : le backdrop est `fixed` et couvre
+    // l'écran visible — une capture fullPage montrerait la zone hors-écran.
+    await page.screenshot({ path: `${SHOTS}/flow-08-confirmation.png` });
 
     // Confirmer → anonymisation + retour à la liste.
     await page

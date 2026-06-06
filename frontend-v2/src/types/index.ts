@@ -190,11 +190,19 @@ export interface FormQuestion {
   order?: number;
 }
 
+/** Catégorie de formulaire (groupe du sélecteur de type, gérée en DB). */
+export interface FormCategory {
+  id: string;
+  label: string;
+  types?: string[];
+}
+
 export interface Form {
   id: string;
   title: string;
   description?: string;
   formType: string;
+  category?: string | null;
   questions: FormQuestion[];
   isFrozen: boolean;
   frozenAt?: string;

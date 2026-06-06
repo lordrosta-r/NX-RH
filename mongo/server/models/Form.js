@@ -51,6 +51,11 @@ const formSchema = new Schema({
 
   formType: { type: String, required: true, enum: FORM_TYPES },
 
+  // Catégorie organisationnelle (groupe du sélecteur de type). Liste gérée en DB
+  // via services/formCategoriesService — pas d'enum figé ici afin qu'un admin/RH
+  // puisse en ajouter sans redéploiement. Validée au niveau des routes.
+  category: { type: String, trim: true, default: null },
+
   // true si les réponses sont anonymes.
   // upward_feedback → forcé true par pre-save, non modifiable ensuite.
   isAnonymous: { type: Boolean, default: false },

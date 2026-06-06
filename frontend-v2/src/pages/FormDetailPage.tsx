@@ -1,19 +1,13 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  Lock,
-  Unlock,
-  Download,
-  Trash2,
-  Plus,
-  ChevronUp,
-  ChevronDown,
-} from "lucide-react";
+import { Lock, Unlock, Download, Trash2 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { formsApi } from "../api/forms";
-import type { FormQuestion } from "../types";
+import { formCategoriesApi } from "../api/formCategories";
+import type { FormQuestion, FormCategory } from "../types";
 import { PageHead, Tile, Badge, Callout } from "../components/shell";
+import FormBuilder from "../components/forms/FormBuilder";
 import { queryKeys } from "../lib/queryKeys";
 
 type FormTone = "blue" | "green" | "amber" | "red" | "grey";
@@ -28,6 +22,7 @@ const FORM_TYPE_CONFIG: Record<string, { label: string; tone: FormTone }> = {
   salary_raise_request: { label: "Demande augmentation", tone: "green" },
   promotion_request: { label: "Demande promotion", tone: "blue" },
   training_request: { label: "Demande formation", tone: "green" },
+  custom: { label: "Personnalisé", tone: "grey" },
 };
 
 export default function FormDetailPage() {
@@ -45,11 +40,27 @@ export default function FormDetailPage() {
   const [meta, setMeta] = useState({
     title: "",
     description: "",
+    formType: "",
+    category: null as string | null,
     filledBy: "employee" as "employee" | "manager" | "hr",
     visibleToEvaluatee: true,
   });
   const [questions, setQuestions] = useState<FormQuestion[]>([]);
   const [isDirty, setIsDirty] = useState(false);
+
+  const { data: categoriesData } = useQuery({
+    queryKey: ["form-categories"],
+    queryFn: () => formCategoriesApi.getCategories().then((r) => r.data),
+  });
+  const categories: FormCategory[] = categoriesData?.categories ?? [];
+
+  const addCategoryMutation = useMutation({
+    mutationFn: (label: string) =>
+      formCategoriesApi.addCategory(label).then((r) => r.data),
+    onSuccess: (data) => {
+      queryClient.setQueryData(["form-categories"], data);
+    },
+  });
 
   const [deleteModal, setDeleteModal] = useState(false);
   const [freezeModal, setFreezeModal] = useState(false);
@@ -62,6 +73,8 @@ export default function FormDetailPage() {
       setMeta({
         title: form.title,
         description: form.description || "",
+        formType: form.formType,
+        category: form.category ?? null,
         filledBy: form.filledBy ?? "employee",
         visibleToEvaluatee: form.visibleToEvaluatee ?? true,
       });
@@ -82,6 +95,7 @@ export default function FormDetailPage() {
         .updateForm(id!, {
           title: meta.title,
           description: meta.description,
+          category: meta.category,
           filledBy: meta.filledBy,
           visibleToEvaluatee: meta.visibleToEvaluatee,
           questions,
@@ -135,17 +149,6 @@ export default function FormDetailPage() {
       a.click();
       URL.revokeObjectURL(url);
     });
-  }
-
-  function addQuestion() {
-    const newQ: FormQuestion = {
-      id: crypto.randomUUID(),
-      type: "text",
-      text: "",
-      required: false,
-    };
-    setQuestions((qs) => [...qs, newQ]);
-    setIsDirty(true);
   }
 
   if (isLoading)
@@ -274,515 +277,109 @@ export default function FormDetailPage() {
         </Callout>
       )}
 
-      {/* Layout pleine largeur — 12 colonnes */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(12, minmax(0, 1fr))",
-          gap: 24,
-          width: "100%",
+      {/* Builder — architecture + configuration */}
+      <FormBuilder
+        meta={meta}
+        onMetaChange={(patch) => {
+          setMeta((m) => ({ ...m, ...patch }));
+          setIsDirty(true);
         }}
-      >
-        {/* Colonne gauche — Métadonnées */}
-        <div
-          style={{
-            gridColumn: "span 4 / span 4",
-            display: "flex",
-            flexDirection: "column",
-            gap: 16,
-            minWidth: 0,
-          }}
-        >
-          <Tile>
-            <h2 className="h3" style={{ marginBottom: 16 }}>
-              Métadonnées
-            </h2>
+        questions={questions}
+        onQuestionsChange={(qs) => {
+          setQuestions(qs);
+          setIsDirty(true);
+        }}
+        categories={categories}
+        onCreateCategory={(label) => addCategoryMutation.mutate(label)}
+        readOnly={isFrozen}
+        lockType
+      />
 
-            <div className="field" style={{ marginBottom: 16 }}>
-              <label htmlFor="form-title">
-                Titre <span style={{ color: "var(--red)" }}>*</span>
-              </label>
-              <input
-                id="form-title"
-                type="text"
-                value={meta.title}
-                onChange={(e) => {
-                  setMeta((m) => ({ ...m, title: e.target.value }));
-                  setIsDirty(true);
-                }}
-                disabled={isFrozen}
-                className="input"
-              />
-            </div>
+      {/* Options de diffusion */}
+      <Tile style={{ marginTop: 24 }}>
+        <h2 className="h3" style={{ marginBottom: 16 }}>
+          Options
+        </h2>
 
-            <div className="field" style={{ marginBottom: 16 }}>
-              <label htmlFor="form-description">Description</label>
-              <textarea
-                id="form-description"
-                rows={3}
-                value={meta.description}
-                onChange={(e) => {
-                  setMeta((m) => ({ ...m, description: e.target.value }));
-                  setIsDirty(true);
-                }}
-                disabled={isFrozen}
-                className="input"
-              />
-            </div>
-
-            {/* Rempli par */}
-            <div className="field" style={{ marginBottom: 16 }}>
-              <label htmlFor="form-filled-by">Rempli par</label>
-              <select
-                id="form-filled-by"
-                value={meta.filledBy}
-                onChange={(e) => {
-                  setMeta((m) => ({
-                    ...m,
-                    filledBy: e.target.value as "employee" | "manager" | "hr",
-                  }));
-                  setIsDirty(true);
-                }}
-                disabled={isFrozen}
-                className="input"
-              >
-                <option value="employee">L'employé (auto-évaluation)</option>
-                <option value="manager">Le manager</option>
-                <option value="hr">Les RH</option>
-              </select>
-            </div>
-
-            {/* Visible par l'évalué */}
-            <div style={{ marginBottom: 16 }}>
-              <label
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                  cursor: "pointer",
-                  userSelect: "none",
-                }}
-              >
-                <input
-                  type="checkbox"
-                  checked={meta.visibleToEvaluatee}
-                  onChange={(e) => {
-                    setMeta((m) => ({
-                      ...m,
-                      visibleToEvaluatee: e.target.checked,
-                    }));
-                    setIsDirty(true);
-                  }}
-                  disabled={isFrozen}
-                  style={{ width: 16, height: 16 }}
-                />
-                <span className="body" style={{ fontWeight: 600 }}>
-                  Visible par l'évalué
-                </span>
-              </label>
-              <p className="small" style={{ marginTop: 4, marginLeft: 24 }}>
-                Si décoché, l'évalué ne verra pas les réponses de ce formulaire
-              </p>
-            </div>
-
-            <div style={{ marginBottom: 16 }}>
-              <p className="body" style={{ fontWeight: 600, marginBottom: 8 }}>
-                Type
-              </p>
-              <Badge tone={typeConfig?.tone ?? "grey"}>
-                {typeConfig?.label ?? form.formType}
-              </Badge>
-            </div>
-
-            {isAdminOrHr && !isFrozen && (
-              <div
-                style={{
-                  marginTop: 24,
-                  paddingTop: 16,
-                  borderTop: "1px solid var(--line)",
-                }}
-              >
-                <button
-                  onClick={() => setDeleteModal(true)}
-                  className="btn btn-ghost btn-sm"
-                  style={{ color: "var(--red)" }}
-                >
-                  <Trash2 size={16} strokeWidth={1.5} aria-hidden="true" />{" "}
-                  Supprimer le formulaire
-                </button>
-              </div>
-            )}
-          </Tile>
+        <div className="field" style={{ marginBottom: 16 }}>
+          <label htmlFor="form-filled-by">Rempli par</label>
+          <select
+            id="form-filled-by"
+            value={meta.filledBy}
+            onChange={(e) => {
+              setMeta((m) => ({
+                ...m,
+                filledBy: e.target.value as "employee" | "manager" | "hr",
+              }));
+              setIsDirty(true);
+            }}
+            disabled={isFrozen}
+            className="input"
+          >
+            <option value="employee">L'employé (auto-évaluation)</option>
+            <option value="manager">Le manager</option>
+            <option value="hr">Les RH</option>
+          </select>
         </div>
 
-        {/* Colonne droite — Questions */}
-        <div style={{ gridColumn: "span 8 / span 8", minWidth: 0 }}>
-          <Tile>
-            <div
-              className="row between"
-              style={{ marginBottom: 16, alignItems: "center" }}
+        <div style={{ marginBottom: 16 }}>
+          <label
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              cursor: "pointer",
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={meta.visibleToEvaluatee}
+              onChange={(e) => {
+                setMeta((m) => ({
+                  ...m,
+                  visibleToEvaluatee: e.target.checked,
+                }));
+                setIsDirty(true);
+              }}
+              disabled={isFrozen}
+            />
+            <span className="body" style={{ fontWeight: 600 }}>
+              Visible par l'évalué
+            </span>
+          </label>
+          <p className="small" style={{ marginTop: 4, marginLeft: 24 }}>
+            Si décoché, l'évalué ne verra pas les réponses de ce formulaire
+          </p>
+        </div>
+
+        <div style={{ marginBottom: 16 }}>
+          <p className="body" style={{ fontWeight: 600, marginBottom: 8 }}>
+            Type
+          </p>
+          <Badge tone={typeConfig?.tone ?? "grey"}>
+            {typeConfig?.label ?? form.formType}
+          </Badge>
+        </div>
+
+        {isAdminOrHr && !isFrozen && (
+          <div
+            style={{
+              marginTop: 8,
+              paddingTop: 16,
+              borderTop: "1px solid var(--line)",
+            }}
+          >
+            <button
+              onClick={() => setDeleteModal(true)}
+              className="btn btn-ghost btn-sm"
+              style={{ color: "var(--red)" }}
             >
-              <h2 className="h3">
-                Questions ({questions.length})
-                {isFrozen && (
-                  <span
-                    className="small"
-                    style={{ marginLeft: 8, fontWeight: 400 }}
-                  >
-                    (lecture seule)
-                  </span>
-                )}
-              </h2>
-              {!isFrozen && isAdminOrHr && (
-                <button onClick={addQuestion} className="btn btn-ghost btn-sm">
-                  <Plus size={16} strokeWidth={1.5} aria-hidden="true" />{" "}
-                  Ajouter
-                </button>
-              )}
-            </div>
-
-            {questions.length === 0 && (
-              <div style={{ textAlign: "center", padding: "40px 0" }}>
-                <p className="body">Aucune question dans ce formulaire.</p>
-                {!isFrozen && isAdminOrHr && (
-                  <button
-                    onClick={addQuestion}
-                    className="link"
-                    style={{
-                      marginTop: 8,
-                      background: "none",
-                      border: "none",
-                      cursor: "pointer",
-                    }}
-                  >
-                    + Ajouter une question
-                  </button>
-                )}
-              </div>
-            )}
-
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              {questions.map((q, idx) =>
-                isFrozen ? (
-                  <div
-                    key={q.id}
-                    style={{
-                      background: "var(--bg-alt)",
-                      borderRadius: "var(--radius)",
-                      border: "1px solid var(--line)",
-                      padding: 16,
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 8,
-                        marginBottom: 8,
-                        flexWrap: "wrap",
-                      }}
-                    >
-                      <span
-                        style={{
-                          width: 24,
-                          height: 24,
-                          borderRadius: 999,
-                          background: "var(--line)",
-                          color: "var(--ink-2)",
-                          fontSize: 12,
-                          fontWeight: 500,
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          flexShrink: 0,
-                        }}
-                      >
-                        {idx + 1}
-                      </span>
-                      <Badge tone="grey">{q.type}</Badge>
-                      {q.phase && <span className="small">{q.phase}</span>}
-                      {q.required && (
-                        <span
-                          className="small"
-                          style={{ color: "var(--blue)", fontWeight: 600 }}
-                        >
-                          Requis
-                        </span>
-                      )}
-                    </div>
-                    <p className="body">
-                      {q.text || (
-                        <em style={{ color: "var(--ink-3)" }}>Sans texte</em>
-                      )}
-                    </p>
-                    {q.options && q.options.length > 0 && (
-                      <ul
-                        style={{
-                          marginTop: 8,
-                          display: "flex",
-                          flexDirection: "column",
-                          gap: 4,
-                        }}
-                      >
-                        {q.options.map((opt, i) => (
-                          <li
-                            key={`${opt}-${i}`}
-                            className="small"
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 6,
-                            }}
-                          >
-                            <span
-                              style={{
-                                width: 6,
-                                height: 6,
-                                borderRadius: 999,
-                                background: "var(--line)",
-                                flexShrink: 0,
-                              }}
-                            />
-                            {opt}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                ) : (
-                  <div
-                    key={q.id}
-                    style={{
-                      border: "1px solid var(--line)",
-                      borderRadius: "var(--radius)",
-                      padding: 16,
-                      background: "#fff",
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "flex-start",
-                        gap: 12,
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          gap: 4,
-                          paddingTop: 4,
-                        }}
-                      >
-                        <button
-                          disabled={idx === 0}
-                          onClick={() => {
-                            if (idx === 0) return;
-                            setQuestions((qs) => {
-                              const a = [...qs];
-                              [a[idx - 1], a[idx]] = [a[idx], a[idx - 1]];
-                              return a;
-                            });
-                            setIsDirty(true);
-                          }}
-                          aria-label="Déplacer vers le haut"
-                          className="btn btn-ghost btn-sm"
-                          style={{ padding: 4 }}
-                        >
-                          <ChevronUp
-                            size={16}
-                            strokeWidth={1.5}
-                            aria-hidden="true"
-                          />
-                        </button>
-                        <button
-                          disabled={idx === questions.length - 1}
-                          onClick={() => {
-                            if (idx === questions.length - 1) return;
-                            setQuestions((qs) => {
-                              const a = [...qs];
-                              [a[idx], a[idx + 1]] = [a[idx + 1], a[idx]];
-                              return a;
-                            });
-                            setIsDirty(true);
-                          }}
-                          aria-label="Déplacer vers le bas"
-                          className="btn btn-ghost btn-sm"
-                          style={{ padding: 4 }}
-                        >
-                          <ChevronDown
-                            size={16}
-                            strokeWidth={1.5}
-                            aria-hidden="true"
-                          />
-                        </button>
-                      </div>
-                      <div
-                        style={{
-                          flex: 1,
-                          minWidth: 0,
-                          display: "flex",
-                          flexDirection: "column",
-                          gap: 12,
-                        }}
-                      >
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 8,
-                            flexWrap: "wrap",
-                          }}
-                        >
-                          <span
-                            style={{
-                              width: 24,
-                              height: 24,
-                              borderRadius: 999,
-                              background: "var(--bg-alt)",
-                              color: "var(--blue)",
-                              fontSize: 12,
-                              fontWeight: 600,
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              flexShrink: 0,
-                            }}
-                          >
-                            {idx + 1}
-                          </span>
-                          <select
-                            value={q.type}
-                            onChange={(e) => {
-                              setQuestions((qs) =>
-                                qs.map((x) =>
-                                  x.id === q.id
-                                    ? {
-                                        ...x,
-                                        type: e.target
-                                          .value as FormQuestion["type"],
-                                      }
-                                    : x,
-                                ),
-                              );
-                              setIsDirty(true);
-                            }}
-                            aria-label="Type de question"
-                            className="input"
-                            style={{
-                              width: "auto",
-                              fontSize: 13,
-                              padding: "6px 10px",
-                            }}
-                          >
-                            {(
-                              [
-                                "text",
-                                "textarea",
-                                "rating",
-                                "choice",
-                                "yes_no",
-                              ] as const
-                            ).map((t) => (
-                              <option key={t} value={t}>
-                                {t}
-                              </option>
-                            ))}
-                          </select>
-                          <label
-                            className="small"
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 6,
-                              cursor: "pointer",
-                            }}
-                          >
-                            <input
-                              type="checkbox"
-                              checked={q.required}
-                              onChange={(e) => {
-                                setQuestions((qs) =>
-                                  qs.map((x) =>
-                                    x.id === q.id
-                                      ? { ...x, required: e.target.checked }
-                                      : x,
-                                  ),
-                                );
-                                setIsDirty(true);
-                              }}
-                            />
-                            Requis
-                          </label>
-                        </div>
-                        <input
-                          type="text"
-                          value={q.text}
-                          onChange={(e) => {
-                            setQuestions((qs) =>
-                              qs.map((x) =>
-                                x.id === q.id
-                                  ? { ...x, text: e.target.value }
-                                  : x,
-                              ),
-                            );
-                            setIsDirty(true);
-                          }}
-                          placeholder="Texte de la question…"
-                          aria-label="Texte de la question"
-                          className="input"
-                        />
-                        {q.type === "choice" && (
-                          <div className="field">
-                            <label htmlFor={`opts-${q.id}`}>
-                              Options (une par ligne)
-                            </label>
-                            <textarea
-                              id={`opts-${q.id}`}
-                              rows={3}
-                              value={(q.options ?? []).join("\n")}
-                              onChange={(e) => {
-                                setQuestions((qs) =>
-                                  qs.map((x) =>
-                                    x.id === q.id
-                                      ? {
-                                          ...x,
-                                          options: e.target.value.split("\n"),
-                                        }
-                                      : x,
-                                  ),
-                                );
-                                setIsDirty(true);
-                              }}
-                              className="input"
-                            />
-                          </div>
-                        )}
-                      </div>
-                      <button
-                        onClick={() => {
-                          setQuestions((qs) => qs.filter((x) => x.id !== q.id));
-                          setIsDirty(true);
-                        }}
-                        className="btn btn-ghost btn-sm"
-                        style={{ padding: 4, color: "var(--ink-3)" }}
-                        title="Supprimer la question"
-                        aria-label="Supprimer la question"
-                      >
-                        <Trash2
-                          size={16}
-                          strokeWidth={1.5}
-                          aria-hidden="true"
-                        />
-                      </button>
-                    </div>
-                  </div>
-                ),
-              )}
-            </div>
-          </Tile>
-        </div>
-      </div>
+              <Trash2 size={16} strokeWidth={1.5} aria-hidden="true" />{" "}
+              Supprimer le formulaire
+            </button>
+          </div>
+        )}
+      </Tile>
 
       {/* Modal suppression */}
       {deleteModal && (

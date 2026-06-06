@@ -43,9 +43,22 @@ const FORM_TYPES = [
   'salary_raise_request',
   'promotion_request',
   'training_request',
+  // Type générique : questionnaire simple sans comportement spécial.
+  // Utilisé par les formulaires rangés dans une catégorie personnalisée.
+  'custom',
 ]
 
 const REQUEST_FORM_TYPES = ['mobility_request', 'salary_raise_request', 'promotion_request', 'training_request']
+
+// Catégories de formulaires (groupes du sélecteur de type). Liste par défaut ;
+// gérée en DB via services/formCategoriesService pour qu'un admin/RH puisse en
+// ajouter sans redéploiement. Les `types` listent les formType built-in du groupe
+// (vide = catégorie personnalisée → formType 'custom').
+const FORM_CATEGORIES = [
+  { id: 'evaluations', label: 'Évaluations', types: ['self_evaluation', 'manager_evaluation', 'upward_feedback', 'peer_review'] },
+  { id: 'objectives', label: 'Objectifs', types: ['objectives'] },
+  { id: 'requests', label: 'Formulaires de demande', types: ['mobility_request', 'salary_raise_request', 'promotion_request', 'training_request'] },
+]
 
 const ADMIN_ROLES    = ['admin', 'hr']
 const MANAGER_ROLES  = ['admin', 'hr', 'manager']
@@ -120,7 +133,7 @@ const NOTIFICATION_TYPES = [
 ]
 
 module.exports = {
-  ROLES, DEPARTMENTS, QUESTION_TYPES, FORM_TYPES, REQUEST_FORM_TYPES,
+  ROLES, DEPARTMENTS, QUESTION_TYPES, FORM_TYPES, REQUEST_FORM_TYPES, FORM_CATEGORIES,
   ADMIN_ROLES, MANAGER_ROLES,
   EVENT_TYPES, RESOURCE_TYPES,
   CAMPAIGN_STATUSES, EVALUATION_STATUSES, AUTH_SOURCES,

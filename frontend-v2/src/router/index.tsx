@@ -36,7 +36,6 @@ const UsersPage = lazy(() => import("../pages/UsersPage"));
 const UserNewPage = lazy(() => import("../pages/UserNewPage"));
 const UserDetailPage = lazy(() => import("../pages/UserDetailPage"));
 const UserEditPage = lazy(() => import("../pages/UserEditPage"));
-const UserOffboardingPage = lazy(() => import("../pages/UserOffboardingPage"));
 const CampaignsPage = lazy(() => import("../pages/CampaignsPage"));
 const CampaignNewPage = lazy(() => import("../pages/CampaignNewPage"));
 const CampaignDetailPage = lazy(() => import("../pages/CampaignDetailPage"));
@@ -60,10 +59,6 @@ const EventDetailPage = lazy(() => import("../pages/EventDetailPage"));
 const ResourcesPage = lazy(() => import("../pages/ResourcesPage"));
 const ResourceDetailPage = lazy(() => import("../pages/ResourceDetailPage"));
 const HelpPage = lazy(() => import("../pages/HelpPage"));
-const OffboardingPage = lazy(() => import("../pages/OffboardingPage"));
-const OffboardingDetailPage = lazy(
-  () => import("../pages/OffboardingDetailPage"),
-);
 const HrFlagsPage = lazy(() => import("../pages/HrFlagsPage"));
 const HrFlagDetailPage = lazy(() => import("../pages/HrFlagDetailPage"));
 const AnalyticsPage = lazy(() => import("../pages/AnalyticsPage"));
@@ -73,7 +68,6 @@ const AnalyticsCampaignPage = lazy(
 const OrgPage = lazy(() => import("../pages/OrgPage"));
 const ProfilePage = lazy(() => import("../pages/ProfilePage"));
 const PreferencesPage = lazy(() => import("../pages/PreferencesPage"));
-const OnboardingPage = lazy(() => import("../pages/OnboardingPage"));
 const NotificationsPage = lazy(() => import("../pages/NotificationsPage"));
 const AdminUsersImportPage = lazy(
   () => import("../pages/AdminUsersImportPage"),
@@ -161,17 +155,6 @@ export const router = createBrowserRouter([
       },
     ],
   },
-  // Onboarding — plein écran sans navbar
-  {
-    path: "/onboarding",
-    element: (
-      <AuthGuard>
-        <S>
-          <OnboardingPage />
-        </S>
-      </AuthGuard>
-    ),
-  },
   // Routes privées
   {
     element: (
@@ -225,16 +208,6 @@ export const router = createBrowserRouter([
           <AuthGuard roles={["admin", "hr"]}>
             <S>
               <UserEditPage />
-            </S>
-          </AuthGuard>
-        ),
-      },
-      {
-        path: "/users/:id/offboarding",
-        element: (
-          <AuthGuard roles={["admin", "hr"]}>
-            <S>
-              <UserOffboardingPage />
             </S>
           </AuthGuard>
         ),
@@ -400,27 +373,6 @@ export const router = createBrowserRouter([
           <S>
             <HelpPage />
           </S>
-        ),
-      },
-      // Offboarding
-      {
-        path: "/offboarding",
-        element: (
-          <AuthGuard roles={["admin", "hr", "manager"]}>
-            <S>
-              <OffboardingPage />
-            </S>
-          </AuthGuard>
-        ),
-      },
-      {
-        path: "/offboarding/:id",
-        element: (
-          <AuthGuard roles={["admin", "hr", "manager"]}>
-            <S>
-              <OffboardingDetailPage />
-            </S>
-          </AuthGuard>
         ),
       },
       // Mobilité interne

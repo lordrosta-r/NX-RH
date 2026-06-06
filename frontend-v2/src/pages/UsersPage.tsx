@@ -58,7 +58,6 @@ export default function UsersPage() {
         totalPages={p.totalPages}
         total={p.data?.total}
         pageNumbers={p.getPageNumbers()}
-        onOffboard={(id) => p.offboardMutation.mutate(id)}
         onAnonymize={(target) => {
           p.setAnonymizeTarget(target);
           setConfirmText("");

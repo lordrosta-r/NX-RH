@@ -563,37 +563,6 @@ export default function DashboardHrPage() {
                   </div>
                 </Callout>
               )}
-              <Callout tone="red">
-                <div
-                  className="row"
-                  style={{ gap: 12, alignItems: "flex-start" }}
-                >
-                  <AlertCircle
-                    className="ico"
-                    style={{
-                      width: 18,
-                      height: 18,
-                      color: "var(--red)",
-                      flex: "none",
-                      marginTop: 2,
-                    }}
-                  />
-                  <div>
-                    <p
-                      style={{
-                        fontSize: 14,
-                        fontWeight: 700,
-                        color: "var(--ink)",
-                      }}
-                    >
-                      Offboardings en cours
-                    </p>
-                    <Link to="/offboarding" className="link small">
-                      Voir les offboardings →
-                    </Link>
-                  </div>
-                </div>
-              </Callout>
             </div>
           </Tile>
         </div>

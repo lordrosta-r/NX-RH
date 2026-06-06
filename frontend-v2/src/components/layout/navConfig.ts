@@ -97,7 +97,6 @@ export function getPerspectiveNav(
     children: [
       { label: t("nav.users"), href: "/users" },
       { label: t("nav.org"), href: "/org" },
-      { label: t("nav.offboarding"), href: "/offboarding" },
     ],
   };
   const campagnes: NavGroup = {

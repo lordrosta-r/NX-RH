@@ -17,7 +17,6 @@ const ROUTES: { route: string; slug: string }[] = [
   { route: "/evaluations", slug: "evaluations" },
   { route: "/events", slug: "events" },
   { route: "/org", slug: "org" },
-  { route: "/offboarding", slug: "offboarding" },
 ];
 
 test.describe("Visual Admin Core — lecture seule", () => {

@@ -16,7 +16,6 @@ import { useAuth } from "../contexts/AuthContext";
 import { useDashboardAdmin } from "../hooks/useDashboard";
 import { useSetupChecklist } from "../hooks/useSetupChecklist";
 import { adminApi } from "../api/admin";
-import { offboardingApi } from "../api/offboarding";
 import type { Campaign } from "../types";
 import {
   PageHead,
@@ -210,15 +209,6 @@ export default function DashboardAdminPage() {
       adminApi
         .getFlags({ status: "pending" })
         .then((r) => (r.data as { total?: number })?.total ?? 0),
-  });
-
-  // Offboardings en attente — vrai compteur depuis l'API.
-  const { data: offboardingPending } = useQuery({
-    queryKey: ["offboarding-pending-count"],
-    queryFn: () =>
-      offboardingApi
-        .getOffboardings({ status: "pending", limit: 1 })
-        .then((r) => r.data?.total ?? 0),
   });
 
   // Journal d'audit — 5 dernières entrées réelles.
@@ -442,11 +432,6 @@ export default function DashboardAdminPage() {
           label="Évaluations non finalisées"
           tone="var(--amber)"
         />
-        <StatTile
-          value={offboardingPending ?? "—"}
-          label="Offboardings en attente"
-          tone="var(--red)"
-        />
       </div>
 
       {/* Campagnes + actions urgentes */}
@@ -530,37 +515,6 @@ export default function DashboardAdminPage() {
                     </p>
                     <Link to="/hr/flags" className="link small">
                       Voir les alertes RH →
-                    </Link>
-                  </div>
-                </div>
-              </Callout>
-              <Callout tone="red">
-                <div
-                  className="row"
-                  style={{ gap: 12, alignItems: "flex-start" }}
-                >
-                  <AlertCircle
-                    className="ico"
-                    style={{
-                      width: 18,
-                      height: 18,
-                      color: "var(--red)",
-                      flex: "none",
-                      marginTop: 2,
-                    }}
-                  />
-                  <div>
-                    <p
-                      style={{
-                        fontSize: 14,
-                        fontWeight: 700,
-                        color: "var(--ink)",
-                      }}
-                    >
-                      Offboardings non complétés &gt; 30 j
-                    </p>
-                    <Link to="/offboarding" className="link small">
-                      Voir les offboardings →
                     </Link>
                   </div>
                 </div>

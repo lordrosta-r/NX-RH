@@ -621,6 +621,40 @@ export interface Interview {
   /** Évaluations peuplées (formId, evaluatorId, evaluateeId renseignés).
    *  L'API renvoie le champ sous le nom `evaluationIds` (réf peuplée Mongoose). */
   evaluationIds: InterviewEvaluation[];
+  // ── Travail d'entretien (qualitatif, pas de note) ───────────────────────────
+  /** Échange par question : commentaires des 2 parties + réponse retenue commune. */
+  discussion?: Array<{
+    questionId: string;
+    employeeComment?: string;
+    managerComment?: string;
+    agreedAnswer?: string;
+  }>;
+  /** Revue des objectifs de l'an dernier (atteint / partiel / non). */
+  objectivesReview?: Array<{
+    label: string;
+    status?: "achieved" | "partial" | "not_achieved" | "";
+    comment?: string;
+  }>;
+  /** Objectifs fixés pour l'année suivante. */
+  nextYearObjectives?: Array<{ text: string }>;
+  /** Synthèse finale de l'entretien. */
+  synthesis?: { text: string };
+  /** Signatures manuscrites (image data URL). */
+  signatures?: Array<{
+    role: "evaluatee" | "manager";
+    dataUrl: string;
+    signedAt: string;
+  }>;
+  /** Désaccord formel → litige. */
+  disagreement?: {
+    flagged: boolean;
+    by?: string;
+    reason?: string;
+    at?: string;
+  };
+  status?: "draft" | "signed" | "disputed" | "done";
+  /** Objectifs N+1 fixés à l'édition précédente (texte brut), pour la revue. */
+  previousObjectives?: string | null;
   createdAt?: string;
   updatedAt?: string;
 }

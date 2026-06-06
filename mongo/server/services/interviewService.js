@@ -7,8 +7,12 @@
 // Il est créé/mis à jour à chaque fois qu'une évaluation est créée.
 // =============================================================================
 
-const { Interview, Evaluation } = require('../models')
+const { Interview, Evaluation, Campaign } = require('../models')
+const { VALID_TRANSITIONS } = require('../models/Evaluation')
 const logger = require('../utils/logger')
+
+// Statuts d'évaluation considérés comme « de référence » pour le lookup N-1
+const N1_VALID_STATUSES = ['validated', 'signed_hr', 'signed_manager', 'reviewed']
 
 // ── Upsert ────────────────────────────────────────────────────────────────────
 
@@ -60,10 +64,13 @@ async function upsertInterviewForEvaluation(evaluation) {
 
 /**
  * Retourne l'Interview d'un duo (campagne, évaluatee) avec ses évaluations peuplées.
+ * Enrichit le résultat d'un champ `previousObjectives` (string) contenant les
+ * nextYearObjectives de la dernière évaluation validée de l'évaluatee dans la
+ * campagne précédente (via previousCampaignId ou fallback dernière campagne clôturée).
  *
  * @param {string|ObjectId} campaignId
  * @param {string|ObjectId} evaluateeId
- * @returns {Promise<object|null>} document Interview peuplé ou null si absent
+ * @returns {Promise<object|null>} document Interview peuplé + previousObjectives, ou null
  */
 async function getInterview(campaignId, evaluateeId) {
   const interview = await Interview.findOne({ campaignId, evaluateeId })
@@ -88,7 +95,50 @@ async function getInterview(campaignId, evaluateeId) {
     .populate('managerId', 'firstName lastName')
     .lean()
 
-  return interview || null
+  if (!interview) return null
+
+  // ── Lookup previousObjectives ──────────────────────────────────────────────
+  let previousObjectives = null
+  try {
+    const campaign = await Campaign.findById(campaignId, 'previousCampaignId startDate').lean()
+
+    let n1Eval = null
+
+    // Stratégie 1 : previousCampaignId explicite
+    if (campaign?.previousCampaignId) {
+      n1Eval = await Evaluation.findOne({
+        evaluateeId,
+        campaignId: campaign.previousCampaignId,
+        status: { $in: N1_VALID_STATUSES },
+      }, 'nextYearObjectives').lean()
+    }
+
+    // Stratégie 2 : fallback — dernière campagne clôturée avant startDate
+    if (!n1Eval && campaign?.startDate) {
+      const prevCampaigns = await Campaign.find(
+        { status: { $in: ['closed', 'archived'] }, endDate: { $lt: campaign.startDate } },
+        '_id'
+      ).lean()
+
+      if (prevCampaigns.length > 0) {
+        n1Eval = await Evaluation.findOne({
+          evaluateeId,
+          campaignId: { $in: prevCampaigns.map(c => c._id) },
+          status: { $in: N1_VALID_STATUSES },
+        }, 'nextYearObjectives').sort({ updatedAt: -1 }).lean()
+      }
+    }
+
+    previousObjectives = n1Eval?.nextYearObjectives ?? null
+  } catch (err) {
+    logger.warn('[interview] Impossible de résoudre previousObjectives', {
+      campaignId: campaignId?.toString(),
+      evaluateeId: evaluateeId?.toString(),
+      error: err instanceof Error ? err.message : String(err),
+    })
+  }
+
+  return { ...interview, previousObjectives }
 }
 
 // ── Helpers internes ──────────────────────────────────────────────────────────
@@ -115,6 +165,164 @@ async function generateInterviewsForCampaign(campaignId) {
   }
 
   return count
+}
+
+// ── État de l'entretien (discussion, objectifs, synthèse) ────────────────────
+
+/**
+ * Met à jour en best-effort les champs éditables de l'Interview.
+ * Seuls les champs fournis dans `patch` sont écrasés ($set partiel).
+ *
+ * @param {string|ObjectId} campaignId
+ * @param {string|ObjectId} evaluateeId
+ * @param {object}          patch — sous-ensemble de { discussion, objectivesReview, nextYearObjectives, synthesis }
+ * @returns {Promise<object>} document Interview mis à jour
+ * @throws  {Error} avec .status=404 si l'entretien est introuvable
+ */
+async function saveState(campaignId, evaluateeId, patch) {
+  // Construction manuelle pour éviter l'injection d'objet (clés fixes et connues)
+  const $set = {}
+  const { discussion, objectivesReview, nextYearObjectives, synthesis } = patch
+  if (discussion        !== undefined) $set.discussion        = discussion
+  if (objectivesReview  !== undefined) $set.objectivesReview  = objectivesReview
+  if (nextYearObjectives !== undefined) $set.nextYearObjectives = nextYearObjectives
+  if (synthesis         !== undefined) $set.synthesis         = synthesis
+
+  const interview = await Interview.findOneAndUpdate(
+    { campaignId, evaluateeId },
+    { $set },
+    { new: true, runValidators: true }
+  ).lean()
+
+  if (!interview) {
+    const err = new Error('Entretien introuvable')
+    err.status = 404
+    throw err
+  }
+
+  return interview
+}
+
+// ── Signatures ────────────────────────────────────────────────────────────────
+
+/**
+ * Enregistre la signature d'un participant (évalué ou manager).
+ * Fait avancer en best-effort le statut de l'évaluation manager dans la
+ * machine d'états (VALID_TRANSITIONS) :
+ *   - role='evaluatee' + éval en 'reviewed'       → 'signed_evaluatee'
+ *   - role='manager'  + éval en 'signed_evaluatee' → 'signed_manager'
+ * Si les deux rôles ont signé → interview.status = 'signed'.
+ *
+ * @param {string|ObjectId} campaignId
+ * @param {string|ObjectId} evaluateeId
+ * @param {object}          payload
+ * @param {'evaluatee'|'manager'} payload.role
+ * @param {string}          payload.dataUrl — data URI de la signature
+ * @returns {Promise<object>} document Interview mis à jour
+ * @throws  {Error} avec .status si données invalides ou entretien introuvable
+ */
+async function addSignature(campaignId, evaluateeId, { role, dataUrl }) {
+  const interview = await Interview.findOne({ campaignId, evaluateeId })
+    .populate('evaluationIds', 'evaluatorId evaluateeId status')
+
+  if (!interview) {
+    const err = new Error('Entretien introuvable')
+    err.status = 404
+    throw err
+  }
+
+  // Push de la signature (on n'empêche pas une double signature ici — la route valide déjà)
+  interview.signatures.push({ role, dataUrl })
+
+  // ── Avancer le statut de l'évaluation manager en best-effort ──────────────
+  const managerEval = interview.evaluationIds.find(
+    ev => ev.evaluatorId?.toString() !== ev.evaluateeId?.toString()
+  )
+
+  if (managerEval) {
+    try {
+      const evalDoc = await Evaluation.findById(managerEval._id)
+      if (evalDoc) {
+        const targetStatus = role === 'evaluatee' ? 'signed_evaluatee' : 'signed_manager'
+        const allowed = VALID_TRANSITIONS[evalDoc.status] ?? []
+        if (allowed.includes(targetStatus)) {
+          evalDoc.status = targetStatus
+          await evalDoc.save()
+        }
+      }
+    } catch (err) {
+      logger.warn('[interview] Transition éval manager impossible (best-effort)', {
+        evaluationId: managerEval._id?.toString(),
+        role,
+        error: err instanceof Error ? err.message : String(err),
+      })
+    }
+  }
+
+  // ── Statut de l'entretien ──────────────────────────────────────────────────
+  const signedRoles = new Set(interview.signatures.map(s => s.role))
+  if (signedRoles.has('evaluatee') && signedRoles.has('manager')) {
+    interview.status = 'signed'
+  }
+
+  await interview.save()
+  return interview.toObject()
+}
+
+// ── Désaccord formel ──────────────────────────────────────────────────────────
+
+/**
+ * Enregistre un désaccord formel de l'évalué sur l'entretien.
+ * Passe interview.status à 'disputed'.
+ * Tente en best-effort de faire avancer l'évaluation manager :
+ *   - 'reviewed' → 'disputed' si la transition est autorisée.
+ *
+ * @param {string|ObjectId} campaignId
+ * @param {string|ObjectId} evaluateeId
+ * @param {object}          payload
+ * @param {string|ObjectId} payload.by     — req.user.id
+ * @param {string}          payload.reason — motif du désaccord
+ * @returns {Promise<object>} document Interview mis à jour
+ * @throws  {Error} avec .status si l'entretien est introuvable
+ */
+async function flagDisagreement(campaignId, evaluateeId, { by, reason }) {
+  const interview = await Interview.findOne({ campaignId, evaluateeId })
+    .populate('evaluationIds', 'evaluatorId evaluateeId status')
+
+  if (!interview) {
+    const err = new Error('Entretien introuvable')
+    err.status = 404
+    throw err
+  }
+
+  interview.disagreement = { flagged: true, by, reason, at: new Date() }
+  interview.status = 'disputed'
+
+  // ── Transition éval manager en best-effort ──────────────────────────────
+  const managerEval = interview.evaluationIds.find(
+    ev => ev.evaluatorId?.toString() !== ev.evaluateeId?.toString()
+  )
+
+  if (managerEval) {
+    try {
+      const evalDoc = await Evaluation.findById(managerEval._id)
+      if (evalDoc) {
+        const allowed = VALID_TRANSITIONS[evalDoc.status] ?? []
+        if (allowed.includes('disputed')) {
+          evalDoc.status = 'disputed'
+          await evalDoc.save()
+        }
+      }
+    } catch (err) {
+      logger.warn('[interview] Transition éval manager (disputed) impossible (best-effort)', {
+        evaluationId: managerEval._id?.toString(),
+        error: err instanceof Error ? err.message : String(err),
+      })
+    }
+  }
+
+  await interview.save()
+  return interview.toObject()
 }
 
 // ── Synthèse d'entretien ──────────────────────────────────────────────────────
@@ -179,4 +387,7 @@ module.exports = {
   getInterview,
   generateInterviewsForCampaign,
   saveSynthesis,
+  saveState,
+  addSignature,
+  flagDisagreement,
 }

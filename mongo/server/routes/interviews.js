@@ -11,15 +11,28 @@
 //   Enregistre le score et le commentaire du manager (synthèse d'entretien).
 //   body : { campaignId, evaluateeId, reviewerScore?, reviewerComment }
 //
+// PATCH /api/interviews/state
+//   Sauvegarde partielle de l'état éditorial de l'entretien.
+//   body : { campaignId, evaluateeId, discussion?, objectivesReview?, nextYearObjectives?, synthesis? }
+//
+// POST /api/interviews/sign
+//   Enregistre la signature d'un participant (évalué ou manager).
+//   body : { campaignId, evaluateeId, role, dataUrl }
+//
+// POST /api/interviews/disagreement
+//   Enregistre un désaccord formel de l'évalué.
+//   body : { campaignId, evaluateeId, reason }
+//
 // RBAC :
 //   - admin/hr : accès total
 //   - manager  : seulement si l'évaluatee est dans sa visibilité
-//   - employee : 403
+//   - employee : GET autorisé sur lui-même ; PATCH /state + POST /sign autorisés
+//               sur lui-même ; PATCH /synthesis et POST /disagreement → selon rôle
 // =============================================================================
 
 const express  = require('express')
 const mongoose = require('mongoose')
-const { getInterview, saveSynthesis } = require('../services/interviewService')
+const { getInterview, saveSynthesis, saveState, addSignature, flagDisagreement } = require('../services/interviewService')
 const { getVisibleUserIds } = require('../services/managerVisibility')
 const { Campaign } = require('../models')
 
@@ -120,6 +133,118 @@ router.patch('/synthesis', async (req, res, next) => {
     if (err.status) {
       return res.status(err.status).json({ error: err.message })
     }
+    next(err)
+  }
+})
+
+// ── Helper RBAC mutualisé ──────────────────────────────────────────────────────
+/**
+ * Vérifie que l'utilisateur courant peut accéder à l'évaluatee donné.
+ * - admin/hr : toujours autorisé
+ * - manager  : évaluatee dans getVisibleUserIds
+ * - employee : uniquement lui-même
+ *
+ * @returns {boolean} true si accès autorisé
+ */
+async function canAccessEvaluatee(req, campaignId, evaluateeId) {
+  const role = req.user.role
+  const uid  = req.user.id.toString()
+
+  if (role === 'admin' || role === 'hr') return true
+
+  if (role === 'manager') {
+    const campaign = await Campaign.findById(campaignId, 'extendedVisibility').lean()
+    const visibleIds = await getVisibleUserIds(req.user.id, campaign)
+    return visibleIds.includes(evaluateeId)
+  }
+
+  // employee
+  return uid === evaluateeId
+}
+
+/**
+ * PATCH /api/interviews/state
+ * body : { campaignId, evaluateeId, discussion?, objectivesReview?, nextYearObjectives?, synthesis? }
+ */
+router.patch('/state', async (req, res, next) => {
+  try {
+    const { campaignId, evaluateeId, discussion, objectivesReview, nextYearObjectives, synthesis } = req.body
+
+    if (!campaignId || !mongoose.isValidObjectId(campaignId)) {
+      return res.status(400).json({ error: 'campaignId valide requis' })
+    }
+    if (!evaluateeId || !mongoose.isValidObjectId(evaluateeId)) {
+      return res.status(400).json({ error: 'evaluateeId valide requis' })
+    }
+
+    const allowed = await canAccessEvaluatee(req, campaignId, evaluateeId)
+    if (!allowed) return res.status(403).json({ error: 'Accès refusé' })
+
+    await saveState(campaignId, evaluateeId, { discussion, objectivesReview, nextYearObjectives, synthesis })
+
+    res.json({ ok: true })
+  } catch (err) {
+    if (err.status) return res.status(err.status).json({ error: err.message })
+    next(err)
+  }
+})
+
+/**
+ * POST /api/interviews/sign
+ * body : { campaignId, evaluateeId, role, dataUrl }
+ */
+router.post('/sign', async (req, res, next) => {
+  try {
+    const { campaignId, evaluateeId, role, dataUrl } = req.body
+
+    if (!campaignId || !mongoose.isValidObjectId(campaignId)) {
+      return res.status(400).json({ error: 'campaignId valide requis' })
+    }
+    if (!evaluateeId || !mongoose.isValidObjectId(evaluateeId)) {
+      return res.status(400).json({ error: 'evaluateeId valide requis' })
+    }
+    if (!['evaluatee', 'manager'].includes(role)) {
+      return res.status(400).json({ error: "role doit être 'evaluatee' ou 'manager'" })
+    }
+    if (!dataUrl || typeof dataUrl !== 'string' || !dataUrl.startsWith('data:image')) {
+      return res.status(400).json({ error: "dataUrl invalide (doit être un data URI image)" })
+    }
+
+    const allowed = await canAccessEvaluatee(req, campaignId, evaluateeId)
+    if (!allowed) return res.status(403).json({ error: 'Accès refusé' })
+
+    const interview = await addSignature(campaignId, evaluateeId, { role, dataUrl })
+
+    res.json({ ok: true, status: interview.status })
+  } catch (err) {
+    if (err.status) return res.status(err.status).json({ error: err.message })
+    next(err)
+  }
+})
+
+/**
+ * POST /api/interviews/disagreement
+ * body : { campaignId, evaluateeId, reason }
+ */
+router.post('/disagreement', async (req, res, next) => {
+  try {
+    const { campaignId, evaluateeId, reason } = req.body
+
+    if (!campaignId || !mongoose.isValidObjectId(campaignId)) {
+      return res.status(400).json({ error: 'campaignId valide requis' })
+    }
+    if (!evaluateeId || !mongoose.isValidObjectId(evaluateeId)) {
+      return res.status(400).json({ error: 'evaluateeId valide requis' })
+    }
+
+    const allowed = await canAccessEvaluatee(req, campaignId, evaluateeId)
+    if (!allowed) return res.status(403).json({ error: 'Accès refusé' })
+
+    await flagDisagreement(campaignId, evaluateeId, { by: req.user.id, reason })
+
+    res.json({ ok: true })
+  } catch (err) {
+    if (err.status) return res.status(err.status).json({ error: err.message })
     next(err)
   }
 })

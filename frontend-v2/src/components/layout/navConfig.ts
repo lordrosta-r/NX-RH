@@ -54,9 +54,15 @@ export function getPerspectiveNav(
   const me: PerspectiveNav = {
     primary: [
       dashboard,
-      { label: t("nav.myEvaluations"), href: "/evaluations" },
-      { label: t("nav.history"), href: "/evaluations/history" },
-      { label: t("nav.mobility"), href: "/mobility" },
+      // « Évaluations » est un dropdown : la fiche courante + l'historique.
+      {
+        label: t("nav.evaluations"),
+        children: [
+          { label: t("nav.evaluations"), href: "/evaluations", end: true },
+          { label: t("nav.history"), href: "/evaluations/history" },
+        ],
+      },
+      { label: t("nav.myRequests"), href: "/mobility" },
       { label: t("nav.pdi"), href: "/pdi" },
     ],
     // Documents RH consultables par l'employé (et tout rôle en « Mon espace »).

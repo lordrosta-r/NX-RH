@@ -81,6 +81,7 @@ function progressWidth(ev: Evaluation): number {
 }
 
 const TOP_COUNT = 5;
+const TEAM_COUNT = 6;
 
 function isOverdue(ev: Evaluation): boolean {
   return ev.deadline != null && new Date(ev.deadline).getTime() < Date.now();
@@ -184,6 +185,8 @@ function EvalsToComplete({ evaluations }: { evaluations: Evaluation[] }) {
 }
 
 function MyTeam({ evaluations }: { evaluations: Evaluation[] }) {
+  const [expanded, setExpanded] = useState(false);
+
   if (evaluations.length === 0) {
     return (
       <p className="small text-center" style={{ padding: "16px 0" }}>
@@ -191,9 +194,14 @@ function MyTeam({ evaluations }: { evaluations: Evaluation[] }) {
       </p>
     );
   }
+
+  const top = evaluations.slice(0, TEAM_COUNT);
+  const rest = evaluations.slice(TEAM_COUNT);
+  const visible = expanded ? evaluations : top;
+
   return (
     <div className="section-gap" style={{ gap: 14 }}>
-      {evaluations.map((ev) => (
+      {visible.map((ev) => (
         <div key={ev.id} className="row" style={{ gap: 12 }}>
           <span
             className="avatar"
@@ -212,6 +220,26 @@ function MyTeam({ evaluations }: { evaluations: Evaluation[] }) {
           </div>
         </div>
       ))}
+      {rest.length > 0 && (
+        <button
+          type="button"
+          className="btn btn-ghost btn-sm"
+          onClick={() => setExpanded((v) => !v)}
+          style={{ alignSelf: "center" }}
+        >
+          {expanded ? (
+            <>
+              Réduire{" "}
+              <ChevronUp className="ico" style={{ width: 15, height: 15 }} />
+            </>
+          ) : (
+            <>
+              Voir tout ({evaluations.length}){" "}
+              <ChevronDown className="ico" style={{ width: 15, height: 15 }} />
+            </>
+          )}
+        </button>
+      )}
     </div>
   );
 }

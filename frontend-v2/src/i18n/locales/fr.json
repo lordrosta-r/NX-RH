@@ -20,8 +20,9 @@
     "hrSettings": "Paramètres RH",
     "hrFlags": "Demandes RH",
     "mobilityInternal": "Mobilité interne",
-    "pdi": "PDI",
+    "pdi": "Suivi",
     "mobility": "Demandes",
+    "myRequests": "Mes demandes",
     "profile": "Mon profil",
     "logout": "Se déconnecter",
     "notifications": "Notifications",
@@ -203,7 +204,8 @@
     "accessibility": "Accessibilité",
     "hrContact": "Contact RH",
     "legalNav": "Liens légaux",
-    "gdprCompliance": "Conforme RGPD · Données hébergées en Union européenne"
+    "gdprCompliance": "Conforme RGPD · Données hébergées en Union européenne",
+    "copyright": "© {{year}} NanoXplore — Tous droits réservés."
   },
   "guides": {
     "campaigns": {

@@ -41,6 +41,10 @@ COPY mongo/server/ .
 # Copy compiled client assets into Express's static directory
 COPY --from=client-builder /build/dist ./public
 
+# Dossier d'uploads (documents RH) — créé avec les bons droits pour l'utilisateur
+# non-root. Un volume monté ici hérite de cette propriété → écriture possible.
+RUN mkdir -p /data/uploads && chown -R appuser:appgroup /data
+
 # Run as non-root
 USER appuser
 

@@ -102,18 +102,21 @@ router.post('/impersonate/:userId', async (req, res, next) => {
 // tant que la configuration initiale n'est pas faite.
 router.get('/setup-status', async (req, res, next) => {
   try {
-    const [hasAdmin, hasManagedUsers, formCount, smtpCfg] = await Promise.all([
+    const [hasAdmin, hasManagedUsers, formCount, smtpCfg, adminToChange] = await Promise.all([
       User.exists({ role: 'admin', isActive: true }),
       User.exists({ managerId: { $ne: null }, isActive: true }),
       Form.countDocuments({}),
       Config.findOne({ key: 'smtp.host' }).lean(),
+      User.exists({ role: 'admin', isActive: true, mustChangePassword: true }),
     ])
     const smtpConfigured = Boolean(smtpCfg?.value || process.env.MAIL_HOST)
 
     const checks = {
-      hasAdmin:        Boolean(hasAdmin),
-      hasManagedUsers: Boolean(hasManagedUsers),
-      hasForm:         formCount > 0,
+      hasAdmin:             Boolean(hasAdmin),
+      // Le mot de passe admin par défaut doit avoir été changé (1er lancement).
+      adminPasswordChanged: !adminToChange,
+      hasManagedUsers:      Boolean(hasManagedUsers),
+      hasForm:              formCount > 0,
       smtpConfigured,
     }
     const ready = Object.values(checks).every(Boolean)

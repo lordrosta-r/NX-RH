@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { NavLink, Link, useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import nxLogo from "../../assets/nx-logo.png";
+import { brandingApi } from "../../api/branding";
 import {
   ChevronDown,
   LogOut,
@@ -55,6 +57,12 @@ export default function Navbar({
   const { user, logout } = useAuth();
   const { perspective, setPerspective, hasSwitch } = usePerspective();
   const navigate = useNavigate();
+  const { data: branding } = useQuery({
+    queryKey: ["branding"],
+    queryFn: () => brandingApi.get().then((r) => r.data),
+    staleTime: 10 * 60 * 1000,
+  });
+  const brandingLogo = branding?.logo || null;
 
   const [avatarOpen, setAvatarOpen] = useState(false);
   // Un seul dropdown de sous-nav ouvert à la fois : sa clé (label) ou "__more__".
@@ -103,7 +111,7 @@ export default function Navbar({
         <div className="topbar-main">
           <div className="inner">
             <Link to="/" className="nx-logo-wrap" aria-label="NanoXplore RH">
-              <img src={nxLogo} alt="NanoXplore RH" />
+              <img src={brandingLogo || nxLogo} alt="Logo de l'entreprise" />
             </Link>
 
             <div className="topbar-center">

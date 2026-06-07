@@ -259,6 +259,51 @@ async function offboardUser(userId, body) {
   const user = await User.findById(userId)
   if (!user) throw AppError.notFound('Utilisateur introuvable')
 
+  // ── Garde-fou anti-orphelins ────────────────────────────────────────────────
+  // Si l'utilisateur offboardé encadre des subordonnés directs ACTIFS, on refuse
+  // l'offboarding tant qu'aucun remplaçant valide n'est désigné : sinon ces
+  // subordonnés se retrouvent sans manager (orphelins de hiérarchie).
+  const subordinates = await User.find({ managerId: userId, isActive: true })
+    .select('_id')
+    .lean()
+  const subordinateCount = subordinates.length
+
+  if (subordinateCount > 0) {
+    const { replacementManagerId } = body || {}
+
+    if (!replacementManagerId) {
+      throw AppError.badRequest(
+        `Réaffectation requise : ce manager a ${subordinateCount} subordonné(s), désignez un remplaçant`,
+      )
+    }
+    if (!mongoose.isValidObjectId(replacementManagerId)) {
+      throw AppError.badRequest('replacementManagerId invalide')
+    }
+    // Anti-boucle 1 : le remplaçant ne peut pas être l'offboardé lui-même.
+    if (String(replacementManagerId) === String(userId)) {
+      throw AppError.badRequest('Le remplaçant doit être différent du manager qui part.')
+    }
+    // Anti-boucle 2 : le remplaçant ne peut pas être un des subordonnés réassignés
+    // (sinon il deviendrait son propre manager).
+    const isSubordinate = subordinates.some(
+      (s) => String(s._id) === String(replacementManagerId),
+    )
+    if (isSubordinate) {
+      throw AppError.badRequest("Le remplaçant ne peut pas être un subordonné du manager qui part.")
+    }
+
+    const replacement = await User.findById(replacementManagerId).select('isActive').lean()
+    if (!replacement || !replacement.isActive) {
+      throw AppError.badRequest('Le remplaçant doit être un utilisateur actif existant.')
+    }
+
+    // Réassignation effective de toute l'équipe vers le remplaçant.
+    await User.updateMany(
+      { managerId: userId, isActive: true },
+      { $set: { managerId: replacementManagerId } },
+    )
+  }
+
   user.offboardingStatus = 'offboarding'
   user.offboardingReason = reason.trim()
   user.offboardingDate   = new Date(effectiveDate)

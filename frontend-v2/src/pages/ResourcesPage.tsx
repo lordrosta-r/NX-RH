@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { useDebounce } from "../hooks/useDebounce";
 import {
   useQuery,
@@ -650,6 +651,7 @@ function NewResourceSlideOver({ open, onClose }: NewResourceSlideOverProps) {
 
 // ─── ResourcesPage ────────────────────────────────────────────────────────────
 export default function ResourcesPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const confirm = useConfirm();
@@ -745,9 +747,9 @@ export default function ResourcesPage() {
       style={{ display: "flex", flexDirection: "column", gap: 24 }}
     >
       <PageHead
-        eyebrow="Documents RH"
-        title="Documents"
-        desc="Accédez aux documents et ressources partagés"
+        eyebrow={t("eyebrow.hrDocuments")}
+        title={t("pageHead.resourcesTitle")}
+        desc={t("pageHead.resourcesDesc")}
         actions={
           isAdminHr && (
             <button
@@ -885,8 +887,8 @@ export default function ResourcesPage() {
       ) : resources.length === 0 ? (
         <EmptyState
           icon={<BookOpen className="w-8 h-8" />}
-          title="Aucune ressource"
-          description="Aucune ressource ne correspond à vos critères."
+          title={t("pageHead.resourcesEmpty")}
+          description={t("pageHead.resourcesEmptyDesc")}
           action={
             isAdminHr
               ? {

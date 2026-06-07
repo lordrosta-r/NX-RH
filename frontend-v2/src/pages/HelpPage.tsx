@@ -118,9 +118,9 @@ export default function HelpPage() {
   return (
     <div className="nx-app">
       <PageHead
-        eyebrow="Aide"
+        eyebrow={t("eyebrow.help")}
         title={t("nav.help")}
-        desc="Repères pour utiliser l'application au quotidien, selon votre rôle."
+        desc={t("pageHead.helpDesc")}
       />
 
       {user?.role === "admin" && (

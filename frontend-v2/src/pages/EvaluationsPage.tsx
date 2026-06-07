@@ -106,7 +106,7 @@ export default function EvaluationsPage() {
       setReassignUserId("");
     },
     onError: () =>
-      toast.error("Erreur lors de la réaffectation", "Veuillez réessayer."),
+      toast.error(t("evaluations.reassignError"), t("evaluations.tryAgain")),
   });
 
   const expireMutation = useMutation({
@@ -147,7 +147,7 @@ export default function EvaluationsPage() {
     onError: (_err, _id, context) => {
       if (context?.previous)
         queryClient.setQueryData(context.listKey, context.previous);
-      toast.error("Erreur lors de l'expiration", "Veuillez réessayer.");
+      toast.error(t("evaluations.expireError"), t("evaluations.tryAgain"));
     },
     onSettled: () => {
       queryClient.invalidateQueries({
@@ -167,14 +167,14 @@ export default function EvaluationsPage() {
       setBulkModal(null);
       setSelected([]);
       toast.success(
-        `${res.data.success} évaluation(s) archivée(s)`,
+        t("evaluations.archivedCount", { count: res.data.success }),
         res.data.skipped > 0
-          ? `${res.data.skipped} ignorée(s) (statut incompatible)`
+          ? t("evaluations.skippedCount", { count: res.data.skipped })
           : undefined,
       );
     },
     onError: () => {
-      toast.error("Erreur lors de l'archivage", "Veuillez réessayer.");
+      toast.error(t("evaluations.archiveError"), t("evaluations.tryAgain"));
     },
   });
 
@@ -188,14 +188,14 @@ export default function EvaluationsPage() {
       setBulkModal(null);
       setSelected([]);
       toast.success(
-        `${res.data.success} évaluation(s) signée(s) RH`,
+        t("evaluations.signedHrCount", { count: res.data.success }),
         res.data.skipped > 0
-          ? `${res.data.skipped} ignorée(s) (statut incompatible)`
+          ? t("evaluations.skippedCount", { count: res.data.skipped })
           : undefined,
       );
     },
     onError: () => {
-      toast.error("Erreur lors de la signature RH", "Veuillez réessayer.");
+      toast.error(t("evaluations.signHrError"), t("evaluations.tryAgain"));
     },
   });
 
@@ -206,13 +206,13 @@ export default function EvaluationsPage() {
   function exportToCSV(rows: Evaluation[]) {
     const BOM = "﻿";
     const headers = [
-      "Évalué",
-      "Évaluateur",
-      "Campagne",
-      "Statut",
-      "Date création",
-      "Date soumission",
-      "Score",
+      t("evaluations.colEvaluatee"),
+      t("evaluations.colEvaluator"),
+      t("evaluations.colCampaign"),
+      t("evaluations.colStatus"),
+      t("evaluations.colCreatedAt"),
+      t("evaluations.colSubmittedAt"),
+      t("evaluations.colScore"),
     ];
 
     const csvRows = rows.map((ev) => {
@@ -255,7 +255,7 @@ export default function EvaluationsPage() {
     const date = new Date().toISOString().slice(0, 10);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `evaluations-${date}.csv`;
+    link.download = `${t("evaluations.csvFile")}-${date}.csv`;
     link.click();
     URL.revokeObjectURL(url);
   }
@@ -277,7 +277,7 @@ export default function EvaluationsPage() {
     <div className="nx-app">
       <Breadcrumbs
         items={[
-          { label: "Accueil", href: "/" },
+          { label: t("common.home"), href: "/" },
           { label: isEmployee ? t("evaluations.myTitle") : t("evaluations.title") },
         ]}
       />
@@ -292,7 +292,7 @@ export default function EvaluationsPage() {
       />
 
       <PageHead
-        eyebrow="Suivi RH"
+        eyebrow={t("evaluations.eyebrow")}
         title={isEmployee ? t("evaluations.myTitle") : t("evaluations.title")}
         actions={
           <>
@@ -370,7 +370,7 @@ export default function EvaluationsPage() {
             setStatusFilter(sel);
             setPage(1);
           }}
-          aria-label="Filtrer par statut"
+          aria-label={t("evaluations.filterStatus")}
           className="input"
           style={{
             width: "auto",
@@ -422,14 +422,14 @@ export default function EvaluationsPage() {
                 type="checkbox"
                 checked={allSelected}
                 onChange={toggleAll}
-                aria-label="Tout sélectionner"
+                aria-label={t("evaluations.selectAll")}
               />
             )}
-            <span>Évalué</span>
-            <span>Évaluateur</span>
-            <span>Campagne</span>
-            <span>Statut</span>
-            <span>Date</span>
+            <span>{t("evaluations.colEvaluatee")}</span>
+            <span>{t("evaluations.colEvaluator")}</span>
+            <span>{t("evaluations.colCampaign")}</span>
+            <span>{t("evaluations.colStatus")}</span>
+            <span>{t("evaluations.colDate")}</span>
             <span />
           </div>
 
@@ -448,7 +448,7 @@ export default function EvaluationsPage() {
               <EmptyState
                 icon={<ClipboardList className="w-8 h-8" />}
                 title={t("evaluations.empty")}
-                description="Aucune évaluation ne correspond aux critères sélectionnés."
+                description={t("evaluations.emptyTableDescription")}
               />
             </div>
           ) : (
@@ -468,7 +468,7 @@ export default function EvaluationsPage() {
                     type="checkbox"
                     checked={selected.includes(ev.id)}
                     onChange={() => toggleOne(ev.id)}
-                    aria-label="Sélectionner cette évaluation"
+                    aria-label={t("evaluations.selectOne")}
                   />
                 )}
                 <div className="row" style={{ gap: 8, minWidth: 0 }}>
@@ -503,7 +503,7 @@ export default function EvaluationsPage() {
                 </span>
                 <div className="relative group">
                   <button
-                    aria-label="Actions évaluation"
+                    aria-label={t("evaluations.rowActions")}
                     className="icon-btn"
                     style={{ width: 32, height: 32 }}
                   >
@@ -534,13 +534,13 @@ export default function EvaluationsPage() {
                           }}
                           className="menu-item"
                         >
-                          Réaffecter
+                          {t("evaluations.reassign")}
                         </button>
                         <button
                           onClick={() => setExpireConfirm(ev.id)}
                           className="menu-item danger"
                         >
-                          Expirer
+                          {t("evaluations.expire")}
                         </button>
                       </>
                     )}
@@ -559,12 +559,14 @@ export default function EvaluationsPage() {
                 borderTop: "1px solid var(--line)",
               }}
             >
-              <span className="small">{total} résultats</span>
+              <span className="small">
+                {t("evaluations.resultsCount", { count: total })}
+              </span>
               <div className="row" style={{ gap: 8 }}>
                 <button
                   disabled={page === 1}
                   onClick={() => setPage((p) => p - 1)}
-                  aria-label="Page précédente"
+                  aria-label={t("evaluations.prevPage")}
                   className="btn btn-ghost btn-sm"
                 >
                   ←
@@ -575,7 +577,7 @@ export default function EvaluationsPage() {
                 <button
                   disabled={page === totalPages}
                   onClick={() => setPage((p) => p + 1)}
-                  aria-label="Page suivante"
+                  aria-label={t("evaluations.nextPage")}
                   className="btn btn-ghost btn-sm"
                 >
                   →
@@ -600,7 +602,7 @@ export default function EvaluationsPage() {
             <EmptyState
               icon={<ClipboardList className="w-8 h-8" />}
               title={t("evaluations.empty")}
-              description="Vous n'avez pas d'évaluation active pour le moment."
+              description={t("evaluations.emptyEmployeeDescription")}
             />
           ) : (
             evaluations.map((ev) => (
@@ -620,7 +622,7 @@ export default function EvaluationsPage() {
                   </p>
                   {ev.deadline && (
                     <p className="small" style={{ marginTop: 2 }}>
-                      Deadline :{" "}
+                      {t("evaluations.deadline")}{" "}
                       {new Date(ev.deadline).toLocaleDateString("fr-FR")}
                     </p>
                   )}
@@ -638,7 +640,7 @@ export default function EvaluationsPage() {
                     }`}
                   >
                     {["assigned", "in_progress"].includes(ev.status)
-                      ? "Remplir"
+                      ? t("evaluations.fill")
                       : t("common.view")}
                   </Link>
                 </div>
@@ -659,10 +661,10 @@ export default function EvaluationsPage() {
               {bulkModal === "archive"
                 ? t("evaluations.archiveSelected")
                 : t("evaluations.signHr")}{" "}
-              {selected.length} évaluation(s) ?
+              {t("evaluations.bulkConfirmCount", { count: selected.length })}
             </h3>
             <p className="small" style={{ marginBottom: 16 }}>
-              Cette action s'appliquera aux évaluations sélectionnées.
+              {t("evaluations.bulkConfirmHint")}
             </p>
             <div
               className="row"
@@ -689,7 +691,7 @@ export default function EvaluationsPage() {
                 className="btn btn-primary btn-sm"
               >
                 {bulkArchiveMutation.isPending || bulkSignHrMutation.isPending
-                  ? "Traitement…"
+                  ? t("common.processing")
                   : t("common.confirm")}
               </button>
             </div>
@@ -705,17 +707,19 @@ export default function EvaluationsPage() {
             style={{ boxShadow: "var(--shadow-lg)" }}
           >
             <h3 className="h3" style={{ marginBottom: 16 }}>
-              Réaffecter l'évaluation
+              {t("evaluations.reassignTitle")}
             </h3>
             <div className="field" style={{ marginBottom: 16 }}>
-              <label htmlFor="reassign-user">Nouvel évaluateur</label>
+              <label htmlFor="reassign-user">
+                {t("evaluations.newEvaluator")}
+              </label>
               <select
                 id="reassign-user"
                 value={reassignUserId}
                 onChange={(e) => setReassignUserId(e.target.value)}
                 className="input"
               >
-                <option value="">Sélectionner un évaluateur…</option>
+                <option value="">{t("evaluations.selectEvaluator")}</option>
                 {usersList.map((u) => (
                   <option key={u.id} value={u.id}>
                     {u.firstName} {u.lastName} ({u.role})
@@ -743,7 +747,9 @@ export default function EvaluationsPage() {
                 disabled={!reassignUserId || reassignMutation.isPending}
                 className="btn btn-primary btn-sm"
               >
-                {reassignMutation.isPending ? "Traitement…" : "Réaffecter"}
+                {reassignMutation.isPending
+                  ? t("common.processing")
+                  : t("evaluations.reassign")}
               </button>
             </div>
           </Tile>
@@ -758,11 +764,10 @@ export default function EvaluationsPage() {
             style={{ boxShadow: "var(--shadow-lg)" }}
           >
             <h3 className="h3" style={{ marginBottom: 8 }}>
-              Expirer cette évaluation ?
+              {t("evaluations.expireTitle")}
             </h3>
             <p className="small" style={{ marginBottom: 16 }}>
-              Cette action est irréversible. L'évaluation sera marquée comme
-              expirée.
+              {t("evaluations.expireHint")}
             </p>
             <div
               className="row"
@@ -780,7 +785,9 @@ export default function EvaluationsPage() {
                 className="btn btn-sm"
                 style={{ background: "var(--red)", color: "#fff" }}
               >
-                {expireMutation.isPending ? "Traitement…" : "Expirer"}
+                {expireMutation.isPending
+                  ? t("common.processing")
+                  : t("evaluations.expire")}
               </button>
             </div>
           </Tile>

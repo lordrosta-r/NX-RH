@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import {
   PieChart,
@@ -74,6 +75,7 @@ interface BarEntry {
 }
 
 export default function AnalyticsPage() {
+  const { t } = useTranslation();
   const [selectedCampaignId, setSelectedCampaignId] = useState("");
   const [isExporting, setIsExporting] = useState<"pdf" | "csv" | null>(null);
 
@@ -173,9 +175,9 @@ export default function AnalyticsPage() {
   return (
     <div className="nx-app">
       <PageHead
-        eyebrow="Espace RH"
-        title="Analytique RH"
-        desc="Indicateurs, distribution des statuts et performances par campagne."
+        eyebrow={t("eyebrow.hrSpace")}
+        title={t("pageHead.analyticsTitle")}
+        desc={t("pageHead.analyticsDesc")}
         actions={
           <>
             <select

@@ -4,15 +4,15 @@ import { Check } from "lucide-react";
 import nxLogo from "../assets/nx-logo.png";
 import "../styles/login.css";
 
-const PREVIEW_STEPS: [string, boolean][] = [
-  ["Bilan de l'année", true],
-  ["Compétences", true],
-  ["Objectifs", true],
-  ["Récapitulatif", false],
-];
-
 export default function AuthLayout() {
   const { t } = useTranslation();
+
+  const PREVIEW_STEPS: [string, boolean][] = [
+    [t("auth.previewStepReview"), true],
+    [t("auth.previewStepSkills"), true],
+    [t("auth.previewStepObjectives"), true],
+    [t("auth.previewStepSummary"), false],
+  ];
 
   return (
     <div className="nx-auth">
@@ -53,15 +53,15 @@ export default function AuthLayout() {
                 <div className="row gap-8" style={{ minWidth: 0, flex: 1 }}>
                   <img src={nxLogo} alt="NanoXplore" className="ap-logo" />
                   <div style={{ minWidth: 0 }}>
-                    <div className="ap-title">Entretien annuel</div>
-                    <div className="ap-sub">Auto-évaluation</div>
+                    <div className="ap-title">{t("auth.previewTitle")}</div>
+                    <div className="ap-sub">{t("auth.previewSubtitle")}</div>
                   </div>
                 </div>
-                <span className="ap-badge">En cours</span>
+                <span className="ap-badge">{t("auth.previewBadge")}</span>
               </div>
               <div className="ap-prog">
                 <div className="ap-prog-row">
-                  <span>Progression</span>
+                  <span>{t("auth.previewProgress")}</span>
                   <b>75%</b>
                 </div>
                 <div className="ap-track">
@@ -97,7 +97,7 @@ export default function AuthLayout() {
                   </span>
                 </div>
                 <span className="ap-foot-txt">
-                  Camille &amp; Sophie · manager
+                  Camille &amp; Sophie · {t("auth.previewFootRole")}
                 </span>
               </div>
             </div>
@@ -106,8 +106,8 @@ export default function AuthLayout() {
                 <Check style={{ width: 14, height: 14 }} />
               </span>
               <div>
-                <div className="ap-float-t">Transmis à votre manager</div>
-                <div className="ap-float-d">il y a 2 min</div>
+                <div className="ap-float-t">{t("auth.previewFloatTitle")}</div>
+                <div className="ap-float-d">{t("auth.previewFloatTime")}</div>
               </div>
             </div>
           </div>

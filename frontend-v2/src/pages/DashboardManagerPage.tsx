@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { ArrowRight, ChevronDown, ChevronUp, PenLine } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -391,6 +392,7 @@ function PendingSignaturesList({
 }
 
 export default function DashboardManagerPage() {
+  const { t } = useTranslation();
   const { evaluations } = useDashboardManager();
   const stats = useDashboardManagerStats();
 
@@ -426,9 +428,9 @@ export default function DashboardManagerPage() {
   return (
     <div className="nx-app">
       <PageHead
-        eyebrow="Espace manager"
-        title="Tableau de bord — Mon équipe"
-        desc="Suivez et gérez les évaluations de votre équipe."
+        eyebrow={t("eyebrow.managerSpace")}
+        title={t("pageHead.dashManagerTitle")}
+        desc={t("pageHead.dashManagerDesc")}
         actions={
           <Link to="/evaluations" className="btn btn-primary">
             Mes évaluations <ArrowRight className="ico" />

@@ -285,9 +285,9 @@ function InterviewWorkspace({
       />
 
       <PageHead
-        eyebrow="Vue Entretien"
-        title={`Entretien — ${evaluateeName}`}
-        desc="Le face-à-face : on confronte les deux regards, on acte une position commune, on signe."
+        eyebrow={t("eyebrow.interviewView")}
+        title={t("pageHead.interviewTitle", { name: evaluateeName })}
+        desc={t("pageHead.interviewDesc")}
         actions={
           <button
             className="btn primary"

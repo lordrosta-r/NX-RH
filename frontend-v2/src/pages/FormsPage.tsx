@@ -18,16 +18,16 @@ import { PageHead, Tile, Badge } from "../components/shell";
 
 type BadgeTone = "blue" | "green" | "amber" | "red" | "grey";
 
-const FORM_TYPE_CONFIG: Record<string, { label: string; tone: BadgeTone }> = {
-  self_evaluation: { label: "Auto-évaluation", tone: "red" },
-  manager_evaluation: { label: "Évaluation manager", tone: "amber" },
-  upward_feedback: { label: "Feedback ascendant", tone: "blue" },
-  peer_review: { label: "Peer review", tone: "blue" },
-  objectives: { label: "Objectifs", tone: "green" },
-  mobility_request: { label: "Demande mobilité", tone: "amber" },
-  salary_raise_request: { label: "Demande augmentation", tone: "green" },
-  promotion_request: { label: "Demande promotion", tone: "blue" },
-  training_request: { label: "Demande formation", tone: "green" },
+const FORM_TYPE_CONFIG: Record<string, { tone: BadgeTone }> = {
+  self_evaluation: { tone: "red" },
+  manager_evaluation: { tone: "amber" },
+  upward_feedback: { tone: "blue" },
+  peer_review: { tone: "blue" },
+  objectives: { tone: "green" },
+  mobility_request: { tone: "amber" },
+  salary_raise_request: { tone: "green" },
+  promotion_request: { tone: "blue" },
+  training_request: { tone: "green" },
 };
 
 export default function FormsPage() {
@@ -71,7 +71,7 @@ export default function FormsPage() {
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: queryKeys.forms.lists() }),
     onError: () =>
-      toast.error("Erreur lors de la suppression", "Veuillez réessayer."),
+      toast.error(t("forms.deleteError"), t("forms.tryAgain")),
   });
 
   const cloneMutation = useMutation({
@@ -81,7 +81,7 @@ export default function FormsPage() {
       setCloneTarget(null);
     },
     onError: () =>
-      toast.error("Erreur lors de la duplication", "Veuillez réessayer."),
+      toast.error(t("forms.cloneError"), t("forms.tryAgain")),
   });
 
   function handleDelete(id: string) {
@@ -94,8 +94,8 @@ export default function FormsPage() {
     <div className="nx-app">
       <Breadcrumbs
         items={[
-          { label: "Accueil", href: "/" },
-          { label: "Formulaires" },
+          { label: t("common.home"), href: "/" },
+          { label: t("forms.title") },
         ]}
       />
 
@@ -107,12 +107,12 @@ export default function FormsPage() {
       />
 
       <PageHead
-        title="Formulaires"
+        title={t("forms.title")}
         actions={
           isAdminOrHr && (
             <Link to="/forms/new" className="btn btn-primary">
-              <Plus className="ico" style={{ width: 18, height: 18 }} /> Nouveau
-              formulaire
+              <Plus className="ico" style={{ width: 18, height: 18 }} />{" "}
+              {t("forms.newForm")}
             </Link>
           )
         }
@@ -124,27 +124,27 @@ export default function FormsPage() {
         style={{ gap: 12, alignItems: "center", marginBottom: 16 }}
       >
         <select
-          aria-label="Filtrer par type"
+          aria-label={t("forms.filterType")}
           value={typeFilter}
           onChange={(e) => setTypeFilter(e.target.value)}
           className="input"
           style={{ width: "auto" }}
         >
-          <option value="">Tous les types</option>
-          {Object.entries(FORM_TYPE_CONFIG).map(([k, v]) => (
+          <option value="">{t("forms.allTypes")}</option>
+          {Object.keys(FORM_TYPE_CONFIG).map((k) => (
             <option key={k} value={k}>
-              {v.label}
+              {t(`forms.types.${k}`)}
             </option>
           ))}
         </select>
         <select
-          aria-label="Filtrer par campagne"
+          aria-label={t("forms.filterCampaign")}
           value={campaignFilter}
           onChange={(e) => setCampaignFilter(e.target.value)}
           className="input"
           style={{ width: "auto" }}
         >
-          <option value="">Toutes les campagnes</option>
+          <option value="">{t("forms.allCampaigns")}</option>
           {campaigns.map((c) => (
             <option key={c.id} value={c.id}>
               {c.name}
@@ -152,10 +152,10 @@ export default function FormsPage() {
           ))}
         </select>
         <input
-          aria-label="Rechercher un formulaire"
+          aria-label={t("forms.searchAria")}
           className="input"
           style={{ flex: 1, minWidth: 200 }}
-          placeholder="Rechercher un formulaire..."
+          placeholder={t("forms.searchPlaceholder")}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -169,7 +169,7 @@ export default function FormsPage() {
       {/* Loading */}
       {isLoading && (
         <div className="small" style={{ padding: 40, textAlign: "center" }}>
-          Chargement…
+          {t("forms.loading")}
         </div>
       )}
 
@@ -177,12 +177,12 @@ export default function FormsPage() {
       {!isLoading && forms.length === 0 && (
         <EmptyState
           icon={<FileText className="w-8 h-8" />}
-          title="Aucun formulaire"
-          description="Aucun formulaire ne correspond à vos critères."
+          title={t("forms.emptyTitle")}
+          description={t("forms.emptyDescription")}
           action={
             isAdminOrHr
               ? {
-                  label: "Créer le premier formulaire",
+                  label: t("forms.createFirst"),
                   onClick: () => window.location.assign("/forms/new"),
                 }
               : undefined
@@ -200,24 +200,24 @@ export default function FormsPage() {
           }}
         >
           {forms.map((form) => {
-            const typeConfig = FORM_TYPE_CONFIG[form.formType] ?? {
-              label: form.formType,
-              tone: "grey" as BadgeTone,
-            };
+            const typeConfig = FORM_TYPE_CONFIG[form.formType];
+            const typeLabel = typeConfig
+              ? t(`forms.types.${form.formType}`)
+              : form.formType;
             return (
               <Tile key={form.id}>
                 <div
                   className="row between"
                   style={{ alignItems: "flex-start", marginBottom: 12 }}
                 >
-                  <Badge tone={typeConfig.tone}>{typeConfig.label}</Badge>
+                  <Badge tone={typeConfig?.tone ?? "grey"}>{typeLabel}</Badge>
                   {form.isFrozen && (
                     <Badge tone="grey" dot={false}>
                       <Lock
                         className="ico"
                         style={{ width: 12, height: 12, marginRight: 4 }}
                       />
-                      Gelé
+                      {t("forms.frozen")}
                     </Badge>
                   )}
                 </div>
@@ -225,12 +225,13 @@ export default function FormsPage() {
                   {form.title}
                 </h3>
                 <p className="small" style={{ marginBottom: 12 }}>
-                  {form.questions?.length ?? 0} question
-                  {(form.questions?.length ?? 0) !== 1 ? "s" : ""}
+                  {t("forms.questionCount", {
+                    count: form.questions?.length ?? 0,
+                  })}
                 </p>
                 <div className="row between" style={{ alignItems: "center" }}>
                   <Link to={`/forms/${form.id}`} className="link small">
-                    Voir →
+                    {t("forms.view")}
                   </Link>
                   {isAdminOrHr && (
                     <div className="row" style={{ gap: 4 }}>
@@ -238,8 +239,8 @@ export default function FormsPage() {
                         onClick={() => setCloneTarget(form)}
                         className="btn btn-ghost btn-sm"
                         style={{ padding: 6 }}
-                        aria-label="Dupliquer"
-                        title="Dupliquer"
+                        aria-label={t("forms.duplicate")}
+                        title={t("forms.duplicate")}
                       >
                         <Copy
                           className="ico"
@@ -251,8 +252,8 @@ export default function FormsPage() {
                           onClick={() => handleDelete(form.id)}
                           className="btn btn-ghost btn-sm"
                           style={{ padding: 6, color: "var(--red)" }}
-                          aria-label="Supprimer"
-                          title="Supprimer"
+                          aria-label={t("forms.delete")}
+                          title={t("forms.delete")}
                         >
                           <Trash2
                             className="ico"
@@ -284,19 +285,16 @@ export default function FormsPage() {
         >
           <Tile style={{ width: "100%", maxWidth: 420 }}>
             <h3 className="h3" style={{ marginBottom: 8 }}>
-              Dupliquer — {cloneTarget.title}
+              {t("forms.cloneTitle", { title: cloneTarget.title })}
             </h3>
             <p className="body" style={{ marginBottom: 8 }}>
-              Une copie sera créée avec le titre « Copie de {cloneTarget.title}{" "}
-              », non gelée et sans campagne associée.
+              {t("forms.cloneIntro", { title: cloneTarget.title })}
             </p>
             <p
               className="small"
               style={{ marginBottom: 16, color: "var(--ink-3)" }}
             >
-              Dupliquer conserve la filiation des questions : c'est ce qui
-              permet de rappeler les réponses de l'édition précédente. Crée un
-              formulaire neuf seulement si tu ne veux aucun rappel.
+              {t("forms.cloneHint")}
             </p>
             <div
               className="row"
@@ -306,14 +304,16 @@ export default function FormsPage() {
                 onClick={() => setCloneTarget(null)}
                 className="btn btn-ghost"
               >
-                Annuler
+                {t("common.cancel")}
               </button>
               <button
                 onClick={() => cloneMutation.mutate(cloneTarget.id)}
                 disabled={cloneMutation.isPending}
                 className="btn btn-primary"
               >
-                {cloneMutation.isPending ? "Duplication…" : "Dupliquer"}
+                {cloneMutation.isPending
+                  ? t("forms.cloning")
+                  : t("forms.duplicate")}
               </button>
             </div>
           </Tile>
@@ -328,9 +328,9 @@ export default function FormsPage() {
           if (deleteConfirmId) deleteMutation.mutate(deleteConfirmId);
           setDeleteConfirmId(null);
         }}
-        title="Supprimer le formulaire"
-        description="Cette action est irréversible. Le formulaire sera définitivement supprimé."
-        confirmLabel="Supprimer"
+        title={t("forms.deleteFormTitle")}
+        description={t("forms.deleteFormDescription")}
+        confirmLabel={t("forms.delete")}
         loading={deleteMutation.isPending}
       />
     </div>

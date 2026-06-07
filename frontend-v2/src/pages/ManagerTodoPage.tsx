@@ -145,9 +145,9 @@ export default function ManagerTodoPage() {
   return (
     <div className="nx-app">
       <PageHead
-        eyebrow="Espace manager"
+        eyebrow={t("eyebrow.managerSpace")}
         title={t("nav.toProcess")}
-        desc="Évaluations de vos collaborateurs qui nécessitent votre action."
+        desc={t("pageHead.managerTodoDesc")}
       />
 
       <PageGuide
@@ -219,8 +219,8 @@ export default function ManagerTodoPage() {
           <div style={{ padding: 24 }}>
             <EmptyState
               icon={<ClipboardCheck className="w-8 h-8" />}
-              title="Rien à traiter"
-              description="Toutes les évaluations de votre équipe sont à jour."
+              title={t("pageHead.managerTodoEmpty")}
+              description={t("pageHead.managerTodoEmptyDesc")}
             />
           </div>
         </Tile>

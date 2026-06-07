@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { AlertCircle, Calendar, Download, Briefcase, Plus } from "lucide-react";
 import {
   LineChart,
@@ -92,6 +93,7 @@ function CampaignCard({ campaign }: { campaign: Campaign }) {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default function DashboardHrPage() {
+  const { t } = useTranslation();
   const { campaigns } = useDashboardHr();
   const stats = useDashboardHrStats();
   const monthlyTrend = useMonthlyTrend();
@@ -203,9 +205,9 @@ export default function DashboardHrPage() {
   return (
     <div className="nx-app">
       <PageHead
-        eyebrow="Espace RH"
-        title="Tableau de bord RH"
-        desc="Vue d’ensemble de l’avancement des campagnes et des collaborateurs."
+        eyebrow={t("eyebrow.hrSpace")}
+        title={t("pageHead.dashHrTitle")}
+        desc={t("pageHead.dashHrDesc")}
         actions={
           <>
             <button

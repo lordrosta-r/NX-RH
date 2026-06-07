@@ -30,6 +30,12 @@ export const usersApi = {
 
   deleteUser: (id: string) => client.delete(`/api/users/${id}`),
 
+  blockUser: (id: string, reason?: string) =>
+    client.patch<ItemResponse<User>>(`/api/users/${id}/block`, { reason }),
+
+  unblockUser: (id: string) =>
+    client.patch<ItemResponse<User>>(`/api/users/${id}/unblock`),
+
   importUsers: (file: File) => {
     const formData = new FormData();
     formData.append("file", file);

@@ -1,12 +1,13 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { MoreVertical, Edit, Download, Trash2, Eye, Network } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { MoreVertical, Edit, Download, Trash2, Eye, Network, Ban, ShieldCheck } from "lucide-react";
 import { usersApi } from "../api/users";
 import client from "../api/client";
 import type { User, Evaluation, PaginatedResponse } from "../types";
 import { getCampaignName } from "../types";
 import { useAuth } from "../contexts/AuthContext";
+import { useConfirm } from "../contexts/ConfirmContext";
 import Breadcrumbs from "../components/ui/Breadcrumbs";
 import ConfirmDialog from "../components/ui/ConfirmDialog";
 import { queryKeys } from "../lib/queryKeys";
@@ -138,6 +139,27 @@ export default function UserDetailPage() {
       navigate("/users");
     },
     onError: () => toast.show("Erreur lors de la suppression RGPD."),
+  });
+
+  const confirm = useConfirm();
+  const queryClient = useQueryClient();
+  const refreshUser = () =>
+    queryClient.invalidateQueries({ queryKey: queryKeys.users.detail(id!) });
+
+  const blockMutation = useMutation({
+    mutationFn: () => usersApi.blockUser(id!, "Compte bloqué par un administrateur"),
+    onSuccess: () => { toast.show("Compte bloqué."); refreshUser(); },
+    onError: () => toast.show("Erreur lors du blocage."),
+  });
+  const unblockMutation = useMutation({
+    mutationFn: () => usersApi.unblockUser(id!),
+    onSuccess: () => { toast.show("Compte débloqué."); refreshUser(); },
+    onError: () => toast.show("Erreur lors du déblocage."),
+  });
+  const hardDeleteMutation = useMutation({
+    mutationFn: () => usersApi.deleteUser(id!),
+    onSuccess: () => { toast.show("Compte supprimé définitivement."); navigate("/users"); },
+    onError: () => toast.show("Suppression impossible."),
   });
 
   const canManage = currentUser?.role === "admin" || currentUser?.role === "hr";
@@ -321,6 +343,45 @@ export default function UserDetailPage() {
                           style={{ width: 16, height: 16 }}
                         />{" "}
                         Voir en tant que
+                      </button>
+                    )}
+                  {canManage && userData.id !== currentUser?.id && (
+                    (userData as User & { blocked?: boolean }).blocked ? (
+                      <button
+                        onClick={() => { setActionsOpen(false); unblockMutation.mutate(); }}
+                        className="row w-full text-left"
+                        style={{ gap: 8, padding: "10px 16px", fontSize: 14, color: "var(--blue)", borderTop: "1px solid var(--line)" }}
+                      >
+                        <ShieldCheck className="ico" style={{ width: 16, height: 16 }} /> Débloquer le compte
+                      </button>
+                    ) : (
+                      <button
+                        onClick={async () => {
+                          setActionsOpen(false);
+                          if (await confirm({ title: "Bloquer ce compte ?", message: "Le compte sera désactivé (connexion impossible). Action réversible — vous pourrez le débloquer.", confirmLabel: "Bloquer" })) {
+                            blockMutation.mutate();
+                          }
+                        }}
+                        className="row w-full text-left"
+                        style={{ gap: 8, padding: "10px 16px", fontSize: 14, color: "var(--ink-2)", borderTop: "1px solid var(--line)" }}
+                      >
+                        <Ban className="ico" style={{ width: 16, height: 16 }} /> Bloquer le compte
+                      </button>
+                    )
+                  )}
+                  {currentUser?.role === "admin" &&
+                    userData.id !== currentUser?.id && (
+                      <button
+                        onClick={async () => {
+                          setActionsOpen(false);
+                          if (await confirm({ title: "Supprimer définitivement ?", message: "Cette action est IRRÉVERSIBLE. Préférez « Bloquer » pour un compte système/suspect.", confirmLabel: "Supprimer définitivement" })) {
+                            hardDeleteMutation.mutate();
+                          }
+                        }}
+                        className="row w-full text-left"
+                        style={{ gap: 8, padding: "10px 16px", fontSize: 14, color: "var(--red)", borderTop: "1px solid var(--line)" }}
+                      >
+                        <Trash2 className="ico" style={{ width: 16, height: 16 }} /> Supprimer définitivement
                       </button>
                     )}
                   {currentUser?.role === "admin" &&

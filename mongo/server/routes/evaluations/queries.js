@@ -53,10 +53,13 @@ async function handleList(req, res, next) {
     }
 
     if (req.query.status !== undefined) {
-      if (typeof req.query.status !== 'string' || !EVALUATION_STATUSES.includes(req.query.status)) {
+      // Accepte un statut unique OU une liste séparée par virgules
+      // (ex: ?status=in_progress,assigned — utilisé par le dashboard employé).
+      const wanted = String(req.query.status).split(',').map(s => s.trim()).filter(Boolean)
+      if (!wanted.length || !wanted.every(s => EVALUATION_STATUSES.includes(s))) {
         return res.status(400).json({ error: 'status invalide' })
       }
-      filter.status = req.query.status
+      filter.status = wanted.length === 1 ? wanted[0] : { $in: wanted }
     }
 
     const role = req.user.role
@@ -123,10 +126,11 @@ async function handleExport(req, res, next) {
     }
 
     if (req.query.status) {
-      if (!EVALUATION_STATUSES.includes(req.query.status)) {
+      const wanted = String(req.query.status).split(',').map(s => s.trim()).filter(Boolean)
+      if (!wanted.length || !wanted.every(s => EVALUATION_STATUSES.includes(s))) {
         return res.status(400).json({ error: 'status invalide' })
       }
-      filter.status = req.query.status
+      filter.status = wanted.length === 1 ? wanted[0] : { $in: wanted }
     }
 
     const evals = await Evaluation.find(filter)

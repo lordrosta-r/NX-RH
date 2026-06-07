@@ -318,7 +318,12 @@ async function syncUsers(config) {
         report.excluded++
         const dupe = existingByEmail.get(emailLower)
         if (dupe) {
-          await User.updateOne({ _id: dupe._id }, { $set: { isActive: false } })
+          // Bloqué (réversible) plutôt que supprimé : visible dans la liste des
+          // comptes bloqués, débloquable si c'est un faux positif.
+          await User.updateOne({ _id: dupe._id }, { $set: {
+            blocked: true, isActive: false, blockedAt: new Date(),
+            blockedReason: 'Compte système/service exclu (synchro LDAP)',
+          } })
           report.deactivated++
         }
         continue

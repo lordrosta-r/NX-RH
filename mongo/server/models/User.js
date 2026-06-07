@@ -186,6 +186,13 @@ const userSchema = new Schema({
   offboardingDate:   { type: Date,   default: null },
   offboardingReason: { type: String, default: null, maxlength: 2000 },
 
+  // ── Blocage administratif (comptes système/service ou suspects) ──────────────
+  // Réversible : un faux positif peut être débloqué. Distinct de l'offboarding
+  // (départ d'une personne) et de la suppression définitive.
+  blocked:       { type: Boolean, default: false, index: true },
+  blockedAt:     { type: Date,    default: null },
+  blockedReason: { type: String,  default: null, maxlength: 500 },
+
 }, { timestamps: true, versionKey: false })
 
 // Index partiel unique sur ldapDn : seuls les vrais DN LDAP (strings) sont indexés.

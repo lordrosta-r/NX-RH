@@ -251,6 +251,74 @@ router.patch('/:id/offboard', async (req, res, next) => {
   }
 })
 
+// PATCH /api/users/:id/block — Bloque un compte (système/service/suspect). RÉVERSIBLE.
+router.patch('/:id/block', async (req, res, next) => {
+  try {
+    if (!ADMIN_ROLES.includes(req.user.role)) {
+      return res.status(403).json({ error: 'Permissions insuffisantes' })
+    }
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({ error: 'ID invalide' })
+    }
+    if (String(req.params.id) === String(req.user.id)) {
+      return res.status(400).json({ error: 'Vous ne pouvez pas bloquer votre propre compte' })
+    }
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      { $set: { blocked: true, isActive: false, blockedAt: new Date(), blockedReason: (req.body.reason || '').slice(0, 500) || 'Compte bloqué par un administrateur' } },
+      { new: true },
+    ).select('-passwordHash')
+    if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' })
+    AuditLog.create({ userId: req.user.id, userRole: req.user.role, action: 'user_block', targetType: 'User', targetId: req.params.id, meta: { reason: user.blockedReason } }).catch(() => {})
+    apiResponse.success(res, user)
+  } catch (err) { next(err) }
+})
+
+// PATCH /api/users/:id/unblock — Débloque un compte (restaure un faux positif).
+router.patch('/:id/unblock', async (req, res, next) => {
+  try {
+    if (!ADMIN_ROLES.includes(req.user.role)) {
+      return res.status(403).json({ error: 'Permissions insuffisantes' })
+    }
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({ error: 'ID invalide' })
+    }
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      { $set: { blocked: false, isActive: true, blockedAt: null, blockedReason: null } },
+      { new: true },
+    ).select('-passwordHash')
+    if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' })
+    AuditLog.create({ userId: req.user.id, userRole: req.user.role, action: 'user_unblock', targetType: 'User', targetId: req.params.id }).catch(() => {})
+    apiResponse.success(res, user)
+  } catch (err) { next(err) }
+})
+
+// DELETE /api/users/:id — Suppression DÉFINITIVE d'un compte (admin uniquement).
+router.delete('/:id', async (req, res, next) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Réservé aux administrateurs' })
+    }
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({ error: 'ID invalide' })
+    }
+    if (String(req.params.id) === String(req.user.id)) {
+      return res.status(400).json({ error: 'Vous ne pouvez pas supprimer votre propre compte' })
+    }
+    const user = await User.findById(req.params.id).select('email role')
+    if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' })
+    // Garde-fou : ne pas se retrouver sans aucun admin.
+    if (user.role === 'admin') {
+      const otherAdmins = await User.countDocuments({ role: 'admin', isActive: true, _id: { $ne: user._id } })
+      if (otherAdmins === 0) return res.status(409).json({ error: 'Impossible : c\'est le dernier administrateur actif' })
+    }
+    await User.deleteOne({ _id: user._id })
+    AuditLog.create({ userId: req.user.id, userRole: req.user.role, action: 'user_delete', targetType: 'User', targetId: req.params.id, meta: { email: user.email } }).catch(() => {})
+    res.status(204).end()
+  } catch (err) { next(err) }
+})
+
 // ─── PATCH /api/users/:id/onboarding/complete — marquer l'onboarding terminé ─
 // Accessible : self ou hr/admin
 // ⚠️ Doit être déclaré AVANT /:id/onboarding/:stepIndex pour éviter que

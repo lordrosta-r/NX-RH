@@ -318,7 +318,7 @@ export default function ResourceDetailPage() {
     return (
       <div className="nx-app">
         <button
-          onClick={() => navigate("/resources")}
+          onClick={() => navigate("/documents")}
           className="btn btn-ghost btn-sm"
           style={{ marginBottom: 16 }}
         >
@@ -332,7 +332,7 @@ export default function ResourceDetailPage() {
               Ressource introuvable
             </span>
             <button
-              onClick={() => navigate("/resources")}
+              onClick={() => navigate("/documents")}
               className="link"
               style={{
                 marginLeft: "auto",
@@ -356,7 +356,7 @@ export default function ResourceDetailPage() {
     return (
       <div className="nx-app">
         <button
-          onClick={() => navigate("/resources")}
+          onClick={() => navigate("/documents")}
           className="btn btn-ghost btn-sm"
           style={{ marginBottom: 16 }}
         >
@@ -370,7 +370,7 @@ export default function ResourceDetailPage() {
               Cette ressource n'est pas disponible (404).
             </span>
             <button
-              onClick={() => navigate("/resources")}
+              onClick={() => navigate("/documents")}
               className="link"
               style={{
                 marginLeft: "auto",
@@ -400,7 +400,7 @@ export default function ResourceDetailPage() {
       <div className="nx-app">
         {/* Back */}
         <button
-          onClick={() => navigate("/resources")}
+          onClick={() => navigate("/documents")}
           className="btn btn-ghost btn-sm"
           style={{ marginBottom: 12 }}
         >

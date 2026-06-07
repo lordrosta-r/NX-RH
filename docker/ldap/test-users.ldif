@@ -1,0 +1,66 @@
+# Base DN
+dn: dc=nxrh,dc=local
+objectClass: top
+objectClass: domain
+dc: nxrh
+
+# Users OU
+dn: ou=users,dc=nxrh,dc=local
+objectClass: top
+objectClass: organizationalUnit
+ou: users
+
+# john.doe — employee
+dn: uid=john.doe,ou=users,dc=nxrh,dc=local
+objectClass: top
+objectClass: inetOrgPerson
+uid: john.doe
+cn: John Doe
+sn: Doe
+mail: john.doe@nxrh.local
+userPassword: employee123
+description: employee
+
+# jane.smith — hr
+dn: uid=jane.smith,ou=users,dc=nxrh,dc=local
+objectClass: top
+objectClass: inetOrgPerson
+uid: jane.smith
+cn: Jane Smith
+sn: Smith
+mail: jane.smith@nxrh.local
+userPassword: hr123
+description: hr
+
+# bob.manager — manager
+dn: uid=bob.manager,ou=users,dc=nxrh,dc=local
+objectClass: top
+objectClass: inetOrgPerson
+uid: bob.manager
+cn: Bob Manager
+sn: Manager
+mail: bob.manager@nxrh.local
+userPassword: manager123
+description: manager
+
+# alice.hr — hr
+dn: uid=alice.hr,ou=users,dc=nxrh,dc=local
+objectClass: top
+objectClass: inetOrgPerson
+uid: alice.hr
+cn: Alice HR
+sn: HR
+mail: alice.hr@nxrh.local
+userPassword: hr123
+description: hr
+
+# carol.director — director
+dn: uid=carol.director,ou=users,dc=nxrh,dc=local
+objectClass: top
+objectClass: inetOrgPerson
+uid: carol.director
+cn: Carol Director
+sn: Director
+mail: carol.director@nxrh.local
+userPassword: director123
+description: director

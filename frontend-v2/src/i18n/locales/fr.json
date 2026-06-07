@@ -1,0 +1,904 @@
+{
+  "nav": {
+    "dashboard": "Tableau de bord",
+    "pilotage": "Pilotage",
+    "aide": "Aide",
+    "help": "Aide",
+    "collaborateurs": "Collaborateurs",
+    "campaigns": "Campagnes",
+    "evaluations": "Évaluations",
+    "users": "Utilisateurs",
+    "org": "Organigramme",
+    "offboarding": "Offboarding",
+    "forms": "Formulaires",
+    "history": "Historique",
+    "toProcess": "À traiter",
+    "allEvaluations": "Toutes les évaluations",
+    "administration": "Administration",
+    "adminPortal": "Portail admin",
+    "auditLog": "Journal d'audit",
+    "hrSettings": "Paramètres RH",
+    "hrFlags": "Demandes RH",
+    "mobilityInternal": "Mobilité interne",
+    "pdi": "Suivi",
+    "mobility": "Demandes",
+    "myRequests": "Mes demandes",
+    "profile": "Mon profil",
+    "logout": "Se déconnecter",
+    "notifications": "Notifications",
+    "myTeam": "Mon Équipe",
+    "myTeamLink": "Mon équipe",
+    "myEvaluations": "Mes Évaluations",
+    "inProgress": "En cours",
+    "analytics": "Analytics",
+    "calendar": "Calendrier",
+    "resources": "Documents",
+    "usersImport": "Utilisateurs (import)",
+    "formsImport": "Import formulaires",
+    "emailTemplates": "Email templates",
+    "search": "Rechercher",
+    "openMenu": "Ouvrir le menu",
+    "closeMenu": "Fermer le menu",
+    "language": "Langue",
+    "more": "Plus",
+    "perspectiveMe": "Mon espace",
+    "perspectiveRh": "Pilotage RH",
+    "changeSpace": "Changer d'espace",
+    "monParcours": "Mon parcours",
+    "mailTemplates": "Modèles d'e-mail",
+    "ldap": "Annuaire LDAP",
+    "systemConfig": "Configuration système",
+    "mailConfig": "Configuration e-mail",
+    "systemStatus": "État du système",
+    "setupWizard": "Assistant de configuration",
+    "configHub": "Configuration",
+    "departments": "Départements"
+  },
+  "common": {
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "create": "Créer",
+    "search": "Rechercher",
+    "filter": "Filtrer",
+    "export": "Exporter",
+    "import": "Importer",
+    "loading": "Chargement…",
+    "error": "Une erreur est survenue",
+    "success": "Opération réussie",
+    "confirm": "Confirmer",
+    "back": "Retour",
+    "next": "Suivant",
+    "previous": "Précédent",
+    "close": "Fermer",
+    "noData": "Aucune donnée",
+    "required": "Ce champ est obligatoire",
+    "retry": "Réessayer",
+    "view": "Voir",
+    "archive": "Archiver",
+    "clone": "Cloner",
+    "all": "Tous",
+    "home": "Accueil",
+    "processing": "Traitement…"
+  },
+  "auth": {
+    "login": "Connexion",
+    "welcome": "Bienvenue sur NX-RH NanoXplore",
+    "email": "Adresse e-mail",
+    "password": "Mot de passe",
+    "remember": "Se souvenir de moi",
+    "loginButton": "Se connecter",
+    "loginLoading": "Connexion…",
+    "ldapLogin": "Connexion via LDAP",
+    "loginError": "E-mail ou mot de passe incorrect",
+    "tooManyAttempts": "Trop de tentatives. Réessayez dans quelques minutes.",
+    "accountDisabled": "Votre compte est désactivé. Contactez votre RH.",
+    "genericError": "Une erreur est survenue. Réessayez.",
+    "showPassword": "Afficher le mot de passe",
+    "hidePassword": "Masquer le mot de passe",
+    "sessionExpired": "Session expirée, veuillez vous reconnecter",
+    "eyebrowSpace": "Espace collaborateur",
+    "subtitle": "Identifiez-vous pour accéder à votre espace NX-RH.",
+    "asideEyebrow": "Entretiens professionnels",
+    "asideTitle": "L'entretien annuel, simplifié.",
+    "asideLead": "Préparez et suivez votre entretien professionnel sur un espace unique.",
+    "support": "Besoin d'aide ? Contactez votre référent RH · rh-support@nanoxplore.com",
+    "previewTitle": "Entretien annuel",
+    "previewSubtitle": "Auto-évaluation",
+    "previewBadge": "En cours",
+    "previewProgress": "Progression",
+    "previewStepReview": "Bilan de l'année",
+    "previewStepSkills": "Compétences",
+    "previewStepObjectives": "Objectifs",
+    "previewStepSummary": "Récapitulatif",
+    "previewFootRole": "manager",
+    "previewFloatTitle": "Transmis à votre manager",
+    "previewFloatTime": "il y a 2 min"
+  },
+  "campaigns": {
+    "title": "Campagnes",
+    "new": "Nouvelle campagne",
+    "createFirst": "Créer la première campagne",
+    "search": "Rechercher une campagne…",
+    "export": "Exporter",
+    "status": {
+      "all": "Tous",
+      "draft": "Brouillon",
+      "active": "Active",
+      "closed": "Clôturée",
+      "archived": "Archivée"
+    },
+    "empty": "Aucune campagne",
+    "emptyDescription": "Aucune campagne ne correspond à vos critères.",
+    "columns": {
+      "name": "Nom",
+      "status": "Statut",
+      "period": "Période",
+      "progress": "Progression"
+    },
+    "actions": {
+      "view": "Voir",
+      "edit": "Modifier",
+      "clone": "Cloner",
+      "archive": "Archiver",
+      "delete": "Supprimer"
+    },
+    "home": "Accueil",
+    "loading": "Chargement…"
+  },
+  "evaluations": {
+    "title": "Évaluations",
+    "myTitle": "Mes évaluations",
+    "status": {
+      "assigned": "Assignée",
+      "in_progress": "En cours",
+      "submitted": "Soumise",
+      "reviewed": "Révisée",
+      "signed_evaluatee": "Signée (évalué)",
+      "signed_manager": "Signée (resp.)",
+      "signed_hr": "Signée (RH)",
+      "validated": "Validée ✓",
+      "expired": "Expirée",
+      "archived": "Archivée"
+    },
+    "sign": "Signer",
+    "signHr": "Signer RH",
+    "archiveSelected": "Archiver",
+    "selected": "{{count}} sélectionnée(s)",
+    "exportCsv": "Exporter CSV",
+    "exportPdf": "Exporter PDF",
+    "empty": "Aucune évaluation",
+    "score": "Score",
+    "allCampaigns": "Toutes les campagnes",
+    "filterDepartment": "Département…",
+    "filterSearch": "Rechercher…",
+    "loading": "Chargement…",
+    "eyebrow": "Suivi RH",
+    "filterStatus": "Filtrer par statut",
+    "selectAll": "Tout sélectionner",
+    "selectOne": "Sélectionner cette évaluation",
+    "colEvaluatee": "Évalué",
+    "colEvaluator": "Évaluateur",
+    "colCampaign": "Campagne",
+    "colStatus": "Statut",
+    "colDate": "Date",
+    "colScore": "Score",
+    "colCreatedAt": "Date création",
+    "colSubmittedAt": "Date soumission",
+    "rowActions": "Actions évaluation",
+    "reassign": "Réaffecter",
+    "expire": "Expirer",
+    "emptyTableDescription": "Aucune évaluation ne correspond aux critères sélectionnés.",
+    "emptyEmployeeDescription": "Vous n'avez pas d'évaluation active pour le moment.",
+    "resultsCount": "{{count}} résultats",
+    "prevPage": "Page précédente",
+    "nextPage": "Page suivante",
+    "deadline": "Deadline :",
+    "fill": "Remplir",
+    "csvFile": "evaluations",
+    "bulkConfirmCount": "{{count}} évaluation(s) ?",
+    "bulkConfirmHint": "Cette action s'appliquera aux évaluations sélectionnées.",
+    "reassignTitle": "Réaffecter l'évaluation",
+    "newEvaluator": "Nouvel évaluateur",
+    "selectEvaluator": "Sélectionner un évaluateur…",
+    "expireTitle": "Expirer cette évaluation ?",
+    "expireHint": "Cette action est irréversible. L'évaluation sera marquée comme expirée.",
+    "reassignError": "Erreur lors de la réaffectation",
+    "expireError": "Erreur lors de l'expiration",
+    "archiveError": "Erreur lors de l'archivage",
+    "signHrError": "Erreur lors de la signature RH",
+    "tryAgain": "Veuillez réessayer.",
+    "archivedCount": "{{count}} évaluation(s) archivée(s)",
+    "signedHrCount": "{{count}} évaluation(s) signée(s) RH",
+    "skippedCount": "{{count}} ignorée(s) (statut incompatible)"
+  },
+  "users": {
+    "title": "Collaborateurs",
+    "userCount": "{{count}} utilisateur(s)",
+    "groups": "Groupes",
+    "importCsv": "Importer CSV",
+    "newUser": "Nouvel utilisateur",
+    "roles": {
+      "admin": "Administrateur",
+      "hr": "RH",
+      "manager": "Responsable",
+      "employee": "Collaborateur"
+    },
+    "import": "Importer des collaborateurs",
+    "empty": "Aucun collaborateur trouvé",
+    "loadError": "Erreur lors du chargement des utilisateurs.",
+    "retry": "Réessayer"
+  },
+  "errors": {
+    "unauthorized": "Accès refusé",
+    "notFound": "Ressource introuvable",
+    "serverError": "Erreur serveur, veuillez réessayer",
+    "networkError": "Connexion impossible, vérifiez votre réseau"
+  },
+  "setup": {
+    "incompleteTitle": "Configuration initiale incomplète.",
+    "missingPrefix": "Il manque encore :",
+    "openWizard": "Ouvrir l'assistant de configuration",
+    "checks": {
+      "hasAdmin": "un compte administrateur actif",
+      "adminPasswordChanged": "changer le mot de passe administrateur par défaut (sécurité)",
+      "hasManagedUsers": "au moins un collaborateur rattaché à un responsable",
+      "hasForm": "au moins un formulaire d'évaluation",
+      "smtpConfigured": "la configuration e-mail (SMTP)"
+    }
+  },
+  "footer": {
+    "tagline": "NanoXplore RH — Plateforme d'entretiens professionnels et de développement des collaborateurs.",
+    "gdprLink": "Données personnelles (RGPD)",
+    "legalNotice": "Mentions légales",
+    "accessibility": "Accessibilité",
+    "hrContact": "Contact RH",
+    "legalNav": "Liens légaux",
+    "gdprCompliance": "Conforme RGPD · Données hébergées en Union européenne",
+    "copyright": "© {{year}} NanoXplore — Tous droits réservés."
+  },
+  "guides": {
+    "campaigns": {
+      "title": "Comment créer une campagne d'évaluation ?",
+      "steps": [
+        "Créez d'abord vos formulaires d'évaluation dans la section Formulaires",
+        "Créez une campagne, définissez les dates et associez vos formulaires",
+        "Définissez le public cible (tous les utilisateurs, département, secteur ou groupe)",
+        "Activez la campagne — les évaluations sont générées automatiquement"
+      ]
+    },
+    "evaluations": {
+      "title": "Les évaluations",
+      "steps": [
+        "Les évaluations sont générées automatiquement à l'activation d'une campagne",
+        "Chaque collaborateur reçoit une notification par email pour compléter son évaluation",
+        "Vous pouvez suivre l'avancement ici et envoyer des rappels groupés"
+      ]
+    },
+    "managerTodo": {
+      "title": "Traiter les évaluations de votre équipe",
+      "steps": [
+        "Repérez les évaluations soumises (à reviewer) et celles en retard, mises en avant.",
+        "Ouvrez une évaluation pour la relire, la réviser ou la signer.",
+        "Lancez « Ouvrir l'entretien » pour confronter les regards et conclure le face-à-face."
+      ]
+    },
+    "interview": {
+      "title": "Comment mener l'entretien ?",
+      "steps": [
+        "Confrontez les deux réponses (auto-évaluation et regard du manager) question par question.",
+        "Commentez et actez une position commune sur chaque question.",
+        "Revoyez les objectifs de l'an dernier (atteint / partiel / non atteint).",
+        "Fixez ensemble les objectifs N+1.",
+        "Rédigez la synthèse de l'entretien.",
+        "Signez en tant que manager — l'évalué·e signe depuis sa propre fiche."
+      ]
+    },
+    "forms": {
+      "title": "Les formulaires d'évaluation",
+      "steps": [
+        "Les formulaires définissent les questions posées lors des évaluations",
+        "Créez différents types : auto-évaluation, évaluation manager, évaluation N+1",
+        "Une fois créé, associez le formulaire à une campagne lors de sa création"
+      ]
+    },
+    "evaluationDetail": {
+      "title": "Que faire sur cette évaluation ?",
+      "stepsFill": [
+        "Renseignez chaque compétence et chaque objectif demandé.",
+        "Vos réponses sont enregistrées automatiquement.",
+        "Soumettez l'évaluation une fois complète pour la transmettre au responsable."
+      ],
+      "stepsReview": [
+        "Relisez l'auto-évaluation soumise par le collaborateur.",
+        "Ajustez les scores et commentaires, fixez les objectifs N+1.",
+        "Validez la révision : le collaborateur prend ensuite connaissance et signe."
+      ],
+      "stepsSign": [
+        "Prenez connaissance de l'évaluation révisée.",
+        "Signez pour valider, ou contestez pour ouvrir un litige (arbitrage RH).",
+        "L'évalué et le manager signent chacun de leur côté."
+      ],
+      "stepsReadonly": [
+        "Cette évaluation est en lecture seule à ce stade.",
+        "Consultez le détail et l'historique des étapes ci-dessous."
+      ]
+    }
+  },
+  "forms": {
+    "title": "Formulaires",
+    "newForm": "Nouveau formulaire",
+    "filterType": "Filtrer par type",
+    "allTypes": "Tous les types",
+    "filterCampaign": "Filtrer par campagne",
+    "allCampaigns": "Toutes les campagnes",
+    "searchPlaceholder": "Rechercher un formulaire…",
+    "searchAria": "Rechercher un formulaire",
+    "loading": "Chargement…",
+    "emptyTitle": "Aucun formulaire",
+    "emptyDescription": "Aucun formulaire ne correspond à vos critères.",
+    "createFirst": "Créer le premier formulaire",
+    "frozen": "Gelé",
+    "view": "Voir →",
+    "duplicate": "Dupliquer",
+    "delete": "Supprimer",
+    "deleteError": "Erreur lors de la suppression",
+    "cloneError": "Erreur lors de la duplication",
+    "tryAgain": "Veuillez réessayer.",
+    "cloneTitle": "Dupliquer — {{title}}",
+    "cloneIntro": "Une copie sera créée avec le titre « Copie de {{title}} », non gelée et sans campagne associée.",
+    "cloneHint": "Dupliquer conserve la filiation des questions : c'est ce qui permet de rappeler les réponses de l'édition précédente. Crée un formulaire neuf seulement si tu ne veux aucun rappel.",
+    "cloning": "Duplication…",
+    "deleteFormTitle": "Supprimer le formulaire",
+    "deleteFormDescription": "Cette action est irréversible. Le formulaire sera définitivement supprimé.",
+    "types": {
+      "self_evaluation": "Auto-évaluation",
+      "manager_evaluation": "Évaluation manager",
+      "upward_feedback": "Feedback ascendant",
+      "peer_review": "Peer review",
+      "objectives": "Objectifs",
+      "mobility_request": "Demande mobilité",
+      "salary_raise_request": "Demande augmentation",
+      "promotion_request": "Demande promotion",
+      "training_request": "Demande formation"
+    },
+    "questionCount": "{{count}} question(s)"
+  },
+  "eyebrow": {
+    "administration": "Administration",
+    "hrSpace": "Espace RH",
+    "managerSpace": "Espace manager",
+    "employeeSpace": "Espace collaborateur",
+    "hrDocuments": "Documents RH",
+    "help": "Aide",
+    "evaluation": "Évaluation",
+    "resource": "Ressource",
+    "interviewView": "Vue Entretien"
+  },
+  "pageHead": {
+    "managerTodoDesc": "Évaluations de vos collaborateurs qui nécessitent votre action.",
+    "managerTodoEmpty": "Rien à traiter",
+    "evaluationDetailDesc": "Détail de l’évaluation et étapes associées.",
+    "helpDesc": "Repères pour utiliser l'application au quotidien, selon votre rôle.",
+    "interviewDesc": "Le face-à-face : on confronte les deux regards, on acte une position commune, on signe.",
+    "managerTodoEmptyDesc": "Toutes les évaluations de votre équipe sont à jour.",
+    "interviewTitle": "Entretien — {{name}}",
+    "dashHrTitle": "Tableau de bord RH",
+    "dashHrDesc": "Vue d’ensemble de l’avancement des campagnes et des collaborateurs.",
+    "dashManagerTitle": "Tableau de bord — Mon équipe",
+    "dashManagerDesc": "Suivez et gérez les évaluations de votre équipe.",
+    "dashEmployeeTitle": "Bonjour {{name}}",
+    "dashAdminTitle": "Tableau de bord — Bonjour, {{name}}",
+    "dashAdminDesc": "État de la plateforme et activité système.",
+    "analyticsTitle": "Analytique RH",
+    "analyticsDesc": "Indicateurs, distribution des statuts et performances par campagne.",
+    "resourcesTitle": "Documents",
+    "resourcesDesc": "Accédez aux documents et ressources partagés",
+    "adminHubTitle": "Configuration",
+    "adminHubDesc": "Accédez à tous les réglages techniques et administratifs de la plateforme.",
+    "resourcesEmpty": "Aucune ressource",
+    "resourcesEmptyDesc": "Aucune ressource ne correspond à vos critères."
+  },
+  "adminHub": {
+    "title": "Configuration",
+    "desc": "Accédez à tous les réglages techniques et administratifs de la plateforme.",
+    "peopleTitle": "Comptes & accès",
+    "peopleAccounts": "Gestion des comptes",
+    "peopleAccountsDesc": "Rôles, statut et source des comptes",
+    "peopleStats": "Statistiques",
+    "peopleStatsDesc": "Indicateurs et activité de la plateforme",
+    "sysTitle": "Système",
+    "sysConfig": "Configuration système",
+    "sysConfigDesc": "Clés et variables d'environnement",
+    "sysStatus": "État du système",
+    "sysStatusDesc": "Santé et disponibilité des services",
+    "sysSetup": "Assistant de configuration",
+    "sysSetupDesc": "Initialiser la plateforme pas à pas",
+    "emailTitle": "E-mail",
+    "emailSmtp": "Configuration e-mail / SMTP",
+    "emailSmtpDesc": "Paramètres du serveur d'envoi",
+    "emailTemplates": "Modèles d'e-mail",
+    "emailTemplatesDesc": "Personnaliser les notifications",
+    "ldapTitle": "Annuaire (LDAP)",
+    "ldap": "Annuaire LDAP",
+    "ldapDesc": "Synchronisation de l'annuaire",
+    "secTitle": "Sécurité & Audit",
+    "secAudit": "Journal d'audit",
+    "secAuditDesc": "Logs et traçabilité des actions",
+    "secSsl": "Certificat SSL",
+    "secSslDesc": "Téléverser le certificat HTTPS",
+    "importsTitle": "Imports",
+    "importsUsers": "Import utilisateurs",
+    "importsUsersDesc": "Importer des comptes en masse",
+    "importsForms": "Import formulaires",
+    "importsFormsDesc": "Importer des modèles d'évaluation",
+    "hrTitle": "Paramètres RH",
+    "hrSettings": "Paramètres RH",
+    "hrSettingsDesc": "Configuration métier et globale"
+  },
+  "adminConfig": {
+    "eyebrow": "Administration",
+    "title": "Configuration système",
+    "desc": "Gérez les clés de configuration applicatives et vérifiez les variables d'environnement du serveur.",
+    "branding": {
+      "title": "Logo de l'entreprise",
+      "help": "Affiché dans la barre de navigation. PNG, JPG ou SVG, max 500 Ko.",
+      "tooLarge": "Image trop volumineuse (max 500 Ko).",
+      "currentLogoAlt": "Logo actuel",
+      "defaultLogo": "Logo par défaut",
+      "chooseImage": "Choisir une image",
+      "reset": "Réinitialiser"
+    },
+    "env": {
+      "title": "Variables d'environnement",
+      "definedCount": "{{defined}} / {{total}} définies",
+      "missingCount": "{{count}} manquante",
+      "missingCount_other": "{{count}} manquantes",
+      "allDefined": "Tout est défini",
+      "unavailable": "Endpoint non disponible — les variables d'environnement ne peuvent pas être vérifiées pour l'instant.",
+      "colVariable": "Variable",
+      "colDescription": "Description",
+      "colStatus": "Statut",
+      "required": "requis",
+      "statusSet": "Définie",
+      "statusMissing": "Manquante"
+    },
+    "keys": {
+      "new": "Nouvelle clé",
+      "title": "Clés de configuration",
+      "count": "{{count}} clé",
+      "count_other": "{{count}} clés",
+      "colKey": "Clé",
+      "colValue": "Valeur",
+      "colActions": "Actions",
+      "empty": "Aucune clé de configuration",
+      "add": "Ajouter une clé",
+      "expand": "Voir tout",
+      "collapse": "Réduire",
+      "edit": "Modifier",
+      "editAria": "Modifier {{key}}",
+      "delete": "Supprimer",
+      "deleteAria": "Supprimer {{key}}",
+      "deleteTitle": "Supprimer la clé de configuration ?",
+      "deleteDescription": "La clé « {{key}} » sera définitivement supprimée.",
+      "deleteConfirm": "Supprimer"
+    },
+    "modal": {
+      "newTitle": "Nouvelle clé de configuration",
+      "editTitle": "Modifier la clé",
+      "close": "Fermer",
+      "keyLabel": "Clé",
+      "keyExample": "(ex : SMTP_HOST)",
+      "keyPlaceholder": "NOM_DE_LA_CLE",
+      "valueLabel": "Valeur",
+      "valuePlaceholder": "Valeur de la clé…",
+      "cancel": "Annuler",
+      "save": "Sauvegarder",
+      "saving": "Sauvegarde…"
+    }
+  },
+  "adminStatus": {
+    "eyebrow": "Administration",
+    "title": "Santé système",
+    "desc": "État des services et disponibilité de la plateforme.",
+    "refresh": "Actualiser",
+    "refreshAria": "Actualiser le statut système",
+    "error": "Impossible de récupérer le statut système. L'endpoint est peut-être indisponible.",
+    "services": {
+      "title": "Services",
+      "operational": "Opérationnel",
+      "errorLabel": "Erreur",
+      "notConfigured": "Non configuré"
+    },
+    "uptime": {
+      "label": "Uptime",
+      "day": "j",
+      "hour": "h",
+      "minute": "min"
+    }
+  },
+  "adminSetup": {
+    "eyebrow": "Administration",
+    "title": "Configuration initiale",
+    "desc": "Suivez ces étapes pour mettre en service NX-RH",
+    "checking": "Vérification de la configuration...",
+    "complete": {
+      "title": "Configuration complète !",
+      "subtitle": "Toutes les étapes de configuration ont été effectuées."
+    },
+    "progress": {
+      "percent": "{{percent}}% configuré",
+      "steps": "{{completed}}/{{total}} étapes complètes"
+    }
+  },
+  "adminStats": {
+    "eyebrow": "Administration",
+    "title": "Statistiques",
+    "desc": "Vue d'ensemble RH (campagnes & évaluations)",
+    "descShort": "Vue d'ensemble RH",
+    "loadError": "Impossible de charger les statistiques.",
+    "byStatusTitle": "Évaluations par statut",
+    "kpi": {
+      "campaigns": "Campagnes",
+      "activeCampaigns": "Campagnes actives",
+      "evaluations": "Évaluations",
+      "completionRate": "Taux de complétion",
+      "avgScore": "Score moyen (validées)"
+    },
+    "status": {
+      "assigned": "Assignées",
+      "in_progress": "En cours",
+      "submitted": "Soumises",
+      "reviewed": "Relues",
+      "signed_evaluatee": "Signées (évalué)",
+      "signed_manager": "Signées (manager)",
+      "signed_hr": "Signées (RH)",
+      "validated": "Validées",
+      "expired": "Expirées",
+      "rejected": "Rejetées",
+      "archived": "Archivées"
+    }
+  },
+  "adminMailConfig": {
+    "title": "Configuration Email",
+    "desc": "Paramètres SMTP et envoi d'emails",
+    "actions": {
+      "testSend": "Tester l'envoi",
+      "save": "Enregistrer",
+      "saving": "Enregistrement…"
+    },
+    "smtp": {
+      "heading": "Paramètres SMTP",
+      "presetOvh": "Preset OVH"
+    },
+    "fields": {
+      "smtpHost": "Hôte SMTP",
+      "smtpPort": "Port",
+      "smtpUser": "Utilisateur SMTP",
+      "smtpPass": "Mot de passe SMTP",
+      "passwordUnchanged": "•••••••• (inchangé)",
+      "fromEmail": "Email expéditeur",
+      "fromName": "Nom expéditeur",
+      "secure": "Connexion sécurisée (TLS)"
+    },
+    "errors": {
+      "passwordRequired": "Le mot de passe SMTP est requis lors de la première configuration"
+    },
+    "test": {
+      "heading": "Test d'envoi",
+      "emailLabel": "Adresse email de destination du test",
+      "send": "Envoyer un test",
+      "sending": "Envoi…",
+      "success": "Email envoyé avec succès",
+      "error": "Échec de l'envoi"
+    }
+  },
+  "adminMailTemplates": {
+    "title": "Modèles email",
+    "desc": "Personnalisez l'objet et le corps des emails envoyés automatiquement par la plateforme.",
+    "slugs": {
+      "campaignLaunch": "Campagne lancée",
+      "evaluationAssigned": "Évaluation assignée",
+      "evaluationSubmitted": "Évaluation soumise",
+      "deadlineReminder": "Rappel deadline",
+      "managerActionRequired": "Action manager requise",
+      "systemAlerts": "Alertes système",
+      "bulkReminder": "Rappel groupé",
+      "requestTreated": "Demande traitée",
+      "requestRejected": "Demande rejetée",
+      "passwordReset": "Réinitialisation mot de passe",
+      "welcomeImport": "Bienvenue (import)"
+    },
+    "editor": {
+      "subject": "Objet",
+      "body": "Corps (texte brut)",
+      "variablesHint": "Variables disponibles entre doubles accolades :",
+      "variablesEtc": ", etc.",
+      "save": "Enregistrer",
+      "saving": "Enregistrement…",
+      "reset": "Réinitialiser",
+      "resetTitle": "Remettre les valeurs par défaut",
+      "cancel": "Annuler",
+      "errorOccurred": "Une erreur est survenue."
+    },
+    "row": {
+      "modified": "Modifié {{date}}",
+      "preview": "Aperçu (texte brut)",
+      "noBody": "Aucun corps défini",
+      "edit": "Modifier ce template"
+    },
+    "test": {
+      "heading": "Tester l'envoi SMTP",
+      "emailLabel": "Adresse e-mail destinataire du test",
+      "send": "Envoyer",
+      "sending": "Envoi…",
+      "success": "Email envoyé avec succès.",
+      "error": "Erreur lors de l'envoi. Vérifiez la configuration SMTP."
+    },
+    "list": {
+      "loadError": "Impossible de charger les templates.",
+      "empty": "Aucun template configuré."
+    }
+  },
+  "adminMailTest": {
+    "title": "Test d'envoi d'email",
+    "desc": "Envoie un email de test via la configuration SMTP courante",
+    "recipient": "Destinataire",
+    "invalidAddress": "Adresse invalide",
+    "send": "Envoyer l'email de test",
+    "sending": "Envoi…",
+    "sentTitle": "Email envoyé",
+    "viewPreview": "Voir l'aperçu (Ethereal)",
+    "sendError": "Échec de l'envoi — vérifiez la configuration SMTP."
+  },
+  "adminLdap": {
+    "eyebrow": "Administration",
+    "title": "Annuaires LDAP",
+    "unsavedWarning": "Modifications non enregistrées — enregistrez avant de tester / synchroniser.",
+    "loading": "Chargement…",
+    "empty": "Aucun annuaire configuré. Cliquez sur « Ajouter une source ».",
+    "newSourceLabel": "Nouvel annuaire",
+    "sourceNameAria": "Nom de l'annuaire",
+    "removeSourceAria": "Supprimer l'annuaire",
+    "enabled": "Activé",
+    "actions": {
+      "addSource": "Ajouter une source",
+      "save": "Enregistrer",
+      "saving": "Enregistrement…",
+      "test": "Tester",
+      "preview": "Prévisualiser",
+      "sync": "Synchroniser"
+    },
+    "fields": {
+      "host": "Hôte (URL)",
+      "baseDN": "Base DN",
+      "bindDN": "Bind DN",
+      "userFilter": "Filtre utilisateurs",
+      "attrEmail": "Attr. email",
+      "attrFirstName": "Attr. prénom",
+      "attrLastName": "Attr. nom",
+      "bindPassword": "Mot de passe Bind",
+      "bindPasswordPlaceholder": "•••••••• (laisser vide = inchangé)",
+      "defaultRole": "Rôle par défaut",
+      "excludePatterns": "Comptes exclus (motifs)",
+      "excludePatternsHelp": "Comptes système/service ignorés à l'import et désactivés s'ils ont déjà été synchronisés."
+    },
+    "test": {
+      "success": "Connexion réussie",
+      "failed": "Connexion échouée"
+    },
+    "sync": {
+      "created": "créés",
+      "updated": "mis à jour",
+      "skipped": "ignorés",
+      "errors": "erreurs"
+    },
+    "preview": {
+      "name": "Nom",
+      "email": "Email",
+      "dn": "DN",
+      "count": "{{count}} utilisateur(s)"
+    }
+  },
+  "adminSsl": {
+    "eyebrow": "Administration",
+    "title": "Certificat SSL",
+    "desc": "Téléversez le certificat (fullchain) et la clé privée pour sécuriser l'accès HTTPS.",
+    "loading": "Chargement…",
+    "breadcrumb": {
+      "home": "Accueil",
+      "admin": "Administration",
+      "ssl": "Certificat SSL"
+    },
+    "callout": {
+      "before": "Les fichiers doivent être au format PEM. La clé privée n'est jamais réaffichée après installation. Une fois installé, rechargez nginx :",
+      "after": "."
+    },
+    "current": {
+      "title": "Certificat actuel",
+      "none": "Aucun certificat n'est installé pour le moment.",
+      "unreadable": "Certificat présent mais illisible",
+      "cn": "Nom commun (CN)",
+      "validUntil": "Valide jusqu'au",
+      "daysRemaining": "Jours restants",
+      "days": "{{count}} jour(s)"
+    },
+    "install": {
+      "title": "Installer un nouveau certificat",
+      "fullchainLabel": "Certificat (fullchain.pem)",
+      "privkeyLabel": "Clé privée (privkey.pem)",
+      "fileLoaded": "{{name}} chargé",
+      "submit": "Installer le certificat",
+      "installing": "Installation…"
+    },
+    "toast": {
+      "installed": "Certificat installé",
+      "installRefused": "Installation refusée"
+    },
+    "error": {
+      "installFailed": "Échec de l'installation",
+      "readFile": "Impossible de lire le fichier sélectionné.",
+      "invalidFiles": "Fichiers invalides."
+    }
+  },
+  "adminAudit": {
+    "title": "Journal d'audit",
+    "loading": "Chargement…",
+    "empty": "Aucune entrée dans le journal d'audit.",
+    "actions": {
+      "exportCsv": "Exporter CSV"
+    },
+    "filters": {
+      "actor": "Acteur",
+      "actorPlaceholder": "Acteur…",
+      "action": "Action",
+      "actionPlaceholder": "Action…",
+      "targetType": "Type cible",
+      "targetTypePlaceholder": "Type cible…",
+      "from": "Du",
+      "to": "Au"
+    },
+    "table": {
+      "datetime": "Date/Heure",
+      "actor": "Acteur",
+      "action": "Action",
+      "target": "Cible"
+    },
+    "pagination": {
+      "page": "Page {{page}} sur {{total}}",
+      "prev": "Précédent",
+      "next": "Suivant"
+    }
+  },
+  "adminUsers": {
+    "eyebrow": "Administration",
+    "title": "Gestion avancée des utilisateurs",
+    "gdprNotice": "Les données utilisateur sont soumises au RGPD. Toute anonymisation est irréversible et auditée.",
+    "loading": "Chargement…",
+    "empty": "Aucun utilisateur trouvé",
+    "anonymizedTag": "(anonymisé)",
+    "filters": {
+      "searchLabel": "Rechercher",
+      "searchPlaceholder": "Rechercher un utilisateur...",
+      "authSourceLabel": "Source d'authentification",
+      "authSourceAll": "Toutes sources",
+      "authSourceLocal": "Local",
+      "authSourceLdap": "LDAP"
+    },
+    "table": {
+      "name": "Nom",
+      "email": "Email",
+      "role": "Rôle",
+      "auth": "Auth",
+      "department": "Département",
+      "createdAt": "Créé le",
+      "deactivatedAt": "Désactivé le"
+    },
+    "actions": {
+      "exportGdpr": "Exporter JSON RGPD",
+      "anonymize": "Anonymiser RGPD",
+      "forceDeactivate": "Forcer désactivation"
+    },
+    "anonymize": {
+      "confirmTitle": "Anonymiser l'utilisateur ?",
+      "confirmDescription": "Les données personnelles seront effacées (RGPD, irréversible).",
+      "confirmLabel": "Anonymiser"
+    },
+    "deactivate": {
+      "confirmTitle": "Désactiver l'utilisateur ?",
+      "confirmDescription": "L'utilisateur ne pourra plus se connecter (réversible).",
+      "confirmLabel": "Désactiver"
+    }
+  },
+  "adminUsersImport": {
+    "title": "Import utilisateurs",
+    "desc": "Importez des utilisateurs en masse depuis un fichier CSV ou JSON.",
+    "downloadTemplate": "Télécharger le template CSV",
+    "expectedColumns": "Colonnes attendues :",
+    "separatorBefore": "— séparateur",
+    "separatorOr": "ou",
+    "separatorAfter": "détecté automatiquement",
+    "dryRun": {
+      "label": "Mode simulation",
+      "on": "Aperçu uniquement — aucune donnée ne sera modifiée",
+      "off": "Import réel — les utilisateurs seront créés/mis à jour"
+    },
+    "dropzone": {
+      "ariaLabel": "Glissez-déposez un fichier CSV ou JSON, ou cliquez pour sélectionner",
+      "title": "Glissez-déposez un fichier CSV ou JSON",
+      "hint": "ou cliquez pour sélectionner",
+      "inputAriaLabel": "Sélectionner un fichier CSV ou JSON"
+    },
+    "preview": {
+      "rowsDetected": "lignes détectées",
+      "validationErrors": "Erreurs de validation ({{count}})",
+      "moreRows": "… et {{count}} autres lignes"
+    },
+    "actions": {
+      "importing": "Import en cours…",
+      "simulate": "Simuler ({{count}} lignes)",
+      "import": "Importer {{count}} utilisateurs",
+      "reset": "Réinitialiser"
+    },
+    "result": {
+      "dryRunNotice": "Mode simulation — aucune donnée modifiée",
+      "summary": "{{success}} importés, {{errors}} erreurs",
+      "lineError": "Ligne {{line}}: {{error}}"
+    },
+    "errors": {
+      "invalidJson": "JSON invalide",
+      "missingField": "Ligne {{line}}: champ \"{{field}}\" manquant"
+    }
+  },
+  "adminFormsImport": {
+    "title": "Import formulaires",
+    "desc": "Importez un formulaire d'évaluation au format JSON, par fichier ou par copier-coller.",
+    "downloadTemplate": "Télécharger le template JSON",
+    "validationErrors": "Erreurs de validation",
+    "imported": "Formulaire importé ! Redirection…",
+    "tabs": {
+      "file": "Fichier",
+      "paste": "Coller JSON"
+    },
+    "dropzone": {
+      "ariaLabel": "Glissez-déposez ou cliquez pour sélectionner un fichier JSON",
+      "title": "Glissez-déposez un fichier JSON",
+      "hint": "ou cliquez pour sélectionner",
+      "inputAriaLabel": "Fichier JSON du formulaire"
+    },
+    "paste": {
+      "label": "JSON du formulaire",
+      "placeholder": "Collez votre JSON ici…\n{\n  \"title\": \"...\",\n  \"formType\": \"self_evaluation\",\n  \"questions\": [...]\n}",
+      "validate": "Valider"
+    },
+    "preview": {
+      "title": "Aperçu",
+      "titleField": "Titre",
+      "typeField": "Type",
+      "questionsField": "Questions"
+    },
+    "questionsTable": {
+      "type": "Type",
+      "label": "Intitulé",
+      "more": "… et {{count}} autres"
+    },
+    "actions": {
+      "importing": "Import en cours…",
+      "import": "Importer le formulaire",
+      "reset": "Réinitialiser"
+    },
+    "errors": {
+      "notObject": "Le fichier doit être un objet JSON",
+      "malformedJson": "JSON invalide ou malformé",
+      "importFailed": "Erreur lors de l'import. Vérifiez le format.",
+      "missingField": "Champ \"{{field}}\" manquant",
+      "invalidFormType": "formType \"{{value}}\" invalide. Valeurs: {{values}}",
+      "missingQuestions": "Champ \"questions\" manquant ou non tableau",
+      "questionMissingId": "Question {{number}}: champ \"id\" manquant",
+      "questionDuplicateId": "Question {{number}}: ID \"{{id}}\" en double",
+      "questionMissingType": "Question {{number}}: champ \"type\" manquant",
+      "questionInvalidType": "Question {{number}}: type \"{{type}}\" invalide"
+    }
+  }
+}

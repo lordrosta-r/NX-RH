@@ -1,0 +1,47 @@
+{
+  "title": "Évaluations",
+  "myEvaluations": "Mes évaluations",
+  "allEvaluations": "Toutes les évaluations",
+  "history": "Historique",
+  "newEvaluation": "Nouvelle évaluation",
+  "bulkCreate": "Créer en masse",
+  "fields": {
+    "evaluatee": "Évalué",
+    "evaluator": "Évaluateur",
+    "campaign": "Campagne",
+    "form": "Formulaire",
+    "score": "Score",
+    "comment": "Commentaire",
+    "objectives": "Objectifs N+1",
+    "evaluateeComment": "Commentaire de l'évalué",
+    "reviewerComment": "Commentaire du manager",
+    "reviewerScore": "Note du manager",
+    "disagreement": "Désaccord signalé",
+    "signedByEvaluatee": "Signé par l'évalué",
+    "signedByManager": "Signé par le manager",
+    "signedByHr": "Signé par RH"
+  },
+  "phases": {
+    "employee": "Phase collaborateur",
+    "manager": "Phase manager",
+    "both": "Les deux phases"
+  },
+  "actions": {
+    "submit": "Soumettre l'évaluation",
+    "sign": "Signer",
+    "validate": "Valider",
+    "exportPdf": "Exporter PDF",
+    "remind": "Envoyer un rappel",
+    "bulkRemind": "Rappels groupés"
+  },
+  "messages": {
+    "submitConfirm": "Êtes-vous sûr de vouloir soumettre cette évaluation ? Elle ne sera plus modifiable.",
+    "signConfirm": "En signant, vous attestez avoir pris connaissance de l'évaluation.",
+    "validateConfirm": "Valider définitivement cette évaluation ?",
+    "disagreementNote": "L'évalué a signalé un désaccord sur cette évaluation."
+  },
+  "empty": {
+    "noEvaluations": "Aucune évaluation",
+    "noMyEvaluations": "Vous n'avez aucune évaluation en cours"
+  }
+}

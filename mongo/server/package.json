@@ -1,0 +1,87 @@
+{
+  "name": "nanoxplore-rh-server-mongo",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "seed": "node ../database/seed.js",
+    "seed:users": "node -e \"process.env.NODE_PATH = require('path').resolve('./node_modules'); require('module').Module._initPaths(); require('../database/seed-users.js');\"",
+    "seed:rich": "node -e \"process.env.NODE_PATH = require('path').resolve('./node_modules'); require('module').Module._initPaths(); require('../database/seed-rich.js');\"",
+    "seed:v2": "node -e \"process.env.NODE_PATH = require('path').resolve('./node_modules'); require('module').Module._initPaths(); require('../database/seed-rich-v2.js');\"",
+    "seed:full": "cd .. && node database/seed-full.js",
+    "seed:e2e": "node seeds/seed.js",
+    "seed:e2e:fresh": "node seeds/seed-fresh.js",
+    "test": "jest --runInBand --forceExit",
+    "test:coverage": "jest --runInBand --forceExit --coverage",
+    "test:watch": "jest --watch",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "prepare": "husky"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/__tests__/**/*.test.js"
+    ],
+    "setupFilesAfterEnv": [
+      "<rootDir>/__tests__/setup.js"
+    ],
+    "clearMocks": true,
+    "restoreMocks": true,
+    "coverageThreshold": {
+      "global": {
+        "branches": 50,
+        "functions": 55,
+        "lines": 60,
+        "statements": 60
+      }
+    },
+    "coverageReporters": [
+      "text",
+      "lcov",
+      "html"
+    ]
+  },
+  "overrides": {
+    "tar": "^7.5.11"
+  },
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
+    "express": "^4.21.2",
+    "express-mongo-sanitize": "^2.2.0",
+    "express-rate-limit": "^8.3.2",
+    "helmet": "^8.1.0",
+    "joi": "^17.13.3",
+    "jsonwebtoken": "^9.0.2",
+    "ldapjs": "^3.0.7",
+    "minio": "^8.0.7",
+    "mongoose": "^8.4.0",
+    "multer": "^2.1.1",
+    "nodemailer": "^8.0.5",
+    "pdfkit": "^0.18.0",
+    "sanitize-html": "^2.17.3",
+    "winston": "^3.19.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.2.0",
+    "eslint-plugin-n": "^17.24.0",
+    "eslint-plugin-security": "^4.0.0",
+    "globals": "^17.5.0",
+    "husky": "^9.1.7",
+    "jest": "^30.3.0",
+    "lint-staged": "^17.0.5",
+    "mongodb-memory-server": "^9.5.0",
+    "nodemon": "^3.1.4",
+    "supertest": "^7.2.2"
+  },
+  "lint-staged": {
+    "*.js": [
+      "eslint --fix"
+    ]
+  }
+}

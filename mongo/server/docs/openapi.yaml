@@ -1,0 +1,3518 @@
+openapi: 3.0.3
+info:
+  title: NanoXplore RH — API Backend
+  version: 1.0.0
+  description: |
+    API REST du backend NanoXplore RH (Express + MongoDB).
+    Authentification par cookie JWT httpOnly (`token`).
+    Base URL de montage : `/api` — le serveur écoute sur `http://localhost:3000` par défaut (PORT env).
+
+servers:
+  - url: /api
+    description: Express API (chemin relatif au serveur)
+
+security: []  # défaut public — chaque opération précise sa sécurité
+
+# =============================================================================
+# SECURITY SCHEMES
+# =============================================================================
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: token
+      description: |
+        JWT signé HS256, émis par POST /auth/login.
+        Durée : 8h par défaut, 30j si remember=true.
+        Cookie httpOnly, secure (production), sameSite=strict.
+
+# =============================================================================
+# SHARED PARAMETERS
+# =============================================================================
+  parameters:
+    PageParam:
+      name: page
+      in: query
+      schema:
+        type: integer
+        default: 1
+        minimum: 1
+      description: Numéro de page (base 1)
+
+    LimitParam:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        default: 50
+        minimum: 1
+        maximum: 100
+      description: Nombre d'éléments par page (max 100)
+
+    IdParam:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: ObjectId MongoDB (24 caractères hexadécimaux)
+
+# =============================================================================
+# SCHEMAS
+# =============================================================================
+  schemas:
+
+    Error:
+      type: object
+      description: Format d'erreur standard — toutes les réponses 4xx/5xx.
+      required: [error]
+      properties:
+        error:
+          type: string
+          description: Message d'erreur en français
+      example:
+        error: "Utilisateur introuvable"
+
+    PaginatedResponse:
+      type: object
+      description: Enveloppe de réponse pour tous les endpoints de liste.
+      required: [data, total, page, limit]
+      properties:
+        data:
+          type: array
+          items: {}
+          description: Tableau d'objets de la page courante
+        total:
+          type: integer
+          description: Nombre total d'éléments (toutes pages confondues)
+        page:
+          type: integer
+          description: Page courante
+        limit:
+          type: integer
+          description: Taille de page demandée
+
+    User:
+      type: object
+      description: |
+        Utilisateur de l'application. passwordHash et ldapDn ne sont jamais retournés.
+        Le champ `id` (string) remplace `_id` dans la réponse de GET /auth/me.
+      properties:
+        _id:
+          type: string
+          description: ObjectId MongoDB
+        email:
+          type: string
+          format: email
+        firstName:
+          type: string
+        lastName:
+          type: string
+        role:
+          type: string
+          enum: [admin, hr, director, manager, employee]
+          description: |
+            Rôles actifs : admin, hr, manager, employee.
+            director : rôle legacy — traité comme manager dans l'architecture cible.
+        department:
+          type: string
+          nullable: true
+          enum:
+            - Engineering
+            - Product
+            - Design
+            - Data
+            - Security
+            - Infrastructure
+            - Finance
+            - Legal
+            - HR
+            - Sales
+            - Marketing
+            - "Customer Success"
+            - Operations
+            - Executive
+        position:
+          type: string
+          nullable: true
+          maxLength: 150
+        managerId:
+          type: string
+          nullable: true
+          description: ObjectId du manager direct (ref User)
+        authSource:
+          type: string
+          enum: [local, ldap]
+          description: "local = compte créé manuellement ; ldap = authentification via annuaire"
+        locale:
+          type: string
+          enum: [fr, en]
+        theme:
+          type: string
+          enum: [dark, light, light-sidebar]
+        notificationPrefs:
+          type: object
+          description: |
+            Clés booléennes filtrées par rôle.
+            Clés possibles : campaignLaunch, evaluationAssigned, evaluationSubmitted,
+            deadlineReminder, managerActionRequired, systemAlerts.
+        isActive:
+          type: boolean
+        lastLoginAt:
+          type: string
+          format: date-time
+          nullable: true
+        onboarding:
+          type: object
+          properties:
+            completed:
+              type: boolean
+            completedAt:
+              type: string
+              format: date-time
+              nullable: true
+            steps:
+              type: array
+              items:
+                type: object
+                properties:
+                  step:
+                    type: string
+                  done:
+                    type: boolean
+                  doneAt:
+                    type: string
+                    format: date-time
+                    nullable: true
+        offboardingStatus:
+          type: string
+          enum: [active, offboarding, offboarded]
+        offboardingDate:
+          type: string
+          format: date-time
+          nullable: true
+        offboardingReason:
+          type: string
+          nullable: true
+        archivedAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Campaign:
+      type: object
+      description: |
+        Campagne d'évaluation. Cycle de vie : draft → active → closed → archived.
+        Transitions autorisées : draft→active, active→closed, closed→archived (irréversible).
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+          minLength: 3
+          maxLength: 200
+        description:
+          type: string
+          maxLength: 2000
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [draft, active, closed, archived]
+        createdBy:
+          description: Peuplé dans les réponses GET
+          oneOf:
+            - type: string
+              description: ObjectId si non peuplé
+            - $ref: '#/components/schemas/User'
+        deadlineEmployee:
+          type: string
+          format: date-time
+          nullable: true
+        deadlineManager:
+          type: string
+          format: date-time
+          nullable: true
+        targetDepartments:
+          type: array
+          description: Vide = toute l'entreprise
+          items:
+            type: string
+        extendedVisibility:
+          type: array
+          description: Liste des managers avec visibilité étendue sur leurs sous-équipes
+          items:
+            type: object
+            properties:
+              managerId:
+                type: string
+              restrictedToManagers:
+                type: array
+                items:
+                  type: string
+        stats:
+          type: object
+          description: Présent uniquement dans GET /campaigns/:id
+          properties:
+            total:
+              type: integer
+            started:
+              type: integer
+            submitted:
+              type: integer
+            validated:
+              type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Form:
+      type: object
+      description: |
+        Formulaire de questions. Une fois qu'une évaluation existe sur ce form,
+        frozenAt est renseigné et les questions ne peuvent plus être modifiées.
+        formType=upward_feedback force isAnonymous=true.
+      properties:
+        _id:
+          type: string
+        campaignId:
+          type: string
+          nullable: true
+          description: ObjectId de la campagne (null = template autonome)
+        title:
+          type: string
+          minLength: 3
+          maxLength: 200
+        description:
+          type: string
+          maxLength: 2000
+        formType:
+          type: string
+          enum: [self_evaluation, manager_evaluation, upward_feedback, director_evaluation, peer_review]
+        isAnonymous:
+          type: boolean
+          description: Forcé true si formType=upward_feedback
+        questions:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                description: Identifiant unique de la question dans le form
+              type:
+                type: string
+                enum: [rating, text, yes_no, choice, weather, mobility, n1_import]
+              label:
+                type: string
+                maxLength: 500
+              required:
+                type: boolean
+                default: true
+              scale:
+                type: integer
+                minimum: 2
+                maximum: 10
+                description: "Uniquement pour type=rating (défaut : 5)"
+              options:
+                type: array
+                items:
+                  type: string
+                description: "Uniquement pour type=choice (minimum 2 options)"
+              phase:
+                type: string
+                enum: [self, "n-1", objectives, aspirations, all]
+                default: all
+        frozenAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Renseigné dès la première évaluation — questions gelées
+        createdBy:
+          description: Peuplé dans les réponses GET
+          oneOf:
+            - type: string
+            - $ref: '#/components/schemas/User'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Evaluation:
+      type: object
+      description: |
+        Évaluation individuelle (formulaire rempli).
+        Cycle de vie : assigned → in_progress → submitted → reviewed
+          → signed_evaluatee → signed_manager → signed_hr → validated.
+        Statuts terminaux : validated, expired, archived.
+        evaluatorId est null dans la réponse si formId.isAnonymous=true.
+      properties:
+        _id:
+          type: string
+        campaignId:
+          description: Campagne parente (peuplée dans les réponses GET)
+          oneOf:
+            - type: string
+            - $ref: '#/components/schemas/Campaign'
+        formId:
+          description: Formulaire associé (peuplé dans les réponses GET)
+          oneOf:
+            - type: string
+            - $ref: '#/components/schemas/Form'
+        evaluatorId:
+          nullable: true
+          description: Évaluateur — null si form anonyme (peuplé dans les réponses GET)
+          oneOf:
+            - type: string
+            - $ref: '#/components/schemas/User'
+        evaluateeId:
+          description: Évalué (peuplé dans les réponses GET)
+          oneOf:
+            - type: string
+            - $ref: '#/components/schemas/User'
+        status:
+          type: string
+          enum: [assigned, in_progress, submitted, reviewed, signed_evaluatee, signed_manager, signed_hr, validated, expired, archived]
+        answers:
+          type: array
+          description: Réponses — bloquées après soumission (LOCKED_STATUSES)
+          items:
+            type: object
+            properties:
+              questionId:
+                type: string
+              value:
+                description: "Type Mixed : string, number, boolean, array"
+        lastSavedAt:
+          type: string
+          format: date-time
+          nullable: true
+        score:
+          type: number
+          minimum: 0
+          maximum: 100
+          nullable: true
+          description: Score global (0-100), ajouté par le reviewer
+        reviewerComment:
+          type: string
+          maxLength: 5000
+        nextObjectives:
+          type: string
+          maxLength: 5000
+        objectiveRatings:
+          type: object
+          description: "{ [questionId]: 'achieved'|'partial'|'not_achieved' }"
+        evaluateeComment:
+          type: string
+          maxLength: 5000
+        disagreementFlag:
+          type: boolean
+        signedByEvaluateeAt:
+          type: string
+          format: date-time
+          nullable: true
+        signedByManagerAt:
+          type: string
+          format: date-time
+          nullable: true
+        signedByHrAt:
+          type: string
+          format: date-time
+          nullable: true
+        expiresAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: campaign.endDate + 30 jours — le scheduler expire automatiquement
+        nearExpiry:
+          type: boolean
+          description: true si expiresAt < 7 jours (mis par le scheduler)
+        auditLog:
+          type: array
+          description: Journal append-only des actions RH (réaffectations, etc.)
+          items:
+            type: object
+            properties:
+              action:
+                type: string
+              by:
+                type: string
+              at:
+                type: string
+                format: date-time
+              meta:
+                type: object
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Event:
+      type: object
+      description: Événement calendrier (deadline, entretien, réunion, etc.).
+      properties:
+        _id:
+          type: string
+        title:
+          type: string
+          maxLength: 200
+        date:
+          type: string
+          format: date-time
+        type:
+          type: string
+          enum: [deadline, interview, meeting, feedback, campaign]
+        campaignId:
+          type: string
+          nullable: true
+        targetRoles:
+          type: array
+          description: Rôles qui voient cet événement. Vide ou tous les rôles = visible par tous.
+          items:
+            type: string
+            enum: [admin, hr, director, manager, employee]
+        createdBy:
+          type: string
+          description: ObjectId de l'auteur
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Resource:
+      type: object
+      description: Ressource documentaire (guide, grille, livret) publiée par RH.
+      properties:
+        _id:
+          type: string
+        title:
+          type: string
+          maxLength: 200
+        description:
+          type: string
+          maxLength: 2000
+        type:
+          type: string
+          enum: [pdf, xlsx, docx, pptx]
+        filename:
+          type: string
+          description: "Nom du fichier sur le disque (relatif à UPLOADS_DIR)"
+        status:
+          type: string
+          enum: [draft, published]
+          description: "draft = brouillon (admin/hr seulement) ; published = visible selon visibleTo"
+        visibleTo:
+          type: array
+          description: Rôles autorisés à voir ce document une fois publié
+          items:
+            type: string
+            enum: [admin, hr, director, manager, employee]
+        publishedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Rempli automatiquement (hook pre-save) au passage status→published
+        createdBy:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    OffboardingRequest:
+      type: object
+      description: |
+        Demande de départ (unique par utilisateur — index unique sur userId).
+        La completion (status=completed) archive l'utilisateur (isActive=false).
+      properties:
+        _id:
+          type: string
+        userId:
+          description: Utilisateur qui part (peuplé dans les réponses GET)
+          oneOf:
+            - type: string
+            - $ref: '#/components/schemas/User'
+        requestedBy:
+          description: Auteur de la demande (peuplé dans les réponses GET)
+          oneOf:
+            - type: string
+            - $ref: '#/components/schemas/User'
+        reason:
+          type: string
+          enum: [resignation, termination, retirement, other]
+        lastDay:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [pending, in_progress, completed]
+        checklist:
+          type: array
+          description: Liste de vérification par défaut (5 items)
+          items:
+            type: object
+            properties:
+              _id:
+                type: string
+              item:
+                type: string
+              done:
+                type: boolean
+              doneAt:
+                type: string
+                format: date-time
+                nullable: true
+              doneBy:
+                type: string
+                nullable: true
+        notes:
+          type: string
+          nullable: true
+          maxLength: 2000
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    AuditLog:
+      type: object
+      description: Entrée de piste d'audit — immuable, append-only.
+      properties:
+        _id:
+          type: string
+        userId:
+          type: object
+          description: Auteur de l'action (peuplé avec firstName, lastName, role)
+          properties:
+            _id:
+              type: string
+            firstName:
+              type: string
+            lastName:
+              type: string
+            role:
+              type: string
+        userRole:
+          type: string
+        action:
+          type: string
+          enum:
+            - status_change
+            - evaluation_update
+            - campaign_create
+            - campaign_activate
+            - campaign_update
+            - campaign_delete
+            - bulk_action
+            - offboard
+            - offboarding_create
+            - offboarding_update
+            - offboarding_delete
+            - gdpr_anonymize
+            - reassigned
+            - login
+            - login_failed
+        targetType:
+          type: string
+          enum: [Evaluation, Campaign, User, Form, OffboardingRequest]
+        targetId:
+          type: string
+          description: ObjectId de la ressource cible
+        meta:
+          type: object
+          description: Données contextuelles spécifiques à chaque action
+        createdAt:
+          type: string
+          format: date-time
+
+    LdapConfig:
+      type: object
+      description: |
+        Configuration de connexion LDAP.
+        bindPassword n'est jamais retourné par GET /admin/ldap/config.
+        Il peut être omis dans les requêtes POST test/preview/sync pour réutiliser la valeur sauvegardée.
+      properties:
+        url:
+          type: string
+          example: "ldaps://ldap.example.com:636"
+        bindDn:
+          type: string
+          example: "cn=admin,dc=example,dc=com"
+        bindPassword:
+          type: string
+          description: Jamais retourné — omis pour réutiliser le mot de passe sauvegardé
+        baseDn:
+          type: string
+          example: "ou=people,dc=example,dc=com"
+        userFilter:
+          type: string
+          example: "(objectClass=inetOrgPerson)"
+        usernameAttribute:
+          type: string
+          example: "sAMAccountName"
+        emailAttribute:
+          type: string
+          example: "mail"
+        firstNameAttribute:
+          type: string
+          example: "givenName"
+        lastNameAttribute:
+          type: string
+          example: "sn"
+
+# =============================================================================
+# TAGS
+# =============================================================================
+tags:
+  - name: health
+    description: Vérification de l'état du serveur
+  - name: auth
+    description: Authentification et gestion de session (public)
+  - name: users
+    description: Gestion des utilisateurs (scope par rôle)
+  - name: campaigns
+    description: Campagnes d'évaluation
+  - name: forms
+    description: Formulaires de questions
+  - name: evaluations
+    description: Évaluations individuelles
+  - name: analytics
+    description: Exports analytiques RH (PDF global)
+  - name: events
+    description: Événements calendrier
+  - name: resources
+    description: Ressources documentaires
+  - name: offboarding
+    description: Demandes de départ
+  - name: admin
+    description: Administration générale (admin uniquement)
+  - name: ldap
+    description: Configuration et synchronisation LDAP (admin uniquement)
+  - name: audit
+    description: Piste d'audit (admin + hr)
+
+# =============================================================================
+# PATHS
+# =============================================================================
+paths:
+
+  # ---------------------------------------------------------------------------
+  # Health
+  # ---------------------------------------------------------------------------
+
+  /health:
+    get:
+      summary: Vérification de l'état du serveur
+      description: Retourne le statut du serveur et de la connexion MongoDB.
+      tags: [health]
+      security: []
+      responses:
+        '200':
+          description: Serveur et base de données opérationnels
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [ok]
+                  timestamp:
+                    type: string
+                    format: date-time
+        '503':
+          description: Base de données inaccessible
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [error]
+                  reason:
+                    type: string
+
+  # ---------------------------------------------------------------------------
+  # Auth
+  # ---------------------------------------------------------------------------
+
+  /auth/login:
+    post:
+      summary: Connexion
+      description: Vérifie les identifiants locaux et émet un cookie JWT httpOnly.
+      tags: [auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                  maxLength: 254
+                password:
+                  type: string
+                  format: password
+                  maxLength: 128
+                remember:
+                  type: boolean
+                  default: false
+                  description: "true = cookie 30 jours ; false = 8h"
+      responses:
+        '200':
+          description: Connexion réussie — cookie `token` émis
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      email:
+                        type: string
+                      firstName:
+                        type: string
+                      lastName:
+                        type: string
+                      role:
+                        type: string
+        '400':
+          description: Email ou mot de passe manquant/invalide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Identifiants incorrects (délibérément vague)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: "Trop de tentatives (5/15min par email ou 20/15min par IP)"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/logout:
+    post:
+      summary: Déconnexion
+      description: Efface le cookie de session (httpOnly, sameSite).
+      tags: [auth]
+      security: []
+      responses:
+        '200':
+          description: Déconnecté
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Déconnecté"
+
+  /auth/me:
+    get:
+      summary: Profil utilisateur courant
+      description: Revalide le cookie JWT et retourne le profil complet de l'utilisateur connecté.
+      tags: [auth]
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Utilisateur courant (notificationPrefs filtrées par rôle)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Cookie absent, invalide ou utilisateur inactif
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/preferences:
+    patch:
+      summary: Mise à jour des préférences
+      description: Met à jour la locale, le thème et/ou les préférences de notification de l'utilisateur courant.
+      tags: [auth]
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Au moins un des trois champs est requis.
+              properties:
+                locale:
+                  type: string
+                  enum: [fr, en]
+                theme:
+                  type: string
+                  enum: [dark, light, light-sidebar]
+                notificationPrefs:
+                  type: object
+                  description: |
+                    Objet booléen. Clés autorisées selon le rôle :
+                    employee : evaluationAssigned, deadlineReminder, managerActionRequired
+                    manager  : evaluationAssigned, deadlineReminder, evaluationSubmitted
+                    hr       : + campaignLaunch
+                    admin    : + campaignLaunch, systemAlerts
+      responses:
+        '200':
+          description: Préférences mises à jour
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  locale:
+                    type: string
+                  theme:
+                    type: string
+                  notificationPrefs:
+                    type: object
+        '400':
+          description: Valeur invalide (locale/thème inconnu, clé de notif inconnue, type non booléen)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Non authentifié
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Clé de notification non autorisée pour ce rôle
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # ---------------------------------------------------------------------------
+  # Users
+  # ---------------------------------------------------------------------------
+
+  /users:
+    get:
+      summary: Liste des utilisateurs
+      description: |
+        Retourne les utilisateurs selon le scope du rôle appelant.
+        manager → subordonnés directs uniquement (managerId=soi).
+        admin/hr/director → tous les utilisateurs.
+        employee → 403.
+      tags: [users]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - name: role
+          in: query
+          schema:
+            type: string
+            enum: [admin, hr, director, manager, employee]
+        - name: department
+          in: query
+          schema:
+            type: string
+        - name: search
+          in: query
+          schema:
+            type: string
+            maxLength: 100
+          description: Recherche insensible à la casse sur firstName, lastName, email
+        - name: isActive
+          in: query
+          schema:
+            type: string
+            enum: ["true", "false"]
+          description: Filtre par statut actif (absent = pas de filtre)
+      responses:
+        '200':
+          description: Liste paginée d'utilisateurs
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/User'
+        '401':
+          description: Non authentifié
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Rôle employee interdit sur cette route
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      summary: Créer un utilisateur
+      description: |
+        Crée un compte local avec mot de passe temporaire hashé bcrypt (admin/hr uniquement).
+        Le tempPassword est exposé en clair une seule fois dans la réponse 201.
+      tags: [users]
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [firstName, lastName, email]
+              properties:
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                role:
+                  type: string
+                  enum: [admin, hr, director, manager, employee]
+                  default: employee
+                department:
+                  type: string
+                position:
+                  type: string
+                managerId:
+                  type: string
+                  description: ObjectId du manager direct
+      responses:
+        '201':
+          description: Utilisateur créé — tempPassword exposé une seule fois
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/User'
+                  - type: object
+                    properties:
+                      tempPassword:
+                        type: string
+                        description: Mot de passe temporaire en clair (à transmettre à l'utilisateur)
+        '400':
+          description: Champs requis manquants ou rôle invalide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Réservé aux admins et RH
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Email déjà utilisé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/{id}:
+    get:
+      summary: Détail d'un utilisateur
+      description: |
+        Retourne un utilisateur selon le scope du rôle.
+        manager → lui-même ou ses subordonnés directs.
+        employee → lui-même ou son manager direct.
+        admin/hr/director → accès complet.
+      tags: [users]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Utilisateur trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: ID invalide (non ObjectId)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Hors scope (employee ne voit que lui-même ou son manager)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Utilisateur introuvable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    patch:
+      summary: Modifier un utilisateur
+      description: |
+        Modifie les champs autorisés selon une whitelist stricte.
+        Non-admin → seulement firstName et lastName (les autres champs retournent 403).
+        Admin/hr → tous les champs de la whitelist.
+      tags: [users]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+                email:
+                  type: string
+                  description: Admin/hr uniquement
+                department:
+                  type: string
+                  description: Admin/hr uniquement
+                position:
+                  type: string
+                  description: Admin/hr uniquement
+                role:
+                  type: string
+                  enum: [admin, hr, director, manager, employee]
+                  description: Admin/hr uniquement
+                managerId:
+                  type: string
+                  description: Admin/hr uniquement
+                isActive:
+                  type: boolean
+                  description: Admin/hr uniquement
+      responses:
+        '200':
+          description: Utilisateur modifié
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: ID invalide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Champ protégé ou utilisateur hors scope
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Utilisateur introuvable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/{id}/offboard-preview:
+    get:
+      summary: Prévisualisation de départ
+      description: Affiche le nombre d'évaluations en cours et les campagnes actives affectées par le départ (admin/hr).
+      tags: [users]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Aperçu des impacts du départ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+                  pendingEvaluations:
+                    type: integer
+                  activeCampaigns:
+                    type: array
+                    items:
+                      type: string
+        '403':
+          description: Réservé aux admins et RH
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Utilisateur introuvable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/{id}/offboard:
+    patch:
+      summary: Déclencher un départ
+      description: Marque l'utilisateur en offboarding et archive ses évaluations non terminales (admin/hr).
+      tags: [users]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason, effectiveDate]
+              properties:
+                reason:
+                  type: string
+                  description: Motif du départ
+                effectiveDate:
+                  type: string
+                  format: date
+                  description: Date effective du départ (ISO 8601)
+      responses:
+        '200':
+          description: Offboarding déclenché — utilisateur retourné avec offboardingStatus=offboarding
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Champs requis manquants
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Réservé aux admins et RH
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Utilisateur introuvable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/{id}/onboarding/complete:
+    patch:
+      summary: Marquer l'onboarding terminé
+      description: Marque l'onboarding comme complet (self ou admin/hr). Doit être déclaré avant /:id/onboarding/:stepIndex.
+      tags: [users]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Onboarding marqué terminé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '403':
+          description: "Non autorisé (ni self ni admin/hr)"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Utilisateur introuvable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/{id}/onboarding/{stepIndex}:
+    patch:
+      summary: Cocher une étape d'onboarding
+      description: Marque une étape comme faite (done=true) ou non (done=false) (self ou admin/hr).
+      tags: [users]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+        - name: stepIndex
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 0
+          description: Index (0-based) de l'étape
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                done:
+                  type: boolean
+                  default: true
+      responses:
+        '200':
+          description: Étape mise à jour
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: stepIndex invalide ou hors limites
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: "Non autorisé (ni self ni admin/hr)"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Utilisateur introuvable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/{id}/gdpr-export:
+    get:
+      summary: Export RGPD
+      description: Génère un JSON d'export des données personnelles et évaluations (self ou admin/hr).
+      tags: [users]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Fichier JSON RGPD (Content-Disposition attachment)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+                  evaluations:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Evaluation'
+                  exportedAt:
+                    type: string
+                    format: date-time
+        '403':
+          description: Non autorisé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Utilisateur introuvable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/{id}/gdpr-anonymize:
+    delete:
+      summary: Anonymisation RGPD
+      description: Anonymise irréversiblement un utilisateur sans évaluation active (admin uniquement).
+      tags: [users]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '204':
+          description: Anonymisation réussie (pas de corps)
+        '403':
+          description: Réservé à l'administrateur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Utilisateur introuvable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: "Évaluations actives (assigned/in_progress/submitted) — anonymisation impossible"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # ---------------------------------------------------------------------------
+  # Campaigns
+  # ---------------------------------------------------------------------------
+
+  /campaigns:
+    get:
+      summary: Liste des campagnes
+      description: |
+        Retourne les campagnes selon le rôle.
+        employee → filtre forcé status=active.
+        admin/hr/manager/director → toutes, filtrables par ?status.
+      tags: [campaigns]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [draft, active, closed, archived]
+          description: Filtre par statut (ignoré pour les employees — toujours active)
+      responses:
+        '200':
+          description: Liste paginée de campagnes
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Campaign'
+
+    post:
+      summary: Créer une campagne
+      description: Crée une nouvelle campagne (admin/hr uniquement).
+      tags: [campaigns]
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, startDate, endDate]
+              properties:
+                name:
+                  type: string
+                  minLength: 3
+                  maxLength: 200
+                description:
+                  type: string
+                startDate:
+                  type: string
+                  format: date-time
+                endDate:
+                  type: string
+                  format: date-time
+                status:
+                  type: string
+                  enum: [draft, active]
+                  default: draft
+                  description: Seuls draft et active sont autorisés à la création
+                targetDepartments:
+                  type: array
+                  items:
+                    type: string
+                extendedVisibility:
+                  type: array
+                  items:
+                    type: object
+                deadlineEmployee:
+                  type: string
+                  format: date-time
+                  nullable: true
+                deadlineManager:
+                  type: string
+                  format: date-time
+                  nullable: true
+      responses:
+        '201':
+          description: Campagne créée (peuplée avec createdBy)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Campaign'
+        '400':
+          description: Validation échouée (champs requis, dates incohérentes, statut invalide)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Réservé aux admins et RH
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /campaigns/{id}:
+    get:
+      summary: Détail d'une campagne
+      description: Retourne une campagne avec ses statistiques de complétion (stats).
+      tags: [campaigns]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Campagne avec stats
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Campaign'
+        '400':
+          description: ID invalide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Campagne introuvable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    patch:
+      summary: Modifier une campagne
+      description: |
+        Modifie les champs et/ou le statut d'une campagne (admin/hr).
+        Transitions autorisées : draft→active, active→closed, closed→archived.
+        Passer à active déclenche des notifications aux utilisateurs ciblés.
+      tags: [campaigns]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                status:
+                  type: string
+                  enum: [draft, active, closed, archived]
+                  description: "Transitions : draft→active, active→closed, closed→archived"
+                startDate:
+                  type: string
+                  format: date-time
+                endDate:
+                  type: string
+                  format: date-time
+                targetDepartments:
+                  type: array
+                  items:
+                    type: string
+                extendedVisibility:
+                  type: array
+                  items:
+                    type: object
+                deadlineEmployee:
+                  type: string
+                  format: date-time
+                deadlineManager:
+                  type: string
+                  format: date-time
+      responses:
+        '200':
+          description: Campagne modifiée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Campaign'
+        '400':
+          description: Transition non autorisée ou validation échouée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Réservé aux admins et RH
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Campagne introuvable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      summary: Supprimer une campagne
+      description: Supprime une campagne en draft ou archived ainsi que ses évaluations et formulaires (admin/hr).
+      tags: [campaigns]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '204':
+          description: Campagne et ressources liées supprimées
+        '400':
+          description: Campagne active ou statut non supprimable (ni draft ni archived)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Réservé aux admins et RH
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Campagne introuvable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /campaigns/{id}/clone:
+    post:
+      summary: Cloner une campagne
+      description: |
+        Duplique une campagne (statut forcé à draft) avec tous ses formulaires.
+        Les dates sont décalées d'un an par défaut (surchargeables).
+        Les formulaires clonés ont frozenAt=null (modifiables).
+      tags: [campaigns]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: "Défaut : '<nom source> (copie)' (max 200 chars)"
+                startDate:
+                  type: string
+                  format: date-time
+                  description: Défaut → startDate source + 1 an
+                endDate:
+                  type: string
+                  format: date-time
+                  description: Défaut → endDate source + 1 an
+      responses:
+        '201':
+          description: Campagne clonée
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: ObjectId de la nouvelle campagne
+                  formsCloned:
+                    type: integer
+                    description: Nombre de formulaires clonés
+        '400':
+          description: endDate < startDate
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Réservé aux admins et RH
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Campagne source introuvable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /campaigns/{id}/analytics:
+    get:
+      summary: Analytiques d'une campagne
+      description: Agrégats MongoDB — complétion, score moyen, distribution et répartition par département (admin/hr).
+      tags: [campaigns]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Statistiques de la campagne
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  campaignId:
+                    type: string
+                  campaignName:
+                    type: string
+                  totalEvaluations:
+                    type: integer
+                  completedEvaluations:
+                    type: integer
+                  completionPct:
+                    type: integer
+                    description: Pourcentage de complétion (0-100)
+                  avgScore:
+                    type: number
+                    nullable: true
+                  statusDistribution:
+                    type: object
+                    additionalProperties:
+                      type: integer
+                    description: "{ [status]: count }"
+                  scoreDistribution:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        from:
+                          type: integer
+                        to:
+                          type: integer
+                        count:
+                          type: integer
+                  byDepartment:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        department:
+                          type: string
+                        total:
+                          type: integer
+                        completed:
+                          type: integer
+                        completionPct:
+                          type: integer
+                        avgScore:
+                          type: number
+                          nullable: true
+        '403':
+          description: Réservé aux admins et RH
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Campagne introuvable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # ---------------------------------------------------------------------------
+  # Forms
+  # ---------------------------------------------------------------------------
+
+  /forms:
+    get:
+      summary: Liste des formulaires
+      description: Retourne les formulaires paginés, filtrables par campaignId et/ou formType.
+      tags: [forms]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - name: campaignId
+          in: query
+          schema:
+            type: string
+          description: Filtre par campagne (ObjectId)
+        - name: formType
+          in: query
+          schema:
+            type: string
+            enum: [self_evaluation, manager_evaluation, upward_feedback, director_evaluation, peer_review]
+      responses:
+        '200':
+          description: Liste paginée de formulaires
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Form'
+        '400':
+          description: campaignId ou formType invalide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      summary: Créer un formulaire
+      description: |
+        Crée un formulaire lié à une campagne (ou template autonome si campaignId absent).
+        formType=upward_feedback force isAnonymous=true.
+        Les IDs de questions doivent être uniques dans le formulaire.
+      tags: [forms]
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, formType]
+              properties:
+                title:
+                  type: string
+                  minLength: 3
+                  maxLength: 200
+                description:
+                  type: string
+                formType:
+                  type: string
+                  enum: [self_evaluation, manager_evaluation, upward_feedback, director_evaluation, peer_review]
+                campaignId:
+                  type: string
+                  description: ObjectId (absent = template autonome)
+                isAnonymous:
+                  type: boolean
+                  description: Forcé true si formType=upward_feedback
+                questions:
+                  type: array
+                  items:
+                    type: object
+      responses:
+        '201':
+          description: Formulaire créé (peuplé avec createdBy)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Form'
+        '400':
+          description: Validation échouée (title/formType manquants, IDs en double, options choice < 2)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Réservé aux admins et RH
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /forms/{id}:
+    get:
+      summary: Détail d'un formulaire
+      description: Retourne un formulaire par son ID.
+      tags: [forms]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Formulaire trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Form'
+        '400':
+          description: ID invalide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Formulaire introuvable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    patch:
+      summary: Modifier un formulaire
+      description: |
+        Modifie un formulaire (admin/hr). title et description toujours modifiables.
+        questions : bloquées si frozenAt est défini (retourne 409).
+      tags: [forms]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                questions:
+                  type: array
+                  description: Bloqué si frozenAt est défini
+                  items:
+                    type: object
+      responses:
+        '200':
+          description: Formulaire modifié (retourne {id} uniquement)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+        '400':
+          description: Validation Mongoose échouée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Réservé aux admins et RH
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Formulaire introuvable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Questions gelées — évaluations existantes sur ce formulaire
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Error'
+                  - type: object
+                    properties:
+                      frozenAt:
+                        type: string
+                        format: date-time
+
+    delete:
+      summary: Supprimer un formulaire
+      description: Supprime un formulaire non gelé (admin/hr). Bloqué si frozenAt est défini.
+      tags: [forms]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '204':
+          description: Formulaire supprimé
+        '403':
+          description: Réservé aux admins et RH
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Formulaire introuvable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Formulaire gelé — suppression impossible
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Error'
+                  - type: object
+                    properties:
+                      frozenAt:
+                        type: string
+                        format: date-time
+
+  # ---------------------------------------------------------------------------
+  # Evaluations
+  # ---------------------------------------------------------------------------
+
+  /evaluations/history:
+    get:
+      summary: Historique des évaluations
+      description: |
+        Retourne jusqu'à 200 évaluations aux statuts avancés pour l'utilisateur courant.
+        Statuts inclus : submitted, reviewed, signed_evaluatee, signed_manager, signed_hr, validated.
+        Non paginé — tableau plat.
+      tags: [evaluations]
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Tableau d'évaluations historisées (non paginé, max 200)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Evaluation'
+
+  /evaluations:
+    get:
+      summary: Liste des évaluations
+      description: |
+        Retourne les évaluations selon le scope du rôle (paginé).
+        employee → ses propres évaluations uniquement.
+        manager/director → ses évaluations + celles de ses subordonnés visibles.
+        admin/hr → tout.
+      tags: [evaluations]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - name: campaignId
+          in: query
+          schema:
+            type: string
+          description: Filtre par campagne (ObjectId)
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [assigned, in_progress, submitted, reviewed, signed_evaluatee, signed_manager, signed_hr, validated, expired, archived]
+        - name: evaluateeId
+          in: query
+          schema:
+            type: string
+          description: Filtre par évalué (ObjectId)
+      responses:
+        '200':
+          description: Liste paginée d'évaluations
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Evaluation'
+        '400':
+          description: Paramètre invalide (campaignId/evaluateeId non ObjectId, status inconnu)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      summary: Créer une évaluation individuelle
+      description: Crée une évaluation et gèle le formulaire associé si besoin (admin/hr).
+      tags: [evaluations]
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [campaignId, formId, evaluatorId, evaluateeId]
+              properties:
+                campaignId:
+                  type: string
+                formId:
+                  type: string
+                evaluatorId:
+                  type: string
+                evaluateeId:
+                  type: string
+      responses:
+        '201':
+          description: Évaluation créée
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+        '400':
+          description: Champ requis manquant ou ObjectId invalide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Réservé aux admins et RH
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: "Évaluation dupliquée (index unique : campaignId+formId+evaluatorId+evaluateeId)"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /evaluations/export:
+    get:
+      summary: Export CSV des évaluations
+      description: Génère un CSV BOM UTF-8 (max 5000 lignes), filtrables par campagne, statut, département (admin/hr).
+      tags: [evaluations]
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: campaignId
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [assigned, in_progress, submitted, reviewed, signed_evaluatee, signed_manager, signed_hr, validated, expired, archived]
+        - name: dept
+          in: query
+          schema:
+            type: string
+          description: Filtre post-traitement par département (exact match)
+      responses:
+        '200':
+          description: Fichier CSV (Content-Disposition attachment, filename=evaluations.csv)
+          content:
+            text/csv:
+              schema:
+                type: string
+        '403':
+          description: Réservé aux admins et RH
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /evaluations/bulk:
+    post:
+      summary: Créer des évaluations en masse
+      description: |
+        Crée jusqu'à 500 évaluations en batch (admin/hr).
+        Gèle les formulaires concernés. ordered=false : les doublons sont ignorés.
+        Retourne 207 si certains doublons ont été ignorés.
+      tags: [evaluations]
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [evaluations]
+              properties:
+                evaluations:
+                  type: array
+                  maxItems: 500
+                  items:
+                    type: object
+                    required: [campaignId, formId, evaluatorId, evaluateeId]
+                    properties:
+                      campaignId:
+                        type: string
+                      formId:
+                        type: string
+                      evaluatorId:
+                        type: string
+                      evaluateeId:
+                        type: string
+      responses:
+        '201':
+          description: Toutes les évaluations créées
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  created:
+                    type: integer
+        '207':
+          description: Résultat partiel — certains doublons ont été ignorés
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  created:
+                    type: integer
+                  skipped:
+                    type: integer
+                  message:
+                    type: string
+        '400':
+          description: Validation échouée (tableau vide, > 500, champ manquant, ObjectId invalide)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Réservé aux admins et RH
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    patch:
+      summary: Actions en masse sur les évaluations
+      description: |
+        Applique une action à une liste d'évaluations (admin/hr, max 200).
+        archive : passe au statut suivant autorisé selon le rôle.
+        sign_hr : signe RH (depuis reviewed, signed_evaluatee ou signed_manager).
+        assign_reviewer : réaffecte l'évaluateur (statuts assigned ou in_progress).
+      tags: [evaluations]
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ids, action]
+              properties:
+                ids:
+                  type: array
+                  maxItems: 200
+                  items:
+                    type: string
+                action:
+                  type: string
+                  enum: [archive, sign_hr, assign_reviewer]
+                reviewerId:
+                  type: string
+                  description: Requis si action=assign_reviewer (ObjectId)
+      responses:
+        '200':
+          description: Résultat de l'opération bulk
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: integer
+                  skipped:
+                    type: integer
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        reason:
+                          type: string
+        '400':
+          description: Validation échouée (ids vide, > 200, action invalide)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Réservé aux admins et RH
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /evaluations/{id}:
+    get:
+      summary: Détail d'une évaluation
+      description: |
+        Retourne une évaluation peuplée (form, evaluator, evaluatee, campaign).
+        evaluatorId/evaluatorName anonymisés si form.isAnonymous=true.
+        Contrôle d'accès par rôle et scope de visibilité.
+      tags: [evaluations]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Évaluation trouvée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Evaluation'
+        '400':
+          description: ID invalide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Accès refusé (hors scope)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Évaluation introuvable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    patch:
+      summary: Modifier une évaluation
+      description: |
+        Sauvegarde les réponses, modifie le statut, ajoute score/commentaires.
+        Accès selon le rôle : employee → ses propres évaluations ; manager → ses évaluées.
+        Transitions de statut validées par ROLE_TRANSITIONS (voir modèle Evaluation).
+        answers verrouillées une fois soumises (LOCKED_STATUSES).
+      tags: [evaluations]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                answers:
+                  type: array
+                  description: "Réponses — bloquées si statut ∈ LOCKED_STATUSES"
+                  items:
+                    type: object
+                    properties:
+                      questionId:
+                        type: string
+                      value:
+                        description: string | number | boolean | array
+                status:
+                  type: string
+                  enum: [assigned, in_progress, submitted, reviewed, signed_evaluatee, signed_manager, signed_hr, validated, expired, archived]
+                  description: |
+                    Transitions autorisées par rôle :
+                    employee : assigned→in_progress, in_progress→submitted, reviewed→signed_evaluatee
+                    manager  : submitted→reviewed, signed_evaluatee→signed_manager
+                    hr       : reviewed|signed_evaluatee|signed_manager → signed_hr
+                    admin    : toutes les transitions valides
+                score:
+                  type: number
+                  minimum: 0
+                  maximum: 100
+                  description: Manager/director/admin/hr uniquement
+                reviewerComment:
+                  type: string
+                  maxLength: 5000
+                  description: Manager/director/admin/hr uniquement
+                nextObjectives:
+                  type: string
+                  maxLength: 5000
+                  description: Manager/director/admin/hr uniquement
+                objectiveRatings:
+                  type: object
+                  description: "Manager/director/admin/hr — { [questionId]: rating }"
+                evaluateeComment:
+                  type: string
+                  maxLength: 5000
+                  description: Évalué ou admin/hr uniquement
+      responses:
+        '200':
+          description: Évaluation modifiée retournée peuplée complète
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Evaluation'
+        '400':
+          description: Validation échouée ou transition de statut invalide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Accès refusé ou champ non autorisé pour ce rôle
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Évaluation introuvable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Réponses verrouillées (évaluation déjà soumise)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /evaluations/{id}/reassign:
+    patch:
+      summary: Réaffecter un évaluateur
+      description: Change l'évaluateur d'une évaluation non terminale (admin/hr). L'évaluateur doit être actif avec rôle manager ou director.
+      tags: [evaluations]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [newEvaluatorId]
+              properties:
+                newEvaluatorId:
+                  type: string
+                  description: ObjectId d'un utilisateur actif (rôle manager ou director)
+                reason:
+                  type: string
+                  maxLength: 500
+                  description: Motif (facultatif — enregistré dans auditLog)
+      responses:
+        '200':
+          description: Évaluateur réaffecté
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  evaluatorId:
+                    type: string
+                  evaluatorName:
+                    type: string
+        '400':
+          description: newEvaluatorId invalide, évaluateur inactif ou rôle incorrect
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Réservé aux admins et RH
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Évaluation ou utilisateur introuvable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Statut terminal (signed_hr/validated) ou doublon d'index unique
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /evaluations/{id}/expire:
+    post:
+      summary: Expirer manuellement une évaluation
+      description: Force le statut à expired pour une évaluation non terminale (admin/hr).
+      tags: [evaluations]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Statut passé à expired
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  status:
+                    type: string
+                    enum: [expired]
+        '403':
+          description: Réservé aux admins et RH
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Évaluation introuvable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Déjà validated ou expired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /evaluations/{id}/pdf:
+    get:
+      summary: Export PDF d'une évaluation
+      description: Génère le compte rendu PDF d'une évaluation (admin/hr ou participants directs — évaluateur/évalué).
+      tags: [evaluations]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Fichier PDF (Content-Disposition attachment, filename=evaluation-{id}.pdf)
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        '403':
+          description: "Accès interdit (ni admin/hr ni participant direct)"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Évaluation introuvable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # ---------------------------------------------------------------------------
+  # Analytics
+  # ---------------------------------------------------------------------------
+
+  /analytics/export/pdf:
+    get:
+      summary: Rapport PDF analytique RH
+      description: |
+        Génère un rapport PDF global avec statistiques, top 5 performers et répartition par département (admin/hr).
+        ?campaignId filtre le rapport sur une campagne spécifique.
+      tags: [analytics]
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: campaignId
+          in: query
+          schema:
+            type: string
+          description: Filtre optionnel par campagne (ObjectId)
+      responses:
+        '200':
+          description: "Fichier PDF analytique (filename: analytics-rh-YYYY-MM-DD[-campaignId].pdf)"
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        '400':
+          description: campaignId invalide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Réservé aux admins et RH
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # ---------------------------------------------------------------------------
+  # Events
+  # ---------------------------------------------------------------------------
+
+  /events:
+    get:
+      summary: Liste des événements calendrier
+      description: |
+        admin/hr → tous les événements.
+        Autres → uniquement les événements dont targetRoles contient leur rôle
+        ou dont targetRoles est vide (visible par tous).
+      tags: [events]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          description: Liste paginée d'événements (triée par date ASC)
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Event'
+
+    post:
+      summary: Créer un événement
+      description: |
+        Crée un événement calendrier (admin/hr).
+        targetRoles non modifiable à la création — défaut : tous les rôles.
+        Pour restreindre la visibilité, utiliser PATCH après création.
+      tags: [events]
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, date]
+              properties:
+                title:
+                  type: string
+                  maxLength: 200
+                date:
+                  type: string
+                  format: date-time
+                type:
+                  type: string
+                  enum: [deadline, interview, meeting, feedback, campaign]
+                  description: Requis par le schéma Mongoose
+                campaignId:
+                  type: string
+                  nullable: true
+      responses:
+        '201':
+          description: Événement créé (targetRoles = tous les rôles par défaut)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+        '400':
+          description: title ou date manquant
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Réservé aux admins et RH
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /events/{id}:
+    get:
+      summary: Détail d'un événement
+      description: Retourne un événement si le rôle de l'utilisateur est dans targetRoles (ou targetRoles vide).
+      tags: [events]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Événement trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+        '400':
+          description: ID invalide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Rôle non ciblé par cet événement
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Événement introuvable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    patch:
+      summary: Modifier un événement
+      description: Met à jour les champs d'un événement, y compris targetRoles (admin/hr).
+      tags: [events]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                date:
+                  type: string
+                  format: date-time
+                type:
+                  type: string
+                  enum: [deadline, interview, meeting, feedback, campaign]
+                targetRoles:
+                  type: array
+                  items:
+                    type: string
+                    enum: [admin, hr, director, manager, employee]
+      responses:
+        '200':
+          description: Événement modifié
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+        '400':
+          description: ID invalide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Réservé aux admins et RH
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Événement introuvable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      summary: Supprimer un événement
+      description: Supprime un événement calendrier (admin/hr).
+      tags: [events]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '204':
+          description: Événement supprimé
+        '403':
+          description: Réservé aux admins et RH
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Événement introuvable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # ---------------------------------------------------------------------------
+  # Resources
+  # ---------------------------------------------------------------------------
+
+  /resources:
+    get:
+      summary: Liste des ressources documentaires
+      description: |
+        admin/hr → tous les documents (draft + published).
+        Autres → uniquement les documents published dont visibleTo contient leur rôle.
+      tags: [resources]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          description: Liste paginée de ressources
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Resource'
+
+    post:
+      summary: Créer une ressource documentaire
+      description: Crée une ressource (admin/hr). Le fichier doit préexister dans UPLOADS_DIR.
+      tags: [resources]
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, type, filename]
+              properties:
+                title:
+                  type: string
+                  maxLength: 200
+                description:
+                  type: string
+                type:
+                  type: string
+                  enum: [pdf, xlsx, docx, pptx]
+                filename:
+                  type: string
+                  description: "Caractères autorisés : [a-zA-Z0-9_\\-.] — pas de chemin relatif (..)"
+                status:
+                  type: string
+                  enum: [draft, published]
+                  default: draft
+                visibleTo:
+                  type: array
+                  items:
+                    type: string
+                    enum: [admin, hr, director, manager, employee]
+      responses:
+        '201':
+          description: Ressource créée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Resource'
+        '400':
+          description: Champs requis manquants ou nom de fichier invalide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Réservé aux admins et RH
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /resources/{id}:
+    get:
+      summary: Détail d'une ressource
+      description: Retourne une ressource si published et visible par le rôle de l'utilisateur.
+      tags: [resources]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Ressource trouvée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Resource'
+        '400':
+          description: ID invalide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Ressource non publiée ou rôle absent de visibleTo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Ressource introuvable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    patch:
+      summary: Modifier une ressource
+      description: Met à jour les champs éditables (admin/hr). publishedAt est rempli automatiquement au passage status→published.
+      tags: [resources]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                status:
+                  type: string
+                  enum: [draft, published]
+                visibleTo:
+                  type: array
+                  items:
+                    type: string
+                    enum: [admin, hr, director, manager, employee]
+      responses:
+        '200':
+          description: Ressource modifiée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Resource'
+        '403':
+          description: Réservé aux admins et RH
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Ressource introuvable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      summary: Supprimer une ressource
+      description: Supprime une ressource documentaire (admin/hr). Ne supprime pas le fichier physique.
+      tags: [resources]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '204':
+          description: Ressource supprimée
+        '403':
+          description: Réservé aux admins et RH
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Ressource introuvable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # ---------------------------------------------------------------------------
+  # Offboarding
+  # ---------------------------------------------------------------------------
+
+  /offboarding:
+    get:
+      summary: Liste des demandes de départ
+      description: Retourne les demandes paginées, filtrables par statut (hr/admin).
+      tags: [offboarding]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, in_progress, completed]
+      responses:
+        '200':
+          description: Liste paginée de demandes de départ
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/OffboardingRequest'
+        '403':
+          description: Réservé aux hr et admin
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      summary: Créer une demande de départ
+      description: Crée une demande de départ (hr/admin). Unique par utilisateur (index unique sur userId).
+      tags: [offboarding]
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId, reason, lastDay]
+              properties:
+                userId:
+                  type: string
+                  description: ObjectId de l'utilisateur qui part
+                reason:
+                  type: string
+                  enum: [resignation, termination, retirement, other]
+                lastDay:
+                  type: string
+                  format: date
+                notes:
+                  type: string
+                  maxLength: 2000
+      responses:
+        '201':
+          description: Demande créée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OffboardingRequest'
+        '400':
+          description: Champs requis manquants, reason invalide ou userId non ObjectId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Réservé aux hr et admin
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Utilisateur introuvable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Demande déjà existante pour cet utilisateur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /offboarding/{id}:
+    get:
+      summary: Détail d'une demande de départ
+      description: Retourne une demande de départ par son ID (hr/admin).
+      tags: [offboarding]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Demande trouvée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OffboardingRequest'
+        '403':
+          description: Réservé aux hr et admin
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Demande introuvable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    patch:
+      summary: Mettre à jour une demande de départ
+      description: |
+        Modifie le statut ou les notes (hr/admin).
+        status=completed → user.isActive=false, user.offboardingStatus=offboarded.
+      tags: [offboarding]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [pending, in_progress, completed]
+                notes:
+                  type: string
+                  maxLength: 2000
+      responses:
+        '200':
+          description: Demande modifiée (peuplée avec userId et requestedBy)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OffboardingRequest'
+        '400':
+          description: status invalide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Réservé aux hr et admin
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Demande introuvable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      summary: Supprimer une demande de départ
+      description: Supprime une demande de départ (admin uniquement).
+      tags: [offboarding]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '204':
+          description: Demande supprimée
+        '403':
+          description: Réservé à l'administrateur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Demande introuvable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /offboarding/{id}/checklist/{itemIndex}:
+    patch:
+      summary: Cocher un item de la checklist
+      description: |
+        Marque un item de la checklist comme fait (done=true) ou non (hr/admin).
+        Premier item coché → statut passe automatiquement pending→in_progress.
+      tags: [offboarding]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+        - name: itemIndex
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 0
+          description: Index (0-based) de l'item dans la checklist
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                done:
+                  type: boolean
+                  default: true
+      responses:
+        '200':
+          description: Checklist mise à jour (demande peuplée retournée)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OffboardingRequest'
+        '400':
+          description: itemIndex invalide ou hors limites
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Réservé aux hr et admin
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Demande introuvable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # ---------------------------------------------------------------------------
+  # Admin
+  # ---------------------------------------------------------------------------
+
+  /admin/email/test:
+    post:
+      summary: Envoyer un email de test
+      description: Envoie un email de test et retourne la previewUrl Ethereal (dev uniquement) (admin uniquement).
+      tags: [admin]
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [to]
+              properties:
+                to:
+                  type: string
+                  format: email
+      responses:
+        '200':
+          description: Email envoyé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sent:
+                    type: boolean
+                  previewUrl:
+                    type: string
+                    format: uri
+                    nullable: true
+                    description: URL Ethereal (dev uniquement, null en production)
+        '400':
+          description: Adresse email invalide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Erreur d'envoi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # ---------------------------------------------------------------------------
+  # LDAP
+  # ---------------------------------------------------------------------------
+
+  /admin/ldap/test:
+    post:
+      summary: Tester la connexion LDAP
+      description: Teste la connexion LDAP avec la configuration fournie (admin uniquement). bindPassword omis → utilise la valeur sauvegardée.
+      tags: [ldap]
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [config]
+              properties:
+                config:
+                  $ref: '#/components/schemas/LdapConfig'
+      responses:
+        '200':
+          description: Résultat du test de connexion (format défini par ldapService)
+          content:
+            application/json:
+              schema:
+                type: object
+        '500':
+          description: Erreur de connexion LDAP
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /admin/ldap/preview:
+    post:
+      summary: Prévisualiser les utilisateurs LDAP
+      description: Liste jusqu'à 50 utilisateurs depuis l'annuaire LDAP (admin uniquement).
+      tags: [ldap]
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [config]
+              properties:
+                config:
+                  $ref: '#/components/schemas/LdapConfig'
+      responses:
+        '200':
+          description: Liste des utilisateurs LDAP (max 50)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  users:
+                    type: array
+                    items:
+                      type: object
+
+  /admin/ldap/sync:
+    post:
+      summary: Synchroniser les utilisateurs LDAP
+      description: Importe/met à jour les utilisateurs depuis l'annuaire LDAP dans MongoDB (admin uniquement).
+      tags: [ldap]
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [config]
+              properties:
+                config:
+                  $ref: '#/components/schemas/LdapConfig'
+      responses:
+        '200':
+          description: Rapport de synchronisation (format défini par ldapService)
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /admin/ldap/config:
+    get:
+      summary: Récupérer la configuration LDAP
+      description: Retourne la configuration LDAP sauvegardée sans le bindPassword (admin uniquement).
+      tags: [ldap]
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Configuration LDAP (bindPassword absent)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  config:
+                    $ref: '#/components/schemas/LdapConfig'
+
+    put:
+      summary: Sauvegarder la configuration LDAP
+      description: Upsert de la configuration LDAP. bindPassword préservé si absent dans la requête (admin uniquement).
+      tags: [ldap]
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [config]
+              properties:
+                config:
+                  $ref: '#/components/schemas/LdapConfig'
+      responses:
+        '200':
+          description: Configuration sauvegardée (bindPassword absent de la réponse)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  config:
+                    $ref: '#/components/schemas/LdapConfig'
+
+  # ---------------------------------------------------------------------------
+  # Audit
+  # ---------------------------------------------------------------------------
+
+  /admin/audit:
+    get:
+      summary: Piste d'audit
+      description: Liste les entrées d'audit paginées et filtrables (admin et hr).
+      tags: [audit]
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+          description: Nombre d'entrées par page (défaut 20 — diffère des autres endpoints)
+        - name: action
+          in: query
+          schema:
+            type: string
+            enum:
+              - status_change
+              - evaluation_update
+              - campaign_create
+              - campaign_activate
+              - campaign_update
+              - campaign_delete
+              - bulk_action
+              - offboard
+              - offboarding_create
+              - offboarding_update
+              - offboarding_delete
+              - gdpr_anonymize
+              - reassigned
+              - login
+              - login_failed
+          description: Filtre par type d'action (whitelist stricte)
+        - name: targetType
+          in: query
+          schema:
+            type: string
+            enum: [Evaluation, Campaign, User, Form, OffboardingRequest]
+        - name: userId
+          in: query
+          schema:
+            type: string
+          description: Filtre par auteur de l'action (ObjectId — ignoré si invalide)
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: Date de début (ISO 8601 — filtre sur createdAt)
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: Date de fin (ISO 8601 — filtre sur createdAt)
+      responses:
+        '200':
+          description: Liste paginée des entrées d'audit (triée par createdAt DESC)
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/AuditLog'
+        '400':
+          description: action ou targetType invalide (pas dans la whitelist)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Réservé aux admins et RH
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'

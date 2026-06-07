@@ -18,17 +18,17 @@ Ce fichier recense les améliorations envisageables pour enrichir la plateforme.
 
 ---
 
-## Expérience manager / directeur
+## Expérience manager
 
 | Fonctionnalité | Description |
 |---|---|
-| **Tableau de suivi avancé** | Vue kanban des évaluations par statut (pending → in_progress → submitted → validated) |
+| **Tableau de suivi avancé** | Vue kanban des évaluations par statut (assigned → in_progress → submitted → validated) |
 | **Alertes et rappels** | Notifications email/in-app automatiques pour les évaluations en retard |
 | **Calendrier d'entretiens** | Planifier les entretiens avec intégration Google Calendar / Outlook (ICS) |
 | **Notes privées** | Le manager peut prendre des notes privées sur un collaborateur, visibles uniquement par lui |
 | **Délégation d'entretien** | Un manager peut déléguer la conduite d'un entretien à un autre manager avec traçabilité |
-| **Vue consolidée directeur** | Dashboard avec KPIs agrégés : distribution des notes, taux de complétion, alertes d'équipe |
-| **Comparaison d'équipes** | Le directeur peut comparer les métriques agrégées de ses différentes équipes |
+| **Vue consolidée multi-équipes** | Un manager avec visibilité étendue peut suivre plusieurs équipes sans portail dédié |
+| **Comparaison d'équipes** | Un manager principal peut comparer les métriques agrégées de ses différentes équipes |
 
 ---
 

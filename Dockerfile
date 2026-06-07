@@ -14,12 +14,12 @@ FROM node:20-alpine AS client-builder
 WORKDIR /build/client
 
 # Install dependencies first (layer cache)
-COPY client/package*.json ./
-RUN npm ci
+COPY frontend-v2/package*.json ./
+RUN npm install
 
 # Copy source and build
-# --outDir overrides vite.config.js so output lands in a known Docker path
-COPY client/ .
+COPY frontend-v2/ .
+ENV VITE_LDAP_ENABLED=true
 RUN npx vite build --outDir /build/dist --emptyOutDir
 
 
@@ -32,14 +32,18 @@ RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 WORKDIR /app
 
 # Install production dependencies only
-COPY server/package*.json ./
-RUN npm ci --omit=dev
+COPY mongo/server/package*.json ./
+RUN npm pkg delete scripts.prepare && npm ci --omit=dev
 
 # Copy server source
-COPY server/ .
+COPY mongo/server/ .
 
 # Copy compiled client assets into Express's static directory
 COPY --from=client-builder /build/dist ./public
+
+# Dossier d'uploads (documents RH) — créé avec les bons droits pour l'utilisateur
+# non-root. Un volume monté ici hérite de cette propriété → écriture possible.
+RUN mkdir -p /data/uploads && chown -R appuser:appgroup /data
 
 # Run as non-root
 USER appuser

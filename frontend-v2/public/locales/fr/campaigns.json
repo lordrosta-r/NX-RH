@@ -1,0 +1,35 @@
+{
+  "title": "Campagnes",
+  "new": "Nouvelle campagne",
+  "fields": {
+    "name": "Nom de la campagne",
+    "description": "Description",
+    "status": "Statut",
+    "startDate": "Date de début",
+    "endDate": "Date de fin",
+    "deadlineEmployee": "Date limite collaborateur",
+    "deadlineManager": "Date limite manager",
+    "targetDepartments": "Départements ciblés",
+    "extendedVisibility": "Visibilité étendue",
+    "enableN1Context": "Contexte N-1 activé",
+    "form": "Formulaire principal",
+    "objectivesForm": "Formulaire objectifs"
+  },
+  "actions": {
+    "activate": "Activer la campagne",
+    "close": "Clôturer la campagne",
+    "archive": "Archiver",
+    "clone": "Dupliquer",
+    "viewAnalytics": "Voir les analytics",
+    "bulkRemind": "Rappels groupés"
+  },
+  "messages": {
+    "activateConfirm": "Activer cette campagne ? Les évaluations seront notifiées.",
+    "closeConfirm": "Clôturer cette campagne ? Plus aucune soumission ne sera acceptée.",
+    "deleteConfirm": "Supprimer définitivement cette campagne ?"
+  },
+  "empty": {
+    "noCampaigns": "Aucune campagne",
+    "createFirst": "Créez votre première campagne"
+  }
+}

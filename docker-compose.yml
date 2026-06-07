@@ -4,7 +4,7 @@
 # Services:
 #   nginx  — Reverse proxy, SSL termination, load balancer
 #   app    — Express server (scale with: docker compose up --scale app=3)
-#   db     — MySQL 8 with persistent volume
+#   mongo  — MongoDB 7 with persistent volume
 #
 # Usage:
 #   docker compose up -d
@@ -46,8 +46,11 @@ services:
     env_file: .env
     environment:
       NODE_ENV: production
+      COOKIE_SECURE: 'true'
+    volumes:
+      - uploads_data:/data/uploads          # Documents RH téléversés (persistant)
     depends_on:
-      db:
+      mongo:
         condition: service_healthy
     expose:
       - "3000"           # Internal only — Nginx proxies to this
@@ -64,26 +67,23 @@ services:
       driver: "json-file"
       options: { max-size: "10m", max-file: "5" }
 
-  # ── MySQL 8 ───────────────────────────────────────────────────────────────
-  db:
-    image: mysql:8.4
-    container_name: nx_db
+  # ── MongoDB 7 ─────────────────────────────────────────────────────────────
+  mongo:
+    image: mongo:7
+    container_name: nx_mongo
     restart: unless-stopped
-    env_file: .env
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
-      MYSQL_DATABASE:      ${DB_NAME}
-      MYSQL_USER:          ${DB_USER}
-      MYSQL_PASSWORD:      ${DB_PASSWORD}
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:?MONGO_ROOT_USER is required}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:?MONGO_ROOT_PASSWORD is required}
+      MONGO_INITDB_DATABASE: ${MONGO_DB:-nanoxplore_rh}
     volumes:
-      - db_data:/var/lib/mysql
-      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro   # runs once on first start
+      - mongo_data:/data/db
     expose:
-      - "3306"             # Internal only — never expose DB to host in prod
+      - "27017"            # Internal only — never expose DB to host in prod
     networks:
       - backend
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_PASSWORD}"]
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -99,5 +99,6 @@ networks:
 
 # ── Volumes ───────────────────────────────────────────────────────────────
 volumes:
-  db_data:    # MySQL data — survives container restarts
+  mongo_data:  # MongoDB data — survives container restarts
   nginx_logs:
+  uploads_data:  # Documents RH téléversés — persistant

@@ -5,8 +5,11 @@ export const notificationsApi = {
   getNotifications: (params?: PaginationParams & { unreadOnly?: boolean }) =>
     client.get<PaginatedResponse<Notification>>('/api/notifications', { params }),
 
+  // Le backend enveloppe la réponse dans { success, data: {...} }.
   getNotificationCount: () =>
-    client.get<{ total: number; unreadCount: number }>('/api/notifications/count'),
+    client.get<{ data: { total: number; unreadCount: number } }>(
+      '/api/notifications/count',
+    ),
 
   markRead: (id: string) =>
     client.patch(`/api/notifications/${id}/read`),

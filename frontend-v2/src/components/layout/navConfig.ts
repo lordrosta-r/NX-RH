@@ -117,7 +117,7 @@ export function getPerspectiveNav(
     { label: t("nav.resources"), href: "/documents", group: t("nav.pilotage") },
     { label: t("nav.analytics"), href: "/analytics", group: t("nav.pilotage") },
     {
-      label: "Départements",
+      label: t("nav.departments"),
       href: "/admin/departments",
       group: t("nav.administration"),
     },

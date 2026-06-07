@@ -284,13 +284,11 @@ export default function EvaluationsPage() {
 
       <PageGuide
         id="evaluations"
-        title="Les évaluations"
+        title={t("guides.evaluations.title")}
         color="teal"
-        steps={[
-          "Les évaluations sont générées automatiquement à l'activation d'une campagne",
-          "Chaque collaborateur reçoit une notification par email pour compléter son évaluation",
-          "Vous pouvez suivre l'avancement ici et envoyer des rappels groupés",
-        ]}
+        steps={
+          t("guides.evaluations.steps", { returnObjects: true }) as string[]
+        }
       />
 
       <PageHead

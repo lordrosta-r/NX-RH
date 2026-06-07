@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { MessagesSquare } from "lucide-react";
@@ -87,6 +88,7 @@ function EvaluationFormSection({
 }
 
 export default function EvaluationDetailPage() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
 
@@ -162,29 +164,17 @@ export default function EvaluationDetailPage() {
   const interviewHref = `/interview?campaignId=${interviewCampaignId}&evaluateeId=${interviewEvaluateeId}`;
 
   // Guide contextuel selon le mode courant.
-  const guideSteps =
+  const guideKey =
     mode === "fill"
-      ? [
-          "Renseignez chaque compétence et chaque objectif demandé.",
-          "Vos réponses sont enregistrées automatiquement.",
-          "Soumettez l'évaluation une fois complète pour la transmettre au responsable.",
-        ]
+      ? "stepsFill"
       : mode === "review"
-        ? [
-            "Relisez l'auto-évaluation soumise par le collaborateur.",
-            "Ajustez les scores et commentaires, fixez les objectifs N+1.",
-            "Validez la révision : le collaborateur prend ensuite connaissance et signe.",
-          ]
+        ? "stepsReview"
         : mode === "sign"
-          ? [
-              "Prenez connaissance de l'évaluation révisée.",
-              "Signez pour valider, ou contestez pour ouvrir un litige (arbitrage RH).",
-              "L'évalué et le manager signent chacun de leur côté.",
-            ]
-          : [
-              "Cette évaluation est en lecture seule à ce stade.",
-              "Consultez le détail et l'historique des étapes ci-dessous.",
-            ];
+          ? "stepsSign"
+          : "stepsReadonly";
+  const guideSteps = t(`guides.evaluationDetail.${guideKey}`, {
+    returnObjects: true,
+  }) as string[];
 
   return (
     <div className="nx-app">
@@ -215,7 +205,7 @@ export default function EvaluationDetailPage() {
 
       <PageGuide
         id="evaluation-detail"
-        title="Que faire sur cette évaluation ?"
+        title={t("guides.evaluationDetail.title")}
         steps={guideSteps}
         color="blue"
       />

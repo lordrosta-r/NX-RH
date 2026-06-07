@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { AlertTriangle } from "lucide-react";
 import client from "../../api/client";
 import { useAuth } from "../../contexts/AuthContext";
@@ -15,21 +16,13 @@ interface SetupStatus {
   };
 }
 
-const LABELS: Record<keyof SetupStatus["checks"], string> = {
-  hasAdmin: "un compte administrateur actif",
-  adminPasswordChanged:
-    "changer le mot de passe administrateur par défaut (sécurité)",
-  hasManagedUsers: "au moins un collaborateur rattaché à un responsable",
-  hasForm: "au moins un formulaire d'évaluation",
-  smtpConfigured: "la configuration e-mail (SMTP)",
-};
-
 /**
  * Gate « State Zero » : tant que les prérequis minimaux ne sont pas réunis,
  * affiche une bannière d'avertissement aux admins. Lecture seule, non bloquante
  * pour la navigation mais explicite sur ce qui manque avant d'exploiter l'app.
  */
 export default function SetupBanner() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
 
@@ -71,10 +64,11 @@ export default function SetupBanner() {
           aria-hidden="true"
         />
         <div className="small" style={{ color: "var(--ink-2)" }}>
-          <strong>Configuration initiale incomplète.</strong> Il manque encore :{" "}
-          {missing.map((k) => LABELS[k]).join(", ")}.{" "}
+          <strong>{t("setup.incompleteTitle")}</strong>{" "}
+          {t("setup.missingPrefix")}{" "}
+          {missing.map((k) => t(`setup.checks.${k}`)).join(", ")}.{" "}
           <Link to="/admin/setup" className="link">
-            Ouvrir l'assistant de configuration
+            {t("setup.openWizard")}
           </Link>
           .
         </div>

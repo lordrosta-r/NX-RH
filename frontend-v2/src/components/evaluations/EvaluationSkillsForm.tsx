@@ -420,7 +420,23 @@ export function EvaluationSkillsForm({
         </div>
       )}
 
-      <div className="row between">
+      {/* Barre d'action collante : reste atteignable pendant le défilement
+          d'un long formulaire (loi de Fitts). Affiche la progression et
+          l'action principale. La logique de soumission est inchangée. */}
+      <div
+        className="row between"
+        style={{
+          position: "sticky",
+          bottom: 0,
+          gap: 12,
+          flexWrap: "wrap",
+          marginTop: 16,
+          padding: "12px 16px",
+          background: "#fff",
+          borderTop: "1px solid var(--line)",
+          zIndex: 10,
+        }}
+      >
         <button
           disabled={currentQuestionIdx === 0}
           onClick={() => setCurrentQuestionIdx((i) => i - 1)}
@@ -428,6 +444,14 @@ export function EvaluationSkillsForm({
         >
           ← Précédent
         </button>
+        <span
+          className="small"
+          style={{ color: "var(--ink-2)", fontWeight: 600 }}
+          aria-live="polite"
+        >
+          {answeredCount}/{questions.length} répondu
+          {answeredCount > 1 ? "es" : "e"}
+        </span>
         {currentQuestionIdx < filteredQuestions.length - 1 ? (
           <button
             onClick={() => setCurrentQuestionIdx((i) => i + 1)}

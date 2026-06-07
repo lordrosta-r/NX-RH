@@ -50,7 +50,8 @@
     "mailConfig": "Email configuration",
     "systemStatus": "System status",
     "setupWizard": "Setup wizard",
-    "configHub": "Configuration"
+    "configHub": "Configuration",
+    "departments": "Departments"
   },
   "common": {
     "save": "Save",
@@ -182,5 +183,94 @@
     "notFound": "Resource not found",
     "serverError": "Server error, please try again",
     "networkError": "Cannot connect, check your network"
+  },
+  "setup": {
+    "incompleteTitle": "Initial setup incomplete.",
+    "missingPrefix": "Still missing:",
+    "openWizard": "Open the setup wizard",
+    "checks": {
+      "hasAdmin": "an active administrator account",
+      "adminPasswordChanged": "change the default administrator password (security)",
+      "hasManagedUsers": "at least one employee assigned to a manager",
+      "hasForm": "at least one evaluation form",
+      "smtpConfigured": "the email configuration (SMTP)"
+    }
+  },
+  "footer": {
+    "tagline": "NanoXplore HR — Platform for professional reviews and employee development.",
+    "gdprLink": "Personal data (GDPR)",
+    "legalNotice": "Legal notice",
+    "accessibility": "Accessibility",
+    "hrContact": "Contact HR",
+    "legalNav": "Legal links",
+    "gdprCompliance": "GDPR-compliant · Data hosted in the European Union"
+  },
+  "guides": {
+    "campaigns": {
+      "title": "How do I create an evaluation campaign?",
+      "steps": [
+        "First create your evaluation forms in the Forms section",
+        "Create a campaign, set the dates and attach your forms",
+        "Define the target audience (all users, a department, a sector or a group)",
+        "Activate the campaign — evaluations are generated automatically"
+      ]
+    },
+    "evaluations": {
+      "title": "Evaluations",
+      "steps": [
+        "Evaluations are generated automatically when a campaign is activated",
+        "Each employee receives an email notification to complete their evaluation",
+        "You can track progress here and send batch reminders"
+      ]
+    },
+    "managerTodo": {
+      "title": "Handle your team's evaluations",
+      "steps": [
+        "Spot the submitted evaluations (to be reviewed) and the overdue ones, highlighted here.",
+        "Open an evaluation to review, revise or sign it.",
+        "Use “Open the interview” to compare both views and wrap up the face-to-face meeting."
+      ]
+    },
+    "interview": {
+      "title": "How do I conduct the interview?",
+      "steps": [
+        "Compare the two answers (self-assessment and manager's view) question by question.",
+        "Comment and agree on a shared position for each question.",
+        "Review last year's goals (achieved / partial / not achieved).",
+        "Set next year's goals together.",
+        "Write the interview summary.",
+        "Sign as the manager — the reviewee signs from their own record."
+      ]
+    },
+    "forms": {
+      "title": "Evaluation forms",
+      "steps": [
+        "Forms define the questions asked during evaluations",
+        "Create different types: self-assessment, manager evaluation, N+1 evaluation",
+        "Once created, attach the form to a campaign when you set it up"
+      ]
+    },
+    "evaluationDetail": {
+      "title": "What can I do on this evaluation?",
+      "stepsFill": [
+        "Fill in each requested skill and goal.",
+        "Your answers are saved automatically.",
+        "Submit the evaluation once complete to send it to the manager."
+      ],
+      "stepsReview": [
+        "Review the self-assessment submitted by the employee.",
+        "Adjust the scores and comments, and set next year's goals.",
+        "Validate the review: the employee then reads it and signs."
+      ],
+      "stepsSign": [
+        "Read through the revised evaluation.",
+        "Sign to approve, or dispute it to open a case (HR arbitration).",
+        "The reviewee and the manager each sign on their side."
+      ],
+      "stepsReadonly": [
+        "This evaluation is read-only at this stage.",
+        "Review the details and the history of the steps below."
+      ]
+    }
   }
 }

@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import nxLogo from "../../assets/nx-logo.png";
 
 /**
@@ -6,6 +7,7 @@ import nxLogo from "../../assets/nx-logo.png";
  * les pages légales. Scopé `.nx-app` pour hériter du design system.
  */
 export default function Footer() {
+  const { t } = useTranslation();
   const year = new Date().getFullYear();
   return (
     <footer
@@ -36,8 +38,7 @@ export default function Footer() {
               style={{ height: 34, width: "auto", display: "block" }}
             />
             <p className="small" style={{ marginTop: 8 }}>
-              NanoXplore RH — Plateforme d’entretiens professionnels et de
-              développement des collaborateurs.
+              {t("footer.tagline")}
             </p>
           </div>
 
@@ -45,19 +46,19 @@ export default function Footer() {
           <nav
             className="row wrap"
             style={{ gap: "10px 28px" }}
-            aria-label="Liens légaux"
+            aria-label={t("footer.legalNav")}
           >
             <Link to="/confidentialite" className="link small">
-              Données personnelles (RGPD)
+              {t("footer.gdprLink")}
             </Link>
             <Link to="/mentions-legales" className="link small">
-              Mentions légales
+              {t("footer.legalNotice")}
             </Link>
             <Link to="/accessibilite" className="link small">
-              Accessibilité
+              {t("footer.accessibility")}
             </Link>
             <a href="mailto:rh-support@nanoxplore.com" className="link small">
-              Contact RH
+              {t("footer.hrContact")}
             </a>
           </nav>
         </div>
@@ -74,9 +75,7 @@ export default function Footer() {
           <span className="small">
             © {year} NanoXplore — Tous droits réservés.
           </span>
-          <span className="small">
-            Conforme RGPD · Données hébergées en Union européenne
-          </span>
+          <span className="small">{t("footer.gdprCompliance")}</span>
         </div>
       </div>
     </footer>

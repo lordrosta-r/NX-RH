@@ -40,3 +40,12 @@
   --color-text-muted: #6b7280;
   --color-text-disabled: #9ca3af;
 }
+
+/* Gris secondaire texte — durci pour le contraste WCAG AA.
+ * Ancienne valeur #6a6a76 : ~4.9:1 sur fond blanc mais seulement ~4.5:1
+ * sur --bg-alt (#f5f5f9), donc à la limite. #5a5a66 garantit ≥ 6.2:1
+ * sur fond blanc ET sur --bg-alt. Sélecteur `html:root` pour primer sur
+ * la définition de app.css/login.css quel que soit l'ordre de chargement. */
+html:root {
+  --ink-3: #5a5a66;
+}

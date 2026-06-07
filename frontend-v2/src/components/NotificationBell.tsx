@@ -35,7 +35,7 @@ export function NotificationBell() {
 
   const { data: countData } = useQuery({
     queryKey: queryKeys.notifications.count(),
-    queryFn: () => notificationsApi.getNotificationCount().then((r) => r.data),
+    queryFn: () => notificationsApi.getNotificationCount().then((r) => r.data.data),
     refetchInterval: 60_000,
   });
 

@@ -22,6 +22,8 @@ export interface User {
   department?: string;
   position?: string;
   isActive: boolean;
+  blocked?: boolean;
+  blockedReason?: string | null;
   canViewSubtree?: boolean;
   dottedLineManagerIds?: string[];
   impersonatedBy?: string | null;

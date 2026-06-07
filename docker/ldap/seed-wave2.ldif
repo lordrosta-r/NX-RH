@@ -1,0 +1,156 @@
+# Vague 2 — arrivées LDAP : branche profonde (org tentaculaire) + nouvelles
+# recrues + 1 compte de service (pour démontrer qu'il N'est PAS absorbé).
+# Les `manager` pointent vers des entrées déjà présentes (nx007, nx008, nx009).
+
+# ── Branche profonde sous le manager nx007 (Ingenierie) : 6 niveaux ──────────
+dn: uid=nx085,ou=users,dc=nxrh,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: nx085
+cn: Adrien Lemaire
+sn: Lemaire
+givenName: Adrien
+mail: adrien.lemaire.nx085@nxrh.local
+title: Lead Technique
+departmentNumber: Ingenierie
+manager: uid=nx007,ou=users,dc=nxrh,dc=local
+uidNumber: 3085
+gidNumber: 3085
+homeDirectory: /home/nx085
+
+dn: uid=nx086,ou=users,dc=nxrh,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: nx086
+cn: Sonia Rey
+sn: Rey
+givenName: Sonia
+mail: sonia.rey.nx086@nxrh.local
+title: Lead Backend
+departmentNumber: Ingenierie
+manager: uid=nx085,ou=users,dc=nxrh,dc=local
+uidNumber: 3086
+gidNumber: 3086
+homeDirectory: /home/nx086
+
+dn: uid=nx087,ou=users,dc=nxrh,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: nx087
+cn: Karim Benali
+sn: Benali
+givenName: Karim
+mail: karim.benali.nx087@nxrh.local
+title: Lead Data
+departmentNumber: Ingenierie
+manager: uid=nx086,ou=users,dc=nxrh,dc=local
+uidNumber: 3087
+gidNumber: 3087
+homeDirectory: /home/nx087
+
+dn: uid=nx088,ou=users,dc=nxrh,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: nx088
+cn: Laure Mercier
+sn: Mercier
+givenName: Laure
+mail: laure.mercier.nx088@nxrh.local
+title: Ingenieure
+departmentNumber: Ingenierie
+manager: uid=nx087,ou=users,dc=nxrh,dc=local
+uidNumber: 3088
+gidNumber: 3088
+homeDirectory: /home/nx088
+
+dn: uid=nx089,ou=users,dc=nxrh,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: nx089
+cn: Yanis Dubois
+sn: Dubois
+givenName: Yanis
+mail: yanis.dubois.nx089@nxrh.local
+title: Ingenieur
+departmentNumber: Ingenierie
+manager: uid=nx087,ou=users,dc=nxrh,dc=local
+uidNumber: 3089
+gidNumber: 3089
+homeDirectory: /home/nx089
+
+dn: uid=nx090,ou=users,dc=nxrh,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: nx090
+cn: Elodie Fabre
+sn: Fabre
+givenName: Elodie
+mail: elodie.fabre.nx090@nxrh.local
+title: Ingenieure
+departmentNumber: Ingenierie
+manager: uid=nx086,ou=users,dc=nxrh,dc=local
+uidNumber: 3090
+gidNumber: 3090
+homeDirectory: /home/nx090
+
+dn: uid=nx091,ou=users,dc=nxrh,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: nx091
+cn: Hugo Marchand
+sn: Marchand
+givenName: Hugo
+mail: hugo.marchand.nx091@nxrh.local
+title: Developpeur
+departmentNumber: Ingenierie
+manager: uid=nx085,ou=users,dc=nxrh,dc=local
+uidNumber: 3091
+gidNumber: 3091
+homeDirectory: /home/nx091
+
+# ── Nouvelles recrues « simples » sous des managers existants ─────────────────
+dn: uid=nx092,ou=users,dc=nxrh,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: nx092
+cn: Nadia Lopez
+sn: Lopez
+givenName: Nadia
+mail: nadia.lopez.nx092@nxrh.local
+title: Chargee de mission
+departmentNumber: Produit
+manager: uid=nx008,ou=users,dc=nxrh,dc=local
+uidNumber: 3092
+gidNumber: 3092
+homeDirectory: /home/nx092
+
+dn: uid=nx093,ou=users,dc=nxrh,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: nx093
+cn: Tom Girard
+sn: Girard
+givenName: Tom
+mail: tom.girard.nx093@nxrh.local
+title: Commercial
+departmentNumber: Commercial
+manager: uid=nx009,ou=users,dc=nxrh,dc=local
+uidNumber: 3093
+gidNumber: 3093
+homeDirectory: /home/nx093
+
+# ── Compte de SERVICE (doit être IGNORE par le sync) ──────────────────────────
+# inetOrgPerson AVEC un mail : serait absorbé par un filtre naïf. On démontre
+# qu'on l'exclut via un userFilter affiné (uid ne commence pas par svc-).
+dn: uid=svc-backup,ou=users,dc=nxrh,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: svc-backup
+cn: Service Backup
+sn: Backup
+givenName: Service
+mail: svc-backup@nxrh.local
+title: Service Account
+uidNumber: 3999
+gidNumber: 3999
+homeDirectory: /home/svc-backup

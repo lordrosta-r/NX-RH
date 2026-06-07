@@ -1,0 +1,239 @@
+dn: uid=nx110,ou=users,dc=nxrh,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: nx110
+cn: Noah Colin
+sn: Colin
+givenName: Noah
+mail: noah.colin.nx110@nxrh.local
+title: Lead Produit
+departmentNumber: Produit
+manager: uid=nx008,ou=users,dc=nxrh,dc=local
+uidNumber: 4100
+gidNumber: 4100
+homeDirectory: /home/nx110
+
+dn: uid=nx111,ou=users,dc=nxrh,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: nx111
+cn: Lina Brun
+sn: Brun
+givenName: Lina
+mail: lina.brun.nx111@nxrh.local
+title: Product Owner
+departmentNumber: Produit
+manager: uid=nx110,ou=users,dc=nxrh,dc=local
+uidNumber: 4101
+gidNumber: 4101
+homeDirectory: /home/nx111
+
+dn: uid=nx112,ou=users,dc=nxrh,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: nx112
+cn: Eden Renaud
+sn: Renaud
+givenName: Eden
+mail: eden.renaud.nx112@nxrh.local
+title: PM Junior
+departmentNumber: Produit
+manager: uid=nx111,ou=users,dc=nxrh,dc=local
+uidNumber: 4102
+gidNumber: 4102
+homeDirectory: /home/nx112
+
+dn: uid=nx113,ou=users,dc=nxrh,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: nx113
+cn: Milo Marchal
+sn: Marchal
+givenName: Milo
+mail: milo.marchal.nx113@nxrh.local
+title: Stagiaire Produit
+departmentNumber: Produit
+manager: uid=nx112,ou=users,dc=nxrh,dc=local
+uidNumber: 4103
+gidNumber: 4103
+homeDirectory: /home/nx113
+
+dn: uid=nx114,ou=users,dc=nxrh,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: nx114
+cn: Jade Pons
+sn: Pons
+givenName: Jade
+mail: jade.pons.nx114@nxrh.local
+title: Lead Commercial
+departmentNumber: Commercial
+manager: uid=nx010,ou=users,dc=nxrh,dc=local
+uidNumber: 4104
+gidNumber: 4104
+homeDirectory: /home/nx114
+
+dn: uid=nx115,ou=users,dc=nxrh,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: nx115
+cn: Liam Barbier
+sn: Barbier
+givenName: Liam
+mail: liam.barbier.nx115@nxrh.local
+title: Key Account
+departmentNumber: Commercial
+manager: uid=nx114,ou=users,dc=nxrh,dc=local
+uidNumber: 4105
+gidNumber: 4105
+homeDirectory: /home/nx115
+
+dn: uid=nx116,ou=users,dc=nxrh,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: nx116
+cn: Rose Leclercq
+sn: Leclercq
+givenName: Rose
+mail: rose.leclercq.nx116@nxrh.local
+title: Commercial
+departmentNumber: Commercial
+manager: uid=nx115,ou=users,dc=nxrh,dc=local
+uidNumber: 4106
+gidNumber: 4106
+homeDirectory: /home/nx116
+
+dn: uid=nx117,ou=users,dc=nxrh,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: nx117
+cn: Sacha Hardy
+sn: Hardy
+givenName: Sacha
+mail: sacha.hardy.nx117@nxrh.local
+title: SDR
+departmentNumber: Commercial
+manager: uid=nx116,ou=users,dc=nxrh,dc=local
+uidNumber: 4107
+gidNumber: 4107
+homeDirectory: /home/nx117
+
+dn: uid=nx118,ou=users,dc=nxrh,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: nx118
+cn: Nina Breton
+sn: Breton
+givenName: Nina
+mail: nina.breton.nx118@nxrh.local
+title: Lead Finance
+departmentNumber: Finance
+manager: uid=nx012,ou=users,dc=nxrh,dc=local
+uidNumber: 4108
+gidNumber: 4108
+homeDirectory: /home/nx118
+
+dn: uid=nx119,ou=users,dc=nxrh,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: nx119
+cn: Aaron Schmitt
+sn: Schmitt
+givenName: Aaron
+mail: aaron.schmitt.nx119@nxrh.local
+title: Controleur
+departmentNumber: Finance
+manager: uid=nx118,ou=users,dc=nxrh,dc=local
+uidNumber: 4109
+gidNumber: 4109
+homeDirectory: /home/nx119
+
+dn: uid=nx120,ou=users,dc=nxrh,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: nx120
+cn: Iris Carre
+sn: Carre
+givenName: Iris
+mail: iris.carre.nx120@nxrh.local
+title: Comptable
+departmentNumber: Finance
+manager: uid=nx119,ou=users,dc=nxrh,dc=local
+uidNumber: 4110
+gidNumber: 4110
+homeDirectory: /home/nx120
+
+dn: uid=nx121,ou=users,dc=nxrh,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: nx121
+cn: Ethan Roy
+sn: Roy
+givenName: Ethan
+mail: ethan.roy.nx121@nxrh.local
+title: Assistant
+departmentNumber: Finance
+manager: uid=nx120,ou=users,dc=nxrh,dc=local
+uidNumber: 4111
+gidNumber: 4111
+homeDirectory: /home/nx121
+
+dn: uid=nx122,ou=users,dc=nxrh,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: nx122
+cn: Lou Gros
+sn: Gros
+givenName: Lou
+mail: lou.gros.nx122@nxrh.local
+title: Lead QA
+departmentNumber: Ingenierie
+manager: uid=nx014,ou=users,dc=nxrh,dc=local
+uidNumber: 4112
+gidNumber: 4112
+homeDirectory: /home/nx122
+
+dn: uid=nx123,ou=users,dc=nxrh,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: nx123
+cn: Marius Masson
+sn: Masson
+givenName: Marius
+mail: marius.masson.nx123@nxrh.local
+title: QA Senior
+departmentNumber: Ingenierie
+manager: uid=nx122,ou=users,dc=nxrh,dc=local
+uidNumber: 4113
+gidNumber: 4113
+homeDirectory: /home/nx123
+
+dn: uid=nx124,ou=users,dc=nxrh,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: nx124
+cn: Anna Charles
+sn: Charles
+givenName: Anna
+mail: anna.charles.nx124@nxrh.local
+title: QA
+departmentNumber: Ingenierie
+manager: uid=nx123,ou=users,dc=nxrh,dc=local
+uidNumber: 4114
+gidNumber: 4114
+homeDirectory: /home/nx124
+
+dn: uid=nx125,ou=users,dc=nxrh,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: nx125
+cn: Tiago Renard
+sn: Renard
+givenName: Tiago
+mail: tiago.renard.nx125@nxrh.local
+title: Testeur Junior
+departmentNumber: Ingenierie
+manager: uid=nx124,ou=users,dc=nxrh,dc=local
+uidNumber: 4115
+gidNumber: 4115
+homeDirectory: /home/nx125

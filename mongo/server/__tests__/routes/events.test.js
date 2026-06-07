@@ -4,7 +4,7 @@
 // routes/events.js — integration tests (no real DB)
 //
 // ADMIN_ROLES = ['admin', 'hr']  (from config/constants.js)
-// • POST / PATCH / DELETE: ADMIN_ROLES check → director/manager/employee get 403
+// • POST / PATCH / DELETE: ADMIN_ROLES check → manager/employee get 403
 // • GET /: admin+hr see ALL events; everyone else gets $or filter on targetRoles
 // • GET /:id: admin+hr bypass targetRoles; others need role in targetRoles or []
 // =============================================================================
@@ -74,7 +74,7 @@ const eventsRouter     = require('../../routes/events')
 
 const ADMIN_ID    = '507f1f77bcf86cd799439001'
 const HR_ID       = '507f1f77bcf86cd799439002'
-const DIRECTOR_ID = '507f1f77bcf86cd799439003'
+const INVALID_ROLE_ID = '507f1f77bcf86cd799439003'
 const MANAGER_ID  = '507f1f77bcf86cd799439004'
 const EMPLOYEE_ID = '507f1f77bcf86cd799439005'
 const EVENT_ID    = '507f1f77bcf86cd799439010'
@@ -117,7 +117,7 @@ function buildApp() {
   app.use(cookieParser())
   app.use(
     '/api/events',
-    authGuard(['admin', 'hr', 'director', 'manager', 'employee']),
+    authGuard(['admin', 'hr', 'manager', 'employee']),
     eventsRouter,
   )
   // eslint-disable-next-line no-unused-vars
@@ -218,26 +218,12 @@ describe('GET /api/events', () => {
     })
   })
 
-  it('director GET / has $or filter targeting their role', async () => {
-    Event.find = jest.fn(() => ({
-      sort:  jest.fn().mockReturnThis(),
-      skip:  jest.fn().mockReturnThis(),
-      limit: jest.fn().mockReturnThis(),
-      lean:  jest.fn().mockResolvedValue([]),
-    }))
-    Event.countDocuments = jest.fn().mockResolvedValue(0)
-
+  it('returns 403 for unknown role (not in authGuard list)', async () => {
     const res = await request(app)
       .get('/api/events')
-      .set('Cookie', `accessToken=${tokenFor({ id: DIRECTOR_ID, role: 'director' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: INVALID_ROLE_ID, role: 'invalid_role' })}`)
 
-    expect(res.status).toBe(200)
-    expect(Event.find).toHaveBeenCalledWith({
-      $or: [
-        { targetRoles: { $size: 0 } },
-        { targetRoles: 'director' },
-      ],
-    })
+    expect(res.status).toBe(403)
   })
 
   it('returns pagination metadata in response body', async () => {
@@ -293,13 +279,10 @@ describe('GET /api/events/:id', () => {
     expect(res.body.error).toMatch(/refus/i)
   })
 
-  it('returns 403 when director role is not in targetRoles', async () => {
-    Event.findById = jest.fn().mockReturnValue(
-      makeThenable({ _id: EVENT_ID, title: 'HR Only', targetRoles: ['hr'] }),
-    )
+  it('returns 403 for unknown role (not in authGuard list)', async () => {
     const res = await request(app)
       .get(`/api/events/${EVENT_ID}`)
-      .set('Cookie', `accessToken=${tokenFor({ id: DIRECTOR_ID, role: 'director' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: INVALID_ROLE_ID, role: 'invalid_role' })}`)
     expect(res.status).toBe(403)
   })
 
@@ -368,10 +351,10 @@ describe('POST /api/events', () => {
     expect(res.status).toBe(403)
   })
 
-  it('returns 403 for a director', async () => {
+  it('returns 403 for unknown role', async () => {
     const res = await request(app)
       .post('/api/events')
-      .set('Cookie', `accessToken=${tokenFor({ id: DIRECTOR_ID, role: 'director' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: INVALID_ROLE_ID, role: 'invalid_role' })}`)
       .send({ title: 'New Event', date: '2025-06-01' })
     expect(res.status).toBe(403)
   })
@@ -464,10 +447,10 @@ describe('PATCH /api/events/:id', () => {
     expect(res.status).toBe(403)
   })
 
-  it('returns 403 for a director', async () => {
+  it('returns 403 for unknown role', async () => {
     const res = await request(app)
       .patch(`/api/events/${EVENT_ID}`)
-      .set('Cookie', `accessToken=${tokenFor({ id: DIRECTOR_ID, role: 'director' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: INVALID_ROLE_ID, role: 'invalid_role' })}`)
       .send({ title: 'New Title' })
     expect(res.status).toBe(403)
   })
@@ -512,10 +495,10 @@ describe('PATCH /api/events/:id', () => {
     const res = await request(app)
       .patch(`/api/events/${EVENT_ID}`)
       .set('Cookie', `accessToken=${tokenFor({ id: HR_ID, role: 'hr' })}`)
-      .send({ targetRoles: ['manager', 'director'] })
+      .send({ targetRoles: ['manager'] })
 
     expect(res.status).toBe(200)
-    expect(doc.targetRoles).toEqual(['manager', 'director'])
+    expect(doc.targetRoles).toEqual(['manager'])
     expect(doc.save).toHaveBeenCalled()
   })
 
@@ -554,10 +537,10 @@ describe('DELETE /api/events/:id', () => {
     expect(res.status).toBe(403)
   })
 
-  it('returns 403 for a director', async () => {
+  it('returns 403 for unknown role', async () => {
     const res = await request(app)
       .delete(`/api/events/${EVENT_ID}`)
-      .set('Cookie', `accessToken=${tokenFor({ id: DIRECTOR_ID, role: 'director' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: INVALID_ROLE_ID, role: 'invalid_role' })}`)
     expect(res.status).toBe(403)
   })
 

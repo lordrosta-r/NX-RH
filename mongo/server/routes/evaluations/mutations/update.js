@@ -65,7 +65,7 @@ async function handleUpdate(req, res, next) {
       evaluation.lastSavedAt = new Date()
     }
 
-    // ── Score reviewer (manager/director/admin/hr) ────────────────────────────
+    // ── Score reviewer (manager/admin/hr) ────────────────────────────────────
     if (req.body.reviewerScore !== undefined) {
       if (!['manager', 'admin', 'hr'].includes(role)) {
         return res.status(403).json({ error: 'Seuls les managers et admins peuvent ajouter un score' })

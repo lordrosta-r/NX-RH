@@ -74,7 +74,7 @@ function tokenFor({ id, role }) {
   })
 }
 
-const ALL_ROLES = ['admin', 'director', 'hr', 'manager', 'employee']
+const ALL_ROLES = ['admin', 'hr', 'manager', 'employee']
 
 function buildApp() {
   const app = express()

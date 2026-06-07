@@ -12,7 +12,7 @@
 // DELETE /api/org/sectors/:id                 → supprimer un secteur
 //
 // Rôles autorisés : admin, hr (toutes routes sauf GET /tree)
-//                   manager, director (GET /tree — vue scopée)
+//                   manager (GET /tree — vue scopée)
 // =============================================================================
 
 const router   = require('express').Router()

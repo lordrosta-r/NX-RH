@@ -34,7 +34,6 @@ const testEventsRes      = require('./test-events-resources')
 const testSecurity       = require('./test-security')
 const testValidations    = require('./test-validations')
 const testCampaignStats  = require('./test-campaign-stats')
-const testDirector       = require('./test-director')
 const testDeactivation   = require('./test-deactivation')
 const testPagination     = require('./test-pagination')
 const testAnswerLock     = require('./test-answer-lock')
@@ -115,7 +114,6 @@ async function main() {
     { name: '🔴 Sécurité (injections, JWT)',         mod: testSecurity      },
     { name: '✅ Validations métier',                 mod: testValidations   },
     { name: '📈 Statistiques campagnes',             mod: testCampaignStats },
-    { name: '👔 Flux directeur & bypass RH',         mod: testDirector      },
     { name: '🚫 Désactivation utilisateur',          mod: testDeactivation  },
     { name: '📑 Pagination',                         mod: testPagination    },
     { name: '🔐 Verrouillage des réponses',          mod: testAnswerLock    },

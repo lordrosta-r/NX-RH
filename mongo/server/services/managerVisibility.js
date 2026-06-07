@@ -18,7 +18,7 @@ const MAX_DEPTH = 20
 
 /**
  * Retourne la liste des sous-managers directs d'un manager
- * (utilisateurs ayant le rôle 'manager' ou 'director' avec managerId donné).
+ * (utilisateurs ayant le rôle 'manager' avec managerId donné).
  *
  * @param {ObjectId|string} managerId
  * @returns {Promise<ObjectId[]>}

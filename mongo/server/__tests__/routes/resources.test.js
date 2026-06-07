@@ -90,7 +90,7 @@ const ADMIN_ID    = '507f1f77bcf86cd799439001'
 const HR_ID       = '507f1f77bcf86cd799439002'
 const MANAGER_ID  = '507f1f77bcf86cd799439003'
 const EMPLOYEE_ID = '507f1f77bcf86cd799439004'
-const DIRECTOR_ID = '507f1f77bcf86cd799439005'
+const INVALID_ROLE_ID = '507f1f77bcf86cd799439005'
 const RESOURCE_ID = '507f1f77bcf86cd799439011'
 
 function tokenFor({ id, role }) {
@@ -107,7 +107,7 @@ function buildApp() {
   // internally by ADMIN_ROLES check (admin + hr).
   app.use(
     '/api/resources',
-    authGuard(['admin', 'hr', 'director', 'manager', 'employee']),
+    authGuard(['admin', 'hr', 'manager', 'employee']),
     resourcesRouter,
   )
   // Minimal error handler to avoid leaking HTML on unexpected errors
@@ -201,17 +201,12 @@ describe('GET /api/resources', () => {
     expect(filter.visibleTo).toBe('manager')
   })
 
-  it('director sees only published resources where visibleTo includes "director"', async () => {
-    Resource.find = jest.fn(() => makeChain([]))
-    Resource.countDocuments = jest.fn().mockResolvedValue(0)
-
-    await supertest(app)
+  it('returns 403 for unknown role (not in authGuard list)', async () => {
+    const res = await supertest(app)
       .get('/api/resources')
-      .set('Cookie', `accessToken=${tokenFor({ id: DIRECTOR_ID, role: 'director' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: INVALID_ROLE_ID, role: 'invalid_role' })}`)
 
-    const [filter] = Resource.find.mock.calls[0]
-    expect(filter.status).toBe('published')
-    expect(filter.visibleTo).toBe('director')
+    expect(res.status).toBe(403)
   })
 
   it('returns correct pagination metadata when ?page=2&limit=10', async () => {
@@ -269,7 +264,7 @@ describe('GET /api/resources/:id', () => {
 
   it('403 — employee role not in visibleTo of a published resource', async () => {
     Resource.findById = jest.fn(() => makeChain({
-      _id: RESOURCE_ID, status: 'published', visibleTo: ['manager', 'director'],
+      _id: RESOURCE_ID, status: 'published', visibleTo: ['manager'],
     }))
 
     const res = await supertest(app)
@@ -354,10 +349,10 @@ describe('POST /api/resources', () => {
     expect(res.status).toBe(403)
   })
 
-  it('403 for director (not in ADMIN_ROLES)', async () => {
+  it('403 for unknown role (not in authGuard list)', async () => {
     const res = await supertest(app)
       .post('/api/resources')
-      .set('Cookie', `accessToken=${tokenFor({ id: DIRECTOR_ID, role: 'director' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: INVALID_ROLE_ID, role: 'invalid_role' })}`)
       .send({ title: 'Doc', type: 'pdf', filename: 'doc.pdf' })
 
     expect(res.status).toBe(403)
@@ -551,10 +546,10 @@ describe('PATCH /api/resources/:id', () => {
     const res = await supertest(app)
       .patch(`/api/resources/${RESOURCE_ID}`)
       .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
-      .send({ visibleTo: ['employee', 'manager', 'director'] })
+      .send({ visibleTo: ['employee', 'manager'] })
 
     expect(res.status).toBe(200)
-    expect(doc.visibleTo).toEqual(['employee', 'manager', 'director'])
+    expect(doc.visibleTo).toEqual(['employee', 'manager'])
   })
 })
 

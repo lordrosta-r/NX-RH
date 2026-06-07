@@ -23,7 +23,7 @@ function createTestApp() {
   const app = express()
   app.use(express.json())
   app.use(cookieParser())
-  app.use('/api/evaluations', authGuard(['admin', 'director', 'manager', 'employee', 'hr']), evaluationRoutes)
+  app.use('/api/evaluations', authGuard(['admin', 'manager', 'employee', 'hr']), evaluationRoutes)
   app.use(errorHandler)
   return app
 }

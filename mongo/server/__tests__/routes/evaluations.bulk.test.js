@@ -32,10 +32,7 @@ jest.mock('../../models', () => {
       submitted:        ['reviewed'],
       signed_evaluatee: ['signed_manager'],
     },
-    director: {
-      submitted:        ['reviewed'],
-      signed_evaluatee: ['signed_manager'],
-    },
+
     hr: {
       reviewed:         ['signed_hr'],
       signed_evaluatee: ['signed_hr'],
@@ -124,7 +121,7 @@ const ADMIN_ID    = '507f1f77bcf86cd799439001'
 const HR_ID       = '507f1f77bcf86cd799439002'
 const MANAGER_ID  = '507f1f77bcf86cd799439003'
 const EMPLOYEE_ID = '507f1f77bcf86cd799439004'
-const DIRECTOR_ID = '507f1f77bcf86cd799439005'
+const INVALID_ROLE_ID = '507f1f77bcf86cd799439005'
 const EVAL_ID     = '507f1f77bcf86cd799439011'
 const EVAL_ID_2   = '507f1f77bcf86cd799439012'
 const CAMPAIGN_ID = '507f1f77bcf86cd799439020'
@@ -139,7 +136,7 @@ function tokenFor({ id, role }) {
   })
 }
 
-const ALL_ROLES = ['admin', 'director', 'hr', 'manager', 'employee']
+const ALL_ROLES = ['admin', 'hr', 'manager', 'employee']
 
 function buildApp() {
   const app = express()
@@ -236,10 +233,10 @@ describe('POST /bulk — authentication & authorization', () => {
     expect(res.status).toBe(403)
   })
 
-  it('returns 403 for director role', async () => {
+  it('returns 403 for unknown role', async () => {
     const res = await request(app)
       .post('/bulk')
-      .set('Cookie', `accessToken=${tokenFor({ id: DIRECTOR_ID, role: 'director' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: INVALID_ROLE_ID, role: 'invalid_role' })}`)
       .send({ evaluations: [validEval()] })
     expect(res.status).toBe(403)
   })
@@ -582,10 +579,10 @@ describe('PATCH /bulk — authentication & authorization', () => {
     expect(res.status).toBe(403)
   })
 
-  it('returns 403 for director role', async () => {
+  it('returns 403 for unknown role', async () => {
     const res = await request(app)
       .patch('/bulk')
-      .set('Cookie', `accessToken=${tokenFor({ id: DIRECTOR_ID, role: 'director' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: INVALID_ROLE_ID, role: 'invalid_role' })}`)
       .send({ ids: [EVAL_ID], action: 'archive' })
     expect(res.status).toBe(403)
   })

@@ -10,7 +10,7 @@ const { Evaluation, Form, Campaign } = require('../models')
 const DAY_MS = 24 * 60 * 60 * 1000
 
 // Formulaires remplis par l'évalué lui-même → soumis à campaign.deadlineEmployee.
-// Les autres (manager_evaluation, director_evaluation, peer_review) → deadlineManager.
+// Les autres (manager_evaluation, peer_review) → deadlineManager.
 const EVALUATEE_FORM_TYPES = ['self_evaluation', 'upward_feedback', 'objectives']
 
 /**

@@ -37,10 +37,6 @@ jest.mock('../../models', () => {
       submitted:        ['reviewed'],
       signed_evaluatee: ['signed_manager'],
     },
-    director: {
-      submitted:        ['reviewed'],
-      signed_evaluatee: ['signed_manager'],
-    },
     hr: {
       reviewed:         ['signed_hr'],
       signed_evaluatee: ['signed_hr'],
@@ -144,7 +140,7 @@ function buildApp() {
   const app = express()
   app.use(express.json())
   app.use(cookieParser())
-  app.use('/api/evaluations', authGuard(['admin', 'director', 'hr', 'manager', 'employee']), evalRouter)
+  app.use('/api/evaluations', authGuard(['admin', 'hr', 'manager', 'employee']), evalRouter)
   // Global error handler (mirrors index.js, including Bug 3 fix)
    
   app.use((err, _req, res, _next) => {

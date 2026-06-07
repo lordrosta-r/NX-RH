@@ -51,7 +51,7 @@ router.get('/', async (req, res, next) => {
         const evals = await Evaluation.find({ evaluateeId: uid }, 'campaignId').lean()
         filter._id = { $in: evals.map(e => e.campaignId) }
       } else {
-        // manager, director
+        // manager
         const evals = await Evaluation.find({ evaluatorId: uid }, 'campaignId').lean()
         filter.$or = [
           { createdBy: uid },

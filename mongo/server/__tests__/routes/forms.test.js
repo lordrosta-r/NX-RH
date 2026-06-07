@@ -87,7 +87,7 @@ process.env.NODE_ENV   = 'test'
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 const ADMIN_ID      = '507f1f77bcf86cd799439001'
 const HR_ID         = '507f1f77bcf86cd799439002'
-const DIRECTOR_ID   = '507f1f77bcf86cd799439003'
+const INVALID_ROLE_ID   = '507f1f77bcf86cd799439003'
 const MANAGER_ID    = '507f1f77bcf86cd799439004'
 const EMPLOYEE_ID   = '507f1f77bcf86cd799439005'
 const FORM_ID       = '507f1f77bcf86cd799439010'
@@ -105,7 +105,7 @@ function buildApp() {
   app.use(cookieParser())
   app.use(
     '/api/forms',
-    authGuard(['admin', 'hr', 'director', 'manager', 'employee']),
+    authGuard(['admin', 'hr', 'manager', 'employee']),
     formRouter,
   )
    
@@ -299,10 +299,10 @@ describe('POST /api/forms', () => {
     expect(res.status).toBe(403)
   })
 
-  it('returns 403 for director', async () => {
+  it('returns 403 for unknown role', async () => {
     const res = await request(app)
       .post('/api/forms')
-      .set('Cookie', `accessToken=${tokenFor({ id: DIRECTOR_ID, role: 'director' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: INVALID_ROLE_ID, role: 'invalid_role' })}`)
       .send({ title: 'Form', formType: 'self_assessment' })
     expect(res.status).toBe(403)
   })
@@ -416,7 +416,7 @@ describe('POST /api/forms', () => {
     const res = await request(app)
       .post('/api/forms')
       .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
-      .send({ title: 'F', formType: 'self_assessment', filledBy: 'director' })
+      .send({ title: 'F', formType: 'self_assessment', filledBy: 'invalid_role' })
     expect(res.status).toBe(400)
     expect(res.body.error).toMatch(/filledBy/i)
   })
@@ -450,10 +450,10 @@ describe('PATCH /api/forms/:id', () => {
     expect(res.status).toBe(403)
   })
 
-  it('returns 403 for director', async () => {
+  it('returns 403 for unknown role', async () => {
     const res = await request(app)
       .patch(`/api/forms/${FORM_ID}`)
-      .set('Cookie', `accessToken=${tokenFor({ id: DIRECTOR_ID, role: 'director' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: INVALID_ROLE_ID, role: 'invalid_role' })}`)
       .send({ title: 'Hacked' })
     expect(res.status).toBe(403)
   })
@@ -561,10 +561,10 @@ describe('DELETE /api/forms/:id', () => {
     expect(res.status).toBe(403)
   })
 
-  it('returns 403 for director', async () => {
+  it('returns 403 for unknown role', async () => {
     const res = await request(app)
       .delete(`/api/forms/${FORM_ID}`)
-      .set('Cookie', `accessToken=${tokenFor({ id: DIRECTOR_ID, role: 'director' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: INVALID_ROLE_ID, role: 'invalid_role' })}`)
     expect(res.status).toBe(403)
   })
 

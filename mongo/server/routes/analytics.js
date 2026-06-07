@@ -3,9 +3,9 @@
 // =============================================================================
 // /api/analytics — Exports analytiques RH
 //
-// GET  /api/analytics/summary            → stats globales (admin, hr, director)
-// GET  /api/analytics/monthly-trend      → évolution mensuelle 6 mois (admin, hr, director)
-// GET  /api/analytics/campaigns/:id      → stats par campagne (admin, hr, director, manager)
+// GET  /api/analytics/summary            → stats globales (admin, hr)
+// GET  /api/analytics/monthly-trend      → évolution mensuelle 6 mois (admin, hr)
+// GET  /api/analytics/campaigns/:id      → stats par campagne (admin, hr, manager)
 // GET  /api/analytics/export/csv         → export CSV (admin, hr)
 // GET  /api/analytics/export/pdf         → rapport PDF (admin, hr)
 // =============================================================================
@@ -22,7 +22,7 @@ const CAMPAIGN_ROLES = ['admin', 'hr', 'manager']
 
 // ── GET /api/analytics/summary ────────────────────────────────────────────────
 // Statistiques globales toutes campagnes confondues.
-// Auth : admin, hr, director
+// Auth : admin, hr
 router.get('/summary', cacheResponse(600), async (req, res, next) => {
   try {
     if (!SUMMARY_ROLES.includes(req.user.role)) {
@@ -73,7 +73,7 @@ router.get('/summary', cacheResponse(600), async (req, res, next) => {
 
 // ── GET /api/analytics/campaigns/:id ─────────────────────────────────────────
 // Statistiques pour une campagne donnée.
-// Auth : admin, hr, director, manager
+// Auth : admin, hr, manager
 router.get('/campaigns/:id', cacheResponse(600), async (req, res, next) => {
   try {
     if (!CAMPAIGN_ROLES.includes(req.user.role)) {
@@ -348,7 +348,7 @@ router.get('/export/pdf', async (req, res, next) => {
 
 // ── GET /api/analytics/monthly-trend ─────────────────────────────────────────
 // Évolution mensuelle des évaluations sur les 6 derniers mois.
-// Auth : admin, hr, director
+// Auth : admin, hr
 const MONTH_LABELS = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc']
 
 router.get('/monthly-trend', cacheResponse(300), async (req, res, next) => {

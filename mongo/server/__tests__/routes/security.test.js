@@ -152,8 +152,8 @@ function buildUsersApp() {
   app.use(express.json())
   app.use(cookieParser())
   app.use(mongoSanitize())
-  // En production : authGuard(['admin', 'director', 'hr', 'manager', 'employee'])
-  app.use('/api/users', authGuard(['admin', 'director', 'hr', 'manager', 'employee']), userRouter)
+  // En production : authGuard(['admin', 'hr', 'manager', 'employee'])
+  app.use('/api/users', authGuard(['admin', 'hr', 'manager', 'employee']), userRouter)
   return app
 }
 
@@ -162,7 +162,7 @@ function buildCampaignsApp() {
   app.use(express.json())
   app.use(cookieParser())
   app.use(mongoSanitize())
-  app.use('/api/campaigns', authGuard(['admin', 'director', 'hr', 'manager', 'employee']), campaignRouter)
+  app.use('/api/campaigns', authGuard(['admin', 'hr', 'manager', 'employee']), campaignRouter)
   return app
 }
 
@@ -171,7 +171,7 @@ function buildAnalyticsApp() {
   app.use(express.json())
   app.use(cookieParser())
   app.use(mongoSanitize())
-  app.use('/api/analytics', authGuard(['admin', 'director', 'hr', 'manager', 'employee']), analyticsRouter)
+  app.use('/api/analytics', authGuard(['admin', 'hr', 'manager', 'employee']), analyticsRouter)
   return app
 }
 
@@ -180,7 +180,7 @@ function buildEvalApp() {
   app.use(express.json())
   app.use(cookieParser())
   app.use(mongoSanitize())
-  app.use('/api/evaluations', authGuard(['admin', 'director', 'hr', 'manager', 'employee']), evalRouter)
+  app.use('/api/evaluations', authGuard(['admin', 'hr', 'manager', 'employee']), evalRouter)
   return app
 }
 

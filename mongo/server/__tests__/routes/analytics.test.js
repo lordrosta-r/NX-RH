@@ -4,7 +4,7 @@
 // GET /api/analytics/export/pdf — integration tests (no real DB / no real PDF)
 //
 // ADMIN_ROLES = ['admin', 'hr']  (from config/constants.js)
-// • director / manager / employee pass authGuard but get 403 from the route itself
+// • manager / employee pass authGuard but get 403 from the route itself
 // • PDFKit is replaced by a PassThrough so Express can finish the HTTP response
 // =============================================================================
 
@@ -78,7 +78,7 @@ const analyticsRouter  = require('../../routes/analytics')
 
 const ADMIN_ID    = '507f1f77bcf86cd799439001'
 const HR_ID       = '507f1f77bcf86cd799439002'
-const DIRECTOR_ID = '507f1f77bcf86cd799439003'
+const INVALID_ROLE_ID = '507f1f77bcf86cd799439003'
 const MANAGER_ID  = '507f1f77bcf86cd799439004'
 const EMPLOYEE_ID = '507f1f77bcf86cd799439005'
 const CAMPAIGN_ID = '507f1f77bcf86cd799439020'
@@ -107,7 +107,7 @@ function buildApp() {
   // Mirror index.js: authGuard admits all authenticated roles; route does its own ADMIN_ROLES check
   app.use(
     '/api/analytics',
-    authGuard(['admin', 'hr', 'director', 'manager', 'employee']),
+    authGuard(['admin', 'hr', 'manager', 'employee']),
     analyticsRouter,
   )
   // eslint-disable-next-line no-unused-vars
@@ -138,13 +138,11 @@ describe('GET /api/analytics/export/pdf', () => {
     expect(res.status).toBe(401)
   })
 
-  it('returns 403 for a director (not in ADMIN_ROLES)', async () => {
-    Evaluation.find = jest.fn(() => makeEvalChain([]))
+  it('returns 403 for unknown role (not in authGuard list)', async () => {
     const res = await request(app)
       .get('/api/analytics/export/pdf')
-      .set('Cookie', `accessToken=${tokenFor({ id: DIRECTOR_ID, role: 'director' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: INVALID_ROLE_ID, role: 'invalid_role' })}`)
     expect(res.status).toBe(403)
-    expect(res.body.error).toMatch(/admin|RH/i)
   })
 
   it('returns 403 for a manager (not in ADMIN_ROLES)', async () => {

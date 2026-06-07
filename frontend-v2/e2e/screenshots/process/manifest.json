@@ -1,0 +1,158 @@
+[
+  {
+    "id": "01",
+    "file": "01-login.png",
+    "title": "Connexion administrateur",
+    "desc": "Page de connexion sécurisée (HTTPS, cookies httpOnly). L’administrateur initial a été créé au déploiement ; tout le reste se configure depuis l’interface."
+  },
+  {
+    "id": "02",
+    "file": "02-dashboard.png",
+    "title": "Tableau de bord",
+    "desc": "Après connexion, l’administrateur arrive sur son tableau de bord : point d’entrée vers les campagnes, utilisateurs, formulaires et l’administration."
+  },
+  {
+    "id": "03",
+    "file": "03-departments-empty.png",
+    "title": "Gestion des départements",
+    "desc": "Première étape de paramétrage : définir les départements de l’entreprise. Ils servent ensuite à cibler les campagnes et à organiser les utilisateurs."
+  },
+  {
+    "id": "04",
+    "file": "04-departments-create.png",
+    "title": "Création d’un département",
+    "desc": "On saisit un nom et on valide. Les départements créés ici alimentent les listes déroulantes des fiches utilisateurs et le ciblage des campagnes."
+  },
+  {
+    "id": "05",
+    "file": "05-user-new-manager.png",
+    "title": "Création d’un manager",
+    "desc": "On crée d’abord un responsable. Le formulaire impose nom, prénom, email et rôle ; le département reprend la liste créée précédemment."
+  },
+  {
+    "id": "06",
+    "file": "06-user-created-password.png",
+    "title": "Mot de passe généré",
+    "desc": "À la création, l’application génère un mot de passe temporaire affiché une seule fois (copiable). L’utilisateur devra le changer à sa première connexion."
+  },
+  {
+    "id": "07",
+    "file": "07-user-new-employee.png",
+    "title": "Création d’un collaborateur rattaché",
+    "desc": "On crée ensuite un collaborateur et on le rattache à son responsable direct (champ « Responsable direct »). Cette hiérarchie pilote la visibilité manager et les entretiens."
+  },
+  {
+    "id": "08",
+    "file": "08-users-list.png",
+    "title": "Annuaire des utilisateurs",
+    "desc": "Une fois les comptes créés, ils apparaissent dans l’annuaire, filtrable par rôle et département. C’est la base humaine sur laquelle s’appuient les campagnes."
+  },
+  {
+    "id": "09",
+    "file": "09-orgchart.png",
+    "title": "Organigramme",
+    "desc": "La hiérarchie saisie sur les fiches se matérialise en organigramme : chaque manager voit son équipe. C’est aussi la source de vérité pour l’étape entretien."
+  },
+  {
+    "id": "10",
+    "file": "10-forms.png",
+    "title": "Bibliothèque de formulaires",
+    "desc": "Les formulaires définissent les questions d’évaluation (auto-évaluation, manager, objectifs…). Ils sont réutilisables et liés à une campagne."
+  },
+  {
+    "id": "11",
+    "file": "11-form-new.png",
+    "title": "Création d’un formulaire",
+    "desc": "Le créateur de formulaire permet d’ajouter des catégories et des questions, de choisir qui le remplit, et d’activer le rappel de « l’édition précédente » par question."
+  },
+  {
+    "id": "12",
+    "file": "12-campaigns.png",
+    "title": "Campagnes d’évaluation",
+    "desc": "Une campagne est un cycle RH (annuel le plus souvent). Elle regroupe un périmètre de population, des formulaires et des échéances."
+  },
+  {
+    "id": "13",
+    "file": "13-campaign-new.png",
+    "title": "Nouvelle campagne — périmètre",
+    "desc": "À la création, on définit les dates, les formulaires et le périmètre ciblé (toute l’entreprise, un rôle, un département, un secteur, un groupe ou des utilisateurs précis)."
+  },
+  {
+    "id": "14",
+    "file": "14-evaluations.png",
+    "title": "Évaluations",
+    "desc": "Centre des évaluations. Dès qu’une campagne est lancée, les évaluations sont générées automatiquement pour la population ciblée : chaque collaborateur remplit la sienne, puis le manager la complète. (Vue affichée ici avant tout lancement de campagne.)"
+  },
+  {
+    "id": "15",
+    "file": "15-manager-todo.png",
+    "title": "Espace manager — à traiter",
+    "desc": "Espace manager « à traiter » : une carte par collaborateur regroupe ce qu’il doit faire (valider l’évaluation, lancer l’entretien). Il se peuple dès qu’une campagne assigne des évaluations à son équipe."
+  },
+  {
+    "id": "16",
+    "file": "16-interview.png",
+    "title": "Entretien individuel",
+    "desc": "Entretien réel mené de bout en bout. Pour chaque question, la réponse d’auto-évaluation du collaborateur est rappelée, les deux parties commentent et fixent une « position retenue ». On revoit les objectifs de l’édition précédente (Atteint / Partiel / Non atteint), on fixe ceux de l’année à venir, on rédige une synthèse, et le manager signe à la souris (l’employé signe depuis sa fiche). Un désaccord peut être marqué (litige)."
+  },
+  {
+    "id": "17",
+    "file": "17-analytics.png",
+    "title": "Analytique RH",
+    "desc": "La RH suit l’avancement et les résultats agrégés des campagnes : taux de complétion, répartition, points d’attention."
+  },
+  {
+    "id": "18",
+    "file": "18-admin-hub.png",
+    "title": "Centre d’administration",
+    "desc": "Tout se configure depuis l’UI : utilisateurs, départements, et les intégrations (LDAP/Active Directory, SMTP, certificat SSL)."
+  },
+  {
+    "id": "19",
+    "file": "19-admin-ssl.png",
+    "title": "Certificat SSL (téléversement)",
+    "desc": "L’administrateur peut téléverser le certificat TLS (fullchain + clé privée). Le serveur valide réellement la cohérence clé/cert et l’expiration avant installation."
+  },
+  {
+    "id": "20",
+    "file": "20-admin-ldap.png",
+    "title": "Connexion annuaire (LDAP/AD)",
+    "desc": "La connexion à un annuaire Active Directory / LDAP se paramètre ici, avec test de connexion et prévisualisation des utilisateurs avant synchronisation."
+  },
+  {
+    "id": "21",
+    "file": "21-admin-mail.png",
+    "title": "Configuration SMTP",
+    "desc": "L’envoi des emails (notifications, rappels d’échéance) se configure ici — un préréglage OVH est fourni. Un email de test valide la configuration."
+  },
+  {
+    "id": "22",
+    "file": "22-ldap-sources.png",
+    "title": "Peuplement via 2 annuaires LDAP indépendants",
+    "desc": "Plutôt que de saisir les utilisateurs à la main, l’admin connecte des annuaires externes (LDAP / Active Directory). Ici deux annuaires indépendants — « NanoXplore » et « Partner » — chacun avec test de connexion, prévisualisation et synchronisation. C’est le mode d’alimentation réel en entreprise."
+  },
+  {
+    "id": "23",
+    "file": "23-orgchart-120.png",
+    "title": "120 collaborateurs synchronisés — organigramme complet",
+    "desc": "Après synchronisation, 120 collaborateurs sont importés. La hiérarchie provient de l’attribut « manager » de l’annuaire (comme un AD réel) : l’organigramme est entièrement connecté, sans aucun orphelin (seules racines : les deux PDG des deux annuaires). Les rôles, eux, ne sont pas importés (l’AD n’est pas fiable là-dessus) : ils sont attribués par l’admin dans l’application."
+  },
+  {
+    "id": "24",
+    "file": "24-orgchart-equipes.png",
+    "title": "Vue par équipe / département",
+    "desc": "L’organigramme en mode « Équipes » : une carte par manager, avec son département (Ingénierie, Produit, Commercial, Finance…) et les membres de son équipe. Vue idéale pour piloter une campagne département par département."
+  },
+  {
+    "id": "25",
+    "file": "25-annuaire-departements.png",
+    "title": "Annuaire par département",
+    "desc": "L’annuaire complet des collaborateurs, avec rôle et département, filtrable. La base humaine sur laquelle s’appuient le ciblage des campagnes et l’organigramme."
+  },
+  {
+    "id": "26",
+    "file": "26-ciblage-departement.png",
+    "title": "Ciblage d’une campagne par département",
+    "desc": "Au lancement d’une campagne, le périmètre « Par département » permet de sélectionner précisément les départements concernés (alignés sur ceux des collaborateurs synchronisés). Les autres périmètres : tous, par rôle, par secteur, par groupe, ou sélection manuelle."
+  }
+]

@@ -18,16 +18,19 @@ import { PageHead, Tile, Badge } from "../components/shell";
 
 type BadgeTone = "blue" | "green" | "amber" | "red" | "grey";
 
+// Palette de marque uniquement : bleu navy pour les formulaires d'évaluation,
+// gris neutre pour les demandes. Pas de rouge/vert/ambre (le rouge est réservé
+// aux actions destructrices, pas à un type de formulaire).
 const FORM_TYPE_CONFIG: Record<string, { tone: BadgeTone }> = {
-  self_evaluation: { tone: "red" },
-  manager_evaluation: { tone: "amber" },
+  self_evaluation: { tone: "blue" },
+  manager_evaluation: { tone: "blue" },
   upward_feedback: { tone: "blue" },
   peer_review: { tone: "blue" },
-  objectives: { tone: "green" },
-  mobility_request: { tone: "amber" },
-  salary_raise_request: { tone: "green" },
-  promotion_request: { tone: "blue" },
-  training_request: { tone: "green" },
+  objectives: { tone: "grey" },
+  mobility_request: { tone: "grey" },
+  salary_raise_request: { tone: "grey" },
+  promotion_request: { tone: "grey" },
+  training_request: { tone: "grey" },
 };
 
 export default function FormsPage() {
@@ -102,7 +105,7 @@ export default function FormsPage() {
       <PageGuide
         id="forms"
         title={t("guides.forms.title")}
-        color="teal"
+        color="blue"
         steps={t("guides.forms.steps", { returnObjects: true }) as string[]}
       />
 

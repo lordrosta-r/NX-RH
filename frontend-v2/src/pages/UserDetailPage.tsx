@@ -358,7 +358,7 @@ export default function UserDetailPage() {
                       <button
                         onClick={async () => {
                           setActionsOpen(false);
-                          if (await confirm({ title: "Bloquer ce compte ?", message: "Le compte sera désactivé (connexion impossible). Action réversible — vous pourrez le débloquer.", confirmLabel: "Bloquer" })) {
+                          if (await confirm({ title: "Bloquer ce compte ?", description: "Le compte sera désactivé (connexion impossible). Action réversible — vous pourrez le débloquer.", confirmLabel: "Bloquer" })) {
                             blockMutation.mutate();
                           }
                         }}
@@ -374,7 +374,7 @@ export default function UserDetailPage() {
                       <button
                         onClick={async () => {
                           setActionsOpen(false);
-                          if (await confirm({ title: "Supprimer définitivement ?", message: "Cette action est IRRÉVERSIBLE. Préférez « Bloquer » pour un compte système/suspect.", confirmLabel: "Supprimer définitivement" })) {
+                          if (await confirm({ title: "Supprimer définitivement ?", description: "Cette action est IRRÉVERSIBLE. Préférez « Bloquer » pour un compte système/suspect.", confirmLabel: "Supprimer définitivement" })) {
                             hardDeleteMutation.mutate();
                           }
                         }}

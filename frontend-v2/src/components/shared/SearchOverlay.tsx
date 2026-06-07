@@ -87,8 +87,8 @@ export default function SearchOverlay({ open, onClose }: SearchOverlayProps) {
         (u): SearchResult => ({
           id: u._id,
           type: "user",
-          title: `${u.firstName ?? ""} ${u.lastName ?? ""}`.trim() || u.email,
-          subtitle: u.email ?? u.role,
+          title: `${u.firstName ?? ""} ${u.lastName ?? ""}`.trim() || u.email || u._id,
+          subtitle: u.email ?? u.role ?? "",
           href: `/users/${u._id}`,
         }),
       );

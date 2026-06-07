@@ -71,7 +71,9 @@ describe('managerVisibility', () => {
 
   describe('getVisibleUserIds()', () => {
     it('returns only direct reports when no extendedVisibility', async () => {
-      User.find.mockReturnValueOnce(mockFind(userList(id(10), id(11))))
+      User.find
+        .mockReturnValueOnce(mockFind(userList(id(10), id(11)))) // direct reports
+        .mockReturnValue(mockFind([])) // rattachés transverses (dottedLine) + reste
       const campaign = { extendedVisibility: [] }
       const result = await getVisibleUserIds(id(1), campaign)
       expect(result).toEqual(expect.arrayContaining([id(10), id(11)]))
@@ -91,6 +93,7 @@ describe('managerVisibility', () => {
       // reports of sub-manager id(2): id(20)
       User.find
         .mockReturnValueOnce(mockFind(userList(id(10))))    // direct reports of id(1)
+        .mockReturnValueOnce(mockFind([]))                  // rattachés transverses (dottedLine)
         .mockReturnValueOnce(mockFind(userList(id(2))))     // sub-managers of id(1)
         .mockReturnValueOnce(mockFind([]))                  // sub-managers of id(2) (leaf)
         .mockReturnValueOnce(mockFind(userList(id(20))))    // reports of id(2)
@@ -107,10 +110,11 @@ describe('managerVisibility', () => {
 
     it('deduplicates IDs when same user appears in direct and extended scope', async () => {
       User.find
-        .mockReturnValueOnce(mockFind(userList(id(10))))
-        .mockReturnValueOnce(mockFind(userList(id(10))))
-        .mockReturnValueOnce(mockFind([]))
-        .mockReturnValueOnce(mockFind(userList(id(10))))
+        .mockReturnValueOnce(mockFind(userList(id(10))))    // direct reports
+        .mockReturnValueOnce(mockFind([]))                  // rattachés transverses (dottedLine)
+        .mockReturnValueOnce(mockFind(userList(id(10))))    // sub-managers of id(1)
+        .mockReturnValueOnce(mockFind([]))                  // sub-managers of id(10) (leaf)
+        .mockReturnValueOnce(mockFind(userList(id(10))))    // reports of id(10) (doublon)
 
       const campaign = {
         extendedVisibility: [{ managerId: { toString: () => id(1) }, restrictedToManagers: [] }],

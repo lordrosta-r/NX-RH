@@ -373,6 +373,11 @@ describe('Rate limiting — POST /api/auth/login', () => {
 
     process.env.NODE_ENV = 'production'
     jest.isolateModules(() => {
+      // Dans ce registre isolé, mongoose n'est pas reconnecté → un lookup LDAP
+      // en base bufferiserait ~10 s par tentative (6 × 10 s > timeout jest).
+      // On stub les sources LDAP pour des logins instantanés : le test ne
+      // vérifie QUE le rate-limiter (429 après 5), pas l'auth réelle.
+      jest.doMock('../../services/ldapSources', () => ({ getEnabledSources: async () => [] }))
       prodAuthUser = require('../../models/User')
       prodAuthRouter = require('../../routes/auth')
     })

@@ -268,10 +268,11 @@ async function syncUsers(config) {
   const attrLast  = config.attrLastName   || 'sn'
   const attrDept  = config.attrDepartment || 'department'
   const attrTitle = config.attrTitle      || 'title'
+  const attrManager = config.attrManager  || 'manager'
   const defaultRole = config.defaultRole  || 'employee'
 
   const client = makeClient(config)
-  const report = { created: 0, updated: 0, skipped: 0, errors: [] }
+  const report = { created: 0, updated: 0, skipped: 0, linked: 0, errors: [] }
 
   try {
     await bindAsync(client, config.bindDN, config.bindPassword || '')
@@ -279,7 +280,7 @@ async function syncUsers(config) {
       scope:      'sub',
       filter:     config.userFilter || '(objectClass=person)',
       sizeLimit:  1000,
-      attributes: ['dn', attrEmail, attrFirst, attrLast, attrDept, attrTitle],
+      attributes: ['dn', attrEmail, attrFirst, attrLast, attrDept, attrTitle, attrManager],
     })
     await unbindAsync(client)
 
@@ -332,6 +333,53 @@ async function syncUsers(config) {
       } catch (userErr) {
         report.errors.push(`${email}: ${userErr.message}`)
       }
+    }
+
+    // ── 2e passe : hiérarchie (attribut `manager` DN → managerId) ────────────
+    // Comme un AD réel : chaque entrée peut porter un `manager` = DN du
+    // responsable. On résout ce DN vers l'utilisateur correspondant (par son
+    // ldapDn) et on fixe managerId. Les rôles ne sont PAS dérivés : ils restent
+    // à `defaultRole` et seront attribués par l'admin dans l'app.
+    try {
+      // dn (minuscule) → email, pour tous les utilisateurs de cette source
+      const dnToEmail = new Map()
+      const managerPairs = [] // { email, managerDn }
+      for (const entry of entries) {
+        const email = (getVal(entry, attrEmail) || '').toLowerCase()
+        if (!email) continue
+        if (entry.dn) dnToEmail.set(entry.dn.toLowerCase(), email)
+        const mgrDn = getVal(entry, attrManager)
+        if (mgrDn) managerPairs.push({ email, managerDn: mgrDn.toLowerCase() })
+      }
+      if (managerPairs.length) {
+        const wantedEmails = [...new Set(
+          managerPairs.flatMap(p => [p.email, dnToEmail.get(p.managerDn)]).filter(Boolean),
+        )]
+        const users = await User.find({ email: { $in: wantedEmails } }, '_id email ldapDn').lean()
+        const emailToId = new Map(users.map(u => [u.email.toLowerCase(), u._id]))
+        // Résolution croisée possible : manager déjà synchronisé par une autre source
+        const ops = []
+        for (const { email, managerDn } of managerPairs) {
+          const selfId = emailToId.get(email)
+          let mgrId = null
+          const mgrEmail = dnToEmail.get(managerDn)
+          if (mgrEmail) mgrId = emailToId.get(mgrEmail)
+          if (!mgrId) {
+            const mgr = await User.findOne({ ldapDn: new RegExp(`^${managerDn.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') }, '_id').lean()
+            if (mgr) mgrId = mgr._id
+          }
+          // Garde-fou anti-boucle directe : un user ne peut pas être son manager
+          if (mgrId && selfId && String(mgrId) !== String(selfId)) {
+            ops.push({ updateOne: { filter: { _id: selfId }, update: { $set: { managerId: mgrId } } } })
+          }
+        }
+        if (ops.length) {
+          const res = await User.bulkWrite(ops, { ordered: false })
+          report.linked = res.modifiedCount || ops.length
+        }
+      }
+    } catch (linkErr) {
+      report.errors.push(`hiérarchie: ${linkErr.message}`)
     }
 
     return report

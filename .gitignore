@@ -18,3 +18,9 @@ mongo/server/logs/
 
 # Env e2e jetable (secrets générés)
 .env.e2e
+
+# Captures e2e (régénérables, non versionnées)
+frontend-v2/e2e/screenshots/
+# Sauvegardes locales d'environnement
+*.env.bak
+.env*.bak

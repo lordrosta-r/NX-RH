@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   AlertCircle,
   Inbox,
@@ -200,6 +201,7 @@ function CampaignList({
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function DashboardAdminPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { campaigns, evaluations, users } = useDashboardAdmin();
 
@@ -274,9 +276,9 @@ export default function DashboardAdminPage() {
   return (
     <div className="nx-app">
       <PageHead
-        eyebrow="Administration"
-        title={`Tableau de bord — Bonjour, ${user?.firstName ?? "…"}`}
-        desc="État de la plateforme et activité système."
+        eyebrow={t("eyebrow.administration")}
+        title={t("pageHead.dashAdminTitle", { name: user?.firstName ?? "…" })}
+        desc={t("pageHead.dashAdminDesc")}
         actions={
           <button disabled className="btn btn-ghost">
             Exporter PDF

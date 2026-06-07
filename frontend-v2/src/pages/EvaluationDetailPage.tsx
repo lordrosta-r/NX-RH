@@ -186,9 +186,9 @@ export default function EvaluationDetailPage() {
       />
 
       <PageHead
-        eyebrow="Évaluation"
+        eyebrow={t("eyebrow.evaluation")}
         title={evaluateeName}
-        desc="Détail de l’évaluation et étapes associées."
+        desc={t("pageHead.evaluationDetailDesc")}
         actions={
           canOpenInterview && interviewCampaignId ? (
             <Link

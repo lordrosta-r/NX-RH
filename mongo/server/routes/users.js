@@ -304,7 +304,7 @@ router.delete('/:id', async (req, res, next) => {
       return res.status(400).json({ error: 'ID invalide' })
     }
     if (String(req.params.id) === String(req.user.id)) {
-      return res.status(400).json({ error: 'Vous ne pouvez pas supprimer votre propre compte' })
+      return res.status(403).json({ error: 'Vous ne pouvez pas supprimer votre propre compte' })
     }
     const user = await User.findById(req.params.id).select('email role')
     if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' })

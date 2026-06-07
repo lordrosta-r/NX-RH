@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   Settings,
   Mail,
@@ -36,104 +37,104 @@ type AdminSection = {
 const adminSections: AdminSection[] = [
   {
     id: "system",
-    title: "Système",
+    title: "adminHub.sysTitle",
     icon: <Settings className="w-5 h-5" />,
     color: "gray",
     items: [
       {
-        label: "Configuration système",
+        label: "adminHub.sysConfig",
         href: "/admin/config",
-        desc: "Clés et variables d'environnement",
+        desc: "adminHub.sysConfigDesc",
       },
       {
-        label: "État du système",
+        label: "adminHub.sysStatus",
         href: "/admin/status",
-        desc: "Santé et disponibilité des services",
+        desc: "adminHub.sysStatusDesc",
       },
       {
-        label: "Assistant de configuration",
+        label: "adminHub.sysSetup",
         href: "/admin/setup",
-        desc: "Initialiser la plateforme pas à pas",
+        desc: "adminHub.sysSetupDesc",
       },
     ],
   },
   {
     id: "email",
-    title: "E-mail",
+    title: "adminHub.emailTitle",
     icon: <Mail className="w-5 h-5" />,
     color: "orange",
     items: [
       {
-        label: "Configuration e-mail / SMTP",
+        label: "adminHub.emailSmtp",
         href: "/admin/mail-config",
-        desc: "Paramètres du serveur d'envoi",
+        desc: "adminHub.emailSmtpDesc",
       },
       {
-        label: "Modèles d'e-mail",
+        label: "adminHub.emailTemplates",
         href: "/admin/mail-templates",
-        desc: "Personnaliser les notifications",
+        desc: "adminHub.emailTemplatesDesc",
       },
     ],
   },
   {
     id: "ldap",
-    title: "Annuaire (LDAP)",
+    title: "adminHub.ldapTitle",
     icon: <Server className="w-5 h-5" />,
     color: "blue",
     items: [
       {
-        label: "Annuaire LDAP",
+        label: "adminHub.ldap",
         href: "/admin/ldap",
-        desc: "Synchronisation de l'annuaire",
+        desc: "adminHub.ldapDesc",
       },
     ],
   },
   {
     id: "security",
-    title: "Sécurité & Audit",
+    title: "adminHub.secTitle",
     icon: <Shield className="w-5 h-5" />,
     color: "purple",
     items: [
       {
-        label: "Journal d'audit",
+        label: "adminHub.secAudit",
         href: "/admin/audit",
-        desc: "Logs et traçabilité des actions",
+        desc: "adminHub.secAuditDesc",
       },
       {
-        label: "Certificat SSL",
+        label: "adminHub.secSsl",
         href: "/admin/ssl",
-        desc: "Téléverser le certificat HTTPS",
+        desc: "adminHub.secSslDesc",
       },
     ],
   },
   {
     id: "imports",
-    title: "Imports",
+    title: "adminHub.importsTitle",
     icon: <Upload className="w-5 h-5" />,
     color: "green",
     items: [
       {
-        label: "Import utilisateurs",
+        label: "adminHub.importsUsers",
         href: "/admin/users/import",
-        desc: "Importer des comptes en masse",
+        desc: "adminHub.importsUsersDesc",
       },
       {
-        label: "Import formulaires",
+        label: "adminHub.importsForms",
         href: "/admin/forms/import",
-        desc: "Importer des modèles d'évaluation",
+        desc: "adminHub.importsFormsDesc",
       },
     ],
   },
   {
     id: "hr-settings",
-    title: "Paramètres RH",
+    title: "adminHub.hrTitle",
     icon: <Briefcase className="w-5 h-5" />,
     color: "teal",
     items: [
       {
-        label: "Paramètres RH",
+        label: "adminHub.hrSettings",
         href: "/admin/settings",
-        desc: "Configuration métier et globale",
+        desc: "adminHub.hrSettingsDesc",
       },
     ],
   },
@@ -142,19 +143,20 @@ const adminSections: AdminSection[] = [
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function AdminHubPage() {
+  const { t } = useTranslation();
   return (
     <div className="nx-app">
       <Breadcrumbs
         items={[
-          { label: "Accueil", href: "/" },
-          { label: "Administration" },
+          { label: t("common.home"), href: "/" },
+          { label: t("eyebrow.administration") },
         ]}
       />
 
       <PageHead
-        eyebrow="Administration"
-        title="Configuration"
-        desc="Accédez à tous les réglages techniques et administratifs de la plateforme."
+        eyebrow={t("eyebrow.administration")}
+        title={t("adminHub.title")}
+        desc={t("adminHub.desc")}
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -175,7 +177,7 @@ export default function AdminHubPage() {
               >
                 {section.icon}
               </span>
-              <h2 className="h3">{section.title}</h2>
+              <h2 className="h3">{t(section.title)}</h2>
             </div>
             <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
               {section.items.map((item) => (
@@ -199,9 +201,9 @@ export default function AdminHubPage() {
                         color: "var(--ink)",
                       }}
                     >
-                      {item.label}
+                      {t(item.label)}
                     </span>
-                    <span className="small">{item.desc}</span>
+                    <span className="small">{t(item.desc)}</span>
                   </Link>
                 </li>
               ))}

@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import {
   ClipboardList,
@@ -58,6 +59,7 @@ function EvalStatusBadge({ status }: { status: EvaluationStatus }) {
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function DashboardEmployeePage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
 
   const evaluations = useQuery({
@@ -97,8 +99,8 @@ export default function DashboardEmployeePage() {
   return (
     <div className="nx-app">
       <PageHead
-        eyebrow="Espace collaborateur"
-        title={`Bonjour ${user?.firstName ?? ""}`}
+        eyebrow={t("eyebrow.employeeSpace")}
+        title={t("pageHead.dashEmployeeTitle", { name: user?.firstName ?? "" })}
         desc={
           user?.position ?? "Voici l’état de vos entretiens professionnels."
         }

@@ -443,15 +443,15 @@ describe('User Routes — /api/users', () => {
   })
 
   describe('DELETE /api/users/:id', () => {
-    test('devrait permettre à un admin de désactiver un utilisateur', async () => {
-      const response = await request(app)
+    test('devrait permettre à un admin de supprimer définitivement un utilisateur', async () => {
+      await request(app)
         .delete(`/api/users/${employeeUser._id}`)
         .set('Cookie', `accessToken=${adminToken}`)
         .expect(204)
 
-      // Vérifier que l'utilisateur est désactivé
+      // DELETE = suppression DÉFINITIVE (la désactivation réversible passe par /block).
       const dbUser = await User.findById(employeeUser._id)
-      expect(dbUser.isActive).toBe(false)
+      expect(dbUser).toBeNull()
     })
 
     test('devrait refuser à un admin de se supprimer lui-même (403)', async () => {

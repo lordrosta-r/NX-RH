@@ -5,6 +5,7 @@ import api from "@/api/client";
 import { queryKeys } from "../lib/queryKeys";
 import MobilityTimeline from "@/components/mobility/MobilityTimeline";
 import { PageHead, Tile, StatTile, Badge } from "../components/shell";
+import Breadcrumbs from "../components/ui/Breadcrumbs";
 
 type MobilityStatus =
   | "pending"
@@ -288,6 +289,13 @@ export default function MobilityPage() {
 
   return (
     <div className="nx-app">
+      <Breadcrumbs
+        items={[
+          { label: "Accueil", href: "/" },
+          { label: "Demandes" },
+        ]}
+      />
+
       <PageHead
         title="Demandes"
         desc="Mobilité, promotion, augmentation, formation et autres demandes"

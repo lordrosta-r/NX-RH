@@ -16,6 +16,7 @@ import { toast } from "../hooks/useToast";
 import { usePdfExport } from "../hooks/usePdfExport";
 import type { Evaluation } from "../types";
 import PageGuide from "../components/shared/PageGuide";
+import Breadcrumbs from "../components/ui/Breadcrumbs";
 import { queryKeys } from "../lib/queryKeys";
 import { useTranslation } from "react-i18next";
 import { PageHead, Tile, Badge } from "../components/shell";
@@ -274,6 +275,13 @@ export default function EvaluationsPage() {
 
   return (
     <div className="nx-app">
+      <Breadcrumbs
+        items={[
+          { label: "Accueil", href: "/" },
+          { label: isEmployee ? t("evaluations.myTitle") : t("evaluations.title") },
+        ]}
+      />
+
       <PageGuide
         id="evaluations"
         title="Les évaluations"

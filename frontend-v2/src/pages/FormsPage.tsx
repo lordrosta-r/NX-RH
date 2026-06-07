@@ -11,6 +11,7 @@ import { toast } from "../hooks/useToast";
 import ConfirmDialog from "../components/ui/ConfirmDialog";
 import type { Form } from "../types";
 import PageGuide from "../components/shared/PageGuide";
+import Breadcrumbs from "../components/ui/Breadcrumbs";
 import { queryKeys } from "../lib/queryKeys";
 import { PageHead, Tile, Badge } from "../components/shell";
 
@@ -89,6 +90,13 @@ export default function FormsPage() {
 
   return (
     <div className="nx-app">
+      <Breadcrumbs
+        items={[
+          { label: "Accueil", href: "/" },
+          { label: "Formulaires" },
+        ]}
+      />
+
       <PageGuide
         id="forms"
         title="Les formulaires d'évaluation"

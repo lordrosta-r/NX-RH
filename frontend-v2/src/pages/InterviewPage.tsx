@@ -17,6 +17,7 @@ import {
 import { interviewsApi } from "../api/interviews";
 import { PageHead, Tile } from "../components/shell";
 import Breadcrumbs from "../components/ui/Breadcrumbs";
+import PageGuide from "../components/shared/PageGuide";
 import SignaturePad from "../components/ui/SignaturePad";
 import { AnswerView } from "../components/evaluations/AnswerView";
 import type { Interview, InterviewEvaluation, FormQuestion } from "../types";
@@ -303,6 +304,20 @@ function InterviewWorkspace({
             )}
           </button>
         }
+      />
+
+      <PageGuide
+        id="interview"
+        title="Comment mener l'entretien ?"
+        steps={[
+          "Confrontez les deux réponses (auto-évaluation et regard du manager) question par question.",
+          "Commentez et actez une position commune sur chaque question.",
+          "Revoyez les objectifs de l'an dernier (atteint / partiel / non atteint).",
+          "Fixez ensemble les objectifs N+1.",
+          "Rédigez la synthèse de l'entretien.",
+          "Signez en tant que manager — l'évalué·e signe depuis sa propre fiche.",
+        ]}
+        color="teal"
       />
 
       {/* Bandeau désaccord */}

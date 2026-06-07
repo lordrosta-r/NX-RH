@@ -5,6 +5,7 @@ import { History, Download } from "lucide-react";
 import { evaluationsApi } from "../api/evaluations";
 import { getCampaignName } from "../types";
 import { PageHead, Tile, Badge, Bar } from "../components/shell";
+import Breadcrumbs from "../components/ui/Breadcrumbs";
 
 type Tone = "blue" | "green" | "amber" | "red" | "grey";
 
@@ -48,19 +49,15 @@ export default function EvaluationHistoryPage() {
 
   return (
     <div className="nx-app">
+      <Breadcrumbs
+        items={[
+          { label: "Accueil", href: "/" },
+          { label: "Évaluations", href: "/evaluations" },
+          { label: "Historique" },
+        ]}
+      />
+
       <PageHead
-        eyebrow={
-          <>
-            <Link to="/" className="link">
-              Accueil
-            </Link>{" "}
-            ›{" "}
-            <Link to="/evaluations" className="link">
-              Évaluations
-            </Link>{" "}
-            › Historique
-          </>
-        }
         title="Mon historique d'entretiens"
         actions={
           <>

@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { MoreVertical, Edit, Download, Trash2, Eye } from "lucide-react";
+import { MoreVertical, Edit, Download, Trash2, Eye, Network } from "lucide-react";
 import { usersApi } from "../api/users";
 import client from "../api/client";
 import type { User, Evaluation, PaginatedResponse } from "../types";
@@ -141,6 +141,10 @@ export default function UserDetailPage() {
   });
 
   const canManage = currentUser?.role === "admin" || currentUser?.role === "hr";
+  const canSeeOrg =
+    currentUser?.role === "admin" ||
+    currentUser?.role === "hr" ||
+    currentUser?.role === "manager";
 
   if (isLoading) {
     return (
@@ -229,7 +233,18 @@ export default function UserDetailPage() {
             </div>
           </div>
 
-          {/* Actions menu */}
+          {/* Actions */}
+          <div className="row" style={{ gap: 8, alignItems: "center" }}>
+            {canSeeOrg && (
+              <Link
+                to="/org"
+                className="btn btn-ghost"
+                style={{ border: "1px solid var(--line)", gap: 6 }}
+              >
+                <Network className="ico" style={{ width: 16, height: 16 }} />{" "}
+                Voir dans l'organigramme
+              </Link>
+            )}
           {canManage && (
             <div className="relative" ref={dropdownRef}>
               <div className="row" style={{ gap: 8 }}>
@@ -335,6 +350,7 @@ export default function UserDetailPage() {
               )}
             </div>
           )}
+          </div>
         </div>
       </Tile>
 

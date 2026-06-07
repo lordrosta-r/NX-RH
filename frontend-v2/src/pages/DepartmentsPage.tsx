@@ -4,6 +4,7 @@ import { Plus, Trash2, Save } from "lucide-react";
 import { adminApi } from "../api/admin";
 import { toast } from "../hooks/useToast";
 import { PageHead, Tile, Callout } from "../components/shell";
+import Breadcrumbs from "../components/ui/Breadcrumbs";
 
 const QUERY_KEY = ["departments"] as const;
 
@@ -80,6 +81,14 @@ export default function DepartmentsPage() {
 
   return (
     <div className="nx-app">
+      <Breadcrumbs
+        items={[
+          { label: "Accueil", href: "/" },
+          { label: "Administration", href: "/admin" },
+          { label: "Départements" },
+        ]}
+      />
+
       <PageHead
         title="Départements"
         desc={

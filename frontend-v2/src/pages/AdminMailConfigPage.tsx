@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Server } from "lucide-react";
 import { PageHead, Tile, Callout } from "@/components/shell";
 import client from "@/api/client";
 import { queryKeys } from "@/lib/queryKeys";
+import { mailConfigSchema } from "@/schemas/smtp";
 
 interface MailConfig {
   smtpHost: string;
@@ -10,23 +12,36 @@ interface MailConfig {
   smtpSecure: boolean;
   smtpUser: string;
   smtpPass: string;
+  passwordSet?: boolean;
   fromEmail: string;
   fromName: string;
 }
 
+type FieldErrors = Partial<Record<keyof MailConfig, string>>;
+
 function Field({
   label,
   htmlFor,
+  error,
   children,
 }: {
   label: string;
   htmlFor?: string;
+  error?: string;
   children: React.ReactNode;
 }) {
   return (
     <div className="field">
       <label htmlFor={htmlFor}>{label}</label>
       {children}
+      {error && (
+        <span
+          className="caption"
+          style={{ color: "var(--red)", marginTop: 4 }}
+        >
+          {error}
+        </span>
+      )}
     </div>
   );
 }
@@ -41,6 +56,7 @@ export default function AdminMailConfigPage() {
   });
 
   const [form, setForm] = useState<Partial<MailConfig>>({});
+  const [errors, setErrors] = useState<FieldErrors>({});
   const [testEmail, setTestEmail] = useState("");
 
   const saveMutation = useMutation({
@@ -56,6 +72,51 @@ export default function AdminMailConfigPage() {
   });
 
   const current: Partial<MailConfig> = { ...config, ...form };
+
+  function applyOvhPreset() {
+    setForm((f) => ({
+      ...f,
+      smtpHost: "smtp.ovh.net",
+      smtpPort: 587,
+      smtpSecure: false,
+    }));
+    setErrors((e) => ({
+      ...e,
+      smtpHost: undefined,
+      smtpPort: undefined,
+    }));
+  }
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    // Mot de passe : vide autorisé si déjà stocké (passwordSet), sinon requis.
+    const payload = {
+      smtpHost: current.smtpHost ?? "",
+      smtpPort: current.smtpPort ?? 0,
+      smtpSecure: current.smtpSecure ?? false,
+      smtpUser: current.smtpUser ?? "",
+      smtpPass: current.smtpPass ?? "",
+      fromEmail: current.fromEmail ?? "",
+      fromName: current.fromName ?? "",
+    };
+    const parsed = mailConfigSchema.safeParse(payload);
+    const nextErrors: FieldErrors = {};
+    if (!parsed.success) {
+      for (const issue of parsed.error.issues) {
+        const key = issue.path[0] as keyof MailConfig;
+        if (key && !nextErrors[key]) nextErrors[key] = issue.message;
+      }
+    }
+    if (!payload.smtpPass && !config?.passwordSet) {
+      nextErrors.smtpPass =
+        "Le mot de passe SMTP est requis lors de la première configuration";
+    }
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) return;
+    // N'envoyer le mot de passe que s'il a été saisi (vide = inchangé côté serveur).
+    const { smtpPass, ...rest } = payload;
+    saveMutation.mutate(smtpPass ? payload : rest);
+  }
 
   return (
     <div className="nx-app">
@@ -83,15 +144,26 @@ export default function AdminMailConfigPage() {
         ) : (
           <Tile>
             <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                saveMutation.mutate(form);
-              }}
+              onSubmit={handleSubmit}
               style={{ display: "flex", flexDirection: "column", gap: 16 }}
             >
-              <h2 className="h3" style={{ marginBottom: 0 }}>
-                Paramètres SMTP
-              </h2>
+              <div
+                className="row"
+                style={{ justifyContent: "space-between", alignItems: "center" }}
+              >
+                <h2 className="h3" style={{ marginBottom: 0 }}>
+                  Paramètres SMTP
+                </h2>
+                <button
+                  type="button"
+                  className="btn btn-ghost"
+                  onClick={applyOvhPreset}
+                  style={{ color: "var(--blue)", borderColor: "var(--line)" }}
+                >
+                  <Server size={16} aria-hidden="true" />
+                  Preset OVH
+                </button>
+              </div>
               <div
                 style={{
                   display: "grid",
@@ -99,69 +171,98 @@ export default function AdminMailConfigPage() {
                   gap: 16,
                 }}
               >
-                <Field label="Hôte SMTP" htmlFor="smtp-host">
+                <Field
+                  label="Hôte SMTP"
+                  htmlFor="smtp-host"
+                  error={errors.smtpHost}
+                >
                   <input
                     id="smtp-host"
                     type="text"
                     className="input"
-                    defaultValue={config?.smtpHost}
+                    value={current.smtpHost ?? ""}
                     onChange={(e) =>
                       setForm((f) => ({ ...f, smtpHost: e.target.value }))
                     }
                     placeholder="smtp.example.com"
                   />
                 </Field>
-                <Field label="Port" htmlFor="smtp-port">
+                <Field label="Port" htmlFor="smtp-port" error={errors.smtpPort}>
                   <input
                     id="smtp-port"
                     type="number"
                     className="input"
-                    defaultValue={config?.smtpPort}
+                    value={current.smtpPort ?? ""}
                     onChange={(e) =>
-                      setForm((f) => ({ ...f, smtpPort: +e.target.value }))
+                      setForm((f) => ({
+                        ...f,
+                        smtpPort:
+                          e.target.value === ""
+                            ? undefined
+                            : Number(e.target.value),
+                      }))
                     }
                     placeholder="587"
                   />
                 </Field>
-                <Field label="Utilisateur SMTP" htmlFor="smtp-user">
+                <Field
+                  label="Utilisateur SMTP"
+                  htmlFor="smtp-user"
+                  error={errors.smtpUser}
+                >
                   <input
                     id="smtp-user"
                     type="text"
                     className="input"
-                    defaultValue={config?.smtpUser}
+                    value={current.smtpUser ?? ""}
                     onChange={(e) =>
                       setForm((f) => ({ ...f, smtpUser: e.target.value }))
                     }
                   />
                 </Field>
-                <Field label="Mot de passe SMTP" htmlFor="smtp-pass">
+                <Field
+                  label="Mot de passe SMTP"
+                  htmlFor="smtp-pass"
+                  error={errors.smtpPass}
+                >
                   <input
                     id="smtp-pass"
                     type="password"
                     className="input"
+                    value={current.smtpPass ?? ""}
                     onChange={(e) =>
                       setForm((f) => ({ ...f, smtpPass: e.target.value }))
                     }
-                    placeholder="••••••••"
+                    placeholder={
+                      config?.passwordSet ? "•••••••• (inchangé)" : "••••••••"
+                    }
                   />
                 </Field>
-                <Field label="Email expéditeur" htmlFor="from-email">
+                <Field
+                  label="Email expéditeur"
+                  htmlFor="from-email"
+                  error={errors.fromEmail}
+                >
                   <input
                     id="from-email"
                     type="email"
                     className="input"
-                    defaultValue={config?.fromEmail}
+                    value={current.fromEmail ?? ""}
                     onChange={(e) =>
                       setForm((f) => ({ ...f, fromEmail: e.target.value }))
                     }
                   />
                 </Field>
-                <Field label="Nom expéditeur" htmlFor="from-name">
+                <Field
+                  label="Nom expéditeur"
+                  htmlFor="from-name"
+                  error={errors.fromName}
+                >
                   <input
                     id="from-name"
                     type="text"
                     className="input"
-                    defaultValue={config?.fromName}
+                    value={current.fromName ?? ""}
                     onChange={(e) =>
                       setForm((f) => ({ ...f, fromName: e.target.value }))
                     }

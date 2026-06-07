@@ -76,6 +76,7 @@ const AdminFormsImportPage = lazy(
   () => import("../pages/AdminFormsImportPage"),
 );
 const AdminLdapPage = lazy(() => import("../pages/AdminLdapPage"));
+const AdminSslPage = lazy(() => import("../pages/AdminSslPage"));
 const AdminAuditPage = lazy(() => import("../pages/AdminAuditPage"));
 const AdminConfigPage = lazy(() => import("../pages/AdminConfigPage"));
 const AdminMailConfigPage = lazy(() => import("../pages/AdminMailConfigPage"));
@@ -560,6 +561,16 @@ export const router = createBrowserRouter([
           <AuthGuard roles={["admin"]}>
             <S>
               <AdminLdapPage />
+            </S>
+          </AuthGuard>
+        ),
+      },
+      {
+        path: "/admin/ssl",
+        element: (
+          <AuthGuard roles={["admin"]}>
+            <S>
+              <AdminSslPage />
             </S>
           </AuthGuard>
         ),

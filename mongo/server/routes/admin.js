@@ -24,6 +24,7 @@ const jwt        = require('jsonwebtoken')
 const { sendMail, resetTransporter } = require('../services/mailer')
 const Config = require('../models/Config')
 const { User, Form, AuditLog } = require('../models')
+const { mailConfig: mailConfigSchema } = require('../validators/smtpValidators')
 
 const router = express.Router()
 
@@ -229,7 +230,25 @@ router.get('/config/mail', async (req, res, next) => {
 // PUT /api/admin/config/mail — Enregistre les réglages SMTP + invalide le transporter
 router.put('/config/mail', async (req, res, next) => {
   try {
-    const b = req.body || {}
+    // Validation Joi : refuse une config invalide avant toute écriture (400 + message clair).
+    const { error, value: b } = mailConfigSchema.validate(req.body || {}, {
+      abortEarly: false,
+      stripUnknown: true,
+      convert: true, // smtpPort arrive en string depuis le <input type=number>
+    })
+    if (error) {
+      return res.status(400).json({ error: error.details.map(d => d.message).join(' ; ') })
+    }
+
+    // Mot de passe : vide autorisé seulement si une valeur est déjà stockée en base
+    // (ou fournie via l'environnement). Sinon, on l'exige.
+    if (!b.smtpPass) {
+      const existing = await Config.findOne({ key: 'smtp.password' }).lean()
+      if (!existing?.value && !process.env.MAIL_PASSWORD) {
+        return res.status(400).json({ error: 'Le mot de passe SMTP est requis lors de la première configuration' })
+      }
+    }
+
     const ops = []
     const set = (key, value) => ops.push(
       Config.findOneAndUpdate({ key }, { $set: { value } }, { upsert: true })

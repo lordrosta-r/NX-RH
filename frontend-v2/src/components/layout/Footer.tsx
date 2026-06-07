@@ -72,9 +72,7 @@ export default function Footer() {
             borderTop: "1px solid var(--line)",
           }}
         >
-          <span className="small">
-            © {year} NanoXplore — Tous droits réservés.
-          </span>
+          <span className="small">{t("footer.copyright", { year })}</span>
           <span className="small">{t("footer.gdprCompliance")}</span>
         </div>
       </div>

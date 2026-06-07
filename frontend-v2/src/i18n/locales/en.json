@@ -20,8 +20,9 @@
     "hrSettings": "HR Settings",
     "hrFlags": "HR Requests",
     "mobilityInternal": "Internal Mobility",
-    "pdi": "IDP",
+    "pdi": "Follow-up",
     "mobility": "Requests",
+    "myRequests": "My requests",
     "profile": "My Profile",
     "logout": "Log Out",
     "notifications": "Notifications",
@@ -203,7 +204,8 @@
     "accessibility": "Accessibility",
     "hrContact": "Contact HR",
     "legalNav": "Legal links",
-    "gdprCompliance": "GDPR-compliant · Data hosted in the European Union"
+    "gdprCompliance": "GDPR-compliant · Data hosted in the European Union",
+    "copyright": "© {{year}} NanoXplore — All rights reserved."
   },
   "guides": {
     "campaigns": {

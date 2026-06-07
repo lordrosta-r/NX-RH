@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useSearchParams, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -133,6 +134,7 @@ function InterviewWorkspace({
   campaignId: string;
   evaluateeId: string;
 }) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const invalidate = () =>
     queryClient.invalidateQueries({
@@ -308,15 +310,8 @@ function InterviewWorkspace({
 
       <PageGuide
         id="interview"
-        title="Comment mener l'entretien ?"
-        steps={[
-          "Confrontez les deux réponses (auto-évaluation et regard du manager) question par question.",
-          "Commentez et actez une position commune sur chaque question.",
-          "Revoyez les objectifs de l'an dernier (atteint / partiel / non atteint).",
-          "Fixez ensemble les objectifs N+1.",
-          "Rédigez la synthèse de l'entretien.",
-          "Signez en tant que manager — l'évalué·e signe depuis sa propre fiche.",
-        ]}
+        title={t("guides.interview.title")}
+        steps={t("guides.interview.steps", { returnObjects: true }) as string[]}
         color="teal"
       />
 

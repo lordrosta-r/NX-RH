@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useDebounce } from "../hooks/useDebounce";
 import { Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -30,6 +31,7 @@ const FORM_TYPE_CONFIG: Record<string, { label: string; tone: BadgeTone }> = {
 };
 
 export default function FormsPage() {
+  const { t } = useTranslation();
   const [typeFilter, setTypeFilter] = useState("");
   const [campaignFilter, setCampaignFilter] = useState("");
   const [search, setSearch] = useState("");
@@ -99,13 +101,9 @@ export default function FormsPage() {
 
       <PageGuide
         id="forms"
-        title="Les formulaires d'évaluation"
+        title={t("guides.forms.title")}
         color="teal"
-        steps={[
-          "Les formulaires définissent les questions posées lors des évaluations",
-          "Créez différents types : auto-évaluation, évaluation manager, évaluation N+1",
-          "Une fois créé, associez le formulaire à une campagne lors de sa création",
-        ]}
+        steps={t("guides.forms.steps", { returnObjects: true }) as string[]}
       />
 
       <PageHead

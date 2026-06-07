@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, PenLine } from "lucide-react";
+import { ArrowRight, ChevronDown, ChevronUp, PenLine } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import {
   useDashboardManager,
@@ -79,10 +80,63 @@ function progressWidth(ev: Evaluation): number {
   }
 }
 
-function EvalsToComplete({ evaluations }: { evaluations: Evaluation[] }) {
-  const pending = evaluations.filter(
-    (e) => e.status === "assigned" || e.status === "in_progress",
+const TOP_COUNT = 5;
+
+function isOverdue(ev: Evaluation): boolean {
+  return ev.deadline != null && new Date(ev.deadline).getTime() < Date.now();
+}
+
+// Priorité : en retard d'abord, puis « en cours » avant « assignée ».
+function evalPriority(ev: Evaluation): number {
+  if (isOverdue(ev)) return 0;
+  if (ev.status === "in_progress") return 1;
+  return 2;
+}
+
+function EvalRow({ ev }: { ev: Evaluation }) {
+  const overdue = isOverdue(ev);
+  return (
+    <div
+      className="row between wrap"
+      style={{
+        gap: 12,
+        border: `1px solid ${overdue ? "var(--red)" : "var(--line)"}`,
+        borderRadius: "var(--radius)",
+        padding: "14px 16px",
+      }}
+    >
+      <div>
+        <p style={{ fontWeight: 700, fontSize: 15 }}>
+          {getDisplayName(ev.evaluateeId as string | PopulatedUser)}
+        </p>
+        <p className="small" style={{ marginTop: 2 }}>
+          Campagne : {getCampaignName(ev.campaignId)}
+        </p>
+      </div>
+      <div className="row" style={{ gap: 12 }}>
+        {overdue && (
+          <Badge tone="red" dot>
+            En retard
+          </Badge>
+        )}
+        <StatusBadge status={ev.status} />
+        <Link to={`/evaluations/${ev.id}`} className="btn btn-primary btn-sm">
+          Remplir{" "}
+          <ArrowRight className="ico" style={{ width: 15, height: 15 }} />
+        </Link>
+      </div>
+    </div>
   );
+}
+
+function EvalsToComplete({ evaluations }: { evaluations: Evaluation[] }) {
+  const [expanded, setExpanded] = useState(false);
+
+  const pending = evaluations
+    .filter((e) => e.status === "assigned" || e.status === "in_progress")
+    .slice()
+    .sort((a, b) => evalPriority(a) - evalPriority(b));
+
   if (pending.length === 0) {
     return (
       <p className="small text-center" style={{ padding: "16px 0" }}>
@@ -90,39 +144,41 @@ function EvalsToComplete({ evaluations }: { evaluations: Evaluation[] }) {
       </p>
     );
   }
+
+  const top = pending.slice(0, TOP_COUNT);
+  const rest = pending.slice(TOP_COUNT);
+  const visible = expanded ? pending : top;
+
   return (
     <div className="section-gap" style={{ gap: 12 }}>
-      {pending.map((ev) => (
-        <div
-          key={ev.id}
-          className="row between wrap"
-          style={{
-            gap: 12,
-            border: "1px solid var(--line)",
-            borderRadius: "var(--radius)",
-            padding: "14px 16px",
-          }}
-        >
-          <div>
-            <p style={{ fontWeight: 700, fontSize: 15 }}>
-              {getDisplayName(ev.evaluateeId as string | PopulatedUser)}
-            </p>
-            <p className="small" style={{ marginTop: 2 }}>
-              Campagne : {getCampaignName(ev.campaignId)}
-            </p>
-          </div>
-          <div className="row" style={{ gap: 12 }}>
-            <StatusBadge status={ev.status} />
-            <Link
-              to={`/evaluations/${ev.id}`}
-              className="btn btn-primary btn-sm"
-            >
-              Remplir{" "}
-              <ArrowRight className="ico" style={{ width: 15, height: 15 }} />
-            </Link>
-          </div>
-        </div>
+      {!expanded && rest.length > 0 && (
+        <p className="small" style={{ fontWeight: 600, color: "var(--ink)" }}>
+          Top {top.length} à traiter
+        </p>
+      )}
+      {visible.map((ev) => (
+        <EvalRow key={ev.id} ev={ev} />
       ))}
+      {rest.length > 0 && (
+        <button
+          type="button"
+          className="btn btn-ghost btn-sm"
+          onClick={() => setExpanded((v) => !v)}
+          style={{ alignSelf: "center" }}
+        >
+          {expanded ? (
+            <>
+              Réduire{" "}
+              <ChevronUp className="ico" style={{ width: 15, height: 15 }} />
+            </>
+          ) : (
+            <>
+              Voir tout ({pending.length}){" "}
+              <ChevronDown className="ico" style={{ width: 15, height: 15 }} />
+            </>
+          )}
+        </button>
+      )}
     </div>
   );
 }

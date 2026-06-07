@@ -50,7 +50,8 @@
     "mailConfig": "Configuration e-mail",
     "systemStatus": "État du système",
     "setupWizard": "Assistant de configuration",
-    "configHub": "Configuration"
+    "configHub": "Configuration",
+    "departments": "Départements"
   },
   "common": {
     "save": "Enregistrer",
@@ -182,5 +183,94 @@
     "notFound": "Ressource introuvable",
     "serverError": "Erreur serveur, veuillez réessayer",
     "networkError": "Connexion impossible, vérifiez votre réseau"
+  },
+  "setup": {
+    "incompleteTitle": "Configuration initiale incomplète.",
+    "missingPrefix": "Il manque encore :",
+    "openWizard": "Ouvrir l'assistant de configuration",
+    "checks": {
+      "hasAdmin": "un compte administrateur actif",
+      "adminPasswordChanged": "changer le mot de passe administrateur par défaut (sécurité)",
+      "hasManagedUsers": "au moins un collaborateur rattaché à un responsable",
+      "hasForm": "au moins un formulaire d'évaluation",
+      "smtpConfigured": "la configuration e-mail (SMTP)"
+    }
+  },
+  "footer": {
+    "tagline": "NanoXplore RH — Plateforme d'entretiens professionnels et de développement des collaborateurs.",
+    "gdprLink": "Données personnelles (RGPD)",
+    "legalNotice": "Mentions légales",
+    "accessibility": "Accessibilité",
+    "hrContact": "Contact RH",
+    "legalNav": "Liens légaux",
+    "gdprCompliance": "Conforme RGPD · Données hébergées en Union européenne"
+  },
+  "guides": {
+    "campaigns": {
+      "title": "Comment créer une campagne d'évaluation ?",
+      "steps": [
+        "Créez d'abord vos formulaires d'évaluation dans la section Formulaires",
+        "Créez une campagne, définissez les dates et associez vos formulaires",
+        "Définissez le public cible (tous les utilisateurs, département, secteur ou groupe)",
+        "Activez la campagne — les évaluations sont générées automatiquement"
+      ]
+    },
+    "evaluations": {
+      "title": "Les évaluations",
+      "steps": [
+        "Les évaluations sont générées automatiquement à l'activation d'une campagne",
+        "Chaque collaborateur reçoit une notification par email pour compléter son évaluation",
+        "Vous pouvez suivre l'avancement ici et envoyer des rappels groupés"
+      ]
+    },
+    "managerTodo": {
+      "title": "Traiter les évaluations de votre équipe",
+      "steps": [
+        "Repérez les évaluations soumises (à reviewer) et celles en retard, mises en avant.",
+        "Ouvrez une évaluation pour la relire, la réviser ou la signer.",
+        "Lancez « Ouvrir l'entretien » pour confronter les regards et conclure le face-à-face."
+      ]
+    },
+    "interview": {
+      "title": "Comment mener l'entretien ?",
+      "steps": [
+        "Confrontez les deux réponses (auto-évaluation et regard du manager) question par question.",
+        "Commentez et actez une position commune sur chaque question.",
+        "Revoyez les objectifs de l'an dernier (atteint / partiel / non atteint).",
+        "Fixez ensemble les objectifs N+1.",
+        "Rédigez la synthèse de l'entretien.",
+        "Signez en tant que manager — l'évalué·e signe depuis sa propre fiche."
+      ]
+    },
+    "forms": {
+      "title": "Les formulaires d'évaluation",
+      "steps": [
+        "Les formulaires définissent les questions posées lors des évaluations",
+        "Créez différents types : auto-évaluation, évaluation manager, évaluation N+1",
+        "Une fois créé, associez le formulaire à une campagne lors de sa création"
+      ]
+    },
+    "evaluationDetail": {
+      "title": "Que faire sur cette évaluation ?",
+      "stepsFill": [
+        "Renseignez chaque compétence et chaque objectif demandé.",
+        "Vos réponses sont enregistrées automatiquement.",
+        "Soumettez l'évaluation une fois complète pour la transmettre au responsable."
+      ],
+      "stepsReview": [
+        "Relisez l'auto-évaluation soumise par le collaborateur.",
+        "Ajustez les scores et commentaires, fixez les objectifs N+1.",
+        "Validez la révision : le collaborateur prend ensuite connaissance et signe."
+      ],
+      "stepsSign": [
+        "Prenez connaissance de l'évaluation révisée.",
+        "Signez pour valider, ou contestez pour ouvrir un litige (arbitrage RH).",
+        "L'évalué et le manager signent chacun de leur côté."
+      ],
+      "stepsReadonly": [
+        "Cette évaluation est en lecture seule à ce stade.",
+        "Consultez le détail et l'historique des étapes ci-dessous."
+      ]
+    }
   }
 }

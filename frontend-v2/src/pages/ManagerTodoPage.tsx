@@ -152,12 +152,10 @@ export default function ManagerTodoPage() {
 
       <PageGuide
         id="manager-todo"
-        title="Traiter les évaluations de votre équipe"
-        steps={[
-          "Repérez les évaluations soumises (à reviewer) et celles en retard, mises en avant.",
-          "Ouvrez une évaluation pour la relire, la réviser ou la signer.",
-          "Lancez « Ouvrir l'entretien » pour confronter les regards et conclure le face-à-face.",
-        ]}
+        title={t("guides.managerTodo.title")}
+        steps={
+          t("guides.managerTodo.steps", { returnObjects: true }) as string[]
+        }
         color="blue"
       />
 

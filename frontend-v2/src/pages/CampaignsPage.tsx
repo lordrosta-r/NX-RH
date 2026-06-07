@@ -288,14 +288,9 @@ export default function CampaignsPage() {
 
       <PageGuide
         id="campaigns"
-        title="Comment créer une campagne d'évaluation ?"
+        title={t("guides.campaigns.title")}
         color="blue"
-        steps={[
-          "Créez d'abord vos formulaires d'évaluation dans la section Formulaires",
-          "Créez une campagne, définissez les dates et associez vos formulaires",
-          "Définissez le public cible (tous les utilisateurs, département, secteur ou groupe)",
-          "Activez la campagne — les évaluations sont générées automatiquement",
-        ]}
+        steps={t("guides.campaigns.steps", { returnObjects: true }) as string[]}
       />
 
       <PageHead

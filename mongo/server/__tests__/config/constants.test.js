@@ -44,11 +44,11 @@ describe('constants', () => {
 
   describe('EVALUATION_STATUSES', () => {
     const expected = [
-      'assigned', 'in_progress', 'submitted', 'reviewed',
+      'assigned', 'in_progress', 'submitted', 'reviewed', 'disputed',
       'signed_evaluatee', 'signed_manager', 'signed_hr', 'validated', 'expired',
       'archived', 'rejected',
     ]
-    it('has all 11 statuses', () => expect(EVALUATION_STATUSES).toHaveLength(11))
+    it('has all 12 statuses', () => expect(EVALUATION_STATUSES).toHaveLength(12))
     it('contains all expected status values', () => {
       expect(EVALUATION_STATUSES).toEqual(expect.arrayContaining(expected))
     })

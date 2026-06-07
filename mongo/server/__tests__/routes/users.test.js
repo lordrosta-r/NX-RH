@@ -144,9 +144,12 @@ describe('GET /api/users', () => {
       .get('/api/users')
       .set('Cookie', `accessToken=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
     expect(res.status).toBe(200)
+    // Le périmètre manager est exprimé via $or : [transverse, subordonnés directs]
     const [filter] = User.find.mock.calls[0]
-    expect(filter.managerId).toBe(MANAGER_ID)
-    expect(filter._id).toBeUndefined()
+    expect(filter.$or).toEqual(
+      expect.arrayContaining([{ managerId: MANAGER_ID }]),
+    )
+    expect(filter.$or.some((s) => s._id)).toBe(false) // pas de scope descendance
   })
 
   it('manager with canViewSubtree sees the whole descendant subtree, not just direct reports', async () => {
@@ -163,10 +166,11 @@ describe('GET /api/users', () => {
       .get('/api/users')
       .set('Cookie', `accessToken=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
     expect(res.status).toBe(200)
-    // Le filtre de pagination scope par _id (descendance), pas par managerId direct.
+    // Le filtre de pagination scope par _id (descendance) via $or, pas par managerId direct.
     const paginateFilter = User.find.mock.calls.at(-1)[0]
     expect(paginateFilter.managerId).toBeUndefined()
-    expect(paginateFilter._id.$in).toEqual(expect.arrayContaining([CHILD_ID, GRANDCHILD_ID]))
+    const idScope = paginateFilter.$or.find((s) => s._id)
+    expect(idScope._id.$in).toEqual(expect.arrayContaining([CHILD_ID, GRANDCHILD_ID]))
   })
 
   it('employee gets 403 (cannot list users)', async () => {

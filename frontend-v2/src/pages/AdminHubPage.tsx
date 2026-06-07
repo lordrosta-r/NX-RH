@@ -7,6 +7,7 @@ import {
   Shield,
   Upload,
   Briefcase,
+  Users,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { PageHead, Tile } from "../components/shell";
@@ -35,6 +36,24 @@ type AdminSection = {
 };
 
 const adminSections: AdminSection[] = [
+  {
+    id: "people",
+    title: "adminHub.peopleTitle",
+    icon: <Users className="w-5 h-5" />,
+    color: "blue",
+    items: [
+      {
+        label: "adminHub.peopleAccounts",
+        href: "/admin/users",
+        desc: "adminHub.peopleAccountsDesc",
+      },
+      {
+        label: "adminHub.peopleStats",
+        href: "/admin/stats",
+        desc: "adminHub.peopleStatsDesc",
+      },
+    ],
+  },
   {
     id: "system",
     title: "adminHub.sysTitle",

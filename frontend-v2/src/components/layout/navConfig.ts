@@ -65,8 +65,12 @@ export function getPerspectiveNav(
       { label: t("nav.myRequests"), href: "/mobility" },
       { label: t("nav.pdi"), href: "/pdi" },
     ],
-    // Documents RH consultables par l'employé (et tout rôle en « Mon espace »).
-    more: [{ label: t("nav.resources"), href: "/documents", group: t("nav.pilotage") }],
+    // Documents RH + calendrier des événements, consultables par l'employé
+    // (et tout rôle en « Mon espace »).
+    more: [
+      { label: t("nav.calendar"), href: "/events", group: t("nav.pilotage") },
+      { label: t("nav.resources"), href: "/documents", group: t("nav.pilotage") },
+    ],
   };
 
   if (role === "employee") return me;

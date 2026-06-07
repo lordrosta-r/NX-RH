@@ -1,6 +1,7 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Server } from "lucide-react";
+import { Server, Send } from "lucide-react";
 import { PageHead, Tile, Callout } from "@/components/shell";
 import client from "@/api/client";
 import { queryKeys } from "@/lib/queryKeys";
@@ -123,6 +124,12 @@ export default function AdminMailConfigPage() {
       <PageHead
         title="Configuration Email"
         desc="Paramètres SMTP et envoi d'emails"
+        actions={
+          <Link to="/admin/test-mail" className="btn btn-ghost">
+            <Send className="ico" style={{ width: 18, height: 18 }} /> Tester
+            l'envoi
+          </Link>
+        }
       />
 
       <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>

@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components -- router intentionally mixes lazy component declarations with the router export */
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, redirect } from "react-router-dom";
 import { lazy, Suspense } from "react";
 import AuthLayout from "../layouts/AuthLayout";
 import AppLayout from "../layouts/AppLayout";
@@ -689,12 +689,10 @@ export const router = createBrowserRouter([
         ),
       },
       {
+        // Doublon historique de /org (même composant). On redirige pour éviter
+        // deux URLs identiques.
         path: "/admin/orgchart",
-        element: (
-          <S>
-            <OrgPage />
-          </S>
-        ),
+        loader: () => redirect("/org"),
       },
     ],
   },

@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Lock, Unlock, Download, Trash2 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { useConfirm } from "../contexts/ConfirmContext";
+import Breadcrumbs from "../components/ui/Breadcrumbs";
 import { formsApi } from "../api/forms";
 import { formCategoriesApi } from "../api/formCategories";
 import type { FormQuestion, FormCategory } from "../types";
@@ -221,13 +222,13 @@ export default function FormDetailPage() {
 
   return (
     <div className="nx-app">
-      {/* Breadcrumb */}
-      <p className="eyebrow" style={{ marginBottom: 12 }}>
-        <Link to="/forms" className="link">
-          Formulaires
-        </Link>{" "}
-        › {form.title}
-      </p>
+      <Breadcrumbs
+        items={[
+          { label: "Accueil", href: "/" },
+          { label: "Formulaires", href: "/forms" },
+          { label: form.title },
+        ]}
+      />
 
       {/* Header */}
       <PageHead

@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import api from "@/api/client";
 import { queryKeys } from "@/lib/queryKeys";
 import { PageHead, Tile, Badge, Bar } from "@/components/shell";
+import Breadcrumbs from "@/components/ui/Breadcrumbs";
 import {
   CheckCircle2,
   Circle,
@@ -211,12 +212,13 @@ export default function PDIDetailPage() {
 
   return (
     <div className="nx-app">
-      <p className="eyebrow" style={{ marginBottom: 12 }}>
-        <Link to="/pdi" className="link">
-          PDIs
-        </Link>{" "}
-        › {pdi.employee.firstName} {pdi.employee.lastName}
-      </p>
+      <Breadcrumbs
+        items={[
+          { label: "Accueil", href: "/" },
+          { label: "PDI", href: "/pdi" },
+          { label: `${pdi.employee.firstName} ${pdi.employee.lastName}` },
+        ]}
+      />
 
       <PageHead
         title={`PDI — ${pdi.employee.firstName} ${pdi.employee.lastName}`}

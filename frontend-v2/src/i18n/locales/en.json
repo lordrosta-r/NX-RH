@@ -403,6 +403,11 @@
   "adminHub": {
     "title": "Configuration",
     "desc": "Access all technical and administrative settings of the platform.",
+    "peopleTitle": "Accounts & access",
+    "peopleAccounts": "Account management",
+    "peopleAccountsDesc": "Roles, status and account source",
+    "peopleStats": "Statistics",
+    "peopleStatsDesc": "Platform indicators and activity",
     "sysTitle": "System",
     "sysConfig": "System configuration",
     "sysConfigDesc": "Keys and environment variables",

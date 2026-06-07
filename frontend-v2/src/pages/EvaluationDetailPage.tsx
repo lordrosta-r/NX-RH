@@ -1,9 +1,11 @@
 import { useMemo } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
+import { MessagesSquare } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { evaluationsApi } from "../api/evaluations";
 import Breadcrumbs from "../components/ui/Breadcrumbs";
+import PageGuide from "../components/shared/PageGuide";
 import {
   EvaluationHeader,
   EvaluationSkillsForm,
@@ -15,6 +17,24 @@ import { useEvaluationForm } from "../hooks/useEvaluationForm";
 import { PageHead, Tile } from "../components/shell";
 import type { Evaluation } from "../types";
 import type { EvaluationMode } from "../types/evaluation";
+
+/** Extrait un id string depuis une valeur string ou un objet peuplé { id } / { _id } / { name }. */
+function idOf(
+  val: string | { id?: string; _id?: string } | undefined,
+): string {
+  if (!val) return "";
+  if (typeof val === "string") return val;
+  return val.id ?? val._id ?? "";
+}
+
+// Statuts pour lesquels manager/hr/admin peuvent ouvrir la Vue Entretien.
+const INTERVIEW_STATUSES = [
+  "submitted",
+  "in_progress",
+  "assigned",
+  "reviewed",
+  "signed_evaluatee",
+];
 
 interface FormSectionProps {
   evaluation: Evaluation;
@@ -135,6 +155,37 @@ export default function EvaluationDetailPage() {
     `${evaluation.evaluatee?.firstName ?? ""} ${evaluation.evaluatee?.lastName ?? ""}`.trim() ||
     "…";
 
+  const canOpenInterview =
+    (isManager || isAdminOrHr) && INTERVIEW_STATUSES.includes(status);
+  const interviewCampaignId = idOf(evaluation.campaignId);
+  const interviewEvaluateeId = evaluation.evaluateeId;
+  const interviewHref = `/interview?campaignId=${interviewCampaignId}&evaluateeId=${interviewEvaluateeId}`;
+
+  // Guide contextuel selon le mode courant.
+  const guideSteps =
+    mode === "fill"
+      ? [
+          "Renseignez chaque compétence et chaque objectif demandé.",
+          "Vos réponses sont enregistrées automatiquement.",
+          "Soumettez l'évaluation une fois complète pour la transmettre au responsable.",
+        ]
+      : mode === "review"
+        ? [
+            "Relisez l'auto-évaluation soumise par le collaborateur.",
+            "Ajustez les scores et commentaires, fixez les objectifs N+1.",
+            "Validez la révision : le collaborateur prend ensuite connaissance et signe.",
+          ]
+        : mode === "sign"
+          ? [
+              "Prenez connaissance de l'évaluation révisée.",
+              "Signez pour valider, ou contestez pour ouvrir un litige (arbitrage RH).",
+              "L'évalué et le manager signent chacun de leur côté.",
+            ]
+          : [
+              "Cette évaluation est en lecture seule à ce stade.",
+              "Consultez le détail et l'historique des étapes ci-dessous.",
+            ];
+
   return (
     <div className="nx-app">
       <Breadcrumbs
@@ -148,6 +199,25 @@ export default function EvaluationDetailPage() {
         eyebrow="Évaluation"
         title={evaluateeName}
         desc="Détail de l’évaluation et étapes associées."
+        actions={
+          canOpenInterview && interviewCampaignId ? (
+            <Link
+              to={interviewHref}
+              className="btn btn-ghost"
+              style={{ border: "1px solid var(--line)", gap: 6 }}
+            >
+              <MessagesSquare size={15} aria-hidden="true" />
+              Ouvrir l'entretien
+            </Link>
+          ) : undefined
+        }
+      />
+
+      <PageGuide
+        id="evaluation-detail"
+        title="Que faire sur cette évaluation ?"
+        steps={guideSteps}
+        color="blue"
       />
 
       <Tile className="mb-6">

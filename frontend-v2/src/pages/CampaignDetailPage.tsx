@@ -8,6 +8,7 @@ import {
 } from "../components/campaigns";
 import { useCampaignDetail } from "../hooks/useCampaignDetail";
 import { Tile } from "../components/shell";
+import Breadcrumbs from "../components/ui/Breadcrumbs";
 
 type Tab = "overview" | "evaluations" | "forms";
 
@@ -38,12 +39,13 @@ export default function CampaignDetailPage() {
 
   return (
     <div className="nx-app">
-      <p className="eyebrow" style={{ marginBottom: 12 }}>
-        <Link to="/campaigns" className="link">
-          Campagnes
-        </Link>{" "}
-        › {detail.campaign.name}
-      </p>
+      <Breadcrumbs
+        items={[
+          { label: "Accueil", href: "/" },
+          { label: "Campagnes", href: "/campaigns" },
+          { label: detail.campaign.name },
+        ]}
+      />
 
       <CampaignDetailHeader
         campaign={detail.campaign}

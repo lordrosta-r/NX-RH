@@ -36,10 +36,18 @@ const COMMON: HelpSection[] = [
     ],
   },
   {
+    title: "L'entretien individuel",
+    body: [
+      "L'entretien est le face-à-face avec votre responsable : on confronte l'auto-évaluation et le regard du manager question par question, on acte une position commune, on revoit les objectifs passés et on fixe ceux de l'année suivante (N+1).",
+      "Une synthèse d'entretien (compte-rendu commun) est rédigée à l'issue de l'échange.",
+      "La signature est double : le responsable signe le compte-rendu depuis la Vue Entretien, et vous signez de votre côté depuis votre fiche d'évaluation.",
+    ],
+  },
+  {
     title: "Signer ou contester ma prise de connaissance",
     body: [
       "Après la révision de votre responsable, vous prenez connaissance de l'évaluation. Vous pouvez ajouter un commentaire.",
-      "Si vous êtes d'accord : « Signer et valider la prise de connaissance ».",
+      "La signature est double : votre responsable signe de son côté et vous signez du vôtre. Si vous êtes d'accord : « Signer et valider la prise de connaissance ».",
       "Si vous n'êtes pas d'accord : « Contester l'évaluation » ouvre un litige transmis aux RH pour arbitrage, sans signer. Précisez votre désaccord dans le commentaire.",
     ],
   },
@@ -56,9 +64,10 @@ const MANAGER: HelpSection[] = [
   {
     title: "Le cycle d'une campagne, côté responsable",
     body: [
-      "Vous voyez les évaluations de votre équipe dans l'onglet Évaluations.",
+      "Vous voyez les évaluations de votre équipe à traiter dans l'onglet À traiter.",
       "Quand une évaluation est « soumise », vous la révisez : score global, commentaire, objectifs N+1.",
-      "Après votre révision, l'évalué prend connaissance et signe ; vous co-signez ensuite.",
+      "Vous menez ensuite l'entretien depuis la Vue Entretien (bouton « Ouvrir l'entretien ») : confrontation des réponses, objectifs N+1, synthèse.",
+      "La signature est double : vous signez le compte-rendu depuis la Vue Entretien, et l'évalué signe de son côté depuis sa fiche.",
     ],
   },
   {

@@ -6,6 +6,7 @@ import api from "@/api/client";
 import { queryKeys } from "@/lib/queryKeys";
 import { PlusCircle, ClipboardList, ChevronRight } from "lucide-react";
 import { PageHead, Tile, Badge, Bar } from "@/components/shell";
+import Breadcrumbs from "@/components/ui/Breadcrumbs";
 
 type PDIStatus = "draft" | "active" | "completed" | "archived";
 
@@ -101,15 +102,14 @@ export default function PDIPage() {
 
   return (
     <div className="nx-app">
+      <Breadcrumbs
+        items={[
+          { label: "Accueil", href: "/" },
+          { label: "PDI" },
+        ]}
+      />
+
       <PageHead
-        eyebrow={
-          <>
-            <Link to="/" className="link">
-              Accueil
-            </Link>{" "}
-            › PDI
-          </>
-        }
         title={
           <span className="row" style={{ gap: 10, alignItems: "center" }}>
             <ClipboardList

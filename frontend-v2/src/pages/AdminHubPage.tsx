@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { PageHead, Tile } from "../components/shell";
+import Breadcrumbs from "../components/ui/Breadcrumbs";
 
 // ─── Palette helpers ──────────────────────────────────────────────────────────
 
@@ -138,6 +139,13 @@ const adminSections: AdminSection[] = [
 export default function AdminHubPage() {
   return (
     <div className="nx-app">
+      <Breadcrumbs
+        items={[
+          { label: "Accueil", href: "/" },
+          { label: "Administration" },
+        ]}
+      />
+
       <PageHead
         eyebrow="Administration"
         title="Configuration"

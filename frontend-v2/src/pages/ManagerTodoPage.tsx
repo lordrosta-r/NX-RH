@@ -12,6 +12,7 @@ import { queryKeys } from "../lib/queryKeys";
 import { useTranslation } from "react-i18next";
 import { PageHead, Tile, Badge } from "../components/shell";
 import EmptyState from "../components/ui/EmptyState";
+import PageGuide from "../components/shared/PageGuide";
 import type { Evaluation } from "../types";
 
 type Tone = "blue" | "green" | "amber" | "red" | "grey";
@@ -147,6 +148,17 @@ export default function ManagerTodoPage() {
         eyebrow="Espace manager"
         title={t("nav.toProcess")}
         desc="Évaluations de vos collaborateurs qui nécessitent votre action."
+      />
+
+      <PageGuide
+        id="manager-todo"
+        title="Traiter les évaluations de votre équipe"
+        steps={[
+          "Repérez les évaluations soumises (à reviewer) et celles en retard, mises en avant.",
+          "Ouvrez une évaluation pour la relire, la réviser ou la signer.",
+          "Lancez « Ouvrir l'entretien » pour confronter les regards et conclure le face-à-face.",
+        ]}
+        color="blue"
       />
 
       {/* Compteurs rapides */}

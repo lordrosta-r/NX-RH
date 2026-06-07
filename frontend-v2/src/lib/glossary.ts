@@ -9,6 +9,26 @@ export interface GlossaryEntry {
 
 export const GLOSSARY: GlossaryEntry[] = [
   {
+    term: "Campagne",
+    definition:
+      "Cycle d'évaluation lancé par les RH sur une période et un périmètre donnés : il génère les évaluations des collaborateurs concernés.",
+  },
+  {
+    term: "Formulaire",
+    definition:
+      "Trame de questions (compétences, objectifs) utilisée dans une campagne. Il devient « gelé » dès qu'il est utilisé ; pour le faire évoluer, on le clone.",
+  },
+  {
+    term: "Évaluation",
+    definition:
+      "Le dossier d'un collaborateur dans une campagne : il suit un circuit (remplissage → soumission → révision → signature → validation RH).",
+  },
+  {
+    term: "Synthèse d'entretien",
+    definition:
+      "Le compte-rendu commun rédigé pendant l'entretien : positions actées, revue des objectifs passés et objectifs N+1, signé par le manager et l'évalué.",
+  },
+  {
     term: "PDI",
     definition:
       "Plan de Développement Individuel : vos objectifs de développement et les actions de suivi, co-signés avec votre responsable.",

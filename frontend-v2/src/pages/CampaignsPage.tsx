@@ -10,6 +10,7 @@ import { campaignsApi } from "../api/campaigns";
 import { toast } from "../hooks/useToast";
 import type { Campaign } from "../types";
 import PageGuide from "../components/shared/PageGuide";
+import Breadcrumbs from "../components/ui/Breadcrumbs";
 import { exportToCsv } from "../utils/export";
 import { queryKeys } from "../lib/queryKeys";
 import { useTranslation } from "react-i18next";
@@ -278,6 +279,13 @@ export default function CampaignsPage() {
 
   return (
     <div className="nx-app">
+      <Breadcrumbs
+        items={[
+          { label: t("campaigns.home"), href: "/" },
+          { label: t("campaigns.title") },
+        ]}
+      />
+
       <PageGuide
         id="campaigns"
         title="Comment créer une campagne d'évaluation ?"
@@ -291,14 +299,6 @@ export default function CampaignsPage() {
       />
 
       <PageHead
-        eyebrow={
-          <>
-            <Link to="/" className="link">
-              {t("campaigns.home")}
-            </Link>{" "}
-            › {t("campaigns.title")}
-          </>
-        }
         title={t("campaigns.title")}
         actions={
           <>

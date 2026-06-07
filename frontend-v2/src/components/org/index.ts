@@ -4,6 +4,7 @@ export { default as OrgLegend } from "./OrgLegend";
 export { default as OrgDragConfirmDialog } from "./OrgDragConfirmDialog";
 export type { DragTarget } from "./OrgDragConfirmDialog";
 export { default as OrgSectorsView } from "./OrgSectorsView";
+export { default as OrgDepartmentsView } from "./OrgDepartmentsView";
 export { default as OrgSidePanel } from "./OrgSidePanel";
 export { default as OrgTeamsView } from "./OrgTeamsView";
 export { default as OrgToolbar } from "./OrgToolbar";

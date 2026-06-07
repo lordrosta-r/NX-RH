@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import { Search, Filter, Globe, Users, LayoutGrid } from "lucide-react";
+import { Search, Filter, Globe, Users, LayoutGrid, Building2 } from "lucide-react";
 import type { Role } from "../../types";
 
-export type OrgView = "all" | "teams" | "sector";
+export type OrgView = "all" | "teams" | "sector" | "department";
 
 const ROLES: { value: Role; label: string; color: string }[] = [
   { value: "admin", label: "Admin", color: "#0D9488" },
@@ -65,6 +65,11 @@ export default function OrgToolbar({
           [
             { view: "all", label: "Tout", icon: <Globe size={14} /> },
             { view: "teams", label: "Équipes", icon: <Users size={14} /> },
+            {
+              view: "department",
+              label: "Départements",
+              icon: <Building2 size={14} />,
+            },
             {
               view: "sector",
               label: "Secteurs",

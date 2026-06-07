@@ -17,7 +17,7 @@
 // =============================================================================
 
 const { Evaluation, Campaign, User } = require('../models')
-const { notify } = require('./notificationService')
+const { notify } = require('./mailNotificationService')
 const logger     = require('../utils/logger')
 const { notify: notifyInApp } = require('./notificationHelper')
 const { withLock } = require('../utils/schedulerLock')

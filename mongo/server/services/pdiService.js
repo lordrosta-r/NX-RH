@@ -7,6 +7,7 @@
 
 const mongoose = require('mongoose')
 const PDI      = require('../models/PDI')
+const { User } = require('../models')
 const AppError = require('../utils/AppError')
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -50,11 +51,23 @@ function assertCanWrite(pdi, requesterId, requesterRole) {
  * Crée un nouveau PDI.
  * Seuls admin, hr ou le manager direct peuvent créer un PDI pour un employé.
  */
-async function createPDI(data, creatorId) {
+async function createPDI(data, creatorId, creatorRole) {
   const { employee, manager, period, objectives, actions, notes, campaign, evaluation } = data
 
   if (!employee || !manager) throw AppError.badRequest('employee et manager sont requis')
   if (!period?.start || !period?.end) throw AppError.badRequest('La période est requise')
+
+  // SÉCURITÉ (anti-IDOR/escalade) : seuls admin/hr peuvent créer un PDI pour
+  // n'importe qui. Un manager ne peut créer un PDI que pour SES subordonnés
+  // directs, en se désignant lui-même manager. Tout autre rôle est refusé.
+  if (!['admin', 'hr'].includes(creatorRole)) {
+    const uid = creatorId.toString()
+    const target = await User.findById(employee, 'managerId').lean()
+    const isDirectManager = target && target.managerId?.toString() === uid
+    if (creatorRole !== 'manager' || manager.toString() !== uid || !isDirectManager) {
+      throw AppError.forbidden('Création de PDI non autorisée')
+    }
+  }
 
   const pdi = await PDI.create({
     employee,

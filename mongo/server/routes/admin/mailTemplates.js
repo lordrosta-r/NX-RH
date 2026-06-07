@@ -40,7 +40,7 @@ router.patch('/:slug', async (req, res, next) => {
 
     if (reset) {
       // Re-seed depuis les templates hardcodés du notificationService
-      const { TEMPLATES } = require('../../services/notificationService')
+      const { TEMPLATES } = require('../../services/mailNotificationService')
       const templateFn    = TEMPLATES?.[slug]
       if (!templateFn) {
         return res.status(404).json({ error: `Aucun template hardcodé trouvé pour le slug "${slug}"` })

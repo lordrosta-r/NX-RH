@@ -20,7 +20,7 @@ const User   = require('../../models/User')
 const Sector = require('../../models/Sector')
 const { ROLES, BCRYPT_ROUNDS } = require('../../config/constants')
 const { getDepartments } = require('../../services/departmentsService')
-const notificationService = require('../../services/notificationService')
+const notificationService = require('../../services/mailNotificationService')
 const logger              = require('../../utils/logger')
 
 // ── Utilitaires ───────────────────────────────────────────────────────────────

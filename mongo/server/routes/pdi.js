@@ -19,7 +19,7 @@ router.get('/', async (req, res, next) => {
 // POST /api/pdi — créer un PDI
 router.post('/', async (req, res, next) => {
   try {
-    const pdi = await pdiService.createPDI(req.body, req.user.id)
+    const pdi = await pdiService.createPDI(req.body, req.user.id, req.user.role)
     return apiResponse.created(res, pdi)
   } catch (err) { next(err) }
 })

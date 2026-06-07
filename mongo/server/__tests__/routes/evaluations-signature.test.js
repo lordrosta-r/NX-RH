@@ -106,7 +106,7 @@ jest.mock('../../middleware/authGuard', () => ({
   },
 }))
 
-jest.mock('../../services/notificationService', () => ({
+jest.mock('../../services/mailNotificationService', () => ({
   notify:     jest.fn().mockResolvedValue(undefined),
   notifyMany: jest.fn().mockResolvedValue(undefined),
 }))
@@ -144,7 +144,7 @@ function buildApp() {
   app.use(express.json())
   app.use(cookieParser())
   app.use('/api/evaluations', authGuard(['admin', 'director', 'hr', 'manager', 'employee']), evalRouter)
-  // eslint-disable-next-line no-unused-vars
+   
   app.use((err, _req, res, _next) => {
     const status = err.status || err.statusCode || 500
     res.status(status).json({ error: err.message || 'Internal server error' })

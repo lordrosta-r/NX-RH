@@ -5,7 +5,7 @@
 // =============================================================================
 
 const { Campaign, User } = require('../../../models')
-const { notify }               = require('../../../services/notificationService')
+const { notify }               = require('../../../services/mailNotificationService')
 const { notify: notifyInApp }  = require('../../../services/notificationHelper')
 
 /**
@@ -52,7 +52,7 @@ async function _sendStatusNotifications(evaluation, newStatus) {
       notifyInApp(evaluation.evaluatorId, 'eval_signed_evaluatee', "Évaluation signée par l'évalué", cName).catch(() => {})
 
     } else if (newStatus === 'signed_manager') {
-      const { notifyMany } = require('../../../services/notificationService')
+      const { notifyMany } = require('../../../services/mailNotificationService')
       const hrUsers = await User.find({ role: { $in: ['hr', 'admin'] }, isActive: true }).lean()
       if (hrUsers.length) await notifyMany('evaluationSubmitted', hrUsers, { evaluatorName: 'Manager', campaignName: cName })
       for (const hrUser of hrUsers) {

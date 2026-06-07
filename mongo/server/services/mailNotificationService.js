@@ -1,13 +1,13 @@
 'use strict'
 
 // =============================================================================
-// services/notificationService.js — Business notification dispatcher
+// services/mailNotificationService.js — Business email notification dispatcher
 //
 // Sends emails based on notification keys defined in config/constants.js.
 // Checks user preferences (notificationPrefs) before sending.
 //
 // Usage:
-//   const { notify } = require('./notificationService')
+//   const { notify } = require('./mailNotificationService')
 //   await notify('evaluationAssigned', user, { campaignName, evaluatorName })
 // =============================================================================
 

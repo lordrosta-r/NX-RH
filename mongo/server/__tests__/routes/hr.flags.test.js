@@ -57,7 +57,7 @@ jest.mock('../../services/notificationHelper', () => ({
   notify: jest.fn().mockResolvedValue(undefined),
 }))
 
-jest.mock('../../services/notificationService', () => ({
+jest.mock('../../services/mailNotificationService', () => ({
   notify: jest.fn().mockResolvedValue(undefined),
 }))
 
@@ -82,7 +82,7 @@ function buildApp() {
   app.use(express.json())
   app.use(cookieParser())
   app.use('/api/hr/flags', authGuard(['admin', 'hr']), hrFlagsRouter)
-  // eslint-disable-next-line no-unused-vars
+   
   app.use((err, _req, res, _next) => {
     res.status(err.status || 500).json({ error: err.message || 'Internal server error' })
   })

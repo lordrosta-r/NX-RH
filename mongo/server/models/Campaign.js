@@ -111,7 +111,7 @@ const campaignSchema = new Schema({
     type: Boolean,
     default: true,
   },
-  // Si false : le contexte N-1 n'est visible que par manager/hr/admin/director.
+  // Si false : le contexte N-1 n'est visible que par manager/hr/admin.
   n1VisibleToEmployee: {
     type: Boolean,
     default: true,

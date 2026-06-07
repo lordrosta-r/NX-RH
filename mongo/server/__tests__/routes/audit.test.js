@@ -87,7 +87,7 @@ const ADMIN_TOKEN    = tokenFor({ id: '507f1f77bcf86cd799439011', role: 'admin' 
 const HR_TOKEN       = tokenFor({ id: '507f1f77bcf86cd799439012', role: 'hr' })
 const MANAGER_TOKEN  = tokenFor({ id: '507f1f77bcf86cd799439013', role: 'manager' })
 const EMPLOYEE_TOKEN = tokenFor({ id: '507f1f77bcf86cd799439014', role: 'employee' })
-const DIRECTOR_TOKEN = tokenFor({ id: '507f1f77bcf86cd799439015', role: 'director' })
+const INVALID_ROLE_TOKEN = tokenFor({ id: '507f1f77bcf86cd799439015', role: 'invalid_role' })
 
 // Valid MongoDB ObjectId strings used in filter tests
 const VALID_OBJECT_ID = '507f1f77bcf86cd799439099'
@@ -134,10 +134,10 @@ describe('routes/audit.js', () => {
       expect(res.status).toBe(403)
     })
 
-    it('director → 403', async () => {
+    it('unknown role → 403', async () => {
       const res = await request(app)
         .get('/api/admin/audit')
-        .set('Cookie', `accessToken=${DIRECTOR_TOKEN}`)
+        .set('Cookie', `accessToken=${INVALID_ROLE_TOKEN}`)
       expect(res.status).toBe(403)
     })
   })

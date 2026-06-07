@@ -63,7 +63,7 @@ const ADMIN_ID    = '507f1f77bcf86cd799439001'
 const HR_ID       = '507f1f77bcf86cd799439002'
 const MANAGER_ID  = '507f1f77bcf86cd799439003'
 const EMPLOYEE_ID = '507f1f77bcf86cd799439004'
-const DIRECTOR_ID = '507f1f77bcf86cd799439005'
+const INVALID_ROLE_ID = '507f1f77bcf86cd799439005'
 
 function tokenFor({ id, role }) {
   return jwt.sign({ id, email: `${role}@corp.com`, role }, SECRET, {
@@ -129,10 +129,10 @@ describe('GET /api/admin/ldap/config', () => {
     expect(res.status).toBe(403)
   })
 
-  it('returns 403 for non-admin — director', async () => {
+  it('returns 403 for non-admin — unknown role', async () => {
     const res = await request(app)
       .get('/api/admin/ldap/config')
-      .set('Cookie', `accessToken=${tokenFor({ id: DIRECTOR_ID, role: 'director' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: INVALID_ROLE_ID, role: 'invalid_role' })}`)
     expect(res.status).toBe(403)
   })
 
@@ -546,10 +546,10 @@ describe('POST /api/admin/ldap/sync', () => {
     expect(res.status).toBe(403)
   })
 
-  it('returns 403 for non-admin — director', async () => {
+  it('returns 403 for non-admin — unknown role', async () => {
     const res = await request(app)
       .post('/api/admin/ldap/sync')
-      .set('Cookie', `accessToken=${tokenFor({ id: DIRECTOR_ID, role: 'director' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: INVALID_ROLE_ID, role: 'invalid_role' })}`)
       .send({ config: {} })
     expect(res.status).toBe(403)
   })

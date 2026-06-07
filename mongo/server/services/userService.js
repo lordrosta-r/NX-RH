@@ -452,6 +452,14 @@ async function searchUsers(query, options = {}) {
 
 // ── Import en masse ───────────────────────────────────────────────────────────
 
+// Champs autorisés pour la mise à jour en masse (whitelist sécurité M7).
+// Tout champ hors liste est silencieusement ignoré, empêchant l'élévation
+// de privilèges (role:'admin', isActive:false, etc.) via l'API bulk.
+const BULK_UPSERT_ALLOWED_FIELDS = [
+  'firstName', 'lastName', 'department', 'position',
+  'sectorId', 'managerId', 'isActive', 'role',
+]
+
 /**
  * Crée ou met à jour des utilisateurs en masse (upsert par email).
  * @param {Array<object>} usersData — tableau de { email, firstName, lastName, role, department, ... }
@@ -476,12 +484,28 @@ async function bulkUpsertUsers(usersData) {
       const { email, ...rest } = userData
       const emailLower = (email || '').toLowerCase()
 
+      // Filtre la whitelist : seuls les champs autorisés sont appliqués.
+      // Protège contre toute tentative d'injection de champs sensibles
+      // (passwordHash, refreshTokens, authSource…) via l'appel en masse.
+      const safeFields = {}
+      for (const field of BULK_UPSERT_ALLOWED_FIELDS) {
+        if (Object.prototype.hasOwnProperty.call(rest, field)) {
+          safeFields[field] = rest[field]
+        }
+      }
+
       if (existingEmailSet.has(emailLower)) {
-        await User.updateOne({ email }, { $set: rest }, { runValidators: true })
+        await User.updateOne({ email }, { $set: safeFields }, { runValidators: true })
         results.updated++
       } else {
         const passwordHash = await bcrypt.hash('ChangeMe123!', BCRYPT_ROUNDS)
-        const newUser = new User({ email, ...rest, passwordHash, authSource: 'local' })
+        const newUser = new User({
+          email,
+          ...safeFields,
+          passwordHash,
+          authSource: 'local',
+          mustChangePassword: true,  // force le changement de mot de passe à la première connexion
+        })
         await newUser.save()
         results.created++
       }

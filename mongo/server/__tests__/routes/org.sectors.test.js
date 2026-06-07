@@ -52,7 +52,7 @@ function buildApp() {
   const app = express()
   app.use(express.json())
   app.use(cookieParser())
-  app.use('/api/org', authGuard(['admin', 'hr', 'manager', 'director', 'employee']), orgRouter)
+  app.use('/api/org', authGuard(['admin', 'hr', 'manager', 'employee']), orgRouter)
   // eslint-disable-next-line no-unused-vars
   app.use((err, _req, res, _next) => {
     res.status(err.status || 500).json({ error: err.message || 'Internal server error' })

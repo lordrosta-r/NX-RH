@@ -106,7 +106,7 @@ process.env.NODE_ENV   = 'test'
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 const ADMIN_ID    = '507f1f77bcf86cd799439001'
 const HR_ID       = '507f1f77bcf86cd799439002'
-const DIRECTOR_ID = '507f1f77bcf86cd799439003'
+const INVALID_ROLE_ID = '507f1f77bcf86cd799439003'
 const MANAGER_ID  = '507f1f77bcf86cd799439004'
 const EMPLOYEE_ID = '507f1f77bcf86cd799439005'
 const CAMPAIGN_ID = '507f1f77bcf86cd799439010'
@@ -124,7 +124,7 @@ function buildApp() {
   app.use(cookieParser())
   app.use(
     '/api/campaigns',
-    authGuard(['admin', 'hr', 'director', 'manager', 'employee']),
+    authGuard(['admin', 'hr', 'manager', 'employee']),
     campaignRouter,
   )
    
@@ -328,10 +328,10 @@ describe('POST /api/campaigns', () => {
     expect(res.status).toBe(403)
   })
 
-  it('returns 403 for director', async () => {
+  it('returns 403 for unknown role', async () => {
     const res = await request(app)
       .post('/api/campaigns')
-      .set('Cookie', `accessToken=${tokenFor({ id: DIRECTOR_ID, role: 'director' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: INVALID_ROLE_ID, role: 'invalid_role' })}`)
       .send({ name: 'Camp', startDate: '2025-01-01', endDate: '2025-03-31', formId: FORM_ID })
     expect(res.status).toBe(403)
   })

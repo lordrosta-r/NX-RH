@@ -96,7 +96,7 @@ function buildApp() {
   app.use(express.json())
   app.use(cookieParser())
   // Mirror the middleware stack used in index.js: auth guard + router
-  app.use('/api/users', authGuard(['admin', 'director', 'hr', 'manager', 'employee']), userRouter)
+  app.use('/api/users', authGuard(['admin', 'hr', 'manager', 'employee']), userRouter)
    
   app.use((err, _req, res, _next) => {
     res.status(err.status || 500).json({ error: err.message || 'Internal server error' })

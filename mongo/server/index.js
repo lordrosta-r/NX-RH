@@ -104,6 +104,9 @@ app.use(helmet({
   hsts: process.env.NODE_ENV === 'production'
     ? { maxAge: 31536000, includeSubDomains: true }
     : false,
+  // X-XSS-Protection retiré (M10) : header déprécié, absent de helmet v7 par défaut.
+  // Sur IE/Edge legacy il peut introduire des vecteurs XSS ; la CSP couvre ce risque.
+  xXssProtection: false,
 }))
 app.use((_req, res, next) => {
   // X-Frame-Options géré par Helmet (frameguard) — pas redéfini ici
@@ -149,8 +152,21 @@ app.use((req, res, next) => {
 app.use(express.static(PUBLIC_DIR, { extensions: [] }))
 
 // ─── Health check ────────────────────────────────────────────────────────────
+// Route publique : répond uniquement { status } pour ne pas exposer de
+// métadonnées système (version, mémoire, pool DB…) aux attaquants (M9).
+// Le HEALTHCHECK Docker teste cette route → doit rester 200 quand DB est up.
 
 app.get('/api/health', async (_req, res) => {
+  const dbState = require('mongoose').connection.readyState
+  const ok      = dbState === 1
+  return res.status(ok ? 200 : 503).json({ status: ok ? 'ok' : 'degraded' })
+})
+
+// Route détaillée réservée aux administrateurs (M9).
+// Contient toutes les métriques internes : version, mémoire, pool MongoDB,
+// locks scheduler, cache — informations utiles pour le monitoring interne
+// mais trop révélatrices pour une exposition publique.
+app.get('/api/health/detail', authGuard(['admin']), async (_req, res) => {
   const mongoose            = require('mongoose')
   const cache               = require('./utils/cache')
   const { getMetrics }      = require('./utils/metrics')

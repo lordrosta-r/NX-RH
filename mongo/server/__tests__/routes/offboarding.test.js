@@ -97,7 +97,7 @@ const ADMIN_ID    = '507f1f77bcf86cd799439001'
 const HR_ID       = '507f1f77bcf86cd799439002'
 const MANAGER_ID  = '507f1f77bcf86cd799439003'
 const EMPLOYEE_ID = '507f1f77bcf86cd799439004'
-const DIRECTOR_ID = '507f1f77bcf86cd799439005'
+const INVALID_ROLE_ID = '507f1f77bcf86cd799439005'
 const USER_ID     = '507f1f77bcf86cd799439006'
 const VALID_ID    = '507f1f77bcf86cd799439011'
 
@@ -170,10 +170,10 @@ describe('POST /api/offboarding', () => {
     expect(res.status).toBe(403)
   })
 
-  it('403 for director (caught by authGuard)', async () => {
+  it('403 for unknown role (caught by authGuard)', async () => {
     const res = await supertest(app)
       .post('/api/offboarding')
-      .set('Cookie', `accessToken=${tokenFor({ id: DIRECTOR_ID, role: 'director' })}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: INVALID_ROLE_ID, role: 'invalid_role' })}`)
       .send({ userId: USER_ID, reason: 'resignation', lastDay: '2025-12-31' })
     expect(res.status).toBe(403)
   })

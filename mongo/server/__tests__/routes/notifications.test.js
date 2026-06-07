@@ -87,7 +87,7 @@ function buildApp() {
   // Mirror index.js: auth applied at mount, not inside the router
   app.use(
     '/api/notifications',
-    authGuard(['admin', 'hr', 'director', 'manager', 'employee']),
+    authGuard(['admin', 'hr', 'manager', 'employee']),
     notificationsRouter,
   )
   // eslint-disable-next-line no-unused-vars

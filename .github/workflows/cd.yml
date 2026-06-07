@@ -16,7 +16,21 @@ jobs:
         run: docker build -t nxrh:${{ github.sha }} .
       - name: Test container starts
         run: |
-          docker run -d --name nxrh-test -e NODE_ENV=production -e MONGO_URI=mongodb://host.docker.internal:27017/test -e JWT_SECRET=ci_secret nxrh:${{ github.sha }}
-          sleep 5
+          # Réseau + MongoDB jetable pour un smoke test réaliste.
+          docker network create nxnet
+          docker run -d --name mongo --network nxnet mongo:7
+          # Secrets conformes à la validation de sécurité au boot :
+          # JWT_SECRET ≥32 car. (sans motif dev), JWT_REFRESH_SECRET distinct ≥32 car.
+          JWT_SECRET=$(openssl rand -hex 32)
+          JWT_REFRESH_SECRET=$(openssl rand -hex 32)
+          docker run -d --name nxrh-test --network nxnet \
+            -e NODE_ENV=production \
+            -e MONGO_URI=mongodb://mongo:27017/test \
+            -e JWT_SECRET="$JWT_SECRET" \
+            -e JWT_REFRESH_SECRET="$JWT_REFRESH_SECRET" \
+            nxrh:${{ github.sha }}
+          sleep 10
           docker ps | grep nxrh-test || (docker logs nxrh-test && exit 1)
-          docker stop nxrh-test
+          # Vérifier que l'app a bien démarré (et pas seulement que le process tourne).
+          docker logs nxrh-test 2>&1 | grep -q "NanoXplore RH démarré" || (docker logs nxrh-test && exit 1)
+          docker stop nxrh-test mongo

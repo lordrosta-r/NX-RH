@@ -15,6 +15,7 @@ import {
   OrgLegend,
   OrgDragConfirmDialog,
   OrgSectorsView,
+  OrgDepartmentsView,
   OrgSidePanel,
   OrgTeamsView,
   OrgToolbar,
@@ -88,6 +89,8 @@ function OrgFlowInner() {
 
   if (chart.activeView === "teams")
     return <OrgTeamsView data={chart.teamsData} toolbar={header} />;
+  if (chart.activeView === "department")
+    return <OrgDepartmentsView data={chart.departmentData} toolbar={header} />;
   if (chart.activeView === "sector")
     return <OrgSectorsView data={chart.sectorData} toolbar={header} />;
 

@@ -68,11 +68,23 @@ function getDescendants(id: string, nodes: OrgTreeNode[]): Set<string> {
   return desc;
 }
 
+// ─── Vue « Départements » : arbre imbriqué par département ────────────────────
+export interface DepartmentTreeNode {
+  user: OrgNodeData;
+  children: DepartmentTreeNode[];
+}
+export interface DepartmentGroup {
+  department: string;
+  count: number;
+  roots: DepartmentTreeNode[];
+}
+
 // ─── Return type ─────────────────────────────────────────────────────────────
 
 export interface UseOrgChartReturn {
   activeView: OrgView;
   setActiveView: (v: OrgView) => void;
+  departmentData: DepartmentGroup[];
   searchQuery: string;
   setSearchQuery: (q: string) => void;
   activeRoles: Role[];
@@ -123,7 +135,7 @@ export function useOrgChart(): UseOrgChartReturn {
     queryKey: ["org", "tree"],
     queryFn: () => orgApi.getOrgTree().then((r) => r.data),
     staleTime: 5 * 60 * 1000,
-    enabled: activeView === "all",
+    enabled: activeView === "all" || activeView === "department",
   });
 
   const { data: teamsData = [], isLoading: teamsLoading } = useQuery({
@@ -185,6 +197,49 @@ export function useOrgChart(): UseOrgChartReturn {
     () => layoutNodes.map((n) => n.data),
     [layoutNodes],
   );
+
+  // ─── Vue « Départements » : un arbre imbriqué par département ────────────────
+  // Chaque département remonte à son responsable (la personne dont le manager
+  // est hors du département, ou sans manager). Tentaculaire : sous-équipes en
+  // cascade via managerId, à l'intérieur du périmètre du département.
+  const departmentData = useMemo<DepartmentGroup[]>(() => {
+    if (activeView !== "department" || allUsersData.length === 0) return [];
+    const byDept = new Map<string, OrgNodeData[]>();
+    for (const u of allUsersData) {
+      const dept = u.department?.trim() || "Sans département";
+      if (!byDept.has(dept)) byDept.set(dept, []);
+      byDept.get(dept)!.push(u);
+    }
+    const groups: DepartmentGroup[] = [];
+    for (const [department, members] of byDept) {
+      const ids = new Set(members.map((m) => m.id));
+      const childrenOf = new Map<string, OrgNodeData[]>();
+      const roots: OrgNodeData[] = [];
+      for (const m of members) {
+        const mgr = m.managerId;
+        if (mgr && ids.has(mgr)) {
+          if (!childrenOf.has(mgr)) childrenOf.set(mgr, []);
+          childrenOf.get(mgr)!.push(m);
+        } else {
+          roots.push(m); // responsable du département (manager hors périmètre)
+        }
+      }
+      const build = (u: OrgNodeData): DepartmentTreeNode => ({
+        user: u,
+        children: (childrenOf.get(u.id) ?? [])
+          .sort((a, b) => a.lastName.localeCompare(b.lastName))
+          .map(build),
+      });
+      groups.push({
+        department,
+        count: members.length,
+        roots: roots
+          .sort((a, b) => a.lastName.localeCompare(b.lastName))
+          .map(build),
+      });
+    }
+    return groups.sort((a, b) => b.count - a.count);
+  }, [activeView, allUsersData]);
 
   // ─── Filter logic ──────────────────────────────────────────────────────────
 
@@ -398,6 +453,7 @@ export function useOrgChart(): UseOrgChartReturn {
     setDragTarget,
     teamsData,
     sectorData,
+    departmentData,
     sectors,
     isLoading: treeLoading || teamsLoading || sectorLoading,
     styledNodes,

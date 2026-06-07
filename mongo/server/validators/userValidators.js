@@ -1,0 +1,48 @@
+'use strict'
+
+// =============================================================================
+// validators/userValidators.js — Schémas Joi pour les utilisateurs
+// =============================================================================
+
+const Joi = require('joi')
+
+const ROLES = ['admin', 'hr', 'manager', 'employee']
+
+const objectId = Joi.string().hex().length(24).messages({
+  'string.hex':    '{{#label}} doit être un ObjectId hexadécimal valide',
+  'string.length': '{{#label}} doit faire 24 caractères',
+})
+
+const createUser = Joi.object({
+  firstName:   Joi.string().min(1).max(80).required(),
+  lastName:    Joi.string().min(1).max(80).required(),
+  email:       Joi.string().email({ tlds: { allow: false } }).required(),
+  role:        Joi.string().valid(...ROLES).required(),
+  department:  Joi.string().max(120).optional().allow(''),
+  managerId:   objectId.optional().allow(null),
+  password:    Joi.string().min(8).max(128).optional(), // optionnel si LDAP
+})
+
+const updateUser = Joi.object({
+  firstName:  Joi.string().min(1).max(80).optional(),
+  lastName:   Joi.string().min(1).max(80).optional(),
+  email:      Joi.string().email({ tlds: { allow: false } }).optional(),
+  role:       Joi.string().valid(...ROLES).optional(),
+  department: Joi.string().max(120).optional().allow('', null),
+  position:   Joi.string().max(150).optional().allow('', null),
+  managerId:  objectId.optional().allow(null),
+  // Champ d'instruction (non persisté) : remplaçant qui récupère l'équipe
+  // lorsqu'on retire le rôle manager à un utilisateur ayant des subordonnés.
+  replacementManagerId: objectId.optional().allow(null),
+  isActive:   Joi.boolean().optional(),
+  canViewSubtree: Joi.boolean().optional(),
+  phone:      Joi.string().max(30).optional().allow('', null),
+  avatar:     Joi.string().max(500).optional().allow('', null),
+}).min(1)
+
+const changePassword = Joi.object({
+  currentPassword: Joi.string().required(),
+  newPassword:     Joi.string().min(8).max(128).required(),
+})
+
+module.exports = { createUser, updateUser, changePassword }

@@ -1,0 +1,35 @@
+'use strict'
+
+// =============================================================================
+// models/AuditLog.js — Piste d'audit des actions métier
+//
+// TTL : expire automatiquement après 2 ans (MongoDB TTL index)
+// Index : userId + createdAt, targetId + createdAt
+// =============================================================================
+
+const { Schema, model } = require('mongoose')
+const { AUDIT_ACTIONS } = require('../config/constants')
+
+const TWO_YEARS_SECONDS = 2 * 365 * 24 * 60 * 60  // 63 072 000 s
+
+const auditLogSchema = new Schema({
+  userId:     { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  userRole:   { type: String, enum: ['admin', 'hr', 'manager', 'employee'] },
+  action:     { type: String, required: true, enum: AUDIT_ACTIONS },
+  targetType: { type: String, required: true },   // 'Evaluation', 'Campaign', 'User'
+  targetId:   { type: Schema.Types.ObjectId, required: true },
+  meta:       { type: Schema.Types.Mixed, default: {} },
+  createdAt:  { type: Date, default: Date.now },
+}, { timestamps: false })
+
+// TTL — MongoDB supprime automatiquement les documents après 2 ans
+auditLogSchema.index({ createdAt: 1 }, { expireAfterSeconds: TWO_YEARS_SECONDS })
+auditLogSchema.index({ action: 1 })
+auditLogSchema.index({ userRole: 1 })
+
+// Index composites pour les requêtes fréquentes
+auditLogSchema.index({ userId:     1, createdAt: -1 })
+auditLogSchema.index({ targetId:   1, createdAt: -1 })
+auditLogSchema.index({ targetType: 1, createdAt: -1 })
+
+module.exports = model('AuditLog', auditLogSchema)

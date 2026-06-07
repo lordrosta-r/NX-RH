@@ -1,0 +1,22 @@
+# Environment files — only .env.test (fake credentials) may be committed
+.env
+.env.local
+.env.production
+.env.staging
+
+# Dependencies
+node_modules/
+
+# Logs
+logs/
+*.log
+
+# Coverage
+coverage/
+
+# Uploads
+uploads/
+uploads-test/
+
+# OS
+.DS_Store

@@ -1,5 +1,11 @@
 # NanoXplore RH — Conventions & Architecture
 
+> 🔁 **Anti-duplication (obligatoire avant toute création).** Avant de créer un nouveau lien
+> de navigation, une route, une clé i18n, un composant ou tout autre élément nommé, **rechercher
+> d'abord son nom dans le repo** (`grep`/`find` sur le label, la clé, le `href` ou le nom de
+> fichier). S'il existe déjà quelque part, **réutiliser/déplacer l'existant** au lieu d'en créer
+> un doublon. Ne jamais introduire un second élément qui fait la même chose sous un autre nom.
+
 ## Principe directeur : K.I.S.S.
 
 > Keep It Simple, Stupid.
@@ -7,223 +13,363 @@
 
 ---
 
-## 1. Structure des pages — Co-location absolue
+## 1. Architecture — SPA (Single-Page Application)
 
-Chaque page est un **dossier autonome**. Tout ce qui appartient à une page vit dedans.
+L'application est une **SPA** avec un seul point d'entrée Vite/React :
 
 ```
-client/src/pages/<page>/
-├── main.jsx              ← Entry point Vite (NE PAS MODIFIER)
-├── <Page>.jsx            ← Composant racine de la page
-├── <page>.css            ← Tous les styles de cette page
-├── <Composant>.jsx       ← Composant UI spécifique à cette page
-├── <Composant>.css       ← Styles du composant (même dossier)
-└── i18n/
-    ├── fr.js             ← Chaînes françaises de cette page
-    ├── en.js             ← Chaînes anglaises de cette page
-    └── index.js          ← export const t = makeT({ fr, en })
+frontend-v2/index.html  →  src/main.tsx  →  <App />  →  <RouterProvider router={router} />
 ```
 
-**Règle :** un composant utilisé sur UNE SEULE page → il vit dans le dossier de cette page.
-**Règle :** un composant utilisé sur PLUSIEURS pages → il va dans `components/ui/`.
+`router` est défini dans `frontend-v2/src/router/index.tsx` via `createBrowserRouter` (React Router v6).
+Express ne sert qu'une seule réponse HTML pour toutes les routes non-API :
+
+```
+GET /login        → AuthLayout + LoginPage
+GET /login/ldap   → AuthLayout + LoginLdapPage
+GET /api/*        → handlers Express
+GET /*            → AppLayout (SPA fallback)
+```
+
+### Arbre de routes (depuis `src/router/index.tsx`)
+
+```
+/login                         ← public, AuthLayout
+/login/ldap                    ← public, AuthLayout
+/confidentialite               ← public, LegalLayout
+/mentions-legales              ← public, LegalLayout
+/accessibilite                 ← public, LegalLayout
+/unauthorized                  ← public, 403
+*                              ← public, 404
+
+/                              ← AuthGuard → AppLayout → DashboardPage
+/users                         ← admin | hr | manager
+/users/new                     ← admin | hr
+/users/:id                     ← admin | hr | manager
+/users/:id/edit                ← admin | hr
+/users/groups                  ← admin | hr
+/campaigns                     ← tous les rôles authentifiés
+/campaigns/new                 ← admin | hr
+/campaigns/:id                 ← tous les rôles authentifiés
+/campaigns/:id/edit            ← admin | hr
+/campaigns/:id/analytics       ← admin | hr | manager
+/forms                         ← tous les rôles authentifiés
+/forms/new                     ← admin | hr
+/forms/:id                     ← tous les rôles authentifiés
+/evaluations                   ← tous les rôles authentifiés
+/evaluations/history           ← tous les rôles authentifiés
+/evaluations/new               ← admin | hr
+/evaluations/:id               ← tous les rôles authentifiés
+/events                        ← tous les rôles authentifiés
+/events/:id                    ← tous les rôles authentifiés
+/resources                     ← tous les rôles authentifiés
+/resources/:id                 ← tous les rôles authentifiés
+/help                          ← tous les rôles authentifiés
+/mobility                      ← tous les rôles authentifiés
+/manager/todo                  ← manager | hr | admin
+/interview                     ← manager | hr | admin
+/pdi                           ← tous les rôles authentifiés
+/pdi/:id                       ← tous les rôles authentifiés
+/hr/flags                      ← admin | hr
+/hr/flags/:id                  ← admin | hr
+/analytics                     ← admin | hr | manager
+/analytics/campaigns/:id       ← admin | hr | manager
+/profile                       ← tous les rôles authentifiés
+/profile/preferences           ← tous les rôles authentifiés
+/notifications                 ← tous les rôles authentifiés
+/org                           ← AuthGuard → OrgLayout (plein écran)
+/admin                         ← admin | hr
+/admin/users                   ← admin | hr
+/admin/settings                ← admin | hr  (alias /hr/settings)
+/hr/settings                   ← admin | hr  (alias /admin/settings)
+/admin/users/import            ← admin | hr
+/admin/forms/import            ← admin | hr
+/admin/ldap                    ← admin
+/admin/audit                   ← admin | hr
+/admin/config                  ← admin
+/admin/mail-config             ← admin
+/admin/mail-templates          ← admin | hr
+/admin/status                  ← admin
+/admin/setup                   ← admin
+/admin/test-mail               ← admin
+/admin/stats                   ← admin | hr
+/admin/departments             ← admin | hr
+/admin/orgchart                ← AuthGuard → OrgLayout (plein écran)
+```
+
+### Simplification des rôles
+
+- Le rôle produit `director` n'existe plus.
+- Un manager peut superviser d'autres managers via la hiérarchie sans portail ni UX dédiés.
+- Toute supervision multi-équipes est absorbée par `/manager/todo`, pas par une route ou page séparée.
+- Si des comptes legacy `director` existent côté backend, ils sont traités comme des managers.
 
 ---
 
-## 2. Composants partagés — `components/ui/`
-
-Réservé aux composants **100% réutilisables, sans logique métier** :
+## 2. Structure des fichiers
 
 ```
-client/src/components/ui/
-├── AppSidebar.jsx + AppSidebar.css  ← Sidebar partagée toutes pages internes
-├── CalendarWidget.jsx + CalendarWidget.css  ← Calendrier partagé
-├── Button.jsx + Button.css
-├── InputField.jsx + InputField.css
-├── Checkbox.jsx + Checkbox.css
-├── ThemeToggle.jsx + ThemeToggle.css
-└── icons/
-    ├── SunIcon.jsx          ← Login — thème
-    ├── MoonIcon.jsx         ← Login — thème
-    ├── GlobeIcon.jsx        ← Login — langue
-    ├── HomeIcon.jsx         ← Inner app nav — Dashboard
-    ├── ClipboardIcon.jsx    ← Inner app nav — Évaluation
-    ├── TrendIcon.jsx        ← Inner app nav — Progression / Rapports
-    ├── GearIcon.jsx         ← Inner app nav — Paramètres
-    ├── BellIcon.jsx         ← Inner app — Notifications
-    ├── SearchIcon.jsx       ← Inner app — Recherche
-    ├── ArrowNEIcon.jsx      ← Inner app — Cartes interactives
-    ├── ChevronRightIcon.jsx ← Inner app — Liens inline
-    ├── HelpIcon.jsx         ← Inner app — Aide topbar
-    ├── PaletteIcon.jsx      ← Inner app — Cycle thème topbar
-    ├── DocumentIcon.jsx     ← Inner app — Form Editor
-    ├── FolderIcon.jsx       ← Inner app — Ressources HR
-    ├── PlusIcon.jsx         ← Inner app — Form Editor (ajouter un champ)
-    ├── TrashIcon.jsx        ← Inner app — Form Editor (supprimer un champ)
-    └── index.js             ← barrel export
+frontend-v2/
+├── index.html                 ← entrée unique SPA (anti-flash theme inline script)
+├── src/
+│   ├── main.tsx               ← ErrorBoundary + QueryClientProvider + AuthProvider + ConfirmProvider + App
+│   ├── App.tsx                ← <RouterProvider router={router} />
+│   ├── i18n.ts                ← configuration i18next (LanguageDetector + resources fr/en)
+│   ├── router/
+│   │   └── index.tsx          ← createBrowserRouter, toutes les routes, lazy imports
+│   ├── contexts/
+│   │   ├── AuthContext.tsx    ← { user, isLoading, isAuthenticated, login, loginLdap, logout, refreshUser }
+│   │   ├── PerspectiveContext.tsx ← { perspective, setPerspective, hasSwitch } — "me" | "work"
+│   │   └── ConfirmContext.tsx ← useConfirm() pour les confirmations destructrices
+│   ├── layouts/
+│   │   ├── AppLayout.tsx      ← shell authentifié principal (nav + <Outlet />)
+│   │   ├── AuthLayout.tsx     ← shell pages login
+│   │   ├── OrgLayout.tsx      ← plein écran pour l'organigramme
+│   │   └── LegalLayout.tsx    ← shell pages légales
+│   ├── components/
+│   │   ├── ui/                ← composants 100 % réutilisables, sans logique métier
+│   │   ├── shared/
+│   │   │   └── AuthGuard.tsx  ← <AuthGuard roles={[…]}> (remplace ProtectedRoute legacy)
+│   │   ├── layout/
+│   │   │   └── navConfig.ts   ← getPerspectiveNav(role, perspective, t)
+│   │   └── …/                 ← autres sous-dossiers par domaine
+│   ├── pages/                 ← une page = un fichier, pas de sous-dossiers par domaine
+│   ├── api/                   ← fonctions axios par domaine (auth, users, campaigns…)
+│   ├── hooks/                 ← hooks custom (useCampaignDetail, useConfirm, useModal…)
+│   ├── features/              ← modules verticaux (campaigns/, evaluations/)
+│   ├── types/                 ← types TypeScript partagés (User, Role, …)
+│   ├── lib/                   ← utilitaires généraux (queryClient, …)
+│   ├── schemas/               ← schémas Zod
+│   ├── stores/                ← (état local minimal hors TanStack Query)
+│   ├── utils/                 ← fonctions utilitaires pures
+│   ├── i18n/
+│   │   └── locales/
+│   │       ├── fr.json        ← traductions françaises (source principale)
+│   │       └── en.json        ← traductions anglaises
+│   └── styles/
+│       └── tokens.css         ← CSS custom properties (source de vérité design)
+└── vite.config.ts             ← plugins, proxy /api → Express
 ```
 
-**Ne jamais** mettre de logique métier, d'appels API ou d'état applicatif ici.
+### Co-location : règle de base
+
+| Situation | Où mettre le fichier |
+|-----------|----------------------|
+| Composant utilisé sur **une seule page** | `pages/<Page>/` ou co-localisé dans `pages/` |
+| Composant utilisé sur **plusieurs pages** | `components/ui/` |
+| Logique métier verticale réutilisable | `features/<domaine>/` |
+| Hook (logique réutilisable) | `hooks/` |
+| Contexte global (auth, perspective) | `contexts/` |
 
 ---
 
-## 3. Infrastructure partagée
+## 3. Contextes globaux
 
+Trois contextes disponibles partout via leur hook :
+
+### `AuthContext`
+```ts
+const { user, isLoading, isAuthenticated, login, loginLdap, logout, refreshUser } = useAuth()
+// user : User | null  (User inclut _id, name, role, email, …)
+// isLoading : true pendant le fetch /api/auth/me initial
+// logout : appelle l'API de déconnexion + redirect /login
 ```
-client/src/
-├── hooks/
-│   ├── useTheme.js       ← dark/light, écrit data-theme sur <html>
-│   └── useLocale.js      ← locale + t() réactif, prend un pageT en paramètre
-├── i18n/
-│   └── index.js          ← makeT() factory UNIQUEMENT — pas de données locale ici
-└── styles/
-    ├── tokens.css         ← Variables de design (couleurs, radius, typo, sidebar)
-    ├── theme.css          ← Variables --th-* pour dark/light (login page)
-    └── global.css         ← Reset + imports tokens + theme
+
+### `PerspectiveContext`
+```ts
+const { perspective, setPerspective, hasSwitch } = usePerspective()
+// perspective : "me" | "work"
+// hasSwitch : true si le rôle a deux perspectives (manager / hr / admin)
+// employee : toujours "me", pas de switch
+```
+
+### `ConfirmContext`
+```ts
+const confirm = useConfirm()
+// await confirm({ title, message, confirmLabel? }) → boolean
+// Utilisé pour toutes les actions destructrices (suppression, archivage…)
 ```
 
 ---
 
-## 4. Deux familles de pages — design distinct
+## 4. Layouts
 
-### 4a. Page login (`/`)
-- Fond noir cinématique avec mosaic photos
-- Variables `--th-*` pour dark/light toggle
-- Anti-flash : script inline dans `login.html` qui applique `data-theme` avant React
-- Scroll désactivé (`height: 100dvh; overflow: hidden`)
-- Design ref : `docs/design/login/DESIGN.md`
+### `AppLayout`
 
-### 4b. Pages internes (`/dashboard`, `/hr`, `/manager`, `/formeditor`…)
-- **Sidebar** : couleur via `--color-sidebar` (dark violet par défaut, overridé par `data-theme`)
-- Partagée via `components/ui/AppSidebar.jsx` — chaque page fournit ses `navItems`
-- **Contenu "Editorial Enterprise"** : fond `--color-surface` (#fcf9f8), typographie Inter 900
-- **3 thèmes** : `dark` · `light` · `light-sidebar` (cycle via `useTheme().cycleTheme`)
-- **Scroll normal** — le contenu doit pouvoir s'étendre
-- Design ref : `docs/design/dashboard/DESIGN.md`
+Shell partagé pour toutes les pages internes. Contient la barre de navigation
+(items calculés par `getPerspectiveNav(role, perspective, t)`) et un `<Outlet />`.
+
+### `AuthGuard`
+
+Composant de protection des routes. Redirige vers `/login` si non authentifié,
+vers `/unauthorized` si le rôle ne correspond pas.
+
+```tsx
+// Protection par rôle (dans router/index.tsx)
+<AuthGuard roles={["hr", "admin"]}>
+  <S><HrFlagsPage /></S>
+</AuthGuard>
+
+// Protection globale sans restriction de rôle
+<AuthGuard>
+  <AppLayout />
+</AuthGuard>
+```
+
+### Navigation
+
+La navigation est calculée côté client par `getPerspectiveNav(role, perspective, t)` définie dans
+`frontend-v2/src/components/layout/navConfig.ts`. Elle retourne `{ primary, more }` selon
+le rôle ET la perspective active de l'utilisateur.
 
 ---
 
-## 5. Ajouter une nouvelle page
+## 5. CSS — Tailwind v3 + CSS custom properties
+
+### Règles de style
+
+| Faire | Ne pas faire |
+|-------|-------------|
+| Tailwind utilities pour le layout, l'espacement, la typo | Frameworks alternatifs (Bootstrap, MUI…) |
+| `var(--color-*)` pour les couleurs brand | Hardcoder des valeurs hex dans les composants |
+| Classes Tailwind pour les nouveaux composants | Styles inline (`style={{}}`) pour les layouts |
+| `tokens.css` comme source de vérité des tokens | Modifier les tokens pour des one-offs |
+
+### Thèmes
+
+- Thème persisté en `localStorage`, appliqué via `data-theme` sur `<html>`
+- **Anti-flash** : script inline dans `index.html` qui lit `localStorage` avant React
+
+---
+
+## 6. Data fetching — TanStack Query v5
+
+```ts
+// Fetch standard
+const { data, isLoading, error } = useQuery({
+  queryKey: ['campaigns'],
+  queryFn: () => campaignsApi.getAll(),
+})
+
+// Mutation
+const mutation = useMutation({
+  mutationFn: (payload) => campaignsApi.create(payload),
+  onSuccess: () => queryClient.invalidateQueries({ queryKey: ['campaigns'] }),
+})
+```
+
+- `QueryClient` configuré dans `src/lib/queryClient.ts`, monté une seule fois dans `main.tsx`
+- Les fonctions API sont dans `src/api/` (axios, pas de `fetch` nu)
+- Erreur 401 → intercepteur axios global dans `src/api/client.ts` → redirect `/login`
+
+---
+
+## 7. Icônes
+
+**Bibliothèque unique : `lucide-react`**
+
+```tsx
+import { Home, Bell, Settings } from 'lucide-react'
+<Home size={18} strokeWidth={1.5} aria-hidden="true" />
+```
+
+- Toujours SVG stroke, jamais emoji ni font-icon
+- Props standard : `size` (défaut 18), `color` (défaut `currentColor`), `strokeWidth` (défaut 1.5)
+
+---
+
+## 8. i18n — react-i18next
+
+Configuration dans `src/i18n.ts` (chargé en premier import de `main.tsx`).
+Traductions dans `src/i18n/locales/fr.json` et `en.json` (un seul namespace `translation`).
+Détection automatique de la langue via `localStorage` puis `navigator`.
+
+```ts
+// Dans un composant :
+import { useTranslation } from 'react-i18next'
+const { t } = useTranslation()
+// t('nav.campaigns'), t('evaluations.status.pending'), …
+```
+
+Clés : format `<domaine>.<section>.<élément>` (ex : `nav.campaigns`, `evaluations.title`).
+
+---
+
+## 9. Ajouter une nouvelle page
 
 ```bash
-# 1. Créer le dossier
-mkdir -p client/src/pages/<page>/i18n
+# 1. Créer le composant dans frontend-v2/src/pages/
+# frontend-v2/src/pages/MaNouvellePage.tsx
 
-# 2. Fichiers minimaux
-touch client/src/pages/<page>/main.jsx
-touch client/src/pages/<page>/<Page>.jsx
-touch client/src/pages/<page>/<page>.css
-touch client/src/pages/<page>/i18n/fr.js
-touch client/src/pages/<page>/i18n/en.js
-touch client/src/pages/<page>/i18n/index.js
+# 2. Enregistrer un import lazy dans src/router/index.tsx
+const MaNouvellePage = lazy(() => import('../pages/MaNouvellePage'))
 
-# 3. Enregistrer dans Vite (client/vite.config.js → rollupOptions.input)
-# 4. Enregistrer dans Express (server/index.js → app.get('/route', ...))
-# 5. Créer le HTML entry (client/<page>.html)
-```
-
----
-
-## 6. CSS — Règles strictes
-
-| ✅ Faire | ❌ Ne pas faire |
-|----------|----------------|
-| Utiliser `var(--th-*)` pour les couleurs de la page login | Hardcoder `#ffffff`, `rgba(...)` dans les composants |
-| Utiliser `var(--color-*)` pour les tokens de brand et pages internes | Utiliser Tailwind ou un framework CSS |
-| Un `.css` par `.jsx` dans le même dossier | Mettre les styles d'une page dans `global.css` |
-| Sections commentées dans le CSS | Écrire du CSS sans commentaires de contexte |
-| Pages internes : `var(--color-sidebar-*)` pour la sidebar | Hardcoder la couleur `#2e1065` directement |
-
----
-
-## 7. Traductions — i18n page par page
-
-Chaque page gère ses propres chaînes. L'engine `makeT` est partagé, les données ne le sont pas.
-
-```js
-// pages/<page>/i18n/index.js
-import fr from './fr'
-import en from './en'
-import { makeT } from '../../../i18n'
-export const t = makeT({ fr, en })
-
-// pages/<page>/<Page>.jsx
-import { t as pageT } from './i18n'
-const { t, locale, setLocale } = useLocale(pageT)
-```
-
-**Clés de traduction** : format `<page>.<section>.<élément>` (ex: `dashboard.campaign.badge`).
-
----
-
-## 8. Icônes
-
-- Toujours des **SVG stroke** (jamais emoji, jamais font-icon Material Symbols)
-- Props standards : `size` (défaut 18), `color` (défaut `currentColor`), `strokeWidth` (défaut 2)
-- Toujours `aria-hidden="true"` sur le SVG
-- Importer depuis le barrel : `import { BellIcon } from '../../components/ui/icons'`
-- Documenter dans `docs/design/icons/index.html`
-
----
-
-## 9. Thème dark/light
-
-- Le thème est écrit sur `<html data-theme="dark|light">` par `useTheme()`
-- **Anti-flash** : `login.html` contient un script inline qui lit `localStorage` et applique `data-theme` AVANT que React ne monte
-- En mode clair : les images de fond restent visibles mais atténuées (`--th-mosaic-opacity: 0.12`)
-- **Pages internes** : pas de toggle pour l'instant — toujours Editorial Enterprise light
-
----
-
-## 10. Sidebar des pages internes
-
-```jsx
-// Pattern — sidebar partagée via AppSidebar (components/ui/)
-// Chaque page crée un thin wrapper (ex: DashboardSidebar, HRSidebar)
-// qui passe ses navItems + brandSub à AppSidebar.
-
-import AppSidebar from '../../components/ui/AppSidebar'
-
-// Thin wrapper (co-localisé dans la page) :
-export default function HRSidebar({ t, activeItem }) {
-  const navItems = [ /* items spécifiques à la page */ ]
-  return <AppSidebar brandSub="HR Portal" navItems={navItems} />
+# 3. Ajouter la route dans le tableau createBrowserRouter
+{
+  path: '/ma-nouvelle-route',
+  element: (
+    <AuthGuard roles={['hr', 'admin']}>
+      <S><MaNouvellePage /></S>
+    </AuthGuard>
+  ),
 }
 
-import DashboardSidebar from './DashboardSidebar'
-
-// Dans le JSX :
-<div className="db">
-  <DashboardSidebar t={t} user={user} />
-  <div className="db-main">
-    <header className="db-topbar">…</header>
-    <main className="db-content">…</main>
-  </div>
-</div>
+# 4. Ajouter les clés i18n dans fr.json et en.json
+# 5. Ajouter le lien dans navConfig.ts si nécessaire
 ```
 
-Layout CSS clé :
-```css
-.db          { display: flex; min-height: 100vh; }
-.db-main     { margin-left: 256px; flex: 1; }
-.db-topbar   { position: sticky; top: 0; z-index: 40; }
-```
+Pas de HTML supplémentaire, pas d'entrée Vite, pas de route Express.
+
+---
+
+## 10. Backend
+
+- **Dossier** : `mongo/server/` (Express + Mongoose, Node.js)
+- **Auth** : JWT dans cookies httpOnly (pas de localStorage). LDAP pour l'authentification uniquement.
+- **Routes** : `mongo/server/routes/` (un fichier par domaine : `campaigns.js`, `evaluations.js`, …)
+- **Modèles** : `mongo/server/models/` (Campaign, Evaluation, Form, User, PDI, …)
+- **Services** : `mongo/server/services/` (logique métier découplée des routes)
 
 ---
 
 ## 11. Docker & déploiement
 
 - Un seul `Dockerfile` multi-stage à la racine
-- Le build client sort dans `server/public/` (copié depuis l'étape builder)
-- `docker compose up -d --scale app=3` pour le mode HA
+- Le build du frontend sort dans `mongo/server/public/`
+- Express sert `index.html` pour toutes les routes non-API (SPA fallback)
+- `docker compose up -d` pour la production
+- `docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build` pour le développement
 - Certificats TLS dans `nginx/certs/` (jamais committés)
+- Voir `docs/DEPLOYMENT.md` et `docs/RUNBOOK.md` pour les détails opérationnels
 
 ---
 
-## 12. Ce qu'on ne fait PAS (encore)
+## 12. Documentation par dossier — DOC.md
 
-- Pas de logique métier dans les composants UI
-- Pas de state management global (Redux, Zustand…) — useState suffit pour l'instant
-- Pas de React Router — Express gère la navigation entre pages
-- Pas de SSR — MPA classique avec Express servant du HTML statique compilé
-- ~~Pas de dark mode sur les pages internes~~ — 3 thèmes implémentés : `dark` · `light` · `light-sidebar`
-- Pas de Material Symbols (font-icons) — SVG stroke uniquement
+Chaque dossier significatif contient un fichier `DOC.md` qui documente :
+- Ce que le dossier contient et son rôle dans l'application
+- Comment les fichiers fonctionnent ensemble
+- Ce qui a changé pendant la migration (historique des décisions)
+- Les points d'attention ou pièges à éviter
+
+### Règles pour les agents IA (Copilot, Claude, etc.)
+
+1. **Avant de modifier un dossier** : lire son `DOC.md` s'il existe
+2. **Après avoir modifié un dossier** : mettre à jour son `DOC.md`
+3. **Lors de la création d'un nouveau dossier significatif** : créer un `DOC.md`
+
+Un "dossier significatif" = tout dossier qui contient de la logique métier ou de
+l'infrastructure partagée (contexts/, layouts/, pages/*, hooks/, etc.).
+Ne pas créer de DOC.md pour les dossiers triviaux (i18n/locales/, assets/).
+
+---
+
+## 13. Ce qu'on ne fait PAS
+
+- Pas de Redux / Zustand / Jotai — TanStack Query + contextes suffisent
+- Pas de SSR — SPA classique avec React Router v6
+- Pas de Material Symbols (font-icons) — SVG stroke uniquement via lucide-react
+- Pas de styles inline (`style={{}}`) pour les layouts — Tailwind utilities
+- Pas de logique métier dans les composants UI (`components/ui/`)
+- Pas de `fetch` nu — utiliser les fonctions dans `src/api/` (axios)
+- Pas de `makeT`/`useTranslate` legacy — utiliser `useTranslation()` de react-i18next

@@ -1,0 +1,22 @@
+name: CD — Docker Build
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+
+jobs:
+  docker-build:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Build image
+        run: docker build -t nxrh:${{ github.sha }} .
+      - name: Test container starts
+        run: |
+          docker run -d --name nxrh-test -e NODE_ENV=production -e MONGO_URI=mongodb://host.docker.internal:27017/test -e JWT_SECRET=ci_secret nxrh:${{ github.sha }}
+          sleep 5
+          docker ps | grep nxrh-test || (docker logs nxrh-test && exit 1)
+          docker stop nxrh-test

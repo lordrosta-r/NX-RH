@@ -1,0 +1,11 @@
+# Override pour les tests e2e locaux en mode prod.
+# Fait charger .env.e2e (secrets jetables prod-like) au lieu de .env (dev).
+# Usage : docker compose --env-file .env.e2e -f docker-compose.yml -f docker-compose.e2e.yml up -d
+services:
+  app:
+    env_file:
+      - .env.e2e
+    # Publie l'app en HTTP direct (sans nginx ni redirection HTTPS) pour pouvoir
+    # la forwarder via un tunnel (VS Code devtunnel, ngrok…) et tester en externe.
+    ports:
+      - "8090:3000"

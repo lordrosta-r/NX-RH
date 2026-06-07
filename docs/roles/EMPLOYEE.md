@@ -1,22 +1,24 @@
 # Rôle — Employee (Employé)
 
+> **Design complet :** voir [`designs/roles/notedesign.txt`](../../designs/notedesign.txt)
+
 ## Qui est-il ?
 
 L'employé est le participant principal du processus d'évaluation. Il est le sujet de l'entretien annuel et l'auteur de la grande majorité des formulaires. Il n'a aucune visibilité sur les données des autres employés.
 
-**Redirection après connexion :** `/dashboard`
+**Redirection après connexion :** `/employee`
 
 ---
 
-## Son tableau de bord (`/dashboard`)
+## Son tableau de bord (`/employee`)
 
-Le dashboard est organisé autour de la campagne en cours (s'il y en a une). Il y voit :
+Le dashboard suit le paradigme **Continuous Performance Management** :
 
-- **La campagne active** avec l'état d'avancement de chaque phase
+- **Objectifs annuels vivants** (`/employee/goals`) : tableau à 4 colonnes (Objectif, KPI, Progression 0-100%, Statut). L'employé met à jour ses jauges tout au long de l'année, pas seulement en campagne.
+- **La campagne active** avec l'état d'avancement de chaque phase (CampaignBanner si campagne en cours)
 - **Le statut de chaque formulaire** : non commencé / en cours / soumis / validé
-- **Les phases verrouillées** — une phase n'est accessible que si la précédente est complète
-- **L'historique** des campagnes passées et ses évaluations archivées
-- **Ses paramètres personnels** : langue d'interface, thème clair/sombre, changement de mot de passe
+- **L'historique** des campagnes passées et ses évaluations archivées (`/employee/history`)
+- **Ses paramètres personnels** (`/employee/settings`) : langue, thème, mot de passe
 
 ---
 
@@ -32,10 +34,11 @@ L'employé remplit un formulaire libre sur l'année écoulée :
 
 > Ce formulaire est soumis directement à son manager. Il n'est **pas modifiable** après soumission sauf réouverture explicite.
 
-### 2. Bilan N-1 (Phase 3)
+### 2. Bilan N-1 (Phase 3) — Smart Import
 
 L'employé passe en revue les objectifs définis lors du dernier entretien :
-- Pour chaque objectif : **atteint / partiellement atteint / non atteint**
+- Les objectifs sont **importés automatiquement** via le Smart Block "Import Dynamique N-1" (pas de double saisie)
+- Pour chaque objectif : **atteint / partiellement atteint / non atteint** + jauge de progression
 - Il peut ajouter un commentaire par objectif pour contextualiser
 - Il soumet sa version, puis le manager ajoute ses propres appréciations
 
@@ -67,8 +70,17 @@ L'employé exprime librement ses souhaits de développement :
 | `pending` | La campagne est active mais l'employé n'a pas encore commencé |
 | `in_progress` | Au moins un formulaire a été ouvert ou partiellement rempli |
 | `submitted` | Tous les formulaires de l'employé ont été soumis |
-| `reviewed` | Le manager a consulté et commenté les formulaires |
-| `validated` | L'entretien a eu lieu et a été validé par le manager |
+| `signed_manager` | Le manager a validé et signé l'entretien |
+| `signed_both` | L'employé a contresigné → document scellé |
+| `contested` | L'employé a contesté la synthèse du manager (commentaire obligatoire) |
+
+---
+
+## Droit de contestation
+
+Après la signature du Manager, l'employé a deux options :
+1. **Contresigner** → Document scellé (PDF archivé). Objectifs N+1 activés dans `/employee/goals`.
+2. **Contester** → Un champ "Commentaire de Contestation" s'ouvre. Le document est scellé avec la mention "Contesté par l'employé". Le RH est alerté.
 
 ---
 

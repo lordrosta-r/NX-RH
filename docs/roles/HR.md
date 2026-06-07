@@ -1,10 +1,13 @@
 # Rôle — HR (Ressources Humaines)
 
+> **Design complet :** voir [`designs/roles/designrh.txt`](../../designs/designrh.txt)
+> **Exploitation Data :** voir [`designs/roles/designdata.txt`](../../designs/roles/designdata.txt)
+
 ## Qui est-il ?
 
 Le rôle HR est **transverse** — il n'est pas dans la ligne hiérarchique managériale. RH ne manage pas d'équipe, ne conduit pas d'entretiens. Il est le **pilote du processus** : il conçoit les formulaires, orchestre les campagnes et dispose d'une vue globale sur toute l'organisation.
 
-**Redirection après connexion :** `/manager` (tableau de bord RH)
+**Redirection après connexion :** `/hr` (tableau de bord RH)
 
 ---
 
@@ -15,30 +18,31 @@ Le rôle HR est **transverse** — il n'est pas dans la ligne hiérarchique mana
              │
            [ HR ]           ← pilotage du processus (transverse)
              │
-     ┌───────┴────────┐
- [Director]       [Director]
+     ┌───────────────┐
+   [Manager principal]
      │
-  [Manager]  [Manager]
+    [Manager]  [Manager]
      │
- [Employee] [Employee]
+   [Employee] [Employee]
 ```
 
-HR voit toute l'organisation en **lecture** pour piloter les campagnes. Il n'est pas le supérieur hiérarchique des managers — il coordonne le processus.
+HR voit toute l'organisation en **lecture** pour piloter les campagnes. Il n'est pas le supérieur hiérarchique des managers — il coordonne le processus. Un manager peut superviser d'autres managers sans rôle distinct supplémentaire.
 
 ---
 
-## Navigation — Sidebar HR
+## Navigation — Routes HR (SPA)
 
 | Item | Route | Description |
 |---|---|---|
 | Vue d'ensemble | `/hr` | Dashboard principal — KPIs, campagne, alertes, aperçu rapide |
-| Campagnes | `/hr#campaigns` | Créer, activer, clore les campagnes |
-| Éditeur de formulaires | `/formeditor` | Créer et publier les templates de formulaires (page dédiée) |
-| Ressources | `/hr#resources` | Bibliothèque de documents publiés aux employés |
-| Rapports | `/hr#reports` | Exports CSV, synthèses par département |
-| Paramètres | `/hr#settings` | — |
-
-> **Note :** L'Éditeur de formulaires et les Ressources sont aussi accessibles en **accès rapide** depuis la Vue d'ensemble (widgets de la page home).
+| Campagnes | `/hr/campaigns` | Créer, activer, clore les campagnes |
+| Nouvelle campagne | `/hr/campaigns/new` | Wizard 5 étapes (Identité, Ciblage, Liaison, Calendrier, Revue) |
+| Templates | `/hr/templates` | Bibliothèque de templates de formulaires |
+| Form Builder | `/hr/templates/:id/builder` | Éditeur de formulaire avec Smart Blocks |
+| Annuaire | `/hr/directory` | Annuaire employés avec fiches individuelles |
+| Inbox RH | `/hr/requests` | Demandes structurées (augmentations, mobilité) via Smart Blocks |
+| Analytics | `/hr/analytics` | 5 dashboards stratégiques (Flight Risk, Goal Gap, Skills Gap, Sentiment, Succession) |
+| Ressources | `/hr/resources` | Bibliothèque de documents publiés aux employés |
 
 ---
 

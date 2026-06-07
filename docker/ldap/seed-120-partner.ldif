@@ -1,0 +1,542 @@
+dn: ou=users,dc=partner,dc=local
+objectClass: organizationalUnit
+ou: users
+
+dn: uid=pa001,ou=users,dc=partner,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: pa001
+cn: Pauline Guerin
+sn: Guerin
+givenName: Pauline
+mail: pauline.guerin.pa001@partner.local
+title: PDG
+departmentNumber: Services
+uidNumber: 5000
+gidNumber: 5000
+homeDirectory: /home/pa001
+
+dn: uid=pa002,ou=users,dc=partner,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: pa002
+cn: Bastien Muller
+sn: Muller
+givenName: Bastien
+mail: bastien.muller.pa002@partner.local
+title: Directeur
+departmentNumber: Services
+manager: uid=pa001,ou=users,dc=partner,dc=local
+uidNumber: 5001
+gidNumber: 5001
+homeDirectory: /home/pa002
+
+dn: uid=pa003,ou=users,dc=partner,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: pa003
+cn: Audrey Henry
+sn: Henry
+givenName: Audrey
+mail: audrey.henry.pa003@partner.local
+title: Directeur
+departmentNumber: Support
+manager: uid=pa001,ou=users,dc=partner,dc=local
+uidNumber: 5002
+gidNumber: 5002
+homeDirectory: /home/pa003
+
+dn: uid=pa004,ou=users,dc=partner,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: pa004
+cn: Damien Roussel
+sn: Roussel
+givenName: Damien
+mail: damien.roussel.pa004@partner.local
+title: Directeur
+departmentNumber: Conseil
+manager: uid=pa001,ou=users,dc=partner,dc=local
+uidNumber: 5003
+gidNumber: 5003
+homeDirectory: /home/pa004
+
+dn: uid=pa005,ou=users,dc=partner,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: pa005
+cn: Melanie Nicolas
+sn: Nicolas
+givenName: Melanie
+mail: melanie.nicolas.pa005@partner.local
+title: Manager
+departmentNumber: Services
+manager: uid=pa002,ou=users,dc=partner,dc=local
+uidNumber: 5004
+gidNumber: 5004
+homeDirectory: /home/pa005
+
+dn: uid=pa006,ou=users,dc=partner,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: pa006
+cn: Cedric Perrin
+sn: Perrin
+givenName: Cedric
+mail: cedric.perrin.pa006@partner.local
+title: Manager
+departmentNumber: Services
+manager: uid=pa002,ou=users,dc=partner,dc=local
+uidNumber: 5005
+gidNumber: 5005
+homeDirectory: /home/pa006
+
+dn: uid=pa007,ou=users,dc=partner,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: pa007
+cn: Charlotte Morin
+sn: Morin
+givenName: Charlotte
+mail: charlotte.morin.pa007@partner.local
+title: Manager
+departmentNumber: Support
+manager: uid=pa003,ou=users,dc=partner,dc=local
+uidNumber: 5006
+gidNumber: 5006
+homeDirectory: /home/pa007
+
+dn: uid=pa008,ou=users,dc=partner,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: pa008
+cn: Vincent Mathieu
+sn: Mathieu
+givenName: Vincent
+mail: vincent.mathieu.pa008@partner.local
+title: Manager
+departmentNumber: Support
+manager: uid=pa003,ou=users,dc=partner,dc=local
+uidNumber: 5007
+gidNumber: 5007
+homeDirectory: /home/pa008
+
+dn: uid=pa009,ou=users,dc=partner,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: pa009
+cn: Amelie Clement
+sn: Clement
+givenName: Amelie
+mail: amelie.clement.pa009@partner.local
+title: Manager
+departmentNumber: Conseil
+manager: uid=pa004,ou=users,dc=partner,dc=local
+uidNumber: 5008
+gidNumber: 5008
+homeDirectory: /home/pa009
+
+dn: uid=pa010,ou=users,dc=partner,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: pa010
+cn: Guillaume Gauthier
+sn: Gauthier
+givenName: Guillaume
+mail: guillaume.gauthier.pa010@partner.local
+title: Manager
+departmentNumber: Conseil
+manager: uid=pa004,ou=users,dc=partner,dc=local
+uidNumber: 5009
+gidNumber: 5009
+homeDirectory: /home/pa010
+
+dn: uid=pa011,ou=users,dc=partner,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: pa011
+cn: Celine Dumont
+sn: Dumont
+givenName: Celine
+mail: celine.dumont.pa011@partner.local
+title: Collaborateur
+departmentNumber: Services
+manager: uid=pa005,ou=users,dc=partner,dc=local
+uidNumber: 5010
+gidNumber: 5010
+homeDirectory: /home/pa011
+
+dn: uid=pa012,ou=users,dc=partner,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: pa012
+cn: Benjamin Lopez
+sn: Lopez
+givenName: Benjamin
+mail: benjamin.lopez.pa012@partner.local
+title: Collaborateur
+departmentNumber: Services
+manager: uid=pa006,ou=users,dc=partner,dc=local
+uidNumber: 5011
+gidNumber: 5011
+homeDirectory: /home/pa012
+
+dn: uid=pa013,ou=users,dc=partner,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: pa013
+cn: Aurelie Fontaine
+sn: Fontaine
+givenName: Aurelie
+mail: aurelie.fontaine.pa013@partner.local
+title: Collaborateur
+departmentNumber: Support
+manager: uid=pa007,ou=users,dc=partner,dc=local
+uidNumber: 5012
+gidNumber: 5012
+homeDirectory: /home/pa013
+
+dn: uid=pa014,ou=users,dc=partner,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: pa014
+cn: Mathieu Chevalier
+sn: Chevalier
+givenName: Mathieu
+mail: mathieu.chevalier.pa014@partner.local
+title: Collaborateur
+departmentNumber: Support
+manager: uid=pa008,ou=users,dc=partner,dc=local
+uidNumber: 5013
+gidNumber: 5013
+homeDirectory: /home/pa014
+
+dn: uid=pa015,ou=users,dc=partner,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: pa015
+cn: Caroline Robin
+sn: Robin
+givenName: Caroline
+mail: caroline.robin.pa015@partner.local
+title: Collaborateur
+departmentNumber: Conseil
+manager: uid=pa009,ou=users,dc=partner,dc=local
+uidNumber: 5014
+gidNumber: 5014
+homeDirectory: /home/pa015
+
+dn: uid=pa016,ou=users,dc=partner,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: pa016
+cn: Fabien Martin
+sn: Martin
+givenName: Fabien
+mail: fabien.martin.pa016@partner.local
+title: Collaborateur
+departmentNumber: Conseil
+manager: uid=pa010,ou=users,dc=partner,dc=local
+uidNumber: 5015
+gidNumber: 5015
+homeDirectory: /home/pa016
+
+dn: uid=pa017,ou=users,dc=partner,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: pa017
+cn: Marie Dubois
+sn: Dubois
+givenName: Marie
+mail: marie.dubois.pa017@partner.local
+title: Collaborateur
+departmentNumber: Services
+manager: uid=pa005,ou=users,dc=partner,dc=local
+uidNumber: 5016
+gidNumber: 5016
+homeDirectory: /home/pa017
+
+dn: uid=pa018,ou=users,dc=partner,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: pa018
+cn: Pierre Thomas
+sn: Thomas
+givenName: Pierre
+mail: pierre.thomas.pa018@partner.local
+title: Collaborateur
+departmentNumber: Services
+manager: uid=pa006,ou=users,dc=partner,dc=local
+uidNumber: 5017
+gidNumber: 5017
+homeDirectory: /home/pa018
+
+dn: uid=pa019,ou=users,dc=partner,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: pa019
+cn: Sophie Robert
+sn: Robert
+givenName: Sophie
+mail: sophie.robert.pa019@partner.local
+title: Collaborateur
+departmentNumber: Support
+manager: uid=pa007,ou=users,dc=partner,dc=local
+uidNumber: 5018
+gidNumber: 5018
+homeDirectory: /home/pa019
+
+dn: uid=pa020,ou=users,dc=partner,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: pa020
+cn: Lucas Richard
+sn: Richard
+givenName: Lucas
+mail: lucas.richard.pa020@partner.local
+title: Collaborateur
+departmentNumber: Support
+manager: uid=pa008,ou=users,dc=partner,dc=local
+uidNumber: 5019
+gidNumber: 5019
+homeDirectory: /home/pa020
+
+dn: uid=pa021,ou=users,dc=partner,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: pa021
+cn: Emma Petit
+sn: Petit
+givenName: Emma
+mail: emma.petit.pa021@partner.local
+title: Collaborateur
+departmentNumber: Conseil
+manager: uid=pa009,ou=users,dc=partner,dc=local
+uidNumber: 5020
+gidNumber: 5020
+homeDirectory: /home/pa021
+
+dn: uid=pa022,ou=users,dc=partner,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: pa022
+cn: Hugo Durand
+sn: Durand
+givenName: Hugo
+mail: hugo.durand.pa022@partner.local
+title: Collaborateur
+departmentNumber: Conseil
+manager: uid=pa010,ou=users,dc=partner,dc=local
+uidNumber: 5021
+gidNumber: 5021
+homeDirectory: /home/pa022
+
+dn: uid=pa023,ou=users,dc=partner,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: pa023
+cn: Julie Leroy
+sn: Leroy
+givenName: Julie
+mail: julie.leroy.pa023@partner.local
+title: Collaborateur
+departmentNumber: Services
+manager: uid=pa005,ou=users,dc=partner,dc=local
+uidNumber: 5022
+gidNumber: 5022
+homeDirectory: /home/pa023
+
+dn: uid=pa024,ou=users,dc=partner,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: pa024
+cn: Thomas Moreau
+sn: Moreau
+givenName: Thomas
+mail: thomas.moreau.pa024@partner.local
+title: Collaborateur
+departmentNumber: Services
+manager: uid=pa006,ou=users,dc=partner,dc=local
+uidNumber: 5023
+gidNumber: 5023
+homeDirectory: /home/pa024
+
+dn: uid=pa025,ou=users,dc=partner,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: pa025
+cn: Camille Simon
+sn: Simon
+givenName: Camille
+mail: camille.simon.pa025@partner.local
+title: Collaborateur
+departmentNumber: Support
+manager: uid=pa007,ou=users,dc=partner,dc=local
+uidNumber: 5024
+gidNumber: 5024
+homeDirectory: /home/pa025
+
+dn: uid=pa026,ou=users,dc=partner,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: pa026
+cn: Nicolas Laurent
+sn: Laurent
+givenName: Nicolas
+mail: nicolas.laurent.pa026@partner.local
+title: Collaborateur
+departmentNumber: Support
+manager: uid=pa008,ou=users,dc=partner,dc=local
+uidNumber: 5025
+gidNumber: 5025
+homeDirectory: /home/pa026
+
+dn: uid=pa027,ou=users,dc=partner,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: pa027
+cn: Laura Lefebvre
+sn: Lefebvre
+givenName: Laura
+mail: laura.lefebvre.pa027@partner.local
+title: Collaborateur
+departmentNumber: Conseil
+manager: uid=pa009,ou=users,dc=partner,dc=local
+uidNumber: 5026
+gidNumber: 5026
+homeDirectory: /home/pa027
+
+dn: uid=pa028,ou=users,dc=partner,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: pa028
+cn: Antoine Michel
+sn: Michel
+givenName: Antoine
+mail: antoine.michel.pa028@partner.local
+title: Collaborateur
+departmentNumber: Conseil
+manager: uid=pa010,ou=users,dc=partner,dc=local
+uidNumber: 5027
+gidNumber: 5027
+homeDirectory: /home/pa028
+
+dn: uid=pa029,ou=users,dc=partner,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: pa029
+cn: Chloe Garcia
+sn: Garcia
+givenName: Chloe
+mail: chloe.garcia.pa029@partner.local
+title: Collaborateur
+departmentNumber: Services
+manager: uid=pa005,ou=users,dc=partner,dc=local
+uidNumber: 5028
+gidNumber: 5028
+homeDirectory: /home/pa029
+
+dn: uid=pa030,ou=users,dc=partner,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: pa030
+cn: Maxime David
+sn: David
+givenName: Maxime
+mail: maxime.david.pa030@partner.local
+title: Collaborateur
+departmentNumber: Services
+manager: uid=pa006,ou=users,dc=partner,dc=local
+uidNumber: 5029
+gidNumber: 5029
+homeDirectory: /home/pa030
+
+dn: uid=pa031,ou=users,dc=partner,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: pa031
+cn: Sarah Bertrand
+sn: Bertrand
+givenName: Sarah
+mail: sarah.bertrand.pa031@partner.local
+title: Collaborateur
+departmentNumber: Support
+manager: uid=pa007,ou=users,dc=partner,dc=local
+uidNumber: 5030
+gidNumber: 5030
+homeDirectory: /home/pa031
+
+dn: uid=pa032,ou=users,dc=partner,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: pa032
+cn: Paul Roux
+sn: Roux
+givenName: Paul
+mail: paul.roux.pa032@partner.local
+title: Collaborateur
+departmentNumber: Support
+manager: uid=pa008,ou=users,dc=partner,dc=local
+uidNumber: 5031
+gidNumber: 5031
+homeDirectory: /home/pa032
+
+dn: uid=pa033,ou=users,dc=partner,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: pa033
+cn: Lea Vincent
+sn: Vincent
+givenName: Lea
+mail: lea.vincent.pa033@partner.local
+title: Collaborateur
+departmentNumber: Conseil
+manager: uid=pa009,ou=users,dc=partner,dc=local
+uidNumber: 5032
+gidNumber: 5032
+homeDirectory: /home/pa033
+
+dn: uid=pa034,ou=users,dc=partner,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: pa034
+cn: Julien Fournier
+sn: Fournier
+givenName: Julien
+mail: julien.fournier.pa034@partner.local
+title: Collaborateur
+departmentNumber: Conseil
+manager: uid=pa010,ou=users,dc=partner,dc=local
+uidNumber: 5033
+gidNumber: 5033
+homeDirectory: /home/pa034
+
+dn: uid=pa035,ou=users,dc=partner,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: pa035
+cn: Manon Morel
+sn: Morel
+givenName: Manon
+mail: manon.morel.pa035@partner.local
+title: Collaborateur
+departmentNumber: Services
+manager: uid=pa005,ou=users,dc=partner,dc=local
+uidNumber: 5034
+gidNumber: 5034
+homeDirectory: /home/pa035
+
+dn: uid=pa036,ou=users,dc=partner,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: pa036
+cn: Alexandre Girard
+sn: Girard
+givenName: Alexandre
+mail: alexandre.girard.pa036@partner.local
+title: Collaborateur
+departmentNumber: Services
+manager: uid=pa006,ou=users,dc=partner,dc=local
+uidNumber: 5035
+gidNumber: 5035
+homeDirectory: /home/pa036

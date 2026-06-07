@@ -1,0 +1,36 @@
+name: PR Checks
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  quick-check:
+    name: Quick checks (TS + lint + tests)
+    runs-on: ubuntu-latest
+
+    services:
+      mongodb:
+        image: mongo:7
+        ports:
+          - 27017:27017
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Frontend TypeScript check
+        run: cd frontend-v2 && npm ci && npx tsc --noEmit
+
+      - name: Backend tests
+        run: cd mongo/server && npm ci && npm test -- --passWithNoTests
+        env:
+          NODE_ENV: test
+          JWT_SECRET: test_jwt_secret_for_ci_only
+          JWT_REFRESH_SECRET: test_jwt_refresh_secret_for_ci_only
+          MONGODB_URI: mongodb://localhost:27017/nxrh_test
+          MONGO_URI: mongodb://localhost:27017/nxrh_test
+          JWT_EXPIRES_IN: 1h

@@ -10,7 +10,7 @@
 const mongoose  = require('mongoose')
 const { Evaluation, Form, Campaign, User, AuditLog, VALID_TRANSITIONS, ROLE_TRANSITIONS } = require('../../models')
 const { ADMIN_ROLES }           = require('../../config/constants')
-const { notifyMany }            = require('../../services/notificationService')
+const { notifyMany }            = require('../../services/mailNotificationService')
 const { resolveExpiry, resolvePhaseDeadline } = require('../../services/evaluationService')
 
 // POST /bulk — Créer des évaluations en masse (max 500)

@@ -1,7 +1,7 @@
 'use strict'
 
 // Evaluations route integration tests — no real MongoDB connection.
-// Models are mocked; authGuard, managerVisibility, and notificationService are mocked.
+// Models are mocked; authGuard, managerVisibility, and mailNotificationService are mocked.
 //
 // Key regression tests:
 //   Bug 2 — employee-as-evaluatee was blocked from PATCH (sign / comment)
@@ -108,7 +108,7 @@ jest.mock('../../services/managerVisibility', () => ({
   getVisibleUserIds: jest.fn().mockResolvedValue([]),
 }))
 
-jest.mock('../../services/notificationService', () => ({
+jest.mock('../../services/mailNotificationService', () => ({
   notify:     jest.fn().mockResolvedValue(undefined),
   notifyMany: jest.fn().mockResolvedValue(undefined),
 }))

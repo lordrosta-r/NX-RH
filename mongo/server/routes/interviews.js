@@ -195,7 +195,7 @@ router.patch('/state', async (req, res, next) => {
  */
 router.post('/sign', async (req, res, next) => {
   try {
-    const { campaignId, evaluateeId, role, dataUrl } = req.body
+    const { campaignId, evaluateeId, dataUrl } = req.body
 
     if (!campaignId || !mongoose.isValidObjectId(campaignId)) {
       return res.status(400).json({ error: 'campaignId valide requis' })
@@ -203,15 +203,21 @@ router.post('/sign', async (req, res, next) => {
     if (!evaluateeId || !mongoose.isValidObjectId(evaluateeId)) {
       return res.status(400).json({ error: 'evaluateeId valide requis' })
     }
-    if (!['evaluatee', 'manager'].includes(role)) {
-      return res.status(400).json({ error: "role doit être 'evaluatee' ou 'manager'" })
-    }
     if (!dataUrl || typeof dataUrl !== 'string' || !dataUrl.startsWith('data:image')) {
       return res.status(400).json({ error: "dataUrl invalide (doit être un data URI image)" })
     }
 
     const allowed = await canAccessEvaluatee(req, campaignId, evaluateeId)
     if (!allowed) return res.status(403).json({ error: 'Accès refusé' })
+
+    // SÉCURITÉ (anti-forgery) : le slot de signature est DÉDUIT du rôle réel de
+    // l'appelant, jamais accepté depuis le body. L'évalué ne peut signer que le
+    // slot 'evaluatee' ; un employé ne peut pas apposer la signature manager.
+    const isEvaluatee = req.user.id.toString() === evaluateeId.toString()
+    if (!isEvaluatee && req.user.role === 'employee') {
+      return res.status(403).json({ error: 'Accès refusé' })
+    }
+    const role = isEvaluatee ? 'evaluatee' : 'manager'
 
     const interview = await addSignature(campaignId, evaluateeId, { role, dataUrl })
 

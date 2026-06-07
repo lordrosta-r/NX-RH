@@ -16,7 +16,7 @@
 const router               = require('express').Router()
 const User                 = require('../models/User')
 const Notification         = require('../models/Notification')
-const notificationsService = require('../services/notificationsService')
+const notificationsService = require('../services/inAppNotificationService')
 const apiResponse          = require('../utils/apiResponse')
 
 // ─── GET /api/notifications ───────────────────────────────────────────────────

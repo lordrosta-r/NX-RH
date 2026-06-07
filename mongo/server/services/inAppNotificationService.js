@@ -1,7 +1,7 @@
 'use strict'
 
 // =============================================================================
-// services/notificationsService.js — CRUD notifications in-app
+// services/inAppNotificationService.js — CRUD notifications in-app
 //
 // Adaptée au schéma Notification existant :
 //   userId, type, title, body, link, read, priority, createdAt

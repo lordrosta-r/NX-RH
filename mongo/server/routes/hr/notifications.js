@@ -16,7 +16,7 @@ const express = require('express')
 const { Campaign }   = require('../../models/Campaign')
 const { Evaluation } = require('../../models/Evaluation')
 const User           = require('../../models/User')
-const { notifyMany } = require('../../services/notificationService')
+const { notifyMany } = require('../../services/mailNotificationService')
 
 const router = express.Router()
 

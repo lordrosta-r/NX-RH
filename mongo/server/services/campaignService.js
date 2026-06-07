@@ -6,7 +6,7 @@
 
 const mongoose = require('mongoose')
 const { Campaign, Evaluation, Form, CAMPAIGN_TRANSITIONS: VALID_TRANSITIONS } = require('../models')
-const { notifyMany } = require('./notificationService')
+const { notifyMany } = require('./mailNotificationService')
 const logger         = require('../utils/logger')
 
 // ── Helpers ───────────────────────────────────────────────────────────────────

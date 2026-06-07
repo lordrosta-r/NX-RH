@@ -40,8 +40,8 @@ jest.mock('../services/mailer', () => ({
   sendMail: jest.fn().mockResolvedValue(true),
 }))
 
-// Mock pour notificationService
-jest.mock('../services/notificationService', () => ({
+// Mock pour mailNotificationService
+jest.mock('../services/mailNotificationService', () => ({
   sendNotification: jest.fn().mockResolvedValue(true),
   notifyMany: jest.fn().mockResolvedValue([]),
 }))

@@ -418,12 +418,16 @@ async function searchUsers(query, options = {}) {
 
   const { page = 1, limit = 20, role, department, isActive } = options
 
+  // SÉCURITÉ (anti-ReDoS / injection regex) : on échappe les métacaractères et on
+  // borne la longueur avant d'injecter la saisie dans un $regex Mongo.
+  const safe = query.trim().slice(0, 100).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
   const filter = {
     $or: [
-      { firstName:  { $regex: query, $options: 'i' } },
-      { lastName:   { $regex: query, $options: 'i' } },
-      { email:      { $regex: query, $options: 'i' } },
-      { department: { $regex: query, $options: 'i' } },
+      { firstName:  { $regex: safe, $options: 'i' } },
+      { lastName:   { $regex: safe, $options: 'i' } },
+      { email:      { $regex: safe, $options: 'i' } },
+      { department: { $regex: safe, $options: 'i' } },
     ],
   }
 

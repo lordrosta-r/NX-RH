@@ -76,7 +76,7 @@ jest.mock('../../middleware/authGuard', () => ({
 }))
 
 // ─── Mock : services ─────────────────────────────────────────────────────────
-jest.mock('../../services/notificationService', () => ({
+jest.mock('../../services/mailNotificationService', () => ({
   sendWelcomeEmail: jest.fn().mockResolvedValue(undefined),
   sendEmail:        jest.fn().mockResolvedValue(undefined),
   notify:           jest.fn().mockResolvedValue(undefined),

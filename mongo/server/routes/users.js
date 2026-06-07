@@ -423,22 +423,10 @@ router.get('/:id/gdpr-export', async (req, res, next) => {
   }
 })
 
-// ─── DELETE /api/users/:id — Soft delete (désactivation) ────────────────────
-// Admin uniquement — ne peut pas se supprimer soi-même
-
-// DELETE /api/users/:id — Désactive un utilisateur (soft delete)
-router.delete('/:id', async (req, res, next) => {
-  try {
-    if (req.user.role !== 'admin') {
-      return res.status(403).json({ error: "Réservé à l'administrateur" })
-    }
-
-    await userService.deleteUser(req.params.id, req.user.id)
-    res.status(204).end()
-  } catch (err) {
-    next(err)
-  }
-})
+// Note : la désactivation RÉVERSIBLE d'un compte passe désormais par
+// PATCH /:id/block (+ /:id/unblock). La suppression DÉFINITIVE est gérée par
+// le DELETE /:id déclaré plus haut (avec garde-fous). On a donc retiré ici
+// l'ancien soft-delete (doublon de route DELETE /:id qui était masqué).
 
 // ─── DELETE /api/users/:id/gdpr-anonymize ────────────────────────────────────
 // Anonymisation RGPD — droit à l'effacement (admin uniquement)

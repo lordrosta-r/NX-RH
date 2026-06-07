@@ -346,7 +346,7 @@ export default function UserDetailPage() {
                       </button>
                     )}
                   {canManage && userData.id !== currentUser?.id && (
-                    (userData as User & { blocked?: boolean }).blocked ? (
+                    userData.blocked ? (
                       <button
                         onClick={() => { setActionsOpen(false); unblockMutation.mutate(); }}
                         className="row w-full text-left"

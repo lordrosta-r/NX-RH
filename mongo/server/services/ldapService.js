@@ -31,10 +31,14 @@ function validate(config) {
 
 function makeClient(config) {
   // TLS certificate verification (default: true)
-  // Override via config.rejectUnauthorized or LDAP_TLS_REJECT_UNAUTHORIZED env var.
-  const rejectUnauthorized = config.rejectUnauthorized !== undefined
-    ? config.rejectUnauthorized
-    : (process.env.LDAP_TLS_REJECT_UNAUTHORIZED !== 'false')
+  // Override via config.rejectUnauthorized ou LDAP_TLS_REJECT_UNAUTHORIZED env var.
+  // SÉCURITÉ : en production, on FORCE la vérification — aucune source ne peut
+  // la désactiver (anti-MITM).
+  const rejectUnauthorized = process.env.NODE_ENV === 'production'
+    ? true
+    : config.rejectUnauthorized !== undefined
+      ? config.rejectUnauthorized
+      : (process.env.LDAP_TLS_REJECT_UNAUTHORIZED !== 'false')
 
   const client = ldap.createClient({
     url:            config.host,

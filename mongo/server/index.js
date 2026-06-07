@@ -346,6 +346,17 @@ async function start() {
     if (/:changeme@|password=changeme/i.test(process.env.MONGO_URI || '')) {
       fatal.push('MONGO_URI utilise le mot de passe par défaut « changeme »')
     }
+    // C3 — le secret de refresh doit être indépendant (pas dérivé de JWT_SECRET)
+    const refresh = process.env.JWT_REFRESH_SECRET
+    if (!refresh || refresh.length < 32) {
+      fatal.push('JWT_REFRESH_SECRET manquant ou trop court — définissez un secret aléatoire distinct (≥32 car.)')
+    } else if (refresh === secret || refresh === `${secret}_refresh`) {
+      fatal.push('JWT_REFRESH_SECRET ne doit pas être dérivé de JWT_SECRET — utilisez un secret indépendant')
+    }
+    // M6 — la vérification du certificat LDAP ne doit jamais être désactivée en prod
+    if (process.env.LDAP_TLS_REJECT_UNAUTHORIZED === 'false') {
+      fatal.push('LDAP_TLS_REJECT_UNAUTHORIZED=false désactive la vérification TLS du LDAP — interdit en production')
+    }
     if (fatal.length) {
       for (const m of fatal) logger.error(`[boot] Config production dangereuse : ${m}`)
       process.exit(1)

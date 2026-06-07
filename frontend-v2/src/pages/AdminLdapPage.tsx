@@ -339,6 +339,30 @@ export default function AdminLdapPage() {
                       }
                     />
                   </div>
+                  <div className="field">
+                    <label htmlFor={`${src.id}-excludePatterns`}>
+                      Comptes exclus (motifs)
+                    </label>
+                    <input
+                      id={`${src.id}-excludePatterns`}
+                      className="input"
+                      placeholder="svc-*, *@bots.local, admin*"
+                      value={(src.excludePatterns ?? []).join(", ")}
+                      onChange={(e) =>
+                        patch(
+                          idx,
+                          "excludePatterns" as keyof LdapSource,
+                          e.target.value
+                            .split(/[\s,]+/)
+                            .filter(Boolean) as unknown as string,
+                        )
+                      }
+                    />
+                    <span className="small" style={{ color: "var(--ink-3)" }}>
+                      Comptes système/service ignorés à l'import et désactivés
+                      s'ils ont déjà été synchronisés.
+                    </span>
+                  </div>
                 </div>
 
                 <div

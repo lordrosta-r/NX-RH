@@ -271,8 +271,16 @@ async function syncUsers(config) {
   const attrManager = config.attrManager  || 'manager'
   const defaultRole = config.defaultRole  || 'employee'
 
+  // Comptes à exclure (système / services). Motifs glob (« svc-* », « *@bots.local »…)
+  // testés sur l'email ET le DN. Un compte déjà absorbé qui matche est DÉSACTIVÉ.
+  const excludePatterns = Array.isArray(config.excludePatterns) ? config.excludePatterns.filter(Boolean) : []
+  const excludeRe = excludePatterns.map(p => {
+    try { return new RegExp(String(p).replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*'), 'i') } catch { return null }
+  }).filter(Boolean)
+  const isExcluded = (email, dn) => excludeRe.some(re => re.test(`${email} ${dn}`))
+
   const client = makeClient(config)
-  const report = { created: 0, updated: 0, skipped: 0, linked: 0, errors: [] }
+  const report = { created: 0, updated: 0, skipped: 0, linked: 0, excluded: 0, deactivated: 0, errors: [] }
 
   try {
     await bindAsync(client, config.bindDN, config.bindPassword || '')
@@ -303,6 +311,18 @@ async function syncUsers(config) {
       const dept       = getVal(entry, attrDept)
       const position   = getVal(entry, attrTitle)
       const dn         = entry.dn || ''
+
+      // Compte système/service exclu : on l'ignore, et s'il avait été absorbé
+      // lors d'un sync précédent, on le DÉSACTIVE (« virer »).
+      if (isExcluded(emailLower, dn.toLowerCase())) {
+        report.excluded++
+        const dupe = existingByEmail.get(emailLower)
+        if (dupe) {
+          await User.updateOne({ _id: dupe._id }, { $set: { isActive: false } })
+          report.deactivated++
+        }
+        continue
+      }
 
       try {
         const existing = existingByEmail.get(emailLower)

@@ -558,7 +558,10 @@ export interface LdapSource {
   attrLastName?: string;
   attrDepartment?: string;
   attrTitle?: string;
+  attrManager?: string;
   defaultRole?: string;
+  /** Motifs (glob) des comptes système/service à exclure et désactiver au sync. */
+  excludePatterns?: string[];
 }
 
 export interface MailTemplate {

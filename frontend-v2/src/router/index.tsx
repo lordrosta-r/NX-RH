@@ -352,21 +352,26 @@ export const router = createBrowserRouter([
           </S>
         ),
       },
-      // Ressources
+      // Documents RH — publiés par la RH, consultables/téléchargeables par tous
+      // les rôles SAUF admin (employé, manager, RH).
       {
-        path: "/resources",
+        path: "/documents",
         element: (
-          <S>
-            <ResourcesPage />
-          </S>
+          <AuthGuard roles={["hr", "manager", "employee"]}>
+            <S>
+              <ResourcesPage />
+            </S>
+          </AuthGuard>
         ),
       },
       {
-        path: "/resources/:id",
+        path: "/documents/:id",
         element: (
-          <S>
-            <ResourceDetailPage />
-          </S>
+          <AuthGuard roles={["hr", "manager", "employee"]}>
+            <S>
+              <ResourceDetailPage />
+            </S>
+          </AuthGuard>
         ),
       },
       // Aide — ouverte à tous les rôles authentifiés (admin compris, non masqué).

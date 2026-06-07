@@ -59,7 +59,8 @@ export function getPerspectiveNav(
       { label: t("nav.mobility"), href: "/mobility" },
       { label: t("nav.pdi"), href: "/pdi" },
     ],
-    more: [],
+    // Documents RH consultables par l'employé (et tout rôle en « Mon espace »).
+    more: [{ label: t("nav.resources"), href: "/documents", group: t("nav.pilotage") }],
   };
 
   if (role === "employee") return me;
@@ -85,7 +86,7 @@ export function getPerspectiveNav(
         { label: t("nav.calendar"), href: "/events", group: t("nav.pilotage") },
         {
           label: t("nav.resources"),
-          href: "/resources",
+          href: "/documents",
           group: t("nav.pilotage"),
         },
       ],
@@ -113,7 +114,7 @@ export function getPerspectiveNav(
   };
   const pilotageMore: MoreItem[] = [
     { label: t("nav.calendar"), href: "/events", group: t("nav.pilotage") },
-    { label: t("nav.resources"), href: "/resources", group: t("nav.pilotage") },
+    { label: t("nav.resources"), href: "/documents", group: t("nav.pilotage") },
     { label: t("nav.analytics"), href: "/analytics", group: t("nav.pilotage") },
     {
       label: "Départements",
@@ -163,7 +164,9 @@ export function getPerspectiveNav(
       evaluations,
       administration,
     ],
-    more: pilotageMore,
+    // Admin n'est pas le public des Documents RH → on retire le lien (la route
+    // /documents lui est de toute façon interdite).
+    more: pilotageMore.filter((i) => i.href !== "/documents"),
   };
 }
 

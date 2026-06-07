@@ -265,7 +265,7 @@ function ResourceCard({
                 style={menuItemStyle}
                 onClick={() => {
                   setMenuOpen(false);
-                  navigate(`/resources/${resource.id}`);
+                  navigate(`/documents/${resource.id}`);
                 }}
               >
                 <Pencil className="ico" style={{ width: 14, height: 14 }} />
@@ -745,8 +745,8 @@ export default function ResourcesPage() {
       style={{ display: "flex", flexDirection: "column", gap: 24 }}
     >
       <PageHead
-        eyebrow="Ressources"
-        title="Ressources"
+        eyebrow="Documents RH"
+        title="Documents"
         desc="Accédez aux documents et ressources partagés"
         actions={
           isAdminHr && (

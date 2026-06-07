@@ -53,6 +53,8 @@ async function uploadFile(localPath, remoteName, mimeType = 'application/octet-s
   if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true })
 
   const dest = path.join(uploadDir, remoteName)
+  // remoteName contient un sous-dossier (<userId>/<fichier>) → créer le parent.
+  fs.mkdirSync(path.dirname(dest), { recursive: true })
   fs.copyFileSync(localPath, dest)
   fs.unlink(localPath, () => {})
   return { url: `/uploads/${remoteName}`, key: remoteName, backend: 'local' }

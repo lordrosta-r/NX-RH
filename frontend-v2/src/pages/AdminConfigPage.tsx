@@ -1,10 +1,91 @@
-import { useState } from "react";
+import { useState, type ChangeEvent } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Pencil, Trash2, X, Settings2 } from "lucide-react";
 import { adminApi } from "../api/admin";
+import { brandingApi } from "../api/branding";
 import { queryKeys } from "../lib/queryKeys";
 import { PageHead, Tile, Badge } from "../components/shell";
 import { useConfirm } from "../contexts/ConfirmContext";
+
+// Logo de l'entreprise — modifiable par l'admin (stocké en Config, affiché en nav).
+function BrandingSection() {
+  const qc = useQueryClient();
+  const { data } = useQuery({
+    queryKey: ["branding"],
+    queryFn: () => brandingApi.get().then((r) => r.data),
+  });
+  const setMut = useMutation({
+    mutationFn: (logo: string | null) => brandingApi.set(logo),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["branding"] }),
+  });
+  const onFile = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 500 * 1024) {
+      alert("Image trop volumineuse (max 500 Ko).");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => setMut.mutate(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+  return (
+    <Tile>
+      <h2 className="h3" style={{ marginBottom: 4 }}>
+        Logo de l'entreprise
+      </h2>
+      <p className="small" style={{ color: "var(--ink-3)", marginBottom: 12 }}>
+        Affiché dans la barre de navigation. PNG, JPG ou SVG, max 500 Ko.
+      </p>
+      <div className="row" style={{ gap: 16, alignItems: "center" }}>
+        <div
+          style={{
+            width: 120,
+            height: 48,
+            border: "1px solid var(--line)",
+            borderRadius: 8,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "#fff",
+            overflow: "hidden",
+          }}
+        >
+          {data?.logo ? (
+            <img
+              src={data.logo}
+              alt="Logo actuel"
+              style={{ maxWidth: "100%", maxHeight: "100%" }}
+            />
+          ) : (
+            <span className="small" style={{ color: "var(--ink-3)" }}>
+              Logo par défaut
+            </span>
+          )}
+        </div>
+        <label className="btn btn-ghost" style={{ cursor: "pointer" }}>
+          Choisir une image
+          <input
+            type="file"
+            accept="image/png,image/jpeg,image/svg+xml,image/webp"
+            onChange={onFile}
+            style={{ display: "none" }}
+          />
+        </label>
+        {data?.logo && (
+          <button
+            type="button"
+            className="btn btn-ghost"
+            style={{ color: "var(--red)" }}
+            onClick={() => setMut.mutate(null)}
+          >
+            Réinitialiser
+          </button>
+        )}
+      </div>
+    </Tile>
+  );
+}
 
 type ConfigKey = { key: string; value: string };
 
@@ -290,6 +371,7 @@ export default function AdminConfigPage() {
       />
 
       <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+        <BrandingSection />
         {/* ── Clés de configuration ── */}
         <Tile>
           <div

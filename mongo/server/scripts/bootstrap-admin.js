@@ -20,18 +20,19 @@ require('dotenv').config({ path: require('path').resolve(__dirname, '../../../.e
 const mongoose = require('mongoose')
 const { User } = require('../models')
 
+// Comme une vraie app : si aucun mot de passe n'est fourni, on crée l'admin avec
+// un mot de passe PAR DÉFAUT et on force son changement à la 1re connexion
+// (drapeau mustChangePassword → remonté dans le suivi de configuration).
+const DEFAULT_PASSWORD = 'Admin@Change2026'
 const MONGO_URI = process.env.MONGO_URI || process.env.MONGODB_URI
-const EMAIL     = (process.env.ADMIN_EMAIL || '').trim().toLowerCase()
-const PASSWORD  = process.env.ADMIN_PASSWORD || ''
+const EMAIL     = (process.env.ADMIN_EMAIL || 'admin@nanoxplore.local').trim().toLowerCase()
+const USED_DEFAULT = !process.env.ADMIN_PASSWORD
+const PASSWORD  = process.env.ADMIN_PASSWORD || DEFAULT_PASSWORD
 const FIRSTNAME = process.env.ADMIN_FIRSTNAME || 'Admin'
 const LASTNAME  = process.env.ADMIN_LASTNAME || 'RH'
 
 async function main() {
   if (!MONGO_URI) { console.error('[bootstrap-admin] MONGO_URI manquant'); process.exit(1) }
-  if (!EMAIL || !PASSWORD) {
-    console.error('[bootstrap-admin] ADMIN_EMAIL et ADMIN_PASSWORD sont requis')
-    process.exit(1)
-  }
   if (PASSWORD.length < 12) {
     console.error('[bootstrap-admin] Le mot de passe admin doit faire au moins 12 caractères')
     process.exit(1)
@@ -63,10 +64,14 @@ async function main() {
     authSource:   'local',
     isActive:     true,
     passwordHash: PASSWORD,
+    mustChangePassword: USED_DEFAULT,
   })
   await admin.save()
 
   console.log(`[bootstrap-admin] ✓ Administrateur créé : ${EMAIL} (id ${admin._id})`)
+  if (USED_DEFAULT) {
+    console.log(`[bootstrap-admin] ⚠ Mot de passe PAR DÉFAUT : « ${DEFAULT_PASSWORD} » — À CHANGER à la 1re connexion (remonté dans le suivi de configuration).`)
+  }
   await mongoose.disconnect()
   process.exit(0)
 }

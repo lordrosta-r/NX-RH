@@ -8,6 +8,7 @@ interface SetupStatus {
   ready: boolean;
   checks: {
     hasAdmin: boolean;
+    adminPasswordChanged: boolean;
     hasManagedUsers: boolean;
     hasForm: boolean;
     smtpConfigured: boolean;
@@ -16,6 +17,8 @@ interface SetupStatus {
 
 const LABELS: Record<keyof SetupStatus["checks"], string> = {
   hasAdmin: "un compte administrateur actif",
+  adminPasswordChanged:
+    "changer le mot de passe administrateur par défaut (sécurité)",
   hasManagedUsers: "au moins un collaborateur rattaché à un responsable",
   hasForm: "au moins un formulaire d'évaluation",
   smtpConfigured: "la configuration e-mail (SMTP)",

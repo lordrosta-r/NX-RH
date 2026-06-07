@@ -47,6 +47,8 @@ services:
     environment:
       NODE_ENV: production
       COOKIE_SECURE: 'true'
+    volumes:
+      - uploads_data:/data/uploads          # Documents RH téléversés (persistant)
     depends_on:
       mongo:
         condition: service_healthy
@@ -99,3 +101,4 @@ networks:
 volumes:
   mongo_data:  # MongoDB data — survives container restarts
   nginx_logs:
+  uploads_data:  # Documents RH téléversés — persistant

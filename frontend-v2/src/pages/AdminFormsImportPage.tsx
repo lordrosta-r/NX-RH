@@ -1,4 +1,6 @@
 import { useState, useRef, useCallback } from "react";
+import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import {
   Upload,
   AlertCircle,
@@ -40,32 +42,53 @@ const VALID_QUESTION_TYPES = [
   "objective_item",
 ];
 
-function validateForm(json: unknown): string[] {
+function validateForm(json: unknown, t: TFunction): string[] {
   const errs: string[] = [];
   if (typeof json !== "object" || json === null || Array.isArray(json)) {
-    errs.push("Le fichier doit être un objet JSON");
+    errs.push(t("adminFormsImport.errors.notObject"));
     return errs;
   }
   const f = json as FormJson;
-  if (!f.title) errs.push('Champ "title" manquant');
-  if (!f.formType) errs.push('Champ "formType" manquant');
+  if (!f.title)
+    errs.push(t("adminFormsImport.errors.missingField", { field: "title" }));
+  if (!f.formType)
+    errs.push(t("adminFormsImport.errors.missingField", { field: "formType" }));
   else if (!VALID_FORM_TYPES.includes(f.formType))
     errs.push(
-      `formType "${f.formType}" invalide. Valeurs: ${VALID_FORM_TYPES.join(", ")}`,
+      t("adminFormsImport.errors.invalidFormType", {
+        value: f.formType,
+        values: VALID_FORM_TYPES.join(", "),
+      }),
     );
   if (!Array.isArray(f.questions))
-    errs.push('Champ "questions" manquant ou non tableau');
+    errs.push(t("adminFormsImport.errors.missingQuestions"));
   else {
     const ids = new Set<string>();
     f.questions.forEach((q: unknown, i) => {
       const qObj = q as { id?: string; type?: string };
-      if (!qObj.id) errs.push(`Question ${i + 1}: champ "id" manquant`);
+      if (!qObj.id)
+        errs.push(
+          t("adminFormsImport.errors.questionMissingId", { number: i + 1 }),
+        );
       else if (ids.has(qObj.id))
-        errs.push(`Question ${i + 1}: ID "${qObj.id}" en double`);
+        errs.push(
+          t("adminFormsImport.errors.questionDuplicateId", {
+            number: i + 1,
+            id: qObj.id,
+          }),
+        );
       else ids.add(qObj.id);
-      if (!qObj.type) errs.push(`Question ${i + 1}: champ "type" manquant`);
+      if (!qObj.type)
+        errs.push(
+          t("adminFormsImport.errors.questionMissingType", { number: i + 1 }),
+        );
       else if (!VALID_QUESTION_TYPES.includes(qObj.type))
-        errs.push(`Question ${i + 1}: type "${qObj.type}" invalide`);
+        errs.push(
+          t("adminFormsImport.errors.questionInvalidType", {
+            number: i + 1,
+            type: qObj.type,
+          }),
+        );
     });
   }
   return errs;
@@ -83,6 +106,7 @@ async function downloadTemplate() {
 }
 
 export default function AdminFormsImportPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [tab, setTab] = useState<"file" | "paste">("file");
   const [json, setJson] = useState<FormJson | null>(null);
@@ -98,11 +122,11 @@ export default function AdminFormsImportPage() {
     setRawText(text);
     try {
       const parsed = JSON.parse(text);
-      const errs = validateForm(parsed);
+      const errs = validateForm(parsed, t);
       setErrors(errs);
       setJson(errs.length === 0 ? (parsed as FormJson) : null);
     } catch {
-      setErrors(["JSON invalide ou malformé"]);
+      setErrors([t("adminFormsImport.errors.malformedJson")]);
       setJson(null);
     }
   }
@@ -133,7 +157,7 @@ export default function AdminFormsImportPage() {
       setImportedId(id ?? null);
       setTimeout(() => navigate(id ? `/forms/${id}` : "/forms"), 2000);
     } catch {
-      setErrors(["Erreur lors de l'import. Vérifiez le format."]);
+      setErrors([t("adminFormsImport.errors.importFailed")]);
     } finally {
       setIsImporting(false);
     }
@@ -154,8 +178,8 @@ export default function AdminFormsImportPage() {
   return (
     <div className="nx-app">
       <PageHead
-        title="Import formulaires"
-        desc="Importez un formulaire d'évaluation au format JSON, par fichier ou par copier-coller."
+        title={t("adminFormsImport.title")}
+        desc={t("adminFormsImport.desc")}
         actions={
           <button
             type="button"
@@ -163,7 +187,7 @@ export default function AdminFormsImportPage() {
             className="btn btn-ghost"
           >
             <Download className="ico" style={{ width: 18, height: 18 }} />{" "}
-            Télécharger le template JSON
+            {t("adminFormsImport.downloadTemplate")}
           </button>
         }
       />
@@ -199,7 +223,7 @@ export default function AdminFormsImportPage() {
             }}
           >
             <FileText className="ico" style={{ width: 16, height: 16 }} />{" "}
-            Fichier
+            {t("adminFormsImport.tabs.file")}
           </button>
           <button
             type="button"
@@ -222,7 +246,7 @@ export default function AdminFormsImportPage() {
             }}
           >
             <ClipboardList className="ico" style={{ width: 16, height: 16 }} />{" "}
-            Coller JSON
+            {t("adminFormsImport.tabs.paste")}
           </button>
         </div>
 
@@ -230,7 +254,7 @@ export default function AdminFormsImportPage() {
         {tab === "file" && (
           <button
             type="button"
-            aria-label="Glissez-déposez ou cliquez pour sélectionner un fichier JSON"
+            aria-label={t("adminFormsImport.dropzone.ariaLabel")}
             style={{
               display: "block",
               width: "100%",
@@ -258,16 +282,16 @@ export default function AdminFormsImportPage() {
               style={{ margin: "0 auto 12px", color: "var(--ink-3)" }}
             />
             <p className="body" style={{ fontWeight: 600 }}>
-              Glissez-déposez un fichier JSON
+              {t("adminFormsImport.dropzone.title")}
             </p>
             <p className="small" style={{ marginTop: 4 }}>
-              ou cliquez pour sélectionner
+              {t("adminFormsImport.dropzone.hint")}
             </p>
             <input
               ref={inputRef}
               type="file"
               accept=".json"
-              aria-label="Fichier JSON du formulaire"
+              aria-label={t("adminFormsImport.dropzone.inputAriaLabel")}
               style={{ display: "none" }}
               onChange={(e) => {
                 if (e.target.files?.[0]) processFile(e.target.files[0]);
@@ -279,12 +303,14 @@ export default function AdminFormsImportPage() {
         {/* Tab: Paste */}
         {tab === "paste" && (
           <div className="field">
-            <label htmlFor="paste-json">JSON du formulaire</label>
+            <label htmlFor="paste-json">
+              {t("adminFormsImport.paste.label")}
+            </label>
             <textarea
               id="paste-json"
               value={pasteText}
               onChange={(e) => setPasteText(e.target.value)}
-              placeholder='Collez votre JSON ici…\n{\n  "title": "...",\n  "formType": "self_evaluation",\n  "questions": [...]\n}'
+              placeholder={t("adminFormsImport.paste.placeholder")}
               rows={12}
               className="input"
               style={{
@@ -300,7 +326,7 @@ export default function AdminFormsImportPage() {
               className="btn btn-primary"
               style={{ marginTop: 12 }}
             >
-              Valider
+              {t("adminFormsImport.paste.validate")}
             </button>
           </div>
         )}
@@ -315,7 +341,7 @@ export default function AdminFormsImportPage() {
           >
             <AlertCircle className="ico" style={{ width: 16, height: 16 }} />
             <p className="body" style={{ fontWeight: 700 }}>
-              Erreurs de validation
+              {t("adminFormsImport.validationErrors")}
             </p>
           </div>
           <ul
@@ -347,7 +373,7 @@ export default function AdminFormsImportPage() {
         >
           <Tile>
             <p className="eyebrow" style={{ marginBottom: 16 }}>
-              Aperçu
+              {t("adminFormsImport.preview.title")}
             </p>
             <div
               style={{
@@ -357,19 +383,21 @@ export default function AdminFormsImportPage() {
               }}
             >
               <div>
-                <p className="small">Titre</p>
+                <p className="small">{t("adminFormsImport.preview.titleField")}</p>
                 <p className="body" style={{ fontWeight: 600 }}>
                   {json.title}
                 </p>
               </div>
               <div>
-                <p className="small">Type</p>
+                <p className="small">{t("adminFormsImport.preview.typeField")}</p>
                 <p className="body" style={{ fontWeight: 600 }}>
                   {json.formType}
                 </p>
               </div>
               <div>
-                <p className="small">Questions</p>
+                <p className="small">
+                  {t("adminFormsImport.preview.questionsField")}
+                </p>
                 <p className="body" style={{ fontWeight: 600 }}>
                   {questions.length}
                 </p>
@@ -383,8 +411,8 @@ export default function AdminFormsImportPage() {
                 className="tbl-head"
                 style={{ gridTemplateColumns: "160px 1fr" }}
               >
-                <div>Type</div>
-                <div>Intitulé</div>
+                <div>{t("adminFormsImport.questionsTable.type")}</div>
+                <div>{t("adminFormsImport.questionsTable.label")}</div>
               </div>
               {questions.slice(0, 5).map((q, i) => (
                 <div
@@ -412,7 +440,9 @@ export default function AdminFormsImportPage() {
               {questions.length > 5 && (
                 <div className="tbl-row" style={{ gridTemplateColumns: "1fr" }}>
                   <div className="small">
-                    … et {questions.length - 5} autres
+                    {t("adminFormsImport.questionsTable.more", {
+                      count: questions.length - 5,
+                    })}
                   </div>
                 </div>
               )}
@@ -426,10 +456,12 @@ export default function AdminFormsImportPage() {
               disabled={isImporting || !!importedId}
               className="btn btn-primary"
             >
-              {isImporting ? "Import en cours…" : "Importer le formulaire"}
+              {isImporting
+                ? t("adminFormsImport.actions.importing")
+                : t("adminFormsImport.actions.import")}
             </button>
             <button type="button" onClick={reset} className="btn btn-ghost">
-              Réinitialiser
+              {t("adminFormsImport.actions.reset")}
             </button>
           </div>
 
@@ -440,7 +472,7 @@ export default function AdminFormsImportPage() {
                   className="ico"
                   style={{ width: 16, height: 16 }}
                 />
-                <p className="body">Formulaire importé ! Redirection…</p>
+                <p className="body">{t("adminFormsImport.imported")}</p>
               </div>
             </Callout>
           )}

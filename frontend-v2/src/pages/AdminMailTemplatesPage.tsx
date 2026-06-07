@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Mail,
@@ -16,19 +18,24 @@ import type { MailTemplate } from "../types";
 import { queryKeys } from "../lib/queryKeys";
 import { PageHead, Tile } from "../components/shell";
 
-const SLUG_LABELS: Record<string, string> = {
-  campaignLaunch: "Campagne lancée",
-  evaluationAssigned: "Évaluation assignée",
-  evaluationSubmitted: "Évaluation soumise",
-  deadlineReminder: "Rappel deadline",
-  managerActionRequired: "Action manager requise",
-  systemAlerts: "Alertes système",
-  bulkReminder: "Rappel groupé",
-  request_treated: "Demande traitée",
-  request_rejected: "Demande rejetée",
-  password_reset: "Réinitialisation mot de passe",
-  welcome_import: "Bienvenue (import)",
+const SLUG_KEYS: Record<string, string> = {
+  campaignLaunch: "campaignLaunch",
+  evaluationAssigned: "evaluationAssigned",
+  evaluationSubmitted: "evaluationSubmitted",
+  deadlineReminder: "deadlineReminder",
+  managerActionRequired: "managerActionRequired",
+  systemAlerts: "systemAlerts",
+  bulkReminder: "bulkReminder",
+  request_treated: "requestTreated",
+  request_rejected: "requestRejected",
+  password_reset: "passwordReset",
+  welcome_import: "welcomeImport",
 };
+
+function slugLabel(slug: string, t: TFunction): string {
+  const key = SLUG_KEYS[slug];
+  return key ? t(`adminMailTemplates.slugs.${key}`) : slug;
+}
 
 function formatDate(d?: string) {
   if (!d) return "–";
@@ -46,6 +53,7 @@ function TemplateEditor({
   template: MailTemplate;
   onClose: () => void;
 }) {
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const [subject, setSubject] = useState(template.subject);
   const [bodyText, setBodyText] = useState(template.bodyText);
@@ -86,7 +94,9 @@ function TemplateEditor({
       }}
     >
       <div className="field">
-        <label htmlFor={subjectId}>Objet</label>
+        <label htmlFor={subjectId}>
+          {t("adminMailTemplates.editor.subject")}
+        </label>
         <input
           id={subjectId}
           type="text"
@@ -96,7 +106,7 @@ function TemplateEditor({
         />
       </div>
       <div className="field">
-        <label htmlFor={bodyId}>Corps (texte brut)</label>
+        <label htmlFor={bodyId}>{t("adminMailTemplates.editor.body")}</label>
         <textarea
           id={bodyId}
           value={bodyText}
@@ -106,7 +116,7 @@ function TemplateEditor({
           style={{ fontFamily: "monospace", resize: "vertical" }}
         />
         <p className="small" style={{ marginTop: 6 }}>
-          Variables disponibles entre doubles accolades :{" "}
+          {t("adminMailTemplates.editor.variablesHint")}{" "}
           <code
             style={{
               background: "var(--bg-alt)",
@@ -126,7 +136,7 @@ function TemplateEditor({
           >
             {"{{campaignName}}"}
           </code>
-          , etc.
+          {t("adminMailTemplates.editor.variablesEtc")}
         </p>
       </div>
       <div className="row" style={{ gap: 8, alignItems: "center" }}>
@@ -137,24 +147,26 @@ function TemplateEditor({
           className="btn btn-primary"
         >
           <Save className="ico" style={{ width: 16, height: 16 }} />
-          {updateMut.isPending ? "Enregistrement…" : "Enregistrer"}
+          {updateMut.isPending
+            ? t("adminMailTemplates.editor.saving")
+            : t("adminMailTemplates.editor.save")}
         </button>
         <button
           type="button"
           onClick={() => resetMut.mutate()}
           disabled={resetMut.isPending}
           className="btn btn-ghost"
-          title="Remettre les valeurs par défaut"
+          title={t("adminMailTemplates.editor.resetTitle")}
         >
           <RefreshCw className="ico" style={{ width: 16, height: 16 }} />
-          Réinitialiser
+          {t("adminMailTemplates.editor.reset")}
         </button>
         <button
           type="button"
           onClick={onClose}
           className="btn btn-ghost btn-sm"
         >
-          Annuler
+          {t("adminMailTemplates.editor.cancel")}
         </button>
       </div>
       {(updateMut.isError || resetMut.isError) && (
@@ -163,7 +175,7 @@ function TemplateEditor({
           style={{ gap: 6, alignItems: "center", color: "var(--red)" }}
         >
           <AlertCircle className="ico" style={{ width: 16, height: 16 }} />
-          Une erreur est survenue.
+          {t("adminMailTemplates.editor.errorOccurred")}
         </p>
       )}
     </div>
@@ -171,6 +183,7 @@ function TemplateEditor({
 }
 
 function TemplateRow({ template }: { template: MailTemplate }) {
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const [editing, setEditing] = useState(false);
 
@@ -217,7 +230,7 @@ function TemplateRow({ template }: { template: MailTemplate }) {
           </div>
           <div style={{ minWidth: 0 }}>
             <p className="body" style={{ fontWeight: 600 }}>
-              {SLUG_LABELS[template.slug] ?? template.slug}
+              {slugLabel(template.slug, t)}
             </p>
             <p className="small truncate" style={{ marginTop: 2 }}>
               {template.subject}
@@ -229,7 +242,9 @@ function TemplateRow({ template }: { template: MailTemplate }) {
           style={{ gap: 12, alignItems: "center", flexShrink: 0 }}
         >
           <span className="small">
-            Modifié {formatDate(template.updatedAt)}
+            {t("adminMailTemplates.row.modified", {
+              date: formatDate(template.updatedAt),
+            })}
           </span>
           {expanded ? (
             <ChevronUp className="ico" style={{ width: 16, height: 16 }} />
@@ -245,7 +260,7 @@ function TemplateRow({ template }: { template: MailTemplate }) {
             <>
               <div style={{ marginBottom: 12 }}>
                 <p className="eyebrow" style={{ marginBottom: 6 }}>
-                  Aperçu (texte brut)
+                  {t("adminMailTemplates.row.preview")}
                 </p>
                 <pre
                   className="small"
@@ -262,7 +277,7 @@ function TemplateRow({ template }: { template: MailTemplate }) {
                 >
                   {template.bodyText || (
                     <span style={{ fontStyle: "italic" }}>
-                      Aucun corps défini
+                      {t("adminMailTemplates.row.noBody")}
                     </span>
                   )}
                 </pre>
@@ -279,7 +294,7 @@ function TemplateRow({ template }: { template: MailTemplate }) {
                   padding: 0,
                 }}
               >
-                Modifier ce template
+                {t("adminMailTemplates.row.edit")}
               </button>
             </>
           ) : (
@@ -295,6 +310,7 @@ function TemplateRow({ template }: { template: MailTemplate }) {
 }
 
 export default function AdminMailTemplatesPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
   const [smtpEmail, setSmtpEmail] = useState("");
@@ -315,19 +331,22 @@ export default function AdminMailTemplatesPage() {
   const testSmtpMut = useMutation({
     mutationFn: (to: string) => adminApi.sendTestEmail(to),
     onSuccess: () =>
-      setSmtpResult({ ok: true, msg: "Email envoyé avec succès." }),
+      setSmtpResult({
+        ok: true,
+        msg: t("adminMailTemplates.test.success"),
+      }),
     onError: () =>
       setSmtpResult({
         ok: false,
-        msg: "Erreur lors de l'envoi. Vérifiez la configuration SMTP.",
+        msg: t("adminMailTemplates.test.error"),
       }),
   });
 
   return (
     <div className="nx-app">
       <PageHead
-        title="Modèles email"
-        desc="Personnalisez l'objet et le corps des emails envoyés automatiquement par la plateforme."
+        title={t("adminMailTemplates.title")}
+        desc={t("adminMailTemplates.desc")}
       />
 
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -337,13 +356,13 @@ export default function AdminMailTemplatesPage() {
               className="h3 row"
               style={{ gap: 8, alignItems: "center", marginBottom: 12 }}
             >
-              <Mail className="ico" style={{ width: 16, height: 16 }} /> Tester
-              l'envoi SMTP
+              <Mail className="ico" style={{ width: 16, height: 16 }} />{" "}
+              {t("adminMailTemplates.test.heading")}
             </h2>
             <div className="row" style={{ gap: 12, alignItems: "flex-start" }}>
               <input
                 type="email"
-                aria-label="Adresse e-mail destinataire du test"
+                aria-label={t("adminMailTemplates.test.emailLabel")}
                 className="input"
                 style={{ flex: 1 }}
                 value={smtpEmail}
@@ -360,7 +379,9 @@ export default function AdminMailTemplatesPage() {
                 className="btn btn-primary"
               >
                 <Send className="ico" style={{ width: 16, height: 16 }} />
-                {testSmtpMut.isPending ? "Envoi…" : "Envoyer"}
+                {testSmtpMut.isPending
+                  ? t("adminMailTemplates.test.sending")
+                  : t("adminMailTemplates.test.send")}
               </button>
             </div>
             {smtpResult && (
@@ -414,7 +435,7 @@ export default function AdminMailTemplatesPage() {
               className="ico"
               style={{ width: 16, height: 16, flexShrink: 0 }}
             />
-            Impossible de charger les templates.
+            {t("adminMailTemplates.list.loadError")}
           </p>
         )}
 
@@ -430,7 +451,7 @@ export default function AdminMailTemplatesPage() {
                 color: "var(--ink-3)",
               }}
             />
-            <p className="body">Aucun template configuré.</p>
+            <p className="body">{t("adminMailTemplates.list.empty")}</p>
           </div>
         )}
 

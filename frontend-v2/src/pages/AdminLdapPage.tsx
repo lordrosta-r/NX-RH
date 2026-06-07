@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   CheckCircle,
@@ -46,6 +47,7 @@ type ActionResult =
   | { kind: "preview"; users: Record<string, string>[] };
 
 export default function AdminLdapPage() {
+  const { t } = useTranslation();
   const qc = useQueryClient();
   // `draft` = édition locale en cours (null tant qu'on n'a rien modifié) ;
   // l'affichage dérive de draft ?? données serveur — pas de setState dans un effet.
@@ -84,7 +86,7 @@ export default function AdminLdapPage() {
     onError: (_e, id) =>
       setResults((r) => ({
         ...r,
-        [id]: { kind: "test", ok: false, message: "Connexion échouée" },
+        [id]: { kind: "test", ok: false, message: t("adminLdap.test.failed") },
       })),
   });
 
@@ -114,7 +116,10 @@ export default function AdminLdapPage() {
   }
 
   function addSource() {
-    setDraft([...sources, emptySource()]);
+    setDraft([
+      ...sources,
+      { ...emptySource(), label: t("adminLdap.newSourceLabel") },
+    ]);
   }
 
   function removeSource(idx: number) {
@@ -160,35 +165,43 @@ export default function AdminLdapPage() {
     key: keyof LdapSource;
     placeholder?: string;
   }[] = [
-    { label: "Hôte (URL)", key: "host", placeholder: "ldap://openldap:389" },
-    { label: "Base DN", key: "baseDN", placeholder: "dc=example,dc=com" },
     {
-      label: "Bind DN",
+      label: t("adminLdap.fields.host"),
+      key: "host",
+      placeholder: "ldap://openldap:389",
+    },
+    {
+      label: t("adminLdap.fields.baseDN"),
+      key: "baseDN",
+      placeholder: "dc=example,dc=com",
+    },
+    {
+      label: t("adminLdap.fields.bindDN"),
       key: "bindDN",
       placeholder: "cn=admin,dc=example,dc=com",
     },
     {
-      label: "Filtre utilisateurs",
+      label: t("adminLdap.fields.userFilter"),
       key: "userFilter",
       placeholder: "(objectClass=person)",
     },
   ];
   const attrFields: { label: string; key: keyof LdapSource }[] = [
-    { label: "Attr. email", key: "attrEmail" },
-    { label: "Attr. prénom", key: "attrFirstName" },
-    { label: "Attr. nom", key: "attrLastName" },
+    { label: t("adminLdap.fields.attrEmail"), key: "attrEmail" },
+    { label: t("adminLdap.fields.attrFirstName"), key: "attrFirstName" },
+    { label: t("adminLdap.fields.attrLastName"), key: "attrLastName" },
   ];
 
   return (
     <div className="nx-app">
       <PageHead
-        eyebrow="Administration"
-        title="Annuaires LDAP"
+        eyebrow={t("adminLdap.eyebrow")}
+        title={t("adminLdap.title")}
         actions={
           <>
             <button type="button" onClick={addSource} className="btn btn-ghost">
-              <Plus className="ico" style={{ width: 18, height: 18 }} /> Ajouter
-              une source
+              <Plus className="ico" style={{ width: 18, height: 18 }} />{" "}
+              {t("adminLdap.actions.addSource")}
             </button>
             <button
               type="button"
@@ -197,7 +210,9 @@ export default function AdminLdapPage() {
               className="btn btn-primary"
             >
               <Save className="ico" style={{ width: 18, height: 18 }} />{" "}
-              {saveMut.isPending ? "Enregistrement…" : "Enregistrer"}
+              {saveMut.isPending
+                ? t("adminLdap.actions.saving")
+                : t("adminLdap.actions.save")}
             </button>
           </>
         }
@@ -208,8 +223,7 @@ export default function AdminLdapPage() {
           className="small"
           style={{ color: "var(--amber)", marginBottom: 16 }}
         >
-          Modifications non enregistrées — enregistrez avant de tester /
-          synchroniser.
+          {t("adminLdap.unsavedWarning")}
         </p>
       )}
 
@@ -217,14 +231,14 @@ export default function AdminLdapPage() {
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           {Array.from({ length: 2 }).map((_, i) => (
             <Tile key={i}>
-              <p className="body">Chargement…</p>
+              <p className="body">{t("adminLdap.loading")}</p>
             </Tile>
           ))}
         </div>
       ) : sources.length === 0 ? (
         <Tile>
           <p className="body" style={{ textAlign: "center" }}>
-            Aucun annuaire configuré. Cliquez sur « Ajouter une source ».
+            {t("adminLdap.empty")}
           </p>
         </Tile>
       ) : (
@@ -244,7 +258,7 @@ export default function AdminLdapPage() {
                   >
                     <input
                       className="input"
-                      aria-label="Nom de l'annuaire"
+                      aria-label={t("adminLdap.sourceNameAria")}
                       style={{ fontWeight: 600, maxWidth: 320 }}
                       value={src.label}
                       onChange={(e) => patch(idx, "label", e.target.value)}
@@ -260,13 +274,13 @@ export default function AdminLdapPage() {
                           patch(idx, "enabled", e.target.checked)
                         }
                       />
-                      Activé
+                      {t("adminLdap.enabled")}
                     </label>
                   </div>
                   <button
                     type="button"
                     onClick={() => removeSource(idx)}
-                    aria-label="Supprimer l'annuaire"
+                    aria-label={t("adminLdap.removeSourceAria")}
                     className="btn btn-ghost btn-sm"
                     style={{ padding: 6 }}
                   >
@@ -313,13 +327,13 @@ export default function AdminLdapPage() {
                   })}
                   <div className="field">
                     <label htmlFor={`${src.id}-bindPassword`}>
-                      Mot de passe Bind
+                      {t("adminLdap.fields.bindPassword")}
                     </label>
                     <input
                       id={`${src.id}-bindPassword`}
                       className="input"
                       type="password"
-                      placeholder="•••••••• (laisser vide = inchangé)"
+                      placeholder={t("adminLdap.fields.bindPasswordPlaceholder")}
                       value={src.bindPassword ?? ""}
                       onChange={(e) =>
                         patch(idx, "bindPassword", e.target.value)
@@ -328,7 +342,7 @@ export default function AdminLdapPage() {
                   </div>
                   <div className="field">
                     <label htmlFor={`${src.id}-defaultRole`}>
-                      Rôle par défaut
+                      {t("adminLdap.fields.defaultRole")}
                     </label>
                     <input
                       id={`${src.id}-defaultRole`}
@@ -341,7 +355,7 @@ export default function AdminLdapPage() {
                   </div>
                   <div className="field">
                     <label htmlFor={`${src.id}-excludePatterns`}>
-                      Comptes exclus (motifs)
+                      {t("adminLdap.fields.excludePatterns")}
                     </label>
                     <input
                       id={`${src.id}-excludePatterns`}
@@ -359,8 +373,7 @@ export default function AdminLdapPage() {
                       }
                     />
                     <span className="small" style={{ color: "var(--ink-3)" }}>
-                      Comptes système/service ignorés à l'import et désactivés
-                      s'ils ont déjà été synchronisés.
+                      {t("adminLdap.fields.excludePatternsHelp")}
                     </span>
                   </div>
                 </div>
@@ -400,7 +413,7 @@ export default function AdminLdapPage() {
                       className={`ico ${testMut.isPending ? "animate-spin" : ""}`}
                       style={{ width: 14, height: 14 }}
                     />{" "}
-                    Tester
+                    {t("adminLdap.actions.test")}
                   </button>
                   <button
                     type="button"
@@ -409,7 +422,7 @@ export default function AdminLdapPage() {
                     className="btn btn-ghost btn-sm"
                   >
                     <Eye className="ico" style={{ width: 14, height: 14 }} />{" "}
-                    Prévisualiser
+                    {t("adminLdap.actions.preview")}
                   </button>
                   <button
                     type="button"
@@ -421,7 +434,7 @@ export default function AdminLdapPage() {
                       className={`ico ${syncMut.isPending ? "animate-spin" : ""}`}
                       style={{ width: 14, height: 14 }}
                     />{" "}
-                    Synchroniser
+                    {t("adminLdap.actions.sync")}
                   </button>
                 </div>
 
@@ -442,7 +455,9 @@ export default function AdminLdapPage() {
                           style={{ width: 14, height: 14 }}
                         />
                       )}
-                      {res.ok ? "Connexion réussie" : "Connexion échouée"}
+                      {res.ok
+                        ? t("adminLdap.test.success")
+                        : t("adminLdap.test.failed")}
                     </Badge>
                     {res.message && (
                       <span className="small">— {res.message}</span>
@@ -462,19 +477,19 @@ export default function AdminLdapPage() {
                   >
                     <span className="small">
                       <b style={{ color: "var(--green)" }}>{res.created}</b>{" "}
-                      créés
+                      {t("adminLdap.sync.created")}
                     </span>
                     <span className="small">
-                      <b style={{ color: "var(--blue)" }}>{res.updated}</b> mis
-                      à jour
+                      <b style={{ color: "var(--blue)" }}>{res.updated}</b>{" "}
+                      {t("adminLdap.sync.updated")}
                     </span>
                     <span className="small">
                       <b style={{ color: "var(--ink-3)" }}>{res.skipped}</b>{" "}
-                      ignorés
+                      {t("adminLdap.sync.skipped")}
                     </span>
                     <span className="small">
                       <b style={{ color: "var(--red)" }}>{res.errors.length}</b>{" "}
-                      erreurs
+                      {t("adminLdap.sync.errors")}
                     </span>
                   </div>
                 )}
@@ -484,9 +499,9 @@ export default function AdminLdapPage() {
                       className="tbl-head"
                       style={{ gridTemplateColumns: "1fr 1fr 2fr" }}
                     >
-                      <div>Nom</div>
-                      <div>Email</div>
-                      <div>DN</div>
+                      <div>{t("adminLdap.preview.name")}</div>
+                      <div>{t("adminLdap.preview.email")}</div>
+                      <div>{t("adminLdap.preview.dn")}</div>
                     </div>
                     {res.users.slice(0, 100).map((u, i) => (
                       <div
@@ -505,7 +520,9 @@ export default function AdminLdapPage() {
                       </div>
                     ))}
                     <p className="small" style={{ marginTop: 8 }}>
-                      {res.users.length} utilisateur(s)
+                      {t("adminLdap.preview.count", {
+                        count: res.users.length,
+                      })}
                     </p>
                   </div>
                 )}

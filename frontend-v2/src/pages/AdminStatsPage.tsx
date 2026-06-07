@@ -1,22 +1,27 @@
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { analyticsApi } from "@/api/analytics";
 import { PageHead, Tile, StatTile, Bar } from "../components/shell";
 
-const STATUS_LABELS: Record<string, string> = {
-  assigned: "Assignées",
-  in_progress: "En cours",
-  submitted: "Soumises",
-  reviewed: "Relues",
-  signed_evaluatee: "Signées (évalué)",
-  signed_manager: "Signées (manager)",
-  signed_hr: "Signées (RH)",
-  validated: "Validées",
-  expired: "Expirées",
-  rejected: "Rejetées",
-  archived: "Archivées",
-};
+const STATUS_KEYS = [
+  "assigned",
+  "in_progress",
+  "submitted",
+  "reviewed",
+  "signed_evaluatee",
+  "signed_manager",
+  "signed_hr",
+  "validated",
+  "expired",
+  "rejected",
+  "archived",
+] as const;
 
 export default function AdminStatsPage() {
+  const { t } = useTranslation();
+  const statusLabels: Record<string, string> = Object.fromEntries(
+    STATUS_KEYS.map((k) => [k, t(`adminStats.status.${k}`)]),
+  );
   const { data, isLoading, isError } = useQuery({
     queryKey: ["analytics", "summary"],
     queryFn: () => analyticsApi.getSummary().then((r) => r.data),
@@ -25,7 +30,10 @@ export default function AdminStatsPage() {
   if (isLoading) {
     return (
       <div className="nx-app">
-        <PageHead title="Statistiques" desc="Vue d'ensemble RH" />
+        <PageHead
+          title={t("adminStats.title")}
+          desc={t("adminStats.descShort")}
+        />
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {Array.from({ length: 4 }).map((_, i) => (
             <div
@@ -41,9 +49,12 @@ export default function AdminStatsPage() {
   if (isError || !data) {
     return (
       <div className="nx-app">
-        <PageHead title="Statistiques" desc="Vue d'ensemble RH" />
+        <PageHead
+          title={t("adminStats.title")}
+          desc={t("adminStats.descShort")}
+        />
         <p className="body" style={{ color: "var(--red)" }}>
-          Impossible de charger les statistiques.
+          {t("adminStats.loadError")}
         </p>
       </div>
     );
@@ -60,30 +71,30 @@ export default function AdminStatsPage() {
   return (
     <div className="nx-app">
       <PageHead
-        eyebrow="Administration"
-        title="Statistiques"
-        desc="Vue d'ensemble RH (campagnes & évaluations)"
+        eyebrow={t("adminStats.eyebrow")}
+        title={t("adminStats.title")}
+        desc={t("adminStats.desc")}
       />
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <StatTile
           value={data.totalCampaigns}
-          label="Campagnes"
+          label={t("adminStats.kpi.campaigns")}
           tone="var(--blue)"
         />
         <StatTile
           value={data.activeCampaigns}
-          label="Campagnes actives"
+          label={t("adminStats.kpi.activeCampaigns")}
           tone="var(--green)"
         />
         <StatTile
           value={data.totalEvaluations}
-          label="Évaluations"
+          label={t("adminStats.kpi.evaluations")}
           tone="var(--amber)"
         />
         <StatTile
           value={`${data.completionRate}%`}
-          label="Taux de complétion"
+          label={t("adminStats.kpi.completionRate")}
           tone="var(--green)"
         />
       </div>
@@ -92,7 +103,7 @@ export default function AdminStatsPage() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <StatTile
             value={`${Math.round(avg)}/100`}
-            label="Score moyen (validées)"
+            label={t("adminStats.kpi.avgScore")}
             tone="var(--amber)"
           />
         </div>
@@ -100,7 +111,7 @@ export default function AdminStatsPage() {
 
       <Tile>
         <h2 className="h2" style={{ marginBottom: 16 }}>
-          Évaluations par statut
+          {t("adminStats.byStatusTitle")}
         </h2>
         <div className="section-gap" style={{ gap: 10 }}>
           {Object.entries(byStatus).map(([status, count]) => (
@@ -115,7 +126,7 @@ export default function AdminStatsPage() {
                   whiteSpace: "nowrap",
                 }}
               >
-                {STATUS_LABELS[status] ?? status}
+                {statusLabels[status] ?? status}
               </span>
               <div style={{ flex: 1 }}>
                 <Bar

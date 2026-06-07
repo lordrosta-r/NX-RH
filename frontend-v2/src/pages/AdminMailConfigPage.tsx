@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Server, Send } from "lucide-react";
@@ -48,6 +49,7 @@ function Field({
 }
 
 export default function AdminMailConfigPage() {
+  const { t } = useTranslation();
   const qc = useQueryClient();
 
   const { data: config, isLoading } = useQuery<MailConfig>({
@@ -109,8 +111,7 @@ export default function AdminMailConfigPage() {
       }
     }
     if (!payload.smtpPass && !config?.passwordSet) {
-      nextErrors.smtpPass =
-        "Le mot de passe SMTP est requis lors de la première configuration";
+      nextErrors.smtpPass = t("adminMailConfig.errors.passwordRequired");
     }
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
@@ -122,12 +123,12 @@ export default function AdminMailConfigPage() {
   return (
     <div className="nx-app">
       <PageHead
-        title="Configuration Email"
-        desc="Paramètres SMTP et envoi d'emails"
+        title={t("adminMailConfig.title")}
+        desc={t("adminMailConfig.desc")}
         actions={
           <Link to="/admin/test-mail" className="btn btn-ghost">
-            <Send className="ico" style={{ width: 18, height: 18 }} /> Tester
-            l'envoi
+            <Send className="ico" style={{ width: 18, height: 18 }} />{" "}
+            {t("adminMailConfig.actions.testSend")}
           </Link>
         }
       />
@@ -159,7 +160,7 @@ export default function AdminMailConfigPage() {
                 style={{ justifyContent: "space-between", alignItems: "center" }}
               >
                 <h2 className="h3" style={{ marginBottom: 0 }}>
-                  Paramètres SMTP
+                  {t("adminMailConfig.smtp.heading")}
                 </h2>
                 <button
                   type="button"
@@ -168,7 +169,7 @@ export default function AdminMailConfigPage() {
                   style={{ color: "var(--blue)", borderColor: "var(--line)" }}
                 >
                   <Server size={16} aria-hidden="true" />
-                  Preset OVH
+                  {t("adminMailConfig.smtp.presetOvh")}
                 </button>
               </div>
               <div
@@ -179,7 +180,7 @@ export default function AdminMailConfigPage() {
                 }}
               >
                 <Field
-                  label="Hôte SMTP"
+                  label={t("adminMailConfig.fields.smtpHost")}
                   htmlFor="smtp-host"
                   error={errors.smtpHost}
                 >
@@ -194,7 +195,11 @@ export default function AdminMailConfigPage() {
                     placeholder="smtp.example.com"
                   />
                 </Field>
-                <Field label="Port" htmlFor="smtp-port" error={errors.smtpPort}>
+                <Field
+                  label={t("adminMailConfig.fields.smtpPort")}
+                  htmlFor="smtp-port"
+                  error={errors.smtpPort}
+                >
                   <input
                     id="smtp-port"
                     type="number"
@@ -213,7 +218,7 @@ export default function AdminMailConfigPage() {
                   />
                 </Field>
                 <Field
-                  label="Utilisateur SMTP"
+                  label={t("adminMailConfig.fields.smtpUser")}
                   htmlFor="smtp-user"
                   error={errors.smtpUser}
                 >
@@ -228,7 +233,7 @@ export default function AdminMailConfigPage() {
                   />
                 </Field>
                 <Field
-                  label="Mot de passe SMTP"
+                  label={t("adminMailConfig.fields.smtpPass")}
                   htmlFor="smtp-pass"
                   error={errors.smtpPass}
                 >
@@ -241,12 +246,14 @@ export default function AdminMailConfigPage() {
                       setForm((f) => ({ ...f, smtpPass: e.target.value }))
                     }
                     placeholder={
-                      config?.passwordSet ? "•••••••• (inchangé)" : "••••••••"
+                      config?.passwordSet
+                        ? t("adminMailConfig.fields.passwordUnchanged")
+                        : "••••••••"
                     }
                   />
                 </Field>
                 <Field
-                  label="Email expéditeur"
+                  label={t("adminMailConfig.fields.fromEmail")}
                   htmlFor="from-email"
                   error={errors.fromEmail}
                 >
@@ -261,7 +268,7 @@ export default function AdminMailConfigPage() {
                   />
                 </Field>
                 <Field
-                  label="Nom expéditeur"
+                  label={t("adminMailConfig.fields.fromName")}
                   htmlFor="from-name"
                   error={errors.fromName}
                 >
@@ -288,7 +295,9 @@ export default function AdminMailConfigPage() {
                     setForm((f) => ({ ...f, smtpSecure: e.target.checked }))
                   }
                 />
-                <span className="body">Connexion sécurisée (TLS)</span>
+                <span className="body">
+                  {t("adminMailConfig.fields.secure")}
+                </span>
               </label>
               <div>
                 <button
@@ -296,7 +305,9 @@ export default function AdminMailConfigPage() {
                   className="btn btn-primary"
                   disabled={saveMutation.isPending}
                 >
-                  {saveMutation.isPending ? "Enregistrement…" : "Enregistrer"}
+                  {saveMutation.isPending
+                    ? t("adminMailConfig.actions.saving")
+                    : t("adminMailConfig.actions.save")}
                 </button>
               </div>
             </form>
@@ -305,13 +316,13 @@ export default function AdminMailConfigPage() {
 
         <Tile>
           <h2 className="h3" style={{ marginBottom: 16 }}>
-            Test d'envoi
+            {t("adminMailConfig.test.heading")}
           </h2>
           <div className="row" style={{ gap: 12, alignItems: "flex-start" }}>
             <input
               type="email"
               value={testEmail}
-              aria-label="Adresse email de destination du test"
+              aria-label={t("adminMailConfig.test.emailLabel")}
               onChange={(e) => setTestEmail(e.target.value)}
               className="input"
               style={{ flex: 1 }}
@@ -323,17 +334,19 @@ export default function AdminMailConfigPage() {
               onClick={() => testMutation.mutate(testEmail)}
               disabled={!testEmail || testMutation.isPending}
             >
-              {testMutation.isPending ? "Envoi…" : "Envoyer un test"}
+              {testMutation.isPending
+                ? t("adminMailConfig.test.sending")
+                : t("adminMailConfig.test.send")}
             </button>
           </div>
           {testMutation.isSuccess && (
             <Callout tone="green" style={{ marginTop: 16 }}>
-              Email envoyé avec succès
+              {t("adminMailConfig.test.success")}
             </Callout>
           )}
           {testMutation.isError && (
             <Callout tone="red" style={{ marginTop: 16 }}>
-              Échec de l'envoi
+              {t("adminMailConfig.test.error")}
             </Callout>
           )}
         </Tile>

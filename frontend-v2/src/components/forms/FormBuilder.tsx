@@ -867,12 +867,13 @@ function ConfigPanel({
           <span style={{ fontWeight: 600, color: "var(--ink)" }}>
             Reprendre l'édition précédente
           </span>
-          <HelpCircle
-            size={15}
-            style={{ color: "var(--ink-3)", cursor: "help" }}
-            title={CARRY_HELP}
-            aria-label={CARRY_HELP}
-          />
+          <span title={CARRY_HELP} style={{ display: "inline-flex", cursor: "help" }}>
+            <HelpCircle
+              size={15}
+              style={{ color: "var(--ink-3)" }}
+              aria-label={CARRY_HELP}
+            />
+          </span>
         </label>
         <p className="small" style={{ color: "var(--ink-3)", marginLeft: 26 }}>
           Rappelle, sous cette question, la réponse de la campagne précédente

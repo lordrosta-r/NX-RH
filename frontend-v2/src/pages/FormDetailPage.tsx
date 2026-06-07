@@ -14,16 +14,18 @@ import { queryKeys } from "../lib/queryKeys";
 
 type FormTone = "blue" | "green" | "amber" | "red" | "grey";
 
+// Palette de marque uniquement : bleu navy pour les évaluations, gris pour les
+// demandes. Pas de rouge/vert/ambre sur un type de formulaire.
 const FORM_TYPE_CONFIG: Record<string, { label: string; tone: FormTone }> = {
   self_evaluation: { label: "Auto-évaluation", tone: "blue" },
-  manager_evaluation: { label: "Évaluation manager", tone: "amber" },
+  manager_evaluation: { label: "Évaluation manager", tone: "blue" },
   upward_feedback: { label: "Feedback ascendant", tone: "blue" },
   peer_review: { label: "Peer review", tone: "blue" },
-  objectives: { label: "Objectifs", tone: "green" },
-  mobility_request: { label: "Demande mobilité", tone: "amber" },
-  salary_raise_request: { label: "Demande augmentation", tone: "green" },
-  promotion_request: { label: "Demande promotion", tone: "blue" },
-  training_request: { label: "Demande formation", tone: "green" },
+  objectives: { label: "Objectifs", tone: "grey" },
+  mobility_request: { label: "Demande mobilité", tone: "grey" },
+  salary_raise_request: { label: "Demande augmentation", tone: "grey" },
+  promotion_request: { label: "Demande promotion", tone: "grey" },
+  training_request: { label: "Demande formation", tone: "grey" },
   custom: { label: "Personnalisé", tone: "grey" },
 };
 

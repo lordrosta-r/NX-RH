@@ -312,7 +312,7 @@ function InterviewWorkspace({
         id="interview"
         title={t("guides.interview.title")}
         steps={t("guides.interview.steps", { returnObjects: true }) as string[]}
-        color="teal"
+        color="blue"
       />
 
       {/* Bandeau désaccord */}

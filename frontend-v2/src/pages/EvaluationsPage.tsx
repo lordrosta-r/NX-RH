@@ -285,7 +285,7 @@ export default function EvaluationsPage() {
       <PageGuide
         id="evaluations"
         title={t("guides.evaluations.title")}
-        color="teal"
+        color="blue"
         steps={
           t("guides.evaluations.steps", { returnObjects: true }) as string[]
         }

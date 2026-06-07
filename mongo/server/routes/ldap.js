@@ -15,6 +15,7 @@
 const router = require('express').Router()
 const { testConnection, previewUsers, syncUsers } = require('../services/ldapService')
 const { getSources, saveSources, stripSecrets } = require('../services/ldapSources')
+const { validateInlineConfig } = require('../validators/ldapValidators')
 const Config = require('../models/Config')
 
 // Retourne le bindPassword stocké (pour test/preview/sync sans re-saisie)
@@ -33,6 +34,10 @@ async function resolveConfig(req) {
     return src
   }
   const config = { ...(req.body.config || {}) }
+  // Valide la config inline AVANT de résoudre le bindPassword stocké.
+  // bindPassword vide est toléré : il sera résolu depuis le stockage juste après.
+  const msg = validateInlineConfig(config)
+  if (msg) { const e = new Error(msg); e.status = 400; throw e }
   config.bindPassword = await resolveBindPassword(config)
   return config
 }
@@ -120,6 +125,10 @@ router.get('/config', async (req, res, next) => {
 router.put('/config', async (req, res, next) => {
   try {
     const incoming = req.body.config || {}
+
+    // Validation Joi : bindPassword vide toléré (préservé depuis le stockage ci-dessous)
+    const msg = validateInlineConfig(incoming)
+    if (msg) return res.status(400).json({ error: msg })
 
     // Préserver le bindPassword existant si non fourni
     const existing    = await Config.findOne({ key: 'ldap' }).lean()

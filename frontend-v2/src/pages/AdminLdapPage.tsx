@@ -12,6 +12,10 @@ import {
 import { adminApi } from "../api/admin";
 import type { LdapSource } from "../types";
 import { PageHead, Tile, Badge } from "../components/shell";
+import {
+  validateLdapSource,
+  type LdapFieldErrors,
+} from "../schemas/ldap";
 
 function emptySource(): LdapSource {
   return {
@@ -47,6 +51,8 @@ export default function AdminLdapPage() {
   // l'affichage dérive de draft ?? données serveur — pas de setState dans un effet.
   const [draft, setDraft] = useState<LdapSource[] | null>(null);
   const [results, setResults] = useState<Record<string, ActionResult>>({});
+  // Erreurs de validation par source.id (objet vide = source valide)
+  const [errors, setErrors] = useState<Record<string, LdapFieldErrors>>({});
 
   const { data, isLoading } = useQuery({
     queryKey: ["ldap", "sources"],
@@ -112,8 +118,42 @@ export default function AdminLdapPage() {
   }
 
   function removeSource(idx: number) {
+    const removed = sources[idx];
     setDraft(sources.filter((_, i) => i !== idx));
+    if (removed) {
+      setErrors((e) => {
+        const rest = { ...e };
+        delete rest[removed.id];
+        return rest;
+      });
+    }
   }
+
+  // Valide une source et stocke ses erreurs (onBlur / onSave)
+  function validateOne(src: LdapSource): LdapFieldErrors {
+    const fieldErrors = validateLdapSource(src);
+    setErrors((e) => ({ ...e, [src.id]: fieldErrors }));
+    return fieldErrors;
+  }
+
+  // Valide toutes les sources avant enregistrement ; n'envoie que si tout est valide
+  function handleSave() {
+    const next: Record<string, LdapFieldErrors> = {};
+    let valid = true;
+    for (const src of sources) {
+      const fieldErrors = validateLdapSource(src);
+      next[src.id] = fieldErrors;
+      if (Object.keys(fieldErrors).length > 0) valid = false;
+    }
+    setErrors(next);
+    if (!valid) return;
+    saveMut.mutate(sources);
+  }
+
+  // Au moins une source en erreur → bloque l'enregistrement
+  const hasErrors = Object.values(errors).some(
+    (fe) => Object.keys(fe).length > 0,
+  );
 
   const fields: {
     label: string;
@@ -152,8 +192,8 @@ export default function AdminLdapPage() {
             </button>
             <button
               type="button"
-              onClick={() => saveMut.mutate(sources)}
-              disabled={saveMut.isPending || !dirty}
+              onClick={handleSave}
+              disabled={saveMut.isPending || !dirty || hasErrors}
               className="btn btn-primary"
             >
               <Save className="ico" style={{ width: 18, height: 18 }} />{" "}
@@ -191,6 +231,7 @@ export default function AdminLdapPage() {
         <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
           {sources.map((src, idx) => {
             const res = results[src.id];
+            const srcErrors = errors[src.id] ?? {};
             return (
               <Tile key={src.id}>
                 <div
@@ -240,18 +281,36 @@ export default function AdminLdapPage() {
                     gap: 16,
                   }}
                 >
-                  {fields.map((f) => (
-                    <div className="field" key={f.key}>
-                      <label htmlFor={`${src.id}-${f.key}`}>{f.label}</label>
-                      <input
-                        id={`${src.id}-${f.key}`}
-                        className="input"
-                        value={(src[f.key] as string) ?? ""}
-                        onChange={(e) => patch(idx, f.key, e.target.value)}
-                        placeholder={f.placeholder}
-                      />
-                    </div>
-                  ))}
+                  {fields.map((f) => {
+                    const fieldError = srcErrors[f.key as string];
+                    return (
+                      <div className="field" key={f.key}>
+                        <label htmlFor={`${src.id}-${f.key}`}>{f.label}</label>
+                        <input
+                          id={`${src.id}-${f.key}`}
+                          className="input"
+                          style={
+                            fieldError
+                              ? { borderColor: "var(--red)" }
+                              : undefined
+                          }
+                          aria-invalid={fieldError ? true : undefined}
+                          value={(src[f.key] as string) ?? ""}
+                          onChange={(e) => patch(idx, f.key, e.target.value)}
+                          onBlur={() => validateOne(src)}
+                          placeholder={f.placeholder}
+                        />
+                        {fieldError && (
+                          <p
+                            className="small"
+                            style={{ color: "var(--red)", marginTop: 4 }}
+                          >
+                            {fieldError}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
                   <div className="field">
                     <label htmlFor={`${src.id}-bindPassword`}>
                       Mot de passe Bind

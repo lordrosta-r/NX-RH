@@ -3,6 +3,7 @@ import { useMutation } from "@tanstack/react-query";
 import { Send, CheckCircle, XCircle } from "lucide-react";
 import { PageHead, Tile, Callout } from "../components/shell";
 import client from "@/api/client";
+import { mailTestSchema } from "@/schemas/smtp";
 
 interface TestResult {
   sent: boolean;
@@ -11,6 +12,7 @@ interface TestResult {
 
 export default function AdminMailTestPage() {
   const [email, setEmail] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   const testMutation = useMutation({
     mutationFn: (to: string) =>
@@ -20,7 +22,18 @@ export default function AdminMailTestPage() {
   });
 
   const result = testMutation.data;
-  const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const parsed = mailTestSchema.safeParse({ to: email });
+  const valid = parsed.success;
+
+  function handleTest() {
+    const check = mailTestSchema.safeParse({ to: email });
+    if (!check.success) {
+      setError(check.error.issues[0]?.message ?? "Adresse invalide");
+      return;
+    }
+    setError(null);
+    testMutation.mutate(check.data.to);
+  }
 
   return (
     <div className="nx-app">
@@ -39,15 +52,26 @@ export default function AdminMailTestPage() {
               className="input"
               placeholder="vous@exemple.fr"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                if (error) setError(null);
+              }}
             />
+            {error && (
+              <span
+                className="caption"
+                style={{ color: "var(--red)", marginTop: 4 }}
+              >
+                {error}
+              </span>
+            )}
           </div>
 
           <div className="row" style={{ gap: 12 }}>
             <button
               type="button"
               className="btn btn-primary"
-              onClick={() => testMutation.mutate(email)}
+              onClick={handleTest}
               disabled={!valid || testMutation.isPending}
             >
               <Send size={16} aria-hidden="true" />

@@ -99,6 +99,11 @@ const adminSections: AdminSection[] = [
         href: "/admin/audit",
         desc: "Logs et traçabilité des actions",
       },
+      {
+        label: "Certificat SSL",
+        href: "/admin/ssl",
+        desc: "Téléverser le certificat HTTPS",
+      },
     ],
   },
   {

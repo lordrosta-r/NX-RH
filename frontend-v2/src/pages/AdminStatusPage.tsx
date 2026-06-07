@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { RefreshCw, Database, Mail, Users, Clock } from "lucide-react";
 import { adminApi } from "../api/admin";
 import { PageHead, Tile, StatTile, Badge, Callout } from "../components/shell";
@@ -10,14 +11,17 @@ type SystemStatus = {
   uptime: number;
 };
 
-function formatUptime(seconds: number): string {
+function formatUptime(
+  seconds: number,
+  units: { day: string; hour: string; minute: string },
+): string {
   const d = Math.floor(seconds / 86400);
   const h = Math.floor((seconds % 86400) / 3600);
   const m = Math.floor((seconds % 3600) / 60);
   const parts: string[] = [];
-  if (d > 0) parts.push(`${d}j`);
-  if (h > 0) parts.push(`${h}h`);
-  parts.push(`${m}min`);
+  if (d > 0) parts.push(`${d}${units.day}`);
+  if (h > 0) parts.push(`${h}${units.hour}`);
+  parts.push(`${m}${units.minute}`);
   return parts.join(" ");
 }
 
@@ -73,6 +77,7 @@ function ServiceRow({
 }
 
 export default function AdminStatusPage() {
+  const { t } = useTranslation();
   const { data, isLoading, isError, refetch, isFetching } =
     useQuery<SystemStatus>({
       queryKey: ["admin-system-status"],
@@ -84,21 +89,21 @@ export default function AdminStatusPage() {
   return (
     <div className="nx-app">
       <PageHead
-        eyebrow="Administration"
-        title="Santé système"
-        desc="État des services et disponibilité de la plateforme."
+        eyebrow={t("adminStatus.eyebrow")}
+        title={t("adminStatus.title")}
+        desc={t("adminStatus.desc")}
         actions={
           <button
             onClick={() => refetch()}
             disabled={isFetching}
             className="btn btn-ghost"
-            aria-label="Actualiser le statut système"
+            aria-label={t("adminStatus.refreshAria")}
           >
             <RefreshCw
               className={`ico ${isFetching ? "animate-spin" : ""}`.trim()}
               style={{ width: 18, height: 18 }}
             />
-            Actualiser
+            {t("adminStatus.refresh")}
           </button>
         }
       />
@@ -117,8 +122,7 @@ export default function AdminStatusPage() {
       {isError && (
         <Callout tone="red">
           <p className="body" style={{ color: "var(--ink)" }}>
-            Impossible de récupérer le statut système. L&apos;endpoint est
-            peut-être indisponible.
+            {t("adminStatus.error")}
           </p>
         </Callout>
       )}
@@ -127,27 +131,39 @@ export default function AdminStatusPage() {
         <>
           <Tile className="mb-6">
             <h2 className="h2" style={{ marginBottom: 16 }}>
-              Services
+              {t("adminStatus.services.title")}
             </h2>
             <div className="section-gap" style={{ gap: 12 }}>
               <ServiceRow
                 icon={Database}
                 name="MongoDB"
                 tone={data.mongo.ok ? "green" : "red"}
-                label={data.mongo.ok ? "Opérationnel" : "Erreur"}
+                label={
+                  data.mongo.ok
+                    ? t("adminStatus.services.operational")
+                    : t("adminStatus.services.errorLabel")
+                }
               />
               <ServiceRow
                 icon={Mail}
                 name="SMTP"
                 tone={data.smtp.ok ? "green" : "red"}
-                label={data.smtp.ok ? "Opérationnel" : "Erreur"}
+                label={
+                  data.smtp.ok
+                    ? t("adminStatus.services.operational")
+                    : t("adminStatus.services.errorLabel")
+                }
                 detail={data.smtp.error}
               />
               <ServiceRow
                 icon={Users}
                 name="LDAP"
                 tone={data.ldap.configured ? "green" : "amber"}
-                label={data.ldap.configured ? "Opérationnel" : "Non configuré"}
+                label={
+                  data.ldap.configured
+                    ? t("adminStatus.services.operational")
+                    : t("adminStatus.services.notConfigured")
+                }
               />
             </div>
           </Tile>
@@ -160,10 +176,14 @@ export default function AdminStatusPage() {
                     className="ico"
                     style={{ width: 20, height: 20, color: "var(--ink-3)" }}
                   />
-                  {formatUptime(data.uptime)}
+                  {formatUptime(data.uptime, {
+                    day: t("adminStatus.uptime.day"),
+                    hour: t("adminStatus.uptime.hour"),
+                    minute: t("adminStatus.uptime.minute"),
+                  })}
                 </span>
               }
-              label="Uptime"
+              label={t("adminStatus.uptime.label")}
               tone="var(--blue)"
             />
           </div>

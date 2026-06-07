@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Search, Download, UserX, ShieldOff } from "lucide-react";
 import { adminApi } from "../api/admin";
@@ -27,6 +28,7 @@ function AuthSourceBadge({ source }: { source: string }) {
 }
 
 export default function AdminUsersPage() {
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const { user: currentUser } = useAuth();
   const confirm = useConfirm();
@@ -64,11 +66,10 @@ export default function AdminUsersPage() {
   async function handleAnonymize(user: User) {
     if (
       await confirm({
-        title: "Anonymiser l'utilisateur ?",
-        description:
-          "Les données personnelles seront effacées (RGPD, irréversible).",
+        title: t("adminUsers.anonymize.confirmTitle"),
+        description: t("adminUsers.anonymize.confirmDescription"),
         variant: "danger",
-        confirmLabel: "Anonymiser",
+        confirmLabel: t("adminUsers.anonymize.confirmLabel"),
       })
     ) {
       anonymizeMut.mutate(user.id);
@@ -78,10 +79,10 @@ export default function AdminUsersPage() {
   async function handleDeactivate(user: User) {
     if (
       await confirm({
-        title: "Désactiver l'utilisateur ?",
-        description: "L'utilisateur ne pourra plus se connecter (réversible).",
+        title: t("adminUsers.deactivate.confirmTitle"),
+        description: t("adminUsers.deactivate.confirmDescription"),
         variant: "warning",
-        confirmLabel: "Désactiver",
+        confirmLabel: t("adminUsers.deactivate.confirmLabel"),
       })
     ) {
       forceDeactivateMut.mutate(user.id);
@@ -101,14 +102,13 @@ export default function AdminUsersPage() {
   return (
     <div className="nx-app">
       <PageHead
-        eyebrow="Administration"
-        title="Gestion avancée des utilisateurs"
+        eyebrow={t("adminUsers.eyebrow")}
+        title={t("adminUsers.title")}
       />
 
       <Callout tone="blue" style={{ marginBottom: 16 }}>
         <p className="small" style={{ margin: 0 }}>
-          Les données utilisateur sont soumises au RGPD. Toute anonymisation est
-          irréversible et auditée.
+          {t("adminUsers.gdprNotice")}
         </p>
       </Callout>
 
@@ -117,7 +117,9 @@ export default function AdminUsersPage() {
         style={{ gap: 12, marginBottom: 16, alignItems: "flex-end" }}
       >
         <div className="field" style={{ flex: "1 1 320px", minWidth: 0 }}>
-          <label htmlFor="admin-users-search">Rechercher</label>
+          <label htmlFor="admin-users-search">
+            {t("adminUsers.filters.searchLabel")}
+          </label>
           <div style={{ position: "relative" }}>
             <Search
               className="ico"
@@ -135,49 +137,51 @@ export default function AdminUsersPage() {
               id="admin-users-search"
               className="input"
               style={{ paddingLeft: 36 }}
-              placeholder="Rechercher un utilisateur..."
+              placeholder={t("adminUsers.filters.searchPlaceholder")}
               value={q}
               onChange={(e) => setQ(e.target.value)}
             />
           </div>
         </div>
         <div className="field" style={{ flex: "0 1 220px" }}>
-          <label htmlFor="admin-users-source">Source d'authentification</label>
+          <label htmlFor="admin-users-source">
+            {t("adminUsers.filters.authSourceLabel")}
+          </label>
           <select
             id="admin-users-source"
             className="input"
             value={authSourceFilter}
             onChange={(e) => setAuthSourceFilter(e.target.value)}
           >
-            <option value="">Toutes sources</option>
-            <option value="local">Local</option>
-            <option value="ldap">LDAP</option>
+            <option value="">{t("adminUsers.filters.authSourceAll")}</option>
+            <option value="local">{t("adminUsers.filters.authSourceLocal")}</option>
+            <option value="ldap">{t("adminUsers.filters.authSourceLdap")}</option>
           </select>
         </div>
       </div>
 
       <Tile style={{ padding: 0, overflow: "hidden" }}>
         <div className="tbl-head" style={{ gridTemplateColumns: COLS }}>
-          <div>Nom</div>
-          <div>Email</div>
-          <div>Rôle</div>
-          <div>Auth</div>
-          <div>Département</div>
-          <div>Créé le</div>
-          <div>Désactivé le</div>
+          <div>{t("adminUsers.table.name")}</div>
+          <div>{t("adminUsers.table.email")}</div>
+          <div>{t("adminUsers.table.role")}</div>
+          <div>{t("adminUsers.table.auth")}</div>
+          <div>{t("adminUsers.table.department")}</div>
+          <div>{t("adminUsers.table.createdAt")}</div>
+          <div>{t("adminUsers.table.deactivatedAt")}</div>
           <div />
         </div>
 
         {isLoading ? (
           <div className="small" style={{ padding: 40, textAlign: "center" }}>
-            Chargement…
+            {t("adminUsers.loading")}
           </div>
         ) : !data?.data?.length ? (
           <div
             className="body"
             style={{ padding: 64, textAlign: "center", color: "var(--ink-3)" }}
           >
-            Aucun utilisateur trouvé
+            {t("adminUsers.empty")}
           </div>
         ) : (
           data.data.map((user) => (
@@ -201,7 +205,7 @@ export default function AdminUsersPage() {
                 </span>
                 {user.gdprAnonymized && (
                   <span className="small" style={{ fontStyle: "italic" }}>
-                    (anonymisé)
+                    {t("adminUsers.anonymizedTag")}
                   </span>
                 )}
               </div>
@@ -239,12 +243,12 @@ export default function AdminUsersPage() {
                   align="right"
                   items={[
                     {
-                      label: "Exporter JSON RGPD",
+                      label: t("adminUsers.actions.exportGdpr"),
                       icon: <Download size={14} />,
                       onClick: () => exportGdpr(user),
                     },
                     {
-                      label: "Anonymiser RGPD",
+                      label: t("adminUsers.actions.anonymize"),
                       icon: <UserX size={14} />,
                       onClick: () => handleAnonymize(user),
                       disabled: !!user.gdprAnonymized,
@@ -253,7 +257,7 @@ export default function AdminUsersPage() {
                     ...(isAdminOrHr
                       ? [
                           {
-                            label: "Forcer désactivation",
+                            label: t("adminUsers.actions.forceDeactivate"),
                             icon: <ShieldOff size={14} />,
                             onClick: () => handleDeactivate(user),
                             disabled: !user.isActive,

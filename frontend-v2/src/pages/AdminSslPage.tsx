@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ShieldCheck, Upload, AlertTriangle } from "lucide-react";
 import client from "../api/client";
@@ -48,6 +49,7 @@ function readFileAsText(file: File): Promise<string> {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function AdminSslPage() {
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const [fullchain, setFullchain] = useState("");
   const [privkey, setPrivkey] = useState("");
@@ -69,11 +71,7 @@ export default function AdminSslPage() {
       setPrivkey("");
       setFullchainName("");
       setPrivkeyName("");
-      toast.success(
-        "Certificat installé",
-        res.data.message,
-        8000,
-      );
+      toast.success(t("adminSsl.toast.installed"), res.data.message, 8000);
     },
     onError: (err: unknown) => {
       const msg =
@@ -82,9 +80,9 @@ export default function AdminSslPage() {
               .response?.data?.error ??
             (err as { response?: { data?: { message?: string } } }).response?.data
               ?.message ??
-            "Échec de l'installation"
-          : "Échec de l'installation";
-      toast.error("Installation refusée", msg);
+            t("adminSsl.error.installFailed")
+          : t("adminSsl.error.installFailed");
+      toast.error(t("adminSsl.toast.installRefused"), msg);
     },
   });
 
@@ -105,7 +103,7 @@ export default function AdminSslPage() {
       }
       setError(null);
     } catch {
-      setError("Impossible de lire le fichier sélectionné.");
+      setError(t("adminSsl.error.readFile"));
     }
   }
 
@@ -113,7 +111,7 @@ export default function AdminSslPage() {
     setError(null);
     const parsed = sslCertSchema.safeParse({ fullchain, privkey });
     if (!parsed.success) {
-      setError(parsed.error.issues[0]?.message ?? "Fichiers invalides.");
+      setError(parsed.error.issues[0]?.message ?? t("adminSsl.error.invalidFiles"));
       return;
     }
     installMut.mutate(parsed.data);
@@ -126,16 +124,16 @@ export default function AdminSslPage() {
     <div className="nx-app">
       <Breadcrumbs
         items={[
-          { label: "Accueil", href: "/" },
-          { label: "Administration", href: "/admin" },
-          { label: "Certificat SSL" },
+          { label: t("adminSsl.breadcrumb.home"), href: "/" },
+          { label: t("adminSsl.breadcrumb.admin"), href: "/admin" },
+          { label: t("adminSsl.breadcrumb.ssl") },
         ]}
       />
 
       <PageHead
-        eyebrow="Administration"
-        title="Certificat SSL"
-        desc="Téléversez le certificat (fullchain) et la clé privée pour sécuriser l'accès HTTPS."
+        eyebrow={t("adminSsl.eyebrow")}
+        title={t("adminSsl.title")}
+        desc={t("adminSsl.desc")}
       />
 
       <Callout tone="blue" style={{ marginBottom: 24 }}>
@@ -145,12 +143,11 @@ export default function AdminSslPage() {
             style={{ width: 18, height: 18, marginTop: 2, flex: "none" }}
           />
           <span className="small">
-            Les fichiers doivent être au format PEM. La clé privée n'est jamais
-            réaffichée après installation. Une fois installé, rechargez nginx :{" "}
+            {t("adminSsl.callout.before")}{" "}
             <code style={{ fontFamily: "monospace" }}>
               docker compose kill -s HUP nginx
             </code>
-            .
+            {t("adminSsl.callout.after")}
           </span>
         </div>
       </Callout>
@@ -158,18 +155,18 @@ export default function AdminSslPage() {
       {/* État du certificat actuel */}
       <Tile>
         <h2 className="h3" style={{ marginBottom: 16 }}>
-          Certificat actuel
+          {t("adminSsl.current.title")}
         </h2>
         {isLoading ? (
-          <p className="body">Chargement…</p>
+          <p className="body">{t("adminSsl.loading")}</p>
         ) : !cert?.installed ? (
           <p className="body" style={{ color: "var(--ink)" }}>
-            Aucun certificat n'est installé pour le moment.
+            {t("adminSsl.current.none")}
           </p>
         ) : cert.valid === false ? (
           <Badge tone="red">
             <AlertTriangle className="ico" style={{ width: 14, height: 14 }} />{" "}
-            Certificat présent mais illisible
+            {t("adminSsl.current.unreadable")}
           </Badge>
         ) : (
           <div
@@ -180,13 +177,13 @@ export default function AdminSslPage() {
             }}
           >
             <div className="field">
-              <label>Nom commun (CN)</label>
+              <label>{t("adminSsl.current.cn")}</label>
               <p className="body" style={{ fontWeight: 600 }}>
                 {cert.cn ?? "—"}
               </p>
             </div>
             <div className="field">
-              <label>Valide jusqu'au</label>
+              <label>{t("adminSsl.current.validUntil")}</label>
               <p className="body" style={{ fontWeight: 600 }}>
                 {cert.notAfter
                   ? new Date(cert.notAfter).toLocaleDateString("fr-FR")
@@ -194,9 +191,9 @@ export default function AdminSslPage() {
               </p>
             </div>
             <div className="field">
-              <label>Jours restants</label>
+              <label>{t("adminSsl.current.daysRemaining")}</label>
               <Badge tone={expiringSoon ? "red" : "green"}>
-                {cert.daysRemaining} jour(s)
+                {t("adminSsl.current.days", { count: cert.daysRemaining ?? 0 })}
               </Badge>
             </div>
           </div>
@@ -206,7 +203,7 @@ export default function AdminSslPage() {
       {/* Formulaire de téléversement */}
       <Tile style={{ marginTop: 24 }}>
         <h2 className="h3" style={{ marginBottom: 16 }}>
-          Installer un nouveau certificat
+          {t("adminSsl.install.title")}
         </h2>
 
         <div
@@ -218,7 +215,7 @@ export default function AdminSslPage() {
         >
           <div className="field">
             <label htmlFor="ssl-fullchain">
-              Certificat (fullchain.pem)
+              {t("adminSsl.install.fullchainLabel")}
             </label>
             <input
               id="ssl-fullchain"
@@ -229,13 +226,15 @@ export default function AdminSslPage() {
             />
             {fullchainName && (
               <span className="small" style={{ color: "var(--blue)" }}>
-                {fullchainName} chargé
+                {t("adminSsl.install.fileLoaded", { name: fullchainName })}
               </span>
             )}
           </div>
 
           <div className="field">
-            <label htmlFor="ssl-privkey">Clé privée (privkey.pem)</label>
+            <label htmlFor="ssl-privkey">
+              {t("adminSsl.install.privkeyLabel")}
+            </label>
             <input
               id="ssl-privkey"
               type="file"
@@ -245,7 +244,7 @@ export default function AdminSslPage() {
             />
             {privkeyName && (
               <span className="small" style={{ color: "var(--blue)" }}>
-                {privkeyName} chargé
+                {t("adminSsl.install.fileLoaded", { name: privkeyName })}
               </span>
             )}
           </div>
@@ -270,7 +269,9 @@ export default function AdminSslPage() {
             style={{ background: "var(--blue)" }}
           >
             <Upload className="ico" style={{ width: 18, height: 18 }} />{" "}
-            {installMut.isPending ? "Installation…" : "Installer le certificat"}
+            {installMut.isPending
+              ? t("adminSsl.install.installing")
+              : t("adminSsl.install.submit")}
           </button>
         </div>
       </Tile>

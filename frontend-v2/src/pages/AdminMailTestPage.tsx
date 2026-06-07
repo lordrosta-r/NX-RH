@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useMutation } from "@tanstack/react-query";
 import { Send, CheckCircle, XCircle } from "lucide-react";
 import { PageHead, Tile, Callout } from "../components/shell";
@@ -11,6 +12,7 @@ interface TestResult {
 }
 
 export default function AdminMailTestPage() {
+  const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
 
@@ -28,7 +30,9 @@ export default function AdminMailTestPage() {
   function handleTest() {
     const check = mailTestSchema.safeParse({ to: email });
     if (!check.success) {
-      setError(check.error.issues[0]?.message ?? "Adresse invalide");
+      setError(
+        check.error.issues[0]?.message ?? t("adminMailTest.invalidAddress"),
+      );
       return;
     }
     setError(null);
@@ -38,14 +42,16 @@ export default function AdminMailTestPage() {
   return (
     <div className="nx-app">
       <PageHead
-        title="Test d'envoi d'email"
-        desc="Envoie un email de test via la configuration SMTP courante"
+        title={t("adminMailTest.title")}
+        desc={t("adminMailTest.desc")}
       />
 
       <Tile>
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <div className="field">
-            <label htmlFor="mail-test-to">Destinataire</label>
+            <label htmlFor="mail-test-to">
+              {t("adminMailTest.recipient")}
+            </label>
             <input
               id="mail-test-to"
               type="email"
@@ -75,7 +81,9 @@ export default function AdminMailTestPage() {
               disabled={!valid || testMutation.isPending}
             >
               <Send size={16} aria-hidden="true" />
-              {testMutation.isPending ? "Envoi…" : "Envoyer l'email de test"}
+              {testMutation.isPending
+                ? t("adminMailTest.sending")
+                : t("adminMailTest.send")}
             </button>
           </div>
 
@@ -92,7 +100,7 @@ export default function AdminMailTestPage() {
                 />
                 <div>
                   <p className="body" style={{ fontWeight: 600 }}>
-                    Email envoyé
+                    {t("adminMailTest.sentTitle")}
                   </p>
                   {result?.previewUrl && (
                     <a
@@ -102,7 +110,7 @@ export default function AdminMailTestPage() {
                       className="link"
                       style={{ wordBreak: "break-all" }}
                     >
-                      Voir l'aperçu (Ethereal)
+                      {t("adminMailTest.viewPreview")}
                     </a>
                   )}
                 </div>
@@ -118,9 +126,7 @@ export default function AdminMailTestPage() {
                   aria-hidden="true"
                   style={{ flexShrink: 0 }}
                 />
-                <span className="body">
-                  Échec de l'envoi — vérifiez la configuration SMTP.
-                </span>
+                <span className="body">{t("adminMailTest.sendError")}</span>
               </div>
             </Callout>
           )}

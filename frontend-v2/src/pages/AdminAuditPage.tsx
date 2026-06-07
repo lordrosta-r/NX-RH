@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { Download, Search } from "lucide-react";
 import { adminApi } from "../api/admin";
@@ -22,6 +23,7 @@ function ActionBadge({ action }: { action: string }) {
 }
 
 export default function AdminAuditPage() {
+  const { t } = useTranslation();
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState({
     action: "",
@@ -59,11 +61,11 @@ export default function AdminAuditPage() {
   return (
     <div className="nx-app">
       <PageHead
-        title="Journal d'audit"
+        title={t("adminAudit.title")}
         actions={
           <button onClick={exportCsv} className="btn btn-ghost">
             <Download className="ico" style={{ width: 18, height: 18 }} />{" "}
-            Exporter CSV
+            {t("adminAudit.actions.exportCsv")}
           </button>
         }
       />
@@ -72,7 +74,7 @@ export default function AdminAuditPage() {
       <Tile style={{ marginBottom: 16 }}>
         <div className="row wrap" style={{ gap: 16, alignItems: "flex-end" }}>
           <div className="field" style={{ flex: "1 1 200px" }}>
-            <label htmlFor="audit-actor">Acteur</label>
+            <label htmlFor="audit-actor">{t("adminAudit.filters.actor")}</label>
             <div style={{ position: "relative" }}>
               <Search
                 className="ico"
@@ -90,7 +92,7 @@ export default function AdminAuditPage() {
                 id="audit-actor"
                 className="input"
                 style={{ paddingLeft: 36 }}
-                placeholder="Acteur…"
+                placeholder={t("adminAudit.filters.actorPlaceholder")}
                 value={filters.actorId}
                 onChange={(e) => {
                   setFilters((f) => ({ ...f, actorId: e.target.value }));
@@ -100,11 +102,11 @@ export default function AdminAuditPage() {
             </div>
           </div>
           <div className="field" style={{ flex: "1 1 180px" }}>
-            <label htmlFor="audit-action">Action</label>
+            <label htmlFor="audit-action">{t("adminAudit.filters.action")}</label>
             <input
               id="audit-action"
               className="input"
-              placeholder="Action…"
+              placeholder={t("adminAudit.filters.actionPlaceholder")}
               value={filters.action}
               onChange={(e) => {
                 setFilters((f) => ({ ...f, action: e.target.value }));
@@ -113,11 +115,13 @@ export default function AdminAuditPage() {
             />
           </div>
           <div className="field" style={{ flex: "1 1 160px" }}>
-            <label htmlFor="audit-target">Type cible</label>
+            <label htmlFor="audit-target">
+              {t("adminAudit.filters.targetType")}
+            </label>
             <input
               id="audit-target"
               className="input"
-              placeholder="Type cible…"
+              placeholder={t("adminAudit.filters.targetTypePlaceholder")}
               value={filters.targetType}
               onChange={(e) => {
                 setFilters((f) => ({ ...f, targetType: e.target.value }));
@@ -126,7 +130,7 @@ export default function AdminAuditPage() {
             />
           </div>
           <div className="field" style={{ flex: "1 1 160px" }}>
-            <label htmlFor="audit-from">Du</label>
+            <label htmlFor="audit-from">{t("adminAudit.filters.from")}</label>
             <input
               id="audit-from"
               type="date"
@@ -139,7 +143,7 @@ export default function AdminAuditPage() {
             />
           </div>
           <div className="field" style={{ flex: "1 1 160px" }}>
-            <label htmlFor="audit-to">Au</label>
+            <label htmlFor="audit-to">{t("adminAudit.filters.to")}</label>
             <input
               id="audit-to"
               type="date"
@@ -156,22 +160,22 @@ export default function AdminAuditPage() {
 
       <Tile style={{ padding: 0, overflow: "hidden" }}>
         <div className="tbl-head" style={{ gridTemplateColumns: COLS }}>
-          <div>Date/Heure</div>
-          <div>Acteur</div>
-          <div>Action</div>
-          <div>Cible</div>
+          <div>{t("adminAudit.table.datetime")}</div>
+          <div>{t("adminAudit.table.actor")}</div>
+          <div>{t("adminAudit.table.action")}</div>
+          <div>{t("adminAudit.table.target")}</div>
         </div>
 
         {isLoading ? (
           <div className="small" style={{ padding: 40, textAlign: "center" }}>
-            Chargement…
+            {t("adminAudit.loading")}
           </div>
         ) : !entries.length ? (
           <div
             className="body"
             style={{ padding: 40, textAlign: "center", color: "var(--ink-3)" }}
           >
-            Aucune entrée dans le journal d'audit.
+            {t("adminAudit.empty")}
           </div>
         ) : (
           entries.map((entry) => (
@@ -209,7 +213,10 @@ export default function AdminAuditPage() {
             style={{ padding: "13px 22px", borderTop: "1px solid var(--line)" }}
           >
             <p className="small">
-              Page {page} sur {data.totalPages}
+              {t("adminAudit.pagination.page", {
+                page,
+                total: data.totalPages,
+              })}
             </p>
             <div className="row" style={{ gap: 8 }}>
               <button
@@ -217,14 +224,14 @@ export default function AdminAuditPage() {
                 disabled={page === 1}
                 className="btn btn-ghost btn-sm"
               >
-                Précédent
+                {t("adminAudit.pagination.prev")}
               </button>
               <button
                 onClick={() => setPage((p) => p + 1)}
                 disabled={page >= (data.totalPages ?? 1)}
                 className="btn btn-ghost btn-sm"
               >
-                Suivant
+                {t("adminAudit.pagination.next")}
               </button>
             </div>
           </div>

@@ -436,5 +436,469 @@
     "hrTitle": "Paramètres RH",
     "hrSettings": "Paramètres RH",
     "hrSettingsDesc": "Configuration métier et globale"
+  },
+  "adminConfig": {
+    "eyebrow": "Administration",
+    "title": "Configuration système",
+    "desc": "Gérez les clés de configuration applicatives et vérifiez les variables d'environnement du serveur.",
+    "branding": {
+      "title": "Logo de l'entreprise",
+      "help": "Affiché dans la barre de navigation. PNG, JPG ou SVG, max 500 Ko.",
+      "tooLarge": "Image trop volumineuse (max 500 Ko).",
+      "currentLogoAlt": "Logo actuel",
+      "defaultLogo": "Logo par défaut",
+      "chooseImage": "Choisir une image",
+      "reset": "Réinitialiser"
+    },
+    "env": {
+      "title": "Variables d'environnement",
+      "definedCount": "{{defined}} / {{total}} définies",
+      "missingCount": "{{count}} manquante",
+      "missingCount_other": "{{count}} manquantes",
+      "allDefined": "Tout est défini",
+      "unavailable": "Endpoint non disponible — les variables d'environnement ne peuvent pas être vérifiées pour l'instant.",
+      "colVariable": "Variable",
+      "colDescription": "Description",
+      "colStatus": "Statut",
+      "required": "requis",
+      "statusSet": "Définie",
+      "statusMissing": "Manquante"
+    },
+    "keys": {
+      "new": "Nouvelle clé",
+      "title": "Clés de configuration",
+      "count": "{{count}} clé",
+      "count_other": "{{count}} clés",
+      "colKey": "Clé",
+      "colValue": "Valeur",
+      "colActions": "Actions",
+      "empty": "Aucune clé de configuration",
+      "add": "Ajouter une clé",
+      "expand": "Voir tout",
+      "collapse": "Réduire",
+      "edit": "Modifier",
+      "editAria": "Modifier {{key}}",
+      "delete": "Supprimer",
+      "deleteAria": "Supprimer {{key}}",
+      "deleteTitle": "Supprimer la clé de configuration ?",
+      "deleteDescription": "La clé « {{key}} » sera définitivement supprimée.",
+      "deleteConfirm": "Supprimer"
+    },
+    "modal": {
+      "newTitle": "Nouvelle clé de configuration",
+      "editTitle": "Modifier la clé",
+      "close": "Fermer",
+      "keyLabel": "Clé",
+      "keyExample": "(ex : SMTP_HOST)",
+      "keyPlaceholder": "NOM_DE_LA_CLE",
+      "valueLabel": "Valeur",
+      "valuePlaceholder": "Valeur de la clé…",
+      "cancel": "Annuler",
+      "save": "Sauvegarder",
+      "saving": "Sauvegarde…"
+    }
+  },
+  "adminStatus": {
+    "eyebrow": "Administration",
+    "title": "Santé système",
+    "desc": "État des services et disponibilité de la plateforme.",
+    "refresh": "Actualiser",
+    "refreshAria": "Actualiser le statut système",
+    "error": "Impossible de récupérer le statut système. L'endpoint est peut-être indisponible.",
+    "services": {
+      "title": "Services",
+      "operational": "Opérationnel",
+      "errorLabel": "Erreur",
+      "notConfigured": "Non configuré"
+    },
+    "uptime": {
+      "label": "Uptime",
+      "day": "j",
+      "hour": "h",
+      "minute": "min"
+    }
+  },
+  "adminSetup": {
+    "eyebrow": "Administration",
+    "title": "Configuration initiale",
+    "desc": "Suivez ces étapes pour mettre en service NX-RH",
+    "checking": "Vérification de la configuration...",
+    "complete": {
+      "title": "Configuration complète !",
+      "subtitle": "Toutes les étapes de configuration ont été effectuées."
+    },
+    "progress": {
+      "percent": "{{percent}}% configuré",
+      "steps": "{{completed}}/{{total}} étapes complètes"
+    }
+  },
+  "adminStats": {
+    "eyebrow": "Administration",
+    "title": "Statistiques",
+    "desc": "Vue d'ensemble RH (campagnes & évaluations)",
+    "descShort": "Vue d'ensemble RH",
+    "loadError": "Impossible de charger les statistiques.",
+    "byStatusTitle": "Évaluations par statut",
+    "kpi": {
+      "campaigns": "Campagnes",
+      "activeCampaigns": "Campagnes actives",
+      "evaluations": "Évaluations",
+      "completionRate": "Taux de complétion",
+      "avgScore": "Score moyen (validées)"
+    },
+    "status": {
+      "assigned": "Assignées",
+      "in_progress": "En cours",
+      "submitted": "Soumises",
+      "reviewed": "Relues",
+      "signed_evaluatee": "Signées (évalué)",
+      "signed_manager": "Signées (manager)",
+      "signed_hr": "Signées (RH)",
+      "validated": "Validées",
+      "expired": "Expirées",
+      "rejected": "Rejetées",
+      "archived": "Archivées"
+    }
+  },
+  "adminMailConfig": {
+    "title": "Configuration Email",
+    "desc": "Paramètres SMTP et envoi d'emails",
+    "actions": {
+      "testSend": "Tester l'envoi",
+      "save": "Enregistrer",
+      "saving": "Enregistrement…"
+    },
+    "smtp": {
+      "heading": "Paramètres SMTP",
+      "presetOvh": "Preset OVH"
+    },
+    "fields": {
+      "smtpHost": "Hôte SMTP",
+      "smtpPort": "Port",
+      "smtpUser": "Utilisateur SMTP",
+      "smtpPass": "Mot de passe SMTP",
+      "passwordUnchanged": "•••••••• (inchangé)",
+      "fromEmail": "Email expéditeur",
+      "fromName": "Nom expéditeur",
+      "secure": "Connexion sécurisée (TLS)"
+    },
+    "errors": {
+      "passwordRequired": "Le mot de passe SMTP est requis lors de la première configuration"
+    },
+    "test": {
+      "heading": "Test d'envoi",
+      "emailLabel": "Adresse email de destination du test",
+      "send": "Envoyer un test",
+      "sending": "Envoi…",
+      "success": "Email envoyé avec succès",
+      "error": "Échec de l'envoi"
+    }
+  },
+  "adminMailTemplates": {
+    "title": "Modèles email",
+    "desc": "Personnalisez l'objet et le corps des emails envoyés automatiquement par la plateforme.",
+    "slugs": {
+      "campaignLaunch": "Campagne lancée",
+      "evaluationAssigned": "Évaluation assignée",
+      "evaluationSubmitted": "Évaluation soumise",
+      "deadlineReminder": "Rappel deadline",
+      "managerActionRequired": "Action manager requise",
+      "systemAlerts": "Alertes système",
+      "bulkReminder": "Rappel groupé",
+      "requestTreated": "Demande traitée",
+      "requestRejected": "Demande rejetée",
+      "passwordReset": "Réinitialisation mot de passe",
+      "welcomeImport": "Bienvenue (import)"
+    },
+    "editor": {
+      "subject": "Objet",
+      "body": "Corps (texte brut)",
+      "variablesHint": "Variables disponibles entre doubles accolades :",
+      "variablesEtc": ", etc.",
+      "save": "Enregistrer",
+      "saving": "Enregistrement…",
+      "reset": "Réinitialiser",
+      "resetTitle": "Remettre les valeurs par défaut",
+      "cancel": "Annuler",
+      "errorOccurred": "Une erreur est survenue."
+    },
+    "row": {
+      "modified": "Modifié {{date}}",
+      "preview": "Aperçu (texte brut)",
+      "noBody": "Aucun corps défini",
+      "edit": "Modifier ce template"
+    },
+    "test": {
+      "heading": "Tester l'envoi SMTP",
+      "emailLabel": "Adresse e-mail destinataire du test",
+      "send": "Envoyer",
+      "sending": "Envoi…",
+      "success": "Email envoyé avec succès.",
+      "error": "Erreur lors de l'envoi. Vérifiez la configuration SMTP."
+    },
+    "list": {
+      "loadError": "Impossible de charger les templates.",
+      "empty": "Aucun template configuré."
+    }
+  },
+  "adminMailTest": {
+    "title": "Test d'envoi d'email",
+    "desc": "Envoie un email de test via la configuration SMTP courante",
+    "recipient": "Destinataire",
+    "invalidAddress": "Adresse invalide",
+    "send": "Envoyer l'email de test",
+    "sending": "Envoi…",
+    "sentTitle": "Email envoyé",
+    "viewPreview": "Voir l'aperçu (Ethereal)",
+    "sendError": "Échec de l'envoi — vérifiez la configuration SMTP."
+  },
+  "adminLdap": {
+    "eyebrow": "Administration",
+    "title": "Annuaires LDAP",
+    "unsavedWarning": "Modifications non enregistrées — enregistrez avant de tester / synchroniser.",
+    "loading": "Chargement…",
+    "empty": "Aucun annuaire configuré. Cliquez sur « Ajouter une source ».",
+    "newSourceLabel": "Nouvel annuaire",
+    "sourceNameAria": "Nom de l'annuaire",
+    "removeSourceAria": "Supprimer l'annuaire",
+    "enabled": "Activé",
+    "actions": {
+      "addSource": "Ajouter une source",
+      "save": "Enregistrer",
+      "saving": "Enregistrement…",
+      "test": "Tester",
+      "preview": "Prévisualiser",
+      "sync": "Synchroniser"
+    },
+    "fields": {
+      "host": "Hôte (URL)",
+      "baseDN": "Base DN",
+      "bindDN": "Bind DN",
+      "userFilter": "Filtre utilisateurs",
+      "attrEmail": "Attr. email",
+      "attrFirstName": "Attr. prénom",
+      "attrLastName": "Attr. nom",
+      "bindPassword": "Mot de passe Bind",
+      "bindPasswordPlaceholder": "•••••••• (laisser vide = inchangé)",
+      "defaultRole": "Rôle par défaut",
+      "excludePatterns": "Comptes exclus (motifs)",
+      "excludePatternsHelp": "Comptes système/service ignorés à l'import et désactivés s'ils ont déjà été synchronisés."
+    },
+    "test": {
+      "success": "Connexion réussie",
+      "failed": "Connexion échouée"
+    },
+    "sync": {
+      "created": "créés",
+      "updated": "mis à jour",
+      "skipped": "ignorés",
+      "errors": "erreurs"
+    },
+    "preview": {
+      "name": "Nom",
+      "email": "Email",
+      "dn": "DN",
+      "count": "{{count}} utilisateur(s)"
+    }
+  },
+  "adminSsl": {
+    "eyebrow": "Administration",
+    "title": "Certificat SSL",
+    "desc": "Téléversez le certificat (fullchain) et la clé privée pour sécuriser l'accès HTTPS.",
+    "loading": "Chargement…",
+    "breadcrumb": {
+      "home": "Accueil",
+      "admin": "Administration",
+      "ssl": "Certificat SSL"
+    },
+    "callout": {
+      "before": "Les fichiers doivent être au format PEM. La clé privée n'est jamais réaffichée après installation. Une fois installé, rechargez nginx :",
+      "after": "."
+    },
+    "current": {
+      "title": "Certificat actuel",
+      "none": "Aucun certificat n'est installé pour le moment.",
+      "unreadable": "Certificat présent mais illisible",
+      "cn": "Nom commun (CN)",
+      "validUntil": "Valide jusqu'au",
+      "daysRemaining": "Jours restants",
+      "days": "{{count}} jour(s)"
+    },
+    "install": {
+      "title": "Installer un nouveau certificat",
+      "fullchainLabel": "Certificat (fullchain.pem)",
+      "privkeyLabel": "Clé privée (privkey.pem)",
+      "fileLoaded": "{{name}} chargé",
+      "submit": "Installer le certificat",
+      "installing": "Installation…"
+    },
+    "toast": {
+      "installed": "Certificat installé",
+      "installRefused": "Installation refusée"
+    },
+    "error": {
+      "installFailed": "Échec de l'installation",
+      "readFile": "Impossible de lire le fichier sélectionné.",
+      "invalidFiles": "Fichiers invalides."
+    }
+  },
+  "adminAudit": {
+    "title": "Journal d'audit",
+    "loading": "Chargement…",
+    "empty": "Aucune entrée dans le journal d'audit.",
+    "actions": {
+      "exportCsv": "Exporter CSV"
+    },
+    "filters": {
+      "actor": "Acteur",
+      "actorPlaceholder": "Acteur…",
+      "action": "Action",
+      "actionPlaceholder": "Action…",
+      "targetType": "Type cible",
+      "targetTypePlaceholder": "Type cible…",
+      "from": "Du",
+      "to": "Au"
+    },
+    "table": {
+      "datetime": "Date/Heure",
+      "actor": "Acteur",
+      "action": "Action",
+      "target": "Cible"
+    },
+    "pagination": {
+      "page": "Page {{page}} sur {{total}}",
+      "prev": "Précédent",
+      "next": "Suivant"
+    }
+  },
+  "adminUsers": {
+    "eyebrow": "Administration",
+    "title": "Gestion avancée des utilisateurs",
+    "gdprNotice": "Les données utilisateur sont soumises au RGPD. Toute anonymisation est irréversible et auditée.",
+    "loading": "Chargement…",
+    "empty": "Aucun utilisateur trouvé",
+    "anonymizedTag": "(anonymisé)",
+    "filters": {
+      "searchLabel": "Rechercher",
+      "searchPlaceholder": "Rechercher un utilisateur...",
+      "authSourceLabel": "Source d'authentification",
+      "authSourceAll": "Toutes sources",
+      "authSourceLocal": "Local",
+      "authSourceLdap": "LDAP"
+    },
+    "table": {
+      "name": "Nom",
+      "email": "Email",
+      "role": "Rôle",
+      "auth": "Auth",
+      "department": "Département",
+      "createdAt": "Créé le",
+      "deactivatedAt": "Désactivé le"
+    },
+    "actions": {
+      "exportGdpr": "Exporter JSON RGPD",
+      "anonymize": "Anonymiser RGPD",
+      "forceDeactivate": "Forcer désactivation"
+    },
+    "anonymize": {
+      "confirmTitle": "Anonymiser l'utilisateur ?",
+      "confirmDescription": "Les données personnelles seront effacées (RGPD, irréversible).",
+      "confirmLabel": "Anonymiser"
+    },
+    "deactivate": {
+      "confirmTitle": "Désactiver l'utilisateur ?",
+      "confirmDescription": "L'utilisateur ne pourra plus se connecter (réversible).",
+      "confirmLabel": "Désactiver"
+    }
+  },
+  "adminUsersImport": {
+    "title": "Import utilisateurs",
+    "desc": "Importez des utilisateurs en masse depuis un fichier CSV ou JSON.",
+    "downloadTemplate": "Télécharger le template CSV",
+    "expectedColumns": "Colonnes attendues :",
+    "separatorBefore": "— séparateur",
+    "separatorOr": "ou",
+    "separatorAfter": "détecté automatiquement",
+    "dryRun": {
+      "label": "Mode simulation",
+      "on": "Aperçu uniquement — aucune donnée ne sera modifiée",
+      "off": "Import réel — les utilisateurs seront créés/mis à jour"
+    },
+    "dropzone": {
+      "ariaLabel": "Glissez-déposez un fichier CSV ou JSON, ou cliquez pour sélectionner",
+      "title": "Glissez-déposez un fichier CSV ou JSON",
+      "hint": "ou cliquez pour sélectionner",
+      "inputAriaLabel": "Sélectionner un fichier CSV ou JSON"
+    },
+    "preview": {
+      "rowsDetected": "lignes détectées",
+      "validationErrors": "Erreurs de validation ({{count}})",
+      "moreRows": "… et {{count}} autres lignes"
+    },
+    "actions": {
+      "importing": "Import en cours…",
+      "simulate": "Simuler ({{count}} lignes)",
+      "import": "Importer {{count}} utilisateurs",
+      "reset": "Réinitialiser"
+    },
+    "result": {
+      "dryRunNotice": "Mode simulation — aucune donnée modifiée",
+      "summary": "{{success}} importés, {{errors}} erreurs",
+      "lineError": "Ligne {{line}}: {{error}}"
+    },
+    "errors": {
+      "invalidJson": "JSON invalide",
+      "missingField": "Ligne {{line}}: champ \"{{field}}\" manquant"
+    }
+  },
+  "adminFormsImport": {
+    "title": "Import formulaires",
+    "desc": "Importez un formulaire d'évaluation au format JSON, par fichier ou par copier-coller.",
+    "downloadTemplate": "Télécharger le template JSON",
+    "validationErrors": "Erreurs de validation",
+    "imported": "Formulaire importé ! Redirection…",
+    "tabs": {
+      "file": "Fichier",
+      "paste": "Coller JSON"
+    },
+    "dropzone": {
+      "ariaLabel": "Glissez-déposez ou cliquez pour sélectionner un fichier JSON",
+      "title": "Glissez-déposez un fichier JSON",
+      "hint": "ou cliquez pour sélectionner",
+      "inputAriaLabel": "Fichier JSON du formulaire"
+    },
+    "paste": {
+      "label": "JSON du formulaire",
+      "placeholder": "Collez votre JSON ici…\n{\n  \"title\": \"...\",\n  \"formType\": \"self_evaluation\",\n  \"questions\": [...]\n}",
+      "validate": "Valider"
+    },
+    "preview": {
+      "title": "Aperçu",
+      "titleField": "Titre",
+      "typeField": "Type",
+      "questionsField": "Questions"
+    },
+    "questionsTable": {
+      "type": "Type",
+      "label": "Intitulé",
+      "more": "… et {{count}} autres"
+    },
+    "actions": {
+      "importing": "Import en cours…",
+      "import": "Importer le formulaire",
+      "reset": "Réinitialiser"
+    },
+    "errors": {
+      "notObject": "Le fichier doit être un objet JSON",
+      "malformedJson": "JSON invalide ou malformé",
+      "importFailed": "Erreur lors de l'import. Vérifiez le format.",
+      "missingField": "Champ \"{{field}}\" manquant",
+      "invalidFormType": "formType \"{{value}}\" invalide. Valeurs: {{values}}",
+      "missingQuestions": "Champ \"questions\" manquant ou non tableau",
+      "questionMissingId": "Question {{number}}: champ \"id\" manquant",
+      "questionDuplicateId": "Question {{number}}: ID \"{{id}}\" en double",
+      "questionMissingType": "Question {{number}}: champ \"type\" manquant",
+      "questionInvalidType": "Question {{number}}: type \"{{type}}\" invalide"
+    }
   }
 }

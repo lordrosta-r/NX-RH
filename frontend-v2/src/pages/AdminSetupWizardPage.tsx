@@ -1,9 +1,11 @@
 import { CheckCircle, Circle, ChevronRight, Rocket } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { useSetupChecklist } from "../hooks/useSetupChecklist";
 import { PageHead, Tile, Bar, Callout } from "../components/shell";
 
 export default function AdminSetupWizardPage() {
+  const { t } = useTranslation();
   const { steps, completed, total, percent, isLoading, allDone } =
     useSetupChecklist();
 
@@ -18,7 +20,7 @@ export default function AdminSetupWizardPage() {
             color: "var(--ink-3)",
           }}
         >
-          Vérification de la configuration...
+          {t("adminSetup.checking")}
         </div>
       </div>
     );
@@ -27,9 +29,9 @@ export default function AdminSetupWizardPage() {
   return (
     <div className="nx-app">
       <PageHead
-        eyebrow="Administration"
-        title="Configuration initiale"
-        desc="Suivez ces étapes pour mettre en service NX-RH"
+        eyebrow={t("adminSetup.eyebrow")}
+        title={t("adminSetup.title")}
+        desc={t("adminSetup.desc")}
       />
 
       {allDone ? (
@@ -46,10 +48,10 @@ export default function AdminSetupWizardPage() {
             />
             <div>
               <p style={{ fontSize: 15, fontWeight: 700, color: "var(--ink)" }}>
-                Configuration complète !
+                {t("adminSetup.complete.title")}
               </p>
               <p className="small" style={{ marginTop: 2 }}>
-                Toutes les étapes de configuration ont été effectuées.
+                {t("adminSetup.complete.subtitle")}
               </p>
             </div>
           </div>
@@ -62,10 +64,10 @@ export default function AdminSetupWizardPage() {
               style={{ width: 20, height: 20, color: "var(--blue)" }}
             />
             <span style={{ fontWeight: 700, color: "var(--ink)" }}>
-              {percent}% configuré
+              {t("adminSetup.progress.percent", { percent })}
             </span>
             <span className="small">
-              · {completed}/{total} étapes complètes
+              · {t("adminSetup.progress.steps", { completed, total })}
             </span>
           </div>
           <Bar pct={percent} />

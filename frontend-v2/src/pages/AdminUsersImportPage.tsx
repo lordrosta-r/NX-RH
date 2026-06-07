@@ -1,4 +1,6 @@
 import { useState, useRef, useCallback } from "react";
+import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import { Upload, AlertCircle, CheckCircle, Download } from "lucide-react";
 import { adminApi } from "../api/admin";
 import type { ImportResult } from "../types";
@@ -17,9 +19,17 @@ const TEMPLATE_HEADERS = [
   "sector",
 ];
 
-function validateRow(row: ParsedRow, idx: number): string | null {
+function validateRow(
+  row: ParsedRow,
+  idx: number,
+  t: TFunction,
+): string | null {
   for (const f of REQUIRED_FIELDS) {
-    if (!row[f]?.trim()) return `Ligne ${idx + 1}: champ "${f}" manquant`;
+    if (!row[f]?.trim())
+      return t("adminUsersImport.errors.missingField", {
+        line: idx + 1,
+        field: f,
+      });
   }
   return null;
 }
@@ -56,6 +66,7 @@ function downloadTemplateCsv() {
 }
 
 export default function AdminUsersImportPage() {
+  const { t } = useTranslation();
   const [rows, setRows] = useState<ParsedRow[]>([]);
   const [errors, setErrors] = useState<string[]>([]);
   const [result, setResult] = useState<ImportResult | null>(null);
@@ -73,7 +84,7 @@ export default function AdminUsersImportPage() {
         try {
           parsed = JSON.parse(text);
         } catch {
-          setErrors(["JSON invalide"]);
+          setErrors([t("adminUsersImport.errors.invalidJson")]);
           return;
         }
       } else {
@@ -81,7 +92,7 @@ export default function AdminUsersImportPage() {
         parsed = parseCsv(text, sep);
       }
       const errs = parsed
-        .map((r, i) => validateRow(r, i))
+        .map((r, i) => validateRow(r, i, t))
         .filter(Boolean) as string[];
       setErrors(errs);
       setRows(parsed);
@@ -118,12 +129,12 @@ export default function AdminUsersImportPage() {
   return (
     <div className="nx-app">
       <PageHead
-        title="Import utilisateurs"
-        desc="Importez des utilisateurs en masse depuis un fichier CSV ou JSON."
+        title={t("adminUsersImport.title")}
+        desc={t("adminUsersImport.desc")}
         actions={
           <button onClick={downloadTemplateCsv} className="btn btn-ghost">
             <Download className="ico" style={{ width: 18, height: 18 }} />{" "}
-            Télécharger le template CSV
+            {t("adminUsersImport.downloadTemplate")}
           </button>
         }
       />
@@ -132,13 +143,14 @@ export default function AdminUsersImportPage() {
         {/* Colonnes attendues + mode + drop zone */}
         <Tile>
           <Callout tone="blue" style={{ marginBottom: 16 }}>
-            Colonnes attendues :{" "}
+            {t("adminUsersImport.expectedColumns")}{" "}
             <code style={{ fontFamily: "monospace" }}>
               firstName · lastName · email · role · department · managerEmail ·
               sector
             </code>{" "}
-            — séparateur <code>;</code> ou <code>,</code> détecté
-            automatiquement
+            {t("adminUsersImport.separatorBefore")} <code>;</code>{" "}
+            {t("adminUsersImport.separatorOr")} <code>,</code>{" "}
+            {t("adminUsersImport.separatorAfter")}
           </Callout>
 
           {/* Mode simulation */}
@@ -156,7 +168,7 @@ export default function AdminUsersImportPage() {
               type="button"
               role="switch"
               aria-checked={dryRun}
-              aria-label="Mode simulation"
+              aria-label={t("adminUsersImport.dryRun.label")}
               onClick={() => setDryRun((d) => !d)}
               style={{
                 position: "relative",
@@ -187,12 +199,12 @@ export default function AdminUsersImportPage() {
             </button>
             <div>
               <span className="body" style={{ fontWeight: 600 }}>
-                Mode simulation
+                {t("adminUsersImport.dryRun.label")}
               </span>
               <p className="small">
                 {dryRun
-                  ? "Aperçu uniquement — aucune donnée ne sera modifiée"
-                  : "Import réel — les utilisateurs seront créés/mis à jour"}
+                  ? t("adminUsersImport.dryRun.on")
+                  : t("adminUsersImport.dryRun.off")}
               </p>
             </div>
           </label>
@@ -201,7 +213,7 @@ export default function AdminUsersImportPage() {
           <div
             role="button"
             tabIndex={0}
-            aria-label="Glissez-déposez un fichier CSV ou JSON, ou cliquez pour sélectionner"
+            aria-label={t("adminUsersImport.dropzone.ariaLabel")}
             style={{
               border: `2px dashed ${isDragging ? "var(--blue)" : "var(--line)"}`,
               borderRadius: "var(--radius)",
@@ -231,16 +243,16 @@ export default function AdminUsersImportPage() {
               style={{ margin: "0 auto 12px", color: "var(--ink-3)" }}
             />
             <p className="body" style={{ fontWeight: 600 }}>
-              Glissez-déposez un fichier CSV ou JSON
+              {t("adminUsersImport.dropzone.title")}
             </p>
             <p className="small" style={{ marginTop: 4 }}>
-              ou cliquez pour sélectionner
+              {t("adminUsersImport.dropzone.hint")}
             </p>
             <input
               ref={inputRef}
               type="file"
               accept=".csv,.json"
-              aria-label="Sélectionner un fichier CSV ou JSON"
+              aria-label={t("adminUsersImport.dropzone.inputAriaLabel")}
               style={{ display: "none" }}
               onChange={(e) => {
                 if (e.target.files?.[0]) processFile(e.target.files[0]);
@@ -253,7 +265,8 @@ export default function AdminUsersImportPage() {
         {rows.length > 0 && (
           <Tile>
             <p className="body" style={{ marginBottom: 16 }}>
-              <strong>{rows.length}</strong> lignes détectées
+              <strong>{rows.length}</strong>{" "}
+              {t("adminUsersImport.preview.rowsDetected")}
             </p>
 
             {errors.length > 0 && (
@@ -264,7 +277,9 @@ export default function AdminUsersImportPage() {
                 >
                   <AlertCircle size={16} style={{ color: "var(--red)" }} />
                   <span className="body" style={{ fontWeight: 700 }}>
-                    Erreurs de validation ({errors.length})
+                    {t("adminUsersImport.preview.validationErrors", {
+                      count: errors.length,
+                    })}
                   </span>
                 </div>
                 <ul style={{ listStyle: "disc", paddingLeft: 20 }}>
@@ -302,7 +317,9 @@ export default function AdminUsersImportPage() {
             </div>
             {rows.length > 10 && (
               <p className="small" style={{ marginTop: 8 }}>
-                … et {rows.length - 10} autres lignes
+                {t("adminUsersImport.preview.moreRows", {
+                  count: rows.length - 10,
+                })}
               </p>
             )}
 
@@ -316,10 +333,14 @@ export default function AdminUsersImportPage() {
                 className="btn btn-primary"
               >
                 {isImporting
-                  ? "Import en cours…"
+                  ? t("adminUsersImport.actions.importing")
                   : dryRun
-                    ? `Simuler (${rows.length} lignes)`
-                    : `Importer ${rows.length} utilisateurs`}
+                    ? t("adminUsersImport.actions.simulate", {
+                        count: rows.length,
+                      })
+                    : t("adminUsersImport.actions.import", {
+                        count: rows.length,
+                      })}
               </button>
               <button
                 onClick={() => {
@@ -329,7 +350,7 @@ export default function AdminUsersImportPage() {
                 }}
                 className="btn btn-ghost"
               >
-                Réinitialiser
+                {t("adminUsersImport.actions.reset")}
               </button>
             </div>
           </Tile>
@@ -360,11 +381,14 @@ export default function AdminUsersImportPage() {
                       marginBottom: 4,
                     }}
                   >
-                    Mode simulation — aucune donnée modifiée
+                    {t("adminUsersImport.result.dryRunNotice")}
                   </p>
                 )}
                 <p className="body" style={{ fontWeight: 700 }}>
-                  {result.success} importés, {result.errors} erreurs
+                  {t("adminUsersImport.result.summary", {
+                    success: result.success,
+                    errors: result.errors,
+                  })}
                 </p>
                 {result.details?.map((d, i) => (
                   <p
@@ -372,7 +396,10 @@ export default function AdminUsersImportPage() {
                     className="small"
                     style={{ marginTop: 4 }}
                   >
-                    Ligne {d.row}: {d.error}
+                    {t("adminUsersImport.result.lineError", {
+                      line: d.row,
+                      error: d.error,
+                    })}
                   </p>
                 ))}
               </div>

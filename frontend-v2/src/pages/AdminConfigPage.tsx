@@ -1,4 +1,5 @@
 import { useState, type ChangeEvent } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Pencil, Trash2, X, Settings2 } from "lucide-react";
 import { adminApi } from "../api/admin";
@@ -9,6 +10,7 @@ import { useConfirm } from "../contexts/ConfirmContext";
 
 // Logo de l'entreprise — modifiable par l'admin (stocké en Config, affiché en nav).
 function BrandingSection() {
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const { data } = useQuery({
     queryKey: ["branding"],
@@ -22,7 +24,7 @@ function BrandingSection() {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 500 * 1024) {
-      alert("Image trop volumineuse (max 500 Ko).");
+      alert(t("adminConfig.branding.tooLarge"));
       return;
     }
     const reader = new FileReader();
@@ -32,10 +34,10 @@ function BrandingSection() {
   return (
     <Tile>
       <h2 className="h3" style={{ marginBottom: 4 }}>
-        Logo de l'entreprise
+        {t("adminConfig.branding.title")}
       </h2>
       <p className="small" style={{ color: "var(--ink-3)", marginBottom: 12 }}>
-        Affiché dans la barre de navigation. PNG, JPG ou SVG, max 500 Ko.
+        {t("adminConfig.branding.help")}
       </p>
       <div className="row" style={{ gap: 16, alignItems: "center" }}>
         <div
@@ -54,17 +56,17 @@ function BrandingSection() {
           {data?.logo ? (
             <img
               src={data.logo}
-              alt="Logo actuel"
+              alt={t("adminConfig.branding.currentLogoAlt")}
               style={{ maxWidth: "100%", maxHeight: "100%" }}
             />
           ) : (
             <span className="small" style={{ color: "var(--ink-3)" }}>
-              Logo par défaut
+              {t("adminConfig.branding.defaultLogo")}
             </span>
           )}
         </div>
         <label className="btn btn-ghost" style={{ cursor: "pointer" }}>
-          Choisir une image
+          {t("adminConfig.branding.chooseImage")}
           <input
             type="file"
             accept="image/png,image/jpeg,image/svg+xml,image/webp"
@@ -79,7 +81,7 @@ function BrandingSection() {
             style={{ color: "var(--red)" }}
             onClick={() => setMut.mutate(null)}
           >
-            Réinitialiser
+            {t("adminConfig.branding.reset")}
           </button>
         )}
       </div>
@@ -153,6 +155,7 @@ function SkeletonRow({ cols = 3 }: { cols?: number }) {
 // ─── Env check ──────────────────────────────────────────────────────────────
 
 function EnvCheckSection() {
+  const { t } = useTranslation();
   const {
     data: envVars,
     isLoading,
@@ -175,17 +178,21 @@ function EnvCheckSection() {
       >
         <div>
           <h2 className="h3" style={{ marginBottom: 2 }}>
-            Variables d'environnement
+            {t("adminConfig.env.title")}
           </h2>
           {envVars && (
             <p
               className="small"
               style={{ color: "var(--ink-3)", marginTop: 4 }}
             >
-              {total - missing} / {total} définies
+              {t("adminConfig.env.definedCount", {
+                defined: total - missing,
+                total,
+              })}
               {missing > 0 && (
                 <span style={{ color: "var(--red)", marginLeft: 8 }}>
-                  · {missing} manquante{missing > 1 ? "s" : ""}
+                  ·{" "}
+                  {t("adminConfig.env.missingCount", { count: missing })}
                 </span>
               )}
             </p>
@@ -193,12 +200,12 @@ function EnvCheckSection() {
         </div>
         {envVars && missing > 0 && (
           <Badge tone="red" dot>
-            {missing} manquante{missing > 1 ? "s" : ""}
+            {t("adminConfig.env.missingCount", { count: missing })}
           </Badge>
         )}
         {envVars && missing === 0 && (
           <Badge tone="green" dot>
-            Tout est défini
+            {t("adminConfig.env.allDefined")}
           </Badge>
         )}
       </div>
@@ -226,8 +233,7 @@ function EnvCheckSection() {
             color: "var(--ink-3)",
           }}
         >
-          Endpoint non disponible — les variables d'environnement ne peuvent pas
-          être vérifiées pour l'instant.
+          {t("adminConfig.env.unavailable")}
         </p>
       )}
 
@@ -238,9 +244,11 @@ function EnvCheckSection() {
           >
             <thead>
               <tr>
-                <th style={TH_STYLE}>Variable</th>
-                <th style={TH_STYLE}>Description</th>
-                <th style={{ ...TH_STYLE, textAlign: "right" }}>Statut</th>
+                <th style={TH_STYLE}>{t("adminConfig.env.colVariable")}</th>
+                <th style={TH_STYLE}>{t("adminConfig.env.colDescription")}</th>
+                <th style={{ ...TH_STYLE, textAlign: "right" }}>
+                  {t("adminConfig.env.colStatus")}
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -273,7 +281,11 @@ function EnvCheckSection() {
                       >
                         {v.key}
                       </code>
-                      {v.required && <Badge tone="amber">requis</Badge>}
+                      {v.required && (
+                        <Badge tone="amber">
+                          {t("adminConfig.env.required")}
+                        </Badge>
+                      )}
                     </div>
                   </td>
                   <td style={{ ...TD_STYLE, color: "var(--ink-2)" }}>
@@ -282,11 +294,11 @@ function EnvCheckSection() {
                   <td style={{ ...TD_STYLE, textAlign: "right" }}>
                     {v.set ? (
                       <Badge tone="green" dot>
-                        Définie
+                        {t("adminConfig.env.statusSet")}
                       </Badge>
                     ) : (
                       <Badge tone="red" dot>
-                        Manquante
+                        {t("adminConfig.env.statusMissing")}
                       </Badge>
                     )}
                   </td>
@@ -303,6 +315,7 @@ function EnvCheckSection() {
 // ─── Page principale ─────────────────────────────────────────────────────────
 
 export default function AdminConfigPage() {
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const confirm = useConfirm();
   const [showKeyModal, setShowKeyModal] = useState(false);
@@ -335,10 +348,10 @@ export default function AdminConfigPage() {
   async function handleDeleteKey(key: string) {
     if (
       await confirm({
-        title: "Supprimer la clé de configuration ?",
-        description: `La clé « ${key} » sera définitivement supprimée.`,
+        title: t("adminConfig.keys.deleteTitle"),
+        description: t("adminConfig.keys.deleteDescription", { key }),
         variant: "danger",
-        confirmLabel: "Supprimer",
+        confirmLabel: t("adminConfig.keys.deleteConfirm"),
       })
     ) {
       deleteKeyMut.mutate(key);
@@ -360,12 +373,12 @@ export default function AdminConfigPage() {
   return (
     <div className="nx-app">
       <PageHead
-        eyebrow="Administration"
-        title="Configuration système"
-        desc="Gérez les clés de configuration applicatives et vérifiez les variables d'environnement du serveur."
+        eyebrow={t("adminConfig.eyebrow")}
+        title={t("adminConfig.title")}
+        desc={t("adminConfig.desc")}
         actions={
           <button type="button" onClick={openNew} className="btn btn-primary">
-            <Plus size={16} aria-hidden="true" /> Nouvelle clé
+            <Plus size={16} aria-hidden="true" /> {t("adminConfig.keys.new")}
           </button>
         }
       />
@@ -385,11 +398,11 @@ export default function AdminConfigPage() {
                 aria-hidden="true"
                 style={{ color: "var(--blue)" }}
               />
-              <h2 className="h3">Clés de configuration</h2>
+              <h2 className="h3">{t("adminConfig.keys.title")}</h2>
             </div>
             {keys && keys.length > 0 && (
               <span className="small" style={{ color: "var(--ink-3)" }}>
-                {keys.length} clé{keys.length > 1 ? "s" : ""}
+                {t("adminConfig.keys.count", { count: keys.length })}
               </span>
             )}
           </div>
@@ -404,10 +417,12 @@ export default function AdminConfigPage() {
             >
               <thead>
                 <tr>
-                  <th style={{ ...TH_STYLE, width: "20%" }}>Clé</th>
-                  <th style={TH_STYLE}>Valeur</th>
+                  <th style={{ ...TH_STYLE, width: "20%" }}>
+                    {t("adminConfig.keys.colKey")}
+                  </th>
+                  <th style={TH_STYLE}>{t("adminConfig.keys.colValue")}</th>
                   <th style={{ ...TH_STYLE, textAlign: "right", width: "10%" }}>
-                    Actions
+                    {t("adminConfig.keys.colActions")}
                   </th>
                 </tr>
               </thead>
@@ -427,14 +442,15 @@ export default function AdminConfigPage() {
                       }}
                     >
                       <p className="body" style={{ marginBottom: 8 }}>
-                        Aucune clé de configuration
+                        {t("adminConfig.keys.empty")}
                       </p>
                       <button
                         type="button"
                         onClick={openNew}
                         className="btn btn-sm btn-ghost"
                       >
-                        <Plus size={14} aria-hidden="true" /> Ajouter une clé
+                        <Plus size={14} aria-hidden="true" />{" "}
+                        {t("adminConfig.keys.add")}
                       </button>
                     </td>
                   </tr>
@@ -507,7 +523,9 @@ export default function AdminConfigPage() {
                                   padding: "2px 6px",
                                 }}
                               >
-                                {isExpanded ? "Réduire" : "Voir tout"}
+                                {isExpanded
+                                  ? t("adminConfig.keys.collapse")
+                                  : t("adminConfig.keys.expand")}
                               </button>
                             )}
                           </div>
@@ -520,19 +538,23 @@ export default function AdminConfigPage() {
                             <button
                               type="button"
                               onClick={() => openEdit(k)}
-                              aria-label={`Modifier ${k.key}`}
+                              aria-label={t("adminConfig.keys.editAria", {
+                                key: k.key,
+                              })}
                               className="btn btn-ghost btn-sm"
-                              title="Modifier"
+                              title={t("adminConfig.keys.edit")}
                             >
                               <Pencil size={15} aria-hidden="true" />
                             </button>
                             <button
                               type="button"
                               onClick={() => handleDeleteKey(k.key)}
-                              aria-label={`Supprimer ${k.key}`}
+                              aria-label={t("adminConfig.keys.deleteAria", {
+                                key: k.key,
+                              })}
                               className="btn btn-ghost btn-sm"
                               style={{ color: "var(--red)" }}
-                              title="Supprimer"
+                              title={t("adminConfig.keys.delete")}
                             >
                               <Trash2 size={15} aria-hidden="true" />
                             </button>
@@ -575,14 +597,14 @@ export default function AdminConfigPage() {
             >
               <h2 className="h3">
                 {editingKey
-                  ? "Modifier la clé"
-                  : "Nouvelle clé de configuration"}
+                  ? t("adminConfig.modal.editTitle")
+                  : t("adminConfig.modal.newTitle")}
               </h2>
               <button
                 type="button"
                 onClick={() => setShowKeyModal(false)}
                 className="btn btn-ghost btn-sm"
-                aria-label="Fermer"
+                aria-label={t("adminConfig.modal.close")}
               >
                 <X size={18} aria-hidden="true" />
               </button>
@@ -591,10 +613,10 @@ export default function AdminConfigPage() {
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               <div className="field">
                 <label htmlFor="config-key">
-                  Clé{" "}
+                  {t("adminConfig.modal.keyLabel")}{" "}
                   {!editingKey && (
                     <span style={{ color: "var(--ink-3)", fontWeight: 400 }}>
-                      (ex : SMTP_HOST)
+                      {t("adminConfig.modal.keyExample")}
                     </span>
                   )}
                 </label>
@@ -607,12 +629,14 @@ export default function AdminConfigPage() {
                     setKeyForm((f) => ({ ...f, key: e.target.value }))
                   }
                   disabled={!!editingKey}
-                  placeholder="NOM_DE_LA_CLE"
+                  placeholder={t("adminConfig.modal.keyPlaceholder")}
                   autoFocus={!editingKey}
                 />
               </div>
               <div className="field">
-                <label htmlFor="config-value">Valeur</label>
+                <label htmlFor="config-value">
+                  {t("adminConfig.modal.valueLabel")}
+                </label>
                 <textarea
                   id="config-value"
                   className="input"
@@ -626,7 +650,7 @@ export default function AdminConfigPage() {
                   onChange={(e) =>
                     setKeyForm((f) => ({ ...f, value: e.target.value }))
                   }
-                  placeholder="Valeur de la clé…"
+                  placeholder={t("adminConfig.modal.valuePlaceholder")}
                 />
               </div>
             </div>
@@ -640,7 +664,7 @@ export default function AdminConfigPage() {
                 onClick={() => setShowKeyModal(false)}
                 className="btn btn-ghost"
               >
-                Annuler
+                {t("adminConfig.modal.cancel")}
               </button>
               <button
                 type="button"
@@ -648,7 +672,9 @@ export default function AdminConfigPage() {
                 disabled={!keyForm.key.trim() || setKeyMut.isPending}
                 className="btn btn-primary"
               >
-                {setKeyMut.isPending ? "Sauvegarde…" : "Sauvegarder"}
+                {setKeyMut.isPending
+                  ? t("adminConfig.modal.saving")
+                  : t("adminConfig.modal.save")}
               </button>
             </div>
           </Tile>

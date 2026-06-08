@@ -25,8 +25,13 @@ const path   = require('path')
 const crypto = require('crypto')
 const { installCert } = require('../../validators/sslValidators')
 
-// Dossier cible : <repo>/nginx/certs. __dirname = mongo/server/routes/admin
-const CERTS_DIR     = path.resolve(path.join(__dirname, '../../../nginx/certs'))
+// Dossier cible des certificats TLS lus par nginx.
+// En conteneur, ce dossier est un volume PARTAGÉ avec nginx (CERTS_DIR=/etc/nginx/certs,
+// monté :rw côté app, :ro côté nginx). En dev hors conteneur, on retombe sur
+// <repo>/nginx/certs. __dirname = mongo/server/routes/admin.
+const CERTS_DIR     = process.env.CERTS_DIR
+  ? path.resolve(process.env.CERTS_DIR)
+  : path.resolve(path.join(__dirname, '../../../nginx/certs'))
 const FULLCHAIN_PATH = path.join(CERTS_DIR, 'fullchain.pem')
 const PRIVKEY_PATH   = path.join(CERTS_DIR, 'privkey.pem')
 

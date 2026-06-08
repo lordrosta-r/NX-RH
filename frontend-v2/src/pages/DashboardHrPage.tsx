@@ -64,6 +64,7 @@ function CampaignCard({ campaign }: { campaign: Campaign }) {
         year: "numeric",
       })
     : "—";
+  const { t } = useTranslation();
   return (
     <Link
       to={`/campaigns/${campaign.id}`}
@@ -85,7 +86,7 @@ function CampaignCard({ campaign }: { campaign: Campaign }) {
         </p>
       </div>
       <span className="link small" style={{ flex: "none" }}>
-        Voir →
+        {t("dashHr.seeLink")}
       </span>
     </Link>
   );
@@ -128,14 +129,14 @@ export default function DashboardHrPage() {
       <div className="nx-app">
         <Callout tone="red">
           <p className="body" style={{ color: "var(--ink)" }}>
-            Impossible de charger les données du tableau de bord.
+            {t("dashHr.errorLoad")}
           </p>
           <button
             onClick={() => campaigns.refetch()}
             className="link small"
             style={{ marginTop: 8 }}
           >
-            Réessayer
+            {t("dashHr.retry")}
           </button>
         </Callout>
       </div>
@@ -170,36 +171,21 @@ export default function DashboardHrPage() {
 
   // ── Données PDF ─────────────────────────────────────────────────────────────
   const kpiRows = [
-    { Indicateur: "Collaborateurs actifs", Valeur: s?.users.active ?? "—" },
-    { Indicateur: "Collaborateurs inactifs", Valeur: s?.users.inactive ?? "—" },
-    { Indicateur: "Campagnes en cours", Valeur: s?.campaigns.active ?? "—" },
-    {
-      Indicateur: "Campagnes terminées",
-      Valeur: s?.campaigns.completed ?? "—",
-    },
-    { Indicateur: "Campagnes en retard", Valeur: s?.campaigns.overdue ?? "—" },
-    {
-      Indicateur: "Taux de complétion éval. (%)",
-      Valeur: s?.evaluations.completionRate ?? "—",
-    },
-    {
-      Indicateur: "Évals signées des 2 côtés (%)",
-      Valeur: s?.evaluations.signedBothRate ?? "—",
-    },
-    {
-      Indicateur: "Temps moyen complétion (jours)",
-      Valeur: s?.evaluations.avgCompletionDays ?? "—",
-    },
-    {
-      Indicateur: "Demandes mobilité en attente",
-      Valeur: s?.mobility.pending ?? "—",
-    },
+    { [t("dashHr.pdf.colIndicator")]: t("dashHr.kpi.usersActive"), [t("dashHr.pdf.colValue")]: s?.users.active ?? "—" },
+    { [t("dashHr.pdf.colIndicator")]: t("dashHr.kpi.usersInactive"), [t("dashHr.pdf.colValue")]: s?.users.inactive ?? "—" },
+    { [t("dashHr.pdf.colIndicator")]: t("dashHr.kpi.campaignsActive"), [t("dashHr.pdf.colValue")]: s?.campaigns.active ?? "—" },
+    { [t("dashHr.pdf.colIndicator")]: t("dashHr.kpi.campaignsCompleted"), [t("dashHr.pdf.colValue")]: s?.campaigns.completed ?? "—" },
+    { [t("dashHr.pdf.colIndicator")]: t("dashHr.kpi.campaignsOverdue"), [t("dashHr.pdf.colValue")]: s?.campaigns.overdue ?? "—" },
+    { [t("dashHr.pdf.colIndicator")]: t("dashHr.pdf.completionRatePct"), [t("dashHr.pdf.colValue")]: s?.evaluations.completionRate ?? "—" },
+    { [t("dashHr.pdf.colIndicator")]: t("dashHr.pdf.signedBothPct"), [t("dashHr.pdf.colValue")]: s?.evaluations.signedBothRate ?? "—" },
+    { [t("dashHr.pdf.colIndicator")]: t("dashHr.pdf.avgCompletionDays"), [t("dashHr.pdf.colValue")]: s?.evaluations.avgCompletionDays ?? "—" },
+    { [t("dashHr.pdf.colIndicator")]: t("dashHr.pdf.mobilityPending"), [t("dashHr.pdf.colValue")]: s?.mobility.pending ?? "—" },
   ];
   const deptRows = (byDeptRaw ?? []).map((d) => ({
-    Département: d.department || "N/A",
-    Total: d.total,
-    Complétées: d.validated,
-    "Taux (%)": d.rate,
+    [t("dashHr.pdf.colDept")]: d.department || "N/A",
+    [t("dashHr.pdf.colTotal")]: d.total,
+    [t("dashHr.pdf.colCompleted")]: d.validated,
+    [t("dashHr.pdf.colRate")]: d.rate,
   }));
 
   return (
@@ -213,14 +199,14 @@ export default function DashboardHrPage() {
             <button
               onClick={() =>
                 exportDashboardPdf({
-                  title: `Rapport RH — ${new Date().toLocaleDateString("fr-FR")}`,
+                  title: `${t("dashHr.pdf.reportTitle")} — ${new Date().toLocaleDateString("fr-FR")}`,
                   sections: [
                     {
-                      title: "KPIs clés",
+                      title: t("dashHr.pdf.sectionKpi"),
                       data: kpiRows as Record<string, unknown>[],
                     },
                     {
-                      title: "Évaluations par département",
+                      title: t("dashHr.pdf.sectionDept"),
                       data: deptRows as Record<string, unknown>[],
                     },
                   ],
@@ -234,11 +220,11 @@ export default function DashboardHrPage() {
               ) : (
                 <Download className="ico" style={{ width: 18, height: 18 }} />
               )}
-              Exporter PDF
+              {t("dashHr.exportPdf")}
             </button>
             <Link to="/campaigns/new" className="btn btn-primary">
               <Plus className="ico" style={{ width: 18, height: 18 }} />{" "}
-              Nouvelle campagne
+              {t("dashHr.newCampaign")}
             </Link>
           </>
         }
@@ -248,33 +234,33 @@ export default function DashboardHrPage() {
       <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-4 mb-4">
         <StatTile
           value={s?.users.active ?? "—"}
-          label="Collaborateurs actifs"
+          label={t("dashHr.kpi.usersActive")}
           tone="var(--green)"
-          sub={`Total : ${s?.users.total ?? "—"}`}
+          sub={t("dashHr.kpi.usersTotal", { total: s?.users.total ?? "—" })}
         />
         <StatTile
           value={s?.users.inactive ?? "—"}
-          label="Collaborateurs inactifs"
+          label={t("dashHr.kpi.usersInactive")}
           tone="var(--red)"
         />
         <StatTile
           value={s?.campaigns.active ?? "—"}
-          label="Campagnes en cours"
+          label={t("dashHr.kpi.campaignsActive")}
           tone="var(--blue)"
         />
         <StatTile
           value={s?.campaigns.completed ?? "—"}
-          label="Campagnes terminées"
+          label={t("dashHr.kpi.campaignsCompleted")}
           tone="var(--green)"
         />
         <StatTile
           value={s?.campaigns.overdue ?? "—"}
-          label="Campagnes en retard"
+          label={t("dashHr.kpi.campaignsOverdue")}
           tone="var(--amber)"
         />
         <StatTile
           value={s?.mobility.pending ?? "—"}
-          label="Mobilités en attente"
+          label={t("dashHr.kpi.mobilityPending")}
           tone="var(--amber)"
         />
       </div>
@@ -287,7 +273,7 @@ export default function DashboardHrPage() {
               ? `${s.evaluations.completionRate}%`
               : "—"
           }
-          label="Taux de complétion"
+          label={t("dashHr.kpi.completionRate")}
           tone="var(--purple, #5b00df)"
         />
         <StatTile
@@ -296,17 +282,17 @@ export default function DashboardHrPage() {
               ? `${s.evaluations.signedBothRate}%`
               : "—"
           }
-          label="Signées des 2 côtés"
+          label={t("dashHr.kpi.signedBoth")}
           tone="var(--green)"
           sub={
             s?.evaluations.signedBoth != null
-              ? `${s.evaluations.signedBoth} évals`
+              ? t("dashHr.kpi.signedBothSub", { count: s.evaluations.signedBoth })
               : undefined
           }
         />
         <StatTile
           value={s?.evaluations.pending ?? "—"}
-          label="Évals en attente"
+          label={t("dashHr.kpi.evalsPending")}
           tone="var(--amber)"
         />
         <StatTile
@@ -315,7 +301,7 @@ export default function DashboardHrPage() {
               ? `${s.evaluations.avgCompletionDays}j`
               : "—"
           }
-          label="Temps moyen complétion"
+          label={t("dashHr.kpi.avgCompletion")}
           tone="var(--blue)"
         />
       </div>
@@ -325,13 +311,13 @@ export default function DashboardHrPage() {
         <div className="col-span-12 lg:col-span-7">
           <Tile style={{ height: "100%" }}>
             <h2 className="h2" style={{ marginBottom: 16 }}>
-              Évolution des évaluations (6 mois)
+              {t("dashHr.charts.trendTitle")}
             </h2>
             {monthlyTrend.isLoading ? (
               <div className="h-48 bg-slate-100 rounded animate-pulse" />
             ) : (monthlyTrend.data ?? []).length === 0 ? (
               <p className="small text-center" style={{ padding: "40px 0" }}>
-                Aucune donnée mensuelle
+                {t("dashHr.charts.noMonthlyData")}
               </p>
             ) : (
               <ResponsiveContainer width="100%" height={220}>
@@ -343,7 +329,7 @@ export default function DashboardHrPage() {
                   <Line
                     type="monotone"
                     dataKey="total"
-                    name="Total"
+                    name={t("dashHr.charts.lineTotal")}
                     stroke={CHART.blue}
                     strokeWidth={2}
                     dot={{ r: 3 }}
@@ -351,7 +337,7 @@ export default function DashboardHrPage() {
                   <Line
                     type="monotone"
                     dataKey="completed"
-                    name="Complétées"
+                    name={t("dashHr.charts.lineCompleted")}
                     stroke={CHART.green}
                     strokeWidth={2}
                     dot={{ r: 3 }}
@@ -365,13 +351,13 @@ export default function DashboardHrPage() {
         <div className="col-span-12 lg:col-span-5">
           <Tile style={{ height: "100%" }}>
             <h2 className="h2" style={{ marginBottom: 16 }}>
-              Répartition par statut
+              {t("dashHr.charts.pieTitle")}
             </h2>
             {analyticsSummary.isLoading ? (
               <div className="h-48 bg-slate-100 rounded animate-pulse" />
             ) : pieData.length === 0 ? (
               <p className="small text-center" style={{ padding: "40px 0" }}>
-                Aucune donnée
+                {t("dashHr.charts.noData")}
               </p>
             ) : (
               <ResponsiveContainer width="100%" height={220}>
@@ -405,7 +391,7 @@ export default function DashboardHrPage() {
       {barData.length > 0 && (
         <Tile className="mb-6">
           <h2 className="h2" style={{ marginBottom: 16 }}>
-            Top départements — taux de complétion
+            {t("dashHr.charts.barTitle")}
           </h2>
           <ResponsiveContainer width="100%" height={240}>
             <BarChart data={barData} layout="vertical" margin={{ left: 20 }}>
@@ -421,10 +407,10 @@ export default function DashboardHrPage() {
                 tick={{ fontSize: 11 }}
                 width={110}
               />
-              <Tooltip formatter={(v) => [`${v}%`, "Taux"]} />
+              <Tooltip formatter={(v) => [`${v}%`, t("dashHr.charts.barTooltipLabel")]} />
               <RBar
                 dataKey="rate"
-                name="Taux de complétion"
+                name={t("dashHr.charts.barName")}
                 fill={CHART.blue}
                 radius={[0, 4, 4, 0]}
               />
@@ -438,14 +424,14 @@ export default function DashboardHrPage() {
         <div className="col-span-12 lg:col-span-8">
           <Tile style={{ height: "100%" }}>
             <div className="row between" style={{ marginBottom: 16 }}>
-              <h2 className="h2">Campagnes en cours</h2>
+              <h2 className="h2">{t("dashHr.sections.activeCampaigns")}</h2>
               <Link to="/campaigns" className="link small">
-                Voir toutes →
+                {t("dashHr.sections.seeAll")}
               </Link>
             </div>
             {campaignList.length === 0 ? (
               <p className="small text-center" style={{ padding: "24px 0" }}>
-                Aucune campagne active
+                {t("dashHr.sections.noCampaigns")}
               </p>
             ) : (
               <div className="section-gap" style={{ gap: 12 }}>
@@ -460,7 +446,7 @@ export default function DashboardHrPage() {
         <div className="col-span-12 lg:col-span-4">
           <Tile style={{ height: "100%" }}>
             <h2 className="h2" style={{ marginBottom: 16 }}>
-              Alertes
+              {t("dashHr.sections.alerts")}
             </h2>
             <div className="section-gap" style={{ gap: 12 }}>
               {(s?.campaigns.overdue ?? 0) > 0 && (
@@ -487,11 +473,10 @@ export default function DashboardHrPage() {
                           color: "var(--ink)",
                         }}
                       >
-                        {s!.campaigns.overdue} campagne
-                        {s!.campaigns.overdue > 1 ? "s" : ""} en retard
+                        {t("dashHr.alerts.overdueCount", { count: s!.campaigns.overdue })}
                       </p>
                       <Link to="/campaigns" className="link small">
-                        Voir les campagnes →
+                        {t("dashHr.alerts.seeCampaigns")}
                       </Link>
                     </div>
                   </div>
@@ -521,11 +506,10 @@ export default function DashboardHrPage() {
                           color: "var(--ink)",
                         }}
                       >
-                        {s!.evaluations.pending} évaluation
-                        {s!.evaluations.pending > 1 ? "s" : ""} en attente
+                        {t("dashHr.alerts.pendingEvals", { count: s!.evaluations.pending })}
                       </p>
                       <Link to="/evaluations" className="link small">
-                        Voir les évaluations →
+                        {t("dashHr.alerts.seeEvaluations")}
                       </Link>
                     </div>
                   </div>
@@ -555,11 +539,10 @@ export default function DashboardHrPage() {
                           color: "var(--ink)",
                         }}
                       >
-                        {s!.mobility.pending} demande
-                        {s!.mobility.pending > 1 ? "s" : ""} de mobilité
+                        {t("dashHr.alerts.mobilityCount", { count: s!.mobility.pending })}
                       </p>
                       <Link to="/mobility" className="link small">
-                        Voir les demandes →
+                        {t("dashHr.alerts.seeRequests")}
                       </Link>
                     </div>
                   </div>
@@ -575,13 +558,13 @@ export default function DashboardHrPage() {
         <div className="col-span-12 md:col-span-6">
           <Tile style={{ height: "100%" }}>
             <h2 className="h2" style={{ marginBottom: 16 }}>
-              Stats rapides
+              {t("dashHr.sections.quickStats")}
             </h2>
             <div>
               {[
-                ["Total évaluations", s?.evaluations.total],
-                ["Évaluations complétées", s?.evaluations.completed],
-                ["Total collaborateurs", s?.users.total],
+                [t("dashHr.stats.totalEvals"), s?.evaluations.total],
+                [t("dashHr.stats.completedEvals"), s?.evaluations.completed],
+                [t("dashHr.stats.totalUsers"), s?.users.total],
               ].map(([label, value], i) => (
                 <div
                   key={label as string}
@@ -610,9 +593,9 @@ export default function DashboardHrPage() {
         <div className="col-span-12 md:col-span-6">
           <Tile style={{ height: "100%" }}>
             <div className="row between" style={{ marginBottom: 16 }}>
-              <h2 className="h2">Prochains événements</h2>
+              <h2 className="h2">{t("dashHr.sections.upcomingEvents")}</h2>
               <Link to="/events" className="link small">
-                Voir tous →
+                {t("dashHr.sections.seeAllEvents")}
               </Link>
             </div>
             <p
@@ -623,7 +606,7 @@ export default function DashboardHrPage() {
                 className="ico"
                 style={{ width: 16, height: 16, color: "var(--ink-3)" }}
               />
-              Aucun événement à venir
+              {t("dashHr.sections.noEvents")}
             </p>
           </Tile>
         </div>

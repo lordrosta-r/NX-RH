@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import { Link } from "react-router-dom";
 import { ArrowRight, ChevronDown, ChevronUp, PenLine } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -36,18 +37,6 @@ function getInitials(id: string | PopulatedUser | undefined | null): string {
 }
 
 type Tone = "blue" | "green" | "amber" | "red" | "grey";
-const statusLabels: Record<string, string> = {
-  assigned: "Assignée",
-  in_progress: "En cours",
-  submitted: "Soumise",
-  reviewed: "Revue",
-  signed_evaluatee: "Signée (évalué)",
-  signed_manager: "Signée (manager)",
-  signed_hr: "Signée (RH)",
-  validated: "Validée",
-  expired: "Expirée",
-  archived: "Archivée",
-};
 const statusTone: Record<string, Tone> = {
   assigned: "amber",
   in_progress: "blue",
@@ -60,10 +49,16 @@ const statusTone: Record<string, Tone> = {
   expired: "grey",
   archived: "grey",
 };
-function StatusBadge({ status }: { status: EvaluationStatus }) {
+function StatusBadge({
+  status,
+  t,
+}: {
+  status: EvaluationStatus;
+  t: TFunction;
+}) {
   return (
     <Badge tone={statusTone[status] ?? "grey"} dot>
-      {statusLabels[status] ?? status}
+      {t(`evaluations.status.${status}`, { defaultValue: status })}
     </Badge>
   );
 }
@@ -95,7 +90,7 @@ function evalPriority(ev: Evaluation): number {
   return 2;
 }
 
-function EvalRow({ ev }: { ev: Evaluation }) {
+function EvalRow({ ev, t }: { ev: Evaluation; t: TFunction }) {
   const overdue = isOverdue(ev);
   return (
     <div
@@ -112,18 +107,18 @@ function EvalRow({ ev }: { ev: Evaluation }) {
           {getDisplayName(ev.evaluateeId as string | PopulatedUser)}
         </p>
         <p className="small" style={{ marginTop: 2 }}>
-          Campagne : {getCampaignName(ev.campaignId)}
+          {t("dashManager.evalRow.campaign")} : {getCampaignName(ev.campaignId)}
         </p>
       </div>
       <div className="row" style={{ gap: 12 }}>
         {overdue && (
           <Badge tone="red" dot>
-            En retard
+            {t("dashManager.evalRow.overdue")}
           </Badge>
         )}
-        <StatusBadge status={ev.status} />
+        <StatusBadge status={ev.status} t={t} />
         <Link to={`/evaluations/${ev.id}`} className="btn btn-primary btn-sm">
-          Remplir{" "}
+          {t("dashManager.evalRow.fill")}{" "}
           <ArrowRight className="ico" style={{ width: 15, height: 15 }} />
         </Link>
       </div>
@@ -131,7 +126,13 @@ function EvalRow({ ev }: { ev: Evaluation }) {
   );
 }
 
-function EvalsToComplete({ evaluations }: { evaluations: Evaluation[] }) {
+function EvalsToComplete({
+  evaluations,
+  t,
+}: {
+  evaluations: Evaluation[];
+  t: TFunction;
+}) {
   const [expanded, setExpanded] = useState(false);
 
   const pending = evaluations
@@ -142,7 +143,7 @@ function EvalsToComplete({ evaluations }: { evaluations: Evaluation[] }) {
   if (pending.length === 0) {
     return (
       <p className="small text-center" style={{ padding: "16px 0" }}>
-        Aucune évaluation à compléter
+        {t("dashManager.evalsToComplete.empty")}
       </p>
     );
   }
@@ -155,11 +156,11 @@ function EvalsToComplete({ evaluations }: { evaluations: Evaluation[] }) {
     <div className="section-gap" style={{ gap: 12 }}>
       {!expanded && rest.length > 0 && (
         <p className="small" style={{ fontWeight: 600, color: "var(--ink)" }}>
-          Top {top.length} à traiter
+          {t("dashManager.evalsToComplete.topN", { count: top.length })}
         </p>
       )}
       {visible.map((ev) => (
-        <EvalRow key={ev.id} ev={ev} />
+        <EvalRow key={ev.id} ev={ev} t={t} />
       ))}
       {rest.length > 0 && (
         <button
@@ -170,12 +171,12 @@ function EvalsToComplete({ evaluations }: { evaluations: Evaluation[] }) {
         >
           {expanded ? (
             <>
-              Réduire{" "}
+              {t("dashManager.collapse")}{" "}
               <ChevronUp className="ico" style={{ width: 15, height: 15 }} />
             </>
           ) : (
             <>
-              Voir tout ({pending.length}){" "}
+              {t("dashManager.expandCount", { count: pending.length })}{" "}
               <ChevronDown className="ico" style={{ width: 15, height: 15 }} />
             </>
           )}
@@ -185,13 +186,19 @@ function EvalsToComplete({ evaluations }: { evaluations: Evaluation[] }) {
   );
 }
 
-function MyTeam({ evaluations }: { evaluations: Evaluation[] }) {
+function MyTeam({
+  evaluations,
+  t,
+}: {
+  evaluations: Evaluation[];
+  t: TFunction;
+}) {
   const [expanded, setExpanded] = useState(false);
 
   if (evaluations.length === 0) {
     return (
       <p className="small text-center" style={{ padding: "16px 0" }}>
-        Aucun membre dans l’équipe
+        {t("dashManager.myTeam.empty")}
       </p>
     );
   }
@@ -215,7 +222,7 @@ function MyTeam({ evaluations }: { evaluations: Evaluation[] }) {
               <p style={{ fontSize: 14, fontWeight: 600 }} className="truncate">
                 {getDisplayName(ev.evaluateeId as string | PopulatedUser)}
               </p>
-              <StatusBadge status={ev.status} />
+              <StatusBadge status={ev.status} t={t} />
             </div>
             <Bar pct={progressWidth(ev)} height={6} />
           </div>
@@ -230,12 +237,12 @@ function MyTeam({ evaluations }: { evaluations: Evaluation[] }) {
         >
           {expanded ? (
             <>
-              Réduire{" "}
+              {t("dashManager.collapse")}{" "}
               <ChevronUp className="ico" style={{ width: 15, height: 15 }} />
             </>
           ) : (
             <>
-              Voir tout ({evaluations.length}){" "}
+              {t("dashManager.expandCount", { count: evaluations.length })}{" "}
               <ChevronDown className="ico" style={{ width: 15, height: 15 }} />
             </>
           )}
@@ -245,7 +252,7 @@ function MyTeam({ evaluations }: { evaluations: Evaluation[] }) {
   );
 }
 
-function ActiveCampaigns() {
+function ActiveCampaigns({ t }: { t: TFunction }) {
   const { data, isLoading } = useQuery({
     queryKey: ["dashboard-manager-campaigns"],
     queryFn: () => campaignsApi.getCampaigns({ status: "active", limit: 5 }),
@@ -263,7 +270,7 @@ function ActiveCampaigns() {
   if (campaigns.length === 0) {
     return (
       <p className="small text-center" style={{ padding: "16px 0" }}>
-        Aucune campagne active
+        {t("dashManager.activeCampaigns.empty")}
       </p>
     );
   }
@@ -296,7 +303,7 @@ function ActiveCampaigns() {
               </p>
               {c.endDate && (
                 <p className="small" style={{ marginTop: 2 }}>
-                  Clôture :{" "}
+                  {t("dashManager.activeCampaigns.closingDate")} :{" "}
                   {new Date(c.endDate).toLocaleDateString("fr-FR", {
                     day: "numeric",
                     month: "short",
@@ -307,7 +314,9 @@ function ActiveCampaigns() {
             </div>
             <div style={{ width: 160, flex: "none" }}>
               <div className="row between" style={{ marginBottom: 4 }}>
-                <span className="small">Progression</span>
+                <span className="small">
+                  {t("dashManager.activeCampaigns.progress")}
+                </span>
                 <span className="small" style={{ fontWeight: 700 }}>
                   {pct}%
                 </span>
@@ -319,7 +328,7 @@ function ActiveCampaigns() {
               className="link small"
               style={{ flex: "none" }}
             >
-              Voir
+              {t("common.view")}
             </Link>
           </div>
         );
@@ -330,14 +339,16 @@ function ActiveCampaigns() {
 
 function PendingSignaturesList({
   statsData,
+  t,
 }: {
   statsData: DashboardManagerStats | undefined;
+  t: TFunction;
 }) {
   const list = (statsData?.pendingSignatures ?? []).slice(0, 5);
   if (list.length === 0) {
     return (
       <p className="small text-center" style={{ padding: "16px 0" }}>
-        Aucune évaluation en attente de votre signature
+        {t("dashManager.pendingSignatures.empty")}
       </p>
     );
   }
@@ -374,7 +385,8 @@ function PendingSignaturesList({
                 {evaluatee}
               </p>
               <p className="small truncate">
-                {campaign} · signé le {signedAt}
+                {campaign}{" "}
+                · {t("dashManager.pendingSignatures.signedOn", { date: signedAt })}
               </p>
             </div>
             <Link
@@ -382,7 +394,8 @@ function PendingSignaturesList({
               className="link small row"
               style={{ gap: 4, flex: "none" }}
             >
-              <PenLine className="w-3 h-3" /> Signer
+              <PenLine className="w-3 h-3" />{" "}
+              {t("dashManager.pendingSignatures.sign")}
             </Link>
           </div>
         );
@@ -433,7 +446,8 @@ export default function DashboardManagerPage() {
         desc={t("pageHead.dashManagerDesc")}
         actions={
           <Link to="/evaluations" className="btn btn-primary">
-            Mes évaluations <ArrowRight className="ico" />
+            {t("dashManager.actions.myEvaluations")}{" "}
+            <ArrowRight className="ico" />
           </Link>
         }
       />
@@ -442,27 +456,27 @@ export default function DashboardManagerPage() {
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
         <StatTile
           value={s?.evaluations?.pending ?? toCompleteCount}
-          label="Évals à compléter"
+          label={t("dashManager.stats.evalsToComplete")}
           tone="var(--amber)"
         />
         <StatTile
           value={s?.completionRate != null ? `${s.completionRate}%` : "—"}
-          label="Taux de complétion"
+          label={t("dashManager.stats.completionRate")}
           tone="var(--green)"
         />
         <StatTile
           value={s?.teamSize ?? waitingCount}
-          label="Taille de l’équipe"
+          label={t("dashManager.stats.teamSize")}
           tone="var(--blue)"
         />
         <StatTile
           value={s?.evaluations?.overdue ?? 0}
-          label="En retard"
+          label={t("dashManager.stats.overdue")}
           tone="var(--red)"
         />
         <StatTile
           value={s?.evaluations?.signedByManager ?? 0}
-          label="Signées"
+          label={t("dashManager.stats.signed")}
           tone="var(--green)"
         />
       </div>
@@ -472,17 +486,17 @@ export default function DashboardManagerPage() {
         <div className="col-span-12 lg:col-span-7">
           <Tile style={{ height: "100%" }}>
             <h2 className="h2" style={{ marginBottom: 16 }}>
-              Évaluations à compléter
+              {t("dashManager.evalsToComplete.title")}
             </h2>
-            <EvalsToComplete evaluations={evalList} />
+            <EvalsToComplete evaluations={evalList} t={t} />
           </Tile>
         </div>
         <div className="col-span-12 lg:col-span-5">
           <Tile style={{ height: "100%" }}>
             <h2 className="h2" style={{ marginBottom: 16 }}>
-              Mon équipe
+              {t("dashManager.myTeam.title")}
             </h2>
-            <MyTeam evaluations={evalList} />
+            <MyTeam evaluations={evalList} t={t} />
           </Tile>
         </div>
       </div>
@@ -490,36 +504,36 @@ export default function DashboardManagerPage() {
       {/* Campagnes actives */}
       <Tile className="mb-6">
         <div className="row between" style={{ marginBottom: 16 }}>
-          <h2 className="h2">Campagnes actives</h2>
+          <h2 className="h2">{t("dashManager.activeCampaigns.title")}</h2>
           <Link to="/campaigns" className="link small">
-            Voir toutes →
+            {t("dashManager.viewAll")}
           </Link>
         </div>
-        <ActiveCampaigns />
+        <ActiveCampaigns t={t} />
       </Tile>
 
       {/* En attente de signature */}
       <Tile className="mb-6">
         <div className="row between" style={{ marginBottom: 16 }}>
-          <h2 className="h2">En attente de signature</h2>
+          <h2 className="h2">{t("dashManager.pendingSignatures.title")}</h2>
           <Link to="/evaluations" className="link small">
-            Voir toutes →
+            {t("dashManager.viewAll")}
           </Link>
         </div>
-        <PendingSignaturesList statsData={stats.data} />
+        <PendingSignaturesList statsData={stats.data} t={t} />
       </Tile>
 
       {/* Prochains événements */}
       <Tile>
         <div className="row between" style={{ marginBottom: 16 }}>
-          <h2 className="h2">Prochains événements</h2>
+          <h2 className="h2">{t("dashManager.upcomingEvents.title")}</h2>
           <Link to="/events" className="link small">
-            Voir tout →
+            {t("dashManager.viewAll")}
           </Link>
         </div>
         {upcomingEvents.length === 0 ? (
           <p className="small text-center" style={{ padding: "16px 0" }}>
-            Aucun événement à venir.
+            {t("dashManager.upcomingEvents.empty")}
           </p>
         ) : (
           <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
@@ -575,7 +589,7 @@ export default function DashboardManagerPage() {
                   className="link small"
                   style={{ flex: "none" }}
                 >
-                  Voir
+                  {t("common.view")}
                 </Link>
               </li>
             ))}

@@ -152,9 +152,13 @@ export function useOrgChart(): UseOrgChartReturn {
     enabled: activeView === "sector",
   });
 
+  // La liste des secteurs (pour l'édition) n'est lisible que par admin/hr côté
+  // backend. On ne déclenche donc la requête que pour eux — sinon un manager
+  // recevait une erreur 403 « Accès interdit » alors qu'il consulte l'organigramme.
   const { data: sectors = [] } = useQuery({
     queryKey: ["sectors"],
     queryFn: () => orgApi.getSectors().then((r) => r.data),
+    enabled: canEdit,
   });
 
   const { data: legend } = useQuery({

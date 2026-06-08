@@ -900,5 +900,239 @@
       "questionMissingType": "Question {{number}}: field \"type\" missing",
       "questionInvalidType": "Question {{number}}: type \"{{type}}\" invalid"
     }
+  },
+  "dashManager": {
+    "actions": {
+      "myEvaluations": "My evaluations"
+    },
+    "stats": {
+      "evalsToComplete": "Evals to complete",
+      "completionRate": "Completion rate",
+      "teamSize": "Team size",
+      "overdue": "Overdue",
+      "signed": "Signed"
+    },
+    "evalsToComplete": {
+      "title": "Evaluations to complete",
+      "empty": "No evaluations to complete",
+      "topN": "Top {{count}} to handle"
+    },
+    "evalRow": {
+      "campaign": "Campaign",
+      "overdue": "Overdue",
+      "fill": "Fill in"
+    },
+    "collapse": "Collapse",
+    "expandCount": "View all ({{count}})",
+    "viewAll": "View all →",
+    "myTeam": {
+      "title": "My team",
+      "empty": "No team members found"
+    },
+    "activeCampaigns": {
+      "title": "Active campaigns",
+      "empty": "No active campaigns",
+      "closingDate": "Closing",
+      "progress": "Progress"
+    },
+    "pendingSignatures": {
+      "title": "Pending signature",
+      "empty": "No evaluations awaiting your signature",
+      "signedOn": "signed on {{date}}",
+      "sign": "Sign"
+    },
+    "upcomingEvents": {
+      "title": "Upcoming events",
+      "empty": "No upcoming events."
+    }
+  },
+  "dashEmployee": {
+    "defaultDesc": "Here is the status of your professional interviews.",
+    "viewAll": "View all →",
+    "evalStatus": {
+      "assigned": "Assigned",
+      "in_progress": "In progress",
+      "submitted": "Submitted",
+      "reviewed": "Reviewed",
+      "disputed": "Disputed",
+      "signed_evaluatee": "Signed (evaluatee)",
+      "signed_manager": "Signed (manager)",
+      "signed_hr": "Signed (HR)",
+      "validated": "Validated",
+      "expired": "Expired",
+      "archived": "Archived"
+    },
+    "activeEvals": {
+      "title": "My ongoing evaluations",
+      "empty": "No evaluations in progress",
+      "campaignLabel": "Campaign: {{name}}",
+      "start": "Start",
+      "continue": "Continue"
+    },
+    "events": {
+      "title": "Upcoming events",
+      "empty": "No upcoming events."
+    },
+    "resources": {
+      "title": "Recent resources",
+      "empty": "No resources available."
+    },
+    "history": {
+      "title": "My history",
+      "viewAll": "Full history →",
+      "empty": "No validated evaluations yet",
+      "campaignLabel": "Campaign: {{name}}",
+      "validatedOn": "Validated on {{date}}",
+      "viewPdf": "View PDF →"
+    },
+    "requests": {
+      "title": "My requests",
+      "mobility": "Mobility request",
+      "profile": "Update profile",
+      "evaluations": "My evaluations",
+      "documents": "HR documents"
+    }
+  },
+  "dashHr": {
+    "seeLink": "View →",
+    "errorLoad": "Failed to load dashboard data.",
+    "retry": "Retry",
+    "exportPdf": "Export PDF",
+    "newCampaign": "New campaign",
+    "kpi": {
+      "usersActive": "Active employees",
+      "usersTotal": "Total: {{total}}",
+      "usersInactive": "Inactive employees",
+      "campaignsActive": "Active campaigns",
+      "campaignsCompleted": "Completed campaigns",
+      "campaignsOverdue": "Overdue campaigns",
+      "mobilityPending": "Pending mobility requests",
+      "completionRate": "Completion rate",
+      "signedBoth": "Signed by both sides",
+      "signedBothSub_one": "{{count}} eval",
+      "signedBothSub_other": "{{count}} evals",
+      "evalsPending": "Pending evals",
+      "avgCompletion": "Avg. completion time"
+    },
+    "charts": {
+      "trendTitle": "Evaluation trend (6 months)",
+      "noMonthlyData": "No monthly data",
+      "lineTotal": "Total",
+      "lineCompleted": "Completed",
+      "pieTitle": "Breakdown by status",
+      "noData": "No data",
+      "barTitle": "Top departments — completion rate",
+      "barTooltipLabel": "Rate",
+      "barName": "Completion rate"
+    },
+    "sections": {
+      "activeCampaigns": "Active campaigns",
+      "seeAll": "See all →",
+      "noCampaigns": "No active campaign",
+      "alerts": "Alerts",
+      "quickStats": "Quick stats",
+      "upcomingEvents": "Upcoming events",
+      "seeAllEvents": "See all →",
+      "noEvents": "No upcoming events"
+    },
+    "alerts": {
+      "overdueCount_one": "{{count}} overdue campaign",
+      "overdueCount_other": "{{count}} overdue campaigns",
+      "seeCampaigns": "View campaigns →",
+      "pendingEvals_one": "{{count}} pending evaluation",
+      "pendingEvals_other": "{{count}} pending evaluations",
+      "seeEvaluations": "View evaluations →",
+      "mobilityCount_one": "{{count}} mobility request",
+      "mobilityCount_other": "{{count}} mobility requests",
+      "seeRequests": "View requests →"
+    },
+    "stats": {
+      "totalEvals": "Total evaluations",
+      "completedEvals": "Completed evaluations",
+      "totalUsers": "Total employees"
+    },
+    "pdf": {
+      "reportTitle": "HR Report",
+      "sectionKpi": "Key KPIs",
+      "sectionDept": "Evaluations by department",
+      "colIndicator": "Indicator",
+      "colValue": "Value",
+      "colDept": "Department",
+      "colTotal": "Total",
+      "colCompleted": "Completed",
+      "colRate": "Rate (%)",
+      "completionRatePct": "Eval completion rate (%)",
+      "signedBothPct": "Evals signed by both sides (%)",
+      "avgCompletionDays": "Avg. completion time (days)",
+      "mobilityPending": "Pending mobility requests"
+    }
+  },
+  "dashAdmin": {
+    "setup": {
+      "title": "Application setup",
+      "seeAll": "See all →",
+      "stepsCount": "{{completed}}/{{total}} steps complete"
+    },
+    "campaignStatus": {
+      "draft": "Draft",
+      "active": "Active",
+      "closed": "Closed",
+      "archived": "Archived"
+    },
+    "campaigns": {
+      "title": "Active campaigns",
+      "seeAll": "See all →",
+      "empty": "No active campaigns"
+    },
+    "error": {
+      "loadFailed": "Unable to load dashboard data.",
+      "retry": "Retry"
+    },
+    "actions": {
+      "exportPdf": "Export PDF"
+    },
+    "requiredActions": {
+      "title": "Required actions",
+      "pendingHrRequests": "Pending HR requests",
+      "usersWithoutManager": "Users without a manager",
+      "activeCampaigns": "Active campaigns"
+    },
+    "shortcuts": {
+      "title": "Shortcuts",
+      "newCampaign": "New campaign",
+      "addUser": "Add a user",
+      "importCsv": "Import CSV",
+      "hrSettings": "HR settings"
+    },
+    "kpi": {
+      "activeUsers": "Active users",
+      "activeCampaigns": "Active campaigns",
+      "pendingEvaluations": "Unfinished evaluations"
+    },
+    "urgentActions": {
+      "title": "Urgent actions",
+      "expiredEvaluations": "Expired evaluations",
+      "seeEvaluations": "See evaluations →",
+      "evaluationsPendingHrSignature": "Evaluations awaiting HR signature",
+      "seeHrAlerts": "See HR alerts →"
+    },
+    "recentActivity": {
+      "title": "Recent activity",
+      "seeFullLog": "See full log →",
+      "empty": "No recent activity"
+    },
+    "audit": {
+      "login": "Login",
+      "login_failed": "Failed login",
+      "logout": "Logout",
+      "user_created": "User created",
+      "user_updated": "User updated",
+      "user_deleted": "User deleted",
+      "campaign_created": "Campaign created",
+      "campaign_updated": "Campaign updated",
+      "evaluation_submitted": "Evaluation submitted",
+      "evaluation_signed": "Evaluation signed",
+      "ldap_sync": "LDAP sync"
+    }
   }
 }

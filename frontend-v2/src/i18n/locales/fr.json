@@ -52,7 +52,8 @@
     "systemStatus": "État du système",
     "setupWizard": "Assistant de configuration",
     "configHub": "Configuration",
-    "departments": "Départements"
+    "departments": "Départements",
+    "objectives": "Objectifs équipe"
   },
   "common": {
     "save": "Enregistrer",
@@ -1144,6 +1145,26 @@
       "evaluation_submitted": "Évaluation soumise",
       "evaluation_signed": "Évaluation signée",
       "ldap_sync": "Synchronisation LDAP"
+    }
+  },
+  "objectives": {
+    "title": "Objectifs de l'équipe",
+    "desc": "Suivi des objectifs fixés en entretien pour votre équipe.",
+    "empty": "Aucun objectif défini pour le moment. Ils apparaissent ici après les entretiens.",
+    "nextYear": "Objectifs pour l'année à venir",
+    "review": "Bilan des objectifs passés",
+    "status": {
+      "achieved": "Atteint",
+      "partial": "Partiel",
+      "not_achieved": "Non atteint"
+    },
+    "guide": {
+      "title": "Suivi des objectifs",
+      "steps": [
+        "Retrouvez ici les objectifs fixés en entretien pour chaque membre de votre équipe.",
+        "Suivez l'avancement et préparez le bilan de l'année suivante.",
+        "Les objectifs se définissent pendant l'entretien (section « Objectifs pour l'année suivante »)."
+      ]
     }
   }
 }

@@ -93,6 +93,7 @@ const AdminSetupWizardPage = lazy(
   () => import("../pages/AdminSetupWizardPage"),
 );
 const MobilityPage = lazy(() => import("../pages/MobilityPage"));
+const ObjectivesPage = lazy(() => import("../pages/ObjectivesPage"));
 const AdminMailTestPage = lazy(() => import("../pages/AdminMailTestPage"));
 const AdminStatsPage = lazy(() => import("../pages/AdminStatsPage"));
 const DepartmentsPage = lazy(() => import("../pages/DepartmentsPage"));
@@ -391,6 +392,16 @@ export const router = createBrowserRouter([
           <S>
             <MobilityPage />
           </S>
+        ),
+      },
+      {
+        path: "/objectives",
+        element: (
+          <AuthGuard roles={["manager", "hr", "admin"]}>
+            <S>
+              <ObjectivesPage />
+            </S>
+          </AuthGuard>
         ),
       },
       // Manager — À traiter

@@ -81,6 +81,44 @@ router.get('/', async (req, res, next) => {
 })
 
 /**
+ * GET /api/interviews/team-objectives — Suivi des objectifs de l'équipe.
+ * Manager : objectifs des entretiens de son équipe ; RH/admin : tous.
+ * Retourne, par collaborateur, les objectifs N+1 et le bilan des objectifs passés.
+ */
+router.get('/team-objectives', async (req, res, next) => {
+  try {
+    const role = req.user.role
+    const uid  = req.user.id.toString()
+
+    const filter = {}
+    if (role === 'manager') {
+      filter.managerId = uid
+    } else if (!['admin', 'hr'].includes(role)) {
+      return res.status(403).json({ error: 'Accès refusé' })
+    }
+
+    const interviews = await Interview.find(filter)
+      .populate('evaluateeId', 'firstName lastName email')
+      .populate('campaignId', 'name startDate')
+      .select('evaluateeId campaignId nextYearObjectives objectivesReview scheduledAt')
+      .sort({ updatedAt: -1 })
+      .lean()
+
+    const data = interviews.map(i => ({
+      evaluatee: i.evaluateeId,
+      campaign: i.campaignId,
+      nextYearObjectives: (i.nextYearObjectives || []).map(o => o.text).filter(Boolean),
+      objectivesReview: i.objectivesReview || [],
+      scheduledAt: i.scheduledAt || null,
+    }))
+
+    res.json({ data })
+  } catch (err) {
+    next(err)
+  }
+})
+
+/**
  * PATCH /api/interviews/synthesis
  * body : { campaignId, evaluateeId, reviewerScore (number|null)?, reviewerComment (string) }
  */

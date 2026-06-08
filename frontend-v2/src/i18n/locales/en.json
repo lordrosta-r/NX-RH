@@ -52,7 +52,8 @@
     "systemStatus": "System status",
     "setupWizard": "Setup wizard",
     "configHub": "Configuration",
-    "departments": "Departments"
+    "departments": "Departments",
+    "objectives": "Team objectives"
   },
   "common": {
     "save": "Save",
@@ -1144,6 +1145,26 @@
       "evaluation_submitted": "Evaluation submitted",
       "evaluation_signed": "Evaluation signed",
       "ldap_sync": "LDAP sync"
+    }
+  },
+  "objectives": {
+    "title": "Team objectives",
+    "desc": "Track the objectives set during interviews for your team.",
+    "empty": "No objectives yet. They appear here after interviews.",
+    "nextYear": "Objectives for the coming year",
+    "review": "Review of past objectives",
+    "status": {
+      "achieved": "Achieved",
+      "partial": "Partial",
+      "not_achieved": "Not achieved"
+    },
+    "guide": {
+      "title": "Objectives tracking",
+      "steps": [
+        "Find here the objectives set during interviews for each team member.",
+        "Track progress and prepare next year's review.",
+        "Objectives are set during the interview (the 'Objectives for next year' section)."
+      ]
     }
   }
 }

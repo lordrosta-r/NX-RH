@@ -22,6 +22,8 @@ import LoginLdapPage from '../pages/LoginLdapPage'
 import DashboardPage from '../pages/DashboardPage'
 import UsersPage from '../pages/UsersPage'
 import NotFoundPage from '../pages/NotFoundPage'
+import { PerspectiveProvider } from '../contexts/PerspectiveContext'
+import { ConfirmProvider } from '../contexts/ConfirmContext'
 
 function createQueryClient() {
   return new QueryClient({
@@ -96,7 +98,9 @@ function renderApp(initialPath: string, initialUser: ReturnType<typeof makeUser>
     <QueryClientProvider client={queryClient}>
       <MemoryRouter initialEntries={[initialPath]}>
         <TestAuthShell initialUser={initialUser}>
-          <AppRoutes />
+          <ConfirmProvider>
+            <AppRoutes />
+          </ConfirmProvider>
         </TestAuthShell>
       </MemoryRouter>
     </QueryClientProvider>,
@@ -109,10 +113,12 @@ function renderNavbar(initialUser: ReturnType<typeof makeUser>, initialPath = '/
     <QueryClientProvider client={queryClient}>
       <MemoryRouter initialEntries={[initialPath]}>
         <TestAuthShell initialUser={initialUser}>
-          <Routes>
-            <Route path="/" element={<Navbar />} />
-            <Route path="/login" element={<div>Connexion</div>} />
-          </Routes>
+          <PerspectiveProvider>
+            <Routes>
+              <Route path="/" element={<Navbar />} />
+              <Route path="/login" element={<div>Connexion</div>} />
+            </Routes>
+          </PerspectiveProvider>
         </TestAuthShell>
       </MemoryRouter>
     </QueryClientProvider>,
@@ -136,9 +142,12 @@ describe('Navbar', () => {
   })
 
   it.each([
-    ['admin', [/collaborateurs/i, /campagnes/i, /évaluations/i, /pilotage/i, /administration/i]],
-    ['employee', [/mes évaluations/i, /pilotage/i]],
-    ['hr', [/collaborateurs/i, /campagnes/i, /évaluations/i, /pilotage/i, /paramètres/i]],
+    // admin: "work" perspective (no switch). Primary: dashboard, Collaborateurs, Campagnes, Évaluations, Administration.
+    ['admin', [/collaborateurs/i, /campagnes/i, /évaluations/i, /administration/i]],
+    // employee: always "me" perspective. Primary: dashboard, Évaluations (group), Mes demandes, Suivi.
+    ['employee', [/évaluations/i, /mes demandes/i]],
+    // hr: "work" perspective (default from localStorage). Primary: dashboard, Collaborateurs, Campagnes, Évaluations, Administration.
+    ['hr', [/collaborateurs/i, /campagnes/i, /évaluations/i, /administration/i]],
   ] as const)('affiche les bons liens pour %s', (role, labels) => {
     renderNavbar(makeUser({ role }))
 
@@ -150,7 +159,7 @@ describe('Navbar', () => {
   it('affiche la zone notifications même sans compteur', async () => {
     server.use(
       http.get('http://localhost:5050/api/notifications/count', () =>
-        HttpResponse.json({ count: 0 }),
+        HttpResponse.json({ data: { total: 0, unreadCount: 0 } }),
       ),
     )
 
@@ -159,14 +168,14 @@ describe('Navbar', () => {
     expect(screen.getByRole('button', { name: /notifications/i })).toBeInTheDocument()
   })
 
-  it('polling GET /api/notifications toutes les 30s', async () => {
+  it('polling GET /api/notifications/count toutes les 60s', async () => {
     vi.useFakeTimers()
     let calls = 0
 
     server.use(
-      http.get('http://localhost:5050/api/notifications', () => {
+      http.get('http://localhost:5050/api/notifications/count', () => {
         calls += 1
-        return HttpResponse.json({ data: [], total: 0, page: 1, limit: 1, unreadCount: calls })
+        return HttpResponse.json({ data: { total: 0, unreadCount: calls } })
       }),
     )
 
@@ -177,7 +186,7 @@ describe('Navbar', () => {
     })
     expect(calls).toBe(1)
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(30000)
+      await vi.advanceTimersByTimeAsync(60000)
     })
     expect(calls).toBe(2)
   })

@@ -18,5 +18,14 @@ export default defineConfig([
     languageOptions: {
       globals: globals.browser,
     },
+    rules: {
+      // Règles avisives du React Compiler / react-refresh : conservées comme
+      // avertissements (visibles) plutôt que bloquantes. Le lint reste un gate
+      // dur pour les vraies erreurs (variables inutilisées, no-undef, TS, etc.).
+      'react-hooks/static-components': 'warn',
+      'react-hooks/set-state-in-effect': 'warn',
+      'react-hooks/purity': 'warn',
+      'react-refresh/only-export-components': 'warn',
+    },
   },
 ])

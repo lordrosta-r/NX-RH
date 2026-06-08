@@ -686,6 +686,7 @@
   font-weight: 600;
 }
 .nx-app .input,
+.nx-app .textarea,
 .nx-app select.input,
 .nx-app textarea.input {
   width: 100%;
@@ -713,19 +714,26 @@
   background-position: right 12px center;
   background-size: 16px;
 }
-.nx-app .input::placeholder {
+.nx-app .input::placeholder,
+.nx-app .textarea::placeholder {
   color: var(--ink-3);
 }
-.nx-app .input:hover {
+.nx-app .input:hover,
+.nx-app .textarea:hover {
   background-color: var(--fill-hover);
 }
-.nx-app .input:focus {
+.nx-app .input:focus,
+.nx-app .textarea:focus {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
   background-color: #fff;
 }
 .nx-app .input.is-invalid {
   border-color: var(--red);
+}
+.nx-app .textarea {
+  resize: vertical;
+  min-height: 96px;
 }
 .nx-app textarea.input {
   resize: vertical;

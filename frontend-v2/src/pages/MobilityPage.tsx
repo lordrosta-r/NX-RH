@@ -207,7 +207,7 @@ export default function MobilityPage() {
     queryKey: queryKeys.mobility.lists(),
     queryFn: () =>
       api
-        .get("/mobility", {
+        .get("/api/mobility", {
           params: { status: statusFilter || undefined, limit: 50 },
         })
         .then((r) => r.data),

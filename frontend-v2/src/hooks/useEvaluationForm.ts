@@ -1,7 +1,9 @@
 import { useState, useRef, useCallback } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import { evaluationsApi } from "../api/evaluations";
+import { toast } from "./useToast";
 import type { Evaluation, FormQuestion } from "../types";
 import type { EvalMutationHandle } from "../types/evaluation";
 import { queryKeys } from "../lib/queryKeys";
@@ -78,6 +80,7 @@ export function useEvaluationForm(
   evaluation: Evaluation,
 ): UseEvaluationFormResult {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const id = evaluation.id;
 
   // Restaure un éventuel brouillon local (réponses dont la dernière sauvegarde
@@ -194,6 +197,25 @@ export function useEvaluationForm(
     onSuccess: () => {
       void invalidate();
       setSubmitModal(false);
+      toast.success(
+        "Évaluation soumise",
+        "Vous pouvez maintenant programmer et mener l'entretien.",
+      );
+      // Après soumission, on dirige vers l'entretien pour caler le rendez-vous
+      // et le mener (plutôt que de rester sur l'écran de remplissage).
+      const cid =
+        typeof evaluation.campaignId === "string"
+          ? evaluation.campaignId
+          : evaluation.campaignId?._id;
+      const eid =
+        typeof evaluation.evaluateeId === "string"
+          ? evaluation.evaluateeId
+          : (evaluation.evaluateeId as { _id?: string } | undefined)?._id;
+      if (cid && eid) {
+        navigate(`/interview?campaignId=${cid}&evaluateeId=${eid}`);
+      } else {
+        navigate("/evaluations");
+      }
     },
   });
 

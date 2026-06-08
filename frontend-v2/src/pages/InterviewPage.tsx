@@ -893,12 +893,31 @@ function SignatureBlock({
       </div>
     );
   }
+  return <SignatureCapture title={title} onSign={onSign} />;
+}
+
+// Capture de signature : on ne soumet PAS automatiquement au tracé. L'utilisateur
+// peut dessiner, effacer/recommencer autant qu'il veut, puis valider explicitement.
+function SignatureCapture({
+  title,
+  onSign,
+}: {
+  title: string;
+  onSign: (dataUrl: string) => void;
+}) {
+  const [drawn, setDrawn] = useState<string | null>(null);
   return (
-    <SignaturePad
-      label={title}
-      onChange={(dataUrl) => {
-        if (dataUrl) onSign(dataUrl);
-      }}
-    />
+    <div>
+      <SignaturePad label={title} onChange={(dataUrl) => setDrawn(dataUrl)} />
+      <button
+        type="button"
+        className="btn btn-primary btn-sm"
+        style={{ marginTop: 8 }}
+        disabled={!drawn}
+        onClick={() => drawn && onSign(drawn)}
+      >
+        <PenLine size={14} strokeWidth={1.5} /> Valider la signature
+      </button>
+    </div>
   );
 }

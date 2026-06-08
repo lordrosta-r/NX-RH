@@ -68,7 +68,7 @@ export default function PDIPage() {
     queryKey: queryKeys.pdi.list({ status: statusFilter }),
     queryFn: () =>
       api
-        .get("/pdi", { params: { status: statusFilter || undefined } })
+        .get("/api/pdi", { params: { status: statusFilter || undefined } })
         .then((r) => r.data),
   });
 
@@ -76,7 +76,7 @@ export default function PDIPage() {
 
   const createMutation = useMutation({
     mutationFn: (payload: typeof form) =>
-      api.post("/pdi", {
+      api.post("/api/pdi", {
         employee: payload.employee,
         manager: payload.manager,
         period: { start: payload.periodStart, end: payload.periodEnd },

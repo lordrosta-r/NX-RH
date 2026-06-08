@@ -369,18 +369,15 @@ describe("EvaluationDetailPage", () => {
       ),
       http.patch(
         "http://localhost:5050/api/evaluations/:id",
-        async ({ request }) => {
-          patchCalls.push({
-            body: (await request.json()) as Record<string, unknown>,
-          });
+        async ({ request, params }) => {
+          const body = (await request.json()) as Record<string, unknown>;
+          patchCalls.push({ body });
+          // La soumission passe par PATCH { status: "submitted" } (plus de route /submit).
+          if (body.status === "submitted") {
+            submitCalls.push(params.id as string);
+            return HttpResponse.json(makeEvaluation({ status: "submitted" }));
+          }
           return HttpResponse.json(makeEvaluation({ status: "in_progress" }));
-        },
-      ),
-      http.post(
-        "http://localhost:5050/api/evaluations/:id/submit",
-        ({ params }) => {
-          submitCalls.push(params.id as string);
-          return HttpResponse.json(makeEvaluation({ status: "submitted" }));
         },
       ),
     );

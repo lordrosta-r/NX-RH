@@ -10,6 +10,7 @@ import {
 import { ClipboardList, Download, MoreHorizontal } from "lucide-react";
 import EmptyState from "../components/ui/EmptyState";
 import { useAuth } from "../contexts/AuthContext";
+import { usePerspective } from "../contexts/PerspectiveContext";
 import { evaluationsApi } from "../api/evaluations";
 import { usersApi } from "../api/users";
 import { toast } from "../hooks/useToast";
@@ -39,8 +40,12 @@ const EVAL_STATUS_TONE: Record<string, Tone> = {
 export default function EvaluationsPage() {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const { perspective } = usePerspective();
   const isAdminOrHr = user?.role === "admin" || user?.role === "hr";
   const isEmployee = user?.role === "employee";
+  // En perspective « Mon espace », la page « Mes évaluations » ne montre que
+  // les évaluations dont l'utilisateur est l'évalué (jamais celles qu'il conduit).
+  const personalScope = perspective === "me";
   const { exportListPdf } = usePdfExport();
 
   const [campaignFilter, setCampaignFilter] = useState("");
@@ -67,6 +72,7 @@ export default function EvaluationsPage() {
       deptFilter,
       q: searchDebounced,
       page,
+      personalScope,
     }),
     queryFn: () =>
       (isEmployee
@@ -83,6 +89,7 @@ export default function EvaluationsPage() {
             status: statusFilter.length === 1 ? statusFilter[0] : undefined,
             department: deptFilter || undefined,
             q: searchDebounced || undefined,
+            scope: personalScope ? "mine" : undefined,
           })
       ).then((r) => r.data),
     placeholderData: keepPreviousData,

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { fireEvent, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { Routes, Route } from "react-router-dom";
@@ -264,8 +264,8 @@ describe("EvaluationsPage", () => {
 
     renderWithProviders(<EvaluationsPage />, { user: admin });
 
-    const table = await screen.findByRole("table");
-    expect(screen.getByText("Évalué")).toBeInTheDocument();
+    // La liste utilise des divs CSS (tbl-head/tbl-row), pas un <table>
+    expect(await screen.findByText("Évalué")).toBeInTheDocument();
     expect(screen.getByText("Évaluateur")).toBeInTheDocument();
     expect(screen.getByText("Campagne")).toBeInTheDocument();
     expect(screen.getByText("Statut")).toBeInTheDocument();
@@ -276,7 +276,7 @@ describe("EvaluationsPage", () => {
     await user.type(searchInput, "Bruno");
     await waitFor(() =>
       expect(
-        within(table).getAllByRole("link", { name: "Bruno Petit" }),
+        screen.getAllByRole("link", { name: "Bruno Petit" }),
       ).toHaveLength(1),
     );
   });
@@ -325,16 +325,16 @@ describe("EvaluationsPage", () => {
       { initialEntries: ["/evaluations"], user: admin },
     );
 
-    const table = await screen.findByRole("table");
+    // La liste utilise des divs CSS (tbl-head/tbl-row), pas un <table>
     await waitFor(() =>
       expect(
-        within(table).getAllByRole("link", { name: "Alice Martin" }).length,
+        screen.getAllByRole("link", { name: "Alice Martin" }).length,
       ).toBeGreaterThan(0),
     );
     await waitFor(() =>
-      expect(within(table).getAllByRole("checkbox")).toHaveLength(4),
+      expect(screen.getAllByRole("checkbox")).toHaveLength(4),
     );
-    const checkboxes = within(table).getAllByRole("checkbox");
+    const checkboxes = screen.getAllByRole("checkbox");
 
     const rowCheckbox = checkboxes[1];
     const user = userEvent.setup();
@@ -345,7 +345,7 @@ describe("EvaluationsPage", () => {
     ).toBeInTheDocument();
 
     await user.click(
-      within(table).getAllByRole("link", { name: "Alice Martin" })[0],
+      screen.getAllByRole("link", { name: "Alice Martin" })[0],
     );
     expect(await screen.findByText("Détail évaluations")).toBeInTheDocument();
   });

@@ -1,5 +1,5 @@
 import "@testing-library/jest-dom";
-import { beforeAll, afterEach, afterAll } from "vitest";
+import { beforeAll, afterEach, afterAll, vi } from "vitest";
 import { server } from "./msw/server";
 // Initialise i18next (effet de bord à l'import) pour que les composants utilisant
 // useTranslation() rendent les libellés FR au lieu des clés brutes dans les tests.
@@ -11,5 +11,11 @@ beforeAll(() => {
 });
 
 beforeAll(() => server.listen({ onUnhandledRequest: "warn" }));
-afterEach(() => server.resetHandlers());
+afterEach(() => {
+  server.resetHandlers();
+  // Évite toute fuite de faux timers / mocks entre fichiers de test (sinon les
+  // appels async réels — blobs, axios — peuvent rester bloqués jusqu'au timeout).
+  vi.useRealTimers();
+  vi.restoreAllMocks();
+});
 afterAll(() => server.close());

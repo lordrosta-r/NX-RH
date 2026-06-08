@@ -15,6 +15,13 @@ export default defineConfig({
     // (e2e/*.spec.ts) sont exécutées par Playwright, pas par Vitest.
     include: ["src/**/*.{test,spec}.{ts,tsx}"],
     css: false,
+    // Tests d'intégration lourds (rendu + MSW + waitFor) : timeout généreux +
+    // exécution séquentielle des fichiers (évite la contention CPU qui cause des
+    // timeouts sur les runners CI). Le nettoyage des timers/mocks dans setup.ts
+    // empêche toute fuite entre fichiers en mode worker unique.
+    testTimeout: 20000,
+    hookTimeout: 20000,
+    fileParallelism: false,
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },

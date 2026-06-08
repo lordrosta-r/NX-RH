@@ -1,216 +1,582 @@
-# NanoXplore RH — Architecture technique
+# NanoXplore RH — Technical Architecture
 
-> Document destiné aux développeurs qui contribuent au projet ou qui le déploient.
-
----
-
-## Vue d'ensemble
-
-NanoXplore RH est une **MPA (Multi-Page Application)** : chaque page est une entrée Vite indépendante, servie par Express. Il n'y a pas de SPA router côté client — la navigation entre pages passe par des redirections HTTP standard.
-
-```
-┌──────────────────────────────────────────────────────────────┐
-│  Navigateur                                                   │
-│   ├─ Vite (dev) / Fichiers statiques compilés (prod)         │
-│   └─ Composants React par page — pas de router global        │
-└──────────────────────────────┬───────────────────────────────┘
-                               │ HTTP / cookie JWT
-┌──────────────────────────────▼───────────────────────────────┐
-│  Express (mongo/server/index.js)                              │
-│   ├─ Sert les pages HTML : GET / → login.html, etc.          │
-│   ├─ /api/auth/*      — authentification                     │
-│   ├─ /api/users/*     — gestion utilisateurs                 │
-│   ├─ /api/campaigns/* — campagnes                            │
-│   ├─ /api/forms/*     — formulaires                          │
-│   └─ /api/evaluations/* — évaluations                        │
-└──────────────────────────────┬───────────────────────────────┘
-                               │ Mongoose ODM
-┌──────────────────────────────▼───────────────────────────────┐
-│  MongoDB                                                      │
-│   Collections : users, campaigns, forms, evaluations         │
-└──────────────────────────────────────────────────────────────┘
-```
+> Reference document for developers contributing to or deploying this project.
+> Source of truth for routes: `frontend-v2/src/router/index.tsx`.
 
 ---
 
-## Structure du projet
+## Table of Contents
+
+1. [System Overview](#1-system-overview)
+2. [Frontend Architecture](#2-frontend-architecture)
+3. [Route Tree](#3-route-tree)
+4. [Frontend Folder Structure](#4-frontend-folder-structure)
+5. [Backend Architecture](#5-backend-architecture)
+6. [Key Domain Concepts](#6-key-domain-concepts)
+
+---
+
+## 1. System Overview
 
 ```
-NX/
-├── client/                   ← Frontend (Vite + React)
-│   ├── src/
-│   │   ├── pages/            ← Une entrée par page (co-location absolue)
-│   │   │   ├── login/
-│   │   │   ├── dashboard/
-│   │   │   └── manager/
-│   │   ├── components/ui/    ← Composants réutilisables sans logique métier
-│   │   ├── hooks/
-│   │   │   ├── useTheme.js
-│   │   │   ├── useLocale.js
-│   │   │   └── useAuthUser.js
-│   │   ├── i18n/index.js     ← makeT() factory uniquement
-│   │   └── styles/
-│   │       ├── tokens.css    ← Variables de brand (couleurs, radius, typo)
-│   │       ├── theme.css     ← Variables --th-* dark/light
-│   │       └── global.css    ← Reset + imports
-│   └── vite.config.js        ← rollupOptions.input par page
-│
-├── mongo/server/             ← Backend principal (Express + Mongoose)
-│   ├── index.js              ← Point d'entrée Express
-│   ├── models/               ← Schémas Mongoose
-│   │   ├── User.js
-│   │   ├── Campaign.js
-│   │   ├── Form.js
-│   │   └── Evaluation.js
-│   ├── routes/               ← Handlers REST
-│   ├── middleware/
-│   │   └── authGuard.js      ← Vérification JWT + contrôle rôle
-│   ├── services/
-│   │   └── managerVisibility.js
-│   └── config/
-│       └── constants.js      ← ROLES, DEPARTMENTS, QUESTION_TYPES, FORM_TYPES
-│
+                     +----------+
+                     | Browser  |
+                     +----+-----+
+                          |  HTTPS
+                          v
+                     +----------+
+                     |  Nginx   |  TLS termination, reverse proxy
+                     +----+-----+
+                          |  HTTP
+              +-----------+------------+
+              |                        |
+              v                        v
+     /api/*  (JSON)           GET /*  (SPA fallback)
+              |                        |
+              v                        v
+      +---------------+      +-----------------+
+      | Express (API) |      | Express (static)|
+      | routes/       |      | public/index.html|
+      +-------+-------+      +-----------------+
+              |
+       +------+------+
+       |             |
+       v             v
+  +--------+    +--------+
+  | MongoDB|    |  LDAP  |
+  | (data) |    | (auth) |
+  +--------+    +--------+
+```
 
+**Request flow:**
+
+- The browser always loads a single HTML file (`index.html`). React Router handles all
+  client-side navigation — Express is never asked to render a page.
+- `/api/*` requests go directly to Express route handlers. All other GET requests return
+  `index.html` with `Cache-Control: no-store`.
+- LDAP is used exclusively for authentication. Once a session is established, JWT cookies
+  are used for all subsequent requests (no LDAP round-trips per request).
+- MongoDB stores all application data. The connection string is validated at startup;
+  the server refuses to start if `JWT_SECRET` or `MONGO_URI` are missing.
+
+**Security layers:**
+
+- Helmet (CSP, HSTS, frameguard, `nosniff`, `Referrer-Policy`, `Permissions-Policy`)
+- CORS restricted to explicit `CLIENT_ORIGIN` list (wildcard forbidden)
+- `express-mongo-sanitize` on all incoming payloads
+- Rate limiting: 2000 req/min general (`apiLimiter`), 500 req/min for mutations
+  (`mutationLimiter`)
+- JWT in `httpOnly` cookies (not `localStorage`)
+- Impersonation guard blocks all writes when a session is in read-only impersonation mode
+
+---
+
+## 2. Frontend Architecture
+
+### Entry point
+
+```
+frontend-v2/index.html
+  |
+  +-- inline script (reads localStorage, sets data-theme before React mounts — anti-flash)
+  |
+  +-- src/main.tsx
+        |
+        +-- <ErrorBoundary>
+              +-- <QueryClientProvider>  (TanStack Query, single QueryClient)
+                    +-- <AuthProvider>
+                          +-- <ConfirmProvider>
+                                +-- <App />
+                                      +-- <RouterProvider router={router} />
+```
+
+`router` is exported from `src/router/index.tsx` and built with `createBrowserRouter`
+(React Router v6). Every page component is loaded with `React.lazy` + `<Suspense>`.
+
+### Routing
+
+React Router v6 with `createBrowserRouter`. Route protection is handled by `<AuthGuard>`:
+
+- No `roles` prop: redirects to `/login` if unauthenticated, otherwise renders.
+- With `roles` prop: also redirects to `/unauthorized` if the user's role is not in the
+  allowed list.
+
+```tsx
+// Global protection (any authenticated user)
+<AuthGuard>
+  <AppLayout />
+</AuthGuard>
+
+// Role-scoped protection
+<AuthGuard roles={["hr", "admin"]}>
+  <S><HrFlagsPage /></S>
+</AuthGuard>
+```
+
+### Data fetching — TanStack Query v5
+
+All server state is managed by TanStack Query. Raw `fetch` is never used; all calls go
+through axios functions in `src/api/`.
+
+```ts
+// Read
+const { data, isLoading, error } = useQuery({
+  queryKey: ['campaigns'],
+  queryFn: () => campaignsApi.getAll(),
+})
+
+// Write
+const mutation = useMutation({
+  mutationFn: (payload) => campaignsApi.create(payload),
+  onSuccess: () => queryClient.invalidateQueries({ queryKey: ['campaigns'] }),
+})
+```
+
+A global axios interceptor in `src/api/client.ts` catches HTTP 401 responses and
+redirects the browser to `/login`.
+
+### Global state — Contexts
+
+Three React contexts are available everywhere via their hooks:
+
+**AuthContext** (`useAuth`)
+
+```ts
+const { user, isLoading, isAuthenticated, login, loginLdap, logout, refreshUser } = useAuth()
+// user: User | null  — includes _id, name, role, email, …
+// isLoading: true during the initial /api/auth/me fetch
+// logout: calls the sign-out API then redirects to /login
+```
+
+**PerspectiveContext** (`usePerspective`)
+
+```ts
+const { perspective, setPerspective, hasSwitch } = usePerspective()
+// perspective: "me" | "work"
+// hasSwitch: true for manager / hr / admin (two perspectives available)
+// employee: always "me", no switch
+```
+
+**ConfirmContext** (`useConfirm`)
+
+```ts
+const confirm = useConfirm()
+// await confirm({ title, message, confirmLabel? }) -> boolean
+// Used for all destructive actions (delete, archive, …)
+```
+
+### Layouts
+
+| Layout | Used by |
+|--------|---------|
+| `AppLayout` | All authenticated pages; renders nav (from `navConfig.ts`) + `<Outlet />` |
+| `AuthLayout` | Login pages (`/login`, `/login/ldap`) |
+| `OrgLayout` | Full-screen org chart (`/org`) |
+| `LegalLayout` | Public legal pages |
+
+Navigation items are computed client-side by `getPerspectiveNav(role, perspective, t)`
+in `src/components/layout/navConfig.ts`, returning `{ primary, more }` filtered by
+the user's role and active perspective.
+
+### Styling — Tailwind v3 + CSS custom properties
+
+Design tokens are defined as CSS custom properties in `src/styles/tokens.css` (the single
+source of truth for brand colours and spacing). Components use Tailwind utility classes;
+brand colours are accessed via `var(--color-*)`.
+
+Rules:
+- No alternative CSS frameworks (Bootstrap, MUI, etc.)
+- No hardcoded hex values in components
+- No inline `style={{}}` for layout
+- Tokens are not modified for one-off overrides
+
+Theming is persisted in `localStorage` and applied via a `data-theme` attribute on
+`<html>`. The anti-flash inline script in `index.html` reads `localStorage` before React
+mounts to avoid a white flash on load.
+
+### Internationalisation — react-i18next
+
+Configured in `src/i18n.ts` (first import in `main.tsx`). Two locales: `fr.json`
+(primary) and `en.json`, under `src/i18n/locales/`. A single namespace (`translation`).
+Language detection: `localStorage` first, then `navigator`.
+
+Key format: `<domain>.<section>.<element>` — e.g. `nav.campaigns`,
+`evaluations.status.pending`.
+
+### Icons
+
+Single library: `lucide-react`. Always SVG stroke, never emoji or font icons.
+
+```tsx
+import { Home, Bell, Settings } from 'lucide-react'
+<Home size={18} strokeWidth={1.5} aria-hidden="true" />
 ```
 
 ---
 
-## Auth flow
+## 3. Route Tree
 
-```
-1. POST /api/auth/login
-   → vérifie email + bcrypt(password)
-   → émet cookie httpOnly "token" (JWT, 8h, sameSite=strict)
-   → retourne { user: { id, email, firstName, lastName, role } } dans le body (pas de token)
+Source of truth: `frontend-v2/src/router/index.tsx`.
 
-2. Chaque page protégée monte useAuthUser()
-   → GET /api/auth/me (credentials: 'include')
-   → si 401/403 : window.location.href = '/'
-   → si ok : setUser(data) + sessionStorage (affichage seulement)
+### 3.1 Public routes (no authentication required)
 
-3. authGuard middleware (côté serveur)
-   → lit req.cookies.token UNIQUEMENT (cookie httpOnly)
-   → jwt.verify() → attache req.user = { id, email, role }
-   → 401 si absent/expiré, 403 si rôle insuffisant
+| Path | Layout | Notes |
+|------|--------|-------|
+| `/login` | AuthLayout | Standard email/password login |
+| `/login/ldap` | AuthLayout | LDAP login |
+| `/confidentialite` | LegalLayout | Privacy policy |
+| `/mentions-legales` | LegalLayout | Legal notice |
+| `/accessibilite` | LegalLayout | Accessibility statement |
+| `/unauthorized` | — | 403 page |
+| `*` | — | 404 page |
 
-4. POST /api/auth/logout → res.clearCookie('token')
-```
+### 3.2 Authenticated routes (all roles)
 
-**Important :** `sessionStorage` ne sert qu'à afficher le nom/rôle de l'utilisateur dans l'UI (anti-flash sur le label). Il n'est jamais utilisé pour prendre des décisions d'autorisation — toutes les décisions sont faites côté serveur via le cookie JWT.
+Wrapped by `<AuthGuard> → <AppLayout>`. Routes without a `roles` restriction are
+accessible to any authenticated user (employee, manager, hr, admin).
 
-**Anti-flash thème :** chaque page HTML contient un script inline qui lit `localStorage` et applique `data-theme` sur `<html>` avant le montage React, évitant le flash blanc/noir au chargement.
+| Path | Allowed roles | Page component |
+|------|---------------|----------------|
+| `/` | all | DashboardPage |
+| `/campaigns` | all | CampaignsPage |
+| `/campaigns/:id` | all | CampaignDetailPage |
+| `/forms` | all | FormsPage |
+| `/forms/:id` | all | FormDetailPage |
+| `/evaluations` | all | EvaluationsPage |
+| `/evaluations/history` | all | EvaluationHistoryPage |
+| `/evaluations/:id` | all | EvaluationDetailPage |
+| `/events` | all | EventsPage |
+| `/events/:id` | all | EventDetailPage |
+| `/help` | all | HelpPage |
+| `/mobility` | all | MobilityPage |
+| `/pdi` | all | PDIPage |
+| `/pdi/:id` | all | PDIDetailPage |
+| `/profile` | all | ProfilePage |
+| `/profile/preferences` | all | PreferencesPage |
+| `/notifications` | all | NotificationsPage |
+
+### 3.3 Role-restricted authenticated routes
+
+| Path | Allowed roles | Page component |
+|------|---------------|----------------|
+| `/users` | admin, hr, manager | UsersPage |
+| `/users/:id` | admin, hr, manager | UserDetailPage |
+| `/users/new` | admin, hr | UserNewPage |
+| `/users/:id/edit` | admin, hr | UserEditPage |
+| `/users/groups` | admin, hr | UserGroupsPage |
+| `/campaigns/new` | admin, hr | CampaignNewPage |
+| `/campaigns/:id/edit` | admin, hr | CampaignEditPage |
+| `/campaigns/:id/analytics` | admin, hr, manager | CampaignAnalyticsPage |
+| `/forms/new` | admin, hr | FormNewPage |
+| `/evaluations/new` | admin, hr | EvaluationNewPage |
+| `/documents` | hr, manager, employee | ResourcesPage |
+| `/documents/:id` | hr, manager, employee | ResourceDetailPage |
+| `/manager/todo` | manager, hr, admin | ManagerTodoPage |
+| `/interview` | manager, hr, admin | InterviewPage |
+| `/hr/flags` | admin, hr | HrFlagsPage |
+| `/hr/flags/:id` | admin, hr | HrFlagDetailPage |
+| `/analytics` | admin, hr, manager | AnalyticsPage |
+| `/analytics/campaigns/:id` | admin, hr, manager | AnalyticsCampaignPage |
+
+### 3.4 Full-screen routes (OrgLayout)
+
+| Path | Notes |
+|------|-------|
+| `/org` | Org chart — any authenticated user |
+| `/admin/orgchart` | Permanent 301 redirect to `/org` (legacy alias) |
+
+### 3.5 Admin routes
+
+All wrapped by `<AuthGuard> → <AppLayout>`.
+
+| Path | Allowed roles | Page component |
+|------|---------------|----------------|
+| `/admin` | admin, hr | AdminHubPage |
+| `/admin/users` | admin, hr | AdminUsersPage |
+| `/admin/users/import` | admin, hr | AdminUsersImportPage |
+| `/admin/forms/import` | admin, hr | AdminFormsImportPage |
+| `/admin/settings` | admin, hr | HrSettingsPage |
+| `/hr/settings` | admin, hr | HrSettingsPage (alias) |
+| `/admin/audit` | admin, hr | AdminAuditPage |
+| `/admin/mail-templates` | admin, hr | AdminMailTemplatesPage |
+| `/admin/stats` | admin, hr | AdminStatsPage |
+| `/admin/departments` | admin, hr | DepartmentsPage |
+| `/admin/ldap` | admin only | AdminLdapPage |
+| `/admin/ssl` | admin only | AdminSslPage |
+| `/admin/config` | admin only | AdminConfigPage |
+| `/admin/mail-config` | admin only | AdminMailConfigPage |
+| `/admin/status` | admin only | AdminStatusPage |
+| `/admin/setup` | admin only | AdminSetupWizardPage |
+| `/admin/test-mail` | admin only | AdminMailTestPage |
+
+### 3.6 Role model
+
+Four active roles: `employee`, `manager`, `hr`, `admin`.
+
+- The `director` role is retired. Accounts with that legacy role are treated as `manager`.
+- A manager can supervise other managers through the hierarchy without a dedicated portal.
+  Multi-team supervision is handled by `/manager/todo`, not a separate route.
 
 ---
 
-## Modèles Mongoose et relations
+## 4. Frontend Folder Structure
 
 ```
-User
-  ├─ managerId → User (N-1 self-reference)
-  └─ authSource: 'local' | 'ldap'
-
-Campaign
-  ├─ createdBy → User
-  └─ extendedVisibility: [{ managerId → User, restrictedToManagers: [User] }]
-
-Form
-  ├─ campaignId → Campaign
-  ├─ createdBy → User
-  ├─ questions: [{ id, type, label, required, scale?, options? }]
-  └─ frozenAt: Date | null  ← gelé à la création de la 1ère évaluation
-
-Evaluation
-  ├─ campaignId → Campaign
-  ├─ formId → Form
-  ├─ evaluatorId → User
-  ├─ evaluateeId → User
-  ├─ answers: [{ questionId, value }]
-  └─ index unique: (campaignId, formId, evaluatorId, evaluateeId)
+frontend-v2/
++-- index.html                    SPA entry point; anti-flash theme script
++-- vite.config.ts                Vite plugins; /api proxy to Express
++-- src/
+    +-- main.tsx                  Providers: ErrorBoundary, QueryClient, Auth, Confirm
+    +-- App.tsx                   <RouterProvider router={router} />
+    +-- i18n.ts                   i18next config (LanguageDetector, fr/en resources)
+    +-- router/
+    |   +-- index.tsx             createBrowserRouter — all routes, all lazy imports
+    +-- contexts/
+    |   +-- AuthContext.tsx       useAuth() — user, login, logout, refreshUser
+    |   +-- PerspectiveContext.tsx usePerspective() — "me" | "work"
+    |   +-- ConfirmContext.tsx    useConfirm() — async destructive-action dialog
+    +-- layouts/
+    |   +-- AppLayout.tsx         Authenticated shell: nav sidebar + <Outlet />
+    |   +-- AuthLayout.tsx        Login pages shell
+    |   +-- OrgLayout.tsx         Full-screen layout (org chart)
+    |   +-- LegalLayout.tsx       Public legal pages shell
+    +-- components/
+    |   +-- ui/                   Pure reusable UI components (no business logic)
+    |   +-- shared/
+    |   |   +-- AuthGuard.tsx     <AuthGuard roles=[...]> — auth + RBAC guard
+    |   +-- layout/
+    |       +-- navConfig.ts      getPerspectiveNav(role, perspective, t)
+    +-- pages/                    One file per page, flat (no domain sub-folders)
+    +-- api/                      Axios functions per domain (auth, users, campaigns…)
+    +-- hooks/                    Custom hooks (useCampaignDetail, useConfirm, …)
+    +-- features/                 Vertical feature modules (campaigns/, evaluations/)
+    +-- types/                    Shared TypeScript types (User, Role, …)
+    +-- lib/                      General utilities (queryClient.ts, …)
+    +-- schemas/                  Zod schemas
+    +-- stores/                   Minimal local state (outside TanStack Query)
+    +-- utils/                    Pure utility functions
+    +-- i18n/
+    |   +-- locales/
+    |       +-- fr.json           French translations (primary source)
+    |       +-- en.json           English translations
+    +-- styles/
+        +-- tokens.css            CSS custom properties — design token source of truth
 ```
 
-### Gel des formulaires (`frozenAt`)
+**Co-location rule:**
 
-Dès qu'une première évaluation est créée sur un formulaire (`POST /api/evaluations`), le serveur positionne `Form.frozenAt = new Date()`. Toute tentative ultérieure de modifier les questions retourne une erreur `409`. Les champs `title` et `description` restent modifiables.
-
-Ceci protège l'intégrité des réponses existantes : les IDs de questions référencés par `Evaluation.answers` ne bougent plus.
+| Situation | Location |
+|-----------|----------|
+| Component used on a single page | `pages/<Page>/` or alongside the page file |
+| Component used on multiple pages | `components/ui/` |
+| Reusable vertical business logic | `features/<domain>/` |
+| Reusable hook | `hooks/` |
+| Global context | `contexts/` |
 
 ---
 
-## managerVisibility.js
+## 5. Backend Architecture
 
-Ce service résout la question : *"Quels utilisateurs le manager X peut-il voir dans la campagne Y ?"*
+**Stack:** Node.js, Express, Mongoose (MongoDB), JWT cookies, optional LDAP.
 
-**Règle de base :** un manager voit ses subordonnés directs (`User.managerId === manager._id`).
+**Directory layout:**
 
-**Visibilité étendue :** si le manager figure dans `campaign.extendedVisibility`, il voit aussi les subordonnés des managers dans son sous-arbre hiérarchique. Le calcul est récursif avec protection anti-cycle (`visited: Set`).
+```
+mongo/server/
++-- index.js               App setup, middleware, route mounting, graceful shutdown
++-- config/
+|   +-- db.js              Mongoose connection helper
++-- middleware/
+|   +-- authGuard.js       RBAC middleware — authGuard(['admin', 'hr', ...])
+|   +-- errorHandler.js    Centralised Express error handler
+|   +-- metricsMiddleware.js  Request metrics collection
+|   +-- impersonationGuard.js blockImpersonatedWrites — read-only enforcement
++-- routes/                One file per domain
+|   +-- auth.js
+|   +-- users.js  (+ users/import.js, users/bulk.js)
+|   +-- campaigns.js
+|   +-- forms.js  (+ forms/importExport.js)
+|   +-- evaluations.js  (+ evaluations/bulk.js)
+|   +-- analytics.js
+|   +-- events.js
+|   +-- resources.js
+|   +-- org.js
+|   +-- pdi.js
+|   +-- interviews.js
+|   +-- mobility.js
+|   +-- notifications.js
+|   +-- dashboard.js
+|   +-- search.js
+|   +-- offboarding.js
+|   +-- departments.js
+|   +-- formCategories.js
+|   +-- branding.js
+|   +-- ldap.js
+|   +-- audit.js
+|   +-- hr/
+|   |   +-- flags.js
+|   |   +-- notifications.js
+|   |   +-- settings.js
+|   +-- admin/
+|       +-- mailTemplates.js
+|       +-- groups.js
+|       +-- status.js
+|       +-- sslCert.js
+|       +-- envCheck.js
++-- models/                Mongoose models (Campaign, Evaluation, Form, User, PDI, …)
++-- services/              Business logic decoupled from route handlers
++-- utils/
+    +-- logger.js
+    +-- cache.js
+    +-- metrics.js
+    +-- schedulerLock.js
+```
+
+### Middleware stack (in order)
+
+1. CORS (explicit origin allowlist, `credentials: true`)
+2. Helmet (CSP, HSTS, frameguard, security headers)
+3. Custom security headers (`X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`)
+4. `express.json` (100 KB body limit)
+5. `express-mongo-sanitize` (NoSQL injection prevention)
+6. `cookieParser`
+7. `metricsMiddleware`
+8. HTTP request logger
+9. `.html` extension redirect (301)
+10. Static file serving from `public/`
+
+### Authentication and RBAC
+
+- LDAP is used only at login time to verify credentials. On success, Express issues a JWT
+  stored in an `httpOnly` cookie.
+- `authGuard(roles)` is an Express middleware that validates the JWT cookie and checks that
+  the user's role is in the allowed list. Used directly in route mounting:
 
 ```js
-// Usage dans une route
-const { getVisibleUserIds } = require('../services/managerVisibility')
-const ids = await getVisibleUserIds(req.user.id, campaign)
-// → ObjectId[] de tous les utilisateurs visibles
+v1Router.use('/admin/ldap', mutationLimiter, authGuard(['admin']), ldapRoutes)
+v1Router.use('/campaigns',  mutationLimiter, authenticated,        campaignRoutes)
+// authenticated = authGuard(['admin', 'manager', 'employee', 'hr'])
 ```
 
-**`restrictedToManagers`** : optionnel dans le grant `extendedVisibility`. Limite la visibilité aux branches listées plutôt qu'à tout le sous-arbre.
+- `/api/health` is public (Docker healthcheck). `/api/health/detail` requires `admin`.
+
+### API versioning
+
+All routes are mounted on a shared `v1Router`:
+
+- `/api/v1/*` — versioned path (current)
+- `/api/*` — legacy alias (backward compatibility)
+
+Both prefixes reach the same handlers.
+
+### Rate limiting
+
+| Limiter | Window | Max requests | Applied to |
+|---------|--------|--------------|------------|
+| `apiLimiter` | 60 s | 2 000 | All `/api/*`, analytics, read-heavy routes |
+| `mutationLimiter` | 60 s | 500 | Write routes (users, campaigns, forms, …) |
 
 ---
 
-## extendedVisibility dans Campaign
+## 6. Key Domain Concepts
 
-```json
-"extendedVisibility": [
-  {
-    "managerId": "64a1b2c3d4e5f6a7b8c9d0e1",
-    "restrictedToManagers": []
-  }
-]
+### Campaigns
+
+A **Campaign** is the organisational unit that groups a set of evaluations together over a
+defined period. HR or admins create campaigns and assign forms and participants. A campaign
+has a lifecycle (draft, active, closed) and aggregated analytics.
+
+### Forms (questionnaires)
+
+A **Form** is a structured questionnaire built by HR. It contains categories and questions
+(text, rating, multiple-choice, etc.). Forms are attached to campaigns. HR can import and
+export forms. Form categories are managed separately (`/form-categories`).
+
+### Evaluations
+
+An **Evaluation** is the instance of a form filled in by a specific employee as part of a
+campaign. The state machine progresses as follows:
+
+```
+assigned
+   |
+   v
+in_progress  <-- employee begins filling the form
+   |
+   v
+submitted    <-- employee submits; manager reviews
+   |
+   v
+validated    <-- manager (or HR) marks as validated
 ```
 
-- `managerId` : le manager qui bénéficie de la visibilité étendue.
-- `restrictedToManagers` : liste des managers-branches autorisées. Vide = tout le sous-arbre.
+The **N-1** context (previous edition) allows an evaluatee and their manager to view
+answers from the previous campaign during the current one, providing continuity and
+comparison.
 
-Configuré par un admin/hr via `PATCH /api/campaigns/:id`.
+### Interviews
+
+An **Interview** (`/interview`) is the face-to-face review session between a manager and
+an employee. It is parameterised by `campaignId` and `evaluateeId` query strings and gives
+the manager a consolidated view (evaluation answers, N-1 context, objectives) during the
+meeting.
+
+### Manager todo (`/manager/todo`)
+
+Aggregates all pending actions for a manager across all their direct reports and, via
+the hierarchy, any managers reporting to them. This is the single entry point for
+multi-team supervision; there is no separate "director" portal.
+
+### Individual Development Plans (PDI)
+
+A **PDI** (Plan de Développement Individuel) tracks an employee's personal development
+objectives and actions over time. Accessible to all authenticated roles.
+
+### HR Flags
+
+**Flags** (`/hr/flags`) are signals raised internally (by employees, managers, or HR)
+about situations requiring attention. Only `admin` and `hr` can access the flag management
+interface, but the creation API may be open to other roles.
+
+### Org chart (`/org`)
+
+A full-screen interactive visualisation of the organisation hierarchy, served by a
+dedicated layout (`OrgLayout`) without the standard navigation shell. The legacy path
+`/admin/orgchart` permanently redirects to `/org`.
+
+### Notifications
+
+The notification system (`/notifications`, `/api/v1/notifications`) delivers in-app
+alerts. HR-specific notifications are managed separately under `/api/v1/hr/notifications`.
+
+### Offboarding
+
+The offboarding workflow (`/api/v1/offboarding`) handles the structured exit process for
+departing employees. It is accessible to all authenticated roles at the API level.
 
 ---
 
-## Design system
+## Adding a new page
 
-### Variables CSS
+```bash
+# 1. Create the component
+#    frontend-v2/src/pages/MyNewPage.tsx
 
-| Préfixe | Fichier source | Usage |
-|---|---|---|
-| `--color-*` | `tokens.css` | Couleurs de brand fixes (ne changent pas avec le thème) |
-| `--th-*` | `theme.css` | Couleurs thémables — changent selon `data-theme="dark\|light"` |
+# 2. Add a lazy import in src/router/index.tsx
+const MyNewPage = lazy(() => import('../pages/MyNewPage'))
 
-**Règle :** toujours utiliser `var(--th-*)` pour les couleurs des composants. N'utiliser `var(--color-*)` que pour les éléments de marque qui ont la même couleur quel que soit le thème.
+# 3. Add the route in the createBrowserRouter array
+{
+  path: '/my-new-route',
+  element: (
+    <AuthGuard roles={['hr', 'admin']}>
+      <S><MyNewPage /></S>
+    </AuthGuard>
+  ),
+}
 
-### Thème dark/light
-
-Le hook `useTheme()` écrit `data-theme="dark|light"` sur `<html>` et persiste le choix dans `localStorage`. Le CSS utilise :
-
-```css
-[data-theme="light"] { --th-bg: var(--color-white); }
-[data-theme="dark"]  { --th-bg: var(--color-gray-900); }
+# 4. Add i18n keys to fr.json and en.json
+# 5. Add a nav entry in navConfig.ts if required
 ```
 
----
-
-## i18n
-
-Chaque page gère ses propres traductions. L'engine est partagé, les données ne le sont pas.
-
-```
-client/src/i18n/index.js
-  └─ makeT({ fr, en }) → t(key, params?)
-       Retourne la chaîne pour la locale active.
-       Fallback : fr si la clé n'existe pas en en. 
-
-client/src/pages/<page>/i18n/
-  ├─ fr.js    ← { 'login.submit': 'Se connecter' }
-  ├─ en.js    ← { 'login.submit': 'Sign in' }
-  └─ index.js ← export const t = makeT({ fr, en })
-```
-
-**Hook `useLocale(pageT)`** : retourne `{ t, locale, setLocale }`. Le locale est persisté dans `localStorage`. Prend le `t` de la page en paramètre — pas de contexte React global.
-
-**Convention de nommage des clés :** `<page>.<élément>.<détail>` — ex : `login.submit.loading`, `dashboard.evaluation.status.assigned`.
+No additional HTML file, no Vite entry point, no Express route needed.

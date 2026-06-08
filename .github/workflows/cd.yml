@@ -1,12 +1,16 @@
-name: CD — Docker Build & Publish
+name: CD
 
-# Construit l'image Docker, la teste (smoke test réaliste), puis la PUBLIE sur
-# le registre GitHub (ghcr.io). Sur un push de tag v* (release), l'image est
-# aussi taguée avec la version → un vrai « package » déployable et versionné.
+# Livraison continue : construit l'image Docker, la teste, puis la PUBLIE sur
+# le registre GitHub (ghcr.io). Sur un tag v* (release), l'image est aussi
+# taguée avec la version → un package déployable et versionné.
 on:
   push:
     branches: [main]
     tags: ['v*']
+
+concurrency:
+  group: cd-${{ github.ref }}
+  cancel-in-progress: false
 
 permissions:
   contents: read
@@ -16,7 +20,7 @@ env:
   IMAGE: ghcr.io/lordrosta-r/nx-rh
 
 jobs:
-  docker:
+  publish:
     name: Build, test & publish image
     runs-on: ubuntu-latest
     steps:
@@ -30,7 +34,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Compute image tags
+      - name: Compute tags
         id: tags
         run: |
           TAGS="${IMAGE}:${{ github.sha }}"
@@ -56,13 +60,11 @@ jobs:
           docker pull "$IMAGE_REF"
           docker network create nxnet
           docker run -d --name mongo --network nxnet mongo:7
-          JWT_SECRET=$(openssl rand -hex 32)
-          JWT_REFRESH_SECRET=$(openssl rand -hex 32)
           docker run -d --name nxrh-test --network nxnet \
             -e NODE_ENV=production \
             -e MONGO_URI=mongodb://mongo:27017/test \
-            -e JWT_SECRET="$JWT_SECRET" \
-            -e JWT_REFRESH_SECRET="$JWT_REFRESH_SECRET" \
+            -e JWT_SECRET=$(openssl rand -hex 32) \
+            -e JWT_REFRESH_SECRET=$(openssl rand -hex 32) \
             "$IMAGE_REF"
           sleep 10
           docker ps | grep nxrh-test || (docker logs nxrh-test && exit 1)

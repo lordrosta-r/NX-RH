@@ -93,6 +93,11 @@ export function getPerspectiveNav(
           href: "/evaluations/history",
           group: t("nav.evaluations"),
         },
+        {
+          label: t("nav.objectives"),
+          href: "/objectives",
+          group: t("nav.evaluations"),
+        },
         { label: t("nav.calendar"), href: "/events", group: t("nav.pilotage") },
         {
           label: t("nav.resources"),

@@ -34,7 +34,7 @@ const express  = require('express')
 const mongoose = require('mongoose')
 const { getInterview, saveSynthesis, saveState, addSignature, flagDisagreement } = require('../services/interviewService')
 const { getVisibleUserIds } = require('../services/managerVisibility')
-const { Campaign } = require('../models')
+const { Campaign, Interview, Event, Evaluation } = require('../models')
 
 const router = express.Router()
 
@@ -210,6 +210,13 @@ router.post('/sign', async (req, res, next) => {
     const allowed = await canAccessEvaluatee(req, campaignId, evaluateeId)
     if (!allowed) return res.status(403).json({ error: 'Accès refusé' })
 
+    // Gating : l'entretien ne peut être signé que s'il a été programmé sur le
+    // calendrier (un rendez-vous a été fixé par le manager/RH).
+    const scheduled = await Interview.findOne({ campaignId, evaluateeId }).select('scheduledAt').lean()
+    if (!scheduled?.scheduledAt) {
+      return res.status(409).json({ error: "L'entretien doit d'abord être programmé sur le calendrier" })
+    }
+
     // SÉCURITÉ (anti-forgery) : le slot de signature est DÉDUIT du rôle réel de
     // l'appelant, jamais accepté depuis le body. L'évalué ne peut signer que le
     // slot 'evaluatee' ; un employé ne peut pas apposer la signature manager.
@@ -222,6 +229,76 @@ router.post('/sign', async (req, res, next) => {
     const interview = await addSignature(campaignId, evaluateeId, { role, dataUrl })
 
     res.json({ ok: true, status: interview.status })
+  } catch (err) {
+    if (err.status) return res.status(err.status).json({ error: err.message })
+    next(err)
+  }
+})
+
+/**
+ * PATCH /api/interviews/schedule — Programmer le rendez-vous d'entretien.
+ * body : { campaignId, evaluateeId, scheduledAt (ISO), location? }
+ *
+ * Réservé au manager (de l'évalué) / RH / admin — jamais l'évalué lui-même.
+ * Précondition : l'évaluation que le manager remplit doit être terminée
+ * (statut au moins 'submitted'). Crée aussi un événement sur le calendrier.
+ */
+router.patch('/schedule', async (req, res, next) => {
+  try {
+    const { campaignId, evaluateeId, scheduledAt, location } = req.body
+
+    if (!campaignId || !mongoose.isValidObjectId(campaignId)) {
+      return res.status(400).json({ error: 'campaignId valide requis' })
+    }
+    if (!evaluateeId || !mongoose.isValidObjectId(evaluateeId)) {
+      return res.status(400).json({ error: 'evaluateeId valide requis' })
+    }
+    const when = new Date(scheduledAt)
+    if (!scheduledAt || Number.isNaN(when.getTime())) {
+      return res.status(400).json({ error: 'scheduledAt (date) valide requis' })
+    }
+    if (location !== undefined && (typeof location !== 'string' || location.length > 200)) {
+      return res.status(400).json({ error: 'location invalide (max 200 car.)' })
+    }
+
+    // L'évalué ne programme pas son propre entretien.
+    if (req.user.id.toString() === evaluateeId.toString()) {
+      return res.status(403).json({ error: "Vous ne pouvez pas programmer votre propre entretien" })
+    }
+    const allowed = await canAccessEvaluatee(req, campaignId, evaluateeId)
+    if (!allowed) return res.status(403).json({ error: 'Accès refusé' })
+
+    const interview = await Interview.findOne({ campaignId, evaluateeId })
+    if (!interview) return res.status(404).json({ error: 'Entretien introuvable' })
+
+    // Précondition : l'évaluation remplie par le manager doit être soumise.
+    // « L'admin/manager ne peut programmer que s'il a terminé de tout remplir. »
+    const evals = await Evaluation.find({ _id: { $in: interview.evaluationIds } }).select('status evaluatorId').lean()
+    const managerEvals = evals.filter(e => e.evaluatorId?.toString() !== evaluateeId.toString())
+    const unfinished = managerEvals.some(e => ['assigned', 'in_progress'].includes(e.status))
+    if (managerEvals.length === 0 || unfinished) {
+      return res.status(409).json({ error: "Terminez d'abord de remplir l'évaluation avant de programmer l'entretien" })
+    }
+
+    interview.scheduledAt       = when
+    interview.scheduledLocation = location || ''
+    interview.scheduledBy       = req.user.id
+    await interview.save()
+
+    // Événement calendrier (type 'interview') visible par les participants.
+    const campaign = await Campaign.findById(campaignId).select('name').lean()
+    await Event.create({
+      title: `Entretien — ${campaign?.name || 'campagne'}`,
+      description: location ? `Lieu : ${location}` : '',
+      location: location || '',
+      date: when,
+      type: 'interview',
+      campaignId,
+      audience: ['manager', 'employee'],
+      createdBy: req.user.id,
+    })
+
+    res.json({ ok: true, scheduledAt: interview.scheduledAt, location: interview.scheduledLocation })
   } catch (err) {
     if (err.status) return res.status(err.status).json({ error: err.message })
     next(err)

@@ -1,5 +1,30 @@
 # CHANGELOG — NX-RH
 
+## [1.1.0] — 2026-06-08
+
+### Sécurité
+- Garde-fou prod : refus de démarrer si `RELAX_RATE_LIMIT=true` (anti-bruteforce).
+- `avatarUrl` : validation anti-SSRF (https publics uniquement, rejet des hôtes internes/métadonnées).
+- `refreshTokens` : tableau plafonné aux 20 derniers (anti-gonflement du document).
+
+### CI / CD / Packaging
+- Pipeline CI/CD refait de zéro : un seul `ci.yml` (jobs Backend + Frontend, `concurrency`), suppression du `pr-checks.yml` redondant.
+- Lint bloquant + tests **Vitest** intégrés à la CI.
+- **Image Docker publiée sur `ghcr.io/lordrosta-r/nx-rh`** (tags `latest`, `sha`, et version sur les tags `v*`).
+- Dependabot + CodeQL + `npm audit` actifs.
+
+### Infrastructure
+- `cert-init` : génération automatique d'un certificat auto-signé au 1er démarrage (nginx démarre sans cert pré-fourni).
+- Upload de certificat via l'UI fonctionnel en conteneur (volume `nginx/certs` partagé app `:rw` / nginx `:ro`).
+
+### Documentation
+- `docs/STACK.md` (choix techniques argumentés), `docs/ARCHITECTURE.md` (machine d'état complète), docs certificats à jour.
+- README professionnel (badges, contexte d'alternance).
+
+### Nettoyage
+- Suppression du code mort (guards/features inutilisés, assets, types morts).
+- Repo public, base de données vidée des données de démo.
+
 ## [Unreleased] — Sprint LOT 1-4
 
 ### 🔒 Sécurité (LOT 1)

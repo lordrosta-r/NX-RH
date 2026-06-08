@@ -35,6 +35,14 @@ function getInitials(id: string | PopulatedUser | undefined | null): string {
   const name = getDisplayName(id);
   return name.length >= 2 ? name.slice(0, 2).toUpperCase() : name.toUpperCase();
 }
+/**
+ * Le backend (sanitizeAnonymity) aplatit `evaluateeId` en simple id string et
+ * expose l'objet peuplé { firstName, lastName } via `evaluatee`. On lit donc
+ * `evaluatee` en priorité pour afficher le nom plutôt que l'ObjectId brut.
+ */
+function evaluateeOf(ev: Evaluation): PopulatedUser | string | undefined | null {
+  return ev.evaluatee ?? (ev.evaluateeId as string | PopulatedUser | undefined);
+}
 
 type Tone = "blue" | "green" | "amber" | "red" | "grey";
 const statusTone: Record<string, Tone> = {
@@ -104,7 +112,7 @@ function EvalRow({ ev, t }: { ev: Evaluation; t: TFunction }) {
     >
       <div>
         <p style={{ fontWeight: 700, fontSize: 15 }}>
-          {getDisplayName(ev.evaluateeId as string | PopulatedUser)}
+          {getDisplayName(evaluateeOf(ev))}
         </p>
         <p className="small" style={{ marginTop: 2 }}>
           {t("dashManager.evalRow.campaign")} : {getCampaignName(ev.campaignId)}
@@ -215,12 +223,12 @@ function MyTeam({
             className="avatar"
             style={{ width: 32, height: 32, fontSize: 12 }}
           >
-            {getInitials(ev.evaluateeId as string | PopulatedUser)}
+            {getInitials(evaluateeOf(ev))}
           </span>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div className="row between" style={{ marginBottom: 6 }}>
               <p style={{ fontSize: 14, fontWeight: 600 }} className="truncate">
-                {getDisplayName(ev.evaluateeId as string | PopulatedUser)}
+                {getDisplayName(evaluateeOf(ev))}
               </p>
               <StatusBadge status={ev.status} t={t} />
             </div>

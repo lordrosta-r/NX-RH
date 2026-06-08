@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/AuthContext";
 import api from "@/api/client";
 import { queryKeys } from "@/lib/queryKeys";
 import { PageHead, Tile, Badge, Bar } from "@/components/shell";
+import PageGuide from "@/components/shared/PageGuide";
 import Breadcrumbs from "@/components/ui/Breadcrumbs";
 import {
   CheckCircle2,
@@ -128,6 +130,7 @@ const EMPTY_ACTION = {
 };
 
 export default function PDIDetailPage() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const qc = useQueryClient();
@@ -218,6 +221,13 @@ export default function PDIDetailPage() {
           { label: "PDI", href: "/pdi" },
           { label: `${pdi.employee.firstName} ${pdi.employee.lastName}` },
         ]}
+      />
+
+      <PageGuide
+        id="pdi-detail"
+        title={t("pdi.guideDetail.title")}
+        color="blue"
+        steps={t("pdi.guideDetail.steps", { returnObjects: true }) as string[]}
       />
 
       <PageHead

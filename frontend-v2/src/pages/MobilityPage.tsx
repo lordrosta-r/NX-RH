@@ -204,7 +204,7 @@ export default function MobilityPage() {
   const [newRequest, setNewRequest] = useState(EMPTY_FORM);
 
   const { data, isLoading } = useQuery({
-    queryKey: queryKeys.mobility.lists(),
+    queryKey: queryKeys.mobility.list({ status: statusFilter || undefined }),
     queryFn: () =>
       api
         .get("/api/mobility", {
@@ -232,7 +232,7 @@ export default function MobilityPage() {
   const total: number = data?.total ?? 0;
 
   const filteredRequests = typeFilter
-    ? requests.filter((r) => r.requestType === typeFilter)
+    ? requests.filter((r) => (r.category ?? "mobilite") === typeFilter)
     : requests;
 
   const createMutation = useMutation({
@@ -528,16 +528,16 @@ export default function MobilityPage() {
               >
                 Tous types
               </button>
-              {(Object.entries(TYPE_LABELS) as [RequestType, string][]).map(
-                ([type, label]) => (
+              {(Object.entries(CATEGORY_LABELS) as [Category, string][]).map(
+                ([cat, label]) => (
                   <button
-                    key={type}
+                    key={cat}
                     onClick={() =>
-                      setTypeFilter(typeFilter === type ? "" : type)
+                      setTypeFilter(typeFilter === cat ? "" : cat)
                     }
                     className="btn btn-sm"
                     style={
-                      typeFilter === type
+                      typeFilter === cat
                         ? { background: "var(--blue)", color: "#fff" }
                         : { background: "var(--bg-alt)", color: "var(--ink-3)" }
                     }

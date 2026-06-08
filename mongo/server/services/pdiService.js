@@ -103,21 +103,30 @@ async function getPDIById(id, requesterId, requesterRole) {
 }
 
 /**
- * Liste les PDIs selon le rôle du demandeur :
- * - admin/hr  → tous
- * - manager   → ceux dont il est manager
- * - employee  → les siens
+ * Liste les PDIs selon le rôle du demandeur ET la perspective demandée :
+ * - scope=mine → uniquement les PDIs dont le demandeur est le sujet (employee),
+ *   quel que soit son rôle. Utilisé par « Mon espace › Suivi ».
+ * - sinon (vue équipe / métier) :
+ *   - admin/hr  → tous (filtrables par employee/manager)
+ *   - manager   → les PDIs de son équipe (subordonnés directs) + les siens
+ *   - employee  → les siens uniquement
  */
 async function listPDIs(filter, requesterId, requesterRole) {
   const query = {}
 
-  if (['admin', 'hr'].includes(requesterRole)) {
+  if (filter.scope === 'mine') {
+    // Espace perso « Suivi » : seulement MON propre PDI (je suis le sujet).
+    query.employee = requesterId
+  } else if (['admin', 'hr'].includes(requesterRole)) {
     if (filter.employee) query.employee = filter.employee
     if (filter.manager)  query.manager  = filter.manager
   } else if (requesterRole === 'manager') {
+    // Vue équipe : les PDIs de mes subordonnés directs + les miens.
+    const directs = await User.find({ managerId: requesterId, isActive: true }, '_id').lean()
+    const teamIds = directs.map(u => u._id)
     query.$or = [
       { manager:  requesterId },
-      { employee: requesterId },
+      { employee: { $in: [requesterId, ...teamIds] } },
     ]
   } else {
     query.employee = requesterId

@@ -24,9 +24,18 @@ const objectiveReviewItemSchema = new Schema({
   comment: { type: String, default: '' },
 }, { _id: false })
 
+// Sous-schéma : mise à jour d'avancement postée par l'évalué sur un objectif
+const objectiveUpdateSchema = new Schema({
+  note:    { type: String, default: '' },
+  comment: { type: String, default: '' },
+  at:      { type: Date, default: Date.now },
+}, { _id: false })
+
 // Sous-schéma : objectif fixé pour l'année à venir
 const nextYearObjectiveItemSchema = new Schema({
-  text: { type: String },
+  text:    { type: String },
+  // Points clés / mises à jour d'avancement postés par l'évalué en cours d'année.
+  updates: { type: [objectiveUpdateSchema], default: [] },
 }, { _id: false })
 
 // Sous-schéma : signature électronique d'un participant à l'entretien

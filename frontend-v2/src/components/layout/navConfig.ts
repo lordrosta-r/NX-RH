@@ -60,6 +60,7 @@ export function getPerspectiveNav(
         children: [
           { label: t("nav.evaluations"), href: "/evaluations", end: true },
           { label: t("nav.history"), href: "/evaluations/history" },
+          { label: t("nav.objectives"), href: "/objectives" },
         ],
       },
       { label: t("nav.myRequests"), href: "/mobility" },

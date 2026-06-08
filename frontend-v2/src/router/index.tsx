@@ -285,7 +285,7 @@ export const router = createBrowserRouter([
       {
         path: "/forms/new",
         element: (
-          <AuthGuard roles={["admin", "hr"]}>
+          <AuthGuard roles={["admin", "hr", "manager"]}>
             <S>
               <FormNewPage />
             </S>

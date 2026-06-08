@@ -291,12 +291,18 @@ describe('POST /api/forms', () => {
     expect(res.status).toBe(403)
   })
 
-  it('returns 403 for manager', async () => {
+  it('manager creates a form and receives 201', async () => {
+    const created = { _id: FORM_ID, title: 'Mgr Form', formType: 'self_assessment', createdBy: MANAGER_ID }
+    Form.create   = jest.fn().mockResolvedValue({ _id: FORM_ID })
+    Form.findById = jest.fn(() => makeChain(created))
     const res = await request(app)
       .post('/api/forms')
       .set('Cookie', `accessToken=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
-      .send({ title: 'Form', formType: 'self_assessment' })
-    expect(res.status).toBe(403)
+      .send({ title: 'Mgr Form', formType: 'self_assessment' })
+    expect(res.status).toBe(201)
+    expect(res.body.title).toBe('Mgr Form')
+    // Le formulaire est créé au nom du manager qui le crée.
+    expect(Form.create.mock.calls[0][0].createdBy).toBe(MANAGER_ID)
   })
 
   it('returns 403 for unknown role', async () => {
@@ -442,12 +448,28 @@ describe('PATCH /api/forms/:id', () => {
     expect(res.status).toBe(403)
   })
 
-  it('returns 403 for manager', async () => {
+  it('manager can update a form they created', async () => {
+    const doc = mockFormDoc({ createdBy: MANAGER_ID })
+    Form.findById = jest.fn().mockResolvedValue(doc)
+    const res = await request(app)
+      .patch(`/api/forms/${FORM_ID}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
+      .send({ title: 'Mgr Updated' })
+    expect(res.status).toBe(200)
+    expect(doc.title).toBe('Mgr Updated')
+    expect(Form.prototype.save).toHaveBeenCalledTimes(1)
+  })
+
+  it('returns 403 when a manager edits a form created by someone else', async () => {
+    const doc = mockFormDoc({ createdBy: ADMIN_ID })
+    Form.findById = jest.fn().mockResolvedValue(doc)
     const res = await request(app)
       .patch(`/api/forms/${FORM_ID}`)
       .set('Cookie', `accessToken=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
       .send({ title: 'Hacked' })
     expect(res.status).toBe(403)
+    expect(res.body.error).toMatch(/créateur|RH/i)
+    expect(Form.prototype.save).not.toHaveBeenCalled()
   })
 
   it('returns 403 for unknown role', async () => {
@@ -554,11 +576,27 @@ describe('DELETE /api/forms/:id', () => {
     expect(res.status).toBe(403)
   })
 
-  it('returns 403 for manager', async () => {
+  it('manager can delete a non-frozen form they created', async () => {
+    Form.findById = jest.fn().mockResolvedValue(
+      mockFormDoc({ frozenAt: null, createdBy: MANAGER_ID })
+    )
+    const res = await request(app)
+      .delete(`/api/forms/${FORM_ID}`)
+      .set('Cookie', `accessToken=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
+    expect(res.status).toBe(204)
+    expect(Form.prototype.deleteOne).toHaveBeenCalledTimes(1)
+  })
+
+  it('returns 403 when a manager deletes a form created by someone else', async () => {
+    Form.findById = jest.fn().mockResolvedValue(
+      mockFormDoc({ frozenAt: null, createdBy: ADMIN_ID })
+    )
     const res = await request(app)
       .delete(`/api/forms/${FORM_ID}`)
       .set('Cookie', `accessToken=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
     expect(res.status).toBe(403)
+    expect(res.body.error).toMatch(/créateur|RH/i)
+    expect(Form.prototype.deleteOne).not.toHaveBeenCalled()
   })
 
   it('returns 403 for unknown role', async () => {
@@ -743,11 +781,19 @@ describe('POST /api/forms/:id/clone', () => {
     expect(res.status).toBe(403)
   })
 
-  it('returns 403 for manager', async () => {
+  it('manager can clone a form — returns 201', async () => {
+    const original = { _id: FORM_ID, title: 'Form annuel', formType: 'self_assessment', questions: [], createdBy: ADMIN_ID }
+    const cloned   = { _id: NEW_FORM_ID, title: 'Copie de Form annuel', formType: 'self_assessment', questions: [] }
+    Form.findById = jest.fn()
+      .mockReturnValueOnce(makeChain(original))
+      .mockReturnValueOnce(makeChain(cloned))
+    Form.create = jest.fn().mockResolvedValue({ _id: NEW_FORM_ID })
     const res = await request(app)
       .post(`/api/forms/${FORM_ID}/clone`)
       .set('Cookie', `accessToken=${tokenFor({ id: MANAGER_ID, role: 'manager' })}`)
-    expect(res.status).toBe(403)
+    expect(res.status).toBe(201)
+    // Le clone est attribué au manager qui clone.
+    expect(Form.create.mock.calls[0][0].createdBy).toBe(MANAGER_ID)
   })
 
   it('returns 400 for invalid ObjectId', async () => {

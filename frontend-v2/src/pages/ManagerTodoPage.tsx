@@ -133,7 +133,7 @@ function FormRequestsCard() {
   if (pending.length === 0 && submitted.length === 0) return null;
 
   return (
-    <Tile style={{ borderTop: "3px solid var(--blue)", padding: 18, marginBottom: 24 }}>
+    <Tile data-testid="manager-form-requests" style={{ borderTop: "3px solid var(--blue)", padding: 18, marginBottom: 24 }}>
       <div
         className="row"
         style={{ gap: 10, alignItems: "center", marginBottom: 6 }}
@@ -164,6 +164,7 @@ function FormRequestsCard() {
               </div>
               <div className="row wrap" style={{ gap: 8, alignItems: "center" }}>
                 <select
+                  data-testid={`mfr-select-${req.campaignId}`}
                   className="input"
                   style={{ flex: 1, minWidth: 200 }}
                   value={value}
@@ -185,6 +186,7 @@ function FormRequestsCard() {
                 </select>
                 <button
                   type="button"
+                  data-testid={`mfr-submit-${req.campaignId}`}
                   className="btn btn-primary"
                   style={{ gap: 6 }}
                   disabled={!value || submit.isPending}

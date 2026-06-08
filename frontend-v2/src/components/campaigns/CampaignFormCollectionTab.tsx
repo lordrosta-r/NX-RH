@@ -112,7 +112,7 @@ export default function CampaignFormCollectionTab({
     );
 
   return (
-    <div className="section-gap">
+    <div className="section-gap" data-testid="form-collection">
       <div>
         <h3 className="h3">{t("campaigns.formCollection.title")}</h3>
         <p className="small">{t("campaigns.formCollection.desc")}</p>
@@ -168,6 +168,7 @@ export default function CampaignFormCollectionTab({
                     >
                       <input
                         type="checkbox"
+                        data-testid={`fc-manager-${mid}`}
                         checked={checked}
                         onChange={() => toggle(mid)}
                       />
@@ -184,6 +185,7 @@ export default function CampaignFormCollectionTab({
 
               <div style={{ marginTop: 12 }}>
                 <button
+                  data-testid="fc-request-btn"
                   onClick={() => requestMutation.mutate(selectedIds)}
                   disabled={
                     selectedIds.length === 0 || requestMutation.isPending
@@ -230,6 +232,7 @@ export default function CampaignFormCollectionTab({
             return (
               <div
                 key={mid}
+                data-testid={`fc-request-row-${mid}`}
                 className="tbl-row row between"
                 style={{ gridTemplateColumns: undefined, display: "flex" }}
               >
@@ -275,6 +278,7 @@ export default function CampaignFormCollectionTab({
                   {isDraft && req.status === "submitted" && (
                     <>
                       <button
+                        data-testid="fc-accept"
                         onClick={() =>
                           decideMutation.mutate({
                             managerId: mid,

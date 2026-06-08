@@ -14,6 +14,8 @@ export interface EvaluationFilters extends PaginationParams {
   department?: string;
   q?: string;
   year?: string;
+  /** "mine" = mes propres évals (espace perso) ; "my_team" = évals que je conduis. */
+  scope?: "mine" | "my_team";
 }
 
 export const evaluationsApi = {

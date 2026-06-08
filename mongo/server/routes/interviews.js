@@ -286,9 +286,18 @@ router.patch('/schedule', async (req, res, next) => {
     await interview.save()
 
     // Événement calendrier (type 'interview') visible par les participants.
-    const campaign = await Campaign.findById(campaignId).select('name').lean()
+    // Titre personnalisé : « Entretien de <Prénom Nom> — <campagne> ».
+    const [campaign, evaluatee] = await Promise.all([
+      Campaign.findById(campaignId).select('name').lean(),
+      require('../models').User.findById(evaluateeId).select('firstName lastName').lean(),
+    ])
+    const evaluateeName = evaluatee
+      ? `${evaluatee.firstName} ${evaluatee.lastName}`.trim()
+      : ''
     await Event.create({
-      title: `Entretien — ${campaign?.name || 'campagne'}`,
+      title: evaluateeName
+        ? `Entretien de ${evaluateeName} — ${campaign?.name || 'campagne'}`
+        : `Entretien — ${campaign?.name || 'campagne'}`,
       description: location ? `Lieu : ${location}` : '',
       location: location || '',
       date: when,

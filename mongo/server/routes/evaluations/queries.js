@@ -64,8 +64,18 @@ async function handleList(req, res, next) {
 
     const role = req.user.role
     const uid  = new mongoose.Types.ObjectId(req.user.id)
+    const scope = req.query.scope
 
-    if (role === 'employee') {
+    if (scope === 'mine') {
+      // Espace perso « Mes évaluations » : uniquement MES propres évaluations
+      // (celles dont je suis l'évalué), jamais celles que je conduis pour autrui.
+      filter.evaluateeId = uid
+    } else if (scope === 'my_team') {
+      // Tableau de bord manager : uniquement les évaluations que JE conduis pour
+      // mon équipe (j'en suis l'évaluateur), en excluant ma propre évaluation.
+      filter.evaluatorId = uid
+      filter.evaluateeId = { $ne: uid }
+    } else if (role === 'employee') {
       filter.$or = [{ evaluatorId: uid }, { evaluateeId: uid }]
     } else if (role === 'manager') {
       let visibleIds = []

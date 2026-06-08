@@ -216,14 +216,14 @@ export default function MobilityPage() {
   const { data: historyData, isLoading: historyLoading } = useQuery({
     queryKey: queryKeys.mobility.history(user?.id ?? user?._id ?? ""),
     queryFn: () =>
-      api.get(`/mobility/history/${user?.id ?? user?._id}`).then((r) => r.data),
+      api.get(`/api/mobility/history/${user?.id ?? user?._id}`).then((r) => r.data),
     enabled: !isHrAdmin && activeTab === "history" && !!(user?.id ?? user?._id),
   });
 
   const { data: statsData } = useQuery({
     queryKey: queryKeys.mobility.stats(),
     queryFn: () =>
-      api.get("/mobility/stats").then((r) => r.data.data as MobilityStats),
+      api.get("/api/mobility/stats").then((r) => r.data.data as MobilityStats),
     enabled: !!isHrAdmin,
   });
 
@@ -236,7 +236,7 @@ export default function MobilityPage() {
     : requests;
 
   const createMutation = useMutation({
-    mutationFn: (req: typeof newRequest) => api.post("/mobility", req),
+    mutationFn: (req: typeof newRequest) => api.post("/api/mobility", req),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.mobility.lists() });
       setShowNewForm(false);
@@ -253,7 +253,7 @@ export default function MobilityPage() {
       id: string;
       status: string;
       hrComment?: string;
-    }) => api.patch(`/mobility/${id}`, { status, hrComment: comment }),
+    }) => api.patch(`/api/mobility/${id}`, { status, hrComment: comment }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.mobility.lists() });
       setSelectedRequest(null);
@@ -262,7 +262,7 @@ export default function MobilityPage() {
 
   const completeMutation = useMutation({
     mutationFn: ({ id, notes }: { id: string; notes?: string }) =>
-      api.post(`/mobility/${id}/complete`, { notes }),
+      api.post(`/api/mobility/${id}/complete`, { notes }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.mobility.lists() });
       qc.invalidateQueries({ queryKey: queryKeys.mobility.stats() });
@@ -270,7 +270,7 @@ export default function MobilityPage() {
   });
 
   const reopenMutation = useMutation({
-    mutationFn: (id: string) => api.post(`/mobility/${id}/reopen`),
+    mutationFn: (id: string) => api.post(`/api/mobility/${id}/reopen`),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.mobility.lists() });
     },

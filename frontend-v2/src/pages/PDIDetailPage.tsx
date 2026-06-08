@@ -139,7 +139,7 @@ export default function PDIDetailPage() {
 
   const { data, isLoading, isError } = useQuery({
     queryKey: queryKeys.pdi.detail(id!),
-    queryFn: () => api.get(`/pdi/${id}`).then((r) => r.data),
+    queryFn: () => api.get(`/api/pdi/${id}`).then((r) => r.data),
     enabled: !!id,
   });
 
@@ -147,7 +147,7 @@ export default function PDIDetailPage() {
 
   const addActionMutation = useMutation({
     mutationFn: (payload: typeof newAction) =>
-      api.post(`/pdi/${id}/actions`, payload),
+      api.post(`/api/pdi/${id}/actions`, payload),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.pdi.detail(id!) });
       setShowNewAction(false);
@@ -162,13 +162,13 @@ export default function PDIDetailPage() {
     }: {
       actionId: string;
       update: Partial<Action>;
-    }) => api.patch(`/pdi/${id}/actions/${actionId}`, update),
+    }) => api.patch(`/api/pdi/${id}/actions/${actionId}`, update),
     onSuccess: () =>
       qc.invalidateQueries({ queryKey: queryKeys.pdi.detail(id!) }),
   });
 
   const signMutation = useMutation({
-    mutationFn: () => api.post(`/pdi/${id}/sign`),
+    mutationFn: () => api.post(`/api/pdi/${id}/sign`),
     onSuccess: () =>
       qc.invalidateQueries({ queryKey: queryKeys.pdi.detail(id!) }),
   });

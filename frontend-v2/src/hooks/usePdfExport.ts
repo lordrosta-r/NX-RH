@@ -139,7 +139,9 @@ export function usePdfExport() {
       }
       y = drawSectionTitle(doc, "Questions & Réponses", y);
 
-      const answers = evaluation.answers ?? {};
+      const answers: Record<string, unknown> = Object.fromEntries(
+        (evaluation.answers ?? []).map((a) => [a.questionId, a.value]),
+      );
       autoTable(doc, {
         startY: y,
         head: [["Question", "Réponse"]],

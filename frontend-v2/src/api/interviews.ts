@@ -53,4 +53,16 @@ export const interviewsApi = {
   // Marquer un désaccord formel → bascule l'évaluation en litige.
   flagDisagreement: (body: InterviewDisagreementBody) =>
     client.post<{ ok: boolean }>("/api/interviews/disagreement", body),
+
+  // Programmer le rendez-vous d'entretien (manager/RH/admin, après remplissage).
+  schedule: (body: {
+    campaignId: string;
+    evaluateeId: string;
+    scheduledAt: string;
+    location?: string;
+  }) =>
+    client.patch<{ ok: boolean; scheduledAt: string; location: string }>(
+      "/api/interviews/schedule",
+      body,
+    ),
 };

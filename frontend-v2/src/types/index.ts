@@ -628,6 +628,9 @@ export interface Interview {
   campaignId: string;
   evaluateeId: string | User;
   managerId?: string | User | null;
+  /** Rendez-vous d'entretien programmé sur le calendrier (null = non programmé). */
+  scheduledAt?: string | null;
+  scheduledLocation?: string;
   /** Évaluations peuplées (formId, evaluatorId, evaluateeId renseignés).
    *  L'API renvoie le champ sous le nom `evaluationIds` (réf peuplée Mongoose). */
   evaluationIds: InterviewEvaluation[];

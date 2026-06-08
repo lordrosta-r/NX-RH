@@ -64,6 +64,13 @@ const interviewSchema = new Schema({
     default: [],
   },
 
+  // Programmation du rendez-vous d'entretien (calendrier). Tant que scheduledAt
+  // est null, l'entretien ne peut pas se dérouler (synthèse/signature bloquées).
+  // L'évalué voit ici la date/heure et le lieu fixés par son manager.
+  scheduledAt:       { type: Date, default: null },
+  scheduledLocation: { type: String, default: '', maxlength: 200 },
+  scheduledBy:       { type: Schema.Types.ObjectId, ref: 'User', default: null },
+
   // Discussion question par question (co-construction Manager + Évalué)
   discussion: {
     type: [discussionItemSchema],

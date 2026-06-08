@@ -900,5 +900,239 @@
       "questionMissingType": "Question {{number}}: champ \"type\" manquant",
       "questionInvalidType": "Question {{number}}: type \"{{type}}\" invalide"
     }
+  },
+  "dashManager": {
+    "actions": {
+      "myEvaluations": "Mes évaluations"
+    },
+    "stats": {
+      "evalsToComplete": "Évals à compléter",
+      "completionRate": "Taux de complétion",
+      "teamSize": "Taille de l'équipe",
+      "overdue": "En retard",
+      "signed": "Signées"
+    },
+    "evalsToComplete": {
+      "title": "Évaluations à compléter",
+      "empty": "Aucune évaluation à compléter",
+      "topN": "Top {{count}} à traiter"
+    },
+    "evalRow": {
+      "campaign": "Campagne",
+      "overdue": "En retard",
+      "fill": "Remplir"
+    },
+    "collapse": "Réduire",
+    "expandCount": "Voir tout ({{count}})",
+    "viewAll": "Voir toutes →",
+    "myTeam": {
+      "title": "Mon équipe",
+      "empty": "Aucun membre dans l'équipe"
+    },
+    "activeCampaigns": {
+      "title": "Campagnes actives",
+      "empty": "Aucune campagne active",
+      "closingDate": "Clôture",
+      "progress": "Progression"
+    },
+    "pendingSignatures": {
+      "title": "En attente de signature",
+      "empty": "Aucune évaluation en attente de votre signature",
+      "signedOn": "signé le {{date}}",
+      "sign": "Signer"
+    },
+    "upcomingEvents": {
+      "title": "Prochains événements",
+      "empty": "Aucun événement à venir."
+    }
+  },
+  "dashEmployee": {
+    "defaultDesc": "Voici l'état de vos entretiens professionnels.",
+    "viewAll": "Voir tout →",
+    "evalStatus": {
+      "assigned": "Assignée",
+      "in_progress": "En cours",
+      "submitted": "Soumise",
+      "reviewed": "Revue",
+      "disputed": "En litige",
+      "signed_evaluatee": "Signée (évalué)",
+      "signed_manager": "Signée (manager)",
+      "signed_hr": "Signée (RH)",
+      "validated": "Validée",
+      "expired": "Expirée",
+      "archived": "Archivée"
+    },
+    "activeEvals": {
+      "title": "Mes évaluations en cours",
+      "empty": "Aucune évaluation en cours",
+      "campaignLabel": "Campagne : {{name}}",
+      "start": "Commencer",
+      "continue": "Continuer"
+    },
+    "events": {
+      "title": "Prochains événements",
+      "empty": "Aucun événement à venir."
+    },
+    "resources": {
+      "title": "Ressources récentes",
+      "empty": "Aucune ressource disponible."
+    },
+    "history": {
+      "title": "Mon historique",
+      "viewAll": "Tout l'historique →",
+      "empty": "Aucune évaluation validée pour l'instant",
+      "campaignLabel": "Campagne : {{name}}",
+      "validatedOn": "Validée le {{date}}",
+      "viewPdf": "Voir PDF →"
+    },
+    "requests": {
+      "title": "Mes demandes",
+      "mobility": "Demande de mobilité",
+      "profile": "Mise à jour profil",
+      "evaluations": "Mes évaluations",
+      "documents": "Documents RH"
+    }
+  },
+  "dashHr": {
+    "seeLink": "Voir →",
+    "errorLoad": "Impossible de charger les données du tableau de bord.",
+    "retry": "Réessayer",
+    "exportPdf": "Exporter PDF",
+    "newCampaign": "Nouvelle campagne",
+    "kpi": {
+      "usersActive": "Collaborateurs actifs",
+      "usersTotal": "Total : {{total}}",
+      "usersInactive": "Collaborateurs inactifs",
+      "campaignsActive": "Campagnes en cours",
+      "campaignsCompleted": "Campagnes terminées",
+      "campaignsOverdue": "Campagnes en retard",
+      "mobilityPending": "Mobilités en attente",
+      "completionRate": "Taux de complétion",
+      "signedBoth": "Signées des 2 côtés",
+      "signedBothSub_one": "{{count}} éval",
+      "signedBothSub_other": "{{count}} évals",
+      "evalsPending": "Évals en attente",
+      "avgCompletion": "Temps moyen complétion"
+    },
+    "charts": {
+      "trendTitle": "Évolution des évaluations (6 mois)",
+      "noMonthlyData": "Aucune donnée mensuelle",
+      "lineTotal": "Total",
+      "lineCompleted": "Complétées",
+      "pieTitle": "Répartition par statut",
+      "noData": "Aucune donnée",
+      "barTitle": "Top départements — taux de complétion",
+      "barTooltipLabel": "Taux",
+      "barName": "Taux de complétion"
+    },
+    "sections": {
+      "activeCampaigns": "Campagnes en cours",
+      "seeAll": "Voir toutes →",
+      "noCampaigns": "Aucune campagne active",
+      "alerts": "Alertes",
+      "quickStats": "Stats rapides",
+      "upcomingEvents": "Prochains événements",
+      "seeAllEvents": "Voir tous →",
+      "noEvents": "Aucun événement à venir"
+    },
+    "alerts": {
+      "overdueCount_one": "{{count}} campagne en retard",
+      "overdueCount_other": "{{count}} campagnes en retard",
+      "seeCampaigns": "Voir les campagnes →",
+      "pendingEvals_one": "{{count}} évaluation en attente",
+      "pendingEvals_other": "{{count}} évaluations en attente",
+      "seeEvaluations": "Voir les évaluations →",
+      "mobilityCount_one": "{{count}} demande de mobilité",
+      "mobilityCount_other": "{{count}} demandes de mobilité",
+      "seeRequests": "Voir les demandes →"
+    },
+    "stats": {
+      "totalEvals": "Total évaluations",
+      "completedEvals": "Évaluations complétées",
+      "totalUsers": "Total collaborateurs"
+    },
+    "pdf": {
+      "reportTitle": "Rapport RH",
+      "sectionKpi": "KPIs clés",
+      "sectionDept": "Évaluations par département",
+      "colIndicator": "Indicateur",
+      "colValue": "Valeur",
+      "colDept": "Département",
+      "colTotal": "Total",
+      "colCompleted": "Complétées",
+      "colRate": "Taux (%)",
+      "completionRatePct": "Taux de complétion éval. (%)",
+      "signedBothPct": "Évals signées des 2 côtés (%)",
+      "avgCompletionDays": "Temps moyen complétion (jours)",
+      "mobilityPending": "Demandes mobilité en attente"
+    }
+  },
+  "dashAdmin": {
+    "setup": {
+      "title": "Configuration de l'application",
+      "seeAll": "Tout voir →",
+      "stepsCount": "{{completed}}/{{total}} étapes complètes"
+    },
+    "campaignStatus": {
+      "draft": "Brouillon",
+      "active": "Active",
+      "closed": "Clôturée",
+      "archived": "Archivée"
+    },
+    "campaigns": {
+      "title": "Campagnes actives",
+      "seeAll": "Voir toutes →",
+      "empty": "Aucune campagne active"
+    },
+    "error": {
+      "loadFailed": "Impossible de charger les données du tableau de bord.",
+      "retry": "Réessayer"
+    },
+    "actions": {
+      "exportPdf": "Exporter PDF"
+    },
+    "requiredActions": {
+      "title": "Actions requises",
+      "pendingHrRequests": "Demandes RH en attente",
+      "usersWithoutManager": "Utilisateurs sans manager",
+      "activeCampaigns": "Campagnes actives"
+    },
+    "shortcuts": {
+      "title": "Raccourcis",
+      "newCampaign": "Nouvelle campagne",
+      "addUser": "Ajouter un utilisateur",
+      "importCsv": "Importer CSV",
+      "hrSettings": "Paramètres RH"
+    },
+    "kpi": {
+      "activeUsers": "Utilisateurs actifs",
+      "activeCampaigns": "Campagnes actives",
+      "pendingEvaluations": "Évaluations non finalisées"
+    },
+    "urgentActions": {
+      "title": "Actions urgentes",
+      "expiredEvaluations": "Évaluations expirées",
+      "seeEvaluations": "Voir les évaluations →",
+      "evaluationsPendingHrSignature": "Évaluations à signer côté RH",
+      "seeHrAlerts": "Voir les alertes RH →"
+    },
+    "recentActivity": {
+      "title": "Activité récente",
+      "seeFullLog": "Voir le journal complet →",
+      "empty": "Aucune activité récente"
+    },
+    "audit": {
+      "login": "Connexion",
+      "login_failed": "Échec de connexion",
+      "logout": "Déconnexion",
+      "user_created": "Utilisateur créé",
+      "user_updated": "Utilisateur modifié",
+      "user_deleted": "Utilisateur supprimé",
+      "campaign_created": "Campagne créée",
+      "campaign_updated": "Campagne modifiée",
+      "evaluation_submitted": "Évaluation soumise",
+      "evaluation_signed": "Évaluation signée",
+      "ldap_sync": "Synchronisation LDAP"
+    }
   }
 }

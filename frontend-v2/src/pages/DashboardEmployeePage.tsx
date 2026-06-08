@@ -18,20 +18,8 @@ import type { Evaluation, EvaluationStatus } from "../types";
 import { getCampaignName } from "../types";
 import { PageHead, Tile, Badge } from "../components/shell";
 
-// ─── Statut → libellé + tonalité institutionnelle ────────────────────────────
-const evalStatusLabels: Record<EvaluationStatus, string> = {
-  assigned: "Assignée",
-  in_progress: "En cours",
-  submitted: "Soumise",
-  reviewed: "Revue",
-  disputed: "En litige",
-  signed_evaluatee: "Signée (évalué)",
-  signed_manager: "Signée (manager)",
-  signed_hr: "Signée (RH)",
-  validated: "Validée",
-  expired: "Expirée",
-  archived: "Archivée",
-};
+// ─── Statut → tonalité institutionnelle ──────────────────────────────────────
+// Labels are now resolved via t() inside EvalStatusBadge.
 
 type Tone = "blue" | "green" | "amber" | "red" | "grey";
 const evalStatusTone: Record<EvaluationStatus, Tone> = {
@@ -49,9 +37,10 @@ const evalStatusTone: Record<EvaluationStatus, Tone> = {
 };
 
 function EvalStatusBadge({ status }: { status: EvaluationStatus }) {
+  const { t } = useTranslation();
   return (
     <Badge tone={evalStatusTone[status] ?? "grey"} dot>
-      {evalStatusLabels[status] ?? status}
+      {t(`dashEmployee.evalStatus.${status}`, { defaultValue: status })}
     </Badge>
   );
 }
@@ -102,7 +91,7 @@ export default function DashboardEmployeePage() {
         eyebrow={t("eyebrow.employeeSpace")}
         title={t("pageHead.dashEmployeeTitle", { name: user?.firstName ?? "" })}
         desc={
-          user?.position ?? "Voici l’état de vos entretiens professionnels."
+          user?.position ?? t("dashEmployee.defaultDesc")
         }
         actions={
           user?.department ? (
@@ -120,9 +109,9 @@ export default function DashboardEmployeePage() {
             borderBottom: "1px solid var(--line)",
           }}
         >
-          <h2 className="h2">Mes évaluations en cours</h2>
+          <h2 className="h2">{t("dashEmployee.activeEvals.title")}</h2>
           <Link to="/evaluations" className="link small">
-            Tout voir →
+            {t("dashEmployee.viewAll")}
           </Link>
         </div>
         <div style={{ padding: "8px 24px 20px" }}>
@@ -141,7 +130,7 @@ export default function DashboardEmployeePage() {
                 className="w-10 h-10 mx-auto mb-3"
                 style={{ color: "var(--line-strong)" }}
               />
-              <p className="small">Aucune évaluation en cours</p>
+              <p className="small">{t("dashEmployee.activeEvals.empty")}</p>
             </div>
           ) : (
             <div className="section-gap" style={{ gap: 12, paddingTop: 12 }}>
@@ -158,7 +147,7 @@ export default function DashboardEmployeePage() {
                 >
                   <div>
                     <p style={{ fontWeight: 700, fontSize: 15 }}>
-                      Campagne : {getCampaignName(evaluation.campaignId)}
+                      {t("dashEmployee.activeEvals.campaignLabel", { name: getCampaignName(evaluation.campaignId) })}
                     </p>
                     <div style={{ marginTop: 6 }}>
                       <EvalStatusBadge status={evaluation.status} />
@@ -169,8 +158,8 @@ export default function DashboardEmployeePage() {
                     className="btn btn-primary btn-sm"
                   >
                     {evaluation.status === "assigned"
-                      ? "Commencer"
-                      : "Continuer"}
+                      ? t("dashEmployee.activeEvals.start")
+                      : t("dashEmployee.activeEvals.continue")}
                     <ArrowRight
                       className="ico"
                       style={{ width: 15, height: 15 }}
@@ -188,14 +177,14 @@ export default function DashboardEmployeePage() {
         <div className="col-span-12 lg:col-span-6">
           <Tile style={{ height: "100%" }}>
             <div className="row between" style={{ marginBottom: 12 }}>
-              <h3 className="h3">Prochains événements</h3>
+              <h3 className="h3">{t("dashEmployee.events.title")}</h3>
               <Link to="/events" className="link small">
-                Voir tout →
+                {t("dashEmployee.viewAll")}
               </Link>
             </div>
             {upcomingEvents.length === 0 ? (
               <p className="small text-center" style={{ padding: "16px 0" }}>
-                Aucun événement à venir.
+                {t("dashEmployee.events.empty")}
               </p>
             ) : (
               <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
@@ -237,14 +226,14 @@ export default function DashboardEmployeePage() {
         <div className="col-span-12 lg:col-span-6">
           <Tile style={{ height: "100%" }}>
             <div className="row between" style={{ marginBottom: 12 }}>
-              <h3 className="h3">Ressources récentes</h3>
+              <h3 className="h3">{t("dashEmployee.resources.title")}</h3>
               <Link to="/resources" className="link small">
-                Voir tout →
+                {t("dashEmployee.viewAll")}
               </Link>
             </div>
             {recentResources.length === 0 ? (
               <p className="small text-center" style={{ padding: "16px 0" }}>
-                Aucune ressource disponible.
+                {t("dashEmployee.resources.empty")}
               </p>
             ) : (
               <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
@@ -272,7 +261,7 @@ export default function DashboardEmployeePage() {
                       className="link small"
                       style={{ flex: "none" }}
                     >
-                      Voir
+                      {t("common.view")}
                     </Link>
                   </li>
                 ))}
@@ -285,9 +274,9 @@ export default function DashboardEmployeePage() {
       {/* Mon historique */}
       <Tile className="mb-6">
         <div className="row between" style={{ marginBottom: 16 }}>
-          <h2 className="h2">Mon historique</h2>
+          <h2 className="h2">{t("dashEmployee.history.title")}</h2>
           <Link to="/evaluations/history" className="link small">
-            Tout l’historique →
+            {t("dashEmployee.history.viewAll")}
           </Link>
         </div>
         {history.isLoading ? (
@@ -301,7 +290,7 @@ export default function DashboardEmployeePage() {
           </div>
         ) : (history.data?.data?.length ?? 0) === 0 ? (
           <p className="small text-center" style={{ padding: "16px 0" }}>
-            Aucune évaluation validée pour l’instant
+            {t("dashEmployee.history.empty")}
           </p>
         ) : (
           <div>
@@ -317,15 +306,14 @@ export default function DashboardEmployeePage() {
               >
                 <div>
                   <p style={{ fontSize: 14, fontWeight: 600 }}>
-                    Campagne : {getCampaignName(evaluation.campaignId)}
+                    {t("dashEmployee.history.campaignLabel", { name: getCampaignName(evaluation.campaignId) })}
                   </p>
                   <p className="small" style={{ marginTop: 2 }}>
-                    Validée le{" "}
-                    {evaluation.signedByHrAt
-                      ? new Date(evaluation.signedByHrAt).toLocaleDateString(
-                          "fr-FR",
-                        )
-                      : "—"}
+                    {t("dashEmployee.history.validatedOn", {
+                      date: evaluation.signedByHrAt
+                        ? new Date(evaluation.signedByHrAt).toLocaleDateString("fr-FR")
+                        : "—",
+                    })}
                   </p>
                 </div>
                 <div className="row" style={{ gap: 12 }}>
@@ -337,7 +325,7 @@ export default function DashboardEmployeePage() {
                     to={`/evaluations/${evaluation.id}`}
                     className="link small"
                   >
-                    Voir PDF →
+                    {t("dashEmployee.history.viewPdf")}
                   </Link>
                 </div>
               </div>
@@ -349,27 +337,27 @@ export default function DashboardEmployeePage() {
       {/* Mes demandes */}
       <Tile>
         <h2 className="h2" style={{ marginBottom: 16 }}>
-          Mes demandes
+          {t("dashEmployee.requests.title")}
         </h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
             {
-              label: "Demande de mobilité",
+              label: t("dashEmployee.requests.mobility"),
               icon: <ArrowRight className="w-4 h-4" />,
               href: "/mobility/new",
             },
             {
-              label: "Mise à jour profil",
+              label: t("dashEmployee.requests.profile"),
               icon: <User className="w-4 h-4" />,
               href: "/profile",
             },
             {
-              label: "Mes évaluations",
+              label: t("dashEmployee.requests.evaluations"),
               icon: <Clipboard className="w-4 h-4" />,
               href: "/evaluations",
             },
             {
-              label: "Documents RH",
+              label: t("dashEmployee.requests.documents"),
               icon: <Folder className="w-4 h-4" />,
               href: "/documents",
             },

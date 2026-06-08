@@ -7,6 +7,10 @@ import {
   takeScreenshot,
 } from "./helpers/utils";
 import path from "path";
+import { fileURLToPath } from "url";
+
+// Le projet est en ESM ("type":"module") : __dirname n'existe pas, on le dérive.
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 test.describe("Admin - Setup Initial", () => {
   test.setTimeout(60000);
@@ -32,25 +36,27 @@ test.describe("Admin - Setup Initial", () => {
     await takeScreenshot(page, "admin-dashboard");
   });
 
-  test("LDAP - page /admin/ldap accessible avec 4 onglets", async ({
+  test("LDAP - page /admin/ldap accessible avec actions par source", async ({
     page,
   }) => {
     await page.goto("/admin/ldap");
     await waitForPageLoad(page);
     await expectNotUnauthorized(page);
 
-    await expect(page.getByRole("tab", { name: /config/i })).toBeVisible({
-      timeout: 15000,
-    });
-    await expect(page.getByRole("tab", { name: /test/i })).toBeVisible({
+    // La page est un formulaire multi-sources (plus d'onglets) : un titre LDAP
+    // + des actions par annuaire (Test / Aperçu / Sync) + Enregistrer global.
+    await expect(page.getByText(/LDAP/i).first()).toBeVisible({
       timeout: 15000,
     });
     await expect(
-      page.getByRole("tab", { name: /aperçu|preview/i }),
+      page.getByRole("button", { name: /test/i }).first(),
     ).toBeVisible({ timeout: 15000 });
-    await expect(page.getByRole("tab", { name: /sync/i })).toBeVisible({
-      timeout: 15000,
-    });
+    await expect(
+      page.getByRole("button", { name: /aperçu|preview|prévisualiser/i }).first(),
+    ).toBeVisible({ timeout: 15000 });
+    await expect(
+      page.getByRole("button", { name: /sync|synchroniser/i }).first(),
+    ).toBeVisible({ timeout: 15000 });
 
     await takeScreenshot(page, "admin-ldap-tabs");
   });
@@ -59,56 +65,43 @@ test.describe("Admin - Setup Initial", () => {
     await page.goto("/admin/ldap");
     await waitForPageLoad(page);
 
-    const configTab = page.getByRole("tab", { name: /config/i });
-    if (await configTab.isVisible()) {
-      await configTab.click();
-      await page.waitForLoadState("networkidle");
-    }
-
-    const urlField = page
-      .locator(
-        'input[name*="url" i], input[placeholder*="ldap" i], input[id*="url" i]',
-      )
+    // Formulaire multi-sources : les champs ont des ids "<sourceId>-host/baseDN/…".
+    const hostField = page
+      .locator('input[id$="-host"], input[placeholder*="ldap" i]')
       .first();
-    if (await urlField.isVisible()) {
-      await urlField.fill("ldap://openldap:389");
+    if (await hostField.isVisible()) {
+      await hostField.fill("ldap://openldap:389");
     }
 
     const baseDnField = page
-      .locator(
-        'input[name*="base" i], input[name*="baseDn" i], input[placeholder*="dc="], input[id*="base" i]',
-      )
+      .locator('input[id$="-baseDN"], input[placeholder*="dc="]')
       .first();
     if (await baseDnField.isVisible()) {
       await baseDnField.fill("dc=nxrh,dc=local");
     }
 
-    const bindDnField = page
-      .locator('input[name*="bind" i], input[id*="bind" i]')
-      .first();
+    const bindDnField = page.locator('input[id$="-bindDN"]').first();
     if (await bindDnField.isVisible()) {
       await bindDnField.fill("cn=admin,dc=nxrh,dc=local");
     }
 
-    const passwordField = page
-      .locator(
-        'input[type="password"], input[name*="password" i], input[id*="password" i]',
-      )
-      .first();
+    const passwordField = page.locator('input[type="password"]').first();
     if (await passwordField.isVisible()) {
       await passwordField.fill("adminpass");
     }
 
-    const saveButton = page.getByRole("button", {
-      name: /save|sauvegarder|enregistrer/i,
-    });
+    // Le bouton Enregistrer est désactivé tant que le formulaire n'est pas
+    // "sale" (dirty) et sans erreur. Après saisie il devient cliquable.
+    const saveButton = page
+      .getByRole("button", { name: /save|sauvegarder|enregistrer/i })
+      .first();
+    await expect(saveButton).toBeEnabled({ timeout: 5000 });
     await saveButton.click();
+    await page.waitForLoadState("networkidle");
 
-    await expect(
-      page
-        .locator('[class*="toast" i], [class*="success" i], [role="alert"]')
-        .filter({ hasText: /success|succès|sauvegardé|enregistré|saved/i }),
-    ).toBeVisible({ timeout: 15000 });
+    // Pas de toast : la sauvegarde réussie réinitialise l'état "dirty",
+    // ce qui re-désactive le bouton Enregistrer.
+    await expect(saveButton).toBeDisabled({ timeout: 15000 });
   });
 
   test("LDAP - tester la connexion LDAP (erreur attendue en prod)", async ({
@@ -146,32 +139,22 @@ test.describe("Admin - Setup Initial", () => {
     await page.goto("/admin/ldap");
     await waitForPageLoad(page);
 
-    const configTab = page.getByRole("tab", { name: /config/i });
-    if (await configTab.isVisible()) {
-      await configTab.click();
-      await page.waitForLoadState("networkidle");
-    }
-
     const baseDnField = page
-      .locator(
-        'input[name*="base" i], input[name*="baseDn" i], input[placeholder*="dc="], input[id*="base" i]',
-      )
+      .locator('input[id$="-baseDN"], input[placeholder*="dc="]')
       .first();
     if (await baseDnField.isVisible()) {
-      await baseDnField.clear();
       await baseDnField.fill("dc=nxrh2,dc=local");
     }
 
-    const saveButton = page.getByRole("button", {
-      name: /save|sauvegarder|enregistrer/i,
-    });
+    const saveButton = page
+      .getByRole("button", { name: /save|sauvegarder|enregistrer/i })
+      .first();
+    await expect(saveButton).toBeEnabled({ timeout: 5000 });
     await saveButton.click();
+    await page.waitForLoadState("networkidle");
 
-    await expect(
-      page
-        .locator('[class*="toast" i], [class*="success" i], [role="alert"]')
-        .filter({ hasText: /success|succès|sauvegardé|enregistré|saved/i }),
-    ).toBeVisible({ timeout: 15000 });
+    // Succès = retour à l'état non-dirty → bouton de nouveau désactivé.
+    await expect(saveButton).toBeDisabled({ timeout: 15000 });
   });
 
   test("Formulaires - créer un formulaire via le builder", async ({ page }) => {

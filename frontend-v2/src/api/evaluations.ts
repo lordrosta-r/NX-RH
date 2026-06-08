@@ -22,8 +22,12 @@ export const evaluationsApi = {
   getEvaluations: (params?: EvaluationFilters) =>
     client.get<PaginatedResponse<Evaluation>>("/api/evaluations", { params }),
 
+  // « Mes évaluations » : pas de route /me côté serveur — on interroge la liste
+  // standard, scopée par le RBAC backend + le paramètre `scope: 'mine'` passé par
+  // l'appelant (sinon /api/evaluations/me tombait sur /:id → 400 « ID invalide »,
+  // d'où la liste vide pour l'employé).
   getMyEvaluations: (params?: EvaluationFilters) =>
-    client.get<PaginatedResponse<Evaluation>>("/api/evaluations/me", {
+    client.get<PaginatedResponse<Evaluation>>("/api/evaluations", {
       params,
     }),
 

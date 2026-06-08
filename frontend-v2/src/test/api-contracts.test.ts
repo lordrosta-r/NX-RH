@@ -206,7 +206,7 @@ describe('API contracts', () => {
       server.use(
         http.get('http://localhost:5050/api/users/:id/gdpr-export', () => {
           called = true
-          return new HttpResponse(new Blob(['{}'], { type: 'application/json' }))
+          return new HttpResponse('{}', { headers: { 'Content-Type': 'application/json' } })
         })
       )
 
@@ -467,7 +467,7 @@ describe('API contracts', () => {
       server.use(
         http.get('http://localhost:5050/api/forms/:id/export', () => {
           called = true
-          return new HttpResponse(new Blob(['{}'], { type: 'application/json' }))
+          return new HttpResponse('{}', { headers: { 'Content-Type': 'application/json' } })
         })
       )
 

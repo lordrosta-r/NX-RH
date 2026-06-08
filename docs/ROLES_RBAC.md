@@ -48,7 +48,7 @@ enforces those independently of the perspective.
 ## 3. Permissions Matrix
 
 The table below is derived strictly from `AuthGuard roles` declarations in `router/index.tsx` and
-the route table in `CLAUDE.md`. Routes with no `roles` restriction are marked as accessible to all
+the route table in `CONTRIBUTING.md`. Routes with no `roles` restriction are marked as accessible to all
 authenticated users. Write-specific sub-routes (e.g. `/new`, `/:id/edit`) are noted inline.
 
 Legend:

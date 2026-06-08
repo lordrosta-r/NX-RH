@@ -11,7 +11,7 @@ nx/
 ├── docs/              ← Architecture, flows métier, rôles, specs API, runbook
 ├── designs/           ← Maquettes HTML et fichiers de design (source de vérité visuelle)
 ├── scripts/           ← Scripts de migration, seeding LDAP, utilitaires
-├── CLAUDE.md          ← Conventions & architecture (source de vérité pour les agents IA)
+├── CONTRIBUTING.md          ← Conventions & architecture (source de vérité pour les développeurs)
 ├── Dockerfile         ← Build multi-stage (frontend → mongo/server/public/ + Express)
 ├── docker-compose.yml            ← Production
 ├── docker-compose.dev.yml        ← Override développement (Vite dev server + live-reload)
@@ -29,7 +29,7 @@ Le frontend est une SPA TypeScript lancée via Vite. Point d'entrée :
 - Auth : `useAuth()` depuis `frontend-v2/src/contexts/AuthContext.tsx`
 - i18n : `react-i18next`, fichiers dans `frontend-v2/src/i18n/locales/{fr,en}.json`
 
-Voir `frontend-v2/README.md` et `CLAUDE.md` pour les conventions détaillées.
+Voir `frontend-v2/README.md` et `CONTRIBUTING.md` pour les conventions détaillées.
 
 ## Backend : `mongo/server/`
 
@@ -64,4 +64,4 @@ Les fichiers dans `docs/` décrivent l'architecture et les processus sans doublo
 - `docs/API.md` — contrat des endpoints Express
 - `docs/ARCHITECTURE.md` — décisions d'architecture
 
-**Lire `CLAUDE.md` avant toute modification de code.**
+**Lire `CONTRIBUTING.md` avant toute modification de code.**

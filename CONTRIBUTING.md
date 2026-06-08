@@ -120,7 +120,7 @@ style(modal): fond opaque plein qui recouvre tout l'écran
 
 ## 5. Coding conventions
 
-The full conventions live in `CLAUDE.md`. Here is the essential summary.
+The full conventions live in `CONTRIBUTING.md`. Here is the essential summary.
 
 ### KISS — Keep It Simple, Stupid
 

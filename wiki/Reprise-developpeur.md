@@ -15,7 +15,7 @@ Un dev React/Node autonome est productif en **~1 jour**, à l'aise en **~1 semai
 2. **Conventions strictes et homogènes** : un composant = un fichier, API axios par domaine,
    Zod côté formulaires, Joi côté serveur, couleurs par tokens, icônes lucide. On **réapprend
    rien** d'un écran à l'autre.
-3. **`DOC.md` par dossier significatif** + `CLAUDE.md` racine : l'historique des décisions et
+3. **`DOC.md` par dossier significatif** + `CONTRIBUTING.md` racine : l'historique des décisions et
    les pièges sont écrits.
 4. **Séparation routes / services** côté backend : la logique métier est dans `services/`,
    testable isolément.
@@ -33,11 +33,11 @@ Un dev React/Node autonome est productif en **~1 jour**, à l'aise en **~1 semai
 3. **L'organigramme** (`useOrgChart.ts` + `components/org/`) : react-flow + calculs de layout +
    plusieurs vues (Tout/Équipes/Départements/Secteurs). Le plus gros morceau front.
 4. **Deux dossiers frontend historiques** : seul `frontend-v2/` est vivant. Ignorer tout
-   `client/` legacy éventuel (et le `CLAUDE.md` peut mentionner des chemins périmés).
+   `client/` legacy éventuel (et le `CONTRIBUTING.md` peut mentionner des chemins périmés).
 
 ## Plan « premier jour » pour un nouveau dev
 
-1. Lire `CLAUDE.md` (racine) + ce wiki ([Architecture](Architecture)).
+1. Lire `CONTRIBUTING.md` (racine) + ce wiki ([Architecture](Architecture)).
 2. Monter la stack dev : `docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build`.
 3. Suivre une route de bout en bout : `router/index.tsx` → une `pages/*` → son `api/*` →
    la `routes/*` backend → le `services/*` → le `models/*`. (Ex. une campagne.)

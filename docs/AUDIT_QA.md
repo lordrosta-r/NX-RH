@@ -2,7 +2,7 @@
 
 **Date :** 2025-07-16  
 **Scope :** Frontend (`frontend-v2/src/`) + Backend (`mongo/server/`)  
-**Référence :** `CLAUDE.md`, `specs/01-features.md`, `specs/04-flows.md`, `specs/07-api-contract.md`
+**Référence :** `CONTRIBUTING.md`, `specs/01-features.md`, `specs/04-flows.md`, `specs/07-api-contract.md`
 
 ---
 
@@ -10,20 +10,20 @@
 
 | Catégorie | Problèmes trouvés | Corrigés |
 |-----------|:-----------------:|:--------:|
-| Violations CLAUDE.md — Emojis | 9 fichiers | 9 |
-| Violations CLAUDE.md — Couleurs hex | 4 fichiers | 4 |
-| Violations CLAUDE.md — Rôle `director` | 1 fichier (FormNewPage) | 1 |
+| Violations CONTRIBUTING.md — Emojis | 9 fichiers | 9 |
+| Violations CONTRIBUTING.md — Couleurs hex | 4 fichiers | 4 |
+| Violations CONTRIBUTING.md — Rôle `director` | 1 fichier (FormNewPage) | 1 |
 | Bugs logique métier | 3 | 3 |
 | Contrat API manquant | 1 route backend | 1 |
 | Erreurs TypeScript | 0 | — |
 
 ---
 
-## 1. Violations CLAUDE.md
+## 1. Violations CONTRIBUTING.md
 
 ### 1.1 Emojis interdits
 
-CLAUDE.md interdit l'usage d'emojis dans l'interface. Les occurrences suivantes ont été supprimées ou remplacées par des icônes Lucide.
+CONTRIBUTING.md interdit l'usage d'emojis dans l'interface. Les occurrences suivantes ont été supprimées ou remplacées par des icônes Lucide.
 
 | Fichier | Emoji(s) | Correction |
 |---------|---------|------------|
@@ -38,7 +38,7 @@ CLAUDE.md interdit l'usage d'emojis dans l'interface. Les occurrences suivantes 
 
 ### 1.2 Couleurs hex codées en dur
 
-CLAUDE.md exige l'usage exclusif des variables CSS Tailwind (`var(--color-*)`) ou des classes utilitaires Tailwind. Les constantes et props Recharts/SVG/ReactFlow suivantes ont été corrigées.
+CONTRIBUTING.md exige l'usage exclusif des variables CSS Tailwind (`var(--color-*)`) ou des classes utilitaires Tailwind. Les constantes et props Recharts/SVG/ReactFlow suivantes ont été corrigées.
 
 | Fichier | Hex(s) remplacé(s) | Remplacement |
 |---------|-------------------|--------------|
@@ -49,7 +49,7 @@ CLAUDE.md exige l'usage exclusif des variables CSS Tailwind (`var(--color-*)`) o
 
 ### 1.3 Rôle `director` interdit
 
-CLAUDE.md stipule que le rôle `director` a été supprimé. Une option UI permettait encore de créer des formulaires de type `director_evaluation`.
+CONTRIBUTING.md stipule que le rôle `director` a été supprimé. Une option UI permettait encore de créer des formulaires de type `director_evaluation`.
 
 | Fichier | Problème | Correction |
 |---------|---------|------------|

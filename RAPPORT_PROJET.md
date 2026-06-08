@@ -30,7 +30,7 @@
 
 **Public visé** : 5 rôles fonctionnels (Admin, RH, Directeur, Manager, Collaborateur) sur une organisation hiérarchique.
 
-**Principe directeur** (cf. `CLAUDE.md`) : **K.I.S.S.** — chaque page est un dossier autonome (MPA Vite), pas de framework CSS, pas de router SPA, pas de state global. React + Express + MongoDB et rien de plus.
+**Principe directeur** (cf. `CONTRIBUTING.md`) : **K.I.S.S.** — chaque page est un dossier autonome (MPA Vite), pas de framework CSS, pas de router SPA, pas de state global. React + Express + MongoDB et rien de plus.
 
 ---
 

@@ -357,14 +357,20 @@ function InterviewWorkspace({
           </div>
         </Tile>
       ) : canSchedule ? (
-        <Tile className="mb-6">
-          <h3 className="h3" style={{ marginBottom: 12 }}>
-            Programmer l'entretien
+        <Tile className="mb-6" style={{ borderLeft: "4px solid var(--blue)" }}>
+          <h3 className="h3" style={{ marginBottom: 4 }}>
+            Étape suivante — Programmer l'entretien
           </h3>
+          <p className="small" style={{ marginBottom: 12 }}>
+            L'évaluation est remplie. Fixez maintenant la date, l'heure et le lieu
+            du rendez-vous. L'évalué(e) verra le créneau et un événement sera
+            ajouté au calendrier. Le déroulé de l'entretien (échange, objectifs,
+            synthèse, signatures) ne s'ouvre qu'une fois le rendez-vous fixé.
+          </p>
           {!managerEvalFilled ? (
-            <p className="small">
-              Terminez d'abord de remplir l'évaluation avant de programmer le
-              rendez-vous.
+            <p className="small" style={{ color: "var(--red)" }}>
+              Terminez d'abord de remplir et soumettre l'évaluation avant de
+              programmer le rendez-vous.
             </p>
           ) : (
             <div
@@ -435,6 +441,10 @@ function InterviewWorkspace({
         </Tile>
       )}
 
+      {/* Le déroulé de l'entretien (échange, objectifs, synthèse, signatures)
+          n'est accessible qu'une fois le rendez-vous PROGRAMMÉ. */}
+      {isScheduled && (
+        <>
       {/* En-tête participants */}
       <Tile className="mb-6">
         <div className="row wrap" style={{ gap: 24 }}>
@@ -777,6 +787,8 @@ function InterviewWorkspace({
             </div>
           )}
         </Tile>
+      )}
+        </>
       )}
     </div>
   );

@@ -196,9 +196,9 @@ test.describe("Campagne - Lifecycle Complet", () => {
     await waitForPageLoad(page);
     await expectNotUnauthorized(page);
 
-    const exportButton = page.getByRole("button", {
-      name: /export|exporter|csv/i,
-    });
+    const exportButton = page
+      .getByRole("button", { name: /exporter csv|export.*csv|csv/i })
+      .first();
 
     if (await exportButton.isVisible()) {
       const filename = await waitForDownload(page, () => exportButton.click());

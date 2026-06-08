@@ -283,7 +283,7 @@ describe("EvaluationsPage", () => {
 
   it("affiche les évaluations employé en cards et pas en tableau", async () => {
     server.use(
-      http.get("http://localhost:5050/api/evaluations/me", ({ request }) => {
+      http.get("http://localhost:5050/api/evaluations", ({ request }) => {
         const url = new URL(request.url);
         const campaignId = url.searchParams.get("campaignId");
         const status = url.searchParams.get("status");

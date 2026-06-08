@@ -39,10 +39,10 @@ test.describe("Manager - Workflow Complet", () => {
     await expectNotUnauthorized(page);
     await expectNoErrors(page);
 
+    // La liste manager rend une grille (Tile + .tbl-head/.tbl-row), pas une <table>.
+    // On accepte aussi l'EmptyState si le manager n'a pas d'évaluations à conduire.
     const listContent = page
-      .locator(
-        'table, [role="list"], [data-testid*="evaluation-list"], [class*="evaluation" i]',
-      )
+      .locator('.tbl-head, .tbl-row, [data-testid="empty-state"]')
       .first();
     await expect(listContent).toBeVisible({ timeout: 15000 });
   });
@@ -238,65 +238,33 @@ test.describe("Manager - Workflow Complet", () => {
     await waitForPageLoad(page);
     await expectNotUnauthorized(page);
 
-    const newMobilityBtn = page.getByRole("button", {
-      name: /nouvelle demande|new request|\+|ajouter/i,
-    });
+    const newMobilityBtn = page
+      .getByRole("button", { name: /nouvelle demande/i })
+      .first();
 
     if (await newMobilityBtn.isVisible()) {
       await newMobilityBtn.click();
       await page.waitForLoadState("networkidle");
 
-      const typeField = page
-        .locator(
-          'select[name*="type" i], input[name*="type" i], [data-testid*="type"]',
-        )
-        .first();
+      // Catégorie "promotion" → champ obligatoire "Poste visé"
+      const typeField = page.getByLabel(/type de demande/i).first();
       if (await typeField.isVisible()) {
-        const tagName = await typeField.evaluate((el) =>
-          el.tagName.toLowerCase(),
-        );
-        if (tagName === "select") {
-          const opts = await typeField.locator("option").allTextContents();
-          const promotionOpt = opts.find((o) => /promotion/i.test(o));
-          if (promotionOpt) {
-            await typeField.selectOption({ label: promotionOpt });
-          } else if (opts.length > 1) {
-            await typeField.selectOption({ index: 1 });
-          }
-        } else {
-          await typeField.fill("Promotion");
-        }
+        await typeField.selectOption("promotion").catch(async () => {
+          await typeField.selectOption({ index: 1 });
+        });
       }
 
-      // Remplir le champ obligatoire "Poste visé" (targetPosition) — sans ça le bouton reste disabled
-      const targetPositionField = page
-        .locator(
-          'input[placeholder*="poste" i], input[placeholder*="chef" i], input[placeholder*="target" i], input[placeholder*="Ex : Chef"]',
-        )
-        .first();
+      // Champ obligatoire "Poste visé" (#mob-target-position) — sinon le bouton reste disabled
+      const targetPositionField = page.getByLabel(/poste visé/i).first();
       if (
         await targetPositionField
           .isVisible({ timeout: 5000 })
           .catch(() => false)
       ) {
         await targetPositionField.fill("Chef de projet senior E2E");
-      } else {
-        // Fallback : remplir le premier input text dans le formulaire de mobilité
-        const firstInput = page
-          .locator(
-            'div.bg-white input[type="text"], div.bg-white input:not([type="search"])',
-          )
-          .first();
-        if (await firstInput.isVisible({ timeout: 3000 }).catch(() => false)) {
-          await firstInput.fill("Chef de projet senior E2E");
-        }
       }
 
-      const descField = page
-        .locator(
-          'textarea[name*="motivation" i], textarea[placeholder*="motivation" i], textarea',
-        )
-        .first();
+      const descField = page.getByLabel(/description de la demande/i).first();
       if (await descField.isVisible()) {
         await descField.fill(
           "Demande de mobilité créée par test E2E automatisé",
@@ -310,9 +278,8 @@ test.describe("Manager - Workflow Complet", () => {
         await submitBtn.click();
         await page.waitForLoadState("networkidle");
 
-        const mobilityItem = page
-          .locator('[class*="mobility" i], table tr, [role="listitem"]')
-          .first();
+        // La liste rend des lignes de tableau (div.tbl-row), pas une <table>
+        const mobilityItem = page.locator(".tbl-row").first();
         await expect(mobilityItem).toBeVisible({ timeout: 15000 });
       }
     } else {

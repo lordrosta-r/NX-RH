@@ -1,0 +1,33 @@
+# Dependabot — mises à jour automatiques des dépendances + alertes de sécurité.
+# Gratuit, y compris sur les dépôts privés. Ouvre des PR quand une dépendance
+# a une nouvelle version (et en priorité quand une faille de sécurité est connue).
+version: 2
+updates:
+  # Frontend (React/Vite)
+  - package-ecosystem: "npm"
+    directory: "/frontend-v2"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "frontend"]
+    commit-message:
+      prefix: "chore(deps)"
+
+  # Backend (Express/Mongoose)
+  - package-ecosystem: "npm"
+    directory: "/mongo/server"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "backend"]
+    commit-message:
+      prefix: "chore(deps)"
+
+  # Actions GitHub utilisées par la CI/CD
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels: ["dependencies", "ci"]
+    commit-message:
+      prefix: "chore(ci)"

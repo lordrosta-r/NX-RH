@@ -24,3 +24,10 @@ frontend-v2/e2e/screenshots/
 # Sauvegardes locales d'environnement
 *.env.bak
 .env*.bak
+
+# Fichiers Claude / éditeur (perso, non versionnés)
+.claude/
+
+# Scripts e2e de debug jetables + états temporaires
+frontend-v2/e2e/_*.mjs
+frontend-v2/e2e/.*.json

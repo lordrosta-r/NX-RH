@@ -149,8 +149,11 @@ export function useEvaluationForm(
         try {
           await evaluationsApi.updateEvaluation(id, {
             // Le serveur attend un tableau [{questionId, value}], pas un objet.
+            // On n'envoie PAS de status : le serveur passe automatiquement
+            // 'assigned' → 'in_progress' au premier enregistrement de réponses.
+            // (Envoyer status: 'in_progress' provoquait une transition no-op
+            // refusée puisque le serveur avait déjà avancé le statut.)
             answers: recordToAnswers(updatedAnswers),
-            status: "in_progress",
           });
           setLastSavedAt(new Date());
           setSaveState("saved");

@@ -146,7 +146,27 @@
       "delete": "Supprimer"
     },
     "home": "Accueil",
-    "loading": "Chargement…"
+    "loading": "Chargement…",
+    "formCollection": {
+      "title": "Collecte des formulaires des managers",
+      "desc": "Demandez aux managers de soumettre un formulaire pour cette campagne, puis retenez ceux à utiliser.",
+      "requestLabel": "Demander un formulaire à des managers",
+      "selectManagers": "Sélectionnez les managers à solliciter.",
+      "requestBtn": "Demander ({{count}})",
+      "noManagers": "Tous les managers ont déjà été sollicités.",
+      "member": "Manager #{{id}}",
+      "submittedForm": "Formulaire soumis : {{title}}",
+      "status": {
+        "pending": "En attente",
+        "submitted": "Soumis",
+        "accepted": "Retenu",
+        "declined": "Non retenu"
+      },
+      "cancel": "Annuler",
+      "accept": "Retenir",
+      "decline": "Écarter",
+      "empty": "Aucune demande de formulaire pour cette campagne."
+    }
   },
   "evaluations": {
     "title": "Évaluations",
@@ -1200,6 +1220,17 @@
         "Faites avancer chaque action (« Démarrer », puis « Terminer ») pour suivre la progression.",
         "Signez le PDI avec « Signer » une fois le plan validé de part et d'autre."
       ]
+    }
+  },
+  "managerTodo": {
+    "formRequests": {
+      "title": "Formulaires demandés par la RH",
+      "desc": "La RH vous demande de soumettre un de vos formulaires pour ces campagnes.",
+      "choose": "Choisir un formulaire…",
+      "submit": "Soumettre",
+      "awaiting": "En attente de validation RH",
+      "createNew": "Créer un nouveau formulaire",
+      "empty": "Vous n'avez aucun formulaire. Créez-en un pour pouvoir le soumettre."
     }
   }
 }

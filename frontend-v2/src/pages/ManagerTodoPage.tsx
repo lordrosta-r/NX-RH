@@ -1,19 +1,31 @@
 import { Link } from "react-router-dom";
-import { useQuery, keepPreviousData } from "@tanstack/react-query";
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  keepPreviousData,
+} from "@tanstack/react-query";
 import {
   ClipboardCheck,
   AlertCircle,
   Clock,
   MessagesSquare,
+  FileText,
+  Hourglass,
+  Plus,
+  Send,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { evaluationsApi } from "../api/evaluations";
+import { campaignsApi } from "../api/campaigns";
+import { formsApi } from "../api/forms";
 import { queryKeys } from "../lib/queryKeys";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { PageHead, Tile, Badge } from "../components/shell";
 import EmptyState from "../components/ui/EmptyState";
 import PageGuide from "../components/shared/PageGuide";
-import type { Evaluation } from "../types";
+import type { Evaluation, MyFormRequest, Form } from "../types";
 
 type Tone = "blue" | "green" | "amber" | "red" | "grey";
 
@@ -76,6 +88,166 @@ const ACTION_REQUIRED_STATUSES = [
   "in_progress",
   "signed_evaluatee",
 ];
+
+/** Carte « Formulaires demandés par la RH » — le manager attache un de ses
+ *  formulaires à une campagne brouillon qui le sollicite. */
+function FormRequestsCard() {
+  const { t } = useTranslation();
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  const currentUserId = user?._id ?? user?.id ?? "";
+
+  const [selected, setSelected] = useState<Record<string, string>>({});
+
+  const { data: requests } = useQuery<MyFormRequest[]>({
+    queryKey: ["my-form-requests"],
+    queryFn: () =>
+      campaignsApi.getMyFormRequests().then((r) => r.data.data),
+  });
+
+  const { data: forms } = useQuery<Form[]>({
+    queryKey: ["my-forms"],
+    queryFn: () => formsApi.getForms().then((r) => r.data.data),
+  });
+
+  const submit = useMutation({
+    mutationFn: ({
+      campaignId,
+      formId,
+    }: {
+      campaignId: string;
+      formId: string;
+    }) => campaignsApi.submitFormRequest(campaignId, formId),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["my-form-requests"] });
+    },
+  });
+
+  const myForms = (forms ?? []).filter(
+    (f) => idOf(f.createdBy) === currentUserId,
+  );
+
+  const pending = (requests ?? []).filter((r) => r.status === "pending");
+  const submitted = (requests ?? []).filter((r) => r.status === "submitted");
+
+  if (pending.length === 0 && submitted.length === 0) return null;
+
+  return (
+    <Tile style={{ borderTop: "3px solid var(--blue)", padding: 18, marginBottom: 24 }}>
+      <div
+        className="row"
+        style={{ gap: 10, alignItems: "center", marginBottom: 6 }}
+      >
+        <FileText size={18} style={{ color: "var(--blue)" }} aria-hidden="true" />
+        <div className="body" style={{ fontWeight: 600 }}>
+          {t("managerTodo.formRequests.title")}
+        </div>
+      </div>
+      <div className="small" style={{ color: "var(--ink-3)", marginBottom: 14 }}>
+        {t("managerTodo.formRequests.desc")}
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        {pending.map((req) => {
+          const value = selected[req.campaignId] ?? "";
+          return (
+            <div
+              key={req.campaignId}
+              style={{
+                padding: "12px 14px",
+                borderRadius: "var(--radius)",
+                background: "var(--bg-alt)",
+              }}
+            >
+              <div className="body" style={{ fontWeight: 600, marginBottom: 10 }}>
+                {req.campaignName}
+              </div>
+              <div className="row wrap" style={{ gap: 8, alignItems: "center" }}>
+                <select
+                  className="input"
+                  style={{ flex: 1, minWidth: 200 }}
+                  value={value}
+                  onChange={(e) =>
+                    setSelected((prev) => ({
+                      ...prev,
+                      [req.campaignId]: e.target.value,
+                    }))
+                  }
+                >
+                  <option value="">
+                    {t("managerTodo.formRequests.choose")}
+                  </option>
+                  {myForms.map((f) => (
+                    <option key={idOf(f.id) || f.id} value={f.id}>
+                      {f.title}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  style={{ gap: 6 }}
+                  disabled={!value || submit.isPending}
+                  onClick={() =>
+                    submit.mutate({
+                      campaignId: req.campaignId,
+                      formId: value,
+                    })
+                  }
+                >
+                  <Send size={14} aria-hidden="true" />
+                  {t("managerTodo.formRequests.submit")}
+                </button>
+              </div>
+              {myForms.length === 0 && (
+                <div className="small" style={{ color: "var(--ink-3)", marginTop: 8 }}>
+                  {t("managerTodo.formRequests.empty")}
+                </div>
+              )}
+              <Link
+                to="/forms/new"
+                className="row small"
+                style={{
+                  gap: 4,
+                  marginTop: 8,
+                  display: "inline-flex",
+                  color: "var(--blue)",
+                  textDecoration: "none",
+                }}
+              >
+                <Plus size={13} aria-hidden="true" />
+                {t("managerTodo.formRequests.createNew")}
+              </Link>
+            </div>
+          );
+        })}
+
+        {submitted.map((req) => (
+          <div
+            key={req.campaignId}
+            className="row between"
+            style={{
+              gap: 8,
+              padding: "12px 14px",
+              borderRadius: "var(--radius)",
+              background: "var(--bg-alt)",
+            }}
+          >
+            <span className="body truncate" style={{ flex: 1 }}>
+              {req.campaignName}
+            </span>
+            <Badge tone="blue" dot>
+              <span className="row" style={{ gap: 4, display: "inline-flex" }}>
+                <Hourglass size={12} aria-hidden="true" />
+                {t("managerTodo.formRequests.awaiting")}
+              </span>
+            </Badge>
+          </div>
+        ))}
+      </div>
+    </Tile>
+  );
+}
 
 export default function ManagerTodoPage() {
   const { t } = useTranslation();
@@ -158,6 +330,9 @@ export default function ManagerTodoPage() {
         }
         color="blue"
       />
+
+      {/* Formulaires demandés par la RH */}
+      <FormRequestsCard />
 
       {/* Compteurs rapides */}
       {!isLoading && actionEvals.length > 0 && (

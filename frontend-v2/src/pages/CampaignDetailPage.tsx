@@ -4,6 +4,7 @@ import {
   CampaignDetailHeader,
   CampaignDetailOverview,
   CampaignFormsTab,
+  CampaignFormCollectionTab,
   CampaignCloneModal,
 } from "../components/campaigns";
 import { useCampaignDetail } from "../hooks/useCampaignDetail";
@@ -119,6 +120,13 @@ export default function CampaignDetailPage() {
             </>
           )}
         </Tile>
+      )}
+
+      {tab === "forms" && detail.isAdminOrHr && (
+        <CampaignFormCollectionTab
+          campaign={detail.campaign}
+          campaignId={id!}
+        />
       )}
 
       {tab === "forms" && (

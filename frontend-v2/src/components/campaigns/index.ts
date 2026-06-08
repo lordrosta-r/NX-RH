@@ -7,4 +7,5 @@ export { default as CampaignFormStepper } from "./CampaignFormStepper";
 export { default as CampaignDetailHeader } from "./CampaignDetailHeader";
 export { default as CampaignDetailOverview } from "./CampaignDetailOverview";
 export { default as CampaignFormsTab } from "./CampaignFormsTab";
+export { default as CampaignFormCollectionTab } from "./CampaignFormCollectionTab";
 export { default as CampaignCloneModal } from "./CampaignCloneModal";

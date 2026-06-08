@@ -124,7 +124,8 @@ export interface Evaluation {
   formId: string;
   status: EvaluationStatus;
   deadline?: string;
-  answers?: Record<string, unknown>;
+  /** Le serveur stocke les réponses en tableau [{questionId, value}]. */
+  answers?: Array<{ questionId: string; value: unknown }>;
   reviewerScore?: number;
   nextYearObjectives?: string;
   reviewerComment?: string;

@@ -10,6 +10,33 @@ export type SaveState = "idle" | "saving" | "saved" | "error";
 
 const draftKey = (id: string) => `eval-draft-${id}`;
 
+// Le serveur stocke les réponses en tableau [{questionId, value}] ; le formulaire
+// les manipule en Record { [questionId]: value }. Ces deux helpers convertissent.
+function answersToRecord(
+  answers: unknown,
+): Record<string, unknown> {
+  if (Array.isArray(answers)) {
+    return Object.fromEntries(
+      answers
+        .filter(
+          (a): a is { questionId: string; value: unknown } =>
+            !!a && typeof (a as { questionId?: unknown }).questionId === "string",
+        )
+        .map((a) => [a.questionId, a.value]),
+    );
+  }
+  return (answers as Record<string, unknown>) ?? {};
+}
+
+function recordToAnswers(
+  record: Record<string, unknown>,
+): Array<{ questionId: string; value: unknown }> {
+  return Object.entries(record).map(([questionId, value]) => ({
+    questionId,
+    value,
+  }));
+}
+
 export interface UseEvaluationFormResult {
   saveState: SaveState;
   answers: Record<string, unknown>;
@@ -56,13 +83,16 @@ export function useEvaluationForm(
   // Restaure un éventuel brouillon local (réponses dont la dernière sauvegarde
   // serveur a échoué) pour ne pas perdre le travail après fermeture d'onglet.
   const [answers, setAnswers] = useState<Record<string, unknown>>(() => {
+    // Le serveur stocke les réponses sous forme de tableau [{questionId, value}].
+    // Le formulaire les manipule sous forme de Record { [questionId]: value }.
+    const base = answersToRecord(evaluation.answers);
     try {
       const raw = localStorage.getItem(draftKey(id));
-      if (raw) return { ...(evaluation.answers ?? {}), ...JSON.parse(raw) };
+      if (raw) return { ...base, ...JSON.parse(raw) };
     } catch {
       /* localStorage indisponible ou JSON corrompu → on ignore */
     }
-    return evaluation.answers ?? {};
+    return base;
   });
   const [saveState, setSaveState] = useState<SaveState>(() => {
     try {
@@ -118,7 +148,8 @@ export function useEvaluationForm(
       saveTimeoutRef.current = setTimeout(async () => {
         try {
           await evaluationsApi.updateEvaluation(id, {
-            answers: updatedAnswers,
+            // Le serveur attend un tableau [{questionId, value}], pas un objet.
+            answers: recordToAnswers(updatedAnswers),
             status: "in_progress",
           });
           setLastSavedAt(new Date());

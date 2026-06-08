@@ -363,7 +363,17 @@
       "promotion_request": "Promotion request",
       "training_request": "Training request"
     },
-    "questionCount": "{{count}} question(s)"
+    "questionCount": "{{count}} question(s)",
+    "createdByLabel": "Proposed by {{name}}",
+    "managerGuide": {
+      "title": "Create a form as a manager",
+      "steps": [
+        "As a manager, create evaluation forms tailored to your team.",
+        "Click \"New form\" to compose your questions.",
+        "HR can then apply them to the right people in a campaign.",
+        "You stay in control: you can edit or delete the forms you created."
+      ]
+    }
   },
   "eyebrow": {
     "administration": "Administration",

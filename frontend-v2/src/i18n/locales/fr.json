@@ -363,7 +363,17 @@
       "promotion_request": "Demande promotion",
       "training_request": "Demande formation"
     },
-    "questionCount": "{{count}} question(s)"
+    "questionCount": "{{count}} question(s)",
+    "createdByLabel": "Proposé par {{name}}",
+    "managerGuide": {
+      "title": "Créer un formulaire en tant que manager",
+      "steps": [
+        "En tant que manager, créez des formulaires d'évaluation adaptés à votre équipe.",
+        "Cliquez sur « Nouveau formulaire » pour composer vos questions.",
+        "La RH pourra ensuite les appliquer aux bonnes personnes lors d'une campagne.",
+        "Vous gardez la main : vous pouvez modifier ou supprimer les formulaires que vous avez créés."
+      ]
+    }
   },
   "eyebrow": {
     "administration": "Administration",

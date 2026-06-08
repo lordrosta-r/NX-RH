@@ -232,6 +232,9 @@ export interface Form {
   frozenAt?: string;
   filledBy?: "employee" | "manager" | "hr";
   visibleToEvaluatee?: boolean;
+  createdBy?:
+    | string
+    | { _id: string; firstName?: string; lastName?: string };
   createdAt?: string;
   updatedAt?: string;
 }

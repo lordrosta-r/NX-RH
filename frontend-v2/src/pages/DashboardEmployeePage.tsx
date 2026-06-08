@@ -344,7 +344,7 @@ export default function DashboardEmployeePage() {
             {
               label: t("dashEmployee.requests.mobility"),
               icon: <ArrowRight className="w-4 h-4" />,
-              href: "/mobility/new",
+              href: "/mobility",
             },
             {
               label: t("dashEmployee.requests.profile"),

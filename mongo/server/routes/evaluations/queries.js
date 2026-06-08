@@ -95,7 +95,10 @@ async function handleList(req, res, next) {
     }
     // admin/hr : pas de filtre → voit tout
 
-    if (req.query.evaluateeId !== undefined) {
+    if (req.query.evaluateeId === 'me') {
+      // Alias pratique : « me » = l'utilisateur courant (espace perso).
+      filter.evaluateeId = uid
+    } else if (req.query.evaluateeId !== undefined) {
       if (!mongoose.isValidObjectId(req.query.evaluateeId)) {
         return res.status(400).json({ error: 'evaluateeId invalide' })
       }

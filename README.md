@@ -151,6 +151,7 @@ NX-RH/
 | [docs/UPDATE.md](docs/UPDATE.md) | Upgrade procedure and rollback |
 | [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | Production deployment guide |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Technical architecture |
+| [docs/STACK.md](docs/STACK.md) | Technology choices and rationale |
 | [docs/ROLES_RBAC.md](docs/ROLES_RBAC.md) | Roles and access-control matrix |
 | [docs/ENVIRONMENT.md](docs/ENVIRONMENT.md) | Environment variables reference |
 | [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) | Common issues and fixes |

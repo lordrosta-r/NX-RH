@@ -1,70 +1,194 @@
-# Déploiement
+# Deploiement
 
-L'app se déploie en **Docker** : `nginx` (reverse proxy + TLS) + `app` (Express, scalable) + `mongo`.
+Ce guide couvre le déploiement en production de NanoXplore RH. Pour les procédures de mise à jour, voir [[Mise-a-jour]]. Pour les sauvegardes et restaurations, voir [[Sauvegarde-Restauration]]. Pour l'installation initiale, voir [[Installation]].
 
-## Prérequis
+La référence complète en anglais se trouve dans `docs/DEPLOYMENT.md`.
 
-- Docker + Docker Compose.
-- Un fichier `.env` à la racine (jamais committé). Partir de `.env.prod.example`.
+---
 
-## 1. Configurer `.env` (production)
+## Architecture
+
+Trois services Docker communiquent sur deux réseaux isolés :
+
+```
+Internet
+  |
+  v
+nginx (ports 80/443)        <- Terminaison TLS, reverse proxy
+  |  [réseau frontend]
+  v
+app (port 3000, interne)    <- Express : API REST + SPA compilée (fichiers statiques dans ./public)
+  |  [réseau backend]
+  v
+mongo (port 27017, interne) <- MongoDB 7, jamais exposé à l'hôte
+```
+
+- **nginx** (`nx_nginx`) : nginx 1.27-alpine. Termine le TLS, transmet les requêtes à `app`. La configuration se trouve dans `nginx/conf.d/` et `nginx/nginx.conf` (montés en lecture seule).
+- **app** : Build Docker multi-étape. L'étape 1 compile la SPA Vite/React (`frontend-v2/`) en fichiers statiques. L'étape 2 lance Express (`mongo/server/`), qui sert ces fichiers depuis `./public` et gère toutes les routes `/api/*`. Express retourne `index.html` pour toutes les routes non-API (repli SPA). Tourne sous un utilisateur non-root.
+- **mongo** (`nx_mongo`) : MongoDB 7 avec les données persistées dans le volume nommé `mongo_data`.
+
+Volumes nommés :
+
+| Volume | Contenu |
+|---|---|
+| `mongo_data` | Fichiers de données MongoDB |
+| `uploads_data` | Documents RH téléversés par les utilisateurs (monté dans `/data/uploads` dans `app`) |
+| `nginx_logs` | Journaux d'accès et d'erreurs nginx |
+
+---
+
+## Prérequis sur le serveur
+
+- Docker Engine >= 24 et Docker Compose v2 (commande `docker compose`, pas `docker-compose`)
+- Ports **80** et **443** ouverts et non utilisés par un autre processus
+- Enregistrement DNS A pour votre domaine pointant vers l'IP publique du serveur (requis pour un vrai certificat TLS)
+- Espace disque suffisant pour les données MongoDB et les documents téléversés
+
+---
+
+## Configurer l'environnement
+
+Le service `app` lit sa configuration depuis un fichier `.env` à la racine du projet.
 
 ```bash
 cp .env.prod.example .env
-# Générer des secrets FORTS et INDÉPENDANTS :
-openssl rand -hex 48   # → JWT_SECRET
-openssl rand -hex 48   # → JWT_REFRESH_SECRET (doit être différent)
-openssl rand -hex 24   # → MONGO_ROOT_PASSWORD (reporter aussi dans MONGO_URI)
+$EDITOR .env
 ```
 
-Le serveur **refuse de démarrer en production** si : `JWT_SECRET` ressemble à une valeur
-dev (`dev_`, `changeme`…), `JWT_REFRESH_SECRET` manque ou dérive de `JWT_SECRET`,
-`E2E_MODE=true`, `MONGO_URI` utilise le mot de passe `changeme`, ou
-`LDAP_TLS_REJECT_UNAUTHORIZED=false`. (cf. `mongo/server/index.js → start()`)
+Variables obligatoires (l'application refusera de démarrer sans elles) :
 
-> **Outil interne** : pour relâcher les rate-limits (login/mutations à 1000/15 min),
-> ajouter `RELAX_RATE_LIMIT=true`. À ne PAS activer sur un déploiement exposé publiquement.
+| Variable | Description |
+|---|---|
+| `MONGO_ROOT_USER` | Nom d'utilisateur root MongoDB |
+| `MONGO_ROOT_PASSWORD` | Mot de passe root MongoDB |
+| `MONGO_URI` | URI de connexion MongoDB complète |
+| `JWT_SECRET` | Secret de signature JWT, minimum 32 caractères |
+| `JWT_REFRESH_SECRET` | Secret de signature des jetons de renouvellement JWT, minimum 32 caractères, différent de `JWT_SECRET` |
 
-## 2. Build + démarrage
+Générer des secrets robustes :
 
 ```bash
-docker compose -f docker-compose.yml up -d --build
-# Montée en charge horizontale :
-docker compose -f docker-compose.yml up -d --scale app=3
+openssl rand -hex 48
 ```
 
-L'app écoute en HTTPS via nginx (`443`). En local, certificat auto-signé dans `nginx/certs/`
-(avertissement navigateur normal — remplacer via [Configuration](Configuration) → SSL).
+Pour la liste complète des variables optionnelles, voir `docs/ENVIRONMENT.md`.
 
-## 3. Créer le premier administrateur (bootstrap)
+---
 
-Pas de seed en prod. Sur une base vierge :
+## Trois façons de déployer
+
+### Option 1 — Depuis le dépôt (build local)
+
+C'est la méthode standard. Elle reconstruit l'image Docker localement depuis les sources.
 
 ```bash
-docker compose -f docker-compose.yml exec \
-  -e ADMIN_EMAIL=admin@votre-domaine.fr \
-  -e ADMIN_PASSWORD='MotDePasseFort12+' \
-  app node scripts/bootstrap-admin.js
+# Déploiement standard (une instance applicative)
+docker compose up -d --build
+
+# Mode haute disponibilité (3 instances applicatives derrière le load balancer nginx)
+docker compose up -d --build --scale app=3
 ```
 
-Le script crée le 1er admin via le modèle User (mot de passe hashé bcrypt). Idempotent :
-refuse si un admin actif existe déjà. Ensuite, **tout se configure depuis l'UI**.
+### Option 2 — Depuis le registre de packages (`ghcr.io/lordrosta-r/nx-rh`)
 
-## 4. Premier login
-
-`https://<votre-hôte>/login` → email + mot de passe de l'admin. Une bannière
-« Configuration initiale incomplète » guide les étapes restantes (formulaire, SMTP…).
-
-## Sauvegarde / restauration
+Utiliser l'image pré-construite publiée sur GitHub Container Registry. Adapter le fichier `docker-compose.yml` pour référencer l'image distante au lieu de construire localement.
 
 ```bash
-docker compose exec mongo mongodump --archive=/data/db/backup.gz --gzip
-# restauration : mongorestore --archive=... --gzip
+docker pull ghcr.io/lordrosta-r/nx-rh:latest
+docker compose up -d
 ```
 
-## Dev (hot-reload)
+### Option 3 — Depuis une release versionnée
+
+Pour un déploiement reproductible d'une version précise, utiliser le tag de version correspondant :
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
-# + 2 annuaires OpenLDAP de test, MailHog, Vite/nodemon en live-reload.
+docker pull ghcr.io/lordrosta-r/nx-rh:v1.2.3
+# Mettre à jour la référence d'image dans docker-compose.yml, puis :
+docker compose up -d
 ```
+
+---
+
+## Vérifier le déploiement
+
+```bash
+# Vérifier que tous les services sont actifs et sains
+docker compose ps
+```
+
+Les trois services (`nginx`, `app`, `mongo`) doivent afficher le statut `running (healthy)`. Le service `app` peut afficher `(health: starting)` pendant les 15 premières secondes après le démarrage.
+
+```bash
+# Via nginx et TLS
+curl -sf https://votre-domaine/api/health
+
+# Directement vers le conteneur applicatif, en contournant nginx
+docker compose exec app wget -qO- http://localhost:3000/api/health
+```
+
+Une réponse saine retourne HTTP 200 avec un corps JSON `{"status":"ok"}`.
+
+---
+
+## TLS — Certificats
+
+Les certificats sont stockés dans `./nginx/certs/` et montés dans les conteneurs `app` et `nginx`. Ce répertoire n'est **jamais commité dans le dépôt** — `nginx/certs/*.pem` est exclu par `.gitignore`.
+
+Nginx lit exactement deux fichiers :
+
+```
+nginx/certs/
+├── fullchain.pem  <- certificat + chaîne
+└── privkey.pem    <- clé privée
+```
+
+Au premier `docker compose up`, le service `cert-init` génère automatiquement un certificat auto-signé si ces fichiers sont absents. Pour installer un vrai certificat, voir [[Configuration]] (section Certificat SSL).
+
+Recharger nginx après tout remplacement de certificat :
+
+```bash
+docker compose kill -s HUP nginx
+```
+
+---
+
+## Opérations courantes
+
+**Suivre les journaux en temps réel :**
+
+```bash
+docker compose logs -f app
+docker compose logs -f nginx
+docker compose logs -f mongo
+
+# 100 dernières lignes uniquement
+docker compose logs --tail=100 app
+```
+
+**Vérifier la santé des conteneurs :**
+
+```bash
+docker compose ps
+docker compose exec app wget -qO- http://localhost:3000/api/health
+```
+
+**Redémarrer un service :**
+
+```bash
+docker compose restart app
+```
+
+---
+
+## Notes de sécurité
+
+- MongoDB **n'est pas exposé** à l'hôte (pas de mapping `ports:` sur `mongo`). Il n'est accessible que depuis le réseau Docker `backend`.
+- `nginx` n'a pas accès direct au réseau `backend` — il ne peut atteindre que `app`.
+- Le conteneur `app` tourne sous un **utilisateur non-root** (`appuser`).
+- `NODE_ENV=production` et `COOKIE_SECURE=true` sont définis inconditionnellement dans `docker-compose.yml` — ne pas les remplacer.
+- Ne jamais commiter `.env`, `nginx/certs/`, ou tout fichier contenant des secrets dans le dépôt.
+
+---
+
+Etapes suivantes : [[Sauvegarde-Restauration]] | [[Mise-a-jour]]

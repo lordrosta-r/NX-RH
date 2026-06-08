@@ -31,3 +31,6 @@ frontend-v2/e2e/screenshots/
 # Scripts e2e de debug jetables + états temporaires
 frontend-v2/e2e/_*.mjs
 frontend-v2/e2e/.*.json
+
+# Certificats TLS (jamais versionnés — générés/uploadés)
+nginx/certs/*.pem

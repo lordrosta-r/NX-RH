@@ -66,12 +66,6 @@ export const queryKeys = {
     detail: (id: string) =>
       [...queryKeys.offboardings.all, "detail", id] as const,
   },
-  offboarding: {
-    all: ["offboardings"] as const,
-    lists: () => [...queryKeys.offboardings.all, "list"] as const,
-    detail: (id: string) =>
-      [...queryKeys.offboardings.all, "detail", id] as const,
-  },
   events: {
     all: ["events"] as const,
     lists: () => [...queryKeys.events.all, "list"] as const,

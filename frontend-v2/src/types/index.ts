@@ -1,7 +1,5 @@
 // ─── Rôles & Auth ─────────────────────────────────────────────────────────────
 export type Role = "admin" | "hr" | "manager" | "employee";
-/** Alias for Role — used in feature-based architecture. */
-export type UserRole = Role;
 export type AuthSource = "local" | "ldap";
 
 export interface BaseEntity {
@@ -322,12 +320,6 @@ export interface Sector {
   managerId?: string;
   manager?: User;
   userCount?: number;
-}
-
-export interface OrgTreeNode_LEGACY {
-  user: User;
-  sector?: Sector;
-  reports?: OrgTreeNode_LEGACY[];
 }
 
 // ─── Événements calendrier ─────────────────────────────────────────────────────

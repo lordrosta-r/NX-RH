@@ -120,7 +120,7 @@ test.describe.serial("Collecte des formulaires des managers", () => {
     // La demande apparaît, statut « En attente ».
     const row = page.getByTestId(`fc-request-row-${managerId}`);
     await expect(row).toBeVisible();
-    await expect(row.getByText("En attente")).toBeVisible();
+    await expect(row.getByText("En attente", { exact: true })).toBeVisible();
 
     expect(realErrors(errors)).toEqual([]);
   });
@@ -147,8 +147,13 @@ test.describe.serial("Collecte des formulaires des managers", () => {
       .selectOption(managerFormId);
     await page.getByTestId(`mfr-submit-${campaignId}`).click();
 
-    // Après soumission : en attente de validation RH.
-    await expect(card.getByText("En attente de validation RH")).toBeVisible();
+    // Après soumission : le bloc « à soumettre » de CETTE campagne disparaît
+    // (scopé par campagne — robuste même si d'autres campagnes sont en attente),
+    // et au moins une mention « En attente de validation RH » est présente.
+    await expect(page.getByTestId(`mfr-select-${campaignId}`)).toHaveCount(0);
+    await expect(
+      card.getByText("En attente de validation RH").first(),
+    ).toBeVisible();
 
     expect(realErrors(errors)).toEqual([]);
   });
@@ -164,11 +169,11 @@ test.describe.serial("Collecte des formulaires des managers", () => {
 
     const row = page.getByTestId(`fc-request-row-${managerId}`);
     await expect(row).toBeVisible();
-    await expect(row.getByText("Soumis")).toBeVisible();
+    await expect(row.getByText("Soumis", { exact: true })).toBeVisible();
 
     // Intuitif : un bouton « Retenir » explicite.
     await row.getByTestId("fc-accept").click();
-    await expect(row.getByText("Retenu")).toBeVisible();
+    await expect(row.getByText("Retenu", { exact: true })).toBeVisible();
 
     // Le formulaire du manager apparaît désormais dans la liste des formulaires liés.
     await expect(

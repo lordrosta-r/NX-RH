@@ -53,6 +53,7 @@ export default function DashboardEmployeePage() {
 
   const evaluations = useQuery({
     queryKey: ["dashboard-employee", "evaluations"],
+    refetchOnMount: "always",
     queryFn: () =>
       client
         .get<{
@@ -64,6 +65,7 @@ export default function DashboardEmployeePage() {
 
   const history = useQuery({
     queryKey: ["dashboard-employee", "history"],
+    refetchOnMount: "always",
     queryFn: () =>
       client
         .get<{
@@ -75,12 +77,14 @@ export default function DashboardEmployeePage() {
 
   const { data: eventsData } = useQuery({
     queryKey: ["dashboard-employee-events"],
+    refetchOnMount: "always",
     queryFn: () => eventsApi.getEvents({ limit: 3 }),
   });
   const upcomingEvents = eventsData?.data?.data ?? [];
 
   const { data: resourcesData } = useQuery({
     queryKey: ["dashboard-employee-resources"],
+    refetchOnMount: "always",
     queryFn: () => resourcesApi.getResources({ limit: 3, publishedOnly: true }),
   });
   const recentResources = resourcesData?.data?.data ?? [];

@@ -63,6 +63,12 @@ async function handleUpdate(req, res, next) {
       }
       evaluation.answers     = req.body.answers
       evaluation.lastSavedAt = new Date()
+      // Première saisie de réponses : l'évaluation passe automatiquement de
+      // 'assigned' à 'in_progress'. Sinon la soumission (in_progress → submitted)
+      // serait refusée car 'assigned' → 'submitted' n'est pas une transition valide.
+      if (evaluation.status === 'assigned') {
+        evaluation.status = 'in_progress'
+      }
     }
 
     // ── Score reviewer (manager/admin/hr) ────────────────────────────────────

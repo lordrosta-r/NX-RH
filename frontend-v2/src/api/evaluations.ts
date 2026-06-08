@@ -38,7 +38,7 @@ export const evaluationsApi = {
     client.patch<Evaluation>(`/api/evaluations/${id}`, data),
 
   submitEvaluation: (id: string) =>
-    client.post<Evaluation>(`/api/evaluations/${id}/submit`),
+    client.patch<Evaluation>(`/api/evaluations/${id}`, { status: "submitted" }),
 
   signEvaluation: (id: string) =>
     client.post<Evaluation>(`/api/evaluations/${id}/sign`),

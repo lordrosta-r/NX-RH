@@ -505,8 +505,11 @@ async function requestForms(campaignId, managerIds) {
   if (!Array.isArray(managerIds) || managerIds.length === 0) {
     throw makeError('managerIds est requis (tableau non vide)', 400)
   }
+  // map(String) + typeof guard = barrière anti-injection NoSQL ($in).
   const ids = [...new Set(managerIds.map(String))]
-  if (!ids.every(id => mongoose.isValidObjectId(id))) throw makeError('managerId invalide', 400)
+  if (!ids.every(id => typeof id === 'string' && mongoose.isValidObjectId(id))) {
+    throw makeError('managerId invalide', 400)
+  }
 
   const campaign = await Campaign.findById(campaignId)
   if (!campaign) throw makeError('Campagne introuvable', 404)
@@ -563,8 +566,13 @@ async function cancelFormRequest(campaignId, managerId) {
  * @param {string} userId — manager authentifié (req.user.id)
  */
 async function submitFormRequest(campaignId, formId, userId) {
-  if (!mongoose.isValidObjectId(campaignId)) throw makeError('ID de campagne invalide', 400)
-  if (!formId || !mongoose.isValidObjectId(formId)) throw makeError('formId requis', 400)
+  // typeof guards = barrières anti-injection NoSQL (rejettent les objets type {$ne:…}).
+  if (typeof campaignId !== 'string' || !mongoose.isValidObjectId(campaignId)) {
+    throw makeError('ID de campagne invalide', 400)
+  }
+  if (typeof formId !== 'string' || !mongoose.isValidObjectId(formId)) {
+    throw makeError('formId requis', 400)
+  }
 
   const [campaign, form] = await Promise.all([
     Campaign.findById(campaignId),

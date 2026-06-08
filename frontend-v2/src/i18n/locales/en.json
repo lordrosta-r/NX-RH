@@ -368,10 +368,11 @@
     "managerGuide": {
       "title": "Create a form as a manager",
       "steps": [
-        "As a manager, create evaluation forms tailored to your team.",
+        "As a manager, create evaluation forms tailored to your team — you can even dedicate one to a person (e.g. \"Nathan's review\").",
         "Click \"New form\" to compose your questions.",
-        "HR can then apply them to the right people in a campaign.",
-        "You stay in control: you can edit or delete the forms you created."
+        "HR can then apply it to the right person in a campaign.",
+        "You stay in control: edit or delete the forms you created.",
+        "Next year, duplicate a form (the copy icon) to ask the same questions again in the new campaign."
       ]
     }
   },

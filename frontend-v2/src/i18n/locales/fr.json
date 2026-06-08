@@ -368,10 +368,11 @@
     "managerGuide": {
       "title": "Créer un formulaire en tant que manager",
       "steps": [
-        "En tant que manager, créez des formulaires d'évaluation adaptés à votre équipe.",
+        "En tant que manager, créez des formulaires d'évaluation adaptés à votre équipe — vous pouvez même en dédier un à une personne (ex. « Entretien de Nathan »).",
         "Cliquez sur « Nouveau formulaire » pour composer vos questions.",
-        "La RH pourra ensuite les appliquer aux bonnes personnes lors d'une campagne.",
-        "Vous gardez la main : vous pouvez modifier ou supprimer les formulaires que vous avez créés."
+        "La RH pourra ensuite l'appliquer à la bonne personne lors d'une campagne.",
+        "Vous gardez la main : modifiez ou supprimez les formulaires que vous avez créés.",
+        "L'année suivante, dupliquez un formulaire (icône copier) pour reposer les mêmes questions dans la nouvelle campagne."
       ]
     }
   },

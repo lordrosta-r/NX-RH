@@ -198,6 +198,31 @@ router.patch('/:id/avatar', async (req, res, next) => {
       if (typeof avatarUrl !== 'string' || avatarUrl.length > 500) {
         return res.status(400).json({ error: "URL d'avatar invalide (max 500 car)" })
       }
+      // Anti-SSRF / anti-injection : uniquement des URL https publiques.
+      // On rejette http, data:, file:, et les hôtes internes/loopback/métadonnées.
+      let parsed
+      try {
+        parsed = new URL(avatarUrl)
+      } catch {
+        return res.status(400).json({ error: "URL d'avatar invalide" })
+      }
+      if (parsed.protocol !== 'https:') {
+        return res.status(400).json({ error: "URL d'avatar : seul https est autorisé" })
+      }
+      const host = parsed.hostname.toLowerCase()
+      const blockedHost =
+        host === 'localhost' ||
+        host === '0.0.0.0' ||
+        host === '169.254.169.254' || // métadonnées cloud (AWS/GCP/Azure)
+        /^127\./.test(host) ||
+        /^10\./.test(host) ||
+        /^192\.168\./.test(host) ||
+        /^172\.(1[6-9]|2\d|3[01])\./.test(host) ||
+        host.endsWith('.internal') ||
+        host.endsWith('.local')
+      if (blockedHost) {
+        return res.status(400).json({ error: "URL d'avatar : hôte non autorisé" })
+      }
     }
 
     const user = await User.findByIdAndUpdate(

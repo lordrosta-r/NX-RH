@@ -362,6 +362,9 @@ async function start() {
     if (process.env.E2E_MODE === 'true') {
       fatal.push('E2E_MODE=true désactive le rate-limit de login — interdit en production')
     }
+    if (process.env.RELAX_RATE_LIMIT === 'true') {
+      fatal.push('RELAX_RATE_LIMIT=true affaiblit la protection anti-bruteforce du login — interdit en production')
+    }
     if (/:changeme@|password=changeme/i.test(process.env.MONGO_URI || '')) {
       fatal.push('MONGO_URI utilise le mot de passe par défaut « changeme »')
     }

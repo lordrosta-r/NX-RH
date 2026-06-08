@@ -160,6 +160,9 @@ function InterviewWorkspace({
   const managerEvalFilled =
     !!managerEval && !["assigned", "in_progress"].includes(managerEval.status);
   const isScheduled = !!interview.scheduledAt;
+  // Une fois programmé, l'utilisateur démarre l'entretien quand il le souhaite
+  // (rien n'est imposé). Le contenu ne s'ouvre qu'après ce choix explicite.
+  const [started, setStarted] = useState(false);
   const [scheduleDate, setScheduleDate] = useState("");
   const [scheduleLocation, setScheduleLocation] = useState("");
   const scheduleMutation = useMutation({
@@ -342,19 +345,42 @@ function InterviewWorkspace({
       {/* Programmation de l'entretien (rendez-vous calendrier) */}
       {isScheduled ? (
         <Tile className="mb-6" style={{ borderLeft: "4px solid var(--blue)" }}>
-          <div className="row" style={{ gap: 10, alignItems: "center" }}>
-            <CalendarClock size={18} strokeWidth={1.5} />
-            <div className="body">
-              <strong>Entretien programmé</strong> —{" "}
-              {new Date(interview.scheduledAt as string).toLocaleString("fr-FR", {
-                dateStyle: "full",
-                timeStyle: "short",
-              })}
-              {interview.scheduledLocation
-                ? ` · ${interview.scheduledLocation}`
-                : ""}
+          <div
+            className="row between wrap"
+            style={{ gap: 12, alignItems: "center" }}
+          >
+            <div className="row" style={{ gap: 10, alignItems: "center" }}>
+              <CalendarClock size={18} strokeWidth={1.5} />
+              <div className="body">
+                <strong>Entretien programmé</strong> —{" "}
+                {new Date(interview.scheduledAt as string).toLocaleString(
+                  "fr-FR",
+                  { dateStyle: "full", timeStyle: "short" },
+                )}
+                {interview.scheduledLocation
+                  ? ` · ${interview.scheduledLocation}`
+                  : ""}
+              </div>
             </div>
+            {/* Une fois programmé, mener l'entretien n'est jamais imposé : on
+                choisit de le démarrer maintenant ou d'y revenir plus tard. */}
+            {!started && (
+              <button
+                className="btn btn-primary btn-sm"
+                onClick={() => setStarted(true)}
+              >
+                <MessagesSquare size={16} strokeWidth={1.5} /> Démarrer
+                l'entretien
+              </button>
+            )}
           </div>
+          {!started && (
+            <p className="small" style={{ marginTop: 8 }}>
+              Vous pouvez mener l'entretien dès maintenant ou y revenir plus tard
+              — rien n'est imposé. Cliquez sur « Démarrer l'entretien » pour
+              ouvrir l'échange, les objectifs, la synthèse et les signatures.
+            </p>
+          )}
         </Tile>
       ) : canSchedule ? (
         <Tile className="mb-6" style={{ borderLeft: "4px solid var(--blue)" }}>
@@ -441,9 +467,9 @@ function InterviewWorkspace({
         </Tile>
       )}
 
-      {/* Le déroulé de l'entretien (échange, objectifs, synthèse, signatures)
-          n'est accessible qu'une fois le rendez-vous PROGRAMMÉ. */}
-      {isScheduled && (
+      {/* Le déroulé de l'entretien n'est accessible qu'une fois le rendez-vous
+          PROGRAMMÉ et l'entretien explicitement DÉMARRÉ par l'utilisateur. */}
+      {isScheduled && started && (
         <>
       {/* En-tête participants */}
       <Tile className="mb-6">

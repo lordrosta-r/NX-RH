@@ -158,11 +158,15 @@ SMTP_FROM=NanoXplore RH <rh@your-domain.com>
 UPLOADS_DIR=/data/uploads
 ```
 
-### 3.4 TLS certificates (production)
+### 3.4 TLS certificates
 
-Nginx expects TLS certificates to be present at `nginx/certs/` before it starts.
-Place your certificate and private key there. The exact filenames expected by nginx
-are defined in `nginx/conf.d/`. Refer to `docs/DEPLOYMENT.md` for details.
+No manual step is required before the first `docker compose up`. The `cert-init`
+service automatically generates a self-signed certificate for `localhost` into
+`nginx/certs/` if no certificate is found there. This unblocks nginx on a fresh
+deployment (certificates are never committed to the repository).
+
+To replace the self-signed certificate with a real one, see section 5 of
+`docs/DEPLOYMENT.md`.
 
 ---
 
@@ -352,3 +356,4 @@ Common causes of failure on first run:
 - **MongoDB connection refused** — `MONGO_URI` credentials do not match `MONGO_ROOT_USER` / `MONGO_ROOT_PASSWORD`. Both must be identical in `.env`.
 - **Nginx starts but returns 502** — the app container is still starting or unhealthy. Wait 30 seconds and run `docker compose ps` again.
 - **"Un administrateur actif existe déjà"** — the bootstrap script has already been run. This is safe to ignore; use the existing admin account to log in.
+- **Browser shows a certificate warning** — this is expected on a fresh install. The `cert-init` service generates a self-signed certificate for `localhost`. Accept the browser exception or install a real certificate via the admin UI (Administration > SSL certificate).

@@ -150,10 +150,20 @@ rebuilt with the new settings on the next outbound email.
 
 **UI path:** Administration > SSL certificate (`/admin/ssl` — part of the admin area)
 
+### Certificate bootstrap on a fresh deployment
+
+On a fresh deployment, no manual certificate setup is required before starting the stack.
+The `cert-init` Docker service runs once at startup and, if `nginx/certs/fullchain.pem`
+or `nginx/certs/privkey.pem` are absent, generates a self-signed certificate for
+`localhost` into that directory. Nginx then starts normally. The certificate files are
+never committed to the repository.
+
+### Current certificate status
+
 The page shows the currently installed certificate's common name (CN), validity end date
 and number of days remaining. A badge turns red when fewer than 30 days remain.
 
-### Uploading a new certificate
+### Uploading a real certificate
 
 Two file pickers are provided:
 
@@ -162,8 +172,10 @@ Two file pickers are provided:
 - **Private key** — accepts `.pem`, `.key` files.
 
 Both files are read as plain text in the browser. The content is validated client-side
-before submission. Clicking **Install** posts the two PEM strings to
-`POST /api/admin/ssl/cert`, which writes them to the `nginx/certs/` volume.
+(PEM markers, expiry, key/certificate match) before submission. Clicking **Install**
+posts the two PEM strings to `POST /api/admin/ssl/cert`, which writes them atomically to
+the shared `nginx/certs/` volume (`fullchain.pem` at mode 0644, `privkey.pem` at mode
+0600).
 
 ### Applying the certificate
 
@@ -176,6 +188,29 @@ docker compose kill -s HUP nginx
 ```
 
 This sends SIGHUP to the nginx container, causing it to reload without downtime.
+
+### Alternative: place certificates manually
+
+Instead of using the UI, you can write `fullchain.pem` and `privkey.pem` directly into
+`./nginx/certs/` on the host, then reload nginx:
+
+```bash
+# Copy your certificate files
+cp /path/to/fullchain.pem ./nginx/certs/fullchain.pem
+cp /path/to/privkey.pem   ./nginx/certs/privkey.pem
+
+# Reload nginx (no downtime)
+docker compose kill -s HUP nginx
+```
+
+To generate a self-signed certificate for a specific domain manually, use the helper
+script:
+
+```bash
+bash scripts/gen-certs.sh your.domain.com
+# Writes nginx/certs/fullchain.pem and nginx/certs/privkey.pem
+docker compose kill -s HUP nginx
+```
 
 ---
 

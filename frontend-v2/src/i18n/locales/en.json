@@ -146,7 +146,27 @@
       "delete": "Delete"
     },
     "home": "Home",
-    "loading": "Loading…"
+    "loading": "Loading…",
+    "formCollection": {
+      "title": "Manager form collection",
+      "desc": "Ask managers to submit a form for this campaign, then keep the ones you want to use.",
+      "requestLabel": "Request a form from managers",
+      "selectManagers": "Select the managers to request from.",
+      "requestBtn": "Request ({{count}})",
+      "noManagers": "All managers have already been requested.",
+      "member": "Manager #{{id}}",
+      "submittedForm": "Submitted form: {{title}}",
+      "status": {
+        "pending": "Pending",
+        "submitted": "Submitted",
+        "accepted": "Kept",
+        "declined": "Declined"
+      },
+      "cancel": "Cancel",
+      "accept": "Keep",
+      "decline": "Discard",
+      "empty": "No form request for this campaign."
+    }
   },
   "evaluations": {
     "title": "Evaluations",
@@ -1200,6 +1220,17 @@
         "Move each action forward (\"Start\", then \"Complete\") to track progress.",
         "Sign the PDI with \"Sign\" once the plan is agreed on both sides."
       ]
+    }
+  },
+  "managerTodo": {
+    "formRequests": {
+      "title": "Forms requested by HR",
+      "desc": "HR is asking you to submit one of your forms for these campaigns.",
+      "choose": "Choose a form…",
+      "submit": "Submit",
+      "awaiting": "Awaiting HR validation",
+      "createNew": "Create a new form",
+      "empty": "You don't have any forms yet. Create one so you can submit it."
     }
   }
 }

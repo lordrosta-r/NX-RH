@@ -50,6 +50,31 @@ export interface TargetScope {
   ids: string[];
 }
 
+/** Une demande de formulaire adressée à un manager pour une campagne. */
+export interface CampaignFormRequest {
+  managerId:
+    | string
+    | { _id: string; firstName?: string; lastName?: string; email?: string };
+  status: "pending" | "submitted" | "accepted" | "declined";
+  formId?:
+    | string
+    | { _id: string; title?: string; formType?: string }
+    | null;
+  requestedAt?: string;
+  submittedAt?: string | null;
+  decidedAt?: string | null;
+}
+
+/** Une demande de formulaire vue côté manager (GET /campaigns/mine/form-requests). */
+export interface MyFormRequest {
+  campaignId: string;
+  campaignName: string;
+  campaignStatus: CampaignStatus;
+  status: "pending" | "submitted" | "accepted" | "declined";
+  formId?: string | null;
+  requestedAt?: string;
+}
+
 export interface Campaign {
   id: string;
   _id?: string;
@@ -77,6 +102,8 @@ export interface Campaign {
   targetUserIds?: string[];
   targetGroupIds?: string[];
   formIds?: string[];
+  /** Collecte des formulaires des managers (campagne brouillon). */
+  formRequests?: CampaignFormRequest[];
   completionPct?: number;
   stats?: {
     total: number;

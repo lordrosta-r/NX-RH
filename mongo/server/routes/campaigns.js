@@ -276,6 +276,89 @@ router.delete('/:id/forms/:formId', async (req, res, next) => {
   }
 })
 
+// ── Collecte des formulaires des managers ───────────────────────────────────────
+
+// GET /api/campaigns/mine/form-requests — Demandes de formulaire ciblant le manager
+// connecté. Doit être déclaré AVANT /:id pour ne pas être capté par celui-ci.
+router.get('/mine/form-requests', async (req, res, next) => {
+  try {
+    const list = await campaignService.getMyFormRequests(req.user.id)
+    apiResponse.success(res, list)
+  } catch (err) {
+    next(err)
+  }
+})
+
+// POST /api/campaigns/:id/form-requests — RH demande des formulaires à des managers
+router.post('/:id/form-requests', async (req, res, next) => {
+  try {
+    if (!ADMIN_ROLES.includes(req.user.role)) {
+      return res.status(403).json({ error: 'Réservé aux admins et RH' })
+    }
+    const result = await campaignService.requestForms(req.params.id, req.body.managerIds)
+    AuditLog.create({
+      userId: req.user.id, userRole: req.user.role,
+      action: 'campaign_forms_requested', targetType: 'Campaign', targetId: result.campaignId,
+      meta: { managerIds: result.requested },
+    }).catch(() => {})
+    apiResponse.created(res, result)
+  } catch (err) {
+    next(err)
+  }
+})
+
+// DELETE /api/campaigns/:id/form-requests/:managerId — RH annule une demande
+router.delete('/:id/form-requests/:managerId', async (req, res, next) => {
+  try {
+    if (!ADMIN_ROLES.includes(req.user.role)) {
+      return res.status(403).json({ error: 'Réservé aux admins et RH' })
+    }
+    const result = await campaignService.cancelFormRequest(req.params.id, req.params.managerId)
+    res.status(204).end()
+    void result
+  } catch (err) {
+    next(err)
+  }
+})
+
+// POST /api/campaigns/:id/form-requests/submit — Le manager attache un de ses formulaires
+router.post('/:id/form-requests/submit', async (req, res, next) => {
+  try {
+    if (!MANAGER_ROLES.includes(req.user.role)) {
+      return res.status(403).json({ error: 'Réservé aux managers' })
+    }
+    const result = await campaignService.submitFormRequest(req.params.id, req.body.formId, req.user.id)
+    AuditLog.create({
+      userId: req.user.id, userRole: req.user.role,
+      action: 'campaign_form_submitted', targetType: 'Campaign', targetId: result.campaignId,
+      meta: { formId: result.formId },
+    }).catch(() => {})
+    apiResponse.success(res, result)
+  } catch (err) {
+    next(err)
+  }
+})
+
+// PATCH /api/campaigns/:id/form-requests/:managerId/decision — RH accepte/refuse
+router.patch('/:id/form-requests/:managerId/decision', async (req, res, next) => {
+  try {
+    if (!ADMIN_ROLES.includes(req.user.role)) {
+      return res.status(403).json({ error: 'Réservé aux admins et RH' })
+    }
+    const result = await campaignService.decideFormRequest(
+      req.params.id, req.params.managerId, req.body.decision,
+    )
+    AuditLog.create({
+      userId: req.user.id, userRole: req.user.role,
+      action: 'campaign_form_decision', targetType: 'Campaign', targetId: result.campaignId,
+      meta: { managerId: req.params.managerId, decision: result.status },
+    }).catch(() => {})
+    apiResponse.success(res, result)
+  } catch (err) {
+    next(err)
+  }
+})
+
 // GET /api/campaigns/:id/analytics — Agrégats analytiques (admin/hr)
 router.get('/:id/analytics', async (req, res, next) => {
   try {

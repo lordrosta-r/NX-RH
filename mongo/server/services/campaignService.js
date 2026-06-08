@@ -223,6 +223,8 @@ async function getCampaignById(id, user) {
 
   const campaign = await Campaign.findById(id)
     .populate('createdBy', 'firstName lastName email')
+    .populate('formRequests.managerId', 'firstName lastName email')
+    .populate('formRequests.formId', 'title formType')
     .lean()
 
   if (!campaign) throw makeError('Campagne introuvable', 404)
@@ -488,6 +490,204 @@ async function unlinkForm(campaignId, formId) {
   return { campaignId: campaign._id, formId }
 }
 
+// ── Collecte des formulaires des managers ───────────────────────────────────────
+
+const { User } = require('../models')
+const inApp     = require('./inAppNotificationService')
+
+/**
+ * RH demande à des managers de soumettre un formulaire pour la campagne (draft).
+ * Crée des requêtes 'pending' (dédoublonnées) et notifie chaque manager.
+ * @returns {Promise<{ campaignId, requested: string[] }>}
+ */
+async function requestForms(campaignId, managerIds) {
+  if (!mongoose.isValidObjectId(campaignId)) throw makeError('ID de campagne invalide', 400)
+  if (!Array.isArray(managerIds) || managerIds.length === 0) {
+    throw makeError('managerIds est requis (tableau non vide)', 400)
+  }
+  // map(String) + typeof guard = barrière anti-injection NoSQL ($in).
+  const ids = [...new Set(managerIds.map(String))]
+  if (!ids.every(id => typeof id === 'string' && mongoose.isValidObjectId(id))) {
+    throw makeError('managerId invalide', 400)
+  }
+
+  const campaign = await Campaign.findById(campaignId)
+  if (!campaign) throw makeError('Campagne introuvable', 404)
+  if (campaign.status !== 'draft') throw makeError('La collecte n\'est possible que sur une campagne en brouillon', 409)
+
+  const managers = await User.find({ _id: { $in: ids }, role: 'manager' }, 'firstName lastName').lean()
+  if (managers.length !== ids.length) throw makeError('Un ou plusieurs managers sont introuvables', 404)
+
+  const existing = new Set(campaign.formRequests.map(r => r.managerId.toString()))
+  const added = []
+  for (const id of ids) {
+    if (existing.has(id)) continue
+    campaign.formRequests.push({ managerId: id, status: 'pending', requestedAt: new Date() })
+    added.push(id)
+  }
+  await campaign.save()
+
+  // Notifier les managers nouvellement sollicités (best-effort).
+  for (const id of added) {
+    inApp.createNotification({
+      userId:  id,
+      type:    'campaign_form_request',
+      title:   'Formulaire attendu',
+      message: `La RH attend votre formulaire pour la campagne « ${campaign.name} ».`,
+      link:    `/forms?campaign=${campaign._id}`,
+      data:    { campaignId: campaign._id.toString() },
+      priority: 'high',
+    }).catch(() => {})
+  }
+
+  return { campaignId: campaign._id, requested: added }
+}
+
+/**
+ * RH annule une demande de formulaire (campagne draft).
+ */
+async function cancelFormRequest(campaignId, managerId) {
+  if (!mongoose.isValidObjectId(campaignId) || !mongoose.isValidObjectId(managerId)) {
+    throw makeError('ID invalide', 400)
+  }
+  const campaign = await Campaign.findById(campaignId)
+  if (!campaign) throw makeError('Campagne introuvable', 404)
+
+  const idx = campaign.formRequests.findIndex(r => r.managerId.toString() === managerId)
+  if (idx === -1) throw makeError('Demande introuvable', 404)
+
+  campaign.formRequests.splice(idx, 1)
+  await campaign.save()
+  return { campaignId: campaign._id, managerId }
+}
+
+/**
+ * Le manager attache un de SES formulaires à une demande qui le cible.
+ * @param {string} userId — manager authentifié (req.user.id)
+ */
+async function submitFormRequest(campaignId, formId, userId) {
+  // typeof guards = barrières anti-injection NoSQL (rejettent les objets type {$ne:…}).
+  if (typeof campaignId !== 'string' || !mongoose.isValidObjectId(campaignId)) {
+    throw makeError('ID de campagne invalide', 400)
+  }
+  if (typeof formId !== 'string' || !mongoose.isValidObjectId(formId)) {
+    throw makeError('formId requis', 400)
+  }
+
+  const [campaign, form] = await Promise.all([
+    Campaign.findById(campaignId),
+    Form.findById(formId).lean(),
+  ])
+  if (!campaign) throw makeError('Campagne introuvable', 404)
+  if (!form)     throw makeError('Formulaire introuvable', 404)
+
+  // Le formulaire doit appartenir au manager qui le soumet (RBAC anti-IDOR).
+  if (form.createdBy.toString() !== userId) {
+    throw makeError('Vous ne pouvez soumettre que vos propres formulaires', 403)
+  }
+
+  const request = campaign.formRequests.find(r => r.managerId.toString() === userId)
+  if (!request) throw makeError('Aucune demande de formulaire ne vous cible sur cette campagne', 403)
+  if (request.status === 'accepted') throw makeError('Votre formulaire a déjà été validé par la RH', 409)
+
+  request.formId     = form._id
+  request.status     = 'submitted'
+  request.submittedAt = new Date()
+  await campaign.save()
+
+  // Notifier la RH créatrice de la campagne.
+  const manager = await User.findById(userId, 'firstName lastName').lean()
+  const who = manager ? `${manager.firstName} ${manager.lastName}`.trim() : 'Un manager'
+  inApp.createNotification({
+    userId:  campaign.createdBy,
+    type:    'campaign_form_submitted',
+    title:   'Formulaire soumis',
+    message: `${who} a soumis « ${form.title} » pour la campagne « ${campaign.name} ».`,
+    link:    `/campaigns/${campaign._id}/edit`,
+    data:    { campaignId: campaign._id.toString(), formId: form._id.toString() },
+    priority: 'medium',
+  }).catch(() => {})
+
+  return { campaignId: campaign._id, formId: form._id, status: request.status }
+}
+
+/**
+ * RH accepte ou refuse un formulaire soumis. 'accepted' → ajoute à formIds.
+ */
+async function decideFormRequest(campaignId, managerId, decision) {
+  if (!mongoose.isValidObjectId(campaignId) || !mongoose.isValidObjectId(managerId)) {
+    throw makeError('ID invalide', 400)
+  }
+  if (!['accepted', 'declined'].includes(decision)) throw makeError('decision invalide', 400)
+
+  const campaign = await Campaign.findById(campaignId).populate('formIds', 'formType')
+  if (!campaign) throw makeError('Campagne introuvable', 404)
+
+  const request = campaign.formRequests.find(r => r.managerId.toString() === managerId)
+  if (!request) throw makeError('Demande introuvable', 404)
+  if (request.status === 'pending' || !request.formId) {
+    throw makeError('Ce manager n\'a pas encore soumis de formulaire', 409)
+  }
+
+  if (decision === 'accepted') {
+    const form = await Form.findById(request.formId).lean()
+    if (!form) throw makeError('Formulaire soumis introuvable', 404)
+    const already = campaign.formIds.some(f => f._id.toString() === request.formId.toString())
+    const dupType = campaign.formIds.some(f => f.formType === form.formType)
+    if (!already && dupType) {
+      throw makeError(`Un formulaire de type '${form.formType}' est déjà lié à cette campagne`, 409)
+    }
+    if (!already) campaign.formIds.push(request.formId)
+  }
+
+  request.status    = decision
+  request.decidedAt = new Date()
+  await campaign.save()
+
+  // Notifier le manager de la décision.
+  inApp.createNotification({
+    userId:  managerId,
+    type:    'campaign_form_decision',
+    title:   decision === 'accepted' ? 'Formulaire retenu' : 'Formulaire non retenu',
+    message: decision === 'accepted'
+      ? `Votre formulaire a été retenu pour la campagne « ${campaign.name} ».`
+      : `Votre formulaire n'a pas été retenu pour la campagne « ${campaign.name} ».`,
+    link:    `/campaigns/${campaign._id}`,
+    data:    { campaignId: campaign._id.toString() },
+    priority: 'medium',
+  }).catch(() => {})
+
+  return { campaignId: campaign._id, managerId, status: request.status }
+}
+
+/**
+ * Demandes de formulaire ciblant le manager authentifié (campagnes draft).
+ * @returns {Promise<Array<{ campaignId, campaignName, status, formId, requestedAt }>>}
+ */
+async function getMyFormRequests(userId) {
+  if (!mongoose.isValidObjectId(userId)) throw makeError('ID invalide', 400)
+
+  const campaigns = await Campaign.find(
+    { 'formRequests.managerId': userId },
+    'name status formRequests',
+  ).lean()
+
+  const out = []
+  for (const c of campaigns) {
+    const req = (c.formRequests || []).find(r => r.managerId.toString() === userId.toString())
+    if (!req) continue
+    out.push({
+      campaignId:   c._id,
+      campaignName: c.name,
+      campaignStatus: c.status,
+      status:       req.status,
+      formId:       req.formId,
+      requestedAt:  req.requestedAt,
+    })
+  }
+  return out
+}
+
 // ── Analytics ─────────────────────────────────────────────────────────────────
 
 /**
@@ -592,5 +792,10 @@ module.exports = {
   cloneCampaign,
   linkForm,
   unlinkForm,
+  requestForms,
+  cancelFormRequest,
+  submitFormRequest,
+  decideFormRequest,
+  getMyFormRequests,
   getCampaignAnalytics,
 }

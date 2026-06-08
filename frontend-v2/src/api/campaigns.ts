@@ -1,5 +1,5 @@
 import client from './client'
-import type { Campaign, PaginatedResponse, PaginationParams, CampaignAnalytics, ItemResponse, MyFormRequest } from '../types'
+import type { Campaign, PaginatedResponse, PaginationParams, CampaignAnalytics, ItemResponse, MyFormRequest, CampaignFormCollectionSummary } from '../types'
 
 export interface CampaignFilters extends PaginationParams {
   status?: string
@@ -73,4 +73,10 @@ export const campaignsApi = {
   // Manager : demandes de formulaire qui le ciblent.
   getMyFormRequests: () =>
     client.get<{ data: MyFormRequest[] }>('/api/campaigns/mine/form-requests'),
+
+  // RH/Admin : aperçu des collectes de formulaires en cours (dashboard).
+  getFormRequestsOverview: () =>
+    client.get<{ data: CampaignFormCollectionSummary[] }>(
+      '/api/campaigns/form-requests/overview',
+    ),
 }

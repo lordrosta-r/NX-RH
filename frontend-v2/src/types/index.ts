@@ -65,6 +65,17 @@ export interface CampaignFormRequest {
   decidedAt?: string | null;
 }
 
+/** Aperçu RH/Admin d'une collecte de formulaires (GET /campaigns/form-requests/overview). */
+export interface CampaignFormCollectionSummary {
+  campaignId: string;
+  campaignName: string;
+  total: number;
+  pending: number;
+  submitted: number;
+  accepted: number;
+  declined: number;
+}
+
 /** Une demande de formulaire vue côté manager (GET /campaigns/mine/form-requests). */
 export interface MyFormRequest {
   campaignId: string;

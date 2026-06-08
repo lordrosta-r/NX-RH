@@ -26,6 +26,7 @@ import {
   Callout,
   Bar,
 } from "../components/shell";
+import { CampaignCollectionWidget } from "../components/campaigns";
 
 // ─── Widget de complétude de la configuration (onboarding admin) ───────────────
 
@@ -269,6 +270,9 @@ export default function DashboardAdminPage() {
 
       {/* Complétude de la configuration (masqué une fois 100%) */}
       <SetupCompletenessCard />
+
+      {/* Collecte des formulaires des managers (workflow campagne) */}
+      <CampaignCollectionWidget />
 
       {/* Actions requises */}
       <Tile className="mb-6">

@@ -289,6 +289,19 @@ router.get('/mine/form-requests', async (req, res, next) => {
   }
 })
 
+// GET /api/campaigns/form-requests/overview — Aperçu RH/Admin des collectes en cours
+router.get('/form-requests/overview', async (req, res, next) => {
+  try {
+    if (!ADMIN_ROLES.includes(req.user.role)) {
+      return res.status(403).json({ error: 'Réservé aux admins et RH' })
+    }
+    const data = await campaignService.getFormRequestsOverview()
+    apiResponse.success(res, data)
+  } catch (err) {
+    next(err)
+  }
+})
+
 // POST /api/campaigns/:id/form-requests — RH demande des formulaires à des managers
 router.post('/:id/form-requests', async (req, res, next) => {
   try {

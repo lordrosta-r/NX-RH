@@ -129,6 +129,11 @@ export function getPerspectiveNav(
     href: "/admin",
   };
   const pilotageMore: MoreItem[] = [
+    {
+      label: t("nav.objectives"),
+      href: "/objectives",
+      group: t("nav.evaluations"),
+    },
     { label: t("nav.calendar"), href: "/events", group: t("nav.pilotage") },
     { label: t("nav.resources"), href: "/documents", group: t("nav.pilotage") },
     { label: t("nav.analytics"), href: "/analytics", group: t("nav.pilotage") },

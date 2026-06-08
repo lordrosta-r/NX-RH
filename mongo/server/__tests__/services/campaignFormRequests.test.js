@@ -29,6 +29,7 @@ const {
   submitFormRequest,
   decideFormRequest,
   getMyFormRequests,
+  getFormRequestsOverview,
 } = require('../../services/campaignService')
 
 const CAMP   = '507f1f77bcf86cd799439011'
@@ -197,6 +198,29 @@ describe('campaignService — getMyFormRequests()', () => {
 
   test('ID invalide → 400', async () => {
     await expect(getMyFormRequests('pas-un-id')).rejects.toMatchObject({ status: 400 })
+  })
+})
+
+// ── getFormRequestsOverview ───────────────────────────────────────────────────
+describe('campaignService — getFormRequestsOverview()', () => {
+  test('agrège les décomptes par statut des campagnes en collecte', async () => {
+    Campaign.find.mockReturnValue(leanChain([
+      {
+        _id: CAMP, name: 'Campagne 2026',
+        formRequests: [
+          { managerId: MGR_A, status: 'submitted' },
+          { managerId: MGR_B, status: 'pending' },
+        ],
+      },
+    ]))
+
+    const out = await getFormRequestsOverview()
+
+    expect(out).toHaveLength(1)
+    expect(out[0]).toMatchObject({
+      campaignId: CAMP, campaignName: 'Campagne 2026',
+      total: 2, submitted: 1, pending: 1, accepted: 0, declined: 0,
+    })
   })
 
   test('les fixtures utilisent des ObjectId valides', () => {

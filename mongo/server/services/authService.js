@@ -61,7 +61,8 @@ async function refreshAccessToken(refreshToken) {
     )
     await User.updateOne(
       { _id: user._id },
-      { $push: { refreshTokens: tokens.refreshToken } },
+      // Plafonne le tableau aux 20 derniers tokens (anti-gonflement du document).
+      { $push: { refreshTokens: { $each: [tokens.refreshToken], $slice: -20 } } },
     )
     return tokens
   } catch (err) {
@@ -116,9 +117,11 @@ function issueTokens(user) {
   const payload = { id: user._id, email: user.email, role: user.role, firstName: user.firstName, lastName: user.lastName }
   const { accessToken, refreshToken } = generateTokens(payload)
 
-  // Enregistre le refresh token pour pouvoir l'invalider au logout
-  User.updateOne({ _id: user._id }, { $push: { refreshTokens: refreshToken } })
-    .catch(err => logger.error('[auth] refreshToken push failed', { error: err.message }))
+  // Enregistre le refresh token (plafonné aux 20 derniers) pour pouvoir l'invalider au logout
+  User.updateOne(
+    { _id: user._id },
+    { $push: { refreshTokens: { $each: [refreshToken], $slice: -20 } } },
+  ).catch(err => logger.error('[auth] refreshToken push failed', { error: err.message }))
 
   return { user, accessToken, refreshToken }
 }

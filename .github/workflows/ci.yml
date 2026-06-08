@@ -39,9 +39,6 @@ jobs:
       - name: Install backend dependencies
         run: npm ci
 
-      - name: Copy test env
-        run: cp .env.test .env
-
       - name: Run backend tests
         run: npm test -- --coverage
         env:

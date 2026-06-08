@@ -10,6 +10,15 @@ import CampaignDetailPage from '../pages/CampaignDetailPage'
 
 import type { Campaign } from '../types'
 
+// Auto-confirm toutes les boîtes de dialogue destructrices (archive, delete)
+vi.mock('../contexts/ConfirmContext', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../contexts/ConfirmContext')>()
+  return {
+    ...actual,
+    useConfirm: () => vi.fn((): Promise<boolean> => Promise.resolve(true)),
+  }
+})
+
 const campaignFixtures: Campaign[] = [
   {
     id: 'camp-draft',
@@ -84,16 +93,16 @@ describe('CampaignsPage', () => {
     renderWithProviders(<CampaignsPage />, { user: makeUser({ role: 'admin' }) })
 
     await waitFor(() => {
-      const table = screen.getByRole('table')
-      expect(within(table).getAllByRole('link', { name: 'Campagne Active' })).toHaveLength(1)
-      expect(within(table).getAllByRole('link', { name: 'Campagne Brouillon' })).toHaveLength(1)
+      const list = screen.getByTestId('campaigns-list')
+      expect(within(list).getAllByRole('link', { name: 'Campagne Active' })).toHaveLength(1)
+      expect(within(list).getAllByRole('link', { name: 'Campagne Brouillon' })).toHaveLength(1)
     })
 
     await userEvent.click(screen.getByRole('button', { name: 'Brouillon' }))
     await waitFor(() => {
-      const table = screen.getByRole('table')
-      expect(within(table).getAllByRole('link', { name: 'Campagne Brouillon' })).toHaveLength(1)
-      expect(within(table).queryAllByRole('link', { name: 'Campagne Active' })).toHaveLength(0)
+      const list = screen.getByTestId('campaigns-list')
+      expect(within(list).getAllByRole('link', { name: 'Campagne Brouillon' })).toHaveLength(1)
+      expect(within(list).queryAllByRole('link', { name: 'Campagne Active' })).toHaveLength(0)
     })
 
     await userEvent.click(screen.getByRole('button', { name: 'Tous' }))
@@ -102,9 +111,9 @@ describe('CampaignsPage', () => {
     await userEvent.type(search, 'active')
 
     await waitFor(() => {
-      const table = screen.getByRole('table')
-      expect(within(table).getAllByRole('link', { name: 'Campagne Active' })).toHaveLength(1)
-      expect(within(table).queryAllByRole('link', { name: 'Campagne Brouillon' })).toHaveLength(0)
+      const list = screen.getByTestId('campaigns-list')
+      expect(within(list).getAllByRole('link', { name: 'Campagne Active' })).toHaveLength(1)
+      expect(within(list).queryAllByRole('link', { name: 'Campagne Brouillon' })).toHaveLength(0)
     })
   })
 
@@ -112,29 +121,30 @@ describe('CampaignsPage', () => {
     server.use(campaignListHandler([campaignFixtures[1]]))
 
     renderWithProviders(<CampaignsPage />, { user: makeUser({ role: 'employee' }) })
-    await screen.findByRole('table')
-    expect(screen.queryByRole('link', { name: 'Nouvelle campagne' })).not.toBeInTheDocument()
+    await screen.findByTestId('campaigns-list')
+    expect(screen.queryByRole('link', { name: /Nouvelle campagne/i })).not.toBeInTheDocument()
   })
 
   it('affiche le bouton Nouvelle campagne pour hr', async () => {
     server.use(campaignListHandler([campaignFixtures[1]]))
 
     renderWithProviders(<CampaignsPage />, { user: makeUser({ role: 'hr' }) })
-    await screen.findByRole('table')
-    expect(screen.getByRole('link', { name: 'Nouvelle campagne' })).toBeInTheDocument()
+    await screen.findByTestId('campaigns-list')
+    expect(screen.getByRole('link', { name: /Nouvelle campagne/i })).toBeInTheDocument()
   })
 
   it('propose les actions selon le statut', async () => {
     server.use(campaignListHandler(campaignFixtures))
 
     renderWithProviders(<CampaignsPage />, { user: makeUser({ role: 'admin' }) })
-    await screen.findByRole('table')
+    // wait for data to load
+    await screen.findByRole('link', { name: 'Campagne Active' })
 
     const openMenu = async (name: string) => {
-      const table = screen.getByRole('table')
-      const row = within(table).getByText(name).closest('tr')
+      const list = screen.getByTestId('campaigns-list')
+      const row = within(list).getByText(name).closest('.tbl-row')
       expect(row).toBeTruthy()
-      await userEvent.click(within(row as HTMLTableRowElement).getByRole('button'))
+      await userEvent.click(within(row as HTMLElement).getByRole('button'))
     }
 
     await openMenu('Campagne Active')
@@ -178,13 +188,14 @@ describe('CampaignsPage', () => {
     )
 
     renderWithProviders(<CampaignsPage />, { user: makeUser({ role: 'admin' }) })
-    await screen.findByRole('table')
+    // wait for data to load
+    await screen.findByRole('link', { name: 'Campagne Active' })
 
     const openMenu = async (name: string) => {
-      const table = screen.getByRole('table')
-      const row = within(table).getByText(name).closest('tr')
+      const list = screen.getByTestId('campaigns-list')
+      const row = within(list).getByText(name).closest('.tbl-row')
       expect(row).toBeTruthy()
-      await userEvent.click(within(row as HTMLTableRowElement).getByRole('button'))
+      await userEvent.click(within(row as HTMLElement).getByRole('button'))
     }
 
     await openMenu('Campagne Active')
@@ -215,13 +226,15 @@ describe('CampaignDetailPage', () => {
     server.use(
       http.get('http://localhost:5050/api/campaigns/:id', ({ params }) =>
         HttpResponse.json({
-          id: params.id as string,
-          name: 'Campagne Aperçu',
-          status: 'active',
-          startDate: '2025-01-01',
-          endDate: '2025-03-31',
-          createdAt: '2024-12-01T00:00:00Z',
-          formIds: ['form-1'],
+          data: {
+            id: params.id as string,
+            name: 'Campagne Aperçu',
+            status: 'active',
+            startDate: '2025-01-01',
+            endDate: '2025-03-31',
+            createdAt: '2024-12-01T00:00:00Z',
+            formIds: ['form-1'],
+          },
         }))
     )
 
@@ -252,11 +265,13 @@ describe('CampaignDetailPage', () => {
     server.use(
       http.get('http://localhost:5050/api/campaigns/:id', ({ params }) =>
         HttpResponse.json({
-          id: params.id as string,
-          name: `Campagne ${status}`,
-          status,
-          startDate: '2025-01-01',
-          endDate: '2025-03-31',
+          data: {
+            id: params.id as string,
+            name: `Campagne ${status}`,
+            status,
+            startDate: '2025-01-01',
+            endDate: '2025-03-31',
+          },
         })),
       http.post(`http://localhost:5050/api/campaigns/:id/${action}`, ({ params }) => {
         called(params.id as string)

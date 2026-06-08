@@ -26,7 +26,7 @@ jobs:
         run: cd frontend-v2 && npm ci && npx tsc --noEmit
 
       - name: Backend tests
-        run: cd mongo/server && npm ci && npm test -- --passWithNoTests
+        run: cd mongo/server && npm ci && npm test
         env:
           NODE_ENV: test
           JWT_SECRET: test_jwt_secret_for_ci_only

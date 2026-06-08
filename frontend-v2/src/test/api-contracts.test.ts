@@ -548,11 +548,11 @@ describe('API contracts', () => {
       })
     })
 
-    it('changeStatus appelle PATCH /api/offboarding/off-1/status', async () => {
+    it('changeStatus appelle PATCH /api/offboarding/off-1', async () => {
       let capturedBody: unknown
 
       server.use(
-        http.patch('http://localhost:5050/api/offboarding/:id/status', async ({ request }) => {
+        http.patch('http://localhost:5050/api/offboarding/:id', async ({ request }) => {
           capturedBody = await request.json()
           return HttpResponse.json({ id: 'off-1' })
         })

@@ -11,6 +11,7 @@ import {
 } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthContext } from '../contexts/AuthContext'
+import { PerspectiveProvider } from '../contexts/PerspectiveContext'
 import { authApi } from '../api/auth'
 import { server } from './msw/server'
 import { makeUser } from './utils'
@@ -221,7 +222,7 @@ describe('Auth flow', () => {
     expect(screen.getByText(/zone protégée/i)).toBeInTheDocument()
   })
 
-  it('AuthGuard redirige vers / si rôle insuffisant', async () => {
+  it('AuthGuard redirige vers /unauthorized si rôle insuffisant', async () => {
     render(
       <QueryClientProvider client={createQueryClient()}>
         <MemoryRouter initialEntries={['/admin']}>
@@ -235,14 +236,14 @@ describe('Auth flow', () => {
                   </AuthGuard>
                 }
               />
-              <Route path="/" element={<div>Tableau de bord</div>} />
+              <Route path="unauthorized" element={<div>Accès non autorisé</div>} />
             </Routes>
           </TestAuthShell>
         </MemoryRouter>
       </QueryClientProvider>,
     )
 
-    await waitFor(() => expect(screen.getByText(/tableau de bord/i)).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByText(/accès non autorisé/i)).toBeInTheDocument())
     expect(screen.queryByText(/admin only/i)).not.toBeInTheDocument()
   })
 
@@ -260,10 +261,12 @@ describe('Auth flow', () => {
       <QueryClientProvider client={createQueryClient()}>
         <MemoryRouter initialEntries={['/']}>
           <TestAuthShell initialUser={makeUser()}>
-            <Routes>
-              <Route path="/" element={<Navbar />} />
-              <Route path="/login" element={<div>Connexion</div>} />
-            </Routes>
+            <PerspectiveProvider>
+              <Routes>
+                <Route path="/" element={<Navbar />} />
+                <Route path="/login" element={<div>Connexion</div>} />
+              </Routes>
+            </PerspectiveProvider>
           </TestAuthShell>
         </MemoryRouter>
       </QueryClientProvider>,

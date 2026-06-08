@@ -1165,6 +1165,41 @@
         "Track progress and prepare next year's review.",
         "Objectives are set during the interview (the 'Objectives for next year' section)."
       ]
+    },
+    "you": "You",
+    "progress": {
+      "label": "{{achieved}} / {{total}} achieved"
+    },
+    "update": {
+      "add": "Add a key point / progress update",
+      "note": "Key point / update",
+      "notePlaceholder": "Where do you stand on this objective?",
+      "comment": "Comment (optional)",
+      "commentPlaceholder": "Details, context, next steps…",
+      "submit": "Post",
+      "error": "Could not save the update. Please try again.",
+      "noDate": "Unknown date"
+    }
+  },
+  "pdi": {
+    "guide": {
+      "title": "How does the Follow-up (PDI) work?",
+      "steps": [
+        "A PDI (Individual Development Plan) gathers your development objectives and the concrete actions to reach them over a given period.",
+        "Open a PDI to review its objectives, then click \"Edit\" to adjust them (one objective per line).",
+        "Add development actions with \"Add an action\": title, type (training, coaching, project…), target date and description.",
+        "Track each action's progress with \"Start\" then \"Complete\"; the overall progress updates automatically.",
+        "When the plan suits you, sign it with the \"Sign\" button; the manager and the employee each sign on their side."
+      ]
+    },
+    "guideDetail": {
+      "title": "Filling in this PDI",
+      "steps": [
+        "Edit the development objectives (\"Edit\" button, one objective per line).",
+        "Add the actions to carry out with \"Add an action\": title, type, target date, description.",
+        "Move each action forward (\"Start\", then \"Complete\") to track progress.",
+        "Sign the PDI with \"Sign\" once the plan is agreed on both sides."
+      ]
     }
   }
 }

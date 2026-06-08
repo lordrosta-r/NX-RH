@@ -397,7 +397,7 @@ export const router = createBrowserRouter([
       {
         path: "/objectives",
         element: (
-          <AuthGuard roles={["manager", "hr", "admin"]}>
+          <AuthGuard roles={["employee", "manager", "hr", "admin"]}>
             <S>
               <ObjectivesPage />
             </S>

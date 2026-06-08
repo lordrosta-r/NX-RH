@@ -1,11 +1,14 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePerspective } from "@/contexts/PerspectiveContext";
 import api from "@/api/client";
 import { queryKeys } from "@/lib/queryKeys";
 import { PlusCircle, ClipboardList, ChevronRight } from "lucide-react";
 import { PageHead, Tile, Badge, Bar } from "@/components/shell";
+import PageGuide from "@/components/shared/PageGuide";
 import Breadcrumbs from "@/components/ui/Breadcrumbs";
 
 type PDIStatus = "draft" | "active" | "completed" | "archived";
@@ -56,19 +59,27 @@ const EMPTY_FORM = {
 };
 
 export default function PDIPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
+  const { perspective } = usePerspective();
   const qc = useQueryClient();
   const canCreate = user && ["admin", "hr", "manager"].includes(user.role);
+
+  // « Mon espace › Suivi » (perspective "me") : seulement MES propres PDIs.
+  // Vue métier/équipe (perspective "work") : l'équipe + les miens.
+  const scope = perspective === "me" ? "mine" : undefined;
 
   const [statusFilter, setStatusFilter] = useState("");
   const [showNewForm, setShowNewForm] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
 
   const { data, isLoading } = useQuery({
-    queryKey: queryKeys.pdi.list({ status: statusFilter }),
+    queryKey: queryKeys.pdi.list({ status: statusFilter, scope }),
     queryFn: () =>
       api
-        .get("/api/pdi", { params: { status: statusFilter || undefined } })
+        .get("/api/pdi", {
+          params: { status: statusFilter || undefined, scope },
+        })
         .then((r) => r.data),
   });
 
@@ -107,6 +118,13 @@ export default function PDIPage() {
           { label: "Accueil", href: "/" },
           { label: "PDI" },
         ]}
+      />
+
+      <PageGuide
+        id="pdi"
+        title={t("pdi.guide.title")}
+        color="blue"
+        steps={t("pdi.guide.steps", { returnObjects: true }) as string[]}
       />
 
       <PageHead

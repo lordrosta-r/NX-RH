@@ -1165,6 +1165,41 @@
         "Suivez l'avancement et préparez le bilan de l'année suivante.",
         "Les objectifs se définissent pendant l'entretien (section « Objectifs pour l'année suivante »)."
       ]
+    },
+    "you": "Vous",
+    "progress": {
+      "label": "{{achieved}} / {{total}} atteints"
+    },
+    "update": {
+      "add": "Ajouter un point clé / une mise à jour",
+      "note": "Point clé / mise à jour",
+      "notePlaceholder": "Où en êtes-vous sur cet objectif ?",
+      "comment": "Commentaire (optionnel)",
+      "commentPlaceholder": "Précisions, contexte, prochaines étapes…",
+      "submit": "Publier",
+      "error": "Impossible d'enregistrer la mise à jour. Réessayez.",
+      "noDate": "Date inconnue"
+    }
+  },
+  "pdi": {
+    "guide": {
+      "title": "Comment fonctionne le Suivi (PDI) ?",
+      "steps": [
+        "Un PDI (Plan de Développement Individuel) regroupe vos objectifs de développement et les actions concrètes pour les atteindre, sur une période donnée.",
+        "Ouvrez un PDI pour consulter ses objectifs, puis cliquez sur « Éditer » pour les ajuster (un objectif par ligne).",
+        "Ajoutez des actions de développement avec « Ajouter une action » : titre, type (formation, coaching, projet…), date cible et description.",
+        "Suivez l'avancement de chaque action via « Démarrer » puis « Terminer » ; la progression globale se met à jour automatiquement.",
+        "Quand le plan vous convient, signez-le avec le bouton « Signer » ; le manager et le collaborateur signent chacun de leur côté."
+      ]
+    },
+    "guideDetail": {
+      "title": "Remplir ce PDI",
+      "steps": [
+        "Éditez les objectifs de développement (bouton « Éditer », un objectif par ligne).",
+        "Ajoutez les actions à mener avec « Ajouter une action » : titre, type, date cible, description.",
+        "Faites avancer chaque action (« Démarrer », puis « Terminer ») pour suivre la progression.",
+        "Signez le PDI avec « Signer » une fois le plan validé de part et d'autre."
+      ]
     }
   }
 }

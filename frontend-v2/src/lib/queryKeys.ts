@@ -50,6 +50,7 @@ export const queryKeys = {
   mobility: {
     all: ["mobility"] as const,
     lists: () => [...queryKeys.mobility.all, "list"] as const,
+    list: (filters: object) => [...queryKeys.mobility.lists(), filters] as const,
     stats: () => [...queryKeys.mobility.all, "stats"] as const,
     history: (employeeId: string) =>
       [...queryKeys.mobility.all, "history", employeeId] as const,

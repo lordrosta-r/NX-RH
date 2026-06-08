@@ -93,6 +93,9 @@ router.get('/team-objectives', async (req, res, next) => {
     const filter = {}
     if (role === 'manager') {
       filter.managerId = uid
+    } else if (role === 'employee') {
+      // L'évalué ne voit (et ne met à jour) que ses propres objectifs.
+      filter.evaluateeId = uid
     } else if (!['admin', 'hr'].includes(role)) {
       return res.status(403).json({ error: 'Accès refusé' })
     }
@@ -107,13 +110,84 @@ router.get('/team-objectives', async (req, res, next) => {
     const data = interviews.map(i => ({
       evaluatee: i.evaluateeId,
       campaign: i.campaignId,
-      nextYearObjectives: (i.nextYearObjectives || []).map(o => o.text).filter(Boolean),
+      // Objectifs N+1 avec leurs mises à jour d'avancement. On conserve l'index
+      // d'origine pour que l'évalué puisse cibler le bon objectif côté POST.
+      nextYearObjectives: (i.nextYearObjectives || []).map((o, index) => ({
+        index,
+        text: o.text || '',
+        updates: (o.updates || []).map(u => ({
+          note: u.note || '',
+          comment: u.comment || '',
+          at: u.at || null,
+        })),
+      })).filter(o => o.text),
       objectivesReview: i.objectivesReview || [],
       scheduledAt: i.scheduledAt || null,
     }))
 
     res.json({ data })
   } catch (err) {
+    next(err)
+  }
+})
+
+/**
+ * POST /api/interviews/objective-update — L'évalué poste une mise à jour
+ * d'avancement (point clé) sur l'un de SES objectifs N+1.
+ * body : { campaignId, evaluateeId, objectiveIndex, note, comment? }
+ *
+ * RBAC : seul l'évalué lui-même (ou admin) peut ajouter une mise à jour. Le
+ * manager/RH consulte en lecture seule via team-objectives.
+ */
+router.post('/objective-update', async (req, res, next) => {
+  try {
+    const { campaignId, evaluateeId, objectiveIndex, note, comment } = req.body
+
+    if (!campaignId || !mongoose.isValidObjectId(campaignId)) {
+      return res.status(400).json({ error: 'campaignId valide requis' })
+    }
+    if (!evaluateeId || !mongoose.isValidObjectId(evaluateeId)) {
+      return res.status(400).json({ error: 'evaluateeId valide requis' })
+    }
+    const idx = Number(objectiveIndex)
+    if (!Number.isInteger(idx) || idx < 0) {
+      return res.status(400).json({ error: 'objectiveIndex (entier >= 0) requis' })
+    }
+    if (!note || typeof note !== 'string' || note.trim().length === 0 || note.length > 2000) {
+      return res.status(400).json({ error: 'note requise (1 à 2000 caractères)' })
+    }
+    if (comment !== undefined && (typeof comment !== 'string' || comment.length > 2000)) {
+      return res.status(400).json({ error: 'comment invalide (max 2000 caractères)' })
+    }
+
+    // RBAC : uniquement l'évalué lui-même, ou un admin.
+    const role = req.user.role
+    const uid  = req.user.id.toString()
+    if (role !== 'admin' && uid !== evaluateeId.toString()) {
+      return res.status(403).json({ error: 'Accès refusé' })
+    }
+
+    const interview = await Interview.findOne({ campaignId, evaluateeId })
+    if (!interview) {
+      return res.status(404).json({ error: 'Entretien introuvable' })
+    }
+    if (!interview.nextYearObjectives || idx >= interview.nextYearObjectives.length) {
+      return res.status(404).json({ error: 'Objectif introuvable' })
+    }
+
+    const objective = interview.nextYearObjectives[idx]
+    if (!Array.isArray(objective.updates)) objective.updates = []
+    objective.updates.push({
+      note: note.trim(),
+      comment: (comment || '').trim(),
+      at: new Date(),
+    })
+    interview.markModified('nextYearObjectives')
+    await interview.save()
+
+    res.json({ ok: true, updates: objective.updates })
+  } catch (err) {
+    if (err.status) return res.status(err.status).json({ error: err.message })
     next(err)
   }
 })

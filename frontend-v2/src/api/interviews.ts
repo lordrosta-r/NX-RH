@@ -1,12 +1,32 @@
 import client from "./client";
 import type { Interview } from "../types";
 
+export interface ObjectiveUpdate {
+  note: string;
+  comment?: string;
+  at: string | null;
+}
+
+export interface TeamObjective {
+  index: number;
+  text: string;
+  updates: ObjectiveUpdate[];
+}
+
 export interface TeamObjectivesRow {
   evaluatee: { _id: string; firstName: string; lastName: string; email?: string } | null;
   campaign: { _id: string; name: string; startDate?: string } | null;
-  nextYearObjectives: string[];
+  nextYearObjectives: TeamObjective[];
   objectivesReview: Array<{ label?: string; status?: string; comment?: string }>;
   scheduledAt: string | null;
+}
+
+export interface ObjectiveUpdateBody {
+  campaignId: string;
+  evaluateeId: string;
+  objectiveIndex: number;
+  note: string;
+  comment?: string;
 }
 
 export interface InterviewParams {
@@ -66,6 +86,13 @@ export const interviewsApi = {
   getTeamObjectives: () =>
     client.get<{ data: TeamObjectivesRow[] }>(
       "/api/interviews/team-objectives",
+    ),
+
+  // L'évalué poste une mise à jour d'avancement (point clé) sur un de ses objectifs.
+  addObjectiveUpdate: (body: ObjectiveUpdateBody) =>
+    client.post<{ ok: boolean; updates: ObjectiveUpdate[] }>(
+      "/api/interviews/objective-update",
+      body,
     ),
 
   // Programmer le rendez-vous d'entretien (manager/RH/admin, après remplissage).

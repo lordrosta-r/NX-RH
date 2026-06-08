@@ -1232,5 +1232,13 @@
       "createNew": "Créer un nouveau formulaire",
       "empty": "Vous n'avez aucun formulaire. Créez-en un pour pouvoir le soumettre."
     }
+  },
+  "dashShared": {
+    "formCollection": {
+      "title": "Collecte des formulaires des managers",
+      "toDecide": "{{count}} à décider",
+      "pending": "{{count}} en attente",
+      "accepted": "{{count}} retenu(s)"
+    }
   }
 }

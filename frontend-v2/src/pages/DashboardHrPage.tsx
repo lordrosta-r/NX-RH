@@ -24,6 +24,7 @@ import {
 import { usePdfExport } from "../hooks/usePdfExport";
 import Spinner from "../components/ui/Spinner";
 import { PageHead, Tile, StatTile, Callout } from "../components/shell";
+import { CampaignCollectionWidget } from "../components/campaigns";
 import type { Campaign } from "../types";
 
 // ─── Couleurs institutionnelles pour les graphiques ──────────────────────────
@@ -305,6 +306,9 @@ export default function DashboardHrPage() {
           tone="var(--blue)"
         />
       </div>
+
+      {/* ── Collecte des formulaires des managers (workflow campagne) ── */}
+      <CampaignCollectionWidget />
 
       {/* ── Graphiques ── */}
       <div className="grid grid-cols-12 gap-6 mb-6">

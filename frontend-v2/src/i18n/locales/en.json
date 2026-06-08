@@ -1232,5 +1232,13 @@
       "createNew": "Create a new form",
       "empty": "You don't have any forms yet. Create one so you can submit it."
     }
+  },
+  "dashShared": {
+    "formCollection": {
+      "title": "Managers'form collection",
+      "toDecide": "{{count}} to decide",
+      "pending": "{{count}} pending",
+      "accepted": "{{count}} kept"
+    }
   }
 }

@@ -688,6 +688,32 @@ async function getMyFormRequests(userId) {
   return out
 }
 
+/**
+ * Aperçu RH/Admin : campagnes brouillon ayant des demandes de formulaire en cours,
+ * avec le décompte par statut (pour le dashboard — décisions à prendre).
+ * @returns {Promise<Array<{campaignId,campaignName,total,pending,submitted,accepted,declined}>>}
+ */
+async function getFormRequestsOverview() {
+  const campaigns = await Campaign.find(
+    { status: 'draft', 'formRequests.0': { $exists: true } },
+    'name formRequests',
+  ).lean()
+
+  return campaigns.map(c => {
+    const fr = c.formRequests || []
+    const by = status => fr.filter(r => r.status === status).length
+    return {
+      campaignId:   c._id,
+      campaignName: c.name,
+      total:        fr.length,
+      pending:      by('pending'),
+      submitted:    by('submitted'),
+      accepted:     by('accepted'),
+      declined:     by('declined'),
+    }
+  })
+}
+
 // ── Analytics ─────────────────────────────────────────────────────────────────
 
 /**
@@ -797,5 +823,6 @@ module.exports = {
   submitFormRequest,
   decideFormRequest,
   getMyFormRequests,
+  getFormRequestsOverview,
   getCampaignAnalytics,
 }

@@ -320,7 +320,9 @@ export default function PDIPage() {
                     style={{ gap: 8, alignItems: "center", marginBottom: 4 }}
                   >
                     <span className="body truncate" style={{ fontWeight: 600 }}>
-                      {pdi.employee.firstName} {pdi.employee.lastName}
+                      {pdi.employee
+                        ? `${pdi.employee.firstName} ${pdi.employee.lastName}`
+                        : "Utilisateur supprimé"}
                     </span>
                     <Badge tone={STATUS_TONE[pdi.status]} dot>
                       {STATUS_LABELS[pdi.status]}
@@ -331,7 +333,10 @@ export default function PDIPage() {
                     style={{ gap: "0 16px", color: "var(--ink-3)" }}
                   >
                     <span>
-                      Manager : {pdi.manager.firstName} {pdi.manager.lastName}
+                      Manager :{" "}
+                      {pdi.manager
+                        ? `${pdi.manager.firstName} ${pdi.manager.lastName}`
+                        : "—"}
                     </span>
                     <span>
                       Période :{" "}

@@ -10,7 +10,6 @@ uploads/
 .DS_Store
 audit_findings.txt
 todos.db
-CLAUDE.md
 docs/AUDIT_PROMPT.md
 docs/PROXMOX_VLAN_MIGRATION.md
 graphify-out/

@@ -5,6 +5,7 @@ import {
   useQueryClient,
   keepPreviousData,
 } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import {
   Calendar,
   ChevronLeft,
@@ -30,6 +31,7 @@ import { EventSlideOver, EMPTY_FORM } from "./events/EventSlideOver";
 import type { EventFormState } from "./events/EventSlideOver";
 import { queryKeys } from "../lib/queryKeys";
 import { PageHead, Tile } from "../components/shell";
+import PageGuide from "../components/shared/PageGuide";
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 
@@ -190,6 +192,7 @@ function ConfirmDialog({
 // ── Main page ──────────────────────────────────────────────────────────────────
 
 export default function EventsPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -387,6 +390,13 @@ export default function EventsPage() {
             )}
           </>
         }
+      />
+
+      <PageGuide
+        id="events"
+        title={t("guides.events.title")}
+        color="blue"
+        steps={t("guides.events.steps", { returnObjects: true }) as string[]}
       />
 
       {/* ── Calendar (Mois) ── */}

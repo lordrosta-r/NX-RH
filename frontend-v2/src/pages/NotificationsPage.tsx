@@ -339,6 +339,10 @@ export default function NotificationsPage() {
       queryClient.invalidateQueries({
         queryKey: queryKeys.notifications.lists(),
       });
+      // Rafraîchir aussi le compteur (badge de la cloche), sinon il reste périmé.
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.notifications.count(),
+      });
     },
   });
 

@@ -52,7 +52,8 @@
     "systemStatus": "État du système",
     "setupWizard": "Assistant de configuration",
     "configHub": "Configuration",
-    "departments": "Départements"
+    "departments": "Départements",
+    "objectives": "Objectifs équipe"
   },
   "common": {
     "save": "Enregistrer",
@@ -145,7 +146,27 @@
       "delete": "Supprimer"
     },
     "home": "Accueil",
-    "loading": "Chargement…"
+    "loading": "Chargement…",
+    "formCollection": {
+      "title": "Collecte des formulaires des managers",
+      "desc": "Demandez aux managers de soumettre un formulaire pour cette campagne, puis retenez ceux à utiliser.",
+      "requestLabel": "Demander un formulaire à des managers",
+      "selectManagers": "Sélectionnez les managers à solliciter.",
+      "requestBtn": "Demander ({{count}})",
+      "noManagers": "Tous les managers ont déjà été sollicités.",
+      "member": "Manager #{{id}}",
+      "submittedForm": "Formulaire soumis : {{title}}",
+      "status": {
+        "pending": "En attente",
+        "submitted": "Soumis",
+        "accepted": "Retenu",
+        "declined": "Non retenu"
+      },
+      "cancel": "Annuler",
+      "accept": "Retenir",
+      "decline": "Écarter",
+      "empty": "Aucune demande de formulaire pour cette campagne."
+    }
   },
   "evaluations": {
     "title": "Évaluations",
@@ -324,6 +345,108 @@
         "Cette évaluation est en lecture seule à ce stade.",
         "Consultez le détail et l'historique des étapes ci-dessous."
       ]
+    },
+    "dashEmployee": {
+      "title": "Bienvenue sur votre espace",
+      "steps": [
+        "Retrouvez ici vos évaluations en cours et les actions qui vous attendent.",
+        "Cliquez sur une évaluation pour la compléter, puis soumettez-la.",
+        "Suivez vos objectifs et consultez les documents partagés par votre RH."
+      ]
+    },
+    "dashManager": {
+      "title": "Piloter votre équipe",
+      "steps": [
+        "Les indicateurs en haut résument l'avancement des évaluations de votre équipe.",
+        "Repérez les évaluations à reviewer ou en retard, mises en avant.",
+        "Ouvrez « À traiter » pour relire, réviser et signer chaque évaluation.",
+        "Préparez et menez les entretiens depuis chaque fiche."
+      ]
+    },
+    "dashHr": {
+      "title": "Vue d'ensemble RH",
+      "steps": [
+        "Suivez l'avancement global des campagnes et des collaborateurs.",
+        "Créez une campagne ou exportez un rapport PDF depuis les actions en haut.",
+        "Utilisez les indicateurs pour repérer les retards et relancer si besoin.",
+        "Approfondissez avec l'Analytique pour une analyse détaillée."
+      ]
+    },
+    "dashAdmin": {
+      "title": "État de la plateforme",
+      "steps": [
+        "Surveillez l'activité système et l'état des services.",
+        "Vérifiez la complétude de la configuration via l'assistant.",
+        "Accédez aux réglages techniques depuis la Configuration."
+      ]
+    },
+    "campaignDetail": {
+      "title": "Gérer cette campagne",
+      "steps": [
+        "L'onglet Aperçu résume l'avancement et les statistiques de la campagne.",
+        "L'onglet Évaluations donne accès aux évaluations associées.",
+        "L'onglet Formulaires permet d'associer les formulaires à utiliser.",
+        "Activez, clôturez ou archivez la campagne depuis l'en-tête."
+      ]
+    },
+    "formDetail": {
+      "title": "Ce formulaire d'évaluation",
+      "steps": [
+        "Consultez les questions et leur type ci-dessous.",
+        "Modifiez le formulaire tant qu'il n'est pas gelé.",
+        "Geler un formulaire le verrouille pour garantir l'intégrité des réponses.",
+        "Exportez le formulaire en JSON pour le réutiliser ou l'archiver."
+      ]
+    },
+    "formNew": {
+      "title": "Créer un formulaire",
+      "steps": [
+        "Donnez un titre clair et choisissez le type (auto-évaluation, manager…).",
+        "Ajoutez vos questions et définissez leur format de réponse.",
+        "Associez le formulaire à une campagne active si nécessaire.",
+        "Enregistrez : il pourra être appliqué lors d'une campagne."
+      ]
+    },
+    "mobility": {
+      "title": "Les demandes de mobilité",
+      "steps": [
+        "Retrouvez ici les demandes de mobilité, promotion, augmentation et formation.",
+        "Créez une nouvelle demande avec « Nouvelle demande ».",
+        "Suivez le statut de chaque demande dans la chronologie.",
+        "La RH traite et répond à chaque demande."
+      ]
+    },
+    "analytics": {
+      "title": "Analyser les performances",
+      "steps": [
+        "Filtrez par campagne pour cibler votre analyse.",
+        "Consultez la distribution des statuts et les indicateurs clés.",
+        "Exportez les données pour un reporting détaillé."
+      ]
+    },
+    "hrFlags": {
+      "title": "Traiter les demandes RH",
+      "steps": [
+        "Retrouvez ici toutes les demandes remontées par les collaborateurs.",
+        "Filtrez par statut ou par type pour prioriser votre traitement.",
+        "Ouvrez une demande pour la consulter et la traiter."
+      ]
+    },
+    "events": {
+      "title": "Le calendrier des événements",
+      "steps": [
+        "Basculez entre la vue Mois et la vue Liste selon vos besoins.",
+        "Cliquez sur un jour ou « + » pour créer un événement.",
+        "Ouvrez un événement pour en voir le détail ou le modifier."
+      ]
+    },
+    "resources": {
+      "title": "Les documents partagés",
+      "steps": [
+        "Retrouvez ici les documents et ressources partagés par la RH.",
+        "Filtrez par type pour trouver rapidement ce que vous cherchez.",
+        "La RH peut ajouter une nouvelle ressource avec « Nouvelle ressource »."
+      ]
     }
   },
   "forms": {
@@ -363,7 +486,18 @@
       "promotion_request": "Demande promotion",
       "training_request": "Demande formation"
     },
-    "questionCount": "{{count}} question(s)"
+    "questionCount": "{{count}} question(s)",
+    "createdByLabel": "Proposé par {{name}}",
+    "managerGuide": {
+      "title": "Créer un formulaire en tant que manager",
+      "steps": [
+        "En tant que manager, créez des formulaires d'évaluation adaptés à votre équipe — vous pouvez même en dédier un à une personne (ex. « Entretien de Nathan »).",
+        "Cliquez sur « Nouveau formulaire » pour composer vos questions.",
+        "La RH pourra ensuite l'appliquer à la bonne personne lors d'une campagne.",
+        "Vous gardez la main : modifiez ou supprimez les formulaires que vous avez créés.",
+        "L'année suivante, dupliquez un formulaire (icône copier) pour reposer les mêmes questions dans la nouvelle campagne."
+      ]
+    }
   },
   "eyebrow": {
     "administration": "Administration",
@@ -809,6 +943,11 @@
       "confirmTitle": "Désactiver l'utilisateur ?",
       "confirmDescription": "L'utilisateur ne pourra plus se connecter (réversible).",
       "confirmLabel": "Désactiver"
+    },
+    "pagination": {
+      "summary": "Page {{page}} sur {{totalPages}} · {{total}} utilisateurs",
+      "previous": "Page précédente",
+      "next": "Page suivante"
     }
   },
   "adminUsersImport": {
@@ -899,6 +1038,314 @@
       "questionDuplicateId": "Question {{number}}: ID \"{{id}}\" en double",
       "questionMissingType": "Question {{number}}: champ \"type\" manquant",
       "questionInvalidType": "Question {{number}}: type \"{{type}}\" invalide"
+    }
+  },
+  "dashManager": {
+    "actions": {
+      "myEvaluations": "Mes évaluations"
+    },
+    "stats": {
+      "evalsToComplete": "Évals à compléter",
+      "completionRate": "Taux de complétion",
+      "teamSize": "Taille de l'équipe",
+      "overdue": "En retard",
+      "signed": "Signées"
+    },
+    "evalsToComplete": {
+      "title": "Évaluations à compléter",
+      "empty": "Aucune évaluation à compléter",
+      "topN": "Top {{count}} à traiter"
+    },
+    "evalRow": {
+      "campaign": "Campagne",
+      "overdue": "En retard",
+      "fill": "Remplir"
+    },
+    "collapse": "Réduire",
+    "expandCount": "Voir tout ({{count}})",
+    "viewAll": "Voir toutes →",
+    "myTeam": {
+      "title": "Mon équipe",
+      "empty": "Aucun membre dans l'équipe"
+    },
+    "activeCampaigns": {
+      "title": "Campagnes actives",
+      "empty": "Aucune campagne active",
+      "closingDate": "Clôture",
+      "progress": "Progression"
+    },
+    "pendingSignatures": {
+      "title": "En attente de signature",
+      "empty": "Aucune évaluation en attente de votre signature",
+      "signedOn": "signé le {{date}}",
+      "sign": "Signer"
+    },
+    "upcomingEvents": {
+      "title": "Prochains événements",
+      "empty": "Aucun événement à venir."
+    }
+  },
+  "dashEmployee": {
+    "defaultDesc": "Voici l'état de vos entretiens professionnels.",
+    "viewAll": "Voir tout →",
+    "evalStatus": {
+      "assigned": "Assignée",
+      "in_progress": "En cours",
+      "submitted": "Soumise",
+      "reviewed": "Revue",
+      "disputed": "En litige",
+      "signed_evaluatee": "Signée (évalué)",
+      "signed_manager": "Signée (manager)",
+      "signed_hr": "Signée (RH)",
+      "validated": "Validée",
+      "expired": "Expirée",
+      "archived": "Archivée"
+    },
+    "activeEvals": {
+      "title": "Mes évaluations en cours",
+      "empty": "Aucune évaluation en cours",
+      "campaignLabel": "Campagne : {{name}}",
+      "start": "Commencer",
+      "continue": "Continuer"
+    },
+    "events": {
+      "title": "Prochains événements",
+      "empty": "Aucun événement à venir."
+    },
+    "resources": {
+      "title": "Ressources récentes",
+      "empty": "Aucune ressource disponible."
+    },
+    "history": {
+      "title": "Mon historique",
+      "viewAll": "Tout l'historique →",
+      "empty": "Aucune évaluation validée pour l'instant",
+      "campaignLabel": "Campagne : {{name}}",
+      "validatedOn": "Validée le {{date}}",
+      "viewPdf": "Voir PDF →"
+    },
+    "requests": {
+      "title": "Mes demandes",
+      "mobility": "Demande de mobilité",
+      "profile": "Mise à jour profil",
+      "evaluations": "Mes évaluations",
+      "documents": "Documents RH"
+    }
+  },
+  "dashHr": {
+    "seeLink": "Voir →",
+    "errorLoad": "Impossible de charger les données du tableau de bord.",
+    "retry": "Réessayer",
+    "exportPdf": "Exporter PDF",
+    "newCampaign": "Nouvelle campagne",
+    "kpi": {
+      "usersActive": "Collaborateurs actifs",
+      "usersTotal": "Total : {{total}}",
+      "usersInactive": "Collaborateurs inactifs",
+      "campaignsActive": "Campagnes en cours",
+      "campaignsCompleted": "Campagnes terminées",
+      "campaignsOverdue": "Campagnes en retard",
+      "mobilityPending": "Mobilités en attente",
+      "completionRate": "Taux de complétion",
+      "signedBoth": "Signées des 2 côtés",
+      "signedBothSub_one": "{{count}} éval",
+      "signedBothSub_other": "{{count}} évals",
+      "evalsPending": "Évals en attente",
+      "avgCompletion": "Temps moyen complétion"
+    },
+    "charts": {
+      "trendTitle": "Évolution des évaluations (6 mois)",
+      "noMonthlyData": "Aucune donnée mensuelle",
+      "lineTotal": "Total",
+      "lineCompleted": "Complétées",
+      "pieTitle": "Répartition par statut",
+      "noData": "Aucune donnée",
+      "barTitle": "Top départements — taux de complétion",
+      "barTooltipLabel": "Taux",
+      "barName": "Taux de complétion"
+    },
+    "sections": {
+      "activeCampaigns": "Campagnes en cours",
+      "seeAll": "Voir toutes →",
+      "noCampaigns": "Aucune campagne active",
+      "alerts": "Alertes",
+      "quickStats": "Stats rapides",
+      "upcomingEvents": "Prochains événements",
+      "seeAllEvents": "Voir tous →",
+      "noEvents": "Aucun événement à venir"
+    },
+    "alerts": {
+      "overdueCount_one": "{{count}} campagne en retard",
+      "overdueCount_other": "{{count}} campagnes en retard",
+      "seeCampaigns": "Voir les campagnes →",
+      "pendingEvals_one": "{{count}} évaluation en attente",
+      "pendingEvals_other": "{{count}} évaluations en attente",
+      "seeEvaluations": "Voir les évaluations →",
+      "mobilityCount_one": "{{count}} demande de mobilité",
+      "mobilityCount_other": "{{count}} demandes de mobilité",
+      "seeRequests": "Voir les demandes →"
+    },
+    "stats": {
+      "totalEvals": "Total évaluations",
+      "completedEvals": "Évaluations complétées",
+      "totalUsers": "Total collaborateurs"
+    },
+    "pdf": {
+      "reportTitle": "Rapport RH",
+      "sectionKpi": "KPIs clés",
+      "sectionDept": "Évaluations par département",
+      "colIndicator": "Indicateur",
+      "colValue": "Valeur",
+      "colDept": "Département",
+      "colTotal": "Total",
+      "colCompleted": "Complétées",
+      "colRate": "Taux (%)",
+      "completionRatePct": "Taux de complétion éval. (%)",
+      "signedBothPct": "Évals signées des 2 côtés (%)",
+      "avgCompletionDays": "Temps moyen complétion (jours)",
+      "mobilityPending": "Demandes mobilité en attente"
+    }
+  },
+  "dashAdmin": {
+    "setup": {
+      "title": "Configuration de l'application",
+      "seeAll": "Tout voir →",
+      "stepsCount": "{{completed}}/{{total}} étapes complètes"
+    },
+    "campaignStatus": {
+      "draft": "Brouillon",
+      "active": "Active",
+      "closed": "Clôturée",
+      "archived": "Archivée"
+    },
+    "campaigns": {
+      "title": "Campagnes actives",
+      "seeAll": "Voir toutes →",
+      "empty": "Aucune campagne active"
+    },
+    "error": {
+      "loadFailed": "Impossible de charger les données du tableau de bord.",
+      "retry": "Réessayer"
+    },
+    "actions": {
+      "exportPdf": "Exporter PDF"
+    },
+    "requiredActions": {
+      "title": "Actions requises",
+      "pendingHrRequests": "Demandes RH en attente",
+      "usersWithoutManager": "Utilisateurs sans manager",
+      "activeCampaigns": "Campagnes actives"
+    },
+    "shortcuts": {
+      "title": "Raccourcis",
+      "newCampaign": "Nouvelle campagne",
+      "addUser": "Ajouter un utilisateur",
+      "importCsv": "Importer CSV",
+      "hrSettings": "Paramètres RH"
+    },
+    "kpi": {
+      "activeUsers": "Utilisateurs actifs",
+      "activeCampaigns": "Campagnes actives",
+      "pendingEvaluations": "Évaluations non finalisées"
+    },
+    "urgentActions": {
+      "title": "Actions urgentes",
+      "expiredEvaluations": "Évaluations expirées",
+      "seeEvaluations": "Voir les évaluations →",
+      "evaluationsPendingHrSignature": "Évaluations à signer côté RH",
+      "seeHrAlerts": "Voir les alertes RH →"
+    },
+    "recentActivity": {
+      "title": "Activité récente",
+      "seeFullLog": "Voir le journal complet →",
+      "empty": "Aucune activité récente"
+    },
+    "audit": {
+      "login": "Connexion",
+      "login_failed": "Échec de connexion",
+      "logout": "Déconnexion",
+      "user_created": "Utilisateur créé",
+      "user_updated": "Utilisateur modifié",
+      "user_deleted": "Utilisateur supprimé",
+      "campaign_created": "Campagne créée",
+      "campaign_updated": "Campagne modifiée",
+      "evaluation_submitted": "Évaluation soumise",
+      "evaluation_signed": "Évaluation signée",
+      "ldap_sync": "Synchronisation LDAP"
+    }
+  },
+  "objectives": {
+    "title": "Objectifs de l'équipe",
+    "desc": "Suivi des objectifs fixés en entretien pour votre équipe.",
+    "empty": "Aucun objectif défini pour le moment. Ils apparaissent ici après les entretiens.",
+    "nextYear": "Objectifs pour l'année à venir",
+    "review": "Bilan des objectifs passés",
+    "status": {
+      "achieved": "Atteint",
+      "partial": "Partiel",
+      "not_achieved": "Non atteint"
+    },
+    "guide": {
+      "title": "Suivi des objectifs",
+      "steps": [
+        "Retrouvez ici les objectifs fixés en entretien pour chaque membre de votre équipe.",
+        "Suivez l'avancement et préparez le bilan de l'année suivante.",
+        "Les objectifs se définissent pendant l'entretien (section « Objectifs pour l'année suivante »)."
+      ]
+    },
+    "you": "Vous",
+    "progress": {
+      "label": "{{achieved}} / {{total}} atteints"
+    },
+    "update": {
+      "add": "Ajouter un point clé / une mise à jour",
+      "note": "Point clé / mise à jour",
+      "notePlaceholder": "Où en êtes-vous sur cet objectif ?",
+      "comment": "Commentaire (optionnel)",
+      "commentPlaceholder": "Précisions, contexte, prochaines étapes…",
+      "submit": "Publier",
+      "error": "Impossible d'enregistrer la mise à jour. Réessayez.",
+      "noDate": "Date inconnue"
+    }
+  },
+  "pdi": {
+    "guide": {
+      "title": "Comment fonctionne le Suivi (PDI) ?",
+      "steps": [
+        "Un PDI (Plan de Développement Individuel) regroupe vos objectifs de développement et les actions concrètes pour les atteindre, sur une période donnée.",
+        "Ouvrez un PDI pour consulter ses objectifs, puis cliquez sur « Éditer » pour les ajuster (un objectif par ligne).",
+        "Ajoutez des actions de développement avec « Ajouter une action » : titre, type (formation, coaching, projet…), date cible et description.",
+        "Suivez l'avancement de chaque action via « Démarrer » puis « Terminer » ; la progression globale se met à jour automatiquement.",
+        "Quand le plan vous convient, signez-le avec le bouton « Signer » ; le manager et le collaborateur signent chacun de leur côté."
+      ]
+    },
+    "guideDetail": {
+      "title": "Remplir ce PDI",
+      "steps": [
+        "Éditez les objectifs de développement (bouton « Éditer », un objectif par ligne).",
+        "Ajoutez les actions à mener avec « Ajouter une action » : titre, type, date cible, description.",
+        "Faites avancer chaque action (« Démarrer », puis « Terminer ») pour suivre la progression.",
+        "Signez le PDI avec « Signer » une fois le plan validé de part et d'autre."
+      ]
+    }
+  },
+  "managerTodo": {
+    "formRequests": {
+      "title": "Formulaires demandés par la RH",
+      "desc": "La RH vous demande de soumettre un de vos formulaires pour ces campagnes.",
+      "choose": "Choisir un formulaire…",
+      "submit": "Soumettre",
+      "awaiting": "En attente de validation RH",
+      "createNew": "Créer un nouveau formulaire",
+      "empty": "Vous n'avez aucun formulaire. Créez-en un pour pouvoir le soumettre."
+    }
+  },
+  "dashShared": {
+    "formCollection": {
+      "title": "Collecte des formulaires des managers",
+      "toDecide": "{{count}} à décider",
+      "pending": "{{count}} en attente",
+      "accepted": "{{count}} retenu(s)"
     }
   }
 }

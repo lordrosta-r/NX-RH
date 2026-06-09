@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter } from 'react-router-dom'
 import { AuthContext } from '../contexts/AuthContext'
 import { ConfirmProvider } from '../contexts/ConfirmContext'
+import { PerspectiveProvider } from '../contexts/PerspectiveContext'
 import type { User } from '../types'
 
 // Mock user factory — adapts to actual User type (id + authSource required)
@@ -66,9 +67,11 @@ function createWrapper({ initialEntries = ['/'], user }: WrapperProps = {}) {
       <QueryClientProvider client={queryClient}>
         <AuthContext.Provider value={authValue}>
           <ConfirmProvider>
-            <MemoryRouter initialEntries={initialEntries}>
-              {children}
-            </MemoryRouter>
+            <PerspectiveProvider>
+              <MemoryRouter initialEntries={initialEntries}>
+                {children}
+              </MemoryRouter>
+            </PerspectiveProvider>
           </ConfirmProvider>
         </AuthContext.Provider>
       </QueryClientProvider>

@@ -188,8 +188,12 @@ export function useUsersPage() {
     setPage(1);
   }
 
-  const totalPages =
-    data?.totalPages ?? Math.ceil((data?.total ?? 0) / PER_PAGE);
+  // L'API renvoie la pagination dans `meta` ({total, pages, ...}), pas au top-level.
+  // Sans ça, totalPages valait 0 et la page /users ne paginait jamais (#114).
+  const meta = (
+    data as unknown as { meta?: { total?: number; pages?: number } } | undefined
+  )?.meta;
+  const totalPages = meta?.pages ?? Math.ceil((meta?.total ?? 0) / PER_PAGE);
 
   function getPageNumbers(): number[] {
     const total = totalPages;

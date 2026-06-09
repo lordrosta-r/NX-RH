@@ -50,6 +50,42 @@ export interface TargetScope {
   ids: string[];
 }
 
+/** Une demande de formulaire adressée à un manager pour une campagne. */
+export interface CampaignFormRequest {
+  managerId:
+    | string
+    | { _id: string; firstName?: string; lastName?: string; email?: string };
+  status: "pending" | "submitted" | "accepted" | "declined";
+  formId?:
+    | string
+    | { _id: string; title?: string; formType?: string }
+    | null;
+  requestedAt?: string;
+  submittedAt?: string | null;
+  decidedAt?: string | null;
+}
+
+/** Aperçu RH/Admin d'une collecte de formulaires (GET /campaigns/form-requests/overview). */
+export interface CampaignFormCollectionSummary {
+  campaignId: string;
+  campaignName: string;
+  total: number;
+  pending: number;
+  submitted: number;
+  accepted: number;
+  declined: number;
+}
+
+/** Une demande de formulaire vue côté manager (GET /campaigns/mine/form-requests). */
+export interface MyFormRequest {
+  campaignId: string;
+  campaignName: string;
+  campaignStatus: CampaignStatus;
+  status: "pending" | "submitted" | "accepted" | "declined";
+  formId?: string | null;
+  requestedAt?: string;
+}
+
 export interface Campaign {
   id: string;
   _id?: string;
@@ -77,6 +113,8 @@ export interface Campaign {
   targetUserIds?: string[];
   targetGroupIds?: string[];
   formIds?: string[];
+  /** Collecte des formulaires des managers (campagne brouillon). */
+  formRequests?: CampaignFormRequest[];
   completionPct?: number;
   stats?: {
     total: number;
@@ -124,7 +162,8 @@ export interface Evaluation {
   formId: string;
   status: EvaluationStatus;
   deadline?: string;
-  answers?: Record<string, unknown>;
+  /** Le serveur stocke les réponses en tableau [{questionId, value}]. */
+  answers?: Array<{ questionId: string; value: unknown }>;
   reviewerScore?: number;
   nextYearObjectives?: string;
   reviewerComment?: string;
@@ -231,6 +270,9 @@ export interface Form {
   frozenAt?: string;
   filledBy?: "employee" | "manager" | "hr";
   visibleToEvaluatee?: boolean;
+  createdBy?:
+    | string
+    | { _id: string; firstName?: string; lastName?: string };
   createdAt?: string;
   updatedAt?: string;
 }
@@ -335,6 +377,8 @@ export type EventType =
 
 export interface CalendarEvent {
   id: string;
+  /** L'API events renvoie `_id` (docs lean, pas de virtual `id`) — normalisé côté api/events.ts. */
+  _id?: string;
   title: string;
   description?: string;
   type: EventType;
@@ -348,6 +392,12 @@ export interface CalendarEvent {
   location?: string;
   campaignId?: string;
   targetRoles?: string[];
+  /** Réponses RSVP des participants. */
+  responses?: Array<{
+    userId: string;
+    status: "accepted" | "declined" | "tentative";
+    respondedAt?: string;
+  }>;
 }
 
 // ─── Ressources ────────────────────────────────────────────────────────────────
@@ -497,6 +547,25 @@ export interface PaginatedResponse<T> {
   totalPages?: number;
 }
 
+// Métadonnées de pagination renvoyées par le backend dans `meta`
+// (cf. apiResponse.paginated : { total, page, limit, pages, hasNext, hasPrev }).
+export interface PaginationMeta {
+  total: number;
+  page: number;
+  limit: number;
+  pages: number;
+  hasNext: boolean;
+  hasPrev: boolean;
+}
+
+// Enveloppe réelle d'une réponse liste paginée : la donnée est dans `data`,
+// les compteurs de pagination dans `meta`.
+export interface PaginatedEnvelope<T> {
+  success: boolean;
+  data: T[];
+  meta: PaginationMeta;
+}
+
 export interface ItemResponse<T> {
   data: T;
 }
@@ -628,6 +697,9 @@ export interface Interview {
   campaignId: string;
   evaluateeId: string | User;
   managerId?: string | User | null;
+  /** Rendez-vous d'entretien programmé sur le calendrier (null = non programmé). */
+  scheduledAt?: string | null;
+  scheduledLocation?: string;
   /** Évaluations peuplées (formId, evaluatorId, evaluateeId renseignés).
    *  L'API renvoie le champ sous le nom `evaluationIds` (réf peuplée Mongoose). */
   evaluationIds: InterviewEvaluation[];

@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { BarChart2, FileText, Download, ChevronRight } from "lucide-react";
 import { analyticsApi } from "../api/analytics";
 import { PageHead, Tile, Callout, Badge } from "../components/shell";
+import { useAuth } from "../contexts/AuthContext";
 
 // ─── Couleurs institutionnelles pour les graphiques ──────────────────────────
 const CHART_COLORS = {
@@ -202,6 +203,10 @@ function SemiCircleGauge({ value, max = 10 }: { value: number; max?: number }) {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default function CampaignAnalyticsPage() {
   const { id } = useParams<{ id: string }>();
+  const { user } = useAuth();
+  // Les exports (PDF/CSV) sont réservés admin/hr côté API ;
+  // le manager peut consulter l'analytique mais pas exporter.
+  const isAdminOrHr = user?.role === "admin" || user?.role === "hr";
 
   const {
     data: analytics,
@@ -269,28 +274,30 @@ export default function CampaignAnalyticsPage() {
         }
         title={`Analytique — ${campaignName}`}
         actions={
-          <>
-            <button
-              onClick={() =>
-                window.open(`/api/analytics/export/pdf?campaignId=${id}`)
-              }
-              disabled={isLoading}
-              className="btn btn-ghost"
-            >
-              <FileText className="ico" style={{ width: 18, height: 18 }} />{" "}
-              Exporter PDF
-            </button>
-            <button
-              onClick={() =>
-                window.open(`/api/analytics/export/csv?campaignId=${id}`)
-              }
-              disabled={isLoading}
-              className="btn btn-ghost"
-            >
-              <Download className="ico" style={{ width: 18, height: 18 }} />{" "}
-              Exporter CSV
-            </button>
-          </>
+          isAdminOrHr ? (
+            <>
+              <button
+                onClick={() =>
+                  window.open(`/api/analytics/export/pdf?campaignId=${id}`)
+                }
+                disabled={isLoading}
+                className="btn btn-ghost"
+              >
+                <FileText className="ico" style={{ width: 18, height: 18 }} />{" "}
+                Exporter PDF
+              </button>
+              <button
+                onClick={() =>
+                  window.open(`/api/analytics/export/csv?campaignId=${id}`)
+                }
+                disabled={isLoading}
+                className="btn btn-ghost"
+              >
+                <Download className="ico" style={{ width: 18, height: 18 }} />{" "}
+                Exporter CSV
+              </button>
+            </>
+          ) : undefined
         }
       />
 

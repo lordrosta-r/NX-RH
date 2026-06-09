@@ -297,10 +297,12 @@ export default function CampaignsPage() {
         title={t("campaigns.title")}
         actions={
           <>
-            <button onClick={handleExport} className="btn btn-ghost">
-              <Download className="ico" style={{ width: 18, height: 18 }} />{" "}
-              {t("campaigns.export")}
-            </button>
+            {canManage && (
+              <button onClick={handleExport} className="btn btn-ghost">
+                <Download className="ico" style={{ width: 18, height: 18 }} />{" "}
+                {t("campaigns.export")}
+              </button>
+            )}
             {canManage && (
               <Link
                 to="/campaigns/new"

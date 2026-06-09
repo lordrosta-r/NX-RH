@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { usersApi } from "../api/users";
-import type { User } from "../types";
+import type { User, PaginatedEnvelope } from "../types";
 import { useAuth } from "../contexts/AuthContext";
 import { PageHead, Tile, Callout } from "../components/shell";
 import { queryKeys } from "../lib/queryKeys";
@@ -13,6 +13,27 @@ const ROLE_LABELS: Record<string, string> = {
   manager: "Responsable",
   employee: "Collaborateur",
 };
+
+const ACTIVE_PAGE_LIMIT = 100;
+
+// Récupère TOUS les utilisateurs actifs en parcourant toutes les pages.
+// Indispensable pour détecter de façon fiable les subordonnés (managerId)
+// quand l'effectif dépasse une page : le backend plafonne `limit` à 100 et
+// n'expose pas de filtre `managerId` pour un admin/hr.
+async function fetchAllActiveUsers(): Promise<User[]> {
+  const first = await usersApi
+    .getUsers({ isActive: true, page: 1, limit: ACTIVE_PAGE_LIMIT })
+    .then((r) => r.data as unknown as PaginatedEnvelope<User>);
+  const all = [...first.data];
+  const totalPages = first.meta?.pages ?? 1;
+  for (let page = 2; page <= totalPages; page++) {
+    const next = await usersApi
+      .getUsers({ isActive: true, page, limit: ACTIVE_PAGE_LIMIT })
+      .then((r) => r.data as unknown as PaginatedEnvelope<User>);
+    all.push(...next.data);
+  }
+  return all;
+}
 
 function useToast() {
   const [message, setMessage] = useState<string | null>(null);
@@ -72,12 +93,15 @@ export default function UserEditPage() {
     }
   }, [userData]);
 
-  // Active users for manager select
-  const { data: activeUsers } = useQuery({
-    queryKey: ["users-active"],
-    queryFn: () =>
-      usersApi.getUsers({ isActive: true, limit: 100 }).then((r) => r.data),
+  // Tous les utilisateurs actifs (sélecteurs manager/remplaçant + détection
+  // d'équipe). On pagine côté front car l'API plafonne `limit` à 100 et ne
+  // filtre pas par `managerId` pour un admin/hr : se limiter à une fenêtre
+  // arbitraire de 100 manquerait des subordonnés au-delà (équipe orpheline).
+  const { data: activeUsersList } = useQuery({
+    queryKey: ["users-active-all"],
+    queryFn: () => fetchAllActiveUsers(),
   });
+  const activeUsers = { data: activeUsersList ?? [] };
 
   const isSelf = currentUser?.id === id;
   const canEditAll =

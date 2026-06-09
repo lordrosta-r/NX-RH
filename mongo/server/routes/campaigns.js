@@ -35,7 +35,7 @@ router.get('/', async (req, res, next) => {
 
     // Filtre optionnel par statut (?status=active) — whitelist anti-injection NoSQL
     const VALID_STATUSES = ['draft', 'active', 'closed', 'archived']
-    if (req.query.status && VALID_STATUSES.includes(req.query.status)) {
+    if (typeof req.query.status === 'string' && VALID_STATUSES.includes(req.query.status)) {
       filter.status = req.query.status
     }
 

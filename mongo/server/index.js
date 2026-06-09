@@ -143,7 +143,13 @@ app.use((req, res, next) => {
 // Redirect /page.html → /page (strip .html extension)
 app.use((req, res, next) => {
   if (req.path.endsWith('.html')) {
-    const clean = req.path.slice(0, -5) || '/'
+    let clean = req.path.slice(0, -5) || '/'
+    // SÉCURITÉ (open-redirect) : ne rediriger QUE vers un chemin interne relatif.
+    // On rejette toute cible interprétable comme URL absolue ou protocol-relative
+    // (`//host`, `/\host`, `http://…`). En cas de doute, fallback racine `/`.
+    if (!clean.startsWith('/') || clean.startsWith('//') || clean.startsWith('/\\')) {
+      clean = '/'
+    }
     const qs = req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : ''
     return res.redirect(301, clean + qs)
   }

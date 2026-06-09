@@ -476,9 +476,11 @@ async function searchUsers(query, options = {}) {
     ],
   }
 
-  if (role)              filter.role       = role
-  if (department)        filter.department = department
-  if (isActive !== undefined) filter.isActive = isActive
+  // SÉCURITÉ (NoSQL) : ces filtres viennent de req.query → exiger des chaînes
+  // avant injection dans le filtre Mongo (isActive est coercé en booléen).
+  if (typeof role === 'string' && role)             filter.role       = role
+  if (typeof department === 'string' && department) filter.department = department
+  if (isActive !== undefined)                       filter.isActive = !!isActive
 
   const skip = (page - 1) * limit
 

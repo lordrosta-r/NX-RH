@@ -46,7 +46,7 @@ async function handleList(req, res, next) {
     const filter = {}
 
     if (req.query.campaignId) {
-      if (!mongoose.isValidObjectId(req.query.campaignId)) {
+      if (typeof req.query.campaignId !== 'string' || !mongoose.isValidObjectId(req.query.campaignId)) {
         return res.status(400).json({ error: 'campaignId invalide' })
       }
       filter.campaignId = req.query.campaignId
@@ -132,7 +132,7 @@ async function handleExport(req, res, next) {
     const filter = {}
 
     if (req.query.campaignId) {
-      if (!mongoose.isValidObjectId(req.query.campaignId)) {
+      if (typeof req.query.campaignId !== 'string' || !mongoose.isValidObjectId(req.query.campaignId)) {
         return res.status(400).json({ error: 'campaignId invalide' })
       }
       filter.campaignId = req.query.campaignId

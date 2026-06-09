@@ -17,9 +17,12 @@ const { paginate } = require('../utils/paginate');
 async function listRequests(user, { page = 1, limit = 20, status, type, category } = {}) {
   const filter = {};
   if (user.role === 'employee') filter.employeeId = user._id;
-  if (status) filter.status = status;
-  if (type) filter.requestType = type;
-  if (category) filter.category = category;
+  // SÉCURITÉ (NoSQL / type-confusion) : ces filtres viennent de req.query et
+  // doivent être des chaînes. On exige typeof === 'string' avant injection Mongo
+  // pour empêcher qu'un objet (`?status[$ne]=…`) devienne un opérateur.
+  if (typeof status === 'string' && status) filter.status = status;
+  if (typeof type === 'string' && type) filter.requestType = type;
+  if (typeof category === 'string' && category) filter.category = category;
 
   return paginate(MobilityRequest, filter, {
     page,
@@ -198,6 +201,11 @@ async function completeImplementation(requestId, data, user) {
  * Un employé ne peut voir que ses propres demandes.
  */
 async function getMobilityHistory(employeeId, user) {
+  // SÉCURITÉ (NoSQL) : l'id vient de req.params, on exige une chaîne avant de
+  // l'injecter dans le filtre Mongo.
+  if (typeof employeeId !== 'string' || !employeeId) {
+    throw AppError.badRequest('employeeId invalide');
+  }
   if (user.role === 'employee' && user._id.toString() !== employeeId) {
     throw AppError.forbidden('Accès refusé');
   }

@@ -55,21 +55,27 @@ router.get('/', async (req, res, next) => {
   try {
     const filter = {}
 
-    if (req.query.campaignId) {
-      if (!mongoose.isValidObjectId(req.query.campaignId)) {
+    // SÉCURITÉ (type-confusion / NoSQL) : les paramètres de filtre doivent être
+    // des chaînes. On rejette tout type non-string (tableau/objet) issu de la
+    // query string avant de l'injecter dans un filtre Mongo.
+    if (req.query.campaignId !== undefined) {
+      if (typeof req.query.campaignId !== 'string' || !mongoose.isValidObjectId(req.query.campaignId)) {
         return res.status(400).json({ error: 'campaignId invalide' })
       }
       filter.campaignId = req.query.campaignId
     }
 
-    if (req.query.formType) {
-      if (!Form.schema.path('formType').enumValues.includes(req.query.formType)) {
+    if (req.query.formType !== undefined) {
+      if (typeof req.query.formType !== 'string' || !Form.schema.path('formType').enumValues.includes(req.query.formType)) {
         return res.status(400).json({ error: 'formType invalide' })
       }
       filter.formType = req.query.formType
     }
 
-    if (req.query.search) {
+    if (req.query.search !== undefined) {
+      if (typeof req.query.search !== 'string') {
+        return res.status(400).json({ error: 'search invalide' })
+      }
       filter.$text = { $search: req.query.search.slice(0, 100) }
     }
 

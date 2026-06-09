@@ -99,7 +99,9 @@ async function seed() {
   console.log('[seed:users] Terminé ✓')
   console.log('')
   console.log('  Comptes créés :')
-  USERS.forEach(u => console.log(`  · ${u.email.padEnd(35)} mot de passe : ${u.password}`))
+  // SÉCURITÉ : ne jamais journaliser le mot de passe en clair. Les identifiants
+  // de test sont définis dans le tableau USERS ci-dessus (lecture du fichier).
+  USERS.forEach(u => console.log(`  · ${u.email.padEnd(35)} (${u.role})`))
   process.exit(0)
 }
 

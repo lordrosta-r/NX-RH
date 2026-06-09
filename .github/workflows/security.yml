@@ -12,6 +12,11 @@ on:
     # Tous les lundis à 6h UTC — capte les failles publiées entre deux commits.
     - cron: "0 6 * * 1"
 
+# Moindre privilège (CodeQL actions/missing-workflow-permissions) : npm audit
+# n'a besoin que de lire le code.
+permissions:
+  contents: read
+
 jobs:
   audit:
     name: npm audit (${{ matrix.name }})

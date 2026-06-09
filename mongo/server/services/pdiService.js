@@ -117,8 +117,11 @@ async function listPDIs(filter, requesterId, requesterRole) {
     // Espace perso « Suivi » : seulement MON propre PDI (je suis le sujet).
     query.employee = requesterId
   } else if (['admin', 'hr'].includes(requesterRole)) {
-    if (filter.employee) query.employee = filter.employee
-    if (filter.manager)  query.manager  = filter.manager
+    // SÉCURITÉ (NoSQL) : ces filtres viennent de req.query → exiger des chaînes
+    // avant de les injecter dans le filtre Mongo (sinon `?employee[$ne]=…`
+    // deviendrait un opérateur).
+    if (typeof filter.employee === 'string' && filter.employee) query.employee = filter.employee
+    if (typeof filter.manager  === 'string' && filter.manager)  query.manager  = filter.manager
   } else if (requesterRole === 'manager') {
     // Vue équipe : les PDIs de mes subordonnés directs + les miens.
     const directs = await User.find({ managerId: requesterId, isActive: true }, '_id').lean()
@@ -131,7 +134,8 @@ async function listPDIs(filter, requesterId, requesterRole) {
     query.employee = requesterId
   }
 
-  if (filter.status) query.status = filter.status
+  // SÉCURITÉ (NoSQL) : status vient de req.query → exiger une chaîne.
+  if (typeof filter.status === 'string' && filter.status) query.status = filter.status
 
   return PDI.find(query)
     .sort({ createdAt: -1 })

@@ -9,7 +9,7 @@
 
 ## Méthodologie
 
-- **Admin** : `admin-rh@nanoxplore.com` (compte bootstrap du déploiement).
+- **Admin** : compte administrateur bootstrap du déploiement.
 - **Manager** : Pierre Bernard (`nx002`, directeur avec une grande équipe).
 - **Employé** : Clara Andre (`nx023`, département Ingénierie).
 - **RH** : Marie Bernard (`nx051`, promue RH par l'admin).

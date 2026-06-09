@@ -38,5 +38,5 @@ composants concernés et ne modifient pas le caractère propriétaire de NanoXpl
 
 ## Contact
 
-Pour toute demande de licence ou d'autorisation : `legal@nanoxplore.com`
+Pour toute demande de licence ou d'autorisation : contactez le service juridique de NanoXplore par le canal interne.
 </content>

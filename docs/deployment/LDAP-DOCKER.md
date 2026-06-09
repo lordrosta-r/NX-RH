@@ -118,7 +118,7 @@ uid: alice
 cn: Alice Martin
 sn: Martin
 givenName: Alice
-mail: alice@nxrh.local
+mail: <mail-alice>
 userPassword: Alice1234!
 uidNumber: 1001
 gidNumber: 1001
@@ -131,7 +131,7 @@ uid: bob
 cn: Bob Dupont
 sn: Dupont
 givenName: Bob
-mail: bob@nxrh.local
+mail: <mail-bob>
 userPassword: Bob1234!
 uidNumber: 1002
 gidNumber: 1001
@@ -144,7 +144,7 @@ uid: carol
 cn: Carol Leroy
 sn: Leroy
 givenName: Carol
-mail: carol@nxrh.local
+mail: <mail-carol>
 userPassword: Carol1234!
 uidNumber: 1003
 gidNumber: 1001

@@ -9,7 +9,7 @@
 
 Envoie un email de test via nodemailer.
 
-**Body :** `{ to: "email@example.com" }`
+**Body :** `{ to: "<email-destinataire>" }`
 
 **Réponse :** `{ sent: true, previewUrl: string|null }`
 

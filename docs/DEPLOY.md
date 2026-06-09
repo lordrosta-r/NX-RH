@@ -70,7 +70,7 @@ Ouvrir `.env` et remplir chaque variable :
 | `MAIL_SECURE` | non | `false` pour STARTTLS, `true` pour SMTPS implicite |
 | `MAIL_USER` | non | Identifiant SMTP |
 | `MAIL_PASSWORD` | non | Mot de passe SMTP |
-| `MAIL_FROM` | non | Adresse expéditeur (ex : `"NX-RH <no-reply@corp.fr>"`) |
+| `MAIL_FROM` | non | Adresse expéditeur (ex : `"NX-RH <adresse-expéditeur>"`) |
 | `CLIENT_ORIGIN` | oui | Origine CORS autorisée (ex : `https://rh.nanoxplore.com`) |
 
 Exemple de valeur pour `MONGO_URI` en production Docker :
@@ -141,14 +141,14 @@ docker compose exec app npm run seed:users
 
 Comptes créés par le seed (mot de passe commun : `Test1234!`) :
 
-| Email | Rôle | Description |
-|-------|------|-------------|
-| `admin@nx-rh.fr` | admin | Administrateur système |
-| `rh@nx-rh.fr` | hr | Responsable RH |
-| `dg@nx-rh.fr` | director | Directeur Général |
-| `dir.tech@nx-rh.fr` | director | Directeur Technique |
-| `mgr.back@nx-rh.fr` | manager | Manager Dev Backend |
-| `emp.back1@nx-rh.fr` | employee | Développeur Backend Senior |
+| Identifiant | Rôle | Description |
+|-------------|------|-------------|
+| `<admin>` | admin | Administrateur système |
+| `<rh>` | hr | Responsable RH |
+| `<dg>` | director | Directeur Général |
+| `<dir.tech>` | director | Directeur Technique |
+| `<mgr.back>` | manager | Manager Dev Backend |
+| `<emp.back1>` | employee | Développeur Backend Senior |
 
 **Changer ces mots de passe immédiatement après le premier déploiement.**
 
@@ -168,7 +168,7 @@ apt-get install -y certbot
 certbot certonly --webroot \
   -w /var/www/certbot \
   -d rh.nanoxplore.com \
-  --email admin@nanoxplore.com \
+  --email <email-admin> \
   --agree-tos \
   --non-interactive
 
@@ -219,9 +219,9 @@ Modifier `server_name _` par le nom de domaine réel dans `nginx/conf.d/*.conf`.
 MAIL_HOST=smtp.nanoxplore.com
 MAIL_PORT=587
 MAIL_SECURE=false
-MAIL_USER=notifications@nanoxplore.com
+MAIL_USER=<identifiant-smtp>
 MAIL_PASSWORD=mot_de_passe_smtp
-MAIL_FROM="NanoXplore RH <notifications@nanoxplore.com>"
+MAIL_FROM="NanoXplore RH <adresse-expéditeur>"
 ```
 
 ### 4.2 Configurations courantes
@@ -232,9 +232,9 @@ MAIL_FROM="NanoXplore RH <notifications@nanoxplore.com>"
 MAIL_HOST=smtp.gmail.com
 MAIL_PORT=587
 MAIL_SECURE=false
-MAIL_USER=votre-compte@gmail.com
+MAIL_USER=<votre-compte-gmail>
 MAIL_PASSWORD=xxxx-xxxx-xxxx-xxxx
-MAIL_FROM="NanoXplore RH <votre-compte@gmail.com>"
+MAIL_FROM="NanoXplore RH <votre-compte-gmail>"
 ```
 
 **Microsoft 365 / Exchange Online :**
@@ -243,9 +243,9 @@ MAIL_FROM="NanoXplore RH <votre-compte@gmail.com>"
 MAIL_HOST=smtp.office365.com
 MAIL_PORT=587
 MAIL_SECURE=false
-MAIL_USER=notifications@nanoxplore.com
+MAIL_USER=<identifiant-smtp>
 MAIL_PASSWORD=mot_de_passe
-MAIL_FROM="NanoXplore RH <notifications@nanoxplore.com>"
+MAIL_FROM="NanoXplore RH <adresse-expéditeur>"
 ```
 
 **Relay SMTP interne :**
@@ -256,7 +256,7 @@ MAIL_PORT=25
 MAIL_SECURE=false
 MAIL_USER=
 MAIL_PASSWORD=
-MAIL_FROM="NanoXplore RH <noreply@nanoxplore.com>"
+MAIL_FROM="NanoXplore RH <adresse-expéditeur>"
 ```
 
 **Mailtrap (développement / recette) :**
@@ -267,7 +267,7 @@ MAIL_PORT=2525
 MAIL_SECURE=false
 MAIL_USER=<mailtrap_user>
 MAIL_PASSWORD=<mailtrap_pass>
-MAIL_FROM="NX-RH Dev <dev@nx-rh.fr>"
+MAIL_FROM="NX-RH Dev <adresse-expéditeur>"
 ```
 
 ### 4.3 Tester l'envoi
@@ -625,6 +625,6 @@ docker compose exec mongo mongosh \
   --eval "
     const bcrypt = require('bcrypt');
     const hash = await bcrypt.hash('NouveauMotDePasse!', 10);
-    db.users.updateOne({ email: 'admin@nx-rh.fr' }, { \$set: { passwordHash: hash } });
+    db.users.updateOne({ email: '<email-admin>' }, { \$set: { passwordHash: hash } });
   "
 ```

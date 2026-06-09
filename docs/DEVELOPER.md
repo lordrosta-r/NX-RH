@@ -109,16 +109,16 @@ Le proxy Vite redirige automatiquement les requêtes `/api/*` vers `http://local
 
 Tous les comptes ont le mot de passe : **`Test1234!`**
 
-| Email | Rôle | Périmètre |
-|-------|------|-----------|
-| `admin@nx-rh.fr` | admin | Accès complet, configuration système |
-| `rh@nx-rh.fr` | hr | Gestion des collaborateurs et campagnes |
-| `dg@nx-rh.fr` | director | Tableau de bord direction, analytics |
-| `dir.tech@nx-rh.fr` | director | Direction technique |
-| `mgr.back@nx-rh.fr` | manager | Equipe dev backend (subordonnés uniquement) |
-| `mgr.front@nx-rh.fr` | manager | Equipe dev frontend |
-| `emp.back1@nx-rh.fr` | employee | Vue collaborateur standard |
-| `emp.front1@nx-rh.fr` | employee | Vue collaborateur standard |
+| Identifiant | Rôle | Périmètre |
+|-------------|------|-----------|
+| `<admin>` | admin | Accès complet, configuration système |
+| `<rh>` | hr | Gestion des collaborateurs et campagnes |
+| `<dg>` | director | Tableau de bord direction, analytics |
+| `<dir.tech>` | director | Direction technique |
+| `<mgr.back>` | manager | Equipe dev backend (subordonnés uniquement) |
+| `<mgr.front>` | manager | Equipe dev frontend |
+| `<emp.back1>` | employee | Vue collaborateur standard |
+| `<emp.front1>` | employee | Vue collaborateur standard |
 
 ---
 

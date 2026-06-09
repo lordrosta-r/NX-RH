@@ -2,7 +2,10 @@
 
 Ce document décrit chaque page du SPA React (`frontend-v2/src/pages/`), son chemin de routage, les rôles autorisés et ses fonctionnalités principales.
 
-**Rôles disponibles :** `admin` · `rh` · `manager` · `employee` (tous)
+> **Source de vérité :** les routes et leurs gardes (`AuthGuard roles`) sont définies dans
+> `frontend-v2/src/router/index.tsx`. En cas de divergence, ce fichier fait foi.
+
+**Rôles disponibles :** `admin` · `hr` · `manager` · `employee` (tous)
 
 ---
 
@@ -12,6 +15,7 @@ Ce document décrit chaque page du SPA React (`frontend-v2/src/pages/`), son che
 - [Tableaux de bord](#tableaux-de-bord)
 - [Campagnes d'évaluation](#campagnes-dévaluation)
 - [Évaluations](#évaluations)
+- [Entretien & actions manager](#entretien--actions-manager)
 - [Formulaires RH](#formulaires-rh)
 - [Offboarding](#offboarding)
 - [Mobilité interne](#mobilité-interne)
@@ -51,62 +55,30 @@ Ce document décrit chaque page du SPA React (`frontend-v2/src/pages/`), son che
 ## Tableaux de bord
 
 ### DashboardPage
-- **Route :** `/dashboard`
+- **Route :** `/` (route index, tout rôle authentifié)
 - **Accès :** tous
-- **Objectif :** Vue d'ensemble personnalisée — KPIs et activité récente de l'utilisateur connecté.
-- **Fonctionnalités :**
-  - Indicateurs clés selon le rôle (évaluations en cours, PDI actifs, notifications)
-  - Raccourcis vers les actions prioritaires
-  - Redirection dynamique vers le tableau de bord spécifique au rôle
+- **Objectif :** Point d'entrée après connexion. Une **seule route** affiche le bon tableau de bord
+  selon le rôle de l'utilisateur (et la perspective active « Mon espace » / « métier »).
+- **Fonctionnement :** `DashboardPage` rend conditionnellement l'un des composants ci-dessous —
+  il n'existe **pas** de routes `/dashboard/*` distinctes.
 
-### DashboardHrPage
-- **Route :** `/dashboard/hr`
-- **Accès :** `rh`, `admin`
-- **Objectif :** Vue RH complète avec métriques avancées sur l'ensemble des collaborateurs.
-- **Fonctionnalités :**
-  - KPIs globaux : taux de complétion des évaluations, PDI en retard, offboardings en cours
-  - Graphiques Recharts (complétion, répartition par département)
-  - Alertes et flags RH nécessitant une action
-  - Accès rapide aux campagnes actives
+| Rôle (ou perspective « Mon espace ») | Composant rendu |
+|---|---|
+| `admin` | `DashboardAdminPage` |
+| `hr` | `DashboardHrPage` |
+| `manager` | `DashboardManagerPage` |
+| `employee` (ou perspective personnelle) | `DashboardEmployeePage` |
 
-### DashboardManagerPage
-- **Route :** `/dashboard/manager`
-- **Accès :** `manager`
-- **Objectif :** Vue manager centrée sur l'équipe directe et les évaluations à mener.
-- **Fonctionnalités :**
-  - Liste des membres de l'équipe avec statut d'évaluation
-  - Évaluations en attente de signature manager
-  - PDI des collaborateurs à revoir
-  - Notifications d'échéances proches
+- **DashboardHrPage** — KPIs globaux (taux de complétion, PDI en retard), graphiques Recharts,
+  flags RH à traiter, accès rapide aux campagnes actives.
+- **DashboardManagerPage** — équipe directe avec statut d'évaluation, signatures manager en attente,
+  PDI des collaborateurs, échéances proches.
+- **DashboardAdminPage** — état de santé de la plateforme (API, MongoDB, SMTP, LDAP), métriques
+  d'utilisation, raccourcis vers les outils d'administration, activité récente.
+- **DashboardEmployeePage** — suivi personnel : évaluations en cours, PDI actif, objectifs,
+  demandes de mobilité, notifications.
 
-### DashboardAdminPage
-- **Route :** `/dashboard/admin`
-- **Accès :** `admin`
-- **Objectif :** Vue administrateur avec état de santé de la plateforme et métriques système.
-- **Fonctionnalités :**
-  - Statut des services (API, MongoDB, SMTP, LDAP)
-  - Métriques d'utilisation globales
-  - Accès rapide aux outils d'administration
-  - Journal d'activité récent
-
-### DashboardDirectorPage
-- **Route :** `/dashboard/director`
-- **Accès :** `admin`, `rh` (profil direction)
-- **Objectif :** Vue direction avec synthèse stratégique RH à l'échelle de l'entreprise.
-- **Fonctionnalités :**
-  - Synthèse des campagnes d'évaluation par département
-  - Indicateurs de mobilité et de rétention
-  - Export des données agrégées
-
-### DashboardEmployeePage
-- **Route :** `/dashboard/employee`
-- **Accès :** `employee`
-- **Objectif :** Vue employé avec le suivi personnel des évaluations et objectifs.
-- **Fonctionnalités :**
-  - Évaluations en cours et historique personnel
-  - PDI actif et objectifs
-  - Demandes de mobilité en cours
-  - Notifications personnelles
+> L'ancien chemin `/dashboard` redirige côté serveur ; le tableau de bord vit désormais à la racine `/`.
 
 ---
 
@@ -114,7 +86,7 @@ Ce document décrit chaque page du SPA React (`frontend-v2/src/pages/`), son che
 
 ### CampaignsPage
 - **Route :** `/campaigns`
-- **Accès :** `rh`, `manager`, `admin`
+- **Accès :** `hr`, `manager`, `admin`
 - **Objectif :** Gestion des campagnes d'évaluation — liste, filtres et création.
 - **Fonctionnalités :**
   - Liste paginée des campagnes (actives, archivées, brouillons)
@@ -124,7 +96,7 @@ Ce document décrit chaque page du SPA React (`frontend-v2/src/pages/`), son che
 
 ### CampaignDetailPage
 - **Route :** `/campaigns/:id`
-- **Accès :** `rh`, `admin`
+- **Accès :** `hr`, `admin`
 - **Objectif :** Détail d'une campagne — participants, suivi et actions de gestion.
 - **Fonctionnalités :**
   - Liste des participants avec statut individuel (non démarré, en cours, signé)
@@ -134,7 +106,7 @@ Ce document décrit chaque page du SPA React (`frontend-v2/src/pages/`), son che
 
 ### CampaignNewPage
 - **Route :** `/campaigns/new`
-- **Accès :** `rh`, `admin`
+- **Accès :** `hr`, `admin`
 - **Objectif :** Création d'une nouvelle campagne d'évaluation.
 - **Fonctionnalités :**
   - Formulaire multi-étapes : paramètres, sélection du modèle, participants, dates
@@ -143,7 +115,7 @@ Ce document décrit chaque page du SPA React (`frontend-v2/src/pages/`), son che
 
 ### CampaignEditPage
 - **Route :** `/campaigns/:id/edit`
-- **Accès :** `rh`, `admin`
+- **Accès :** `hr`, `admin`
 - **Objectif :** Modification d'une campagne existante (avant clôture).
 - **Fonctionnalités :**
   - Édition des paramètres, dates et participants
@@ -152,7 +124,7 @@ Ce document décrit chaque page du SPA React (`frontend-v2/src/pages/`), son che
 
 ### CampaignAnalyticsPage
 - **Route :** `/campaigns/:id/analytics`
-- **Accès :** `rh`, `admin`
+- **Accès :** `hr`, `admin`
 - **Objectif :** Analyse détaillée des résultats d'une campagne spécifique.
 - **Fonctionnalités :**
   - Visualisations des scores par critère et par département
@@ -182,19 +154,14 @@ Ce document décrit chaque page du SPA React (`frontend-v2/src/pages/`), son che
   - Historique des actions et commentaires
   - Téléchargement PDF de l'évaluation signée
 
-### EvaluationFormPage
-- **Route :** `/evaluations/:id/form`
-- **Accès :** `employee`, `manager`
-- **Objectif :** Formulaire de saisie d'une évaluation en cours.
-- **Fonctionnalités :**
-  - Rendu dynamique du formulaire (types de champs variés : texte, note, choix multiple)
-  - Sauvegarde automatique des réponses (brouillon)
-  - Soumission et déclenchement du workflow de signature
-  - Validation côté client avant envoi
+> **Saisie d'une évaluation** — il n'existe pas de route `/evaluations/:id/form` distincte. Le
+> formulaire de remplissage est intégré à `EvaluationDetailPage` (`/evaluations/:id`) : rendu
+> dynamique des questions, sauvegarde automatique en brouillon (`assigned → in_progress`),
+> soumission et déclenchement du workflow de signature.
 
 ### EvaluationNewPage
 - **Route :** `/evaluations/new`
-- **Accès :** `rh`, `manager`
+- **Accès :** `admin`, `hr`
 - **Objectif :** Création manuelle d'une évaluation hors campagne.
 - **Fonctionnalités :**
   - Sélection de l'employé et du formulaire
@@ -210,13 +177,42 @@ Ce document décrit chaque page du SPA React (`frontend-v2/src/pages/`), son che
   - Comparaison des scores d'une année sur l'autre
   - Téléchargement des évaluations archivées
 
+### ObjectivesPage
+- **Route :** `/objectives`
+- **Accès :** `employee`, `manager`, `hr`, `admin`
+- **Objectif :** Suivi des objectifs fixés lors des entretiens.
+- **Fonctionnalités :**
+  - Liste des objectifs avec niveau d'atteinte et échéances
+  - Mise à jour de l'avancement
+
+---
+
+## Entretien & actions manager
+
+### ManagerTodoPage
+- **Route :** `/manager/todo`
+- **Accès :** `manager`, `hr`, `admin`
+- **Objectif :** File des actions en attente pour le manager (« À traiter »).
+- **Fonctionnalités :**
+  - Évaluations de l'équipe à réviser ou à signer
+  - Demandes (mobilité, etc.) à traiter, quelle que soit la profondeur hiérarchique
+
+### InterviewPage
+- **Route :** `/interview` (lit `campaignId` et `evaluateeId` en query string)
+- **Accès :** `manager`, `hr`, `admin`
+- **Objectif :** Vue Entretien en face-à-face — conduite de l'échange à partir de la fiche complète.
+- **Fonctionnalités :**
+  - Affichage côte à côte des réponses (auto-évaluation, contexte N-1)
+  - Saisie de la synthèse, des objectifs et de la note globale
+  - Double signature et gestion du désaccord
+
 ---
 
 ## Formulaires RH
 
 ### FormsPage
 - **Route :** `/forms`
-- **Accès :** `rh`, `admin`
+- **Accès :** `hr`, `admin`
 - **Objectif :** Gestion des modèles de formulaires d'évaluation RH.
 - **Fonctionnalités :**
   - Liste des formulaires (actifs, archivés, brouillons)
@@ -225,7 +221,7 @@ Ce document décrit chaque page du SPA React (`frontend-v2/src/pages/`), son che
 
 ### FormDetailPage
 - **Route :** `/forms/:id`
-- **Accès :** `rh`, `admin`
+- **Accès :** `hr`, `admin`
 - **Objectif :** Prévisualisation et gestion d'un modèle de formulaire.
 - **Fonctionnalités :**
   - Aperçu du rendu final du formulaire
@@ -234,7 +230,7 @@ Ce document décrit chaque page du SPA React (`frontend-v2/src/pages/`), son che
 
 ### FormNewPage
 - **Route :** `/forms/new`
-- **Accès :** `rh`, `admin`
+- **Accès :** `admin`, `hr`, `manager`
 - **Objectif :** Création d'un nouveau modèle de formulaire d'évaluation.
 - **Fonctionnalités :**
   - Éditeur drag-and-drop de sections et de champs (dnd-kit)
@@ -244,7 +240,7 @@ Ce document décrit chaque page du SPA React (`frontend-v2/src/pages/`), son che
 
 ### AdminFormsImportPage
 - **Route :** `/admin/forms/import`
-- **Accès :** `admin`
+- **Accès :** `admin`, `hr`
 - **Objectif :** Import de modèles de formulaires depuis un fichier JSON ou CSV.
 - **Fonctionnalités :**
   - Upload de fichier et validation du format
@@ -255,32 +251,11 @@ Ce document décrit chaque page du SPA React (`frontend-v2/src/pages/`), son che
 
 ## Offboarding
 
-### OffboardingPage
-- **Route :** `/offboarding`
-- **Accès :** `rh`, `admin`
-- **Objectif :** Gestion des départs collaborateurs — liste et création de dossiers.
-- **Fonctionnalités :**
-  - Liste des départs (en cours, planifiés, clôturés)
-  - Filtres par département, type de départ (démission, licenciement, retraite…)
-  - Création d'un nouveau dossier de départ
-
-### OffboardingDetailPage
-- **Route :** `/offboarding/:id`
-- **Accès :** `rh`, `admin`
-- **Objectif :** Suivi et validation d'un dossier de départ collaborateur.
-- **Fonctionnalités :**
-  - Checklist de départ par étapes (IT, RH, manager, finance)
-  - Attribution des tâches aux responsables
-  - Suivi de l'avancement en temps réel
-  - Clôture du dossier et archivage
-
-### UserOffboardingPage
-- **Route :** `/users/:id/offboarding`
-- **Accès :** `rh`, `admin`
-- **Objectif :** Vue offboarding centrée sur un utilisateur spécifique.
-- **Fonctionnalités :**
-  - Initiation d'un dossier de départ depuis la fiche utilisateur
-  - Pré-remplissage des informations du collaborateur
+> **Pas de page/route frontend dédiée.** L'offboarding (départ d'un collaborateur) est une
+> capacité **backend** exposée par l'API `/api/v1/offboarding`. Il est déclenché et suivi depuis la
+> fiche utilisateur (`UserDetailPage`, `/users/:id`) par un rôle `hr`/`admin`. Lancer un offboarding
+> archive les évaluations en cours du collaborateur concerné (statut `archived`). Voir
+> [[Gestion-des-comptes]] dans le wiki et `docs/ARCHITECTURE.md`.
 
 ---
 
@@ -326,7 +301,7 @@ Ce document décrit chaque page du SPA React (`frontend-v2/src/pages/`), son che
 
 ### AnalyticsPage
 - **Route :** `/analytics`
-- **Accès :** `rh`, `admin`
+- **Accès :** `hr`, `admin`
 - **Objectif :** Tableaux de bord KPIs globaux et exports des données RH.
 - **Fonctionnalités :**
   - Indicateurs agrégés : taux d'évaluation, scores moyens, distribution des notes
@@ -335,8 +310,8 @@ Ce document décrit chaque page du SPA React (`frontend-v2/src/pages/`), son che
   - Export PDF (jsPDF) et CSV
 
 ### AnalyticsCampaignPage
-- **Route :** `/analytics/campaigns`
-- **Accès :** `rh`, `admin`
+- **Route :** `/analytics/campaigns/:id`
+- **Accès :** `hr`, `admin`
 - **Objectif :** Analyse comparative des campagnes d'évaluation sur plusieurs périodes.
 - **Fonctionnalités :**
   - Comparaison des taux de complétion entre campagnes
@@ -349,7 +324,7 @@ Ce document décrit chaque page du SPA React (`frontend-v2/src/pages/`), son che
 
 ### UsersPage
 - **Route :** `/users`
-- **Accès :** `admin`, `rh`
+- **Accès :** `admin`, `hr` (gestion) · `manager` (lecture de son équipe)
 - **Objectif :** Liste et recherche des utilisateurs de la plateforme.
 - **Fonctionnalités :**
   - Tableau paginé avec recherche et filtres (rôle, département, statut)
@@ -358,7 +333,7 @@ Ce document décrit chaque page du SPA React (`frontend-v2/src/pages/`), son che
 
 ### UserDetailPage
 - **Route :** `/users/:id`
-- **Accès :** `admin`, `rh`
+- **Accès :** `admin`, `hr` · `manager` (lecture)
 - **Objectif :** Fiche détaillée d'un utilisateur avec son historique RH.
 - **Fonctionnalités :**
   - Informations personnelles et professionnelles
@@ -368,7 +343,7 @@ Ce document décrit chaque page du SPA React (`frontend-v2/src/pages/`), son che
 
 ### UserEditPage
 - **Route :** `/users/:id/edit`
-- **Accès :** `admin`, `rh`
+- **Accès :** `admin`, `hr`
 - **Objectif :** Modification des informations d'un utilisateur.
 - **Fonctionnalités :**
   - Édition du profil, du rôle, du département, du manager
@@ -377,7 +352,7 @@ Ce document décrit chaque page du SPA React (`frontend-v2/src/pages/`), son che
 
 ### UserNewPage
 - **Route :** `/users/new`
-- **Accès :** `admin`
+- **Accès :** `admin`, `hr`
 - **Objectif :** Création manuelle d'un compte utilisateur.
 - **Fonctionnalités :**
   - Formulaire de création avec validation
@@ -385,7 +360,7 @@ Ce document décrit chaque page du SPA React (`frontend-v2/src/pages/`), son che
 
 ### AdminUsersImportPage
 - **Route :** `/admin/users/import`
-- **Accès :** `admin`
+- **Accès :** `admin`, `hr`
 - **Objectif :** Import en masse d'utilisateurs depuis un fichier CSV.
 - **Fonctionnalités :**
   - Upload et validation du fichier CSV
@@ -394,7 +369,7 @@ Ce document décrit chaque page du SPA React (`frontend-v2/src/pages/`), son che
 
 ### UserGroupsPage
 - **Route :** `/users/groups`
-- **Accès :** `admin`, `rh`
+- **Accès :** `admin`, `hr`
 - **Objectif :** Gestion des groupes d'utilisateurs pour les campagnes et les droits.
 - **Fonctionnalités :**
   - Création et édition de groupes
@@ -424,17 +399,17 @@ Ce document décrit chaque page du SPA React (`frontend-v2/src/pages/`), son che
   - Documents et ressources associés
 
 ### ResourcesPage
-- **Route :** `/resources`
-- **Accès :** tous
-- **Objectif :** Bibliothèque de ressources RH (guides, modèles de documents, politiques).
+- **Route :** `/documents`
+- **Accès :** `hr`, `manager`, `employee` (l'`admin` est **exclu** de cette zone)
+- **Objectif :** Espace documentaire RH (guides, modèles, politiques) publié par la RH.
 - **Fonctionnalités :**
   - Recherche et filtres par catégorie
   - Téléchargement des documents
-  - Gestion des ressources (rôles admin/rh)
+  - Publication/gestion des documents (rôle `hr`)
 
 ### ResourceDetailPage
-- **Route :** `/resources/:id`
-- **Accès :** tous
+- **Route :** `/documents/:id`
+- **Accès :** `hr`, `manager`, `employee` (l'`admin` est **exclu**)
 - **Objectif :** Consultation et téléchargement d'une ressource RH spécifique.
 - **Fonctionnalités :**
   - Aperçu du document
@@ -456,8 +431,8 @@ Ce document décrit chaque page du SPA React (`frontend-v2/src/pages/`), son che
 
 ### AdminPage (Hub)
 - **Route :** `/admin`
-- **Accès :** `admin`
-- **Objectif :** Hub d'administration — configuration globale de la plateforme et accès à tous les outils admin.
+- **Accès :** `admin`, `hr`
+- **Objectif :** Hub d'administration — accès aux outils d'administration et de configuration RH. Le contenu affiché dépend du rôle (les outils infrastructure restent réservés à l'`admin`).
 - **Fonctionnalités :**
   - Navigation vers les sous-sections admin (utilisateurs, mail, LDAP, audit…)
   - Indicateurs de santé de la plateforme
@@ -465,7 +440,7 @@ Ce document décrit chaque page du SPA React (`frontend-v2/src/pages/`), son che
 
 ### AdminUsersPage
 - **Route :** `/admin/users`
-- **Accès :** `admin`
+- **Accès :** `admin`, `hr`
 - **Objectif :** Gestion avancée des utilisateurs avec outils RGPD et synchronisation LDAP.
 - **Fonctionnalités :**
   - Gestion complète des comptes (activation, désactivation, suppression RGPD)
@@ -492,7 +467,7 @@ Ce document décrit chaque page du SPA React (`frontend-v2/src/pages/`), son che
   - Mappage des attributs LDAP vers les champs utilisateur
 
 ### AdminMailConfigPage
-- **Route :** `/admin/mail`
+- **Route :** `/admin/mail-config`
 - **Accès :** `admin`
 - **Objectif :** Configuration du serveur SMTP pour les notifications email.
 - **Fonctionnalités :**
@@ -501,8 +476,8 @@ Ce document décrit chaque page du SPA React (`frontend-v2/src/pages/`), son che
   - Statut de la connexion SMTP
 
 ### AdminMailTemplatesPage
-- **Route :** `/admin/mail/templates`
-- **Accès :** `admin`
+- **Route :** `/admin/mail-templates`
+- **Accès :** `admin`, `hr`
 - **Objectif :** Gestion des modèles d'emails transactionnels.
 - **Fonctionnalités :**
   - Édition des templates (invitation évaluation, relance, bienvenue…)
@@ -510,7 +485,7 @@ Ce document décrit chaque page du SPA React (`frontend-v2/src/pages/`), son che
   - Prévisualisation du rendu
 
 ### AdminMailTestPage
-- **Route :** `/admin/mail/test`
+- **Route :** `/admin/test-mail`
 - **Accès :** `admin`
 - **Objectif :** Envoi d'un email de test pour vérifier la configuration SMTP.
 - **Fonctionnalités :**
@@ -519,7 +494,7 @@ Ce document décrit chaque page du SPA React (`frontend-v2/src/pages/`), son che
 
 ### AdminAuditPage
 - **Route :** `/admin/audit`
-- **Accès :** `admin`
+- **Accès :** `admin`, `hr`
 - **Objectif :** Journal d'audit des actions sensibles effectuées sur la plateforme.
 - **Fonctionnalités :**
   - Historique des actions (connexions, modifications, suppressions)
@@ -528,7 +503,7 @@ Ce document décrit chaque page du SPA React (`frontend-v2/src/pages/`), son che
 
 ### AdminStatsPage
 - **Route :** `/admin/stats`
-- **Accès :** `admin`
+- **Accès :** `admin`, `hr`
 - **Objectif :** Statistiques techniques et métriques d'utilisation de la plateforme.
 - **Fonctionnalités :**
   - Métriques d'utilisation (connexions, actions par module)
@@ -553,9 +528,25 @@ Ce document décrit chaque page du SPA React (`frontend-v2/src/pages/`), son che
   - Validation de chaque étape avant de passer à la suivante
   - Seed de données initiales optionnel
 
+### AdminSslPage
+- **Route :** `/admin/ssl`
+- **Accès :** `admin`
+- **Objectif :** Gestion du certificat TLS — statut, téléversement du `fullchain.pem` / `privkey.pem`.
+- **Fonctionnalités :**
+  - Affichage du CN, de la date d'expiration et du nombre de jours restants
+  - Téléversement et validation d'un nouveau certificat (écriture atomique dans `nginx/certs/`)
+
+### DepartmentsPage
+- **Route :** `/admin/departments`
+- **Accès :** `admin`, `hr`
+- **Objectif :** Gestion des départements de l'organisation.
+- **Fonctionnalités :**
+  - Création, édition et suppression de départements
+  - Association des collaborateurs aux départements
+
 ### HrSettingsPage
-- **Route :** `/hr/settings`
-- **Accès :** `rh`, `admin`
+- **Routes :** `/hr/settings` et `/admin/settings` (même composant)
+- **Accès :** `hr`, `admin`
 - **Objectif :** Paramètres RH spécifiques (règles métier, notifications, workflows).
 - **Fonctionnalités :**
   - Configuration des règles de relance automatique
@@ -564,7 +555,7 @@ Ce document décrit chaque page du SPA React (`frontend-v2/src/pages/`), son che
 
 ### HrFlagsPage
 - **Route :** `/hr/flags`
-- **Accès :** `rh`, `admin`
+- **Accès :** `hr`, `admin`
 - **Objectif :** Liste des flags RH — alertes nécessitant une attention particulière.
 - **Fonctionnalités :**
   - Liste des signalements actifs (évaluations bloquées, PDI en retard, offboardings urgents)
@@ -573,7 +564,7 @@ Ce document décrit chaque page du SPA React (`frontend-v2/src/pages/`), son che
 
 ### HrFlagDetailPage
 - **Route :** `/hr/flags/:id`
-- **Accès :** `rh`, `admin`
+- **Accès :** `hr`, `admin`
 - **Objectif :** Détail d'un flag RH avec contexte et actions de résolution.
 - **Fonctionnalités :**
   - Description du problème et contexte (collaborateur, module concerné)
@@ -595,7 +586,7 @@ Ce document décrit chaque page du SPA React (`frontend-v2/src/pages/`), son che
   - Changement de mot de passe (authentification locale)
 
 ### PreferencesPage
-- **Route :** `/preferences`
+- **Route :** `/profile/preferences`
 - **Accès :** tous
 - **Objectif :** Paramètres personnels de l'interface (langue, thème, notifications).
 - **Fonctionnalités :**
@@ -613,14 +604,13 @@ Ce document décrit chaque page du SPA React (`frontend-v2/src/pages/`), son che
   - Marquage comme lu / tout marquer comme lu
   - Liens directs vers les éléments concernés
 
-### OnboardingPage
-- **Route :** `/onboarding`
-- **Accès :** tous
-- **Objectif :** Parcours d'accueil pour les nouveaux utilisateurs de la plateforme.
+### HelpPage
+- **Route :** `/help`
+- **Accès :** tous (admin compris)
+- **Objectif :** Aide en ligne, accessible via le bouton `?` de la barre supérieure.
 - **Fonctionnalités :**
-  - Guide pas-à-pas des fonctionnalités principales
-  - Complétion du profil obligatoire avant accès complet
-  - Marquage de l'onboarding comme terminé
+  - Guide d'utilisation par fonctionnalité
+  - Réponses aux questions fréquentes
 
 ---
 

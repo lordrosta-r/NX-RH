@@ -44,3 +44,4 @@
 
 - [[FAQ]]
 - [[Glossaire]]
+- [[Licence]]

@@ -8,20 +8,28 @@ Tous les utilisateurs commencent au même endroit : la **page de connexion**. L'
 
 ## 1. Connexion et orientation
 
-### Page de connexion (`/`)
+### Page de connexion (`/login`)
 
 Identique pour tous les rôles. L'utilisateur saisit son email professionnel et son mot de passe. L'authentification peut se faire via :
-- **Compte local** — identifiants stockés dans la base de données
-- **LDAP / Active Directory** — synchronisation avec l'annuaire de l'organisation (si configuré par l'Admin)
+- **Compte local** (`/login`) — identifiants stockés dans la base de données
+- **LDAP / Active Directory** (`/login/ldap`) — annuaire de l'organisation (si configuré par l'Admin)
 
-### Redirection automatique post-connexion
+### Orientation post-connexion
+
+Après authentification, l'utilisateur est redirigé vers la **racine `/`** : une route index unique
+(`DashboardPage`) qui affiche le tableau de bord adapté à son rôle. Il n'existe **pas** de routes
+distinctes `/employee`, `/manager` ou `/hr` — la même URL `/` rend un composant différent selon le rôle.
 
 ```
-Rôle Admin     →  /hr        (accès total + outils admin)
-Rôle HR        →  /hr        (tableau de bord RH)
-Rôle Manager   →  /manager   (son équipe directe)
-Rôle Employee  →  /employee  (ses propres évaluations)
+Tous les rôles →  /  (route index)
+  ├─ admin     →  DashboardAdminPage    (santé plateforme, outils admin)
+  ├─ hr        →  DashboardHrPage        (KPIs RH, campagnes, flags)
+  ├─ manager   →  DashboardManagerPage   (équipe directe, actions à traiter)
+  └─ employee  →  DashboardEmployeePage  (ses évaluations, PDI, objectifs)
 ```
+
+> Les rôles `manager`, `hr` et `admin` disposent d'une **bascule de perspective** (« Mon espace » /
+> « métier ») qui change la navigation sans changer l'URL.
 
 ---
 
@@ -30,7 +38,7 @@ Rôle Employee  →  /employee  (ses propres évaluations)
 ### Phase 1 — Préparation (RH)
 
 ```
-RH se connecte → /hr (onglet Campagnes)
+RH se connecte → / (tableau de bord RH) → Campagnes (/campaigns)
   │
   ├─ Vérifie qu'un template existe (sinon : créer un template d'abord)
   ├─ Clique "Nouvelle campagne"
@@ -44,7 +52,7 @@ RH se connecte → /hr (onglet Campagnes)
 ### Phase 2 — Auto-évaluation (Employé)
 
 ```
-Employé reçoit une notification email → se connecte → /dashboard
+Employé reçoit une notification email → se connecte → / (tableau de bord employé)
   │
   ├─ Voit la campagne en cours dans son tableau de bord
   ├─ Ouvre le formulaire "Auto-évaluation"
@@ -117,46 +125,42 @@ Manager
 
 ## 4. Navigation entre les pages
 
-```
-/                ← Login (toujours accessible)
-/employee        ← Employés (et tout rôle authentifié)
-/manager         ← Managers, Admin, comptes legacy director
-/hr              ← HR, Admin
-```
-
-La navigation interne à chaque page est gérée par des onglets et des panels, pas par des changements d'URL (MPA + composants React par page).
-
-### Structure typique de `/manager`
+NanoXplore RH est une **SPA** (React Router v6, `createBrowserRouter`). La navigation se fait par
+changement d'URL côté client ; chaque page est une route distincte. Les routes et leurs gardes de
+rôle sont définies dans `frontend-v2/src/router/index.tsx`. Routes principales par domaine :
 
 ```
-┌─────────────────────────────────────────────────────┐
-│  En-tête : nom de l'utilisateur, rôle, déconnexion  │
-├──────────┬──────────────────────────────────────────┤
-│ Sidebar  │ Panel principal                          │
-│          │                                          │
-│ Mon équipe│ (liste des membres + statuts)           │
-│ Campagnes│ (si HR ou Admin)                         │
-│ Templates│ (si HR ou Admin)                         │
-│ Rapports │ (si HR ou Admin)                         │
-│ Paramètres│ (si Admin)                              │
-└──────────┴──────────────────────────────────────────┘
+/                       ← Tableau de bord (adapté au rôle)
+/campaigns, /forms      ← Campagnes & formulaires (RH/admin pour l'écriture)
+/evaluations            ← Évaluations de l'utilisateur (+ /evaluations/history, /objectives)
+/manager/todo           ← Actions à traiter (manager/hr/admin)
+/interview              ← Vue Entretien (manager/hr/admin)
+/users, /org            ← Collaborateurs & organigramme
+/pdi, /mobility         ← PDI & demandes de mobilité
+/documents, /events     ← Documents RH & calendrier
+/analytics              ← Analyses (admin/hr/manager)
+/admin/*                ← Administration (admin ; certaines pages ouvertes à hr)
+/profile, /notifications, /help
 ```
 
-### Structure typique de `/dashboard`
+La navigation affichée est calculée par `getPerspectiveNav(role, perspective, t)`
+(`src/components/layout/navConfig.ts`) en fonction du rôle **et** de la perspective active.
+
+### Structure type du tableau de bord employé (`/`)
 
 ```
 ┌─────────────────────────────────────────────────────┐
 │  En-tête : nom de l'employé, déconnexion            │
 ├─────────────────────────────────────────────────────┤
 │  Campagne en cours                                  │
-│    Phase 2 — Auto-évaluation  [En cours]            │
-│    Phase 3 — Bilan N-1        [À faire]             │
-│    Phase 4 — Objectifs futurs [Verrouillé]          │
-│    Phase 5 — Aspirations      [Verrouillé]          │
+│    Auto-évaluation        [En cours]                │
+│    Bilan N-1              [À faire]                  │
+│    Objectifs futurs       [Verrouillé]              │
+│    Aspirations            [Verrouillé]              │
 ├─────────────────────────────────────────────────────┤
 │  Historique des campagnes passées                   │
 ├─────────────────────────────────────────────────────┤
-│  Paramètres personnels (langue, thème, mot de passe)│
+│  Accès profil & préférences (langue, thème, mot de passe) │
 └─────────────────────────────────────────────────────┘
 ```
 
@@ -164,7 +168,13 @@ La navigation interne à chaque page est gérée par des onglets et des panels, 
 
 ## 5. Lifecycle d'une évaluation
 
-### Les 8 statuts
+### Les statuts
+
+> **Source de vérité :** `mongo/server/models/Evaluation.js` (`EVALUATION_STATUSES`,
+> `VALID_TRANSITIONS`, `ROLE_TRANSITIONS`). Le diagramme complet figure dans le wiki
+> [Architecture](https://github.com/lordrosta-r/NX-RH/wiki/Architecture).
+
+Flux nominal :
 
 ```
 assigned → in_progress → submitted → reviewed → signed_evaluatee → signed_manager → signed_hr → validated
@@ -176,19 +186,23 @@ assigned → in_progress → submitted → reviewed → signed_evaluatee → sig
 | `in_progress` | L'évaluateur a commencé à remplir le formulaire. Réponses modifiables (sauvegarde auto). |
 | `submitted` | L'évaluateur a soumis le formulaire. Les réponses sont verrouillées. |
 | `reviewed` | Le manager a examiné l'évaluation et ajouté son commentaire/score. |
-| `signed_evaluatee` | L'évaluatee a pris connaissance de l'évaluation et l'a signée. |
+| `disputed` | L'évalué conteste après revue ; en attente d'arbitrage RH. |
+| `signed_evaluatee` | L'évalué a pris connaissance de l'évaluation et l'a signée. |
 | `signed_manager` | Le manager a co-signé l'évaluation après l'entretien. |
 | `signed_hr` | RH a contre-signé pour archivage officiel. |
 | `validated` | Statut terminal — l'évaluation est finalisée et archivée en lecture seule. |
+| `expired` | Terminal — échéance dépassée (déclenché par le planificateur). |
+| `rejected` | Terminal — demande RH refusée par un RH. |
+| `archived` | Terminal — évaluation annulée suite à un offboarding. |
 
-### Transitions autorisées par rôle
+### Transitions autorisées par rôle (hors admin)
 
 | Rôle | Peut effectuer |
 |---|---|
-| `employee` | `assigned → in_progress`, `in_progress → submitted` |
-| `manager` | `submitted → reviewed` |
-| `hr` | `reviewed → signed_hr`, `signed_manager → signed_hr` |
-| `admin` | Toutes les transitions |
+| `employee` | `assigned → in_progress`, `in_progress → submitted`, `reviewed → signed_evaluatee`, `reviewed → disputed` |
+| `manager` | `in_progress → submitted`, `submitted → reviewed`, `signed_evaluatee → signed_manager` |
+| `hr` | `reviewed → signed_hr` (contournement), `disputed → reviewed`/`signed_evaluatee` (arbitrage), `signed_evaluatee → signed_hr`, `signed_manager → signed_hr`, `signed_hr → validated` |
+| `admin` | Toutes les transitions valides |
 
 > **Note :** La transition `assigned → in_progress` se déclenche aussi automatiquement dès qu'une première réponse est sauvegardée (pre-save Mongoose).
 

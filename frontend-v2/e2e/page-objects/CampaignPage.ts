@@ -21,6 +21,14 @@ export class CampaignPage {
     await this.page.waitForLoadState('networkidle')
   }
 
+  /**
+   * Wizard /campaigns/new (CampaignNewPage) — 4 étapes :
+   *  0. Informations (nom, description, dates) — seuls nom + dates sont validés
+   *  1. Formulaires (texte info)
+   *  2. Public cible (périmètre, "all" par défaut)
+   *  3. Récapitulatif → bouton "Créer la campagne"
+   * Le nom, la description et les dates sont TOUS sur l'étape 0.
+   */
   async createCampaign(data: {
     name: string
     description?: string
@@ -30,57 +38,34 @@ export class CampaignPage {
   }) {
     await this.gotoNew()
 
-    // Step 1: Basic info
-    const nameField = this.page.getByLabel(/nom|titre/i).first()
-    await nameField.fill(data.name)
+    // Étape 0 — Informations générales
+    await this.page.locator('#campaign-name').fill(data.name)
 
     if (data.description) {
-      const descField = this.page.getByLabel(/description/i).first()
-      if (await descField.isVisible()) {
-        await descField.fill(data.description)
-      }
+      await this.page.locator('#campaign-description').fill(data.description)
     }
 
-    await this.clickNextOrSubmit()
+    await this.page.locator('#campaign-start-date').fill(data.startDate)
+    await this.page.locator('#campaign-end-date').fill(data.endDate)
 
-    // Step 2: Dates
-    const startDateField = this.page.getByLabel(/date.*début|date.*debut|start.*date/i).first()
-    if (await startDateField.isVisible()) {
-      await startDateField.fill(data.startDate)
-    }
+    // 0 → 1 → 2 → 3 : trois clics "Suivant →"
+    await this.clickNext() // → Formulaires
+    await this.clickNext() // → Public cible
+    await this.clickNext() // → Récapitulatif
 
-    const endDateField = this.page.getByLabel(/date.*fin|end.*date/i).first()
-    if (await endDateField.isVisible()) {
-      await endDateField.fill(data.endDate)
-    }
-
-    await this.clickNextOrSubmit()
-
-    // Step 3: Template (if applicable)
-    if (data.template) {
-      const templateSelect = this.page.locator('select[name*="template"], #template').first()
-      if (await templateSelect.isVisible()) {
-        await templateSelect.selectOption(data.template)
-      }
-    }
-
-    await this.clickNextOrSubmit()
-
-    // Step 4: Final submit
-    await this.clickNextOrSubmit()
+    // Étape 3 — soumission
+    await this.page
+      .getByRole('button', { name: /créer la campagne/i })
+      .click()
 
     await this.page.waitForLoadState('networkidle')
   }
 
-  async clickNextOrSubmit() {
-    const button = this.page.getByRole('button', {
-      name: /suivant|next|créer|create|enregistrer|sauvegarder|soumettre|submit/i
-    }).first()
-    
-    if (await button.isVisible()) {
-      await button.click()
-      await this.page.waitForTimeout(1000)
-    }
+  async clickNext() {
+    await this.page
+      .getByRole('button', { name: /suivant/i })
+      .click()
+    await this.page.waitForTimeout(300)
   }
 
   async openCampaign(campaignName: string) {

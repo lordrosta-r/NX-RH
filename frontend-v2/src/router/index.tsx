@@ -93,6 +93,7 @@ const AdminSetupWizardPage = lazy(
   () => import("../pages/AdminSetupWizardPage"),
 );
 const MobilityPage = lazy(() => import("../pages/MobilityPage"));
+const ObjectivesPage = lazy(() => import("../pages/ObjectivesPage"));
 const AdminMailTestPage = lazy(() => import("../pages/AdminMailTestPage"));
 const AdminStatsPage = lazy(() => import("../pages/AdminStatsPage"));
 const DepartmentsPage = lazy(() => import("../pages/DepartmentsPage"));
@@ -285,7 +286,7 @@ export const router = createBrowserRouter([
       {
         path: "/forms/new",
         element: (
-          <AuthGuard roles={["admin", "hr"]}>
+          <AuthGuard roles={["admin", "hr", "manager"]}>
             <S>
               <FormNewPage />
             </S>
@@ -391,6 +392,16 @@ export const router = createBrowserRouter([
           <S>
             <MobilityPage />
           </S>
+        ),
+      },
+      {
+        path: "/objectives",
+        element: (
+          <AuthGuard roles={["employee", "manager", "hr", "admin"]}>
+            <S>
+              <ObjectivesPage />
+            </S>
+          </AuthGuard>
         ),
       },
       // Manager — À traiter
@@ -681,11 +692,15 @@ export const router = createBrowserRouter([
     ),
     children: [
       {
+        // Organigramme : vue de gestion. L'API /api/org/* refuse l'employé (403) ;
+        // on aligne la route front (manager+) pour éviter l'incohérence. #90
         path: "/org",
         element: (
-          <S>
-            <OrgPage />
-          </S>
+          <AuthGuard roles={["admin", "hr", "manager"]}>
+            <S>
+              <OrgPage />
+            </S>
+          </AuthGuard>
         ),
       },
       {

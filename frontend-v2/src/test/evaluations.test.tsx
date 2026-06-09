@@ -103,7 +103,7 @@ function makeEvaluation(overrides: Partial<Evaluation> = {}): Evaluation {
     evaluatorId: evaluator.id,
     formId: "form-1",
     status: "assigned",
-    answers: {},
+    answers: [],
     reviewerScore: 82,
     reviewerComment: "Très bon niveau.",
     nextYearObjectives: "Continuer la montée en compétences.",
@@ -283,7 +283,7 @@ describe("EvaluationsPage", () => {
 
   it("affiche les évaluations employé en cards et pas en tableau", async () => {
     server.use(
-      http.get("http://localhost:5050/api/evaluations/me", ({ request }) => {
+      http.get("http://localhost:5050/api/evaluations", ({ request }) => {
         const url = new URL(request.url);
         const campaignId = url.searchParams.get("campaignId");
         const status = url.searchParams.get("status");
@@ -369,18 +369,15 @@ describe("EvaluationDetailPage", () => {
       ),
       http.patch(
         "http://localhost:5050/api/evaluations/:id",
-        async ({ request }) => {
-          patchCalls.push({
-            body: (await request.json()) as Record<string, unknown>,
-          });
+        async ({ request, params }) => {
+          const body = (await request.json()) as Record<string, unknown>;
+          patchCalls.push({ body });
+          // La soumission passe par PATCH { status: "submitted" } (plus de route /submit).
+          if (body.status === "submitted") {
+            submitCalls.push(params.id as string);
+            return HttpResponse.json(makeEvaluation({ status: "submitted" }));
+          }
           return HttpResponse.json(makeEvaluation({ status: "in_progress" }));
-        },
-      ),
-      http.post(
-        "http://localhost:5050/api/evaluations/:id/submit",
-        ({ params }) => {
-          submitCalls.push(params.id as string);
-          return HttpResponse.json(makeEvaluation({ status: "submitted" }));
         },
       ),
     );
@@ -401,9 +398,9 @@ describe("EvaluationDetailPage", () => {
 
     await user.type(screen.getByRole("textbox"), "Bilan complet");
     await waitFor(() => expect(patchCalls).toHaveLength(1), { timeout: 3000 });
-    expect(patchCalls[0].body.answers).toMatchObject({
-      "q-1": "Bilan complet",
-    });
+    expect(patchCalls[0].body.answers).toEqual([
+      { questionId: "q-1", value: "Bilan complet" },
+    ]);
 
     await user.click(screen.getByRole("button", { name: "Suivant →" }));
     expect(screen.getByText("Quels sont vos objectifs ?")).toBeInTheDocument();
@@ -471,7 +468,7 @@ describe("EvaluationDetailPage", () => {
             status: "in_progress",
             evaluatorId: employee.id,
             evaluator: employee,
-            answers: {},
+            answers: [],
             form: {
               id: "form-1",
               title: "Formulaire annuel",
@@ -536,7 +533,7 @@ describe("EvaluationDetailPage", () => {
               email: "maya.durand@example.com",
             }),
             evaluatee: employee,
-            answers: { "q-1": "Très bon travail" },
+            answers: [{ questionId: "q-1", value: "Très bon travail" }],
           }),
         ),
       ),

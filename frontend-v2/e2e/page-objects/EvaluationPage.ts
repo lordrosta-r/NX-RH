@@ -9,7 +9,7 @@ export class EvaluationPage {
   constructor(page: Page) {
     this.page = page
     this.evaluationsList = page.locator('[data-testid="evaluations-list"]').or(page.locator('.evaluations-list'))
-    this.statusFilter = page.locator('select[name*="status"], #status-filter')
+    this.statusFilter = page.getByRole('listbox', { name: /statut|status/i })
     this.exportButton = page.getByRole('button', { name: /export|csv/i })
   }
 
@@ -19,10 +19,21 @@ export class EvaluationPage {
   }
 
   async filterByStatus(status: 'draft' | 'in_progress' | 'completed' | 'pending') {
-    if (await this.statusFilter.isVisible()) {
-      await this.statusFilter.selectOption(status)
-      await this.page.waitForLoadState('networkidle')
+    // L'UI réelle expose les statuts métier (assigned, in_progress, validated, ...).
+    // On mappe les statuts génériques du test vers les vraies valeurs d'option.
+    const map: Record<string, string> = {
+      draft: 'assigned',
+      in_progress: 'in_progress',
+      completed: 'validated',
+      pending: 'assigned',
     }
+    const value = map[status] ?? status
+    if ((await this.statusFilter.count()) === 0) return
+    const hasOption =
+      (await this.statusFilter.locator(`option[value="${value}"]`).count()) > 0
+    if (!hasOption) return
+    await this.statusFilter.selectOption(value)
+    await this.page.waitForLoadState('networkidle')
   }
 
   async exportToCsv(): Promise<string> {
@@ -43,8 +54,9 @@ export class EvaluationPage {
   }
 
   async clickFirstEvaluation() {
-    const firstEval = this.page.getByRole('link').filter({ hasText: /voir|evaluation|évaluation/i }).first()
-    if (await firstEval.isVisible()) {
+    // La liste rend des lignes avec un lien direct vers le détail (nom de l'évalué).
+    const firstEval = this.page.locator('a[href*="/evaluations/"]').first()
+    if ((await firstEval.count()) > 0) {
       await firstEval.click()
       await this.page.waitForLoadState('networkidle')
     }

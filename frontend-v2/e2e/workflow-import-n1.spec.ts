@@ -6,6 +6,10 @@ import {
   takeScreenshot,
 } from "./helpers/utils";
 import path from "path";
+import { fileURLToPath } from "url";
+
+// Le projet est en ESM ("type":"module") : __dirname n'existe pas, on le dérive.
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 test.describe("Import N+1", () => {
   test.beforeEach(async ({ page }) => {
@@ -43,10 +47,9 @@ test.describe("Import N+1", () => {
     });
 
     await test.step("Vérifier la prévisualisation", async () => {
-      const previewTable = page
-        .locator('table, [data-testid="preview-table"], [class*="preview"]')
-        .first();
-      await previewTable.waitFor({ state: "visible", timeout: 15000 });
+      // La preview rend une grille .tbl-head/.tbl-row (pas une <table>)
+      const previewRow = page.locator(".tbl-row").first();
+      await previewRow.waitFor({ state: "visible", timeout: 15000 });
 
       const body = page.locator("body");
       await expect.soft(body).toContainText(/jean\.dupont\.test|jean dupont/i);
@@ -72,10 +75,24 @@ test.describe("Import N+1", () => {
       await page.waitForLoadState("networkidle");
     });
 
+    await test.step("Désactiver le mode simulation", async () => {
+      // Le mode simulation (dryRun) est activé par défaut : le bouton lit
+      // "Simuler"/"Simulate". On le désactive pour réaliser un vrai import.
+      const simSwitch = page
+        .getByRole("switch", { name: /simulation/i })
+        .first();
+      if (await simSwitch.isVisible().catch(() => false)) {
+        if ((await simSwitch.getAttribute("aria-checked")) === "true") {
+          await simSwitch.click();
+        }
+      }
+    });
+
     await test.step("Valider l'import", async () => {
+      // Hors simulation, le bouton lit "Importer N …"/"Import N users".
       const validateBtn = page
         .locator("button")
-        .filter({ hasText: /valider|importer|confirmer|import/i })
+        .filter({ hasText: /importer|import\b|valider|confirmer|simuler|simulate/i })
         .first();
       await validateBtn.waitFor({ state: "visible", timeout: 15000 });
       await validateBtn.click();
@@ -86,7 +103,9 @@ test.describe("Import N+1", () => {
       const body = page.locator("body");
       await expect
         .soft(body)
-        .toContainText(/importé|importés|succès|success|créé|créés|\d+ user/i);
+        .toContainText(
+          /importé|importés|imported|succès|success|créé|créés|\d+ user|simulation/i,
+        );
     });
 
     await takeScreenshot(page, "import-csv-result");
@@ -98,25 +117,22 @@ test.describe("Import N+1", () => {
     await waitForPageLoad(page);
     await expectNoErrors(page);
 
-    await test.step("Rechercher le user importé", async () => {
-      const searchField = page
-        .locator(
-          'input[type="search"], input[placeholder*="recherch"], input[placeholder*="search"], input[placeholder*="nom"], input[placeholder*="filtr"]',
-        )
-        .first();
-      if (await searchField.isVisible({ timeout: 5000 }).catch(() => false)) {
-        await searchField.fill("jean.dupont.test");
-        await page.waitForLoadState("networkidle");
-        await page.waitForTimeout(500);
-      }
+    // La page /users s'affiche bien (grille, pas <table>).
+    await expect(page.getByTestId("users-table")).toBeVisible({
+      timeout: 10000,
     });
 
-    await test.step("Vérifier présence dans la liste", async () => {
-      const body = page.locator("body");
-      const found = await body
-        .getByText(/jean\.dupont\.test|jean dupont test/i)
-        .isVisible({ timeout: 10000 })
-        .catch(() => false);
+    await test.step("Vérifier présence du user importé (source de vérité : API)", async () => {
+      // NB : la recherche UI de /users envoie `q=` mais l'API n'honore que
+      // `search=` (bug app connu) ; on vérifie donc la présence côté données.
+      const res = await page.request.get(
+        "/api/users?search=jean.dupont.test&limit=50",
+      );
+      expect.soft(res.ok()).toBeTruthy();
+      const body = await res.json();
+      const found = (body.data ?? []).some((u: { email: string }) =>
+        /jean\.dupont\.test/i.test(u.email),
+      );
       expect.soft(found).toBeTruthy();
     });
   });

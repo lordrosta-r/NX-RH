@@ -1,5 +1,16 @@
 # NanoXplore RH — Guide de déploiement en production
 
+> **Fichiers Compose.** Le `Dockerfile` et les fichiers `docker-compose*.yml` sont regroupés
+> dans `docker/`. Lancer toutes les commandes **depuis la racine du dépôt** après avoir exporté
+> une fois par session :
+>
+> ```bash
+> export COMPOSE_FILE=docker/docker-compose.yml
+> ```
+>
+> Toutes les commandes `docker compose …` de ce guide fonctionnent alors telles quelles.
+> (Sans export, préfixer chaque commande par `--env-file .env -f docker/docker-compose.yml`.)
+
 ---
 
 ## 1. Prerequis
@@ -185,7 +196,7 @@ Renouvellement automatique via cron :
 0 3 * * * certbot renew --quiet && \
   cp /etc/letsencrypt/live/rh.nanoxplore.com/fullchain.pem /chemin/NX-RH/nginx/certs/fullchain.pem && \
   cp /etc/letsencrypt/live/rh.nanoxplore.com/privkey.pem   /chemin/NX-RH/nginx/certs/privkey.pem && \
-  docker compose -f /chemin/NX-RH/docker-compose.yml restart nginx
+  docker compose --env-file /chemin/NX-RH/.env -f /chemin/NX-RH/docker/docker-compose.yml restart nginx
 ```
 
 ### 3.2 Certificat auto-signé (tests uniquement)
@@ -469,7 +480,7 @@ DEST="$BACKUP_DIR/$DATE"
 
 source /chemin/NX-RH/.env
 
-docker compose -f /chemin/NX-RH/docker-compose.yml exec -T mongo \
+docker compose --env-file /chemin/NX-RH/.env -f /chemin/NX-RH/docker/docker-compose.yml exec -T mongo \
   mongodump \
     --username "$MONGO_ROOT_USER" \
     --password "$MONGO_ROOT_PASSWORD" \

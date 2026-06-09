@@ -6,10 +6,17 @@
 #   app    — Express server (scale with: docker compose up --scale app=3)
 #   mongo  — MongoDB 7 with persistent volume
 #
-# Usage:
-#   docker compose up -d
-#   docker compose up -d --scale app=3   ← high-availability mode
+# Usage (depuis la RACINE du dépôt) :
+#   docker compose --env-file .env -f docker/docker-compose.yml up -d
+#   docker compose --env-file .env -f docker/docker-compose.yml up -d --scale app=3   ← haute dispo
+#
+# Le fichier vit dans docker/ : --env-file .env charge le .env racine pour
+# l'interpolation des variables (${MONGO_ROOT_USER}…). Le nom de projet est figé
+# ci-dessous (name: nx-rh) pour rester stable quel que soit le dossier d'appel —
+# sans cela Compose le déduirait de docker/ et créerait une stack distincte.
 # =============================================================================
+
+name: nx-rh
 
 services:
 
@@ -32,7 +39,7 @@ services:
           echo "Certificat déjà présent, rien à faire."
         fi
     volumes:
-      - ./nginx/certs:/certs:rw
+      - ../nginx/certs:/certs:rw
 
   # ── Nginx — Reverse Proxy + SSL ──────────────────────────────────────────
   nginx:
@@ -43,9 +50,9 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./nginx/conf.d:/etc/nginx/conf.d:ro
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/certs:/etc/nginx/certs:ro          # certs TLS (écrits par cert-init / app)
+      - ../nginx/conf.d:/etc/nginx/conf.d:ro
+      - ../nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ../nginx/certs:/etc/nginx/certs:ro          # certs TLS (écrits par cert-init / app)
       - nginx_logs:/var/log/nginx
     depends_on:
       app:
@@ -61,19 +68,19 @@ services:
   # ── App — Express MPA Server (horizontally scalable) ─────────────────────
   app:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: docker/Dockerfile
     image: nanoxplore-rh:latest
     # No container_name when scaling — Docker assigns names automatically
     restart: unless-stopped
-    env_file: .env
+    env_file: ../.env
     environment:
       NODE_ENV: production
       COOKIE_SECURE: 'true'
       CERTS_DIR: /etc/nginx/certs           # cible de l'upload SSL (volume partagé avec nginx)
     volumes:
       - uploads_data:/data/uploads          # Documents RH téléversés (persistant)
-      - ./nginx/certs:/etc/nginx/certs:rw    # certs TLS : l'app y écrit (upload UI), nginx y lit
+      - ../nginx/certs:/etc/nginx/certs:rw    # certs TLS : l'app y écrit (upload UI), nginx y lit
     depends_on:
       mongo:
         condition: service_healthy

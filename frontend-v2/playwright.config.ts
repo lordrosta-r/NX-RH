@@ -33,5 +33,5 @@ export default defineConfig({
     },
   ],
   // Pas de webServer — la stack Docker doit tourner avant les tests
-  // Lancer avec: docker compose -f docker-compose.yml up -d
+  // Lancer avec: docker compose --env-file .env -f docker/docker-compose.yml up -d
 });

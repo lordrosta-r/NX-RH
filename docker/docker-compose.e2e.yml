@@ -1,10 +1,10 @@
 # Override pour les tests e2e locaux en mode prod.
 # Fait charger .env.e2e (secrets jetables prod-like) au lieu de .env (dev).
-# Usage : docker compose --env-file .env.e2e -f docker-compose.yml -f docker-compose.e2e.yml up -d
+# Usage : docker compose --env-file .env.e2e -f docker/docker-compose.yml -f docker/docker-compose.e2e.yml up -d
 services:
   app:
     env_file:
-      - .env.e2e
+      - ../.env.e2e
     environment:
       # Stack e2e JETABLE : on garde NODE_ENV=production (test du vrai mode prod)
       # mais on relâche le rate-limit de login. E2E_STACK=true est le double opt-in

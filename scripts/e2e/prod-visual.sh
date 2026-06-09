@@ -34,6 +34,10 @@ done
 log() { printf '\n\033[1;36m%s\033[0m\n' "$*"; }
 fail() { printf '\n\033[1;31m❌ %s\033[0m\n' "$*" >&2; exit 1; }
 
+# Wrapper compose : les fichiers vivent dans docker/ ; --env-file .env charge le .env
+# racine pour l'interpolation des variables (le script s'exécute depuis la racine).
+dc() { docker compose --env-file .env -f docker/docker-compose.yml "$@"; }
+
 # 1. Prérequis ----------------------------------------------------------------
 command -v docker >/dev/null 2>&1 || fail "Docker n'est pas installé/disponible."
 [ -f .env ] || fail ".env manquant à la racine — copie .env.prod.example et renseigne les secrets."
@@ -47,10 +51,10 @@ fi
 # 3. Build + up ---------------------------------------------------------------
 if [ "$DO_BUILD" = true ]; then
   log "🐳 Build de l'image…"
-  docker compose build
+  dc build
 fi
 log "🐳 Démarrage de la stack prod…"
-docker compose up -d
+dc up -d
 
 # 4. Attente du health check --------------------------------------------------
 log "⏳ Attente de https://localhost/api/health…"
@@ -60,14 +64,14 @@ for _ in $(seq 1 60); do
   sleep 2
 done
 if [ "$HEALTHY" != true ]; then
-  docker compose logs --tail=60 app || true
+  dc logs --tail=60 app || true
   fail "La stack n'a pas répondu sur https://localhost/api/health (timeout 120s)."
 fi
 log "✅ Stack up."
 
 # 5. Seed e2e (dans le conteneur app) -----------------------------------------
 log "🌱 Seed des données e2e…"
-docker compose exec -T app npm run seed:e2e
+dc exec -T app npm run seed:e2e
 
 # 6. Playwright — audit visuel ------------------------------------------------
 log "🎭 Exécution de l'audit visuel Playwright…"
@@ -81,7 +85,7 @@ log "🖼  Screenshots : frontend-v2/test-results/audit/  ·  rapport : npx play
 # 7. Teardown optionnel -------------------------------------------------------
 if [ "$DO_DOWN" = true ]; then
   log "🧹 Arrêt de la stack…"
-  docker compose down
+  dc down
 fi
 
 exit $PW_EXIT

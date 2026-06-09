@@ -133,11 +133,9 @@ Dependabot est active pour les trois ecosystemes de paquets du depot :
 
 Dependabot ouvre automatiquement des pull requests quand une dependance a une version plus recente, et priorise les mises a jour qui corrigent des CVE connus. Les PRs sont etiquetees `dependencies` + la couche concernee (`frontend`, `backend`, ou `ci`).
 
-### Workflow npm audit en CI
+### Audit des dependances
 
-Le workflow `Security — npm audit` execute `npm audit --audit-level=high` pour les deux workspaces (frontend et backend) a chaque push et pull request ciblant `main`, et selon un cron hebdomadaire (lundis a 06:00 UTC). L'execution hebdomadaire detecte les vulnerabilites publiees entre les commits.
-
-Le workflow echoue **uniquement sur les findings de severite `high` et `critical`** pour eviter de bloquer sur du bruit de faible severite. `fail-fast: false` assure que les deux workspaces sont toujours audites meme si l'un echoue.
+L'analyse des vulnerabilites de dependances repose sur **Dependabot** (PRs automatiques priorisant les CVE connus) et **CodeQL**. Pour un controle ponctuel en local, lancer `npm audit --audit-level=high` dans chaque workspace (`frontend-v2`, `mongo/server`).
 
 ### CodeQL
 

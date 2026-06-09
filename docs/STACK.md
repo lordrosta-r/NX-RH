@@ -341,9 +341,11 @@ Nginx sits in front of Express for TLS termination, HTTP-to-HTTPS redirection, a
 caching. Express handles only API requests and serves `index.html` for all non-API routes (the
 SPA fallback pattern).
 
-GitHub Actions runs three workflows: a CI workflow on every PR (TypeScript check, ESLint, unit
-tests, integration tests), a CD workflow that builds and pushes the Docker image on merge to
-`main`, and a security workflow that runs `npm audit` and CodeQL analysis.
+GitHub Actions runs two workflows plus CodeQL: a CI workflow on every push and PR to `main`
+(TypeScript check, ESLint, unit tests, backend integration tests) and a CD workflow that builds
+and smoke-tests the Docker image on `v*` release tags (the image is not published to a registry —
+deployment artifacts ship as release attachments). Dependency and code scanning is handled by
+Dependabot and CodeQL.
 
 ### Alternatives considered
 

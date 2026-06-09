@@ -145,7 +145,7 @@ Le parti pris est de privilegier des outils bien compris, bien documentes et mai
 
 **Pattern cert-init :** nginx requiert un certificat TLS pour demarrer, mais le vrai certificat est televerse par un administrateur via l'interface apres le premier demarrage. Le service `cert-init` genere un certificat auto-signe pour `localhost` automatiquement au premier lancement pour que nginx puisse demarrer sans condition. Un administrateur le remplace ensuite par le vrai certificat via le panneau d'administration.
 
-**GitHub Actions :** trois workflows — CI sur chaque PR (verification TypeScript, ESLint, tests unitaires, tests d'integration), CD qui construit et pousse l'image Docker a la fusion vers `main`, securite qui execute `npm audit` et l'analyse CodeQL.
+**GitHub Actions :** deux workflows plus CodeQL — CI sur chaque push et PR vers `main` (verification TypeScript, ESLint, tests unitaires, tests d'integration backend), CD qui construit et teste l'image Docker sur les tags de release `v*` (l'image n'est pas publiee sur un registre ; les artefacts de deploiement sont fournis avec les releases). L'analyse de dependances et de code est assuree par Dependabot et CodeQL.
 
 **Alternatives ecartees :**
 

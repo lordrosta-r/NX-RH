@@ -1,11 +1,11 @@
 name: CD
 
-# Intégration de l'image Docker : build + smoke-test sur chaque push `main` et sur
-# les tags `v*`. L'image N'EST PAS publiée (pas de package/registre) — les artefacts
-# de déploiement sont fournis en pièces jointes des releases.
+# Build + smoke-test de l'image Docker, déclenché sur les tags `v*` (au moment d'une
+# release). L'image N'EST PAS publiée sur un registre — les artefacts de déploiement
+# sont fournis en pièces jointes des releases. La validation à chaque commit (build front,
+# tests) est assurée par la CI ; inutile de rejouer le build image à chaque push.
 on:
   push:
-    branches: [main]
     tags: ['v*']
 
 concurrency:

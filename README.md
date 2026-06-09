@@ -6,7 +6,6 @@
 
 [![CI](https://github.com/lordrosta-r/NX-RH/actions/workflows/ci.yml/badge.svg)](https://github.com/lordrosta-r/NX-RH/actions/workflows/ci.yml)
 [![CD — Docker Build](https://github.com/lordrosta-r/NX-RH/actions/workflows/cd.yml/badge.svg)](https://github.com/lordrosta-r/NX-RH/actions/workflows/cd.yml)
-[![Security — npm audit](https://github.com/lordrosta-r/NX-RH/actions/workflows/security.yml/badge.svg)](https://github.com/lordrosta-r/NX-RH/actions/workflows/security.yml)
 [![Release](https://img.shields.io/github/v/release/lordrosta-r/NX-RH)](https://github.com/lordrosta-r/NX-RH/releases)
 [![Licence](https://img.shields.io/badge/licence-propri%C3%A9taire-red)](LICENSE)
 
@@ -66,7 +65,7 @@ fils d'e-mails dispersés par un outil unique qui guide chaque acteur tout au lo
 | Authentification | JWT en cookies httpOnly (SameSite=Strict), LDAP (ldapjs) |
 | Infrastructure | Nginx 1.27 (TLS), Docker multi-stage, Docker Compose |
 | Tests | Vitest + Testing Library, Playwright, Jest + Supertest |
-| Qualité / sécurité | ESLint, CI/CD (GitHub Actions), Dependabot, CodeQL, npm audit |
+| Qualité / sécurité | ESLint, CI/CD (GitHub Actions), Dependabot, CodeQL |
 
 Détails et justifications : [docs/STACK.md](docs/STACK.md) et le wiki [Stack-Technique](https://github.com/lordrosta-r/NX-RH/wiki/Stack-Technique).
 

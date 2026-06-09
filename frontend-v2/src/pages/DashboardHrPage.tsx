@@ -24,6 +24,7 @@ import {
 import { usePdfExport } from "../hooks/usePdfExport";
 import Spinner from "../components/ui/Spinner";
 import { PageHead, Tile, StatTile, Callout } from "../components/shell";
+import PageGuide from "../components/shared/PageGuide";
 import { CampaignCollectionWidget } from "../components/campaigns";
 import type { Campaign } from "../types";
 
@@ -229,6 +230,13 @@ export default function DashboardHrPage() {
             </Link>
           </>
         }
+      />
+
+      <PageGuide
+        id="dashHr"
+        title={t("guides.dashHr.title")}
+        color="teal"
+        steps={t("guides.dashHr.steps", { returnObjects: true }) as string[]}
       />
 
       {/* ── KPI — collaborateurs + campagnes ── */}

@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/AuthContext";
 import api from "@/api/client";
 import { queryKeys } from "../lib/queryKeys";
 import MobilityTimeline from "@/components/mobility/MobilityTimeline";
 import { PageHead, Tile, StatTile, Badge } from "../components/shell";
+import PageGuide from "../components/shared/PageGuide";
 import Breadcrumbs from "../components/ui/Breadcrumbs";
 
 type MobilityStatus =
@@ -187,6 +189,7 @@ const overlayStyle: React.CSSProperties = {
 };
 
 export default function MobilityPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const qc = useQueryClient();
   const isHrAdmin = user && ["admin", "hr"].includes(user.role);
@@ -307,6 +310,13 @@ export default function MobilityPage() {
             + Nouvelle demande
           </button>
         }
+      />
+
+      <PageGuide
+        id="mobility"
+        title={t("guides.mobility.title")}
+        color="teal"
+        steps={t("guides.mobility.steps", { returnObjects: true }) as string[]}
       />
 
       {/* KPIs */}

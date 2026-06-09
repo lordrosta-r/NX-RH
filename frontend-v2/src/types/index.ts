@@ -541,6 +541,25 @@ export interface PaginatedResponse<T> {
   totalPages?: number;
 }
 
+// Métadonnées de pagination renvoyées par le backend dans `meta`
+// (cf. apiResponse.paginated : { total, page, limit, pages, hasNext, hasPrev }).
+export interface PaginationMeta {
+  total: number;
+  page: number;
+  limit: number;
+  pages: number;
+  hasNext: boolean;
+  hasPrev: boolean;
+}
+
+// Enveloppe réelle d'une réponse liste paginée : la donnée est dans `data`,
+// les compteurs de pagination dans `meta`.
+export interface PaginatedEnvelope<T> {
+  success: boolean;
+  data: T[];
+  meta: PaginationMeta;
+}
+
 export interface ItemResponse<T> {
   data: T;
 }

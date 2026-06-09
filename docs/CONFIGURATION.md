@@ -12,7 +12,7 @@ The very first administrator account is created by running the bootstrap script 
 an empty database:
 
 ```bash
-ADMIN_EMAIL=admin@example.com ADMIN_PASSWORD='MyStrongPass!' \
+ADMIN_EMAIL=<email-admin> ADMIN_PASSWORD='MyStrongPass!' \
   node mongo/server/scripts/bootstrap-admin.js
 ```
 
@@ -115,7 +115,7 @@ inside the application.
 | SMTP port | Port number (common values: 587 for STARTTLS, 465 for implicit TLS) |
 | Username | SMTP authentication username |
 | Password | SMTP authentication password. If a password is already stored (`passwordSet` indicator), leaving the field blank keeps the existing value. |
-| From (email) | Sender address, e.g. `noreply@example.com` |
+| From (email) | Sender address, e.g. `<adresse-expéditeur>` |
 | From (name) | Sender display name |
 | Secure (TLS) | Checkbox — enable implicit TLS (port 465). Leave unchecked for STARTTLS on port 587. |
 

@@ -15,7 +15,7 @@
 | employee | Lister mes documents (/api/documents — endpoint du brief) | GET | ok | 404 |
 | employee | Lister mes documents (/api/documents — endpoint du brief) | GET | ok | 404 |
 
-## ADMIN — admin-rh@nanoxplore.com
+## ADMIN — admin-rh (compte de test)
 - Connexion : ✅ 200 · Rôle attendu respecté : ✅
 
 | Assertion | Méthode | Attendu | HTTP | Résultat |
@@ -29,7 +29,7 @@
 | Lister les campagnes | GET | ok | 200 | ✅ |
 | ANTI-AUTO-BLOCAGE : bloquer mon propre compte | PATCH | rejected | 400 | ✅ |
 
-## HR — marie.bernard.nx051@nxrh.local
+## HR — marie.bernard.nx051 (compte de test)
 - Connexion : ✅ 200 · Rôle attendu respecté : ✅
 
 | Assertion | Méthode | Attendu | HTTP | Résultat |
@@ -42,7 +42,7 @@
 | Supprimer le formulaire de test (cleanup) | DELETE | ok | 204 | ✅ |
 | INTERDIT config LDAP (admin only) | GET | forbidden | 403 | ✅ |
 
-## HR — paul.bertrand.nx066@nxrh.local
+## HR — paul.bertrand.nx066 (compte de test)
 - Connexion : ✅ 200 · Rôle attendu respecté : ✅
 
 | Assertion | Méthode | Attendu | HTTP | Résultat |
@@ -55,7 +55,7 @@
 | Supprimer le formulaire de test (cleanup) | DELETE | ok | 204 | ✅ |
 | INTERDIT config LDAP (admin only) | GET | forbidden | 403 | ✅ |
 
-## MANAGER — amelie.clement.pa009@partner.local
+## MANAGER — amelie.clement.pa009 (compte de test)
 - Connexion : ✅ 200 · Rôle attendu respecté : ✅
 
 | Assertion | Méthode | Attendu | HTTP | Résultat |
@@ -68,7 +68,7 @@
 | INTERDIT config LDAP | GET | forbidden | 403 | ✅ |
 | INTERDIT supprimer un compte | DELETE | forbidden | 403 | ✅ |
 
-## MANAGER — paul.david.nx016@nxrh.local
+## MANAGER — paul.david.nx016 (compte de test)
 - Connexion : ✅ 200 · Rôle attendu respecté : ✅
 
 | Assertion | Méthode | Attendu | HTTP | Résultat |
@@ -81,7 +81,7 @@
 | INTERDIT config LDAP | GET | forbidden | 403 | ✅ |
 | INTERDIT supprimer un compte | DELETE | forbidden | 403 | ✅ |
 
-## MANAGER — sophie.dubois.nx003@nxrh.local
+## MANAGER — sophie.dubois.nx003 (compte de test)
 - Connexion : ✅ 200 · Rôle attendu respecté : ✅
 
 | Assertion | Méthode | Attendu | HTTP | Résultat |
@@ -94,7 +94,7 @@
 | INTERDIT config LDAP | GET | forbidden | 403 | ✅ |
 | INTERDIT supprimer un compte | DELETE | forbidden | 403 | ✅ |
 
-## EMPLOYEE — clara.andre.nx023@nxrh.local
+## EMPLOYEE — clara.andre.nx023 (compte de test)
 - Connexion : ✅ 200 · Rôle attendu respecté : ✅
 
 | Assertion | Méthode | Attendu | HTTP | Résultat |
@@ -109,7 +109,7 @@
 | INTERDIT config LDAP | GET | forbidden | 403 | ✅ |
 | INTERDIT voir l’organigramme | GET | forbidden | 403 | ✅ |
 
-## EMPLOYEE — liam.barbier.nx115@nxrh.local
+## EMPLOYEE — liam.barbier.nx115 (compte de test)
 - Connexion : ✅ 200 · Rôle attendu respecté : ✅
 
 | Assertion | Méthode | Attendu | HTTP | Résultat |
@@ -124,7 +124,7 @@
 | INTERDIT config LDAP | GET | forbidden | 403 | ✅ |
 | INTERDIT voir l’organigramme | GET | forbidden | 403 | ✅ |
 
-## EMPLOYEE — karim.benali.nx087@nxrh.local
+## EMPLOYEE — karim.benali.nx087 (compte de test)
 - Connexion : ✅ 200 · Rôle attendu respecté : ✅
 
 | Assertion | Méthode | Attendu | HTTP | Résultat |
@@ -139,7 +139,7 @@
 | INTERDIT config LDAP | GET | forbidden | 403 | ✅ |
 | INTERDIT voir l’organigramme | GET | forbidden | 403 | ✅ |
 
-## EMPLOYEE — sarah.bertrand.pa031@partner.local
+## EMPLOYEE — sarah.bertrand.pa031 (compte de test)
 - Connexion : ✅ 200 · Rôle attendu respecté : ✅
 
 | Assertion | Méthode | Attendu | HTTP | Résultat |

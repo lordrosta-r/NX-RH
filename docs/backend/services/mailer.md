@@ -22,6 +22,6 @@ Variables d'environnement utilisées :
 | `MAIL_PORT` | Port SMTP (ex: 587) |
 | `MAIL_USER` | Identifiant SMTP |
 | `MAIL_PASSWORD` | Mot de passe SMTP |
-| `MAIL_FROM` | Adresse expéditeur (ex: `"NanoXplore RH <rh@example.com>"`) |
+| `MAIL_FROM` | Adresse expéditeur (ex: `"NanoXplore RH <adresse-expéditeur>"`) |
 
 Si `MAIL_HOST` n'est pas défini, le service crée un compte Ethereal temporaire pour les tests.

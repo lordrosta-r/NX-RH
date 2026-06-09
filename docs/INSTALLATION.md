@@ -153,7 +153,7 @@ SMTP_PORT=587
 SMTP_SECURE=false
 SMTP_USER=
 SMTP_PASS=
-SMTP_FROM=NanoXplore RH <rh@your-domain.com>
+SMTP_FROM=NanoXplore RH <adresse-expéditeur de votre domaine>
 
 UPLOADS_DIR=/data/uploads
 ```
@@ -240,7 +240,7 @@ Run the script with an explicit email and password:
 
 ```bash
 MONGO_URI="mongodb://nxrh_app:a_strong_random_password@localhost:27017/nanoxplore_rh?authSource=admin" \
-ADMIN_EMAIL="admin@your-domain.com" \
+ADMIN_EMAIL="<email-admin de votre domaine>" \
 ADMIN_PASSWORD="YourStrongPassword123!" \
   node mongo/server/scripts/bootstrap-admin.js
 ```
@@ -254,7 +254,7 @@ the MongoDB port on the host:
 
 ```bash
 docker compose exec app \
-  sh -c 'ADMIN_EMAIL="admin@your-domain.com" ADMIN_PASSWORD="YourStrongPassword123!" node scripts/bootstrap-admin.js'
+  sh -c 'ADMIN_EMAIL="<email-admin de votre domaine>" ADMIN_PASSWORD="YourStrongPassword123!" node scripts/bootstrap-admin.js'
 ```
 
 ### 5.2 Alternative: use the default password
@@ -265,7 +265,7 @@ The application will prompt the user to change the password on first login.
 
 ```bash
 docker compose exec app \
-  sh -c 'ADMIN_EMAIL="admin@your-domain.com" node scripts/bootstrap-admin.js'
+  sh -c 'ADMIN_EMAIL="<email-admin de votre domaine>" node scripts/bootstrap-admin.js'
 ```
 
 ### 5.3 Idempotency
@@ -277,7 +277,7 @@ exit code) if an active admin account already exists in the database.
 
 | Variable | Default | Description |
 |---|---|---|
-| `ADMIN_EMAIL` | `admin@nanoxplore.local` | Email address of the admin account |
+| `ADMIN_EMAIL` | `<email-admin>` | Email address of the admin account |
 | `ADMIN_PASSWORD` | `Admin@Change2026` | Password (plain text, hashed by the script) |
 | `ADMIN_FIRSTNAME` | `Admin` | First name |
 | `ADMIN_LASTNAME` | `RH` | Last name |

@@ -2,7 +2,7 @@
 
 **Date :** 2026-06-04
 **Méthode :** `scripts/role-audit.mjs` (API via nginx `https://localhost`) sur la dev stack à jour + seed socle.
-**Comptes (mot de passe `Test1234!`) :** `admin@nx-rh.fr`, `rh@nx-rh.fr`, `mgr-eng@nx-rh.fr`, `emp-elodie@nx-rh.fr`.
+**Comptes (mot de passe `Test1234!`) :** `<admin>`, `<rh>`, `<mgr-eng>`, `<emp-elodie>`.
 
 Rejouer : `docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d` → `./scripts/ldap-seed.sh` → `node mongo/database/seed.js` → `NODE_TLS_REJECT_UNAUTHORIZED=0 node scripts/role-audit.mjs`.
 

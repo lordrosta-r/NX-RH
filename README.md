@@ -184,5 +184,5 @@ Toute copie, modification, distribution, ingénierie inverse ou utilisation hors
 autorisé par NanoXplore est interdite sans accord écrit préalable. Voir le fichier [LICENSE](LICENSE)
 pour les conditions complètes.
 
-Contact : `legal@nanoxplore.com`
+Contact : service juridique de NanoXplore (canal interne).
 </content>

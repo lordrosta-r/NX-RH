@@ -126,7 +126,7 @@ SMTP_PORT=587
 SMTP_SECURE=false
 SMTP_USER=
 SMTP_PASS=
-SMTP_FROM=NanoXplore RH <rh@votre-domaine.com>
+SMTP_FROM=NanoXplore RH <adresse-expéditeur de votre domaine>
 
 UPLOADS_DIR=/data/uploads
 ```
@@ -200,7 +200,7 @@ La base de données démarre vide. Il faut exécuter le script de bootstrap une 
 
 ```bash
 docker compose exec app \
-  sh -c 'ADMIN_EMAIL="admin@votre-domaine.com" ADMIN_PASSWORD="VotreMotDePasseFort123!" node scripts/bootstrap-admin.js'
+  sh -c 'ADMIN_EMAIL="<email-admin de votre domaine>" ADMIN_PASSWORD="VotreMotDePasseFort123!" node scripts/bootstrap-admin.js'
 ```
 
 Règles pour `ADMIN_PASSWORD` : minimum 12 caractères. Le script hache le mot de passe avec bcrypt — il n'est jamais stocké en clair.
@@ -211,14 +211,14 @@ Si `ADMIN_PASSWORD` est omis, le script crée le compte avec le mot de passe par
 
 ```bash
 docker compose exec app \
-  sh -c 'ADMIN_EMAIL="admin@votre-domaine.com" node scripts/bootstrap-admin.js'
+  sh -c 'ADMIN_EMAIL="<email-admin de votre domaine>" node scripts/bootstrap-admin.js'
 ```
 
 ### 4.3 Variables disponibles pour le script bootstrap
 
 | Variable | Défaut | Description |
 |---|---|---|
-| `ADMIN_EMAIL` | `admin@nanoxplore.local` | Adresse email du compte administrateur |
+| `ADMIN_EMAIL` | `<email-admin>` | Adresse email du compte administrateur |
 | `ADMIN_PASSWORD` | `Admin@Change2026` | Mot de passe (texte clair, haché par le script) |
 | `ADMIN_FIRSTNAME` | `Admin` | Prénom |
 | `ADMIN_LASTNAME` | `RH` | Nom |

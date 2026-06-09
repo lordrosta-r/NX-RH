@@ -53,7 +53,7 @@ Authentifie l'utilisateur et émet le cookie de session.
 
 **Body**
 ```json
-{ "email": "alice@example.com", "password": "secret" }
+{ "email": "<email-utilisateur>", "password": "secret" }
 ```
 
 **Réponse 200**
@@ -88,7 +88,7 @@ Revalide la session et retourne l'utilisateur courant.
 ```json
 {
   "id": "...",
-  "email": "alice@example.com",
+  "email": "<email-utilisateur>",
   "firstName": "Alice",
   "lastName": "Dupont",
   "role": "employee",

@@ -91,7 +91,7 @@ cp .env.example .env
 | `MAIL_SECURE` | `false` for STARTTLS, `true` for SMTPS |
 | `MAIL_USER` | SMTP authentication user |
 | `MAIL_PASSWORD` | SMTP authentication password |
-| `MAIL_FROM` | Sender address, e.g. `"NanoXplore RH <noreply@company.com>"` |
+| `MAIL_FROM` | Sender address, e.g. `"NanoXplore RH <sender-address>"` |
 
 ---
 

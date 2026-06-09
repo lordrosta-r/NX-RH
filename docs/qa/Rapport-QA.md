@@ -4,7 +4,7 @@
 
 > Harness rejouable (`e2e/qa-harness.mjs`). Chaque ligne = une assertion exécutée **après connexion réelle** sous l'identité concernée. ✅ = conforme, ❌ = écart.
 
-## ADMIN — admin-rh@nanoxplore.com
+## ADMIN — admin-rh (compte de test)
 - Connexion : ✅ 200 · Rôle attendu respecté : ✅
 
 | Assertion | Méthode | Attendu | HTTP | Résultat |
@@ -16,7 +16,7 @@
 | Audit log | GET | ok | 200 | ✅ |
 | Santé détaillée (admin) | GET | ok | 200 | ✅ |
 
-## HR — marie.bernard.nx051@nxrh.local
+## HR — marie.bernard.nx051 (compte de test)
 - Connexion : ✅ 200 · Rôle attendu respecté : ✅
 
 | Assertion | Méthode | Attendu | HTTP | Résultat |
@@ -28,7 +28,7 @@
 | Bloquer/débloquer autorisé (route accessible) | PATCH | ok | 404 | ✅ |
 | INTERDIT config LDAP (admin only) | GET | forbidden | 403 | ✅ |
 
-## HR — paul.bertrand.nx066@nxrh.local
+## HR — paul.bertrand.nx066 (compte de test)
 - Connexion : ✅ 200 · Rôle attendu respecté : ✅
 
 | Assertion | Méthode | Attendu | HTTP | Résultat |
@@ -40,7 +40,7 @@
 | Bloquer/débloquer autorisé (route accessible) | PATCH | ok | 404 | ✅ |
 | INTERDIT config LDAP (admin only) | GET | forbidden | 403 | ✅ |
 
-## MANAGER — amelie.clement.pa009@partner.local
+## MANAGER — amelie.clement.pa009 (compte de test)
 - Connexion : ✅ 200 · Rôle attendu respecté : ✅
 
 | Assertion | Méthode | Attendu | HTTP | Résultat |
@@ -52,7 +52,7 @@
 | INTERDIT config LDAP | GET | forbidden | 403 | ✅ |
 | INTERDIT supprimer un compte | DELETE | forbidden | 403 | ✅ |
 
-## MANAGER — paul.david.nx016@nxrh.local
+## MANAGER — paul.david.nx016 (compte de test)
 - Connexion : ✅ 200 · Rôle attendu respecté : ✅
 
 | Assertion | Méthode | Attendu | HTTP | Résultat |
@@ -64,7 +64,7 @@
 | INTERDIT config LDAP | GET | forbidden | 403 | ✅ |
 | INTERDIT supprimer un compte | DELETE | forbidden | 403 | ✅ |
 
-## MANAGER — sophie.dubois.nx003@nxrh.local
+## MANAGER — sophie.dubois.nx003 (compte de test)
 - Connexion : ✅ 200 · Rôle attendu respecté : ✅
 
 | Assertion | Méthode | Attendu | HTTP | Résultat |
@@ -76,7 +76,7 @@
 | INTERDIT config LDAP | GET | forbidden | 403 | ✅ |
 | INTERDIT supprimer un compte | DELETE | forbidden | 403 | ✅ |
 
-## EMPLOYEE — clara.andre.nx023@nxrh.local
+## EMPLOYEE — clara.andre.nx023 (compte de test)
 - Connexion : ✅ 200 · Rôle attendu respecté : ✅
 
 | Assertion | Méthode | Attendu | HTTP | Résultat |
@@ -88,7 +88,7 @@
 | INTERDIT config LDAP | GET | forbidden | 403 | ✅ |
 | INTERDIT bloquer un compte | PATCH | forbidden | 403 | ✅ |
 
-## EMPLOYEE — liam.barbier.nx115@nxrh.local
+## EMPLOYEE — liam.barbier.nx115 (compte de test)
 - Connexion : ✅ 200 · Rôle attendu respecté : ✅
 
 | Assertion | Méthode | Attendu | HTTP | Résultat |
@@ -100,7 +100,7 @@
 | INTERDIT config LDAP | GET | forbidden | 403 | ✅ |
 | INTERDIT bloquer un compte | PATCH | forbidden | 403 | ✅ |
 
-## EMPLOYEE — karim.benali.nx087@nxrh.local
+## EMPLOYEE — karim.benali.nx087 (compte de test)
 - Connexion : ✅ 200 · Rôle attendu respecté : ✅
 
 | Assertion | Méthode | Attendu | HTTP | Résultat |
@@ -112,7 +112,7 @@
 | INTERDIT config LDAP | GET | forbidden | 403 | ✅ |
 | INTERDIT bloquer un compte | PATCH | forbidden | 403 | ✅ |
 
-## EMPLOYEE — sarah.bertrand.pa031@partner.local
+## EMPLOYEE — sarah.bertrand.pa031 (compte de test)
 - Connexion : ✅ 200 · Rôle attendu respecté : ✅
 
 | Assertion | Méthode | Attendu | HTTP | Résultat |

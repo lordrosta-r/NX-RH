@@ -83,7 +83,7 @@ Ces trois actions sont disponibles par source. Elles sont désactivées tant qu'
 | Port SMTP | Numéro de port (valeurs courantes : 587 pour STARTTLS, 465 pour TLS implicite) |
 | Nom d'utilisateur | Nom d'utilisateur pour l'authentification SMTP |
 | Mot de passe | Mot de passe SMTP. Si un mot de passe est déjà enregistré (indicateur `passwordSet`), laisser le champ vide conserve la valeur existante. |
-| Expéditeur (email) | Adresse d'expédition, ex. `noreply@exemple.com` |
+| Expéditeur (email) | Adresse d'expédition, ex. `<adresse-expéditeur>` |
 | Expéditeur (nom) | Nom d'affichage de l'expéditeur |
 | TLS (sécurisé) | Case à cocher — activer le TLS implicite (port 465). Laisser décoché pour STARTTLS sur le port 587. |
 

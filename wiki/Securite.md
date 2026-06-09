@@ -9,7 +9,7 @@
 
 Ne pas ouvrir une issue publique GitHub pour une vulnerabilite de securite. Cela exposerait la faille a tous avant qu'un correctif soit disponible.
 
-Envoyer un email prive a **security@nanoxplore.com** avec :
+Signaler la vulnerabilite par le **canal de securite interne de l'organisation** (ne pas ouvrir d'issue publique), en fournissant :
 
 - Une description de la vulnerabilite et du composant affecte.
 - Les etapes pour reproduire (preuve de concept si possible).

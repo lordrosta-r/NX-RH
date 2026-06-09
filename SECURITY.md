@@ -5,7 +5,7 @@
 Merci de **ne pas ouvrir d'issue GitHub publique** pour les vulnérabilités de sécurité. Cela
 exposerait la faille à tous avant qu'un correctif ne soit disponible.
 
-Envoyez plutôt un e-mail privé à **security@nanoxplore.com** contenant :
+Signalez plutôt la vulnérabilité par le **canal de sécurité interne de l'organisation** (ne pas ouvrir d'issue publique), en fournissant :
 
 - Une description de la vulnérabilité et du composant affecté.
 - Les étapes de reproduction (preuve de concept si possible).

@@ -74,7 +74,7 @@ Both sets of variables serve the same purpose — `MAIL_*` is used by the mailer
 | `MAIL_SECURE` | No | `false` (unless port 465) | Set to `true` for implicit TLS (SMTPS / port 465). `false` uses STARTTLS. |
 | `MAIL_USER` | No | — | SMTP authentication username. |
 | `MAIL_PASSWORD` | No | — | SMTP authentication password. |
-| `MAIL_FROM` | No | `noreply@nanoxplore.com` | Sender address used in the `From` header of all outgoing emails. Overridable via the admin UI (`smtp.from` config key). |
+| `MAIL_FROM` | No | `<adresse-expéditeur>` | Sender address used in the `From` header of all outgoing emails. Overridable via the admin UI (`smtp.from` config key). |
 | `SMTP_HOST` | No | — | SMTP hostname for the admin status health-check. Can mirror `MAIL_HOST`. Leave blank to skip the SMTP connectivity check. |
 | `SMTP_PORT` | No | `587` | SMTP port for the admin health-check. |
 | `SMTP_SECURE` | No | `false` | TLS mode for the admin health-check SMTP connection. |

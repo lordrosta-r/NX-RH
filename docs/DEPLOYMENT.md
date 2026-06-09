@@ -40,8 +40,7 @@ Named volumes:
 
 - Docker Engine >= 24 and Docker Compose v2 (`docker compose`, not `docker-compose`)
 - Ports **80** and **443** open and not used by another process
-- DNS A record for your domain pointing to the server's public IP
-- Valid TLS certificate and private key for that domain (see section 5)
+- DNS A record for your domain pointing to the server's public IP (required for a real TLS certificate — see section 5)
 - Enough disk space for MongoDB data and uploaded documents (plan for your dataset size)
 
 ---
@@ -128,25 +127,61 @@ docker compose logs -f mongo
 
 ## 5. TLS Certificates
 
-Certificates are mounted into the `nginx` container from `nginx/certs/`. This directory is **never committed to the repository**.
+Certificates are stored in `./nginx/certs/` and mounted into both the `app` container
+(read-write, for UI uploads) and the `nginx` container (read-only). This directory is
+**never committed to the repository** — `nginx/certs/*.pem` is git-ignored.
 
-Place your certificate files there before starting nginx:
+Nginx reads exactly two files:
 
 ```
 nginx/certs/
-├── cert.pem       ← certificate (or fullchain)
-└── key.pem        ← private key
+├── fullchain.pem  ← certificate + chain
+└── privkey.pem    ← private key
 ```
 
-The nginx configuration in `nginx/conf.d/` references these paths — adjust filenames there if yours differ.
+### Fresh deployment — automatic self-signed certificate
 
-For SSL certificate upload and renewal via the admin interface, see `docs/CONFIGURATION.md`.
+No manual step is required before the first `docker compose up`. The `cert-init` service
+runs once at stack startup. If `fullchain.pem` or `privkey.pem` are missing, it
+generates a self-signed RSA 2048 certificate for `localhost` into `nginx/certs/`, then
+exits. Nginx only starts after `cert-init` completes successfully.
 
-**Reload nginx after replacing certificates** (no downtime — no container restart needed):
+Your browser will display a certificate warning for the self-signed certificate; accept
+the exception or replace the certificate as described below.
+
+### Option A — Upload a real certificate via the admin UI (recommended)
+
+1. Log in as an administrator and go to **Administration > SSL certificate**.
+2. Upload your `fullchain.pem` (certificate + intermediate chain) and `privkey.pem`.
+3. The API validates the files (PEM markers, expiry, key/certificate match) and writes
+   them atomically to the shared `nginx/certs/` volume.
+4. Reload nginx to activate the new certificate (no downtime):
 
 ```bash
 docker compose kill -s HUP nginx
 ```
+
+### Option B — Place certificate files manually
+
+Copy your files directly onto the host, then reload nginx:
+
+```bash
+cp /path/to/fullchain.pem ./nginx/certs/fullchain.pem
+cp /path/to/privkey.pem   ./nginx/certs/privkey.pem
+chmod 600 ./nginx/certs/privkey.pem
+
+docker compose kill -s HUP nginx
+```
+
+### Option C — Generate a self-signed certificate for a specific domain
+
+```bash
+bash scripts/gen-certs.sh your.domain.com
+# Writes nginx/certs/fullchain.pem and nginx/certs/privkey.pem
+docker compose kill -s HUP nginx
+```
+
+For details on the admin UI certificate page see `docs/CONFIGURATION.md`, section 4.
 
 ---
 

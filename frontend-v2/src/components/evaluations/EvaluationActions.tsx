@@ -11,7 +11,9 @@ interface EvaluationActionsProps {
 export function EvaluationActions({ evaluation, id }: EvaluationActionsProps) {
   const { exportEvaluationPdf } = usePdfExport();
   const questions = evaluation.form?.questions ?? [];
-  const answers = evaluation.answers ?? {};
+  const answers: Record<string, unknown> = Object.fromEntries(
+    (evaluation.answers ?? []).map((a) => [a.questionId, a.value]),
+  );
 
   return (
     <div>

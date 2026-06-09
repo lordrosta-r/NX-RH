@@ -37,11 +37,8 @@ test.describe("RH - Workflow Complet", () => {
     await expectNotUnauthorized(page);
     await expectNoErrors(page);
 
-    const listContent = page
-      .locator(
-        'table, [role="list"], [data-testid*="evaluation-list"], [class*="evaluation" i]',
-      )
-      .first();
+    // La liste RH rend une grille (Tile + .tbl-head/.tbl-row), pas une <table>.
+    const listContent = page.locator(".tbl-head, .tbl-row").first();
     await expect(listContent).toBeVisible({ timeout: 15000 });
   });
 
@@ -50,34 +47,39 @@ test.describe("RH - Workflow Complet", () => {
     await waitForPageLoad(page);
     await expectNotUnauthorized(page);
 
-    // Filter by submitted status if the filter exists
-    const statusFilter = page
-      .locator('select[name*="status" i], [data-testid*="status-filter"]')
+    // Sélectionner une ligne précise (case "Sélectionner cette évaluation" /
+    // "Select this evaluation"), ce qui révèle les actions bulk dans le PageHead.
+    const rowCheckbox = page
+      .getByRole("checkbox", {
+        name: /sélectionner cette évaluation|select this evaluation/i,
+      })
       .first();
-    if (await statusFilter.isVisible()) {
-      const options = await statusFilter.locator("option").allTextContents();
-      const submittedOpt = options.find((o) => /soumis|submitted/i.test(o));
-      if (submittedOpt) {
-        await statusFilter.selectOption({ label: submittedOpt });
-        await page.waitForLoadState("networkidle");
-      }
-    }
+    const checkboxCount = await page
+      .locator('input[type="checkbox"]')
+      .count();
 
-    const checkboxes = page.locator('input[type="checkbox"]');
-    const checkboxCount = await checkboxes.count();
-
-    if (checkboxCount > 0) {
-      await checkboxes.first().click();
+    if (await rowCheckbox.isVisible({ timeout: 10000 }).catch(() => false)) {
+      await rowCheckbox.check();
 
       const signBtn = page.getByRole("button", {
-        name: /signer rh|sign rh|signature rh|valider rh/i,
+        name: /signer rh|sign hr/i,
       });
       if (await signBtn.isVisible()) {
         await signBtn.click();
+
+        // Modale de confirmation bulk → bouton "Confirmer" / "Confirm"
+        const confirmBtn = page
+          .getByRole("button", { name: /^confirmer$|^confirm$/i })
+          .first();
+        await confirmBtn.waitFor({ state: "visible", timeout: 5000 });
+        await confirmBtn.click();
         await page.waitForLoadState("networkidle");
 
+        // Toast de succès "… signée(s) RH" / "… signed by HR".
+        // Scoper au toast (role=alert) : sinon /signé/ matche l'option cachée "Assignée".
         const successMsg = page
-          .getByText(/signé|signed|success|succès/i)
+          .locator('[role="alert"]')
+          .filter({ hasText: /sign|succ/i })
           .first();
         await expect(successMsg).toBeVisible({ timeout: 15000 });
       } else {
@@ -87,7 +89,7 @@ test.describe("RH - Workflow Complet", () => {
             "Bouton Signer RH (bulk) introuvable après sélection de cases à cocher",
         });
       }
-    } else {
+    } else if (checkboxCount === 0) {
       test.info().annotations.push({
         type: "UX",
         description:
@@ -250,27 +252,16 @@ test.describe("RH - Workflow Complet", () => {
     await expectNoErrors(page);
   });
 
-  test("HR - accès admin refusé", async ({ page }) => {
+  test("HR - accès admin autorisé (RBAC: admin+hr)", async ({ page }) => {
+    // Le hub /admin est ouvert aux rôles admin ET hr (cf. router AuthGuard
+    // roles={["admin","hr"]}). La RH n'est donc PAS bloquée — elle voit le hub.
     await page.goto("/admin");
     await page.waitForLoadState("networkidle");
 
-    const isRedirected =
-      page.url().includes("/login") ||
-      page.url().includes("/unauthorized") ||
-      page.url().includes("/403");
-
-    const unauthorizedText = await page
-      .getByText(/403|non autorisé|unauthorized|accès refusé|forbidden/i)
-      .isVisible();
-
-    expect.soft(isRedirected || unauthorizedText).toBeTruthy();
-
-    if (!isRedirected && !unauthorizedText) {
-      test.info().annotations.push({
-        type: "UX",
-        description:
-          "Le rôle RH semble avoir accès à /admin — vérifier les permissions",
-      });
-    }
+    expect(page.url()).toContain("/admin");
+    await expectNotUnauthorized(page);
+    await expect(
+      page.getByText(/administration|configuration/i).first(),
+    ).toBeVisible({ timeout: 15000 });
   });
 });

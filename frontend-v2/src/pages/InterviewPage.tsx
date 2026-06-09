@@ -21,6 +21,8 @@ import Breadcrumbs from "../components/ui/Breadcrumbs";
 import PageGuide from "../components/shared/PageGuide";
 import SignaturePad from "../components/ui/SignaturePad";
 import { AnswerView } from "../components/evaluations/AnswerView";
+import { useAuth } from "../contexts/AuthContext";
+import { CalendarClock } from "lucide-react";
 import type { Interview, InterviewEvaluation, FormQuestion } from "../types";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -148,6 +150,31 @@ function InterviewWorkspace({
   const managerEval: InterviewEvaluation | undefined = evals.find(
     (ev) => ev.evaluatorId._id !== ev.evaluateeId._id,
   );
+
+  // ── Programmation de l'entretien (rendez-vous calendrier) ─────────────────
+  const { user } = useAuth();
+  const isEvaluateeUser = String(user?.id) === String(evaluateeId);
+  const canSchedule =
+    (user?.role === "admin" || user?.role === "hr" || user?.role === "manager") &&
+    !isEvaluateeUser;
+  const managerEvalFilled =
+    !!managerEval && !["assigned", "in_progress"].includes(managerEval.status);
+  const isScheduled = !!interview.scheduledAt;
+  // Une fois programmé, l'utilisateur démarre l'entretien quand il le souhaite
+  // (rien n'est imposé). Le contenu ne s'ouvre qu'après ce choix explicite.
+  const [started, setStarted] = useState(false);
+  const [scheduleDate, setScheduleDate] = useState("");
+  const [scheduleLocation, setScheduleLocation] = useState("");
+  const scheduleMutation = useMutation({
+    mutationFn: () =>
+      interviewsApi.schedule({
+        campaignId,
+        evaluateeId,
+        scheduledAt: new Date(scheduleDate).toISOString(),
+        location: scheduleLocation || undefined,
+      }),
+    onSuccess: () => invalidate(),
+  });
   const sourceEval = selfEval ?? managerEval;
   const questions: FormQuestion[] = sourceEval?.formId.questions ?? [];
   const evaluateeName = fullName(
@@ -315,6 +342,104 @@ function InterviewWorkspace({
         color="blue"
       />
 
+      {/* Programmation de l'entretien (rendez-vous calendrier) */}
+      {isScheduled ? (
+        <Tile className="mb-6" style={{ borderLeft: "4px solid var(--blue)" }}>
+          <div
+            className="row between wrap"
+            style={{ gap: 12, alignItems: "center" }}
+          >
+            <div className="row" style={{ gap: 10, alignItems: "center" }}>
+              <CalendarClock size={18} strokeWidth={1.5} />
+              <div className="body">
+                <strong>Entretien programmé</strong> —{" "}
+                {new Date(interview.scheduledAt as string).toLocaleString(
+                  "fr-FR",
+                  { dateStyle: "full", timeStyle: "short" },
+                )}
+                {interview.scheduledLocation
+                  ? ` · ${interview.scheduledLocation}`
+                  : ""}
+              </div>
+            </div>
+            {/* Une fois programmé, mener l'entretien n'est jamais imposé : on
+                choisit de le démarrer maintenant ou d'y revenir plus tard. */}
+            {!started && (
+              <button
+                className="btn btn-primary btn-sm"
+                onClick={() => setStarted(true)}
+              >
+                <MessagesSquare size={16} strokeWidth={1.5} /> Démarrer
+                l'entretien
+              </button>
+            )}
+          </div>
+          {!started && (
+            <p className="small" style={{ marginTop: 8 }}>
+              Vous pouvez mener l'entretien dès maintenant ou y revenir plus tard
+              — rien n'est imposé. Cliquez sur « Démarrer l'entretien » pour
+              ouvrir l'échange, les objectifs, la synthèse et les signatures.
+            </p>
+          )}
+        </Tile>
+      ) : canSchedule ? (
+        <Tile className="mb-6" style={{ borderLeft: "4px solid var(--blue)" }}>
+          <h3 className="h3" style={{ marginBottom: 4 }}>
+            Étape suivante — Programmer l'entretien
+          </h3>
+          <p className="small" style={{ marginBottom: 12 }}>
+            L'évaluation est remplie. Fixez maintenant la date, l'heure et le lieu
+            du rendez-vous. L'évalué(e) verra le créneau et un événement sera
+            ajouté au calendrier. Le déroulé de l'entretien (échange, objectifs,
+            synthèse, signatures) ne s'ouvre qu'une fois le rendez-vous fixé.
+          </p>
+          {!managerEvalFilled ? (
+            <p className="small" style={{ color: "var(--red)" }}>
+              Terminez d'abord de remplir et soumettre l'évaluation avant de
+              programmer le rendez-vous.
+            </p>
+          ) : (
+            <div
+              className="row wrap"
+              style={{ gap: 12, alignItems: "flex-end" }}
+            >
+              <label className="field" style={{ margin: 0 }}>
+                Date et heure
+                <input
+                  type="datetime-local"
+                  className="input"
+                  value={scheduleDate}
+                  onChange={(e) => setScheduleDate(e.target.value)}
+                />
+              </label>
+              <label className="field" style={{ margin: 0 }}>
+                Lieu
+                <input
+                  type="text"
+                  className="input"
+                  value={scheduleLocation}
+                  onChange={(e) => setScheduleLocation(e.target.value)}
+                  placeholder="Salle, visio…"
+                />
+              </label>
+              <button
+                className="btn btn-primary"
+                disabled={!scheduleDate || scheduleMutation.isPending}
+                onClick={() => scheduleMutation.mutate()}
+              >
+                <CalendarClock size={16} strokeWidth={1.5} /> Programmer
+              </button>
+            </div>
+          )}
+        </Tile>
+      ) : (
+        <Tile className="mb-6">
+          <p className="small">
+            En attente de la programmation de l'entretien par votre manager.
+          </p>
+        </Tile>
+      )}
+
       {/* Bandeau désaccord */}
       {disagreement?.flagged && (
         <Tile
@@ -342,6 +467,10 @@ function InterviewWorkspace({
         </Tile>
       )}
 
+      {/* Le déroulé de l'entretien n'est accessible qu'une fois le rendez-vous
+          PROGRAMMÉ et l'entretien explicitement DÉMARRÉ par l'utilisateur. */}
+      {isScheduled && started && (
+        <>
       {/* En-tête participants */}
       <Tile className="mb-6">
         <div className="row wrap" style={{ gap: 24 }}>
@@ -685,6 +814,8 @@ function InterviewWorkspace({
           )}
         </Tile>
       )}
+        </>
+      )}
     </div>
   );
 }
@@ -800,12 +931,31 @@ function SignatureBlock({
       </div>
     );
   }
+  return <SignatureCapture title={title} onSign={onSign} />;
+}
+
+// Capture de signature : on ne soumet PAS automatiquement au tracé. L'utilisateur
+// peut dessiner, effacer/recommencer autant qu'il veut, puis valider explicitement.
+function SignatureCapture({
+  title,
+  onSign,
+}: {
+  title: string;
+  onSign: (dataUrl: string) => void;
+}) {
+  const [drawn, setDrawn] = useState<string | null>(null);
   return (
-    <SignaturePad
-      label={title}
-      onChange={(dataUrl) => {
-        if (dataUrl) onSign(dataUrl);
-      }}
-    />
+    <div>
+      <SignaturePad label={title} onChange={(dataUrl) => setDrawn(dataUrl)} />
+      <button
+        type="button"
+        className="btn btn-primary btn-sm"
+        style={{ marginTop: 8 }}
+        disabled={!drawn}
+        onClick={() => drawn && onSign(drawn)}
+      >
+        <PenLine size={14} strokeWidth={1.5} /> Valider la signature
+      </button>
+    </div>
   );
 }

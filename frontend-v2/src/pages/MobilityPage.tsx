@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/AuthContext";
 import api from "@/api/client";
 import { queryKeys } from "../lib/queryKeys";
 import MobilityTimeline from "@/components/mobility/MobilityTimeline";
 import { PageHead, Tile, StatTile, Badge } from "../components/shell";
+import PageGuide from "../components/shared/PageGuide";
 import Breadcrumbs from "../components/ui/Breadcrumbs";
 
 type MobilityStatus =
@@ -187,6 +189,7 @@ const overlayStyle: React.CSSProperties = {
 };
 
 export default function MobilityPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const qc = useQueryClient();
   const isHrAdmin = user && ["admin", "hr"].includes(user.role);
@@ -204,10 +207,10 @@ export default function MobilityPage() {
   const [newRequest, setNewRequest] = useState(EMPTY_FORM);
 
   const { data, isLoading } = useQuery({
-    queryKey: queryKeys.mobility.lists(),
+    queryKey: queryKeys.mobility.list({ status: statusFilter || undefined }),
     queryFn: () =>
       api
-        .get("/mobility", {
+        .get("/api/mobility", {
           params: { status: statusFilter || undefined, limit: 50 },
         })
         .then((r) => r.data),
@@ -216,14 +219,14 @@ export default function MobilityPage() {
   const { data: historyData, isLoading: historyLoading } = useQuery({
     queryKey: queryKeys.mobility.history(user?.id ?? user?._id ?? ""),
     queryFn: () =>
-      api.get(`/mobility/history/${user?.id ?? user?._id}`).then((r) => r.data),
+      api.get(`/api/mobility/history/${user?.id ?? user?._id}`).then((r) => r.data),
     enabled: !isHrAdmin && activeTab === "history" && !!(user?.id ?? user?._id),
   });
 
   const { data: statsData } = useQuery({
     queryKey: queryKeys.mobility.stats(),
     queryFn: () =>
-      api.get("/mobility/stats").then((r) => r.data.data as MobilityStats),
+      api.get("/api/mobility/stats").then((r) => r.data.data as MobilityStats),
     enabled: !!isHrAdmin,
   });
 
@@ -232,11 +235,11 @@ export default function MobilityPage() {
   const total: number = data?.total ?? 0;
 
   const filteredRequests = typeFilter
-    ? requests.filter((r) => r.requestType === typeFilter)
+    ? requests.filter((r) => (r.category ?? "mobilite") === typeFilter)
     : requests;
 
   const createMutation = useMutation({
-    mutationFn: (req: typeof newRequest) => api.post("/mobility", req),
+    mutationFn: (req: typeof newRequest) => api.post("/api/mobility", req),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.mobility.lists() });
       setShowNewForm(false);
@@ -253,7 +256,7 @@ export default function MobilityPage() {
       id: string;
       status: string;
       hrComment?: string;
-    }) => api.patch(`/mobility/${id}`, { status, hrComment: comment }),
+    }) => api.patch(`/api/mobility/${id}`, { status, hrComment: comment }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.mobility.lists() });
       setSelectedRequest(null);
@@ -262,7 +265,7 @@ export default function MobilityPage() {
 
   const completeMutation = useMutation({
     mutationFn: ({ id, notes }: { id: string; notes?: string }) =>
-      api.post(`/mobility/${id}/complete`, { notes }),
+      api.post(`/api/mobility/${id}/complete`, { notes }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.mobility.lists() });
       qc.invalidateQueries({ queryKey: queryKeys.mobility.stats() });
@@ -270,7 +273,7 @@ export default function MobilityPage() {
   });
 
   const reopenMutation = useMutation({
-    mutationFn: (id: string) => api.post(`/mobility/${id}/reopen`),
+    mutationFn: (id: string) => api.post(`/api/mobility/${id}/reopen`),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.mobility.lists() });
     },
@@ -307,6 +310,13 @@ export default function MobilityPage() {
             + Nouvelle demande
           </button>
         }
+      />
+
+      <PageGuide
+        id="mobility"
+        title={t("guides.mobility.title")}
+        color="teal"
+        steps={t("guides.mobility.steps", { returnObjects: true }) as string[]}
       />
 
       {/* KPIs */}
@@ -528,16 +538,16 @@ export default function MobilityPage() {
               >
                 Tous types
               </button>
-              {(Object.entries(TYPE_LABELS) as [RequestType, string][]).map(
-                ([type, label]) => (
+              {(Object.entries(CATEGORY_LABELS) as [Category, string][]).map(
+                ([cat, label]) => (
                   <button
-                    key={type}
+                    key={cat}
                     onClick={() =>
-                      setTypeFilter(typeFilter === type ? "" : type)
+                      setTypeFilter(typeFilter === cat ? "" : cat)
                     }
                     className="btn btn-sm"
                     style={
-                      typeFilter === type
+                      typeFilter === cat
                         ? { background: "var(--blue)", color: "#fff" }
                         : { background: "var(--bg-alt)", color: "var(--ink-3)" }
                     }

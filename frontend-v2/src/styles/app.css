@@ -361,6 +361,10 @@
 .nx-app .icon-btn:hover {
   background: var(--bg-alt);
 }
+/* Bouton hamburger : masqué sur desktop, affiché en mobile (cf. media query). */
+.nx-app .nav-burger {
+  display: none;
+}
 .nx-app .user-chip {
   display: flex;
   align-items: center;
@@ -686,6 +690,7 @@
   font-weight: 600;
 }
 .nx-app .input,
+.nx-app .textarea,
 .nx-app select.input,
 .nx-app textarea.input {
   width: 100%;
@@ -713,19 +718,26 @@
   background-position: right 12px center;
   background-size: 16px;
 }
-.nx-app .input::placeholder {
+.nx-app .input::placeholder,
+.nx-app .textarea::placeholder {
   color: var(--ink-3);
 }
-.nx-app .input:hover {
+.nx-app .input:hover,
+.nx-app .textarea:hover {
   background-color: var(--fill-hover);
 }
-.nx-app .input:focus {
+.nx-app .input:focus,
+.nx-app .textarea:focus {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
   background-color: #fff;
 }
 .nx-app .input.is-invalid {
   border-color: var(--red);
+}
+.nx-app .textarea {
+  resize: vertical;
+  min-height: 96px;
 }
 .nx-app textarea.input {
   resize: vertical;
@@ -737,5 +749,161 @@
 @media (max-width: 880px) {
   .nx-app .topbar-center {
     display: none;
+  }
+}
+
+/* ===================== MOBILE (< 768px) =====================
+   Objectif #91/#98 : app utilisable à 390px, aucun débordement horizontal.
+   La nav horizontale (.subnav) est remplacée par un drawer (hamburger).
+   Toutes les règles ci-dessous sont confinées au mobile : desktop inchangé. */
+@media (max-width: 768px) {
+  /* Coupe tout débordement horizontal résiduel au niveau du document. */
+  html,
+  body {
+    overflow-x: hidden;
+  }
+
+  /* --- Barre supérieure --- */
+  .nx-app .nav-burger {
+    display: grid;
+  }
+  .nx-app .topbar-main .inner {
+    padding: 0 14px;
+    gap: 10px;
+  }
+  .nx-app .inner {
+    padding: 0 14px;
+  }
+  .nx-app .header-right {
+    gap: 6px;
+  }
+  .nx-app .icon-btn {
+    width: 38px;
+    height: 38px;
+  }
+  /* La sous-nav horizontale disparaît : remplacée par le drawer. */
+  .nx-app .subnav {
+    display: none;
+  }
+
+  /* --- Drawer de navigation mobile --- */
+  .nx-app .mobile-nav-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    background: rgba(22, 22, 29, 0.45);
+    display: flex;
+    justify-content: flex-end;
+  }
+  .nx-app .mobile-nav-drawer {
+    width: min(82vw, 320px);
+    max-width: 100%;
+    height: 100%;
+    background: #fff;
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    animation: nx-drawer-in 0.18s ease-out;
+  }
+  @keyframes nx-drawer-in {
+    from {
+      transform: translateX(100%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
+  .nx-app .mobile-nav-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--line);
+    flex-wrap: wrap;
+  }
+  .nx-app .mobile-nav-links {
+    display: flex;
+    flex-direction: column;
+    padding: 10px 12px 28px;
+    gap: 2px;
+  }
+  .nx-app .mobile-nav-links a {
+    display: block;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink-2);
+    text-decoration: none;
+    padding: 11px 12px;
+    border-radius: var(--radius);
+  }
+  .nx-app .mobile-nav-links a:hover {
+    background: var(--bg-alt);
+    color: var(--ink);
+  }
+  .nx-app .mobile-nav-links a.active {
+    background: var(--blue-soft);
+    color: var(--blue-text);
+  }
+  .nx-app .mobile-nav-section {
+    margin-top: 8px;
+  }
+  .nx-app .mobile-nav-group {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    padding: 10px 12px 4px;
+  }
+
+  /* --- Contenu des pages : empêcher tout débordement horizontal --- */
+  .nx-app .page {
+    padding: 18px 14px 60px;
+    max-width: 100%;
+  }
+  .nx-app .inner,
+  .nx-app .page,
+  .nx-app .card,
+  .nx-app .tile,
+  .nx-app .stat-tile,
+  .nx-app .callout {
+    max-width: 100%;
+  }
+  /* Médias et tableaux natifs : jamais plus larges que le conteneur. */
+  .nx-app img,
+  .nx-app svg,
+  .nx-app video,
+  .nx-app canvas {
+    max-width: 100%;
+  }
+  .nx-app table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+  /* Lignes flex utilitaires : passent à la ligne au lieu de déborder. */
+  .nx-app .row {
+    flex-wrap: wrap;
+  }
+
+  /* Tables en grille (.tbl-head/.tbl-row) : les colonnes en gridTemplateColumns
+     inline ne se compriment pas sous leur contenu min. On rend la table
+     défilable horizontalement sans casser la grille : chaque ligne garde sa
+     largeur minimale et partage le même défilement via la barre du conteneur. */
+  .nx-app .tbl-head,
+  .nx-app .tbl-row {
+    min-width: max-content;
+    padding-left: 14px;
+    padding-right: 14px;
+    gap: 10px;
+  }
+  /* Wrapper de table : tout bloc qui contient un .tbl-head devient scrollable. */
+  .nx-app .table-scroll,
+  .nx-app .card:has(> .tbl-head),
+  .nx-app .card:has(.tbl-head),
+  .nx-app div:has(> .tbl-head) {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 }

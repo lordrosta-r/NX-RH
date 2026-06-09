@@ -197,7 +197,7 @@ describe('authService — refreshAccessToken()', () => {
     const result = await refreshAccessToken('validToken')
     expect(result).toEqual({ accessToken: 'newAccess', refreshToken: 'newRefresh' })
     expect(User.updateOne).toHaveBeenCalledWith({ _id: 'user123' }, { $pull: { refreshTokens: 'validToken' } })
-    expect(User.updateOne).toHaveBeenCalledWith({ _id: 'user123' }, { $push: { refreshTokens: 'newRefresh' } })
+    expect(User.updateOne).toHaveBeenCalledWith({ _id: 'user123' }, { $push: { refreshTokens: { $each: ['newRefresh'], $slice: -20 } } })
   })
 
   test('rejects (401) when the user is inactive', async () => {

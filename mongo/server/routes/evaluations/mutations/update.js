@@ -63,6 +63,12 @@ async function handleUpdate(req, res, next) {
       }
       evaluation.answers     = req.body.answers
       evaluation.lastSavedAt = new Date()
+      // Première saisie de réponses : l'évaluation passe automatiquement de
+      // 'assigned' à 'in_progress'. Sinon la soumission (in_progress → submitted)
+      // serait refusée car 'assigned' → 'submitted' n'est pas une transition valide.
+      if (evaluation.status === 'assigned') {
+        evaluation.status = 'in_progress'
+      }
     }
 
     // ── Score reviewer (manager/admin/hr) ────────────────────────────────────
@@ -164,7 +170,9 @@ async function handleUpdate(req, res, next) {
     }
 
     // ── Transition de statut ──────────────────────────────────────────────────
-    if (req.body.status !== undefined) {
+    // No-op : si le statut demandé est déjà le statut courant (ex: le bloc
+    // answers vient d'avancer en 'in_progress'), on ne tente aucune transition.
+    if (req.body.status !== undefined && req.body.status !== evaluation.status) {
       // Un manager/directeur peut faire avancer le statut s'il est l'évaluateur
       // (ex: il remplit une éval compétences) OU le manager hiérarchique (N+1) de
       // l'évalué (ex: il relit la self-évaluation d'un collaborateur).

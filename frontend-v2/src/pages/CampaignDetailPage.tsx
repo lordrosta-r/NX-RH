@@ -1,13 +1,16 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   CampaignDetailHeader,
   CampaignDetailOverview,
   CampaignFormsTab,
+  CampaignFormCollectionTab,
   CampaignCloneModal,
 } from "../components/campaigns";
 import { useCampaignDetail } from "../hooks/useCampaignDetail";
 import { Tile } from "../components/shell";
+import PageGuide from "../components/shared/PageGuide";
 import Breadcrumbs from "../components/ui/Breadcrumbs";
 
 type Tab = "overview" | "evaluations" | "forms";
@@ -19,6 +22,7 @@ const TABS: { id: Tab; label: string }[] = [
 ];
 
 export default function CampaignDetailPage() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const [tab, setTab] = useState<Tab>("overview");
   const [cloneModal, setCloneModal] = useState(false);
@@ -59,6 +63,13 @@ export default function CampaignDetailPage() {
         onArchive={detail.archive}
         onCloneClick={() => setCloneModal(true)}
         onDelete={detail.remove}
+      />
+
+      <PageGuide
+        id="campaignDetail"
+        title={t("guides.campaignDetail.title")}
+        color="blue"
+        steps={t("guides.campaignDetail.steps", { returnObjects: true }) as string[]}
       />
 
       <div
@@ -119,6 +130,13 @@ export default function CampaignDetailPage() {
             </>
           )}
         </Tile>
+      )}
+
+      {tab === "forms" && detail.isAdminOrHr && (
+        <CampaignFormCollectionTab
+          campaign={detail.campaign}
+          campaignId={id!}
+        />
       )}
 
       {tab === "forms" && (

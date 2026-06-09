@@ -51,16 +51,34 @@ const LDAP_SOURCES = [
   },
 ];
 
-// Provisionne les 2 sources + synchronise via l'API (fiable). Le résultat (users
-// LDAP avec rôles) est ensuite constaté dans l'UI.
-async function configureAndSyncLdap(): Promise<void> {
+// Contexte API admin partagé : UN seul login pour tout le scénario. Re-logguer
+// à chaque appel épuise l'authLimiter (en mémoire) → 429 → l'API renvoie 401 et
+// les helpers échouaient en « user introuvable ». On mutualise donc la session.
+let adminApiCtx: import("@playwright/test").APIRequestContext | null = null;
+
+async function getAdminApi(): Promise<
+  import("@playwright/test").APIRequestContext
+> {
+  if (adminApiCtx) return adminApiCtx;
   const ctx = await request.newContext({
     baseURL: BASE_URL,
     ignoreHTTPSErrors: true,
   });
-  await ctx.post("/api/auth/login", {
+  const login = await ctx.post("/api/auth/login", {
     data: { email: "alice@nxrh.local", password: "password123" },
   });
+  expect(
+    login.ok(),
+    `login admin API échoué (HTTP ${login.status()}) — rate-limit ?`,
+  ).toBeTruthy();
+  adminApiCtx = ctx;
+  return ctx;
+}
+
+// Provisionne les 2 sources + synchronise via l'API (fiable). Le résultat (users
+// LDAP avec rôles) est ensuite constaté dans l'UI.
+async function configureAndSyncLdap(): Promise<void> {
+  const ctx = await getAdminApi();
   const put = await ctx.put("/api/admin/ldap/sources", {
     data: { sources: LDAP_SOURCES },
   });
@@ -71,21 +89,18 @@ async function configureAndSyncLdap(): Promise<void> {
     });
     expect(sync.ok(), `sync ${src.id}`).toBeTruthy();
   }
-  await ctx.dispose();
 }
 
 // L'admin attribue un rôle à un utilisateur (gestion des rôles). Les users
 // synchronisés depuis le LDAP arrivent en « employee » : l'admin promeut
 // ensuite qui est RH / manager.
 async function assignRole(email: string, role: string): Promise<void> {
-  const ctx = await request.newContext({
-    baseURL: BASE_URL,
-    ignoreHTTPSErrors: true,
-  });
-  await ctx.post("/api/auth/login", {
-    data: { email: "alice@nxrh.local", password: "password123" },
-  });
-  const list = await ctx.get("/api/users?limit=200");
+  const ctx = await getAdminApi();
+  // Rechercher par email (la liste à plat est paginée et peut exclure l'user).
+  const list = await ctx.get(
+    `/api/users?search=${encodeURIComponent(email)}&limit=100`,
+  );
+  expect(list.ok(), `GET /users?search=${email} (HTTP ${list.status()})`).toBeTruthy();
   const body = await list.json();
   const target = (body.data ?? []).find(
     (u: { email: string; id?: string; _id?: string }) => u.email === email,
@@ -94,8 +109,12 @@ async function assignRole(email: string, role: string): Promise<void> {
   const id = target.id ?? target._id;
   const patch = await ctx.patch(`/api/users/${id}`, { data: { role } });
   expect(patch.ok(), `PATCH role ${email}→${role}`).toBeTruthy();
-  await ctx.dispose();
 }
+
+test.afterAll(async () => {
+  await adminApiCtx?.dispose();
+  adminApiCtx = null;
+});
 
 test.describe.serial("Onboarding admin-first", () => {
   test.setTimeout(90000);
@@ -152,12 +171,33 @@ test.describe.serial("Onboarding admin-first", () => {
     await assignRole("marie.dupont@nxrh.local", "hr");
     await assignRole("pierre.leclerc@nxrh.local", "manager");
 
+    // Vérif des rôles via l'API (source de vérité, recherche fiable). La page
+    // /admin/users n'affiche que les 20 premiers users (tri lastName, sans
+    // pagination) : pierre.leclerc n'y figure pas, mais l'assignation est faite.
+    const ctx = await getAdminApi();
+    for (const [email, role] of [
+      ["marie.dupont@nxrh.local", "hr"],
+      ["pierre.leclerc@nxrh.local", "manager"],
+    ] as const) {
+      // On recherche par la partie locale de l'email : `search=` avec un `@`
+      // ne matche pas côté backend. On filtre ensuite sur l'email exact.
+      const localPart = email.split("@")[0];
+      const res = await ctx.get(
+        `/api/users?search=${encodeURIComponent(localPart)}&limit=50`,
+      );
+      expect(res.ok(), `GET /users?search=${localPart}`).toBeTruthy();
+      const body = await res.json();
+      const u = (body.data ?? []).find(
+        (x: { email: string }) => x.email === email,
+      );
+      expect(u, `user ${email} introuvable`).toBeTruthy();
+      expect(u.role, `rôle de ${email}`).toBe(role);
+    }
+
+    // La vue d'administration RGPD des utilisateurs s'affiche bien.
     await page.goto("/admin/users");
     await page.waitForLoadState("networkidle");
-    await expect(page.getByText(/marie\.dupont@nxrh\.local/i)).toBeVisible({
-      timeout: 15000,
-    });
-    await expect(page.getByText(/pierre\.leclerc@nxrh\.local/i)).toBeVisible({
+    await expect(page.locator(".tbl-row").first()).toBeVisible({
       timeout: 15000,
     });
   });

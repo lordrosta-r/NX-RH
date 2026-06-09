@@ -167,6 +167,41 @@ describe('PDI Routes — /api/pdi', () => {
       expect(res.status).toBe(200)
       expect(res.body.data.every(p => p.employee._id === employeeUser._id.toString())).toBe(true)
     })
+
+    it('manager (vue équipe) voit les PDIs de ses subordonnés directs', async () => {
+      // employeeUser a managerId = managerUser, son PDI doit apparaître même si
+      // managerUser n'est pas désigné « manager » du PDI.
+      await PDI.create({
+        employee: employeeUser._id, manager: adminUser._id,
+        period: { start: '2025-01-01', end: '2025-12-31' }, status: 'active',
+      })
+
+      const res = await request(app)
+        .get('/api/pdi')
+        .set('Cookie', [`accessToken=${managerToken}`])
+
+      expect(res.status).toBe(200)
+      const subjectIds = res.body.data.map(p => p.employee._id)
+      expect(subjectIds).toContain(employeeUser._id.toString())
+      // Le PDI de otherEmployee (hors équipe) ne doit pas apparaître.
+      expect(subjectIds).not.toContain(otherEmployee._id.toString())
+    })
+
+    it('scope=mine ne renvoie que les PDIs dont le demandeur est le sujet', async () => {
+      // managerUser est sujet d'un PDI dont il n'est pas le manager.
+      await PDI.create({
+        employee: managerUser._id, manager: adminUser._id,
+        period: { start: '2025-01-01', end: '2025-12-31' }, status: 'active',
+      })
+
+      const res = await request(app)
+        .get('/api/pdi?scope=mine')
+        .set('Cookie', [`accessToken=${managerToken}`])
+
+      expect(res.status).toBe(200)
+      expect(res.body.data.length).toBeGreaterThanOrEqual(1)
+      expect(res.body.data.every(p => p.employee._id === managerUser._id.toString())).toBe(true)
+    })
   })
 
   // ─── TEST 3 : addAction ──────────────────────────────────────────────────

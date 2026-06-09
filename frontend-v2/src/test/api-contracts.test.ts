@@ -356,19 +356,19 @@ describe('API contracts', () => {
       expect(capturedBody).toEqual({ status: 'in_progress' })
     })
 
-    it('submitEvaluation appelle POST /api/evaluations/e-1/submit', async () => {
-      let called = false
+    it('submitEvaluation appelle PATCH /api/evaluations/e-1 { status: submitted }', async () => {
+      let body: unknown = null
 
       server.use(
-        http.post('http://localhost:5050/api/evaluations/:id/submit', () => {
-          called = true
+        http.patch('http://localhost:5050/api/evaluations/:id', async ({ request }) => {
+          body = await request.json()
           return HttpResponse.json({ _id: 'e-1' })
         })
       )
 
       await evaluationsApi.submitEvaluation('e-1')
 
-      expect(called).toBe(true)
+      expect(body).toEqual({ status: 'submitted' })
     })
 
     it('signEvaluation appelle POST /api/evaluations/e-1/sign', async () => {

@@ -29,8 +29,8 @@ test.describe('Verification pages - Admin', () => {
       await page.waitForLoadState('networkidle')
 
       const bodyText = await page.locator('body').innerText()
-      expect(bodyText).not.toMatch(/erreur interne du serveur|500|Cannot GET/i)
-      expect(bodyText).not.toMatch(/non autorise|401/i)
+      expect(bodyText).not.toMatch(/erreur interne du serveur|\b500\b|Cannot GET/i)
+      expect(bodyText).not.toMatch(/non autoris\u00e9?|\b401\b/i)
     })
   }
 })
@@ -43,7 +43,7 @@ test.describe('Verification pages - HR', () => {
       await page.waitForLoadState('networkidle')
 
       const bodyText = await page.locator('body').innerText()
-      expect(bodyText).not.toMatch(/erreur interne du serveur|500/i)
+      expect(bodyText).not.toMatch(/erreur interne du serveur|\b500\b/i)
     })
   }
 })
@@ -56,7 +56,7 @@ test.describe('Verification pages - Manager', () => {
       await page.waitForLoadState('networkidle')
 
       const bodyText = await page.locator('body').innerText()
-      expect(bodyText).not.toMatch(/erreur interne du serveur|500/i)
+      expect(bodyText).not.toMatch(/erreur interne du serveur|\b500\b/i)
     })
   }
 })
@@ -69,7 +69,7 @@ test.describe('Verification pages - Employee', () => {
       await page.waitForLoadState('networkidle')
 
       const bodyText = await page.locator('body').innerText()
-      expect(bodyText).not.toMatch(/erreur interne du serveur|500/i)
+      expect(bodyText).not.toMatch(/erreur interne du serveur|\b500\b/i)
     })
   }
 })

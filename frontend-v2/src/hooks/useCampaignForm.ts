@@ -11,6 +11,7 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import { campaignsApi } from "../api/campaigns";
 import { adminApi } from "../api/admin";
+import { toast } from "./useToast";
 import { orgApi } from "../api/org";
 import { groupsApi } from "../api/groups";
 import type { Campaign, CampaignStatus, UserGroup, Sector } from "../types";
@@ -214,6 +215,17 @@ export function useCampaignForm(): UseCampaignFormReturn {
     onSuccess: (campaign: Campaign) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.campaigns.lists() });
       navigate(`/campaigns/${campaign.id}`);
+    },
+    // Sans ça, un échec serveur (422) restait silencieux (bouton « ne fait rien »). #104
+    onError: (err: unknown) => {
+      const e = err as {
+        response?: { data?: { error?: string; message?: string } };
+      };
+      const msg =
+        e?.response?.data?.error ||
+        e?.response?.data?.message ||
+        "La création a échoué. Vérifiez les champs et réessayez.";
+      toast.error("Création de campagne impossible", msg);
     },
   });
 

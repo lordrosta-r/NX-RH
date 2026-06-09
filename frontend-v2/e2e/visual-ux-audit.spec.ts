@@ -6,12 +6,14 @@ import path from "path";
 
 // path is used in auditPage for cross-platform screenshot paths
 
+// Pages auditées en tant qu'admin. Routes alignées sur le routeur réel :
+// - pas de /offboarding (n'existe pas) ;
+// - /documents (ex-/resources) est interdit à l'admin → exclu de l'audit admin.
 const PAGES_TO_AUDIT = [
   { path: "/", name: "dashboard" },
   { path: "/campaigns", name: "campaigns" },
   { path: "/evaluations", name: "evaluations" },
   { path: "/forms", name: "forms" },
-  { path: "/offboarding", name: "offboarding" },
   { path: "/mobility", name: "mobility" },
   { path: "/pdi", name: "pdi" },
   { path: "/users", name: "users" },
@@ -22,7 +24,6 @@ const PAGES_TO_AUDIT = [
   { path: "/org", name: "org" },
   { path: "/hr/flags", name: "hr-flags" },
   { path: "/events", name: "events" },
-  { path: "/resources", name: "resources" },
 ];
 
 async function auditPage(page: Page, pagePath: string, pageName: string) {
@@ -81,6 +82,8 @@ test.describe("Audit visuel & UX", () => {
     }
   });
 
+  // #91/#98 corrigé : nav repliable (hamburger + drawer) en mobile + tables
+  // scrollables → plus d'overflow horizontal à 390px.
   test("UX - mobile 390px: pas d'overflow horizontal", async ({ page }) => {
     test.setTimeout(120000);
 
@@ -93,7 +96,16 @@ test.describe("Audit visuel & UX", () => {
       const scrollWidth = await page.evaluate(
         () => document.documentElement.scrollWidth,
       );
-      expect.soft(scrollWidth).toBeLessThanOrEqual(400);
+      // À 390px, la sous-nav est remplacée par un drawer (hamburger) et les
+      // tables larges deviennent défilables horizontalement dans leur
+      // conteneur → le document ne déborde plus (scrollWidth ≤ 400).
+      if (scrollWidth > 400) {
+        test.info().annotations.push({
+          type: "BUG",
+          description: `${pagePath}: overflow horizontal en mobile 390px (scrollWidth=${scrollWidth})`,
+        });
+      }
+      expect.soft(scrollWidth, `${pagePath} overflow @390px`).toBeLessThanOrEqual(400);
 
       // Hamburger / menu button should exist if a nav is present
       const navExists =
@@ -170,10 +182,10 @@ test.describe("Audit visuel & UX", () => {
     await page.goto("/campaigns");
     await page.waitForLoadState("networkidle");
 
-    // Click first campaign to open detail
+    // Lien vers le détail d'une campagne (on exclut /new et /edit).
     const firstCampaign = page
       .locator(
-        '[data-testid*="campaign"], .campaign-item, tbody tr, [class*="campaign-row"], [class*="campaign-card"]',
+        'a[href*="/campaigns/"]:not([href$="/new"]):not([href$="/edit"])',
       )
       .first();
 
@@ -192,14 +204,14 @@ test.describe("Audit visuel & UX", () => {
     await firstCampaign.click();
     await waitForPageLoad(page);
 
-    // Look for breadcrumb navigation
-    const breadcrumb = page
-      .locator(
-        'nav[aria-label*="breadcrumb"], nav[aria-label*="fil d\'ariane"], ol[aria-label*="breadcrumb"], .breadcrumb, [data-testid*="breadcrumb"]',
-      )
-      .first();
+    // Le fil d'ariane est un <nav aria-label="Fil d'ariane"> (recherche
+    // insensible à la casse via le rôle accessible).
+    const breadcrumb = page.getByRole("navigation", {
+      name: /fil d'ariane|breadcrumb/i,
+    });
 
     const hasBreadcrumb = await breadcrumb
+      .first()
       .isVisible({ timeout: 5000 })
       .catch(() => false);
     if (!hasBreadcrumb) {
@@ -210,7 +222,7 @@ test.describe("Audit visuel & UX", () => {
           description: "Breadcrumb navigation missing on campaign detail page",
         });
     }
-    await expect.soft(breadcrumb).toBeVisible({ timeout: 5000 });
+    await expect(breadcrumb.first()).toBeVisible({ timeout: 5000 });
   });
 
   test("UX - validation formulaire inline (pas juste toast)", async ({
@@ -218,19 +230,18 @@ test.describe("Audit visuel & UX", () => {
   }) => {
     test.setTimeout(15000);
 
+    // Le beforeEach authentifie en admin : un utilisateur connecté est redirigé
+    // hors de /login. On purge la session pour afficher réellement le formulaire.
+    await page.context().clearCookies();
     await page.goto("/login");
     await page.waitForLoadState("networkidle");
 
     // Submit with empty email field
     const emailField = page.locator('[data-testid="login-email"]');
-    if (await emailField.isVisible()) {
-      await emailField.fill("");
-    }
+    await emailField.waitFor({ state: "visible", timeout: 10000 });
+    await emailField.fill("");
 
-    const submitBtn = page.locator('[data-testid="login-submit"]');
-    if (await submitBtn.isVisible()) {
-      await submitBtn.click();
-    }
+    await page.locator('[data-testid="login-submit"]').click();
 
     // Inline error should appear near the field — not only as a top-level toast
     const inlineError = page.locator(
@@ -257,52 +268,62 @@ test.describe("Audit visuel & UX", () => {
   test("UX - boutons danger cohérents en rouge", async ({ page }) => {
     test.setTimeout(30000);
 
-    // Check /users
+    // L'app stylise les actions dangereuses via var(--red) en inline-style
+    // (pas de classe "danger"/"red"). On vérifie donc la couleur calculée.
+    const isReddish = (rgb: string): boolean => {
+      const m = rgb.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+      if (!m) return false;
+      const [r, g, b] = [Number(m[1]), Number(m[2]), Number(m[3])];
+      return r > 150 && g < 90 && b < 90;
+    };
+
+    // /users : sélectionner un collaborateur fait apparaître la barre groupée
+    // avec le bouton « Désactiver » (fond rouge).
     await page.goto("/users");
     await page.waitForLoadState("networkidle");
-
-    const dangerBtnUsers = page
-      .locator(
-        'button[class*="red"], button[class*="danger"], button[class*="destructive"], button[class*="delete"], [data-variant*="danger"], [data-variant*="destructive"]',
-      )
+    const firstRowCheckbox = page
+      .locator('[data-testid="users-table"] .tbl-row input[type="checkbox"]')
       .first();
+    await firstRowCheckbox.waitFor({ state: "visible", timeout: 10000 });
+    await firstRowCheckbox.check();
 
-    const foundUsers = await dangerBtnUsers
-      .isVisible({ timeout: 5000 })
-      .catch(() => false);
-    if (!foundUsers) {
-      test
-        .info()
-        .annotations.push({
-          type: "UX-ISSUE",
-          description:
-            "/users: Aucun bouton danger/rouge trouvé (suppression/désactivation)",
-        });
+    const deactivateBtn = page
+      .getByRole("button", { name: /^désactiver$/i })
+      .first();
+    await expect(deactivateBtn).toBeVisible({ timeout: 5000 });
+    const bg = await deactivateBtn.evaluate(
+      (el) => getComputedStyle(el).backgroundColor,
+    );
+    if (!isReddish(bg)) {
+      test.info().annotations.push({
+        type: "UX-ISSUE",
+        description: `/users: bouton « Désactiver » non rouge (background=${bg})`,
+      });
     }
-    await expect.soft(dangerBtnUsers).toBeVisible({ timeout: 5000 });
+    expect.soft(isReddish(bg), `Désactiver bg=${bg}`).toBe(true);
 
-    // Check /offboarding
-    await page.goto("/offboarding");
+    // /evaluations : l'action « Expirer » (menu de ligne) est en rouge.
+    await page.goto("/evaluations");
     await page.waitForLoadState("networkidle");
-
-    const dangerBtnOff = page
-      .locator(
-        'button[class*="red"], button[class*="danger"], button[class*="destructive"], button[class*="delete"], [data-variant*="danger"], [data-variant*="destructive"]',
-      )
+    const expireBtn = page
+      .getByRole("button", { name: /^expirer$/i })
       .first();
-
-    const foundOff = await dangerBtnOff
-      .isVisible({ timeout: 5000 })
+    const hasExpire = await expireBtn
+      .count()
+      .then((c) => c > 0)
       .catch(() => false);
-    if (!foundOff) {
-      test
-        .info()
-        .annotations.push({
+    if (hasExpire) {
+      const expColor = await expireBtn.evaluate(
+        (el) => getComputedStyle(el).color,
+      );
+      if (!isReddish(expColor)) {
+        test.info().annotations.push({
           type: "UX-ISSUE",
-          description: "/offboarding: Aucun bouton danger/rouge trouvé",
+          description: `/evaluations: action « Expirer » non rouge (color=${expColor})`,
         });
+      }
+      expect.soft(isReddish(expColor), `Expirer color=${expColor}`).toBe(true);
     }
-    await expect.soft(dangerBtnOff).toBeVisible({ timeout: 5000 });
   });
 
   test("UX - accessibilité: boutons avec texte ou aria-label", async ({

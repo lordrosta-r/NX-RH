@@ -64,8 +64,18 @@ async function handleList(req, res, next) {
 
     const role = req.user.role
     const uid  = new mongoose.Types.ObjectId(req.user.id)
+    const scope = req.query.scope
 
-    if (role === 'employee') {
+    if (scope === 'mine') {
+      // Espace perso « Mes évaluations » : uniquement MES propres évaluations
+      // (celles dont je suis l'évalué), jamais celles que je conduis pour autrui.
+      filter.evaluateeId = uid
+    } else if (scope === 'my_team') {
+      // Tableau de bord manager : uniquement les évaluations que JE conduis pour
+      // mon équipe (j'en suis l'évaluateur), en excluant ma propre évaluation.
+      filter.evaluatorId = uid
+      filter.evaluateeId = { $ne: uid }
+    } else if (role === 'employee') {
       filter.$or = [{ evaluatorId: uid }, { evaluateeId: uid }]
     } else if (role === 'manager') {
       let visibleIds = []
@@ -85,7 +95,10 @@ async function handleList(req, res, next) {
     }
     // admin/hr : pas de filtre → voit tout
 
-    if (req.query.evaluateeId !== undefined) {
+    if (req.query.evaluateeId === 'me') {
+      // Alias pratique : « me » = l'utilisateur courant (espace perso).
+      filter.evaluateeId = uid
+    } else if (req.query.evaluateeId !== undefined) {
       if (!mongoose.isValidObjectId(req.query.evaluateeId)) {
         return res.status(400).json({ error: 'evaluateeId invalide' })
       }

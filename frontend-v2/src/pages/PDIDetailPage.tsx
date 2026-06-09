@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/AuthContext";
 import api from "@/api/client";
 import { queryKeys } from "@/lib/queryKeys";
 import { PageHead, Tile, Badge, Bar } from "@/components/shell";
+import PageGuide from "@/components/shared/PageGuide";
 import Breadcrumbs from "@/components/ui/Breadcrumbs";
 import {
   CheckCircle2,
@@ -48,8 +50,13 @@ interface PDI {
     email: string;
     department?: string;
     position?: string;
-  };
-  manager: { _id: string; firstName: string; lastName: string; email: string };
+  } | null;
+  manager: {
+    _id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  } | null;
   period: { start: string; end: string };
   objectives: string[];
   actions: Action[];
@@ -128,6 +135,7 @@ const EMPTY_ACTION = {
 };
 
 export default function PDIDetailPage() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const qc = useQueryClient();
@@ -139,7 +147,7 @@ export default function PDIDetailPage() {
 
   const { data, isLoading, isError } = useQuery({
     queryKey: queryKeys.pdi.detail(id!),
-    queryFn: () => api.get(`/pdi/${id}`).then((r) => r.data),
+    queryFn: () => api.get(`/api/pdi/${id}`).then((r) => r.data),
     enabled: !!id,
   });
 
@@ -147,7 +155,7 @@ export default function PDIDetailPage() {
 
   const addActionMutation = useMutation({
     mutationFn: (payload: typeof newAction) =>
-      api.post(`/pdi/${id}/actions`, payload),
+      api.post(`/api/pdi/${id}/actions`, payload),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.pdi.detail(id!) });
       setShowNewAction(false);
@@ -162,13 +170,13 @@ export default function PDIDetailPage() {
     }: {
       actionId: string;
       update: Partial<Action>;
-    }) => api.patch(`/pdi/${id}/actions/${actionId}`, update),
+    }) => api.patch(`/api/pdi/${id}/actions/${actionId}`, update),
     onSuccess: () =>
       qc.invalidateQueries({ queryKey: queryKeys.pdi.detail(id!) }),
   });
 
   const signMutation = useMutation({
-    mutationFn: () => api.post(`/pdi/${id}/sign`),
+    mutationFn: () => api.post(`/api/pdi/${id}/sign`),
     onSuccess: () =>
       qc.invalidateQueries({ queryKey: queryKeys.pdi.detail(id!) }),
   });
@@ -202,13 +210,22 @@ export default function PDIDetailPage() {
       : 0;
 
   const isEmployee =
-    user?._id === pdi.employee._id || user?.id === pdi.employee._id;
+    user?._id === pdi.employee?._id || user?.id === pdi.employee?._id;
   const isManager =
-    user?._id === pdi.manager._id || user?.id === pdi.manager._id;
+    user?._id === pdi.manager?._id || user?.id === pdi.manager?._id;
   const canSign =
     (isEmployee && !pdi.employeeSignedAt) ||
     (isManager && !pdi.managerSignedAt) ||
     (["admin", "hr"].includes(user?.role ?? "") && !pdi.managerSignedAt);
+
+  // Noms sûrs : employee/manager peuvent être null (user supprimé / populate null)
+  // → ne jamais crasher la page sur .firstName.
+  const employeeName = pdi.employee
+    ? `${pdi.employee.firstName} ${pdi.employee.lastName}`
+    : "Utilisateur supprimé";
+  const managerName = pdi.manager
+    ? `${pdi.manager.firstName} ${pdi.manager.lastName}`
+    : "—";
 
   return (
     <div className="nx-app">
@@ -216,16 +233,25 @@ export default function PDIDetailPage() {
         items={[
           { label: "Accueil", href: "/" },
           { label: "PDI", href: "/pdi" },
-          { label: `${pdi.employee.firstName} ${pdi.employee.lastName}` },
+          { label: employeeName },
         ]}
       />
 
+      <PageGuide
+        id="pdi-detail"
+        title={t("pdi.guideDetail.title")}
+        color="blue"
+        steps={t("pdi.guideDetail.steps", { returnObjects: true }) as string[]}
+      />
+
       <PageHead
-        title={`PDI — ${pdi.employee.firstName} ${pdi.employee.lastName}`}
+        title={`PDI — ${employeeName}`}
         desc={
           <>
-            {pdi.employee.position && <span>{pdi.employee.position} · </span>}
-            {pdi.employee.department}
+            {pdi.employee?.position && (
+              <span>{pdi.employee.position} · </span>
+            )}
+            {pdi.employee?.department}
           </>
         }
         actions={
@@ -243,7 +269,7 @@ export default function PDIDetailPage() {
               Manager
             </p>
             <p className="body" style={{ fontWeight: 600 }}>
-              {pdi.manager.firstName} {pdi.manager.lastName}
+              {managerName}
             </p>
           </div>
           <div style={{ minWidth: 100 }}>

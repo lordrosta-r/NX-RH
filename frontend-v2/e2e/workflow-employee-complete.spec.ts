@@ -41,7 +41,7 @@ test.describe("Workflow Employé Complet", () => {
     await expectNotUnauthorized(page);
 
     const rows = page.locator(
-      'table tbody tr, [data-testid="evaluation-row"], .evaluation-item, [class*="evaluation-card"]',
+      'a[href*="/evaluations/"], [data-testid="evaluation-row"], .tbl-row',
     );
     await rows.first().waitFor({ state: "visible", timeout: 15000 });
     const count = await rows.count();
@@ -62,7 +62,7 @@ test.describe("Workflow Employé Complet", () => {
         .first();
       const firstRow = page
         .locator(
-          'table tbody tr, [data-testid="evaluation-row"], .evaluation-item, [class*="evaluation-card"]',
+          'a[href*="/evaluations/"], [data-testid="evaluation-row"], .tbl-row',
         )
         .first();
 
@@ -139,7 +139,7 @@ test.describe("Workflow Employé Complet", () => {
         .first();
       const firstRow = page
         .locator(
-          'table tbody tr, [data-testid="evaluation-row"], .evaluation-item, [class*="evaluation-card"]',
+          'a[href*="/evaluations/"], [data-testid="evaluation-row"], .tbl-row',
         )
         .first();
       if (await enCoursLink.isVisible()) {
@@ -194,7 +194,7 @@ test.describe("Workflow Employé Complet", () => {
     await expectNotUnauthorized(page);
 
     const rows = page.locator(
-      'table tbody tr, [data-testid="evaluation-row"], .evaluation-item, [class*="evaluation-card"]',
+      'a[href*="/evaluations/"], [data-testid="evaluation-row"], .tbl-row',
     );
     await rows.first().waitFor({ state: "visible", timeout: 15000 });
     const count = await rows.count();
@@ -256,27 +256,23 @@ test.describe("Workflow Employé Complet", () => {
       await waitForPageLoad(page);
 
       await test.step("Remplir le formulaire de mobilité", async () => {
-        const typeSelect = page.locator("select").first();
+        // Catégorie "augmentation" → seule la description est requise (pas de poste visé)
+        const typeSelect = page.getByLabel(/type de demande/i).first();
         if (await typeSelect.isVisible()) {
-          const options = await typeSelect.locator("option").allTextContents();
-          const lateral = options.find((o) => /latéral|lateral/i.test(o));
-          await typeSelect.selectOption(lateral ?? options[1] ?? { index: 1 });
+          await typeSelect.selectOption("augmentation").catch(async () => {
+            await typeSelect.selectOption({ index: 2 });
+          });
         }
 
-        const motifField = page
-          .locator(
-            'textarea, input[name*="motif"], input[name*="description"], input[placeholder*="motif"], input[placeholder*="description"]',
-          )
-          .first();
+        const motifField = page.getByLabel(/description de la demande/i).first();
         if (await motifField.isVisible()) {
           await motifField.fill(
-            "Souhait d'évolution vers un poste similaire dans une autre équipe.",
+            "Souhait d'évolution salariale au regard des résultats de l'année.",
           );
         }
 
         const submitBtn = page
-          .locator('button[type="submit"], button')
-          .filter({ hasText: /soumettre|envoyer|créer|valider/i })
+          .getByRole("button", { name: /soumettre|envoyer|créer|valider/i })
           .first();
         if (await submitBtn.isVisible()) {
           await submitBtn.click();
@@ -284,9 +280,8 @@ test.describe("Workflow Employé Complet", () => {
         }
       });
 
-      const list = page.locator(
-        'table tbody tr, .mobility-item, [data-testid="mobility-row"], [class*="mobility-card"]',
-      );
+      // La liste rend des lignes de tableau (div.tbl-row), pas une <table>
+      const list = page.locator('.tbl-row, [data-testid="mobility-row"]');
       await expect.soft(list.first()).toBeVisible({ timeout: 10000 });
     } else {
       test
@@ -304,11 +299,8 @@ test.describe("Workflow Employé Complet", () => {
     await waitForPageLoad(page);
     await expectNotUnauthorized(page);
 
-    const objectiveEl = page
-      .locator(
-        '[data-testid="pdi-objective"], .pdi-item, [class*="objective"], [class*="pdi"]',
-      )
-      .first();
+    // Les PDI sont rendus comme des cartes-liens vers /pdi/:id (a.tile.tile-link)
+    const objectiveEl = page.locator('a[href*="/pdi/"]').first();
     await expect.soft(objectiveEl).toBeVisible({ timeout: 15000 });
     await takeScreenshot(page, "employee-pdi");
   });
@@ -363,41 +355,32 @@ test.describe("Workflow Employé Complet", () => {
     await waitForPageLoad(page);
     await expectNotUnauthorized(page);
 
-    await test.step("Modifier un champ", async () => {
-      const phoneField = page
-        .locator(
-          'input[name*="phone"], input[placeholder*="téléphone"], input[placeholder*="phone"], input[type="tel"]',
-        )
-        .first();
-      if (await phoneField.isVisible({ timeout: 5000 }).catch(() => false)) {
-        await phoneField.fill("+33 6 12 34 56 78");
-      } else {
-        const firstTextField = page.locator('input[type="text"]').first();
-        if (await firstTextField.isVisible()) {
-          const current = await firstTextField.inputValue();
-          await firstTextField.fill(current || "Lucas Bernard");
-        }
-      }
+    // Le profil est en lecture seule jusqu'au clic sur "Modifier".
+    // Seuls prénom/nom sont éditables (#profile-firstname / #profile-lastname).
+    await test.step("Passer en mode édition et modifier le prénom", async () => {
+      await page
+        .getByRole("button", { name: /^modifier$/i })
+        .first()
+        .click();
+
+      const firstNameInput = page.locator("#profile-firstname");
+      await firstNameInput.waitFor({ state: "visible", timeout: 5000 });
+      const current = await firstNameInput.inputValue();
+      await firstNameInput.fill(current || "Lucas");
     });
 
     await test.step("Sauvegarder", async () => {
-      const saveBtn = page
-        .locator('button[type="submit"], button')
-        .filter({
-          hasText: /enregistrer|sauvegarder|save|mettre à jour|modifier/i,
-        })
-        .first();
-      if (await saveBtn.isVisible()) {
-        await saveBtn.click();
-        await page.waitForLoadState("networkidle");
+      const saveBtn = page.getByRole("button", {
+        name: /sauvegarder|enregistrer/i,
+      });
+      await saveBtn.click();
+      await page.waitForLoadState("networkidle");
 
-        const toast = page
-          .locator(
-            '[data-testid="toast"], .toast, [class*="toast"], [role="status"], [role="alert"]',
-          )
-          .first();
-        await expect.soft(toast).toBeVisible({ timeout: 8000 });
-      }
+      // Pas de toast sur cette mutation : le succès se traduit par la sortie
+      // du mode édition (le bouton "Modifier" réapparaît).
+      await expect(
+        page.getByRole("button", { name: /^modifier$/i }).first(),
+      ).toBeVisible({ timeout: 8000 });
     });
   });
 

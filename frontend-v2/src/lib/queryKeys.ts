@@ -50,6 +50,7 @@ export const queryKeys = {
   mobility: {
     all: ["mobility"] as const,
     lists: () => [...queryKeys.mobility.all, "list"] as const,
+    list: (filters: object) => [...queryKeys.mobility.lists(), filters] as const,
     stats: () => [...queryKeys.mobility.all, "stats"] as const,
     history: (employeeId: string) =>
       [...queryKeys.mobility.all, "history", employeeId] as const,
@@ -61,12 +62,6 @@ export const queryKeys = {
     library: () => [...queryKeys.forms.all, "library"] as const,
   },
   offboardings: {
-    all: ["offboardings"] as const,
-    lists: () => [...queryKeys.offboardings.all, "list"] as const,
-    detail: (id: string) =>
-      [...queryKeys.offboardings.all, "detail", id] as const,
-  },
-  offboarding: {
     all: ["offboardings"] as const,
     lists: () => [...queryKeys.offboardings.all, "list"] as const,
     detail: (id: string) =>
@@ -91,6 +86,9 @@ export const queryKeys = {
   },
   adminUsers: {
     all: ["admin-users"] as const,
+    lists: () => [...queryKeys.adminUsers.all, "list"] as const,
+    list: (filters: object) =>
+      [...queryKeys.adminUsers.lists(), filters] as const,
   },
   configKeys: {
     all: ["config-keys"] as const,

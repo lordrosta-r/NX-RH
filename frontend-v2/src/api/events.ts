@@ -28,4 +28,10 @@ export const eventsApi = {
 
   deleteEvent: (id: string) =>
     client.delete(`/api/events/${id}`),
+
+  // RSVP : l'utilisateur répond à un événement (accepter / décliner / incertain).
+  respond: (id: string, status: 'accepted' | 'declined' | 'tentative') =>
+    client
+      .post<CalendarEvent>(`/api/events/${id}/respond`, { status })
+      .then((r) => ({ ...r, data: withId(r.data) })),
 }

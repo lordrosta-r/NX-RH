@@ -46,6 +46,37 @@ router.get('/:id', async (req, res, next) => {
   } catch (err) { next(err) }
 })
 
+// POST /api/events/:id/respond — RSVP : l'utilisateur accepte / décline / incertain
+router.post('/:id/respond', async (req, res, next) => {
+  try {
+    if (!mongoose.isValidObjectId(req.params.id)) return res.status(400).json({ error: 'ID invalide' })
+    const { status } = req.body
+    if (!['accepted', 'declined', 'tentative'].includes(status)) {
+      return res.status(400).json({ error: 'status doit être accepted, declined ou tentative' })
+    }
+    const event = await Event.findById(req.params.id)
+    if (!event) return res.status(404).json({ error: 'Événement introuvable' })
+
+    // Même contrôle d'accès que GET /:id : il faut voir l'événement pour y répondre.
+    if (req.user.role !== 'admin' && req.user.role !== 'hr') {
+      const hasAccess = event.targetRoles.length === 0 || event.targetRoles.includes(req.user.role)
+      if (!hasAccess) return res.status(403).json({ error: 'Accès refusé' })
+    }
+
+    // Upsert : une seule réponse par utilisateur.
+    const uid = String(req.user.id)
+    const existing = event.responses.find(r => r.userId.toString() === uid)
+    if (existing) {
+      existing.status = status
+      existing.respondedAt = new Date()
+    } else {
+      event.responses.push({ userId: uid, status, respondedAt: new Date() })
+    }
+    await event.save()
+    res.json(event)
+  } catch (err) { next(err) }
+})
+
 // POST /api/events — Créer un événement (admin/hr)
 router.post('/', async (req, res, next) => {
   try {

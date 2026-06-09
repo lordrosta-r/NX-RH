@@ -70,3 +70,4 @@ Le pari produit : l'entretien est un **dialogue outillé**, pas un barème. Il n
 
 - [[FAQ]] — questions fréquentes
 - [[Glossaire]] — termes métier définis
+- [[Licence]] — logiciel propriétaire NanoXplore (conditions d'utilisation)

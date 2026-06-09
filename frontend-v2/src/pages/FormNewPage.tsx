@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Upload } from "lucide-react";
 import { formsApi } from "../api/forms";
@@ -7,9 +8,11 @@ import { campaignsApi } from "../api/campaigns";
 import { formCategoriesApi } from "../api/formCategories";
 import type { Form, FormQuestion, FormCategory } from "../types";
 import { PageHead, Tile } from "../components/shell";
+import PageGuide from "../components/shared/PageGuide";
 import FormBuilder from "../components/forms/FormBuilder";
 
 export default function FormNewPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -112,6 +115,13 @@ export default function FormNewPage() {
             </button>
           </>
         }
+      />
+
+      <PageGuide
+        id="formNew"
+        title={t("guides.formNew.title")}
+        color="blue"
+        steps={t("guides.formNew.steps", { returnObjects: true }) as string[]}
       />
 
       {(errors.title || errors.formType || errors.questions) && (

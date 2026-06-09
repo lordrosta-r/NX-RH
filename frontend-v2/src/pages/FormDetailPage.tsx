@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Lock, Unlock, Download, Trash2 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
@@ -9,6 +10,7 @@ import { formsApi } from "../api/forms";
 import { formCategoriesApi } from "../api/formCategories";
 import type { FormQuestion, FormCategory } from "../types";
 import { PageHead, Tile, Badge, Callout } from "../components/shell";
+import PageGuide from "../components/shared/PageGuide";
 import FormBuilder from "../components/forms/FormBuilder";
 import { queryKeys } from "../lib/queryKeys";
 
@@ -30,6 +32,7 @@ const FORM_TYPE_CONFIG: Record<string, { label: string; tone: FormTone }> = {
 };
 
 export default function FormDetailPage() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const confirm = useConfirm();
@@ -285,6 +288,13 @@ export default function FormDetailPage() {
             )}
           </>
         }
+      />
+
+      <PageGuide
+        id="formDetail"
+        title={t("guides.formDetail.title")}
+        color="blue"
+        steps={t("guides.formDetail.steps", { returnObjects: true }) as string[]}
       />
 
       {/* Bandeau gelé */}

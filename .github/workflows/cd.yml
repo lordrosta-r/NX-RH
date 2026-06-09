@@ -27,6 +27,7 @@ jobs:
         uses: docker/build-push-action@v7
         with:
           context: .
+          file: docker/Dockerfile
           push: false
           load: true
           tags: nx-rh:ci

@@ -6,7 +6,7 @@
 //
 // Usage : node scripts/e2e/run.js
 //
-// Prérequis : MongoDB accessible (docker compose up -d mongo)
+// Prérequis : MongoDB accessible (docker compose --env-file .env -f docker/docker-compose.yml up -d mongo)
 // =============================================================================
 
 // ⚠️ CRITIQUE : définir les variables d'env AVANT tout require() de modules serveur
@@ -70,7 +70,7 @@ async function main() {
     console.log(`${C.green}✓ MongoDB connecté${C.reset}`)
   } catch (err) {
     console.error(`${C.red}✗ Impossible de se connecter à MongoDB: ${err.message}${C.reset}`)
-    console.error(`${C.yellow}  Vérifiez que MongoDB est démarré : docker compose up -d mongo${C.reset}`)
+    console.error(`${C.yellow}  Vérifiez que MongoDB est démarré : docker compose --env-file .env -f docker/docker-compose.yml up -d mongo${C.reset}`)
     process.exit(1)
   }
 

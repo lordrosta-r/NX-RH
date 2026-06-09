@@ -75,37 +75,34 @@ Pour la liste complète des variables optionnelles, voir `docs/ENVIRONMENT.md`.
 
 ---
 
-## Trois façons de déployer
+## Deux façons de déployer
 
-### Option 1 — Depuis le dépôt (build local)
+Les fichiers Compose et le `Dockerfile` sont regroupés dans `docker/`. Toutes les commandes
+ci-dessous se lancent **depuis la racine du dépôt** ; `--env-file .env` charge le `.env` racine
+pour l'interpolation des variables.
+
+### Option 1 — Depuis `main` (build local)
 
 C'est la méthode standard. Elle reconstruit l'image Docker localement depuis les sources.
 
 ```bash
 # Déploiement standard (une instance applicative)
-docker compose up -d --build
+docker compose --env-file .env -f docker/docker-compose.yml up -d --build
 
 # Mode haute disponibilité (3 instances applicatives derrière le load balancer nginx)
-docker compose up -d --build --scale app=3
+docker compose --env-file .env -f docker/docker-compose.yml up -d --build --scale app=3
 ```
 
-### Option 2 — Depuis le registre de packages (`ghcr.io/lordrosta-r/nx-rh`)
+### Option 2 — Depuis une release versionnée (déploiement reproductible)
 
-Utiliser l'image pré-construite publiée sur GitHub Container Registry. Adapter le fichier `docker-compose.yml` pour référencer l'image distante au lieu de construire localement.
-
-```bash
-docker pull ghcr.io/lordrosta-r/nx-rh:latest
-docker compose up -d
-```
-
-### Option 3 — Depuis une release versionnée
-
-Pour un déploiement reproductible d'une version précise, utiliser le tag de version correspondant :
+Pour figer une version précise, se placer sur le tag correspondant puis builder localement.
+Les artefacts sont distribués via les [releases GitHub](https://github.com/lordrosta-r/NX-RH/releases)
+(aucune image n'est publiée sur un registre).
 
 ```bash
-docker pull ghcr.io/lordrosta-r/nx-rh:v1.2.3
-# Mettre à jour la référence d'image dans docker-compose.yml, puis :
-docker compose up -d
+git fetch --tags
+git checkout v1.0.0
+docker compose --env-file .env -f docker/docker-compose.yml up -d --build
 ```
 
 ---
@@ -114,7 +111,7 @@ docker compose up -d
 
 ```bash
 # Vérifier que tous les services sont actifs et sains
-docker compose ps
+docker compose --env-file .env -f docker/docker-compose.yml ps
 ```
 
 Les trois services (`nginx`, `app`, `mongo`) doivent afficher le statut `running (healthy)`. Le service `app` peut afficher `(health: starting)` pendant les 15 premières secondes après le démarrage.
@@ -124,7 +121,7 @@ Les trois services (`nginx`, `app`, `mongo`) doivent afficher le statut `running
 curl -sf https://votre-domaine/api/health
 
 # Directement vers le conteneur applicatif, en contournant nginx
-docker compose exec app wget -qO- http://localhost:3000/api/health
+docker compose --env-file .env -f docker/docker-compose.yml exec app wget -qO- http://localhost:3000/api/health
 ```
 
 Une réponse saine retourne HTTP 200 avec un corps JSON `{"status":"ok"}`.

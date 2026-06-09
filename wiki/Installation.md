@@ -242,7 +242,7 @@ Le script est idempotent : il s'arrête immédiatement si un compte administrate
 Le mode développement lance des services supplémentaires : un serveur Vite avec rechargement à chaud, MailHog (faux serveur SMTP) pour intercepter les emails sortants, et des conteneurs OpenLDAP pour tester l'authentification LDAP.
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
+docker compose --env-file .env -f docker/docker-compose.yml -f docker/docker-compose.dev.yml up -d --build
 ```
 
 | Service | URL | Description |

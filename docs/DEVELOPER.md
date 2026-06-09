@@ -147,7 +147,7 @@ NX-RH/
 │   └── database/              Scripts de seed
 ├── nginx/                     Configuration nginx (prod)
 ├── docs/                      Documentation
-├── docker-compose.yml         Stack production
+├── docker/                     Conteneurisation (Dockerfile + docker-compose*.yml)
 └── .env.example               Template des variables d'environnement
 ```
 

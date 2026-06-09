@@ -22,7 +22,7 @@ export default async function globalSetup() {
   } catch (err) {
     throw new Error(
       `\n❌ Stack Docker non disponible sur ${baseURL}\n` +
-        `   Lance d'abord: docker compose -f docker-compose.yml up -d\n` +
+        `   Lance d'abord: docker compose --env-file .env -f docker/docker-compose.yml up -d\n` +
         `   Erreur: ${err}\n`,
       { cause: err },
     );

@@ -27,7 +27,7 @@ d'abstractions surprises, logique métier dans les services.
 
 ```bash
 # Mode développement complet (hot reload frontend + backend)
-docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
+docker compose --env-file .env -f docker/docker-compose.yml -f docker/docker-compose.dev.yml up -d --build
 
 # Ou lancer les deux processus séparément :
 
@@ -90,7 +90,7 @@ NX-RH/
 │       └── models/        # Modèles Mongoose
 ├── docs/                 # Documentation opérationnelle
 ├── .github/workflows/    # CI (ci.yml) et CD (cd.yml)
-└── docker-compose.yml    # Stack de production
+└── docker/               # Conteneurisation (Dockerfile + docker-compose*.yml)
 ```
 
 Le seul frontend vivant est `frontend-v2/`. Ignorer tout dossier `client/` legacy éventuel.

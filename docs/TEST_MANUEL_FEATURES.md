@@ -102,7 +102,7 @@ Les specs supposent la **stack Docker + seed e2e** (utilisateurs `@nxrh.local`) 
 
 ```bash
 # 1. Démarrer la stack de test seedée (pas la prod avec tes données réelles)
-docker compose -f docker-compose.yml up -d
+docker compose --env-file .env -f docker/docker-compose.yml up -d
 
 # 2. Lancer les tests
 cd frontend-v2

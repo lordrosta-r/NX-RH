@@ -87,19 +87,23 @@ Détails et justifications : [docs/STACK.md](docs/STACK.md) et le wiki [Stack-Te
 ### Production
 
 ```bash
-docker compose up -d --build
+docker compose --env-file .env -f docker/docker-compose.yml up -d --build
 ```
 
 Mode haute disponibilité avec plusieurs instances applicatives derrière nginx :
 
 ```bash
-docker compose up -d --build --scale app=3
+docker compose --env-file .env -f docker/docker-compose.yml up -d --build --scale app=3
 ```
+
+> Les fichiers Compose et le `Dockerfile` sont regroupés dans `docker/`. Les commandes
+> se lancent depuis la **racine du dépôt** : `--env-file .env` charge le `.env` racine
+> pour l'interpolation des variables.
 
 ### Développement
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
+docker compose --env-file .env -f docker/docker-compose.yml -f docker/docker-compose.dev.yml up -d --build
 # Frontend : https://localhost (via nginx) ou http://localhost:5173 (Vite)
 # API      : https://localhost/api ou http://localhost:3001/api
 # MailHog  : http://localhost:8025  ·  phpLDAPadmin : http://localhost:8080
@@ -111,9 +115,10 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
 
 ```
 NX-RH/
-├── Dockerfile                    # Multi-stage : build front Vite → public/ + serveur Express
-├── docker-compose.yml            # Stack production : cert-init + nginx + app + mongo
-├── docker-compose.dev.yml        # Surcharges développement (Vite, MailHog, OpenLDAP)
+├── docker/                       # Conteneurisation regroupée
+│   ├── Dockerfile                # Multi-stage : build front Vite → public/ + serveur Express
+│   ├── docker-compose.yml        # Stack production : cert-init + nginx + app + mongo
+│   └── docker-compose.dev.yml    # Surcharges développement (Vite, MailHog, OpenLDAP)
 ├── nginx/                        # Reverse proxy + TLS (certs non versionnés)
 ├── frontend-v2/                  # SPA React / TypeScript / Vite (frontend canonique)
 │   └── src/

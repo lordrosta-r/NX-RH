@@ -8,7 +8,12 @@ NanoXplore RH:
 2. **Uploaded files** — HR documents written by the `app` service to `/data/uploads`,
    stored in the `uploads_data` named volume.
 
-All commands must be run from the project root (where `docker-compose.yml` lives).
+All commands must be run from the project root. The Compose files live under `docker/`, so
+export this once per shell session first (every `docker compose …` command below then works as-is):
+
+```bash
+export COMPOSE_FILE=docker/docker-compose.yml
+```
 
 ---
 

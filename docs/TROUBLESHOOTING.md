@@ -2,6 +2,13 @@
 
 Common operational problems, their causes, and step-by-step fixes with copy-paste commands.
 
+> The Compose files live under `docker/`. Run commands from the project root and export this
+> once per shell session so every `docker compose …` command below works as-is:
+>
+> ```bash
+> export COMPOSE_FILE=docker/docker-compose.yml
+> ```
+
 ---
 
 ## Table of Contents

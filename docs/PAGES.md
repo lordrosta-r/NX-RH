@@ -391,12 +391,14 @@ Ce document décrit chaque page du SPA React (`frontend-v2/src/pages/`), son che
 
 ### EventDetailPage
 - **Route :** `/events/:id`
-- **Accès :** tous
-- **Objectif :** Détail d'un événement RH avec participants et documents.
+- **Accès :** tous (selon `targetRoles` de l'événement)
+- **Objectif :** Détail d'un événement RH avec réponse du participant (RSVP).
 - **Fonctionnalités :**
   - Informations complètes de l'événement
-  - Liste des participants
-  - Documents et ressources associés
+  - **RSVP** : l'utilisateur répond à l'invitation — **Accepter / Incertain /
+    Décliner** (`POST /api/events/:id/respond`) ; sa réponse est persistée et
+    affichée (« Vous avez répondu : … »)
+  - Édition / suppression réservées à admin/hr
 
 ### ResourcesPage
 - **Route :** `/documents`

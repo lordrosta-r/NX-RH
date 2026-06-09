@@ -16,6 +16,10 @@
 ![MongoDB](https://img.shields.io/badge/MongoDB-7-47A248?logo=mongodb&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-multi--stage-2496ED?logo=docker&logoColor=white)
 
+<br>
+
+![Page de connexion NanoXplore RH](docs/screenshots/login.png)
+
 </div>
 
 ---

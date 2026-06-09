@@ -345,6 +345,108 @@
         "Cette évaluation est en lecture seule à ce stade.",
         "Consultez le détail et l'historique des étapes ci-dessous."
       ]
+    },
+    "dashEmployee": {
+      "title": "Bienvenue sur votre espace",
+      "steps": [
+        "Retrouvez ici vos évaluations en cours et les actions qui vous attendent.",
+        "Cliquez sur une évaluation pour la compléter, puis soumettez-la.",
+        "Suivez vos objectifs et consultez les documents partagés par votre RH."
+      ]
+    },
+    "dashManager": {
+      "title": "Piloter votre équipe",
+      "steps": [
+        "Les indicateurs en haut résument l'avancement des évaluations de votre équipe.",
+        "Repérez les évaluations à reviewer ou en retard, mises en avant.",
+        "Ouvrez « À traiter » pour relire, réviser et signer chaque évaluation.",
+        "Préparez et menez les entretiens depuis chaque fiche."
+      ]
+    },
+    "dashHr": {
+      "title": "Vue d'ensemble RH",
+      "steps": [
+        "Suivez l'avancement global des campagnes et des collaborateurs.",
+        "Créez une campagne ou exportez un rapport PDF depuis les actions en haut.",
+        "Utilisez les indicateurs pour repérer les retards et relancer si besoin.",
+        "Approfondissez avec l'Analytique pour une analyse détaillée."
+      ]
+    },
+    "dashAdmin": {
+      "title": "État de la plateforme",
+      "steps": [
+        "Surveillez l'activité système et l'état des services.",
+        "Vérifiez la complétude de la configuration via l'assistant.",
+        "Accédez aux réglages techniques depuis la Configuration."
+      ]
+    },
+    "campaignDetail": {
+      "title": "Gérer cette campagne",
+      "steps": [
+        "L'onglet Aperçu résume l'avancement et les statistiques de la campagne.",
+        "L'onglet Évaluations donne accès aux évaluations associées.",
+        "L'onglet Formulaires permet d'associer les formulaires à utiliser.",
+        "Activez, clôturez ou archivez la campagne depuis l'en-tête."
+      ]
+    },
+    "formDetail": {
+      "title": "Ce formulaire d'évaluation",
+      "steps": [
+        "Consultez les questions et leur type ci-dessous.",
+        "Modifiez le formulaire tant qu'il n'est pas gelé.",
+        "Geler un formulaire le verrouille pour garantir l'intégrité des réponses.",
+        "Exportez le formulaire en JSON pour le réutiliser ou l'archiver."
+      ]
+    },
+    "formNew": {
+      "title": "Créer un formulaire",
+      "steps": [
+        "Donnez un titre clair et choisissez le type (auto-évaluation, manager…).",
+        "Ajoutez vos questions et définissez leur format de réponse.",
+        "Associez le formulaire à une campagne active si nécessaire.",
+        "Enregistrez : il pourra être appliqué lors d'une campagne."
+      ]
+    },
+    "mobility": {
+      "title": "Les demandes de mobilité",
+      "steps": [
+        "Retrouvez ici les demandes de mobilité, promotion, augmentation et formation.",
+        "Créez une nouvelle demande avec « Nouvelle demande ».",
+        "Suivez le statut de chaque demande dans la chronologie.",
+        "La RH traite et répond à chaque demande."
+      ]
+    },
+    "analytics": {
+      "title": "Analyser les performances",
+      "steps": [
+        "Filtrez par campagne pour cibler votre analyse.",
+        "Consultez la distribution des statuts et les indicateurs clés.",
+        "Exportez les données pour un reporting détaillé."
+      ]
+    },
+    "hrFlags": {
+      "title": "Traiter les demandes RH",
+      "steps": [
+        "Retrouvez ici toutes les demandes remontées par les collaborateurs.",
+        "Filtrez par statut ou par type pour prioriser votre traitement.",
+        "Ouvrez une demande pour la consulter et la traiter."
+      ]
+    },
+    "events": {
+      "title": "Le calendrier des événements",
+      "steps": [
+        "Basculez entre la vue Mois et la vue Liste selon vos besoins.",
+        "Cliquez sur un jour ou « + » pour créer un événement.",
+        "Ouvrez un événement pour en voir le détail ou le modifier."
+      ]
+    },
+    "resources": {
+      "title": "Les documents partagés",
+      "steps": [
+        "Retrouvez ici les documents et ressources partagés par la RH.",
+        "Filtrez par type pour trouver rapidement ce que vous cherchez.",
+        "La RH peut ajouter une nouvelle ressource avec « Nouvelle ressource »."
+      ]
     }
   },
   "forms": {
@@ -841,6 +943,11 @@
       "confirmTitle": "Désactiver l'utilisateur ?",
       "confirmDescription": "L'utilisateur ne pourra plus se connecter (réversible).",
       "confirmLabel": "Désactiver"
+    },
+    "pagination": {
+      "summary": "Page {{page}} sur {{totalPages}} · {{total}} utilisateurs",
+      "previous": "Page précédente",
+      "next": "Page suivante"
     }
   },
   "adminUsersImport": {

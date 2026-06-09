@@ -17,6 +17,7 @@ import { resourcesApi } from "../api/resources";
 import type { Evaluation, EvaluationStatus } from "../types";
 import { getCampaignName } from "../types";
 import { PageHead, Tile, Badge } from "../components/shell";
+import PageGuide from "../components/shared/PageGuide";
 
 // ─── Statut → tonalité institutionnelle ──────────────────────────────────────
 // Labels are now resolved via t() inside EvalStatusBadge.
@@ -102,6 +103,13 @@ export default function DashboardEmployeePage() {
             <Badge tone="grey">{user.department}</Badge>
           ) : undefined
         }
+      />
+
+      <PageGuide
+        id="dashEmployee"
+        title={t("guides.dashEmployee.title")}
+        color="blue"
+        steps={t("guides.dashEmployee.steps", { returnObjects: true }) as string[]}
       />
 
       {/* Mes évaluations en cours */}

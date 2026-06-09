@@ -18,6 +18,7 @@ import type {
 } from "../types";
 import { getCampaignName } from "../types";
 import { PageHead, Tile, StatTile, Badge, Bar } from "../components/shell";
+import PageGuide from "../components/shared/PageGuide";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 type PopulatedUser = {
@@ -458,6 +459,13 @@ export default function DashboardManagerPage() {
             <ArrowRight className="ico" />
           </Link>
         }
+      />
+
+      <PageGuide
+        id="dashManager"
+        title={t("guides.dashManager.title")}
+        color="teal"
+        steps={t("guides.dashManager.steps", { returnObjects: true }) as string[]}
       />
 
       {/* KPI row */}

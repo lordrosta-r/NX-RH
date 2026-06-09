@@ -17,6 +17,7 @@ import {
 import { Download, FileText } from "lucide-react";
 import { analyticsApi } from "../api/analytics";
 import { PageHead, Tile, StatTile } from "../components/shell";
+import PageGuide from "../components/shared/PageGuide";
 import { useAuth } from "../contexts/AuthContext";
 import type { EvaluationStatus } from "../types";
 
@@ -227,6 +228,13 @@ export default function AnalyticsPage() {
             )}
           </>
         }
+      />
+
+      <PageGuide
+        id="analytics"
+        title={t("guides.analytics.title")}
+        color="blue"
+        steps={t("guides.analytics.steps", { returnObjects: true }) as string[]}
       />
 
       {/* ── Error banner ───────────────────────────────────────────────────── */}

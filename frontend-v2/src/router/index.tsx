@@ -692,11 +692,15 @@ export const router = createBrowserRouter([
     ),
     children: [
       {
+        // Organigramme : vue de gestion. L'API /api/org/* refuse l'employé (403) ;
+        // on aligne la route front (manager+) pour éviter l'incohérence. #90
         path: "/org",
         element: (
-          <S>
-            <OrgPage />
-          </S>
+          <AuthGuard roles={["admin", "hr", "manager"]}>
+            <S>
+              <OrgPage />
+            </S>
+          </AuthGuard>
         ),
       },
       {

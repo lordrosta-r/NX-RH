@@ -17,6 +17,7 @@ import {
 import { Download, FileText } from "lucide-react";
 import { analyticsApi } from "../api/analytics";
 import { PageHead, Tile, StatTile } from "../components/shell";
+import { useAuth } from "../contexts/AuthContext";
 import type { EvaluationStatus } from "../types";
 
 // ─── Palette institutionnelle ─────────────────────────────────────────────────
@@ -76,6 +77,10 @@ interface BarEntry {
 
 export default function AnalyticsPage() {
   const { t } = useTranslation();
+  const { user } = useAuth();
+  // Les exports (PDF/CSV) sont réservés admin/hr côté API ;
+  // le manager peut consulter l'analytique mais pas exporter.
+  const isAdminOrHr = user?.role === "admin" || user?.role === "hr";
   const [selectedCampaignId, setSelectedCampaignId] = useState("");
   const [isExporting, setIsExporting] = useState<"pdf" | "csv" | null>(null);
 
@@ -199,23 +204,27 @@ export default function AnalyticsPage() {
               ))}
             </select>
 
-            <button
-              onClick={() => void handleExport("pdf")}
-              disabled={Boolean(isExporting)}
-              className="btn btn-ghost"
-            >
-              <FileText className="ico" style={{ width: 18, height: 18 }} />
-              {isExporting === "pdf" ? "Export…" : "Exporter PDF"}
-            </button>
+            {isAdminOrHr && (
+              <>
+                <button
+                  onClick={() => void handleExport("pdf")}
+                  disabled={Boolean(isExporting)}
+                  className="btn btn-ghost"
+                >
+                  <FileText className="ico" style={{ width: 18, height: 18 }} />
+                  {isExporting === "pdf" ? "Export…" : "Exporter PDF"}
+                </button>
 
-            <button
-              onClick={() => void handleExport("csv")}
-              disabled={Boolean(isExporting)}
-              className="btn btn-primary"
-            >
-              <Download className="ico" style={{ width: 18, height: 18 }} />
-              {isExporting === "csv" ? "Export…" : "Exporter CSV"}
-            </button>
+                <button
+                  onClick={() => void handleExport("csv")}
+                  disabled={Boolean(isExporting)}
+                  className="btn btn-primary"
+                >
+                  <Download className="ico" style={{ width: 18, height: 18 }} />
+                  {isExporting === "csv" ? "Export…" : "Exporter CSV"}
+                </button>
+              </>
+            )}
           </>
         }
       />

@@ -171,12 +171,33 @@ test.describe.serial("Onboarding admin-first", () => {
     await assignRole("marie.dupont@nxrh.local", "hr");
     await assignRole("pierre.leclerc@nxrh.local", "manager");
 
+    // Vérif des rôles via l'API (source de vérité, recherche fiable). La page
+    // /admin/users n'affiche que les 20 premiers users (tri lastName, sans
+    // pagination) : pierre.leclerc n'y figure pas, mais l'assignation est faite.
+    const ctx = await getAdminApi();
+    for (const [email, role] of [
+      ["marie.dupont@nxrh.local", "hr"],
+      ["pierre.leclerc@nxrh.local", "manager"],
+    ] as const) {
+      // On recherche par la partie locale de l'email : `search=` avec un `@`
+      // ne matche pas côté backend. On filtre ensuite sur l'email exact.
+      const localPart = email.split("@")[0];
+      const res = await ctx.get(
+        `/api/users?search=${encodeURIComponent(localPart)}&limit=50`,
+      );
+      expect(res.ok(), `GET /users?search=${localPart}`).toBeTruthy();
+      const body = await res.json();
+      const u = (body.data ?? []).find(
+        (x: { email: string }) => x.email === email,
+      );
+      expect(u, `user ${email} introuvable`).toBeTruthy();
+      expect(u.role, `rôle de ${email}`).toBe(role);
+    }
+
+    // La vue d'administration RGPD des utilisateurs s'affiche bien.
     await page.goto("/admin/users");
     await page.waitForLoadState("networkidle");
-    await expect(page.getByText(/marie\.dupont@nxrh\.local/i)).toBeVisible({
-      timeout: 15000,
-    });
-    await expect(page.getByText(/pierre\.leclerc@nxrh\.local/i)).toBeVisible({
+    await expect(page.locator(".tbl-row").first()).toBeVisible({
       timeout: 15000,
     });
   });

@@ -6,6 +6,7 @@ import type {
   MailTemplate,
   AuditLogEntry,
   PaginatedResponse,
+  PaginatedEnvelope,
   PaginationParams,
   User,
   SystemStatus,
@@ -115,13 +116,14 @@ export const adminApi = {
     from?: string;
     to?: string;
   }) =>
-    client.get("/api/admin/audit/export/csv", { params, responseType: "blob" }),
+    // Le backend sert /api/admin/audit/export (pas /export/csv) — cf. routes/audit.js.
+    client.get("/api/admin/audit/export", { params, responseType: "blob" }),
   // RGPD advanced users
   // Liste des utilisateurs (l'endpoint /api/admin/users n'existe pas — la route
   // réelle est /api/users, qui renvoie tous les users pour un admin/hr).
   getAdminUsers: (
     params?: PaginationParams & { q?: string; authSource?: string },
-  ) => client.get<PaginatedResponse<User>>("/api/users", { params }),
+  ) => client.get<PaginatedEnvelope<User>>("/api/users", { params }),
   anonymizeUser: (id: string) =>
     client.post(`/api/admin/users/${id}/anonymize`),
   exportUserGdpr: (id: string) =>

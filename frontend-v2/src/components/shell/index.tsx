@@ -75,14 +75,21 @@ export function Tile({
   className = "",
   style,
   onClick,
+  "data-testid": testId,
 }: {
   children: ReactNode;
   className?: string;
   style?: CSSProperties;
   onClick?: MouseEventHandler<HTMLDivElement>;
+  "data-testid"?: string;
 }) {
   return (
-    <div className={`tile ${className}`.trim()} style={style} onClick={onClick}>
+    <div
+      className={`tile ${className}`.trim()}
+      style={style}
+      onClick={onClick}
+      data-testid={testId}
+    >
       {children}
     </div>
   );

@@ -41,7 +41,7 @@ export default function EmptyState({
       </div>
       <h3 className="text-base font-semibold text-slate-700 dark:text-slate-200 mb-1">{title}</h3>
       {description && (
-        <p className="text-sm text-slate-500 dark:text-slate-400 max-w-xs">{description}</p>
+        <p className="text-sm text-slate-600 dark:text-slate-300 max-w-xs">{description}</p>
       )}
       {action &&
         (isActionObject(action) ? (

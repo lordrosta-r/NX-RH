@@ -10,6 +10,8 @@ import {
   Globe,
   Search,
   HelpCircle,
+  Menu,
+  X,
 } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import {
@@ -67,6 +69,8 @@ export default function Navbar({
   const [avatarOpen, setAvatarOpen] = useState(false);
   // Un seul dropdown de sous-nav ouvert à la fois : sa clé (label) ou "__more__".
   const [openMenu, setOpenMenu] = useState<string | null>(null);
+  // Drawer de navigation mobile (< 768px).
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const avatarRef = useOutsideClose(() => setAvatarOpen(false));
   const subnavRef = useOutsideClose(() => setOpenMenu(null));
@@ -76,11 +80,20 @@ export default function Navbar({
       if (e.key === "Escape") {
         setOpenMenu(null);
         setAvatarOpen(false);
+        setDrawerOpen(false);
       }
     }
     document.addEventListener("keydown", onEsc);
     return () => document.removeEventListener("keydown", onEsc);
   }, []);
+
+  // Verrouille le scroll du body quand le drawer est ouvert.
+  useEffect(() => {
+    document.body.style.overflow = drawerOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [drawerOpen]);
 
   if (!user) return null;
 
@@ -142,6 +155,17 @@ export default function Navbar({
             </div>
 
             <div className="header-right">
+              <button
+                onClick={() => setDrawerOpen(true)}
+                data-testid="mobile-nav-toggle"
+                className="icon-btn nav-burger"
+                aria-label={t("nav.openMenu")}
+                aria-expanded={drawerOpen}
+                aria-controls="mobile-nav-drawer"
+              >
+                <Menu className="w-5 h-5" />
+              </button>
+
               <button
                 onClick={() => onSearchClick?.()}
                 className="icon-btn"
@@ -358,6 +382,109 @@ export default function Navbar({
           </div>
         </nav>
       </header>
+
+      {/* Drawer de navigation mobile (< 768px) — réutilise primary + more. */}
+      {drawerOpen && (
+        <div
+          className="mobile-nav-overlay"
+          onClick={() => setDrawerOpen(false)}
+          role="presentation"
+        >
+          <aside
+            id="mobile-nav-drawer"
+            className="mobile-nav-drawer"
+            aria-label="Navigation mobile"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mobile-nav-head">
+              {hasSwitch && (
+                <div
+                  className="perspective-switch"
+                  role="tablist"
+                  aria-label={t("nav.changeSpace")}
+                >
+                  <button
+                    role="tab"
+                    aria-selected={perspective === "me"}
+                    className={clsx(perspective === "me" && "on")}
+                    onClick={() => {
+                      switchTo("me");
+                      setDrawerOpen(false);
+                    }}
+                  >
+                    {t("nav.perspectiveMe")}
+                  </button>
+                  <button
+                    role="tab"
+                    aria-selected={perspective === "work"}
+                    className={clsx(perspective === "work" && "on")}
+                    onClick={() => {
+                      switchTo("work");
+                      setDrawerOpen(false);
+                    }}
+                  >
+                    {workPerspectiveLabel(user.role, t)}
+                  </button>
+                </div>
+              )}
+              <button
+                onClick={() => setDrawerOpen(false)}
+                className="icon-btn"
+                aria-label={t("nav.closeMenu")}
+                style={{ marginLeft: "auto" }}
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <nav className="mobile-nav-links" aria-label="Liens de navigation">
+              {primary.map((item) =>
+                isNavGroup(item) ? (
+                  <div key={item.label} className="mobile-nav-section">
+                    <div className="mobile-nav-group">{item.label}</div>
+                    {item.children.map((c) => (
+                      <NavLink
+                        key={c.href + c.label}
+                        to={c.href}
+                        end={c.end}
+                        className={subLinkClass}
+                        onClick={() => setDrawerOpen(false)}
+                      >
+                        {c.label}
+                      </NavLink>
+                    ))}
+                  </div>
+                ) : (
+                  <NavLink
+                    key={item.href + item.label}
+                    to={item.href}
+                    end={item.end}
+                    className={subLinkClass}
+                    onClick={() => setDrawerOpen(false)}
+                  >
+                    {item.label}
+                  </NavLink>
+                ),
+              )}
+              {groupedMore.map(([group, items]) => (
+                <div key={group} className="mobile-nav-section">
+                  <div className="mobile-nav-group">{group}</div>
+                  {items.map((it) => (
+                    <NavLink
+                      key={it.href + it.label}
+                      to={it.href}
+                      className={subLinkClass}
+                      onClick={() => setDrawerOpen(false)}
+                    >
+                      {it.label}
+                    </NavLink>
+                  ))}
+                </div>
+              ))}
+            </nav>
+          </aside>
+        </div>
+      )}
     </div>
   );
 }

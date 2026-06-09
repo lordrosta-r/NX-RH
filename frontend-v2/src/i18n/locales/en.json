@@ -52,7 +52,8 @@
     "systemStatus": "System status",
     "setupWizard": "Setup wizard",
     "configHub": "Configuration",
-    "departments": "Departments"
+    "departments": "Departments",
+    "objectives": "Team objectives"
   },
   "common": {
     "save": "Save",
@@ -145,7 +146,27 @@
       "delete": "Delete"
     },
     "home": "Home",
-    "loading": "Loading…"
+    "loading": "Loading…",
+    "formCollection": {
+      "title": "Manager form collection",
+      "desc": "Ask managers to submit a form for this campaign, then keep the ones you want to use.",
+      "requestLabel": "Request a form from managers",
+      "selectManagers": "Select the managers to request from.",
+      "requestBtn": "Request ({{count}})",
+      "noManagers": "All managers have already been requested.",
+      "member": "Manager #{{id}}",
+      "submittedForm": "Submitted form: {{title}}",
+      "status": {
+        "pending": "Pending",
+        "submitted": "Submitted",
+        "accepted": "Kept",
+        "declined": "Declined"
+      },
+      "cancel": "Cancel",
+      "accept": "Keep",
+      "decline": "Discard",
+      "empty": "No form request for this campaign."
+    }
   },
   "evaluations": {
     "title": "Evaluations",
@@ -324,6 +345,108 @@
         "This evaluation is read-only at this stage.",
         "Review the details and the history of the steps below."
       ]
+    },
+    "dashEmployee": {
+      "title": "Welcome to your space",
+      "steps": [
+        "Find your ongoing evaluations and the actions awaiting you here.",
+        "Click an evaluation to complete it, then submit it.",
+        "Track your goals and view the documents shared by your HR team."
+      ]
+    },
+    "dashManager": {
+      "title": "Manage your team",
+      "steps": [
+        "The metrics at the top summarize your team's evaluation progress.",
+        "Spot evaluations to review or overdue ones, highlighted here.",
+        "Open \"To do\" to review, revise and sign each evaluation.",
+        "Prepare and run interviews from each record."
+      ]
+    },
+    "dashHr": {
+      "title": "HR overview",
+      "steps": [
+        "Track the overall progress of campaigns and employees.",
+        "Create a campaign or export a PDF report from the actions at the top.",
+        "Use the metrics to spot delays and send reminders if needed.",
+        "Dig deeper with Analytics for a detailed analysis."
+      ]
+    },
+    "dashAdmin": {
+      "title": "Platform status",
+      "steps": [
+        "Monitor system activity and the status of services.",
+        "Check the configuration completeness via the wizard.",
+        "Access technical settings from Configuration."
+      ]
+    },
+    "campaignDetail": {
+      "title": "Manage this campaign",
+      "steps": [
+        "The Overview tab summarizes the campaign's progress and statistics.",
+        "The Evaluations tab gives access to the associated evaluations.",
+        "The Forms tab lets you associate the forms to use.",
+        "Activate, close or archive the campaign from the header."
+      ]
+    },
+    "formDetail": {
+      "title": "This evaluation form",
+      "steps": [
+        "Review the questions and their type below.",
+        "Edit the form as long as it is not frozen.",
+        "Freezing a form locks it to ensure the integrity of responses.",
+        "Export the form as JSON to reuse or archive it."
+      ]
+    },
+    "formNew": {
+      "title": "Create a form",
+      "steps": [
+        "Give a clear title and choose the type (self-assessment, manager…).",
+        "Add your questions and define their answer format.",
+        "Associate the form with an active campaign if needed.",
+        "Save it: it can then be applied during a campaign."
+      ]
+    },
+    "mobility": {
+      "title": "Mobility requests",
+      "steps": [
+        "Find mobility, promotion, raise and training requests here.",
+        "Create a new request with \"New request\".",
+        "Track the status of each request in the timeline.",
+        "HR processes and responds to each request."
+      ]
+    },
+    "analytics": {
+      "title": "Analyze performance",
+      "steps": [
+        "Filter by campaign to focus your analysis.",
+        "Review the status distribution and key metrics.",
+        "Export the data for detailed reporting."
+      ]
+    },
+    "hrFlags": {
+      "title": "Handle HR requests",
+      "steps": [
+        "Find all requests raised by employees here.",
+        "Filter by status or type to prioritize your handling.",
+        "Open a request to review and process it."
+      ]
+    },
+    "events": {
+      "title": "The events calendar",
+      "steps": [
+        "Switch between Month and List views as needed.",
+        "Click a day or \"+\" to create an event.",
+        "Open an event to see its details or edit it."
+      ]
+    },
+    "resources": {
+      "title": "Shared documents",
+      "steps": [
+        "Find documents and resources shared by HR here.",
+        "Filter by type to quickly find what you're looking for.",
+        "HR can add a new resource with \"New resource\"."
+      ]
     }
   },
   "forms": {
@@ -363,7 +486,18 @@
       "promotion_request": "Promotion request",
       "training_request": "Training request"
     },
-    "questionCount": "{{count}} question(s)"
+    "questionCount": "{{count}} question(s)",
+    "createdByLabel": "Proposed by {{name}}",
+    "managerGuide": {
+      "title": "Create a form as a manager",
+      "steps": [
+        "As a manager, create evaluation forms tailored to your team — you can even dedicate one to a person (e.g. \"Nathan's review\").",
+        "Click \"New form\" to compose your questions.",
+        "HR can then apply it to the right person in a campaign.",
+        "You stay in control: edit or delete the forms you created.",
+        "Next year, duplicate a form (the copy icon) to ask the same questions again in the new campaign."
+      ]
+    }
   },
   "eyebrow": {
     "administration": "Administration",
@@ -809,6 +943,11 @@
       "confirmTitle": "Deactivate this user?",
       "confirmDescription": "The user will no longer be able to log in (reversible).",
       "confirmLabel": "Deactivate"
+    },
+    "pagination": {
+      "summary": "Page {{page}} of {{totalPages}} · {{total}} users",
+      "previous": "Previous page",
+      "next": "Next page"
     }
   },
   "adminUsersImport": {
@@ -899,6 +1038,314 @@
       "questionDuplicateId": "Question {{number}}: ID \"{{id}}\" duplicated",
       "questionMissingType": "Question {{number}}: field \"type\" missing",
       "questionInvalidType": "Question {{number}}: type \"{{type}}\" invalid"
+    }
+  },
+  "dashManager": {
+    "actions": {
+      "myEvaluations": "My evaluations"
+    },
+    "stats": {
+      "evalsToComplete": "Evals to complete",
+      "completionRate": "Completion rate",
+      "teamSize": "Team size",
+      "overdue": "Overdue",
+      "signed": "Signed"
+    },
+    "evalsToComplete": {
+      "title": "Evaluations to complete",
+      "empty": "No evaluations to complete",
+      "topN": "Top {{count}} to handle"
+    },
+    "evalRow": {
+      "campaign": "Campaign",
+      "overdue": "Overdue",
+      "fill": "Fill in"
+    },
+    "collapse": "Collapse",
+    "expandCount": "View all ({{count}})",
+    "viewAll": "View all →",
+    "myTeam": {
+      "title": "My team",
+      "empty": "No team members found"
+    },
+    "activeCampaigns": {
+      "title": "Active campaigns",
+      "empty": "No active campaigns",
+      "closingDate": "Closing",
+      "progress": "Progress"
+    },
+    "pendingSignatures": {
+      "title": "Pending signature",
+      "empty": "No evaluations awaiting your signature",
+      "signedOn": "signed on {{date}}",
+      "sign": "Sign"
+    },
+    "upcomingEvents": {
+      "title": "Upcoming events",
+      "empty": "No upcoming events."
+    }
+  },
+  "dashEmployee": {
+    "defaultDesc": "Here is the status of your professional interviews.",
+    "viewAll": "View all →",
+    "evalStatus": {
+      "assigned": "Assigned",
+      "in_progress": "In progress",
+      "submitted": "Submitted",
+      "reviewed": "Reviewed",
+      "disputed": "Disputed",
+      "signed_evaluatee": "Signed (evaluatee)",
+      "signed_manager": "Signed (manager)",
+      "signed_hr": "Signed (HR)",
+      "validated": "Validated",
+      "expired": "Expired",
+      "archived": "Archived"
+    },
+    "activeEvals": {
+      "title": "My ongoing evaluations",
+      "empty": "No evaluations in progress",
+      "campaignLabel": "Campaign: {{name}}",
+      "start": "Start",
+      "continue": "Continue"
+    },
+    "events": {
+      "title": "Upcoming events",
+      "empty": "No upcoming events."
+    },
+    "resources": {
+      "title": "Recent resources",
+      "empty": "No resources available."
+    },
+    "history": {
+      "title": "My history",
+      "viewAll": "Full history →",
+      "empty": "No validated evaluations yet",
+      "campaignLabel": "Campaign: {{name}}",
+      "validatedOn": "Validated on {{date}}",
+      "viewPdf": "View PDF →"
+    },
+    "requests": {
+      "title": "My requests",
+      "mobility": "Mobility request",
+      "profile": "Update profile",
+      "evaluations": "My evaluations",
+      "documents": "HR documents"
+    }
+  },
+  "dashHr": {
+    "seeLink": "View →",
+    "errorLoad": "Failed to load dashboard data.",
+    "retry": "Retry",
+    "exportPdf": "Export PDF",
+    "newCampaign": "New campaign",
+    "kpi": {
+      "usersActive": "Active employees",
+      "usersTotal": "Total: {{total}}",
+      "usersInactive": "Inactive employees",
+      "campaignsActive": "Active campaigns",
+      "campaignsCompleted": "Completed campaigns",
+      "campaignsOverdue": "Overdue campaigns",
+      "mobilityPending": "Pending mobility requests",
+      "completionRate": "Completion rate",
+      "signedBoth": "Signed by both sides",
+      "signedBothSub_one": "{{count}} eval",
+      "signedBothSub_other": "{{count}} evals",
+      "evalsPending": "Pending evals",
+      "avgCompletion": "Avg. completion time"
+    },
+    "charts": {
+      "trendTitle": "Evaluation trend (6 months)",
+      "noMonthlyData": "No monthly data",
+      "lineTotal": "Total",
+      "lineCompleted": "Completed",
+      "pieTitle": "Breakdown by status",
+      "noData": "No data",
+      "barTitle": "Top departments — completion rate",
+      "barTooltipLabel": "Rate",
+      "barName": "Completion rate"
+    },
+    "sections": {
+      "activeCampaigns": "Active campaigns",
+      "seeAll": "See all →",
+      "noCampaigns": "No active campaign",
+      "alerts": "Alerts",
+      "quickStats": "Quick stats",
+      "upcomingEvents": "Upcoming events",
+      "seeAllEvents": "See all →",
+      "noEvents": "No upcoming events"
+    },
+    "alerts": {
+      "overdueCount_one": "{{count}} overdue campaign",
+      "overdueCount_other": "{{count}} overdue campaigns",
+      "seeCampaigns": "View campaigns →",
+      "pendingEvals_one": "{{count}} pending evaluation",
+      "pendingEvals_other": "{{count}} pending evaluations",
+      "seeEvaluations": "View evaluations →",
+      "mobilityCount_one": "{{count}} mobility request",
+      "mobilityCount_other": "{{count}} mobility requests",
+      "seeRequests": "View requests →"
+    },
+    "stats": {
+      "totalEvals": "Total evaluations",
+      "completedEvals": "Completed evaluations",
+      "totalUsers": "Total employees"
+    },
+    "pdf": {
+      "reportTitle": "HR Report",
+      "sectionKpi": "Key KPIs",
+      "sectionDept": "Evaluations by department",
+      "colIndicator": "Indicator",
+      "colValue": "Value",
+      "colDept": "Department",
+      "colTotal": "Total",
+      "colCompleted": "Completed",
+      "colRate": "Rate (%)",
+      "completionRatePct": "Eval completion rate (%)",
+      "signedBothPct": "Evals signed by both sides (%)",
+      "avgCompletionDays": "Avg. completion time (days)",
+      "mobilityPending": "Pending mobility requests"
+    }
+  },
+  "dashAdmin": {
+    "setup": {
+      "title": "Application setup",
+      "seeAll": "See all →",
+      "stepsCount": "{{completed}}/{{total}} steps complete"
+    },
+    "campaignStatus": {
+      "draft": "Draft",
+      "active": "Active",
+      "closed": "Closed",
+      "archived": "Archived"
+    },
+    "campaigns": {
+      "title": "Active campaigns",
+      "seeAll": "See all →",
+      "empty": "No active campaigns"
+    },
+    "error": {
+      "loadFailed": "Unable to load dashboard data.",
+      "retry": "Retry"
+    },
+    "actions": {
+      "exportPdf": "Export PDF"
+    },
+    "requiredActions": {
+      "title": "Required actions",
+      "pendingHrRequests": "Pending HR requests",
+      "usersWithoutManager": "Users without a manager",
+      "activeCampaigns": "Active campaigns"
+    },
+    "shortcuts": {
+      "title": "Shortcuts",
+      "newCampaign": "New campaign",
+      "addUser": "Add a user",
+      "importCsv": "Import CSV",
+      "hrSettings": "HR settings"
+    },
+    "kpi": {
+      "activeUsers": "Active users",
+      "activeCampaigns": "Active campaigns",
+      "pendingEvaluations": "Unfinished evaluations"
+    },
+    "urgentActions": {
+      "title": "Urgent actions",
+      "expiredEvaluations": "Expired evaluations",
+      "seeEvaluations": "See evaluations →",
+      "evaluationsPendingHrSignature": "Evaluations awaiting HR signature",
+      "seeHrAlerts": "See HR alerts →"
+    },
+    "recentActivity": {
+      "title": "Recent activity",
+      "seeFullLog": "See full log →",
+      "empty": "No recent activity"
+    },
+    "audit": {
+      "login": "Login",
+      "login_failed": "Failed login",
+      "logout": "Logout",
+      "user_created": "User created",
+      "user_updated": "User updated",
+      "user_deleted": "User deleted",
+      "campaign_created": "Campaign created",
+      "campaign_updated": "Campaign updated",
+      "evaluation_submitted": "Evaluation submitted",
+      "evaluation_signed": "Evaluation signed",
+      "ldap_sync": "LDAP sync"
+    }
+  },
+  "objectives": {
+    "title": "Team objectives",
+    "desc": "Track the objectives set during interviews for your team.",
+    "empty": "No objectives yet. They appear here after interviews.",
+    "nextYear": "Objectives for the coming year",
+    "review": "Review of past objectives",
+    "status": {
+      "achieved": "Achieved",
+      "partial": "Partial",
+      "not_achieved": "Not achieved"
+    },
+    "guide": {
+      "title": "Objectives tracking",
+      "steps": [
+        "Find here the objectives set during interviews for each team member.",
+        "Track progress and prepare next year's review.",
+        "Objectives are set during the interview (the 'Objectives for next year' section)."
+      ]
+    },
+    "you": "You",
+    "progress": {
+      "label": "{{achieved}} / {{total}} achieved"
+    },
+    "update": {
+      "add": "Add a key point / progress update",
+      "note": "Key point / update",
+      "notePlaceholder": "Where do you stand on this objective?",
+      "comment": "Comment (optional)",
+      "commentPlaceholder": "Details, context, next steps…",
+      "submit": "Post",
+      "error": "Could not save the update. Please try again.",
+      "noDate": "Unknown date"
+    }
+  },
+  "pdi": {
+    "guide": {
+      "title": "How does the Follow-up (PDI) work?",
+      "steps": [
+        "A PDI (Individual Development Plan) gathers your development objectives and the concrete actions to reach them over a given period.",
+        "Open a PDI to review its objectives, then click \"Edit\" to adjust them (one objective per line).",
+        "Add development actions with \"Add an action\": title, type (training, coaching, project…), target date and description.",
+        "Track each action's progress with \"Start\" then \"Complete\"; the overall progress updates automatically.",
+        "When the plan suits you, sign it with the \"Sign\" button; the manager and the employee each sign on their side."
+      ]
+    },
+    "guideDetail": {
+      "title": "Filling in this PDI",
+      "steps": [
+        "Edit the development objectives (\"Edit\" button, one objective per line).",
+        "Add the actions to carry out with \"Add an action\": title, type, target date, description.",
+        "Move each action forward (\"Start\", then \"Complete\") to track progress.",
+        "Sign the PDI with \"Sign\" once the plan is agreed on both sides."
+      ]
+    }
+  },
+  "managerTodo": {
+    "formRequests": {
+      "title": "Forms requested by HR",
+      "desc": "HR is asking you to submit one of your forms for these campaigns.",
+      "choose": "Choose a form…",
+      "submit": "Submit",
+      "awaiting": "Awaiting HR validation",
+      "createNew": "Create a new form",
+      "empty": "You don't have any forms yet. Create one so you can submit it."
+    }
+  },
+  "dashShared": {
+    "formCollection": {
+      "title": "Managers'form collection",
+      "toDecide": "{{count}} to decide",
+      "pending": "{{count}} pending",
+      "accepted": "{{count}} kept"
     }
   }
 }

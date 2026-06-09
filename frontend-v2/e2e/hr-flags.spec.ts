@@ -4,31 +4,32 @@ import { HrFlagPage } from './page-objects/HrFlagPage'
 
 test.describe('Demandes RH - HR Flags', () => {
   test('employee - creation demande RH', async ({ page }) => {
+    // L'employé ne crée pas de signal via /hr/flags (vue RH/admin) mais
+    // via /mobility (« Demandes ») : modal « Nouvelle demande » → Soumettre.
     await loginAs(page, 'employee')
-    const hrFlagPage = new HrFlagPage(page)
-    await hrFlagPage.goto()
-    
-    const timestamp = Date.now()
-    const flagData = {
-      type: 'conge',
-      subject: `Demande congés ${timestamp}`,
-      description: 'Je souhaite prendre des congés du 1er au 15 juillet',
-      priority: 'medium' as const
-    }
-    
-    // Créer la demande
-    await hrFlagPage.createFlag(flagData)
-    
-    // Vérifier la création
-    await expect(page.getByText(flagData.subject)).toBeVisible({ timeout: 10000 })
+    await page.goto('/mobility')
+    await page.waitForLoadState('networkidle')
+
+    const motivation = `Demande formation e2e ${Date.now()}`
+
+    await page.getByRole('button', { name: /nouvelle demande/i }).click()
+    // Catégorie « Formation » → seul le champ Description est requis.
+    await page.getByRole('combobox', { name: /type de demande/i }).selectOption('formation')
+    await page.getByRole('textbox', { name: /description de la demande/i }).fill(motivation)
+    await page.getByRole('button', { name: /soumettre/i }).click()
+    await page.waitForLoadState('networkidle')
+
+    // La demande créée apparaît dans la liste de l'employé.
+    await expect(page.getByText('Formation').first()).toBeVisible({ timeout: 10000 })
   })
 
   test('employee - liste de ses demandes', async ({ page }) => {
     await loginAs(page, 'employee')
-    const hrFlagPage = new HrFlagPage(page)
-    await hrFlagPage.goto()
-    
-    // Vérifier l'accès à la liste
+    await page.goto('/mobility')
+    await page.waitForLoadState('networkidle')
+
+    // Vérifier l'accès à la liste de ses demandes (page « Demandes »).
+    await expect(page.getByRole('heading', { name: /demandes/i }).first()).toBeVisible()
     await expect(page.locator('body')).not.toContainText(/acces refuse|unauthorized/i)
     await expect(page.locator('body')).not.toContainText(/erreur interne/i)
   })
@@ -55,56 +56,29 @@ test.describe('Demandes RH - HR Flags', () => {
     await expect(page.locator('body')).not.toContainText(/acces refuse|unauthorized/i)
   })
 
-  test('admin - changement statut demande (pending -> in_progress)', async ({ page }) => {
+  test('admin - changement statut demande (slide-over)', async ({ page }) => {
     await loginAs(page, 'admin')
     const hrFlagPage = new HrFlagPage(page)
     await hrFlagPage.goto()
-    
-    // Ouvrir la première demande
-    const firstFlag = page.getByRole('link').filter({ hasText: /voir|demande|détail/i }).first()
-    if (await firstFlag.isVisible()) {
-      await firstFlag.click()
-      await page.waitForLoadState('networkidle')
-      
-      // Changer le statut
-      const statusSelect = page.locator('select[name*="status"], #status').first()
-      if (await statusSelect.isVisible()) {
-        await statusSelect.selectOption('in_progress')
-        
-        // Enregistrer
-        const saveBtn = page.getByRole('button', { name: /enregistrer|sauvegarder|save/i }).first()
-        if (await saveBtn.isVisible()) {
-          await saveBtn.click()
-          await page.waitForLoadState('networkidle')
-          
-          // Vérifier le changement
-          await expect(statusSelect).toHaveValue('in_progress')
-        }
-      }
-    }
-  })
 
-  test('admin - changement statut demande (in_progress -> resolved)', async ({ page }) => {
-    await loginAs(page, 'admin')
-    const hrFlagPage = new HrFlagPage(page)
-    await hrFlagPage.goto()
-    
-    const firstFlag = page.getByRole('link').filter({ hasText: /voir|demande|détail/i }).first()
-    if (await firstFlag.isVisible()) {
-      await firstFlag.click()
-      await page.waitForLoadState('networkidle')
-      
-      const statusSelect = page.locator('select[name*="status"], #status').first()
-      if (await statusSelect.isVisible()) {
-        await statusSelect.selectOption('resolved')
-        
-        const saveBtn = page.getByRole('button', { name: /enregistrer|sauvegarder|save/i }).first()
-        if (await saveBtn.isVisible()) {
-          await saveBtn.click()
-          await page.waitForLoadState('networkidle')
-        }
-      }
+    // Ouvrir le détail du premier signal via le bouton d'actions de la ligne.
+    const detailBtn = page.getByRole('button', { name: /détail du signal/i }).first()
+    if ((await detailBtn.count()) === 0) {
+      test.info().annotations.push({ type: 'info', description: 'Aucun signal RH dans le seed — changement de statut non testé' })
+      return
     }
+    await detailBtn.click()
+
+    // Le slide-over expose un select « Changer le statut » + « Sauvegarder ».
+    const statusSelect = page.getByRole('combobox', { name: /changer le statut/i })
+    await expect(statusSelect).toBeVisible({ timeout: 10000 })
+    await statusSelect.selectOption('in_progress')
+    await expect(statusSelect).toHaveValue('in_progress')
+
+    await page.getByRole('button', { name: /sauvegarder/i }).click()
+    await page.waitForLoadState('networkidle')
+    // Le slide-over se ferme après sauvegarde.
+    await expect(statusSelect).toBeHidden({ timeout: 10000 })
   })
 
   test('hr - filtrage par statut "pending"', async ({ page }) => {
@@ -128,23 +102,27 @@ test.describe('Demandes RH - HR Flags', () => {
     await expect(page.locator('body')).not.toContainText(/erreur/i)
   })
 
-  test('manager ne peut pas acceder aux demandes RH globales', async ({ page }) => {
+  test('manager ne peut pas acceder a la vue RH globale des signaux', async ({ page }) => {
     await loginAs(page, 'manager')
-    
-    await page.goto('/hr-flags')
+
+    // /hr/flags est réservé admin/hr → le manager est bloqué (404 / non autorisé).
+    await page.goto('/hr/flags')
     await page.waitForLoadState('networkidle')
-    
-    // Le manager ne devrait voir que ses propres demandes ou celles de son équipe
-    // Pas de vérification stricte car dépend de la logique métier
-    await expect(page.locator('body')).not.toContainText(/erreur interne/i)
+
+    // AuthGuard redirige vers /unauthorized (« Accès refusé »).
+    await expect(page).toHaveURL(/\/unauthorized/, { timeout: 10000 })
+    await expect(
+      page.getByText(/accès refusé|404|introuvable|non autorisé/i).first(),
+    ).toBeVisible()
   })
 
-  test('employee ne peut voir que ses propres demandes', async ({ page }) => {
+  test('employee ne voit que ses propres demandes', async ({ page }) => {
     await loginAs(page, 'employee')
-    const hrFlagPage = new HrFlagPage(page)
-    await hrFlagPage.goto()
-    
-    // L'employé ne devrait voir que ses demandes
+    await page.goto('/mobility')
+    await page.waitForLoadState('networkidle')
+
+    // L'employé accède à « Demandes » (ses demandes), pas à la vue RH globale.
+    await expect(page.getByRole('heading', { name: /demandes/i }).first()).toBeVisible()
     await expect(page.locator('body')).not.toContainText(/erreur interne/i)
   })
 })

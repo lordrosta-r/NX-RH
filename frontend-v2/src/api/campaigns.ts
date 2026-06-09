@@ -1,5 +1,5 @@
 import client from './client'
-import type { Campaign, PaginatedResponse, PaginationParams, CampaignAnalytics, ItemResponse } from '../types'
+import type { Campaign, PaginatedResponse, PaginationParams, CampaignAnalytics, ItemResponse, MyFormRequest, CampaignFormCollectionSummary } from '../types'
 
 export interface CampaignFilters extends PaginationParams {
   status?: string
@@ -45,4 +45,38 @@ export const campaignsApi = {
 
   unlinkForm: (campaignId: string, formId: string) =>
     client.delete(`/api/campaigns/${campaignId}/forms/${formId}`),
+
+  // ── Collecte des formulaires des managers ──────────────────────────────────
+  // RH : demander à des managers de soumettre un formulaire (campagne draft).
+  requestForms: (campaignId: string, managerIds: string[]) =>
+    client.post(`/api/campaigns/${campaignId}/form-requests`, { managerIds }),
+
+  // RH : annuler une demande.
+  cancelFormRequest: (campaignId: string, managerId: string) =>
+    client.delete(`/api/campaigns/${campaignId}/form-requests/${managerId}`),
+
+  // Manager : attacher un de ses formulaires à la demande qui le cible.
+  submitFormRequest: (campaignId: string, formId: string) =>
+    client.post(`/api/campaigns/${campaignId}/form-requests/submit`, { formId }),
+
+  // RH : accepter/refuser un formulaire soumis (au lancement).
+  decideFormRequest: (
+    campaignId: string,
+    managerId: string,
+    decision: 'accepted' | 'declined',
+  ) =>
+    client.patch(
+      `/api/campaigns/${campaignId}/form-requests/${managerId}/decision`,
+      { decision },
+    ),
+
+  // Manager : demandes de formulaire qui le ciblent.
+  getMyFormRequests: () =>
+    client.get<{ data: MyFormRequest[] }>('/api/campaigns/mine/form-requests'),
+
+  // RH/Admin : aperçu des collectes de formulaires en cours (dashboard).
+  getFormRequestsOverview: () =>
+    client.get<{ data: CampaignFormCollectionSummary[] }>(
+      '/api/campaigns/form-requests/overview',
+    ),
 }

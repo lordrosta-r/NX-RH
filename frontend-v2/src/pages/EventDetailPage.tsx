@@ -408,6 +408,12 @@ function PageSkeleton() {
 
 // ── Main page ──────────────────────────────────────────────────────────────────
 
+const RSVP_LABEL: Record<"accepted" | "tentative" | "declined", string> = {
+  accepted: "Accepter",
+  tentative: "Incertain",
+  declined: "Décliner",
+};
+
 export default function EventDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -466,6 +472,17 @@ export default function EventDetailPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.events.lists() });
       navigate("/events");
+    },
+  });
+
+  // RSVP : l'utilisateur répond à l'invitation (accepter / incertain / décliner).
+  const respondMutation = useMutation({
+    mutationFn: (status: "accepted" | "declined" | "tentative") =>
+      eventsApi.respond(id!, status).then((r) => r.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.events.detail(id ?? ""),
+      });
     },
   });
 
@@ -705,6 +722,44 @@ export default function EventDetailPage() {
           )}
         </div>
       </Tile>
+
+      {/* ── RSVP : répondre à l'invitation ── */}
+      {(() => {
+        const currentUserId = user?._id ?? user?.id ?? null;
+        const myResponse =
+          (currentUserId &&
+            event.responses?.find((r) => r.userId === currentUserId)?.status) ||
+          null;
+        return (
+          <Tile className="mb-6" data-testid="event-rsvp">
+            <p className="eyebrow" style={{ marginBottom: 8 }}>
+              Votre réponse
+            </p>
+            <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
+              {(["accepted", "tentative", "declined"] as const).map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  data-testid={`rsvp-${s}`}
+                  onClick={() => respondMutation.mutate(s)}
+                  disabled={respondMutation.isPending}
+                  className={`btn btn-sm ${myResponse === s ? "btn-primary" : "btn-secondary"}`}
+                >
+                  {RSVP_LABEL[s]}
+                </button>
+              ))}
+            </div>
+            {myResponse && (
+              <p
+                className="small"
+                style={{ marginTop: 8, color: "var(--ink-3)" }}
+              >
+                Vous avez répondu : <strong>{RSVP_LABEL[myResponse]}</strong>
+              </p>
+            )}
+          </Tile>
+        );
+      })()}
 
       {/* ── Edit slide-over ── */}
       {isEditOpen && editForm && (

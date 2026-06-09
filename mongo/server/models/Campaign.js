@@ -138,6 +138,33 @@ const campaignSchema = new Schema({
     default: [],
   },
 
+  // ==========================================================================
+  // COLLECTE DES FORMULAIRES DES MANAGERS (campagne en brouillon)
+  //
+  // La RH peut, sur une campagne `draft`, demander à des managers ciblés de
+  // soumettre l'un de leurs propres formulaires. Workflow :
+  //   1. RH sélectionne des managers       → request status 'pending'   (+ notif manager)
+  //   2. Le manager attache un de ses forms → status 'submitted'         (+ notif RH)
+  //   3. RH décide au lancement :
+  //        - 'accepted' → le formId rejoint campaign.formIds
+  //        - 'declined' → ignoré
+  //
+  // Indépendant de `formIds` : `formIds` = ce qui part réellement en campagne ;
+  // `formRequests` = la traçabilité de la collecte.
+  // ==========================================================================
+  formRequests: {
+    type: [{
+      managerId:   { type: Schema.Types.ObjectId, ref: 'User', required: true },
+      status:      { type: String, enum: ['pending', 'submitted', 'accepted', 'declined'], default: 'pending' },
+      formId:      { type: Schema.Types.ObjectId, ref: 'Form', default: null },
+      requestedAt: { type: Date, default: Date.now },
+      submittedAt: { type: Date, default: null },
+      decidedAt:   { type: Date, default: null },
+    }],
+    default: [],
+    _id: false,
+  },
+
 }, { timestamps: true, versionKey: false })
 
 // Validation : la date de fin doit être après ou égale à la date de début

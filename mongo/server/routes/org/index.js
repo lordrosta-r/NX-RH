@@ -35,15 +35,15 @@ router.get('/tree', cacheResponse(120, req => `GET:${req.originalUrl}:${req.user
     }
 
     const role   = req.user.role
-    const userId = (req.user.id || req.user._id).toString()
 
-    // Déterminer les IDs accessibles selon le rôle
-    let scopeIds = null // null = accès complet (admin/hr)
+    // Périmètre : null = organigramme complet. Admin, HR et Manager voient toute
+    // l'organisation ; les autres rôles n'ont pas accès.
+    const scopeIds = null
 
-    if (role === 'manager') {
-      const directReports = await User.find({ managerId: userId, isActive: true }).select('_id').lean()
-      scopeIds = new Set([userId, ...directReports.map(u => u._id.toString())])
-    } else if (!['admin', 'hr'].includes(role)) {
+    // Admin/HR/Manager voient l'organigramme COMPLET de l'entreprise (lecture
+    // seule pour le manager — l'édition reste réservée à admin/hr côté UI).
+    // C'est l'intérêt de l'organigramme : visualiser toute l'organisation.
+    if (!['admin', 'hr', 'manager'].includes(role)) {
       return res.status(403).json({ error: 'Accès interdit' })
     }
 

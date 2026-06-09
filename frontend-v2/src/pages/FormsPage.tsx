@@ -45,7 +45,32 @@ export default function FormsPage() {
   const queryClient = useQueryClient();
 
   const isAdminOrHr = user?.role === "admin" || user?.role === "hr";
+  const isManager = user?.role === "manager";
+  const canCreateForms = isAdminOrHr || isManager;
+  const currentUserId = user?._id ?? user?.id;
   const isSearching = search !== debouncedSearch;
+
+  // Identifiant du créateur, que createdBy soit peuplé ({_id, …}) ou un simple id.
+  function getCreatorId(form: Form): string | undefined {
+    const c = form.createdBy;
+    if (!c) return undefined;
+    return typeof c === "string" ? c : c._id;
+  }
+
+  // Nom lisible du créateur si createdBy est peuplé.
+  function getCreatorName(form: Form): string | undefined {
+    const c = form.createdBy;
+    if (!c || typeof c === "string") return undefined;
+    const name = [c.firstName, c.lastName].filter(Boolean).join(" ").trim();
+    return name || undefined;
+  }
+
+  // Admin/RH : accès complet. Manager : seulement ses propres formulaires.
+  function canManageForm(form: Form): boolean {
+    if (isAdminOrHr) return true;
+    if (isManager && currentUserId) return getCreatorId(form) === currentUserId;
+    return false;
+  }
 
   const { data: campaignsData } = useQuery({
     queryKey: ["campaigns", "active"],
@@ -109,10 +134,21 @@ export default function FormsPage() {
         steps={t("guides.forms.steps", { returnObjects: true }) as string[]}
       />
 
+      {isManager && (
+        <PageGuide
+          id="forms-manager"
+          title={t("forms.managerGuide.title")}
+          color="blue"
+          steps={
+            t("forms.managerGuide.steps", { returnObjects: true }) as string[]
+          }
+        />
+      )}
+
       <PageHead
         title={t("forms.title")}
         actions={
-          isAdminOrHr && (
+          canCreateForms && (
             <Link to="/forms/new" className="btn btn-primary">
               <Plus className="ico" style={{ width: 18, height: 18 }} />{" "}
               {t("forms.newForm")}
@@ -183,7 +219,7 @@ export default function FormsPage() {
           title={t("forms.emptyTitle")}
           description={t("forms.emptyDescription")}
           action={
-            isAdminOrHr
+            canCreateForms
               ? {
                   label: t("forms.createFirst"),
                   onClick: () => window.location.assign("/forms/new"),
@@ -227,16 +263,24 @@ export default function FormsPage() {
                 <h3 className="h3" style={{ marginBottom: 4 }}>
                   {form.title}
                 </h3>
-                <p className="small" style={{ marginBottom: 12 }}>
+                <p className="small" style={{ marginBottom: 4 }}>
                   {t("forms.questionCount", {
                     count: form.questions?.length ?? 0,
                   })}
                 </p>
+                {getCreatorName(form) && (
+                  <p
+                    className="small"
+                    style={{ marginBottom: 12, color: "var(--ink-3)" }}
+                  >
+                    {t("forms.createdByLabel", { name: getCreatorName(form) })}
+                  </p>
+                )}
                 <div className="row between" style={{ alignItems: "center" }}>
                   <Link to={`/forms/${form.id}`} className="link small">
                     {t("forms.view")}
                   </Link>
-                  {isAdminOrHr && (
+                  {canManageForm(form) && (
                     <div className="row" style={{ gap: 4 }}>
                       <button
                         onClick={() => setCloneTarget(form)}

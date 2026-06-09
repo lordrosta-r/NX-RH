@@ -5,12 +5,12 @@
 //
 // GET    /api/forms              → liste (filtrable par campaignId, formType, search)
 // GET    /api/forms/:id          → détail
-// POST   /api/forms              → créer (admin/hr)
-// PATCH  /api/forms/:id          → modifier (admin/hr, bloqué si frozenAt)
-// DELETE /api/forms/:id          → supprimer (admin/hr, bloqué si frozenAt)
+// POST   /api/forms              → créer (admin/hr/manager)
+// PATCH  /api/forms/:id          → modifier (admin/hr ; manager = ses formulaires, bloqué si frozenAt)
+// DELETE /api/forms/:id          → supprimer (admin/hr ; manager = ses formulaires, bloqué si frozenAt)
 // POST   /api/forms/:id/freeze   → geler (admin seulement)
 // POST   /api/forms/:id/unfreeze → dégeler (admin seulement)
-// POST   /api/forms/:id/clone    → cloner (admin/hr)
+// POST   /api/forms/:id/clone    → cloner (admin/hr/manager)
 // =============================================================================
 
 const router      = require('express').Router()
@@ -18,6 +18,16 @@ const mongoose    = require('mongoose')
 const { Form, Evaluation } = require('../models')
 const { ADMIN_ROLES } = require('../config/constants')
 const { isValidCategory } = require('../services/formCategoriesService')
+
+// Rôles autorisés à créer/cloner un formulaire (les managers gèrent les leurs).
+const FORM_AUTHOR_ROLES = [...ADMIN_ROLES, 'manager']
+
+// Un manager ne peut modifier/supprimer que les formulaires qu'il a créés.
+// admin/hr ont tous les droits. Retourne true si l'accès est refusé.
+function cannotMutateForm(user, form) {
+  if (ADMIN_ROLES.includes(user.role)) return false
+  return String(form.createdBy) !== String(user.id)
+}
 
 // Le frontend utilise `text` pour l'intitulé d'une question ; le modèle stocke
 // `label` (requis). On traduit aux deux frontières (écriture / lecture).
@@ -94,11 +104,11 @@ router.get('/:id', async (req, res, next) => {
   }
 })
 
-// POST /api/forms — Créer un formulaire (admin/hr)
+// POST /api/forms — Créer un formulaire (admin/hr/manager)
 router.post('/', async (req, res, next) => {
   try {
-    if (!ADMIN_ROLES.includes(req.user.role)) {
-      return res.status(403).json({ error: 'Réservé aux admins et RH' })
+    if (!FORM_AUTHOR_ROLES.includes(req.user.role)) {
+      return res.status(403).json({ error: 'Réservé aux admins, RH et managers' })
     }
 
     const { title, description, formType, category, isAnonymous, questions, campaignId, filledBy, visibleToEvaluatee } = req.body
@@ -146,8 +156,8 @@ router.post('/', async (req, res, next) => {
 // PUT est un alias de PATCH (le client front utilise PUT).
 async function updateForm(req, res, next) {
   try {
-    if (!ADMIN_ROLES.includes(req.user.role)) {
-      return res.status(403).json({ error: 'Réservé aux admins et RH' })
+    if (!FORM_AUTHOR_ROLES.includes(req.user.role)) {
+      return res.status(403).json({ error: 'Réservé aux admins, RH et managers' })
     }
     if (!mongoose.isValidObjectId(req.params.id)) {
       return res.status(400).json({ error: 'ID invalide' })
@@ -155,6 +165,11 @@ async function updateForm(req, res, next) {
 
     const form = await Form.findById(req.params.id)
     if (!form) return res.status(404).json({ error: 'Formulaire introuvable' })
+
+    // Un manager ne peut modifier que les formulaires qu'il a créés.
+    if (cannotMutateForm(req.user, form)) {
+      return res.status(403).json({ error: 'Réservé au créateur du formulaire ou à la RH' })
+    }
 
     // Bloquer la modification des questions si le form est gelé (évaluations existantes)
     if (req.body.questions !== undefined && form.frozenAt) {
@@ -259,11 +274,11 @@ router.post('/:id/unfreeze', async (req, res, next) => {
   }
 })
 
-// POST /api/forms/:id/clone — Cloner un formulaire (admin/hr)
+// POST /api/forms/:id/clone — Cloner un formulaire (admin/hr/manager)
 router.post('/:id/clone', async (req, res, next) => {
   try {
-    if (!ADMIN_ROLES.includes(req.user.role)) {
-      return res.status(403).json({ error: 'Réservé aux admins et RH' })
+    if (!FORM_AUTHOR_ROLES.includes(req.user.role)) {
+      return res.status(403).json({ error: 'Réservé aux admins, RH et managers' })
     }
     if (!mongoose.isValidObjectId(req.params.id)) {
       return res.status(400).json({ error: 'ID invalide' })
@@ -304,11 +319,11 @@ router.post('/:id/clone', async (req, res, next) => {
   }
 })
 
-// DELETE /api/forms/:id — Supprimer un formulaire non gelé (admin/hr)
+// DELETE /api/forms/:id — Supprimer un formulaire non gelé (admin/hr ; manager = ses formulaires)
 router.delete('/:id', async (req, res, next) => {
   try {
-    if (!ADMIN_ROLES.includes(req.user.role)) {
-      return res.status(403).json({ error: 'Réservé aux admins et RH' })
+    if (!FORM_AUTHOR_ROLES.includes(req.user.role)) {
+      return res.status(403).json({ error: 'Réservé aux admins, RH et managers' })
     }
     if (!mongoose.isValidObjectId(req.params.id)) {
       return res.status(400).json({ error: 'ID invalide' })
@@ -316,6 +331,11 @@ router.delete('/:id', async (req, res, next) => {
 
     const form = await Form.findById(req.params.id)
     if (!form) return res.status(404).json({ error: 'Formulaire introuvable' })
+
+    // Un manager ne peut supprimer que les formulaires qu'il a créés.
+    if (cannotMutateForm(req.user, form)) {
+      return res.status(403).json({ error: 'Réservé au créateur du formulaire ou à la RH' })
+    }
 
     if (form.frozenAt) {
       return res.status(409).json({

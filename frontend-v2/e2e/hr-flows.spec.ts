@@ -21,7 +21,7 @@ test.describe('HR - Flux RH', () => {
   test('HR peut acceder aux campagnes', async ({ page }) => {
     await page.goto('/campaigns')
     await page.waitForLoadState('networkidle')
-    await expect(page.getByText(/Evaluation Annuelle 2025|Évaluation Annuelle 2025/i)).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText(/Entretien annuel|Mi-parcours|Évaluation 360°/i).first()).toBeVisible({ timeout: 10000 })
   })
 
   test('HR bulk remind - bouton visible et cliquable', async ({ page }) => {

@@ -345,6 +345,108 @@
         "This evaluation is read-only at this stage.",
         "Review the details and the history of the steps below."
       ]
+    },
+    "dashEmployee": {
+      "title": "Welcome to your space",
+      "steps": [
+        "Find your ongoing evaluations and the actions awaiting you here.",
+        "Click an evaluation to complete it, then submit it.",
+        "Track your goals and view the documents shared by your HR team."
+      ]
+    },
+    "dashManager": {
+      "title": "Manage your team",
+      "steps": [
+        "The metrics at the top summarize your team's evaluation progress.",
+        "Spot evaluations to review or overdue ones, highlighted here.",
+        "Open \"To do\" to review, revise and sign each evaluation.",
+        "Prepare and run interviews from each record."
+      ]
+    },
+    "dashHr": {
+      "title": "HR overview",
+      "steps": [
+        "Track the overall progress of campaigns and employees.",
+        "Create a campaign or export a PDF report from the actions at the top.",
+        "Use the metrics to spot delays and send reminders if needed.",
+        "Dig deeper with Analytics for a detailed analysis."
+      ]
+    },
+    "dashAdmin": {
+      "title": "Platform status",
+      "steps": [
+        "Monitor system activity and the status of services.",
+        "Check the configuration completeness via the wizard.",
+        "Access technical settings from Configuration."
+      ]
+    },
+    "campaignDetail": {
+      "title": "Manage this campaign",
+      "steps": [
+        "The Overview tab summarizes the campaign's progress and statistics.",
+        "The Evaluations tab gives access to the associated evaluations.",
+        "The Forms tab lets you associate the forms to use.",
+        "Activate, close or archive the campaign from the header."
+      ]
+    },
+    "formDetail": {
+      "title": "This evaluation form",
+      "steps": [
+        "Review the questions and their type below.",
+        "Edit the form as long as it is not frozen.",
+        "Freezing a form locks it to ensure the integrity of responses.",
+        "Export the form as JSON to reuse or archive it."
+      ]
+    },
+    "formNew": {
+      "title": "Create a form",
+      "steps": [
+        "Give a clear title and choose the type (self-assessment, manager…).",
+        "Add your questions and define their answer format.",
+        "Associate the form with an active campaign if needed.",
+        "Save it: it can then be applied during a campaign."
+      ]
+    },
+    "mobility": {
+      "title": "Mobility requests",
+      "steps": [
+        "Find mobility, promotion, raise and training requests here.",
+        "Create a new request with \"New request\".",
+        "Track the status of each request in the timeline.",
+        "HR processes and responds to each request."
+      ]
+    },
+    "analytics": {
+      "title": "Analyze performance",
+      "steps": [
+        "Filter by campaign to focus your analysis.",
+        "Review the status distribution and key metrics.",
+        "Export the data for detailed reporting."
+      ]
+    },
+    "hrFlags": {
+      "title": "Handle HR requests",
+      "steps": [
+        "Find all requests raised by employees here.",
+        "Filter by status or type to prioritize your handling.",
+        "Open a request to review and process it."
+      ]
+    },
+    "events": {
+      "title": "The events calendar",
+      "steps": [
+        "Switch between Month and List views as needed.",
+        "Click a day or \"+\" to create an event.",
+        "Open an event to see its details or edit it."
+      ]
+    },
+    "resources": {
+      "title": "Shared documents",
+      "steps": [
+        "Find documents and resources shared by HR here.",
+        "Filter by type to quickly find what you're looking for.",
+        "HR can add a new resource with \"New resource\"."
+      ]
     }
   },
   "forms": {
@@ -841,6 +943,11 @@
       "confirmTitle": "Deactivate this user?",
       "confirmDescription": "The user will no longer be able to log in (reversible).",
       "confirmLabel": "Deactivate"
+    },
+    "pagination": {
+      "summary": "Page {{page}} of {{totalPages}} · {{total}} users",
+      "previous": "Previous page",
+      "next": "Next page"
     }
   },
   "adminUsersImport": {

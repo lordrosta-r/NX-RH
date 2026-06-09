@@ -26,6 +26,7 @@ import {
   Callout,
   Bar,
 } from "../components/shell";
+import PageGuide from "../components/shared/PageGuide";
 import { CampaignCollectionWidget } from "../components/campaigns";
 
 // ─── Widget de complétude de la configuration (onboarding admin) ───────────────
@@ -257,15 +258,20 @@ export default function DashboardAdminPage() {
 
   return (
     <div className="nx-app">
+      {/* Pas de bouton « Exporter PDF » ici : l'export n'est pas implémenté pour ce
+          tableau de bord (un bouton désactivé = action morte). L'admin exporte
+          depuis Analytics. Cf. #92. */}
       <PageHead
         eyebrow={t("eyebrow.administration")}
         title={t("pageHead.dashAdminTitle", { name: user?.firstName ?? "…" })}
         desc={t("pageHead.dashAdminDesc")}
-        actions={
-          <button disabled className="btn btn-ghost">
-            {t("dashAdmin.actions.exportPdf")}
-          </button>
-        }
+      />
+
+      <PageGuide
+        id="dashAdmin"
+        title={t("guides.dashAdmin.title")}
+        color="amber"
+        steps={t("guides.dashAdmin.steps", { returnObjects: true }) as string[]}
       />
 
       {/* Complétude de la configuration (masqué une fois 100%) */}

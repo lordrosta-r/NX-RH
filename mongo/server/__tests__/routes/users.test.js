@@ -197,7 +197,26 @@ describe('GET /api/users', () => {
       .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
     expect(res.status).toBe(200)
     const [filter] = User.find.mock.calls[0]
-    expect(filter.$text).toEqual({ $search: 'alice' })
+    // Recherche $regex (matche partiel + email avec @), sur firstName/lastName/email.
+    expect(filter.$or).toEqual([
+      { firstName: /alice/i },
+      { lastName: /alice/i },
+      { email: /alice/i },
+    ])
+  })
+
+  it('honore aussi ?q= (alias de search) sur firstName/lastName/email', async () => {
+    User.find = jest.fn(() => makeChain([]))
+    const res = await request(app)
+      .get('/api/users?q=bob')
+      .set('Cookie', `accessToken=${tokenFor({ id: ADMIN_ID, role: 'admin' })}`)
+    expect(res.status).toBe(200)
+    const [filter] = User.find.mock.calls[0]
+    expect(filter.$or).toEqual([
+      { firstName: /bob/i },
+      { lastName: /bob/i },
+      { email: /bob/i },
+    ])
   })
 
   it('paginates when ?page=1 is passed', async () => {

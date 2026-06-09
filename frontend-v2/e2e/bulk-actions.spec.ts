@@ -1,6 +1,11 @@
 import { test, expect } from "@playwright/test";
 import { loginAs } from "./helpers/auth";
 import {
+  createDisposableUser,
+  deleteDisposableUsers,
+  type DisposableUser,
+} from "./helpers/users";
+import {
   waitForPageLoad,
   waitForDownload,
   takeScreenshot,
@@ -79,49 +84,78 @@ test.describe("Bulk Actions - Users", () => {
   test("bulk deactivate - désactiver users sélectionnés", async ({ page }) => {
     test.setTimeout(60000);
 
-    await test.step("Sélectionner 2 users (hors admin)", async () => {
-      const rows = page.locator('[data-testid="users-table"] .tbl-row');
-      await rows.first().waitFor({ state: "visible", timeout: 15000 });
-      const rowCount = await rows.count();
+    // Isolation #116 : on désactive UNIQUEMENT des comptes JETABLES créés à la
+    // volée, jamais les comptes seed partagés. On filtre la liste par leur tag
+    // d'email unique avant de cocher → seules ces lignes sont sélectionnées.
+    const tag = `bulkdeact${Date.now()}`;
+    const disposables: DisposableUser[] = [];
 
-      let selected = 0;
-      for (let i = 0; i < rowCount && selected < 2; i++) {
-        const row = rows.nth(i);
-        const isAdmin = await row
-          .getByText(/alice@nxrh|administrateur/i)
-          .isVisible()
-          .catch(() => false);
-        if (!isAdmin) {
-          const checkbox = row.locator('input[type="checkbox"]').first();
-          if (await checkbox.isVisible()) {
-            await checkbox.check();
-            selected++;
-          }
+    await test.step("Créer 2 users jetables via API", async () => {
+      disposables.push(
+        await createDisposableUser(page.request, {
+          tag,
+          lastName: `Zz${tag}A`,
+        }),
+      );
+      disposables.push(
+        await createDisposableUser(page.request, {
+          tag,
+          lastName: `Zz${tag}B`,
+        }),
+      );
+    });
+
+    try {
+      await test.step("Filtrer la liste sur les jetables et les sélectionner", async () => {
+        // Recherche sur le tag commun (présent dans email + nom) → la liste ne
+        // contient plus que nos comptes jetables.
+        const search = page.getByTestId("users-search");
+        await search.fill(tag);
+        // Debounce 400ms côté hook ; on attend la requête réseau et le rendu.
+        await page.waitForLoadState("networkidle");
+        await page.waitForTimeout(600);
+
+        const rows = page.locator('[data-testid="users-table"] .tbl-row');
+        await expect(rows.first()).toBeVisible({ timeout: 15000 });
+        const rowCount = await rows.count();
+        expect(rowCount).toBeGreaterThanOrEqual(disposables.length);
+
+        // Cocher toutes les lignes filtrées (toutes jetables).
+        const selectAll = page.getByLabel("Tout sélectionner").first();
+        await selectAll.check();
+        await page.waitForTimeout(200);
+      });
+
+      await test.step("Cliquer sur Désactiver", async () => {
+        const deactivateBtn = page
+          .getByRole("button", { name: /^désactiver$/i })
+          .first();
+        await deactivateBtn.waitFor({ state: "visible", timeout: 10000 });
+        await deactivateBtn.click();
+
+        // La désactivation groupée est immédiate (pas de modal de confirmation).
+        await page.waitForLoadState("networkidle");
+      });
+
+      await test.step("Vérifier statut inactif (API, sur les jetables)", async () => {
+        // Vérification ciblée : les comptes jetables sont bien désactivés.
+        for (const u of disposables) {
+          const res = await page.request.get(`/api/users/${u.id}`);
+          expect(res.ok()).toBeTruthy();
+          const body = (await res.json()) as {
+            data?: { isActive?: boolean };
+          };
+          expect.soft(body.data?.isActive, `${u.email} inactif`).toBe(false);
         }
-      }
-      expect(selected).toBeGreaterThanOrEqual(1);
-    });
+      });
 
-    await test.step("Cliquer sur Désactiver", async () => {
-      const deactivateBtn = page
-        .getByRole("button", { name: /^désactiver$/i })
-        .first();
-      await deactivateBtn.waitFor({ state: "visible", timeout: 10000 });
-      await deactivateBtn.click();
-
-      // La désactivation groupée est immédiate (pas de modal de confirmation).
-      await page.waitForLoadState("networkidle");
-    });
-
-    await test.step("Vérifier statut inactif", async () => {
-      const inactiveBadge = page
-        .locator(".badge")
-        .filter({ hasText: /inactif/i })
-        .first();
-      await expect.soft(inactiveBadge).toBeVisible({ timeout: 10000 });
-    });
-
-    await takeScreenshot(page, "bulk-users-deactivated");
+      await takeScreenshot(page, "bulk-users-deactivated");
+    } finally {
+      await deleteDisposableUsers(
+        page.request,
+        disposables.map((u) => u.id),
+      );
+    }
   });
 
   test("bulk export CSV users", async ({ page }) => {

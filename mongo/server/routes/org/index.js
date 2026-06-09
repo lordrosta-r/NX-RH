@@ -293,6 +293,12 @@ router.patch('/sectors/:id/assign-users', async (req, res, next) => {
     if (!Array.isArray(userIds) || userIds.length === 0) {
       return res.status(400).json({ error: 'userIds doit être un tableau non vide' })
     }
+    // SÉCURITÉ (NoSQL / type-confusion) : chaque id doit être une chaîne valide
+    // (ObjectId) avant d'entrer dans le $in — sinon un objet `{$ne:null}` ciblerait
+    // tous les utilisateurs.
+    if (!userIds.every(u => typeof u === 'string' && mongoose.isValidObjectId(u))) {
+      return res.status(400).json({ error: 'userIds contient un ID invalide' })
+    }
 
     const sector = await Sector.findById(id, '_id').lean()
     if (!sector) return res.status(404).json({ error: 'Secteur introuvable' })

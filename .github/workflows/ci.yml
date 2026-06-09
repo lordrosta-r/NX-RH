@@ -9,6 +9,11 @@ on:
   pull_request:
     branches: [main]
 
+# Moindre privilège (CodeQL actions/missing-workflow-permissions) : le CI ne fait
+# que lire le code et exécuter des tests, aucun besoin d'écriture sur le dépôt.
+permissions:
+  contents: read
+
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true

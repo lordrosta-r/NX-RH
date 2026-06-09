@@ -144,7 +144,7 @@ router.get('/export/csv', async (req, res, next) => {
 
     const evalFilter = {}
     if (req.query.campaignId) {
-      if (!mongoose.isValidObjectId(req.query.campaignId)) {
+      if (typeof req.query.campaignId !== 'string' || !mongoose.isValidObjectId(req.query.campaignId)) {
         return res.status(400).json({ error: 'campaignId invalide' })
       }
       evalFilter.campaignId = req.query.campaignId
@@ -216,7 +216,7 @@ router.get('/export/pdf', async (req, res, next) => {
     // Filtre optionnel par campagne
     const evalFilter = {}
     if (req.query.campaignId) {
-      if (!mongoose.isValidObjectId(req.query.campaignId)) {
+      if (typeof req.query.campaignId !== 'string' || !mongoose.isValidObjectId(req.query.campaignId)) {
         return res.status(400).json({ error: 'campaignId invalide' })
       }
       evalFilter.campaignId = req.query.campaignId

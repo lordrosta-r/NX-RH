@@ -61,14 +61,14 @@ router.get('/', ADMIN_HR, async (req, res, next) => {
 
     // Formes de type "request"
     const formFilter = { formType: { $in: REQUEST_FORM_TYPES } }
-    if (type && REQUEST_FORM_TYPES.includes(type)) formFilter.formType = type
+    if (typeof type === 'string' && REQUEST_FORM_TYPES.includes(type)) formFilter.formType = type
 
     const forms   = await Form.find(formFilter, '_id formType title').lean()
     const formIds = forms.map(f => f._id)
 
     const evalFilter = { formId: { $in: formIds } }
 
-    if (status && VALID_HR_STATUSES.includes(status)) {
+    if (typeof status === 'string' && VALID_HR_STATUSES.includes(status)) {
       evalFilter.status = status
     }
 
@@ -82,8 +82,9 @@ router.get('/', ADMIN_HR, async (req, res, next) => {
     // pagination soit précise (pas de filtre post-populate).
     if (department || sectorId) {
       const userFilter = {}
-      if (department) userFilter.department = department
-      if (sectorId && mongoose.isValidObjectId(sectorId)) userFilter.sectorId = sectorId
+      // SÉCURITÉ (NoSQL) : department vient de req.query → exiger une chaîne.
+      if (typeof department === 'string' && department) userFilter.department = department
+      if (typeof sectorId === 'string' && mongoose.isValidObjectId(sectorId)) userFilter.sectorId = sectorId
       const matchingUsers = await User.find(userFilter, '_id').lean()
       evalFilter.evaluateeId = { $in: matchingUsers.map(u => u._id) }
     }

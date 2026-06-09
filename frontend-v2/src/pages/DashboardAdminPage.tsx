@@ -26,25 +26,13 @@ import {
   Callout,
   Bar,
 } from "../components/shell";
-
-// Libellés lisibles pour les actions du journal d'audit.
-const AUDIT_ACTION_LABELS: Record<string, string> = {
-  login: "Connexion",
-  login_failed: "Échec de connexion",
-  logout: "Déconnexion",
-  user_created: "Utilisateur créé",
-  user_updated: "Utilisateur modifié",
-  user_deleted: "Utilisateur supprimé",
-  campaign_created: "Campagne créée",
-  campaign_updated: "Campagne modifiée",
-  evaluation_submitted: "Évaluation soumise",
-  evaluation_signed: "Évaluation signée",
-  ldap_sync: "Synchronisation LDAP",
-};
+import PageGuide from "../components/shared/PageGuide";
+import { CampaignCollectionWidget } from "../components/campaigns";
 
 // ─── Widget de complétude de la configuration (onboarding admin) ───────────────
 
 function SetupCompletenessCard() {
+  const { t } = useTranslation();
   const { steps, completed, total, percent, isLoading, allDone } =
     useSetupChecklist();
   if (isLoading || allDone) return null;
@@ -59,10 +47,10 @@ function SetupCompletenessCard() {
             className="ico"
             style={{ width: 20, height: 20, color: "var(--blue)" }}
           />
-          <h2 className="h2">Configuration de l&apos;application</h2>
+          <h2 className="h2">{t("dashAdmin.setup.title")}</h2>
         </div>
         <Link to="/admin/setup" className="link small">
-          Tout voir →
+          {t("dashAdmin.setup.seeAll")}
         </Link>
       </div>
       <div className="row" style={{ gap: 12, marginBottom: 10 }}>
@@ -70,7 +58,7 @@ function SetupCompletenessCard() {
           {percent}%
         </span>
         <span className="small">
-          {completed}/{total} étapes complètes
+          {t("dashAdmin.setup.stepsCount", { completed, total })}
         </span>
       </div>
       <div style={{ marginBottom: 16 }}>
@@ -121,13 +109,6 @@ function SetupCompletenessCard() {
 
 // ─── StatusBadge campagne ──────────────────────────────────────────────────────
 
-const statusLabels: Record<string, string> = {
-  draft: "Brouillon",
-  active: "Active",
-  closed: "Clôturée",
-  archived: "Archivée",
-};
-
 type Tone = "blue" | "green" | "amber" | "red" | "grey";
 const statusTone: Record<string, Tone> = {
   draft: "grey",
@@ -137,9 +118,10 @@ const statusTone: Record<string, Tone> = {
 };
 
 function StatusBadge({ status }: { status: string }) {
+  const { t } = useTranslation();
   return (
     <Badge tone={statusTone[status] ?? "grey"}>
-      {statusLabels[status] ?? status}
+      {t(`dashAdmin.campaignStatus.${status}`, { defaultValue: status })}
     </Badge>
   );
 }
@@ -153,6 +135,7 @@ function CampaignList({
   campaigns: Campaign[];
   isLoading: boolean;
 }) {
+  const { t } = useTranslation();
   if (isLoading) {
     return (
       <div className="section-gap" style={{ gap: 12 }}>
@@ -166,7 +149,7 @@ function CampaignList({
   if (campaigns.length === 0) {
     return (
       <p className="small text-center" style={{ padding: "24px 0" }}>
-        Aucune campagne active
+        {t("dashAdmin.campaigns.empty")}
       </p>
     );
   }
@@ -254,14 +237,14 @@ export default function DashboardAdminPage() {
       <div className="nx-app">
         <Callout tone="red">
           <p className="body" style={{ color: "var(--ink)" }}>
-            Impossible de charger les données du tableau de bord.
+            {t("dashAdmin.error.loadFailed")}
           </p>
           <button
             onClick={refetch}
             className="link small"
             style={{ marginTop: 8 }}
           >
-            Réessayer
+            {t("dashAdmin.error.retry")}
           </button>
         </Callout>
       </div>
@@ -275,19 +258,27 @@ export default function DashboardAdminPage() {
 
   return (
     <div className="nx-app">
+      {/* Pas de bouton « Exporter PDF » ici : l'export n'est pas implémenté pour ce
+          tableau de bord (un bouton désactivé = action morte). L'admin exporte
+          depuis Analytics. Cf. #92. */}
       <PageHead
         eyebrow={t("eyebrow.administration")}
         title={t("pageHead.dashAdminTitle", { name: user?.firstName ?? "…" })}
         desc={t("pageHead.dashAdminDesc")}
-        actions={
-          <button disabled className="btn btn-ghost">
-            Exporter PDF
-          </button>
-        }
+      />
+
+      <PageGuide
+        id="dashAdmin"
+        title={t("guides.dashAdmin.title")}
+        color="amber"
+        steps={t("guides.dashAdmin.steps", { returnObjects: true }) as string[]}
       />
 
       {/* Complétude de la configuration (masqué une fois 100%) */}
       <SetupCompletenessCard />
+
+      {/* Collecte des formulaires des managers (workflow campagne) */}
+      <CampaignCollectionWidget />
 
       {/* Actions requises */}
       <Tile className="mb-6">
@@ -296,7 +287,7 @@ export default function DashboardAdminPage() {
             className="ico"
             style={{ width: 20, height: 20, color: "var(--amber)" }}
           />
-          <h2 className="h2">Actions requises</h2>
+          <h2 className="h2">{t("dashAdmin.requiredActions.title")}</h2>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Link
@@ -319,7 +310,7 @@ export default function DashboardAdminPage() {
               <span
                 style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)" }}
               >
-                Demandes RH en attente
+                {t("dashAdmin.requiredActions.pendingHrRequests")}
               </span>
             </span>
             {pendingFlagsCount != null && pendingFlagsCount > 0 && (
@@ -361,7 +352,7 @@ export default function DashboardAdminPage() {
             <span
               style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)" }}
             >
-              Utilisateurs sans manager
+              {t("dashAdmin.requiredActions.usersWithoutManager")}
             </span>
           </Link>
           <Link
@@ -383,7 +374,7 @@ export default function DashboardAdminPage() {
             <span
               style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)" }}
             >
-              Campagnes actives
+              {t("dashAdmin.requiredActions.activeCampaigns")}
             </span>
           </Link>
         </div>
@@ -392,27 +383,27 @@ export default function DashboardAdminPage() {
       {/* Raccourcis */}
       <Tile className="mb-6">
         <h2 className="h2" style={{ marginBottom: 16 }}>
-          Raccourcis
+          {t("dashAdmin.shortcuts.title")}
         </h2>
         <div className="row wrap" style={{ gap: 12 }}>
           <Link to="/campaigns/new" className="btn btn-primary">
             <PlusCircle className="ico" style={{ width: 18, height: 18 }} />{" "}
-            Nouvelle campagne
+            {t("dashAdmin.shortcuts.newCampaign")}
           </Link>
           <Link to="/users/new" className="btn btn-ghost">
             <UserPlus className="ico" style={{ width: 18, height: 18 }} />{" "}
-            Ajouter un utilisateur
+            {t("dashAdmin.shortcuts.addUser")}
           </Link>
           <Link to="/admin/users/import" className="btn btn-ghost">
             <Upload className="ico" style={{ width: 18, height: 18 }} />{" "}
-            Importer CSV
+            {t("dashAdmin.shortcuts.importCsv")}
           </Link>
           <Link to="/admin/settings" className="btn btn-ghost">
             <SlidersHorizontal
               className="ico"
               style={{ width: 18, height: 18 }}
             />{" "}
-            Paramètres RH
+            {t("dashAdmin.shortcuts.hrSettings")}
           </Link>
         </div>
       </Tile>
@@ -421,17 +412,17 @@ export default function DashboardAdminPage() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <StatTile
           value={totalUsers}
-          label="Utilisateurs actifs"
+          label={t("dashAdmin.kpi.activeUsers")}
           tone="var(--blue)"
         />
         <StatTile
           value={totalCampaigns}
-          label="Campagnes actives"
+          label={t("dashAdmin.kpi.activeCampaigns")}
           tone="var(--green)"
         />
         <StatTile
           value={totalEvals}
-          label="Évaluations non finalisées"
+          label={t("dashAdmin.kpi.pendingEvaluations")}
           tone="var(--amber)"
         />
       </div>
@@ -441,9 +432,9 @@ export default function DashboardAdminPage() {
         <div className="col-span-12 lg:col-span-8">
           <Tile style={{ height: "100%" }}>
             <div className="row between" style={{ marginBottom: 16 }}>
-              <h2 className="h2">Campagnes actives</h2>
+              <h2 className="h2">{t("dashAdmin.campaigns.title")}</h2>
               <Link to="/campaigns" className="link small">
-                Voir toutes →
+                {t("dashAdmin.campaigns.seeAll")}
               </Link>
             </div>
             <CampaignList
@@ -456,7 +447,7 @@ export default function DashboardAdminPage() {
         <div className="col-span-12 lg:col-span-4">
           <Tile style={{ height: "100%" }}>
             <h2 className="h2" style={{ marginBottom: 16 }}>
-              Actions urgentes
+              {t("dashAdmin.urgentActions.title")}
             </h2>
             <div className="section-gap" style={{ gap: 12 }}>
               <Callout tone="red">
@@ -482,10 +473,10 @@ export default function DashboardAdminPage() {
                         color: "var(--ink)",
                       }}
                     >
-                      Évaluations expirées
+                      {t("dashAdmin.urgentActions.expiredEvaluations")}
                     </p>
                     <Link to="/evaluations" className="link small">
-                      Voir les évaluations →
+                      {t("dashAdmin.urgentActions.seeEvaluations")}
                     </Link>
                   </div>
                 </div>
@@ -513,10 +504,10 @@ export default function DashboardAdminPage() {
                         color: "var(--ink)",
                       }}
                     >
-                      Évaluations à signer côté RH
+                      {t("dashAdmin.urgentActions.evaluationsPendingHrSignature")}
                     </p>
                     <Link to="/hr/flags" className="link small">
-                      Voir les alertes RH →
+                      {t("dashAdmin.urgentActions.seeHrAlerts")}
                     </Link>
                   </div>
                 </div>
@@ -529,9 +520,9 @@ export default function DashboardAdminPage() {
       {/* Activité récente */}
       <Tile>
         <div className="row between" style={{ marginBottom: 16 }}>
-          <h2 className="h2">Activité récente</h2>
+          <h2 className="h2">{t("dashAdmin.recentActivity.title")}</h2>
           <Link to="/admin/audit" className="link small">
-            Voir le journal complet →
+            {t("dashAdmin.recentActivity.seeFullLog")}
           </Link>
         </div>
         {auditLoading ? (
@@ -545,7 +536,7 @@ export default function DashboardAdminPage() {
           </div>
         ) : (auditRecent?.length ?? 0) === 0 ? (
           <p className="small text-center" style={{ padding: "24px 0" }}>
-            Aucune activité récente
+            {t("dashAdmin.recentActivity.empty")}
           </p>
         ) : (
           <div>
@@ -578,7 +569,7 @@ export default function DashboardAdminPage() {
                       color: "var(--ink)",
                     }}
                   >
-                    {AUDIT_ACTION_LABELS[a.action] ?? a.action}
+                    {t(`dashAdmin.audit.${a.action}`, { defaultValue: a.action })}
                     {(a.actorName || a.actorEmail) && (
                       <span className="small" style={{ fontWeight: 400 }}>
                         {" "}

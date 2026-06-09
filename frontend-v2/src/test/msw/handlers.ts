@@ -139,8 +139,6 @@ export const handlers = [
   // Evaluations
   http.get('http://localhost:5050/api/evaluations', () =>
     HttpResponse.json({ data: [mockEvaluation], total: 1, page: 1, limit: 20 })),
-  http.get('http://localhost:5050/api/evaluations/me', () =>
-    HttpResponse.json({ data: [mockEvaluation], total: 1, page: 1, limit: 20 })),
   http.get('http://localhost:5050/api/evaluations/:id', ({ params }) =>
     HttpResponse.json({ ...mockEvaluation, _id: params.id as string })),
   http.patch('http://localhost:5050/api/evaluations/:id', async ({ request, params }) => {

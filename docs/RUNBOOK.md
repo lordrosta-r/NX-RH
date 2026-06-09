@@ -12,7 +12,7 @@ Procédures opérationnelles pour la production.
 ### URLs
 | Environnement | Base URL |
 |---|---|
-| Développement | `http://localhost:5001/api/v1` |
+| Développement | `http://localhost:3001/api/v1` (ou `https://localhost/api/v1` via nginx) |
 | Production | `https://<host>/api/v1` |
 
 L'alias `/api/` (sans version) est maintenu pour la compatibilité ascendante ; il pointe vers la même version que `/api/v1/`.

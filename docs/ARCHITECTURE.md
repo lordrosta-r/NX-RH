@@ -271,6 +271,13 @@ accessible to any authenticated user (employee, manager, hr, admin).
 | `/evaluations/new` | admin, hr | EvaluationNewPage |
 | `/documents` | hr, manager, employee | ResourcesPage |
 | `/documents/:id` | hr, manager, employee | ResourceDetailPage |
+
+> **Naming asymmetry — Documents vs Resources:** the frontend routes use `/documents` and
+> `/documents/:id`, but the backend API is mounted at `/api/resources` (and `/api/v1/resources`).
+> The React page components (`ResourcesPage`, `ResourceDetailPage`) and the backend route file
+> (`routes/resources.js`) both use the "resources" naming. Only the client-facing URL uses
+> "documents". Keep this in mind when tracing a request end-to-end or adding API calls for
+> this feature.
 | `/manager/todo` | manager, hr, admin | ManagerTodoPage |
 | `/interview` | manager, hr, admin | InterviewPage |
 | `/hr/flags` | admin, hr | HrFlagsPage |
@@ -495,20 +502,83 @@ export forms. Form categories are managed separately (`/form-categories`).
 ### Evaluations
 
 An **Evaluation** is the instance of a form filled in by a specific employee as part of a
-campaign. The state machine progresses as follows:
+campaign.
+
+#### State machine
+
+All valid transitions are defined in `mongo/server/models/Evaluation.js`
+(`VALID_TRANSITIONS` / `ROLE_TRANSITIONS`).
 
 ```
 assigned
-   |
-   v
-in_progress  <-- employee begins filling the form
-   |
-   v
-submitted    <-- employee submits; manager reviews
-   |
-   v
-validated    <-- manager (or HR) marks as validated
+  |
+  v (employee or admin)
+in_progress
+  |
+  v (employee or manager filling a competency form, or admin)
+submitted
+  |
+  v (manager or admin)
+reviewed -----> disputed (employee contests; HR arbitrates)
+  |               |
+  |   +-----------+  (HR resolves: back to reviewed, or skip to signed_evaluatee)
+  |   |
+  v   v (employee or admin)
+signed_evaluatee
+  |
+  v (manager or admin)
+signed_manager
+  |
+  v (HR or admin)
+signed_hr
+  |
+  v (HR or admin)
+validated  [terminal]
+
+Additional terminal states (no further transitions):
+  expired   — set by the scheduler when phaseDeadline or expiresAt is exceeded
+  rejected  — HR refuses the evaluation
+  archived  — evaluation cancelled following an offboarding
 ```
+
+**Role-gated transitions (non-admin):**
+
+| Role | From | To |
+|------|------|----|
+| employee | assigned | in_progress |
+| employee | in_progress | submitted |
+| employee | reviewed | signed_evaluatee, disputed |
+| manager | in_progress | submitted |
+| manager | submitted | reviewed |
+| manager | signed_evaluatee | signed_manager |
+| hr | reviewed | signed_hr (bypass: skips evaluatee/manager signatures) |
+| hr | disputed | reviewed, signed_evaluatee (arbitration) |
+| hr | signed_evaluatee | signed_hr |
+| hr | signed_manager | signed_hr |
+| hr | signed_hr | validated |
+
+`admin` is not listed in `ROLE_TRANSITIONS` and may perform any transition that is valid
+in `VALID_TRANSITIONS`.
+
+**Answer lock:** once an evaluation reaches any status in
+`[submitted, reviewed, disputed, signed_evaluatee, signed_manager, signed_hr, validated, archived]`
+the `answers` field is frozen. A pre-save hook enforces this server-side.
+
+**Auto-save behaviour:** while an evaluation is in `assigned` or `in_progress`, the
+employee's answers are saved freely. Each save updates `lastSavedAt`. If the status is
+still `assigned` at save time it is automatically advanced to `in_progress`.
+
+#### Signature fields — dual tracking
+
+The model stores signatures in two parallel structures:
+
+- **Legacy timestamp fields** (`signedByEvaluateeAt`, `signedByManagerAt`, `signedByHrAt`):
+  plain `Date` fields kept for backward compatibility.
+- **`signatures` array** (sub-documents with `userId`, `role`, `signedAt`, `ipAddress`):
+  the canonical record of each electronic signature.
+
+The `signatures` array is the source of truth. The legacy fields are retained for
+backward compatibility only and should not be used for business logic in new code.
 
 The **N-1** context (previous edition) allows an evaluatee and their manager to view
 answers from the previous campaign during the current one, providing continuity and

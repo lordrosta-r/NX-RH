@@ -67,8 +67,28 @@ test.describe("Builder de formulaires (admin)", () => {
     for (let i = 0; i < 3; i++) {
       await page.getByText(new RegExp(`QUESTION 0${i + 1}`)).click();
       await page.getByPlaceholder("Ex : Comment évaluez-vous…").fill(titles[i]);
-      await page.getByRole("button", { name: types[i] }).click();
+      // exact:true cible le vrai bouton de type (les cartes question sont aussi
+      // des role="button" dont le nom accessible contient le libellé du type).
+      await page
+        .getByRole("button", { name: types[i], exact: true })
+        .click();
       await page.waitForTimeout(200);
+
+      // Une question « Choix multiple » exige au moins 2 options non vides
+      // (sinon la validation bloque l'enregistrement). On les ajoute et remplit.
+      if (types[i] === "Choix multiple") {
+        const optionsField = page
+          .locator(".field")
+          .filter({ hasText: "Options de choix" });
+        const addOption = optionsField.getByRole("button", {
+          name: /ajouter une option/i,
+        });
+        await addOption.click();
+        await addOption.click();
+        const optionInputs = optionsField.locator("input.input");
+        await optionInputs.nth(0).fill("Git & CI/CD");
+        await optionInputs.nth(1).fill("Outils internes");
+      }
     }
     // Revenir sur la 1re pour montrer le panneau de config peuplé
     await page.getByText(/QUESTION 01/).click();
@@ -77,22 +97,19 @@ test.describe("Builder de formulaires (admin)", () => {
       fullPage: true,
     });
 
-    // 6. Drag-and-drop : déplacer la question 1 sous la question 3
-    const handles = page.getByRole("button", { name: "Déplacer la question" });
-    const src = handles.nth(0);
-    const dst = handles.nth(2);
-    const sb = await src.boundingBox();
-    const db = await dst.boundingBox();
-    if (sb && db) {
-      await page.mouse.move(sb.x + sb.width / 2, sb.y + sb.height / 2);
-      await page.mouse.down();
-      await page.mouse.move(sb.x + sb.width / 2, sb.y + sb.height / 2 + 10);
-      await page.mouse.move(db.x + db.width / 2, db.y + db.height / 2 + 20, {
-        steps: 12,
-      });
-      await page.mouse.up();
-      await page.waitForTimeout(400);
-    }
+    // 6. Drag-and-drop via le KeyboardSensor de dnd-kit (fiable et déterministe,
+    //    contrairement à une simulation souris brute qui laisse le drag en cours
+    //    et casse l'enregistrement). On déplace la question 1 d'un cran vers le bas.
+    const firstHandle = page
+      .getByRole("button", { name: "Déplacer la question" })
+      .first();
+    await firstHandle.focus();
+    await page.keyboard.press("Space"); // saisir l'élément
+    await page.waitForTimeout(150);
+    await page.keyboard.press("ArrowDown"); // descendre d'une position
+    await page.waitForTimeout(150);
+    await page.keyboard.press("Space"); // déposer
+    await page.waitForTimeout(300);
     await page.screenshot({
       path: `${SHOTS}/builder-05-apres-drag.png`,
       fullPage: true,

@@ -10,11 +10,14 @@ export class HrFlagPage {
     this.page = page
     this.createButton = page.getByRole('button', { name: /nouvelle demande|créer.*demande|nouvelle requête/i })
     this.flagsList = page.locator('[data-testid="hr-flags-list"]').or(page.locator('.hr-flags-list'))
-    this.statusFilter = page.locator('select[name*="status"], #status-filter')
+    // Filtre statut de la vue RH des signaux (select avec aria-label).
+    this.statusFilter = page.getByRole('combobox', { name: /filtrer par statut/i })
   }
 
+  // Vue RH/Admin des signaux RH. La route réelle est /hr/flags (admin/hr only) ;
+  // les employés ne créent pas de signal ici mais via /mobility (« Demandes »).
   async goto() {
-    await this.page.goto('/hr-flags')
+    await this.page.goto('/hr/flags')
     await this.page.waitForLoadState('networkidle')
   }
 
@@ -68,19 +71,29 @@ export class HrFlagPage {
   }
 
   async filterByStatus(status: 'pending' | 'in_progress' | 'resolved' | 'closed') {
-    if (await this.statusFilter.isVisible()) {
-      await this.statusFilter.selectOption(status)
-      await this.page.waitForLoadState('networkidle')
+    // Statuts réels des signaux RH : pending / in_progress / treated / rejected.
+    const map: Record<string, string> = {
+      pending: 'pending',
+      in_progress: 'in_progress',
+      resolved: 'treated',
+      closed: 'rejected',
     }
+    const value = map[status] ?? status
+    if ((await this.statusFilter.count()) === 0) return
+    const hasOption =
+      (await this.statusFilter.locator(`option[value="${value}"]`).count()) > 0
+    if (!hasOption) return
+    await this.statusFilter.selectOption(value)
+    await this.page.waitForLoadState('networkidle')
   }
 
   async getFlagCount(): Promise<number> {
-    await this.page.waitForSelector('[data-testid*="flag"], [class*="flag-item"]', { timeout: 10000 })
-    return await this.page.locator('[data-testid*="flag"], [class*="flag-item"]').count()
+    // La liste rend des lignes en grille (.tbl-row), pas de table HTML.
+    return await this.page.locator('.tbl-row').count()
   }
 
   async openFlag(flagId: string) {
-    await this.page.goto(`/hr-flags/${flagId}`)
+    await this.page.goto(`/hr/flags/${flagId}`)
     await this.page.waitForLoadState('networkidle')
   }
 }

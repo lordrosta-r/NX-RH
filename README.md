@@ -2,12 +2,13 @@
 
 # NanoXplore RH
 
-**A complete HR platform for professional reviews, evaluation campaigns and employee development.**
+**Plateforme RH complète pour les entretiens professionnels, les campagnes d'évaluation et le développement des collaborateurs.**
 
 [![CI](https://github.com/lordrosta-r/NX-RH/actions/workflows/ci.yml/badge.svg)](https://github.com/lordrosta-r/NX-RH/actions/workflows/ci.yml)
 [![CD — Docker Build](https://github.com/lordrosta-r/NX-RH/actions/workflows/cd.yml/badge.svg)](https://github.com/lordrosta-r/NX-RH/actions/workflows/cd.yml)
 [![Security — npm audit](https://github.com/lordrosta-r/NX-RH/actions/workflows/security.yml/badge.svg)](https://github.com/lordrosta-r/NX-RH/actions/workflows/security.yml)
 [![Release](https://img.shields.io/github/v/release/lordrosta-r/NX-RH)](https://github.com/lordrosta-r/NX-RH/releases)
+[![Licence](https://img.shields.io/badge/licence-propri%C3%A9taire-red)](LICENSE)
 
 ![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-6-3178C6?logo=typescript&logoColor=white)
@@ -15,130 +16,138 @@
 ![MongoDB](https://img.shields.io/badge/MongoDB-7-47A248?logo=mongodb&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-multi--stage-2496ED?logo=docker&logoColor=white)
 
+<br>
+
+![Page de connexion NanoXplore RH](docs/screenshots/login.png)
+
 </div>
 
 ---
 
-## About this project
+## Présentation
 
-I built **NanoXplore RH** during my apprenticeship (*alternance*) as a full end-to-end product:
-from the database and backend API to the React single-page application, the Docker deployment and
-the CI/CD pipeline. The goal was to replace scattered spreadsheets and email threads with a single,
-role-aware tool that guides each person — employee, manager, HR, admin — through the annual review
-lifecycle.
+**NanoXplore RH** est une application web qui pilote le cycle annuel d'entretiens et d'évaluations
+d'une organisation : de la création des campagnes par la RH jusqu'à la double signature des
+entretiens, en passant par l'auto-évaluation des collaborateurs, la revue manager, les objectifs et
+les plans de développement individuels (PDI).
 
-This was my **first full-scale project**, and it taught me a lot: how to design a maintainable
-architecture, how to think about security from the start, how to ship behind a real CI/CD pipeline,
-and how to write documentation that lets someone else take over. I tried to keep every decision
-simple and explicit (the **K.I.S.S.** principle runs through the whole codebase) so the project stays
-easy to read and to maintain.
-
-> *Personal note:* what I'm most proud of is that the project is genuinely **deployable, documented
-> and tested** — not a demo, but something an organisation could actually run. If you're reading this
-> as a recruiter or a fellow developer, the [documentation](#documentation) is the best place to see
-> how it all fits together.
+L'application est **multilingue** (français / anglais, détection automatique) et **adaptée au rôle**
+de chaque utilisateur : employé, manager, RH ou administrateur. Elle remplace les tableurs et les
+fils d'e-mails dispersés par un outil unique qui guide chaque acteur tout au long du processus.
 
 ---
 
-## Key features
+## Fonctionnalités clés
 
-- **Evaluation campaigns** — creation, participant targeting by role, scheduling, analytics
-- **Drag-and-drop form builder** — self-assessment, manager, upward feedback, objectives, mobility
-- **Evaluation filling** with **N-1 previous-edition context** (last year's answers shown inline)
-- **Manager interviews** — structured exchange, objectives, summary, dual signature, disagreement flow
-- **Individual development plans (PDI)** and **internal mobility requests**
-- **LDAP synchronization** — multiple directories, manager-attribute hierarchy, no orphans
-- **Account management** — block / unblock / delete, reversible exclusion of system accounts
-- **Document space** — HR publishes downloadable documents to all employees
-- **Interactive full-screen org chart** (tentacular departments)
-- **Role-based access control** — employee, manager, HR, admin (+ read-only impersonation)
-- **Fully bilingual** interface — French / English (auto-detected)
-- **Admin-configurable from the UI** — LDAP, SMTP, SSL certificate, company logo
+- **Campagnes d'évaluation** — création, ciblage des participants par rôle/groupe, planification, analyses
+- **Constructeur de formulaires** (drag & drop) — auto-évaluation, manager, feedback ascendant, objectifs, demandes
+- **Remplissage d'évaluation** avec **contexte N-1** (réponses de l'édition précédente affichées en regard)
+- **Vue Entretien** — échange structuré en face-à-face, objectifs, synthèse, double signature, gestion du désaccord
+- **Plans de développement individuel (PDI)** et **demandes de mobilité interne**
+- **Synchronisation LDAP** multi-annuaires — hiérarchie via l'attribut `manager`, exclusion des comptes de service
+- **Gestion des comptes** — blocage / déblocage / suppression RGPD, comptes locaux ou LDAP
+- **Espace documentaire** — la RH publie des documents téléchargeables par tous les collaborateurs
+- **Organigramme interactif** plein écran
+- **Contrôle d'accès par rôle** — employé, manager, RH, admin (+ impersonation en lecture seule)
+- **Configuration par l'admin depuis l'UI** — LDAP, SMTP, certificat SSL, logo
 
 ---
 
-## Tech stack
+## Stack technique
 
-| Layer | Technology |
+| Couche | Technologies |
 |---|---|
 | Frontend | React 19, TypeScript 6, Vite 8 |
-| Routing / state | React Router v6 (`createBrowserRouter`), TanStack Query v5, axios |
-| Forms / validation | React Hook Form, Zod |
-| Styling / icons | Tailwind CSS v3, CSS custom properties, lucide-react |
-| i18n | react-i18next |
+| Routage / état | React Router v6 (`createBrowserRouter`), TanStack Query v5, axios |
+| Formulaires / validation | React Hook Form, Zod |
+| Style / icônes | Tailwind CSS v3, propriétés CSS personnalisées, lucide-react |
+| i18n | react-i18next (fr / en) |
 | Backend | Node.js 20, Express 4, MongoDB 7, Mongoose 8 |
-| Auth | JWT in httpOnly cookies, LDAP (ldapjs) |
-| Infra | Nginx 1.27 (TLS), Docker multi-stage, Docker Compose |
-| Tests | Vitest + Testing Library, Playwright, Jest 30 + Supertest |
-| Quality / security | ESLint, CI/CD (GitHub Actions), Dependabot, CodeQL, npm audit |
+| Authentification | JWT en cookies httpOnly (SameSite=Strict), LDAP (ldapjs) |
+| Infrastructure | Nginx 1.27 (TLS), Docker multi-stage, Docker Compose |
+| Tests | Vitest + Testing Library, Playwright, Jest + Supertest |
+| Qualité / sécurité | ESLint, CI/CD (GitHub Actions), Dependabot, CodeQL, npm audit |
+
+Détails et justifications : [docs/STACK.md](docs/STACK.md) et le wiki [Stack-Technique](https://github.com/lordrosta-r/NX-RH/wiki/Stack-Technique).
 
 ---
 
-## Quick start
+## Démarrage rapide
 
-### Prerequisites
+### Prérequis
 
-- Docker and Docker Compose installed
-- A `.env` file at the repository root — see [docs/INSTALLATION.md](docs/INSTALLATION.md) and [docs/ENVIRONMENT.md](docs/ENVIRONMENT.md)
+- Docker Engine ≥ 24 et Docker Compose v2 (commande `docker compose`)
+- Un fichier `.env` à la racine du dépôt — voir [docs/INSTALLATION.md](docs/INSTALLATION.md) et [docs/ENVIRONMENT.md](docs/ENVIRONMENT.md)
 
-> TLS certificates are **not committed**. On a fresh deploy, a self-signed `localhost` certificate is
-> generated automatically (the `cert-init` service) so nginx can start. An admin then uploads the real
-> certificate from the UI (*Administration → SSL certificate*). See [docs/CONFIGURATION.md](docs/CONFIGURATION.md).
+> Les certificats TLS ne sont **pas versionnés**. Au premier déploiement, le service `cert-init`
+> génère automatiquement un certificat auto-signé `localhost` pour que nginx puisse démarrer. Un
+> administrateur téléverse ensuite le vrai certificat depuis l'UI (*Administration → Certificat SSL*).
+> Voir [docs/CONFIGURATION.md](docs/CONFIGURATION.md).
 
 ### Production
 
 ```bash
-docker compose up -d
+docker compose up -d --build
 ```
 
-High-availability mode with several app instances:
+Mode haute disponibilité avec plusieurs instances applicatives derrière nginx :
 
 ```bash
-docker compose up -d --scale app=3
+docker compose up -d --build --scale app=3
 ```
 
-### Development
+### Développement
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
+# Frontend : https://localhost (via nginx) ou http://localhost:5173 (Vite)
+# API      : https://localhost/api ou http://localhost:3001/api
+# MailHog  : http://localhost:8025  ·  phpLDAPadmin : http://localhost:8080
 ```
 
 ---
 
-## Project structure
+## Structure du dépôt
 
 ```
 NX-RH/
-├── Dockerfile                    # Multi-stage: Vite frontend build + Express server
-├── docker-compose.yml            # Production stack: cert-init + nginx + app + mongo
-├── docker-compose.dev.yml        # Development overrides
-├── nginx/                        # Reverse proxy + TLS (certs not committed)
-├── frontend-v2/                  # React / TypeScript / Vite SPA
+├── Dockerfile                    # Multi-stage : build front Vite → public/ + serveur Express
+├── docker-compose.yml            # Stack production : cert-init + nginx + app + mongo
+├── docker-compose.dev.yml        # Surcharges développement (Vite, MailHog, OpenLDAP)
+├── nginx/                        # Reverse proxy + TLS (certs non versionnés)
+├── frontend-v2/                  # SPA React / TypeScript / Vite (frontend canonique)
 │   └── src/
-│       ├── router/index.tsx      # All routes (source of truth) via createBrowserRouter
+│       ├── router/index.tsx      # Toutes les routes (source de vérité) — createBrowserRouter
+│       ├── components/layout/navConfig.ts  # Navigation par rôle/perspective
 │       ├── contexts/             # AuthContext, PerspectiveContext, ConfirmContext
 │       ├── layouts/  components/  pages/  features/  api/  hooks/
-│       ├── schemas/              # Zod schemas
+│       ├── schemas/              # Schémas Zod
 │       ├── i18n/locales/         # fr.json, en.json
-│       └── styles/tokens.css     # Design tokens (CSS custom properties)
-└── mongo/
-    └── server/                   # Express + Mongoose backend
-        ├── routes/  models/  services/  middleware/
-        └── index.js              # App bootstrap + production security guardrails
+│       └── styles/tokens.css     # Tokens de design (propriétés CSS)
+├── mongo/
+│   └── server/                   # Backend Express + Mongoose
+│       ├── routes/  models/  services/  middleware/
+│       ├── config/constants.js   # Source de vérité des rôles et types métier
+│       └── index.js              # Bootstrap + garde-fous de sécurité production
+├── docs/                         # Documentation technique détaillée
+└── design/                       # Maquettes et tokens de design (référence visuelle)
 ```
 
 ---
 
-## What I learned
+## Rôles
 
-- **Architecture** — keeping a single source of truth (`router/index.tsx`), co-locating code, and
-  resisting over-engineering (no Redux, no SSR — TanStack Query + React contexts were enough).
-- **Security by design** — JWT in httpOnly cookies, RBAC on every route, boot-time guardrails that
-  refuse to start with weak secrets, and a read-only impersonation invariant.
-- **Shipping like a product** — protected branches, mandatory PRs, a green CI before merge, semantic
-  versioning and tagged releases, dependency scanning (Dependabot, CodeQL, `npm audit`).
-- **Operability** — Docker deployment, backups, an update procedure, and documentation a new
-  developer can follow without help.
+Quatre rôles actifs, source de vérité dans [`mongo/server/config/constants.js`](mongo/server/config/constants.js) :
+
+| Rôle | Périmètre |
+|---|---|
+| **admin** | Contrôle total : configuration serveur, LDAP, SMTP, SSL, audit, état du système, + toutes les capacités RH et manager |
+| **hr** | Opérations RH : utilisateurs, campagnes, formulaires, évaluations, signalements RH, départements, paramètres |
+| **manager** | Supervision d'équipe : suivi des évaluations, analyses d'équipe, actions à traiter (`/manager/todo`) |
+| **employee** | Collaborateur : ses évaluations, son PDI, demandes de mobilité, documents et événements RH |
+
+`ADMIN_ROLES = ['admin', 'hr']`. Le rôle legacy `director` n'existe plus (les comptes concernés sont
+traités comme `manager`). Détail de la matrice RBAC : [docs/ROLES_RBAC.md](docs/ROLES_RBAC.md).
 
 ---
 
@@ -146,23 +155,34 @@ NX-RH/
 
 | Document | Description |
 |---|---|
-| [docs/INSTALLATION.md](docs/INSTALLATION.md) | Step-by-step first-time setup (copy-paste commands) |
-| [docs/CONFIGURATION.md](docs/CONFIGURATION.md) | Admin configuration from the UI (LDAP, SMTP, SSL, logo) |
-| [docs/UPDATE.md](docs/UPDATE.md) | Upgrade procedure and rollback |
-| [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | Production deployment guide |
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Technical architecture |
-| [docs/ROLES_RBAC.md](docs/ROLES_RBAC.md) | Roles and access-control matrix |
-| [docs/ENVIRONMENT.md](docs/ENVIRONMENT.md) | Environment variables reference |
-| [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) | Common issues and fixes |
-| [docs/BACKUP_RESTORE.md](docs/BACKUP_RESTORE.md) | Backup / restore procedures |
-| [CONTRIBUTING.md](CONTRIBUTING.md) | Contribution guidelines and code conventions |
-| [SECURITY.md](SECURITY.md) | Security policy and vulnerability reporting |
+| [docs/INSTALLATION.md](docs/INSTALLATION.md) | Installation initiale pas à pas |
+| [docs/CONFIGURATION.md](docs/CONFIGURATION.md) | Configuration admin depuis l'UI (LDAP, SMTP, SSL, logo) |
+| [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | Guide de déploiement production |
+| [docs/UPDATE.md](docs/UPDATE.md) | Procédure de mise à jour et rollback |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Architecture technique |
+| [docs/STACK.md](docs/STACK.md) | Choix techniques et justifications |
+| [docs/ROLES_RBAC.md](docs/ROLES_RBAC.md) | Rôles et matrice de contrôle d'accès |
+| [docs/PAGES.md](docs/PAGES.md) | Inventaire des pages frontend |
+| [docs/USER_FLOW.md](docs/USER_FLOW.md) | Parcours utilisateur par rôle |
+| [docs/ENVIRONMENT.md](docs/ENVIRONMENT.md) | Référence des variables d'environnement |
+| [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) | Problèmes courants et résolutions |
+| [docs/BACKUP_RESTORE.md](docs/BACKUP_RESTORE.md) | Sauvegarde / restauration |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Conventions de code et de contribution |
+| [SECURITY.md](SECURITY.md) | Politique de sécurité et signalement de vulnérabilité |
+
+📖 **Wiki** : un panorama opérationnel et fonctionnel est disponible dans le
+[wiki du projet](https://github.com/lordrosta-r/NX-RH/wiki) (installation, architecture, rôles,
+déploiement, runbook, FAQ, glossaire).
 
 ---
 
-## License
+## Licence
 
-This project was developed in an apprenticeship context. For reuse or licensing terms, please contact
-the author.
+NanoXplore RH est un **logiciel propriétaire**. Copyright © 2026 NanoXplore — tous droits réservés.
 
-**Author:** [@lordrosta-r](https://github.com/lordrosta-r)
+Toute copie, modification, distribution, ingénierie inverse ou utilisation hors du cadre interne
+autorisé par NanoXplore est interdite sans accord écrit préalable. Voir le fichier [LICENSE](LICENSE)
+pour les conditions complètes.
+
+Contact : `legal@nanoxplore.com`
+</content>

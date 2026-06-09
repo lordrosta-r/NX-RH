@@ -18,8 +18,9 @@ test.describe("Smoke tests — parcours critiques", () => {
   test("formulaire login — champs requis", async ({ page }) => {
     await page.goto("/login");
     await page.click('[data-testid="login-submit"]');
-    // Doit afficher une erreur de validation (role="alert" émis par ErrorMessage)
-    await expect(page.locator('[role="alert"]').first()).toBeVisible();
+    // La validation client (react-hook-form/zod) rend des messages .field-error
+    // sous les champs (et non un role="alert", réservé aux erreurs serveur).
+    await expect(page.locator(".field-error").first()).toBeVisible();
   });
 
   test("login avec mauvais credentials", async ({ page }) => {

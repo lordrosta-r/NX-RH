@@ -10,17 +10,23 @@ test.describe('Admin - Gestion des utilisateurs', () => {
   test("liste des utilisateurs s'affiche", async ({ page }) => {
     await page.goto('/users')
     await page.waitForLoadState('networkidle')
-    await expect(
-      page.getByRole('table').or(page.locator('.user-list, [class*="user"]'))
-    ).toBeVisible({ timeout: 10000 })
+    // La liste rend une grille (tile) avec data-testid, pas une <table>.
+    await expect(page.getByTestId('users-table')).toBeVisible({ timeout: 10000 })
   })
 
   test("detail utilisateur s'ouvre", async ({ page }) => {
     await page.goto('/users')
     await page.waitForLoadState('networkidle')
-    await page.getByRole('link').filter({ hasText: /emp|mgr|admin|rh/i }).first().click()
+    // Chaque ligne de la grille lie vers /users/:id — on clique le 1er lien
+    // de fiche (scopé à la table pour éviter /users/new et /users/groups du header).
+    const detailLink = page
+      .getByTestId('users-table')
+      .locator('a[href^="/users/"]')
+      .first()
+    await detailLink.waitFor({ state: 'visible', timeout: 10000 })
+    await detailLink.click()
     await page.waitForLoadState('networkidle')
-    expect(page.url()).toContain('/users/')
+    expect(page.url()).toMatch(/\/users\/[a-f0-9]{8,}/)
   })
 
   test('import CSV utilisateurs', async ({ page }) => {

@@ -32,7 +32,15 @@ export default function PageGuide({ id, title, steps, color = 'blue' }: PageGuid
 
   return (
     <div className={`${c.bg} ${c.border} border rounded-xl p-4 mb-6 relative`}>
-      <button onClick={dismiss} className={`absolute top-3 right-3 ${c.icon} hover:opacity-70`}><X size={16} /></button>
+      <button
+        type="button"
+        onClick={dismiss}
+        aria-label="Fermer le guide"
+        title="Fermer le guide"
+        className={`absolute top-3 right-3 ${c.icon} hover:opacity-70`}
+      >
+        <X size={16} aria-hidden="true" />
+      </button>
       <div className="flex gap-3">
         <Info size={20} className={`${c.icon} flex-shrink-0 mt-0.5`} />
         <div>

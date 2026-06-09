@@ -2,198 +2,102 @@ import { test, expect } from "@playwright/test";
 import { loginAs } from "./helpers/auth";
 import {
   waitForPageLoad,
-  expectNoErrors,
   expectNotUnauthorized,
   takeScreenshot,
 } from "./helpers/utils";
 
-test.describe("LDAP - Configuration Admin", () => {
+// L'UI LDAP est passée d'un système à 4 onglets (Config/Test/Preview/Sync) à
+// une gestion MULTI-SOURCES : une carte par annuaire, chacune avec ses champs
+// (Hôte, Base DN, Bind DN, filtre) et ses actions Tester / Prévisualiser /
+// Synchroniser. L'en-tête expose « Ajouter une source » et « Enregistrer ».
+
+test.describe("LDAP - Configuration Admin (multi-sources)", () => {
   test.beforeEach(async ({ page }) => {
     await loginAs(page, "admin");
-    await page.waitForLoadState("networkidle");
+    await page.goto("/admin/ldap");
+    await waitForPageLoad(page);
   });
 
   test("/admin/ldap accessible", async ({ page }) => {
-    await page.goto("/admin/ldap");
-    await waitForPageLoad(page);
-    await expectNoErrors(page);
+    await expect(
+      page.getByRole("heading", { name: /annuaires ldap/i }),
+    ).toBeVisible({ timeout: 15000 });
     await expectNotUnauthorized(page);
     await takeScreenshot(page, "admin-ldap");
   });
 
-  test("4 onglets présents (Config/Test/Preview/Sync)", async ({ page }) => {
-    await page.goto("/admin/ldap");
-    await waitForPageLoad(page);
-
-    // LDAP tabs are <button> elements, not role="tab"
-    const tabs = page.getByRole("button");
-    await expect
-      .soft(tabs.filter({ hasText: /config/i }).first())
-      .toBeVisible({ timeout: 15000 });
-    await expect
-      .soft(tabs.filter({ hasText: /^test$/i }).first())
-      .toBeVisible({ timeout: 15000 });
-    await expect
-      .soft(
-        tabs.filter({ hasText: /prévisualisation|aperçu|preview/i }).first(),
-      )
-      .toBeVisible({ timeout: 15000 });
-    await expect
-      .soft(tabs.filter({ hasText: /synchronis|sync/i }).first())
-      .toBeVisible({ timeout: 15000 });
+  test("en-tête : actions Ajouter une source et Enregistrer", async ({
+    page,
+  }) => {
+    await expect(
+      page.getByRole("button", { name: /ajouter une source/i }),
+    ).toBeVisible({ timeout: 15000 });
+    await expect(
+      page.getByRole("button", { name: /^enregistrer$/i }),
+    ).toBeVisible();
   });
 
-  test("Tab Config - champs de formulaire présents", async ({ page }) => {
-    await page.goto("/admin/ldap");
-    await waitForPageLoad(page);
-
-    const configTab = page.getByRole("button", { name: /config/i });
-    if (await configTab.isVisible()) {
-      await configTab.click();
-      await page.waitForLoadState("networkidle");
+  test("une carte de source expose les champs de connexion", async ({
+    page,
+  }) => {
+    // S'assurer qu'au moins une source existe (sinon en créer une localement).
+    const sourceCards = page.locator(".tile");
+    if ((await sourceCards.count()) === 0) {
+      await page.getByRole("button", { name: /ajouter une source/i }).click();
     }
 
-    const urlField = page
-      .locator(
-        'input[name*="url"], input[placeholder*="ldap"], input[id*="url"]',
-      )
-      .first();
-    const baseDnField = page
-      .locator(
-        'input[name*="base"], input[placeholder*="dc="], input[id*="base"]',
-      )
-      .first();
-    const bindDnField = page
-      .locator(
-        'input[name*="bind"], input[id*="bind"], input[placeholder*="cn="]',
-      )
-      .first();
-    const passwordField = page.locator('input[type="password"]').first();
-
-    await expect.soft(urlField).toBeVisible({ timeout: 15000 });
-    await expect.soft(baseDnField).toBeVisible({ timeout: 15000 });
-    await expect.soft(bindDnField).toBeVisible({ timeout: 15000 });
-    await expect.soft(passwordField).toBeVisible({ timeout: 15000 });
-  });
-
-  test("Tab Config - sauvegarder la configuration", async ({ page }) => {
-    await page.goto("/admin/ldap");
-    await waitForPageLoad(page);
-
-    const configTab = page.getByRole("button", { name: /config/i });
-    if (await configTab.isVisible()) {
-      await configTab.click();
-      await page.waitForLoadState("networkidle");
-    }
-
-    const urlField = page
-      .locator(
-        'input[name*="url"], input[placeholder*="ldap"], input[id*="url"]',
-      )
-      .first();
-    if (await urlField.isVisible()) {
-      await urlField.fill("ldap://openldap:389");
-    }
-
-    const baseDnField = page
-      .locator(
-        'input[name*="base"], input[placeholder*="dc="], input[id*="base"]',
-      )
-      .first();
-    if (await baseDnField.isVisible()) {
-      await baseDnField.fill("dc=nxrh,dc=local");
-    }
-
-    const bindDnField = page
-      .locator(
-        'input[name*="bind"], input[id*="bind"], input[placeholder*="cn="]',
-      )
-      .first();
-    if (await bindDnField.isVisible()) {
-      await bindDnField.fill("cn=admin,dc=nxrh,dc=local");
-    }
-
-    const passwordField = page.locator('input[type="password"]').first();
-    if (await passwordField.isVisible()) {
-      await passwordField.fill("adminpass");
-    }
-
-    const saveButton = page.getByRole("button", {
-      name: /sauvegarder|enregistrer|save/i,
+    // Les champs portent un label (Hôte, Base DN, Bind DN) + un mot de passe.
+    await expect(page.getByLabel(/hôte/i).first()).toBeVisible({
+      timeout: 15000,
     });
-    if (await saveButton.isVisible()) {
-      await saveButton.click();
-      await expect(page.locator("body")).toContainText(
-        /succès|success|sauvegardé|enregistré|saved/i,
-        { timeout: 10000 },
-      );
-    }
+    await expect(page.getByLabel(/base dn/i).first()).toBeVisible();
+    await expect(page.getByLabel(/bind dn/i).first()).toBeVisible();
+    await expect(page.locator('input[type="password"]').first()).toBeVisible();
   });
 
-  test("Tab Test - bouton tester la connexion présent", async ({ page }) => {
-    await page.goto("/admin/ldap");
-    await waitForPageLoad(page);
-
-    const testTab = page.getByRole("button", { name: /^test$/i });
-    if (await testTab.isVisible()) {
-      await testTab.click();
-      await page.waitForLoadState("networkidle");
+  test("une carte de source expose Tester / Prévisualiser / Synchroniser", async ({
+    page,
+  }) => {
+    const sourceCards = page.locator(".tile");
+    if ((await sourceCards.count()) === 0) {
+      await page.getByRole("button", { name: /ajouter une source/i }).click();
     }
 
-    const testButton = page.getByRole("button", {
-      name: /test.*connexion|tester|test connection/i,
+    // Boutons d'action par source (plusieurs sources possibles → .first()).
+    await expect(
+      page.getByRole("button", { name: /^tester$/i }).first(),
+    ).toBeVisible({ timeout: 15000 });
+    await expect(
+      page.getByRole("button", { name: /prévisualiser/i }).first(),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: /^synchroniser$/i }).first(),
+    ).toBeVisible();
+  });
+
+  test("éditer un champ marque la configuration comme modifiée", async ({
+    page,
+  }) => {
+    const sourceCards = page.locator(".tile");
+    if ((await sourceCards.count()) === 0) {
+      await page.getByRole("button", { name: /ajouter une source/i }).click();
+    }
+
+    // Modifier le champ Hôte avec une valeur unique (≠ valeur seedée) crée un
+    // draft : taper caractère par caractère garantit le dispatch des events React.
+    const newHost = `ldap://openldap:389/${Date.now()}`;
+    const hostField = page.getByLabel(/hôte/i).first();
+    await hostField.click();
+    await hostField.fill("");
+    await hostField.pressSequentially(newHost, { delay: 10 });
+
+    // La valeur saisie est reflétée et l'avertissement « non enregistré » s'affiche.
+    await expect(hostField).toHaveValue(newHost);
+    await expect(page.getByText(/non enregistré|modifications/i)).toBeVisible({
+      timeout: 5000,
     });
-    await expect(testButton).toBeVisible({ timeout: 15000 });
 
-    await testButton.click();
-    await page.waitForLoadState("networkidle");
-
-    // Any response is acceptable (LDAP server may not be running in test env)
-    const bodyText = await page.locator("body").innerText();
-    expect(bodyText.length).toBeGreaterThan(10);
-
-    await takeScreenshot(page, "admin-ldap-test");
-  });
-
-  test("Tab Preview - affiche un message ou une liste", async ({ page }) => {
-    await page.goto("/admin/ldap");
-    await waitForPageLoad(page);
-
-    const previewTab = page.getByRole("button", {
-      name: /prévisualisation|aperçu|preview/i,
-    });
-    if (await previewTab.isVisible()) {
-      await previewTab.click();
-      await page.waitForLoadState("networkidle");
-    }
-
-    // Verify no JS crash — error classes are acceptable, runtime errors are not
-    await expect(page.locator("body")).not.toContainText(
-      /TypeError|ReferenceError/i,
-      { timeout: 10000 },
-    );
-    const bodyText = await page.locator("body").innerText();
-    expect(bodyText.length).toBeGreaterThan(5);
-  });
-
-  test("Tab Sync - bouton synchroniser présent", async ({ page }) => {
-    await page.goto("/admin/ldap");
-    await waitForPageLoad(page);
-
-    // Cliquer sur l'onglet "Synchronisation" (exact pour éviter de matcher le bouton action)
-    const syncTab = page.getByRole("button", { name: "Synchronisation" });
-    if (await syncTab.isVisible()) {
-      await syncTab.click();
-      await page.waitForLoadState("networkidle");
-    }
-
-    // Le bouton d'action est "Lancer la synchronisation" (différent du libellé du tab)
-    const syncButton = page
-      .getByRole("button", { name: /lancer la synchronisation|synchronis/i })
-      .last();
-    await expect(syncButton).toBeVisible({ timeout: 15000 });
-
-    await takeScreenshot(page, "admin-ldap-sync");
+    await takeScreenshot(page, "admin-ldap-edit");
   });
 });
 
@@ -203,13 +107,11 @@ test.describe("LDAP - Page de connexion LDAP", () => {
     await page.waitForLoadState("networkidle");
 
     const usernameField = page
-      .locator(
-        'input[name*="user"], input[name*="login"], input[type="text"], input[placeholder*="user"]',
-      )
-      .first();
+      .getByRole("textbox", { name: /identifiant ldap/i })
+      .or(page.locator('input[type="text"]').first());
     const passwordField = page.locator('input[type="password"]').first();
 
-    await expect(usernameField).toBeVisible({ timeout: 15000 });
+    await expect(usernameField.first()).toBeVisible({ timeout: 15000 });
     await expect(passwordField).toBeVisible({ timeout: 15000 });
 
     await takeScreenshot(page, "login-ldap");
@@ -220,20 +122,16 @@ test.describe("LDAP - Page de connexion LDAP", () => {
     await page.waitForLoadState("networkidle");
 
     const submitButton = page.getByRole("button", {
-      name: /connexion|login|se connecter|submit/i,
+      name: /se connecter via ldap|connexion|login|submit/i,
     });
-    if (await submitButton.isVisible()) {
-      await submitButton.click();
-    }
+    await submitButton.click();
 
-    // Inline errors should appear near the fields, not only as toast
-    const inlineErrors = page.locator(
-      '[class*="error"]:not([role="alert"]), .invalid-feedback, [data-error]',
-    );
-    await expect.soft(inlineErrors.first()).toBeVisible({ timeout: 5000 });
-
-    const invalidInputs = page.locator('input[aria-invalid="true"]');
-    expect.soft(await invalidInputs.count()).toBeGreaterThan(0);
+    // Une erreur inline apparaît sous le champ (texte rouge, pas un toast).
+    const inlineError = page
+      .locator('[class*="error"]')
+      .filter({ hasText: /requis|obligatoire|champ/i })
+      .first();
+    await expect(inlineError).toBeVisible({ timeout: 5000 });
   });
 
   test("mauvais credentials LDAP - message d'erreur clair", async ({
@@ -243,31 +141,25 @@ test.describe("LDAP - Page de connexion LDAP", () => {
     await page.waitForLoadState("networkidle");
 
     const usernameField = page
-      .locator('input[name*="user"], input[name*="login"], input[type="text"]')
-      .first();
+      .getByRole("textbox", { name: /identifiant ldap/i })
+      .or(page.locator('input[type="text"]').first());
     const passwordField = page.locator('input[type="password"]').first();
 
-    if (await usernameField.isVisible()) {
-      await usernameField.fill("testuser");
-    }
-    if (await passwordField.isVisible()) {
-      await passwordField.fill("wrongpass");
-    }
+    await usernameField.first().fill("testuser");
+    await passwordField.fill("wrongpass");
 
-    const submitButton = page.getByRole("button", {
-      name: /connexion|login|se connecter|submit/i,
-    });
-    if (await submitButton.isVisible()) {
-      await submitButton.click();
-      await page.waitForLoadState("networkidle");
-    }
+    await page
+      .getByRole("button", {
+        name: /se connecter via ldap|connexion|login|submit/i,
+      })
+      .click();
+    await page.waitForLoadState("networkidle");
 
-    // Error message must be visible and human-readable (not blank page, not crash)
+    // Un message d'erreur lisible doit apparaître (identifiants / serveur).
     const errorMessage = page
-      .locator('[class*="error"], [role="alert"], [data-testid*="error"]')
+      .locator('[class*="error"], [role="alert"]')
       .first();
     await expect(errorMessage).toBeVisible({ timeout: 10000 });
-
     const errorText = await errorMessage.innerText();
     expect(errorText.length).toBeGreaterThan(3);
   });
@@ -276,8 +168,9 @@ test.describe("LDAP - Page de connexion LDAP", () => {
     await page.goto("/login/ldap");
     await page.waitForLoadState("networkidle");
 
+    // Le lien de retour s'intitule « Connexion standard ».
     const backLink = page.getByRole("link", {
-      name: /retour|connexion normale|← login|login classique/i,
+      name: /connexion standard|retour|connexion normale|login classique/i,
     });
     await expect(backLink).toBeVisible({ timeout: 15000 });
 

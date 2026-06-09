@@ -44,6 +44,18 @@ const eventSchema = new Schema({
   // true une fois que le rappel (J-1 ou J-7) a été envoyé par le scheduler
   reminderSent: { type: Boolean, default: false },
 
+  // Réponses des participants (RSVP) : chaque utilisateur peut accepter, décliner
+  // ou se déclarer incertain. Une seule réponse par utilisateur (upsert côté route).
+  responses: {
+    type: [{
+      userId:      { type: Schema.Types.ObjectId, ref: 'User', required: true },
+      status:      { type: String, enum: ['accepted', 'declined', 'tentative'], required: true },
+      respondedAt: { type: Date, default: Date.now },
+    }],
+    default: [],
+    _id: false,
+  },
+
   createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
 
 }, { timestamps: true, versionKey: false })

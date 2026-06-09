@@ -9,7 +9,7 @@ nx/
 ├── nginx/             ← Configuration reverse-proxy (prod + dev)
 ├── docker/            ← Fichiers de configuration Docker auxiliaires (nginx-dev.conf, …)
 ├── docs/              ← Architecture, flows métier, rôles, specs API, runbook
-├── designs/           ← Maquettes HTML et fichiers de design (source de vérité visuelle)
+├── design/            ← Maquettes HTML et fichiers de design (source de vérité visuelle)
 ├── scripts/           ← Scripts de migration, seeding LDAP, utilitaires
 ├── CONTRIBUTING.md          ← Conventions & architecture (source de vérité pour les développeurs)
 ├── Dockerfile         ← Build multi-stage (frontend → mongo/server/public/ + Express)

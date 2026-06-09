@@ -1,7 +1,9 @@
 import { useState, useRef, useCallback } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import { evaluationsApi } from "../api/evaluations";
+import { toast } from "./useToast";
 import type { Evaluation, FormQuestion } from "../types";
 import type { EvalMutationHandle } from "../types/evaluation";
 import { queryKeys } from "../lib/queryKeys";
@@ -9,6 +11,33 @@ import { queryKeys } from "../lib/queryKeys";
 export type SaveState = "idle" | "saving" | "saved" | "error";
 
 const draftKey = (id: string) => `eval-draft-${id}`;
+
+// Le serveur stocke les réponses en tableau [{questionId, value}] ; le formulaire
+// les manipule en Record { [questionId]: value }. Ces deux helpers convertissent.
+function answersToRecord(
+  answers: unknown,
+): Record<string, unknown> {
+  if (Array.isArray(answers)) {
+    return Object.fromEntries(
+      answers
+        .filter(
+          (a): a is { questionId: string; value: unknown } =>
+            !!a && typeof (a as { questionId?: unknown }).questionId === "string",
+        )
+        .map((a) => [a.questionId, a.value]),
+    );
+  }
+  return (answers as Record<string, unknown>) ?? {};
+}
+
+function recordToAnswers(
+  record: Record<string, unknown>,
+): Array<{ questionId: string; value: unknown }> {
+  return Object.entries(record).map(([questionId, value]) => ({
+    questionId,
+    value,
+  }));
+}
 
 export interface UseEvaluationFormResult {
   saveState: SaveState;
@@ -51,18 +80,22 @@ export function useEvaluationForm(
   evaluation: Evaluation,
 ): UseEvaluationFormResult {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const id = evaluation.id;
 
   // Restaure un éventuel brouillon local (réponses dont la dernière sauvegarde
   // serveur a échoué) pour ne pas perdre le travail après fermeture d'onglet.
   const [answers, setAnswers] = useState<Record<string, unknown>>(() => {
+    // Le serveur stocke les réponses sous forme de tableau [{questionId, value}].
+    // Le formulaire les manipule sous forme de Record { [questionId]: value }.
+    const base = answersToRecord(evaluation.answers);
     try {
       const raw = localStorage.getItem(draftKey(id));
-      if (raw) return { ...(evaluation.answers ?? {}), ...JSON.parse(raw) };
+      if (raw) return { ...base, ...JSON.parse(raw) };
     } catch {
       /* localStorage indisponible ou JSON corrompu → on ignore */
     }
-    return evaluation.answers ?? {};
+    return base;
   });
   const [saveState, setSaveState] = useState<SaveState>(() => {
     try {
@@ -118,8 +151,12 @@ export function useEvaluationForm(
       saveTimeoutRef.current = setTimeout(async () => {
         try {
           await evaluationsApi.updateEvaluation(id, {
-            answers: updatedAnswers,
-            status: "in_progress",
+            // Le serveur attend un tableau [{questionId, value}], pas un objet.
+            // On n'envoie PAS de status : le serveur passe automatiquement
+            // 'assigned' → 'in_progress' au premier enregistrement de réponses.
+            // (Envoyer status: 'in_progress' provoquait une transition no-op
+            // refusée puisque le serveur avait déjà avancé le statut.)
+            answers: recordToAnswers(updatedAnswers),
           });
           setLastSavedAt(new Date());
           setSaveState("saved");
@@ -160,6 +197,25 @@ export function useEvaluationForm(
     onSuccess: () => {
       void invalidate();
       setSubmitModal(false);
+      toast.success(
+        "Évaluation soumise",
+        "Vous pouvez maintenant programmer et mener l'entretien.",
+      );
+      // Après soumission, on dirige vers l'entretien pour caler le rendez-vous
+      // et le mener (plutôt que de rester sur l'écran de remplissage).
+      const cid =
+        typeof evaluation.campaignId === "string"
+          ? evaluation.campaignId
+          : evaluation.campaignId?._id;
+      const eid =
+        typeof evaluation.evaluateeId === "string"
+          ? evaluation.evaluateeId
+          : (evaluation.evaluateeId as { _id?: string } | undefined)?._id;
+      if (cid && eid) {
+        navigate(`/interview?campaignId=${cid}&evaluateeId=${eid}`);
+      } else {
+        navigate("/evaluations");
+      }
     },
   });
 

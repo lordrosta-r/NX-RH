@@ -5,6 +5,13 @@ services:
   app:
     env_file:
       - .env.e2e
+    environment:
+      # Stack e2e JETABLE : on garde NODE_ENV=production (test du vrai mode prod)
+      # mais on relâche le rate-limit de login. E2E_STACK=true est le double opt-in
+      # exigé par le garde-fou de boot (mongo/server/index.js) pour autoriser RELAX
+      # en production sur une instance jetable. NE JAMAIS mettre en vraie prod.
+      RELAX_RATE_LIMIT: "true"
+      E2E_STACK: "true"
     # Publie l'app en HTTP direct (sans nginx ni redirection HTTPS) pour pouvoir
     # la forwarder via un tunnel (VS Code devtunnel, ngrok…) et tester en externe.
     ports:

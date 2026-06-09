@@ -82,9 +82,9 @@ test.describe("Audit visuel & UX", () => {
     }
   });
 
-  // Bug responsive connu et tracé (#91) : pas de nav repliable en mobile → overflow
-  // horizontal ~370px sur la plupart des pages. fixme jusqu'à correction du chantier.
-  test.fixme("UX - mobile 390px: pas d'overflow horizontal", async ({ page }) => {
+  // #91/#98 corrigé : nav repliable (hamburger + drawer) en mobile + tables
+  // scrollables → plus d'overflow horizontal à 390px.
+  test("UX - mobile 390px: pas d'overflow horizontal", async ({ page }) => {
     test.setTimeout(120000);
 
     await page.setViewportSize({ width: 390, height: 844 });
@@ -96,10 +96,9 @@ test.describe("Audit visuel & UX", () => {
       const scrollWidth = await page.evaluate(
         () => document.documentElement.scrollWidth,
       );
-      // ⚠️ BUG APP réel : à 390px, la coquille (sidebar/sous-nav) ne se replie
-      // pas → scrollWidth ≈ 762 (overflow horizontal massif) sur quasiment
-      // toutes les pages authentifiées. Assertion conservée volontairement
-      // pour signaler le défaut (ne pas masquer).
+      // À 390px, la sous-nav est remplacée par un drawer (hamburger) et les
+      // tables larges deviennent défilables horizontalement dans leur
+      // conteneur → le document ne déborde plus (scrollWidth ≤ 400).
       if (scrollWidth > 400) {
         test.info().annotations.push({
           type: "BUG",

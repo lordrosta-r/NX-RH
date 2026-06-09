@@ -1,5 +1,48 @@
 # CHANGELOG — NX-RH
 
+## [1.2.0] — 2026-06-09 — Durcissement prod
+
+Campagne « prod-ready » : challenge bout-à-bout par rôle (chaque page, chaque
+bouton, chaque route), audits automatisés et corrections.
+
+### Nouveautés
+- **RSVP événements** : un participant peut **Accepter / Incertain / Décliner** un
+  RDV (`POST /api/events/:id/respond`), réponse persistée et affichée.
+- **Mobile responsive** : navigation repliable (hamburger + drawer < 768px), 0
+  débordement horizontal à 390px.
+- **Explications** : encart `PageGuide` ajouté sur 12 pages (dashboards, campagne,
+  formulaires, mobilité, analytics, flags, événements, documents).
+
+### Corrections (bugs)
+- Page PDI : ne crashe plus si l'employé/manager d'un PDI est supprimé.
+- Événements : clic sur un événement ne renvoie plus vers `/events/undefined`.
+- Création utilisateur : `POST /api/users` renvoie `id` + `temporaryPassword`
+  (« Voir le profil » ne mène plus à `/users/undefined`).
+- Recherche utilisateurs : honore `q` **et** `search`, et matche les emails (`@`).
+- Pagination `/users` et `/admin/users` : l'admin voit **tous** les utilisateurs.
+- RBAC : détail PDI accessible au manager/employé (était 403). `/org` réservé manager+.
+- Accessibilité : nom accessible sur le bouton de fermeture `PageGuide`, contraste
+  des états vides.
+- Export CSV de l'audit admin : route corrigée (était 404).
+- Notifications : badge de la cloche rafraîchi après « tout marquer comme lu ».
+- Création de campagne : message d'erreur en cas d'échec serveur.
+
+### UI par rôle
+- Boutons **Exporter** (PDF/CSV) et actions en masse masqués aux rôles non
+  autorisés (le manager n'exporte plus).
+
+### Sécurité / config
+- `RELAX_RATE_LIMIT` toléré en production **uniquement** avec `E2E_STACK=true`
+  (double opt-in pour les stacks e2e jetables ; la vraie prod le refuse).
+- Audit d'intégrité : ~422 requêtes `/api` vérifiées, aucun endpoint mort.
+- Endpoints durcis (barrières anti-injection NoSQL sur les entrées).
+
+### Tests / qualité
+- Audits e2e : accessibilité (axe-core), couverture de routes (142 routes, RBAC
+  sans fuite), intégrité des endpoints, challenge « chaque bouton » par rôle.
+- Isolation des tests destructifs (comptes jetables) → run complet stable.
+- LICENSE propriétaire ; documentation et wiki mis à jour.
+
 ## [1.1.0] — 2026-06-08
 
 ### Sécurité

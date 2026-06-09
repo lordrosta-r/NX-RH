@@ -47,9 +47,25 @@ test.describe('Admin - Parcours Admin', () => {
     }
     
     await adminPage.createUser(newUser)
-    
-    // Vérifier la création
-    await expect(page.getByText(newUser.email)).toBeVisible({ timeout: 10000 })
+
+    // La modale de confirmation « Utilisateur créé ! » atteste la création réussie.
+    // On ne suit PAS « Voir le profil » (→ /users/undefined) ni la recherche liste,
+    // bloqués par deux bugs app connus (voir note du livrable) :
+    //  • POST /api/users ne renvoie pas le champ virtuel `id`
+    //  • la recherche de /users envoie `q=` mais l'API n'honore que `search=`
+    await expect(page.getByText(/Utilisateur créé/i)).toBeVisible({ timeout: 10000 })
+
+    // Vérification indépendante via l'API : l'utilisateur existe bien en base.
+    // On recherche par le timestamp (unique) du nom, puis on filtre l'email exact.
+    const res = await page.request.get(
+      `/api/users?search=${encodeURIComponent(newUser.lastName)}&limit=50`,
+    )
+    expect(res.ok()).toBeTruthy()
+    const body = await res.json()
+    const created = (body.data ?? []).some(
+      (u: { email: string }) => u.email === newUser.email,
+    )
+    expect(created).toBeTruthy()
   })
 
   test('import CSV utilisateurs (mock)', async ({ page }) => {

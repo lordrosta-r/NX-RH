@@ -47,7 +47,7 @@ const ROUTES: RouteDef[] = [
   { path: "/profile", roles: null },
   { path: "/profile/preferences", roles: null },
   { path: "/notifications", roles: null },
-  { path: "/org", roles: null },
+  { path: "/org", roles: ["admin", "hr", "manager"] }, // #90 : plus accessible à l'employé
   // Restreintes par rôle
   { path: "/objectives", roles: ALL },
   { path: "/users", roles: ["admin", "hr", "manager"] },

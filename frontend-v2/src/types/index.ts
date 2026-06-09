@@ -392,6 +392,12 @@ export interface CalendarEvent {
   location?: string;
   campaignId?: string;
   targetRoles?: string[];
+  /** Réponses RSVP des participants. */
+  responses?: Array<{
+    userId: string;
+    status: "accepted" | "declined" | "tentative";
+    respondedAt?: string;
+  }>;
 }
 
 // ─── Ressources ────────────────────────────────────────────────────────────────

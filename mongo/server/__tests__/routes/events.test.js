@@ -586,3 +586,61 @@ describe('DELETE /api/events/:id', () => {
     expect(Event.findByIdAndDelete).toHaveBeenCalledWith(EVENT_ID)
   })
 })
+
+// ─── POST /api/events/:id/respond (RSVP) ────────────────────────────────────────
+describe('POST /api/events/:id/respond', () => {
+  it('400 for an invalid status', async () => {
+    const res = await request(app)
+      .post(`/api/events/${EVENT_ID}/respond`)
+      .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+      .send({ status: 'maybe' })
+    expect(res.status).toBe(400)
+  })
+
+  it('404 when the event does not exist', async () => {
+    Event.findById = jest.fn().mockReturnValue(makeThenable(null))
+    const res = await request(app)
+      .post(`/api/events/${EVENT_ID}/respond`)
+      .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+      .send({ status: 'accepted' })
+    expect(res.status).toBe(404)
+  })
+
+  it('employee accepts → 200, réponse ajoutée + save()', async () => {
+    const doc = mockEventDoc({ targetRoles: [], responses: [] })
+    Event.findById = jest.fn().mockReturnValue(makeThenable(doc))
+    const res = await request(app)
+      .post(`/api/events/${EVENT_ID}/respond`)
+      .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+      .send({ status: 'accepted' })
+    expect(res.status).toBe(200)
+    expect(doc.save).toHaveBeenCalled()
+    expect(doc.responses).toHaveLength(1)
+    expect(doc.responses[0]).toMatchObject({ userId: EMPLOYEE_ID, status: 'accepted' })
+  })
+
+  it('upsert : une 2ᵉ réponse du même user met à jour (pas de doublon)', async () => {
+    const doc = mockEventDoc({
+      targetRoles: [],
+      responses: [{ userId: EMPLOYEE_ID, status: 'accepted', respondedAt: new Date() }],
+    })
+    Event.findById = jest.fn().mockReturnValue(makeThenable(doc))
+    const res = await request(app)
+      .post(`/api/events/${EVENT_ID}/respond`)
+      .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+      .send({ status: 'declined' })
+    expect(res.status).toBe(200)
+    expect(doc.responses).toHaveLength(1)
+    expect(doc.responses[0].status).toBe('declined')
+  })
+
+  it('403 si le rôle n\'est pas dans targetRoles', async () => {
+    const doc = mockEventDoc({ targetRoles: ['manager'], responses: [] })
+    Event.findById = jest.fn().mockReturnValue(makeThenable(doc))
+    const res = await request(app)
+      .post(`/api/events/${EVENT_ID}/respond`)
+      .set('Cookie', `accessToken=${tokenFor({ id: EMPLOYEE_ID, role: 'employee' })}`)
+      .send({ status: 'accepted' })
+    expect(res.status).toBe(403)
+  })
+})

@@ -34,3 +34,4 @@ frontend-v2/e2e/.*.json
 
 # Certificats TLS (jamais versionnés — générés/uploadés)
 nginx/certs/*.pem
+docker-compose.relax.yml

@@ -104,8 +104,21 @@ router.get('/', async (req, res, next) => {
       filter.department = department
     }
     if (sector && mongoose.isValidObjectId(sector)) filter.sectorId = sector
-    if (search) {
-      filter.$text = { $search: search.slice(0, 100) }
+    // Recherche : honorer `search` ET `q` (le front envoyait `q`, l'API ignorait).
+    // $regex échappé (matche le partiel ET les emails avec @ — contrairement à $text
+    // qui tokenise mal). Échappement = sûr vis-à-vis de l'injection NoSQL.
+    const term = typeof search === 'string' ? search : (typeof req.query.q === 'string' ? req.query.q : '')
+    if (term) {
+      const safe = term.slice(0, 100).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      const rx = new RegExp(safe, 'i')
+      const searchOr = [{ firstName: rx }, { lastName: rx }, { email: rx }]
+      if (filter.$or) {
+        // Un $or existe déjà (scope manager) → combiner sans l'écraser.
+        filter.$and = [{ $or: filter.$or }, { $or: searchOr }]
+        delete filter.$or
+      } else {
+        filter.$or = searchOr
+      }
     }
 
     const result = await paginate(User, filter, {
@@ -162,7 +175,9 @@ router.post('/', validate(createUserValidator), async (req, res, next) => {
     }
 
     const result = await userService.createUser(req.body)
-    respond.created(res, result)
+    // Exposer `id` (le front lit newUser.id, sinon « Voir le profil » → /users/undefined)
+    // et `temporaryPassword` (alias attendu côté UI) en plus de `tempPassword`.
+    respond.created(res, withId({ ...result, temporaryPassword: result.tempPassword }))
   } catch (err) {
     if (err.code === 11000 && err.keyPattern?.email) return res.status(409).json({ success: false, error: 'Email déjà utilisé', code: 'EMAIL_TAKEN' })
     if (err.code === 11000) return res.status(409).json({ success: false, error: 'Email déjà utilisé', code: 'DUPLICATE_KEY' })

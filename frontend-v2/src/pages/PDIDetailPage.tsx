@@ -50,8 +50,13 @@ interface PDI {
     email: string;
     department?: string;
     position?: string;
-  };
-  manager: { _id: string; firstName: string; lastName: string; email: string };
+  } | null;
+  manager: {
+    _id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  } | null;
   period: { start: string; end: string };
   objectives: string[];
   actions: Action[];
@@ -205,13 +210,22 @@ export default function PDIDetailPage() {
       : 0;
 
   const isEmployee =
-    user?._id === pdi.employee._id || user?.id === pdi.employee._id;
+    user?._id === pdi.employee?._id || user?.id === pdi.employee?._id;
   const isManager =
-    user?._id === pdi.manager._id || user?.id === pdi.manager._id;
+    user?._id === pdi.manager?._id || user?.id === pdi.manager?._id;
   const canSign =
     (isEmployee && !pdi.employeeSignedAt) ||
     (isManager && !pdi.managerSignedAt) ||
     (["admin", "hr"].includes(user?.role ?? "") && !pdi.managerSignedAt);
+
+  // Noms sûrs : employee/manager peuvent être null (user supprimé / populate null)
+  // → ne jamais crasher la page sur .firstName.
+  const employeeName = pdi.employee
+    ? `${pdi.employee.firstName} ${pdi.employee.lastName}`
+    : "Utilisateur supprimé";
+  const managerName = pdi.manager
+    ? `${pdi.manager.firstName} ${pdi.manager.lastName}`
+    : "—";
 
   return (
     <div className="nx-app">
@@ -219,7 +233,7 @@ export default function PDIDetailPage() {
         items={[
           { label: "Accueil", href: "/" },
           { label: "PDI", href: "/pdi" },
-          { label: `${pdi.employee.firstName} ${pdi.employee.lastName}` },
+          { label: employeeName },
         ]}
       />
 
@@ -231,11 +245,13 @@ export default function PDIDetailPage() {
       />
 
       <PageHead
-        title={`PDI — ${pdi.employee.firstName} ${pdi.employee.lastName}`}
+        title={`PDI — ${employeeName}`}
         desc={
           <>
-            {pdi.employee.position && <span>{pdi.employee.position} · </span>}
-            {pdi.employee.department}
+            {pdi.employee?.position && (
+              <span>{pdi.employee.position} · </span>
+            )}
+            {pdi.employee?.department}
           </>
         }
         actions={
@@ -253,7 +269,7 @@ export default function PDIDetailPage() {
               Manager
             </p>
             <p className="body" style={{ fontWeight: 600 }}>
-              {pdi.manager.firstName} {pdi.manager.lastName}
+              {managerName}
             </p>
           </div>
           <div style={{ minWidth: 100 }}>

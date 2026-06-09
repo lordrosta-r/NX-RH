@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { Inbox, MoreVertical, X } from "lucide-react";
 import { adminApi } from "../api/admin";
 import type {
@@ -10,6 +11,7 @@ import type {
 } from "../types";
 import { queryKeys } from "../lib/queryKeys";
 import { PageHead, Tile, Badge } from "../components/shell";
+import PageGuide from "../components/shared/PageGuide";
 
 type Tone = "blue" | "green" | "amber" | "red" | "grey";
 
@@ -61,6 +63,7 @@ function SkeletonRow() {
 }
 
 export default function HrFlagsPage() {
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const [statusFilter, setStatusFilter] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
@@ -101,6 +104,13 @@ export default function HrFlagsPage() {
   return (
     <div className="nx-app">
       <PageHead title="Demandes RH" />
+
+      <PageGuide
+        id="hrFlags"
+        title={t("guides.hrFlags.title")}
+        color="amber"
+        steps={t("guides.hrFlags.steps", { returnObjects: true }) as string[]}
+      />
 
       {/* Filtres */}
       <Tile className="row wrap" style={{ gap: 12, marginBottom: 20 }}>

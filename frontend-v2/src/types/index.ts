@@ -392,6 +392,12 @@ export interface CalendarEvent {
   location?: string;
   campaignId?: string;
   targetRoles?: string[];
+  /** Réponses RSVP des participants. */
+  responses?: Array<{
+    userId: string;
+    status: "accepted" | "declined" | "tentative";
+    respondedAt?: string;
+  }>;
 }
 
 // ─── Ressources ────────────────────────────────────────────────────────────────
@@ -539,6 +545,25 @@ export interface PaginatedResponse<T> {
   page: number;
   limit: number;
   totalPages?: number;
+}
+
+// Métadonnées de pagination renvoyées par le backend dans `meta`
+// (cf. apiResponse.paginated : { total, page, limit, pages, hasNext, hasPrev }).
+export interface PaginationMeta {
+  total: number;
+  page: number;
+  limit: number;
+  pages: number;
+  hasNext: boolean;
+  hasPrev: boolean;
+}
+
+// Enveloppe réelle d'une réponse liste paginée : la donnée est dans `data`,
+// les compteurs de pagination dans `meta`.
+export interface PaginatedEnvelope<T> {
+  success: boolean;
+  data: T[];
+  meta: PaginationMeta;
 }
 
 export interface ItemResponse<T> {

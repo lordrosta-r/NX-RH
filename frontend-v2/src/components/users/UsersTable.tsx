@@ -282,6 +282,9 @@ export function UsersTable({
   onBulkExport,
   onClearSelection,
 }: Props) {
+  // Les actions en masse (désactiver, export CSV) sont réservées admin/hr
+  // côté API ; le manager ne dispose que d'une vue lecture de son équipe.
+  const canBulk = currentRole === "admin" || currentRole === "hr";
   const allSelected =
     users.length > 0 && users.every((u) => selected.has(u.id ?? ""));
 
@@ -453,7 +456,7 @@ export function UsersTable({
         )}
       </div>
 
-      {selected.size > 0 && (
+      {canBulk && selected.size > 0 && (
         <div
           style={{
             position: "fixed",

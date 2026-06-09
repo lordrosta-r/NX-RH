@@ -35,6 +35,7 @@ import { toast } from "../hooks/useToast";
 import { queryKeys } from "../lib/queryKeys";
 import type { Resource, ResourceType, Role } from "../types";
 import { PageHead, Tile, Badge } from "../components/shell";
+import PageGuide from "../components/shared/PageGuide";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function formatFileSize(bytes: number): string {
@@ -761,6 +762,13 @@ export default function ResourcesPage() {
             </button>
           )
         }
+      />
+
+      <PageGuide
+        id="resources"
+        title={t("guides.resources.title")}
+        color="blue"
+        steps={t("guides.resources.steps", { returnObjects: true }) as string[]}
       />
 
       {/* Filters — admin/hr only */}

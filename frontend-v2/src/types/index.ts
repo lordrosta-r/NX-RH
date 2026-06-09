@@ -377,6 +377,8 @@ export type EventType =
 
 export interface CalendarEvent {
   id: string;
+  /** L'API events renvoie `_id` (docs lean, pas de virtual `id`) — normalisé côté api/events.ts. */
+  _id?: string;
   title: string;
   description?: string;
   type: EventType;

@@ -42,7 +42,10 @@ test.describe.serial("Admin — cycle de vie utilisateur", () => {
     const sRes = await page.request.post("/api/users", {
       data: {
         firstName: "Test",
-        lastName: `Sub${ts}`,
+        // Nom triant en tête (liste users : sort lastName asc, limit 100 côté
+        // UserEditPage). Garantit que le subordonné est dans la fenêtre active
+        // utilisée pour détecter l'équipe → le champ « Remplaçant » s'affiche.
+        lastName: `Aaa${ts}`,
         email: `test.sub.${ts}@nxrh.local`,
         role: "employee",
         managerId,

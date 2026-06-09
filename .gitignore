@@ -35,3 +35,6 @@ frontend-v2/e2e/.*.json
 nginx/certs/*.pem
 docker-compose.relax.yml
 CLAUDE.md
+
+# Artefacts de preuve e2e (captures locales, non versionnées)
+frontend-v2/e2e/proof/

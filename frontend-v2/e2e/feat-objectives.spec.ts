@@ -18,8 +18,23 @@ import { loginAs } from "./helpers/auth";
 //   lucas.bernard (employee) est rattaché à pierre.leclerc (manager).
 // =============================================================================
 
-const LUCAS_ID = "6a26b77b70a68b92708869e4"; // employee (seed)
-const PIERRE_ID = "6a26b77b70a68b92708869e1"; // manager de lucas (seed)
+// Résout l'id d'un user par email (le seed régénère les ObjectIds à chaque reseed,
+// donc on ne peut PAS les coder en dur). La recherche backend honore `search` + `@`.
+async function resolveUserId(
+  req: APIRequestContext,
+  email: string,
+): Promise<string> {
+  const r = await req.get(
+    `/api/users?search=${encodeURIComponent(email)}&limit=5`,
+  );
+  const j = await r.json();
+  const list: Array<{ _id?: string; id?: string; email?: string }> =
+    j.data ?? [];
+  const u = list.find((x) => x.email === email) ?? list[0];
+  const id = u?._id ?? u?.id;
+  if (!id) throw new Error(`User introuvable pour ${email}`);
+  return id;
+}
 
 function trackErrors(page: Page): string[] {
   const errors: string[] = [];
@@ -44,6 +59,8 @@ interface Seeded {
 async function seedObjective(req: APIRequestContext): Promise<Seeded> {
   const ts = Date.now();
   const objectiveText = `Objectif e2e ${ts}`;
+  const lucasId = await resolveUserId(req, "lucas.bernard@nxrh.local");
+  const pierreId = await resolveUserId(req, "pierre.leclerc@nxrh.local");
 
   const form = await req.post("/api/forms", {
     data: {
@@ -74,8 +91,8 @@ async function seedObjective(req: APIRequestContext): Promise<Seeded> {
     data: {
       campaignId,
       formId,
-      evaluateeId: LUCAS_ID,
-      evaluatorId: PIERRE_ID,
+      evaluateeId: lucasId,
+      evaluatorId: pierreId,
     },
   });
   expect(ev.ok()).toBeTruthy();
@@ -83,7 +100,7 @@ async function seedObjective(req: APIRequestContext): Promise<Seeded> {
   const state = await req.patch("/api/interviews/state", {
     data: {
       campaignId,
-      evaluateeId: LUCAS_ID,
+      evaluateeId: lucasId,
       nextYearObjectives: [{ text: objectiveText }],
       objectivesReview: [{ label: `Bilan e2e ${ts}`, status: "achieved" }],
     },

@@ -14,8 +14,12 @@ import { AdminPage, CampaignPage } from './page-objects'
  * Copiez ce template pour créer de nouveaux tests.
  */
 
-test.describe('Exemple - Template de tests', () => {
-  
+// Template de référence (bonnes pratiques + page-objects de démo), hors suite :
+// ses exemples illustrent des patterns mais utilisent des flux non maintenus
+// (createUser/createCampaign) qui ne reflètent plus l'UI réelle. On le sort du
+// run pour ne pas polluer le signal CI tout en gardant la documentation.
+test.describe.skip('Exemple - Template de tests', () => {
+
   // ============================================================================
   // EXEMPLE 1 : Test simple avec login
   // ============================================================================

@@ -22,13 +22,15 @@ function assertValidId(id) {
  * - manager  : peut voir les PDIs qu'il gère
  * - admin/hr  : voient tout
  */
+// Extrait l'id qu'employee/manager soit un ObjectId brut ou un doc populé.
+function refId(ref) {
+  return (ref && ref._id ? ref._id : ref).toString()
+}
+
 function assertCanRead(pdi, requesterId, requesterRole) {
   if (['admin', 'hr'].includes(requesterRole)) return
   const uid = requesterId.toString()
-  if (
-    pdi.employee.toString() === uid ||
-    pdi.manager.toString()  === uid
-  ) return
+  if (refId(pdi.employee) === uid || refId(pdi.manager) === uid) return
   throw AppError.forbidden('Accès refusé à ce PDI')
 }
 
@@ -38,10 +40,7 @@ function assertCanRead(pdi, requesterId, requesterRole) {
 function assertCanWrite(pdi, requesterId, requesterRole) {
   if (['admin', 'hr'].includes(requesterRole)) return
   const uid = requesterId.toString()
-  if (
-    pdi.employee.toString() === uid ||
-    pdi.manager.toString()  === uid
-  ) return
+  if (refId(pdi.employee) === uid || refId(pdi.manager) === uid) return
   throw AppError.forbidden('Modification non autorisée')
 }
 

@@ -66,6 +66,9 @@
 .nx-app h4,
 .nx-app p {
   margin: 0;
+  /* Les chaînes longues non sécables (ID, e-mails, URL) cassent au lieu
+     de déborder horizontalement du conteneur. */
+  overflow-wrap: break-word;
 }
 .nx-app a {
   color: var(--blue-text);
@@ -87,6 +90,7 @@
   letter-spacing: -0.018em;
   line-height: 1.12;
   color: var(--ink);
+  overflow-wrap: break-word;
 }
 .nx-app .h2 {
   font-size: 22px;
@@ -905,5 +909,40 @@
   .nx-app div:has(> .tbl-head) {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+  }
+
+  /* Builder de formulaires : la colonne de config fixe (360px) passe sous
+     l'éditeur au lieu de forcer un débordement horizontal. minmax(0, 1fr)
+     (et non 1fr) autorise la piste à descendre sous son min-content. */
+  .nx-app .fb-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  .nx-app .fb-grid > * {
+    min-width: 0;
+  }
+}
+
+/* ===================== GRILLES DE STATS / CARTES (mobile étroit) =====================
+   Les pistes `1fr` et `minmax(380px, 1fr)` posées en style inline conservent une
+   largeur minimale (min-content / 380px) qui dépasse les petits écrans : le contenu
+   se retrouve rogné par `body { overflow-x: hidden }`. On force ici un vrai
+   rétrécissement en réduisant le nombre de colonnes. */
+@media (max-width: 600px) {
+  /* Tuiles de statistiques (.stat-tile) : 4 colonnes → 2 colonnes compressibles. */
+  .nx-app div:has(> .stat-tile) {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+@media (max-width: 500px) {
+  /* Grilles de cartes (.tile) à piste mini large : colonne unique. */
+  .nx-app div:has(> .tile),
+  .nx-app div:has(> .tile-link) {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+@media (max-width: 420px) {
+  /* Très petits écrans : les tuiles de stats passent aussi en colonne unique. */
+  .nx-app div:has(> .stat-tile) {
+    grid-template-columns: minmax(0, 1fr) !important;
   }
 }

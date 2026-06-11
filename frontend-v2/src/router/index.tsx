@@ -17,7 +17,6 @@ function PageLoader() {
 
 // Pages Auth
 const LoginPage = lazy(() => import("../pages/LoginPage"));
-const LoginLdapPage = lazy(() => import("../pages/LoginLdapPage"));
 
 // Pages légales / RGPD (publiques)
 const ConfidentialitePage = lazy(
@@ -117,14 +116,6 @@ export const router = createBrowserRouter([
         element: (
           <S>
             <LoginPage />
-          </S>
-        ),
-      },
-      {
-        path: "/login/ldap",
-        element: (
-          <S>
-            <LoginLdapPage />
           </S>
         ),
       },

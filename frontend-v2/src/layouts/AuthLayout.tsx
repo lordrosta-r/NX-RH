@@ -1,4 +1,4 @@
-import { Outlet } from "react-router-dom";
+import { Outlet, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Check } from "lucide-react";
 import nxLogo from "../assets/nx-logo.png";
@@ -6,6 +6,7 @@ import "../styles/login.css";
 
 export default function AuthLayout() {
   const { t } = useTranslation();
+  const year = new Date().getFullYear();
 
   const PREVIEW_STEPS: [string, boolean][] = [
     [t("auth.previewStepReview"), true],
@@ -126,7 +127,26 @@ export default function AuthLayout() {
       </aside>
 
       <main className="auth-main" id="contenu">
-        <Outlet />
+        <div className="auth-body">
+          {/* Logo visible uniquement sur mobile (le panneau de marque est masqué <880px) */}
+          <img src={nxLogo} alt="NanoXplore" className="auth-main-logo" />
+          <Outlet />
+        </div>
+
+        <footer className="auth-footer">
+          <nav className="auth-footer-nav" aria-label={t("footer.legalNav")}>
+            <Link to="/confidentialite" className="link">
+              {t("footer.gdprLink")}
+            </Link>
+            <Link to="/mentions-legales" className="link">
+              {t("footer.legalNotice")}
+            </Link>
+            <Link to="/accessibilite" className="link">
+              {t("footer.accessibility")}
+            </Link>
+          </nav>
+          <p className="auth-footer-copy">{t("footer.copyright", { year })}</p>
+        </footer>
       </main>
     </div>
   );

@@ -46,6 +46,7 @@
   font-family: var(--font);
   color: var(--ink);
   min-height: 100vh;
+  min-height: 100dvh; /* évite le débordement vertical lié à la barre d'adresse mobile */
   display: grid;
   grid-template-columns: 1.05fr 1fr;
   -webkit-font-smoothing: antialiased;
@@ -488,13 +489,54 @@
 .nx-auth .auth-main {
   background: var(--bg);
   display: flex;
+  flex-direction: column;
+  padding: 48px 32px;
+}
+/* Zone centrée (logo + formulaire), occupe l'espace au-dessus du footer. */
+.nx-auth .auth-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 48px 32px;
+  width: 100%;
 }
 .nx-auth .auth-card {
   width: 100%;
   max-width: 440px;
+}
+/* Logo de la colonne formulaire : masqué en desktop (le panneau de marque
+   affiche déjà le logo), révélé sur mobile par la media query plus bas. */
+.nx-auth .auth-main-logo {
+  display: none;
+  height: 30px;
+  width: auto;
+  align-self: flex-start;
+  margin-bottom: 30px;
+}
+
+/* ===================== FOOTER LOGIN ===================== */
+.nx-auth .auth-footer {
+  width: 100%;
+  max-width: 440px;
+  margin: 32px auto 0;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.nx-auth .auth-footer-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+}
+.nx-auth .auth-footer-nav .link {
+  font-size: 14px;
+}
+.nx-auth .auth-footer-copy {
+  font-size: 13px;
+  color: var(--ink-3);
 }
 
 /* ===================== UTILS ===================== */
@@ -540,5 +582,14 @@
   }
   .nx-auth .auth-aside {
     display: none;
+  }
+  /* On révèle le logo NanoXplore au-dessus du formulaire pour ne pas laisser
+     une page blanche sans marque. */
+  .nx-auth .auth-main-logo {
+    display: block;
+  }
+  .nx-auth .auth-main {
+    /* padding réduit sur mobile */
+    padding: 40px 22px 28px;
   }
 }

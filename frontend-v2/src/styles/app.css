@@ -912,23 +912,34 @@
   }
 
   /* Tables en grille (.tbl-head/.tbl-row) : les colonnes en gridTemplateColumns
-     inline ne se compriment pas sous leur contenu min. On rend la table
-     défilable horizontalement sans casser la grille : chaque ligne garde sa
-     largeur minimale et partage le même défilement via la barre du conteneur. */
-  .nx-app .tbl-head,
-  .nx-app .tbl-row {
-    min-width: max-content;
-    padding-left: 14px;
-    padding-right: 14px;
-    gap: 10px;
+     inline ne se compriment pas → en mobile elles débordaient et rognaient les
+     colonnes (défilement horizontal perçu comme « cassé »). On transforme chaque
+     ligne en carte empilée : l'en-tête de colonnes est masqué, les cellules se
+     placent les unes sous les autres, plus aucun débordement horizontal. */
+  .nx-app .tbl-head {
+    display: none;
   }
-  /* Wrapper de table : tout bloc qui contient un .tbl-head devient scrollable. */
+  .nx-app .tbl-row {
+    display: flex !important; /* override le grid inline */
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    padding: 14px 16px;
+  }
+  .nx-app .tbl-row > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+  /* Cellules vides (« — ») masquées pour éviter les lignes mortes. */
+  .nx-app .tbl-row > *:empty {
+    display: none;
+  }
+  /* Le wrapper ne défile plus horizontalement. */
   .nx-app .table-scroll,
   .nx-app .card:has(> .tbl-head),
   .nx-app .card:has(.tbl-head),
   .nx-app div:has(> .tbl-head) {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    overflow-x: visible;
   }
 
   /* Builder de formulaires : la colonne de config fixe (360px) passe sous

@@ -6,6 +6,7 @@ import api from "@/api/client";
 import { queryKeys } from "../lib/queryKeys";
 import MobilityTimeline from "@/components/mobility/MobilityTimeline";
 import { PageHead, Tile, StatTile, Badge } from "../components/shell";
+import { formatDate } from "../utils/formatDate";
 import PageGuide from "../components/shared/PageGuide";
 import Breadcrumbs from "../components/ui/Breadcrumbs";
 
@@ -219,7 +220,9 @@ export default function MobilityPage() {
   const { data: historyData, isLoading: historyLoading } = useQuery({
     queryKey: queryKeys.mobility.history(user?.id ?? user?._id ?? ""),
     queryFn: () =>
-      api.get(`/api/mobility/history/${user?.id ?? user?._id}`).then((r) => r.data),
+      api
+        .get(`/api/mobility/history/${user?.id ?? user?._id}`)
+        .then((r) => r.data),
     enabled: !isHrAdmin && activeTab === "history" && !!(user?.id ?? user?._id),
   });
 
@@ -293,10 +296,7 @@ export default function MobilityPage() {
   return (
     <div className="nx-app">
       <Breadcrumbs
-        items={[
-          { label: "Accueil", href: "/" },
-          { label: "Demandes" },
-        ]}
+        items={[{ label: "Accueil", href: "/" }, { label: "Demandes" }]}
       />
 
       <PageHead
@@ -542,9 +542,7 @@ export default function MobilityPage() {
                 ([cat, label]) => (
                   <button
                     key={cat}
-                    onClick={() =>
-                      setTypeFilter(typeFilter === cat ? "" : cat)
-                    }
+                    onClick={() => setTypeFilter(typeFilter === cat ? "" : cat)}
                     className="btn btn-sm"
                     style={
                       typeFilter === cat
@@ -636,9 +634,7 @@ export default function MobilityPage() {
                           : "—"}
                       </div>
                     )}
-                    <div className="small">
-                      {new Date(r.createdAt).toLocaleDateString("fr-FR")}
-                    </div>
+                    <div className="small">{formatDate(r.createdAt)}</div>
                     <div className="row wrap" style={{ gap: 8 }}>
                       {isHrAdmin && (
                         <button

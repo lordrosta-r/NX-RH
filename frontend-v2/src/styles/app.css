@@ -66,6 +66,9 @@
 .nx-app h4,
 .nx-app p {
   margin: 0;
+  /* Les chaînes longues non sécables (ID, e-mails, URL) cassent au lieu
+     de déborder horizontalement du conteneur. */
+  overflow-wrap: break-word;
 }
 .nx-app a {
   color: var(--blue-text);
@@ -87,6 +90,7 @@
   letter-spacing: -0.018em;
   line-height: 1.12;
   color: var(--ink);
+  overflow-wrap: break-word;
 }
 .nx-app .h2 {
   font-size: 22px;
@@ -378,6 +382,14 @@
 }
 .nx-app .user-chip:hover {
   background: var(--bg-alt);
+}
+/* Nom/rôle + chevron du user-chip : visibles en desktop, masqués en mobile
+   (cf. media query 768px) pour ne garder que l'avatar — la navbar respire. */
+.nx-app .chip-id {
+  display: flex;
+}
+.nx-app .chip-caret {
+  display: block;
 }
 .nx-app .avatar {
   width: 34px;
@@ -775,11 +787,23 @@
     padding: 0 14px;
   }
   .nx-app .header-right {
-    gap: 6px;
+    gap: 4px;
   }
   .nx-app .icon-btn {
     width: 38px;
     height: 38px;
+  }
+  /* Navbar mobile : on ne garde que l'avatar dans le user-chip (nom/rôle/chevron
+     masqués), et le chip devient un simple bouton rond autour de l'avatar. */
+  .nx-app .chip-id,
+  .nx-app .chip-caret {
+    display: none;
+  }
+  .nx-app .user-chip {
+    gap: 0;
+    padding: 4px;
+    border: none;
+    background: transparent;
   }
   /* La sous-nav horizontale disparaît : remplacée par le drawer. */
   .nx-app .subnav {
@@ -888,22 +912,68 @@
   }
 
   /* Tables en grille (.tbl-head/.tbl-row) : les colonnes en gridTemplateColumns
-     inline ne se compriment pas sous leur contenu min. On rend la table
-     défilable horizontalement sans casser la grille : chaque ligne garde sa
-     largeur minimale et partage le même défilement via la barre du conteneur. */
-  .nx-app .tbl-head,
-  .nx-app .tbl-row {
-    min-width: max-content;
-    padding-left: 14px;
-    padding-right: 14px;
-    gap: 10px;
+     inline ne se compriment pas → en mobile elles débordaient et rognaient les
+     colonnes (défilement horizontal perçu comme « cassé »). On transforme chaque
+     ligne en carte empilée : l'en-tête de colonnes est masqué, les cellules se
+     placent les unes sous les autres, plus aucun débordement horizontal. */
+  .nx-app .tbl-head {
+    display: none;
   }
-  /* Wrapper de table : tout bloc qui contient un .tbl-head devient scrollable. */
+  .nx-app .tbl-row {
+    display: flex !important; /* override le grid inline */
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    padding: 14px 16px;
+  }
+  .nx-app .tbl-row > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+  /* Cellules vides (« — ») masquées pour éviter les lignes mortes. */
+  .nx-app .tbl-row > *:empty {
+    display: none;
+  }
+  /* Le wrapper ne défile plus horizontalement. */
   .nx-app .table-scroll,
   .nx-app .card:has(> .tbl-head),
   .nx-app .card:has(.tbl-head),
   .nx-app div:has(> .tbl-head) {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    overflow-x: visible;
+  }
+
+  /* Builder de formulaires : la colonne de config fixe (360px) passe sous
+     l'éditeur au lieu de forcer un débordement horizontal. minmax(0, 1fr)
+     (et non 1fr) autorise la piste à descendre sous son min-content. */
+  .nx-app .fb-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  .nx-app .fb-grid > * {
+    min-width: 0;
+  }
+}
+
+/* ===================== GRILLES DE STATS / CARTES (mobile étroit) =====================
+   Les pistes `1fr` et `minmax(380px, 1fr)` posées en style inline conservent une
+   largeur minimale (min-content / 380px) qui dépasse les petits écrans : le contenu
+   se retrouve rogné par `body { overflow-x: hidden }`. On force ici un vrai
+   rétrécissement en réduisant le nombre de colonnes. */
+@media (max-width: 600px) {
+  /* Tuiles de statistiques (.stat-tile) : 4 colonnes → 2 colonnes compressibles. */
+  .nx-app div:has(> .stat-tile) {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+@media (max-width: 500px) {
+  /* Grilles de cartes (.tile) à piste mini large : colonne unique. */
+  .nx-app div:has(> .tile),
+  .nx-app div:has(> .tile-link) {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+@media (max-width: 420px) {
+  /* Très petits écrans : les tuiles de stats passent aussi en colonne unique. */
+  .nx-app div:has(> .stat-tile) {
+    grid-template-columns: minmax(0, 1fr) !important;
   }
 }

@@ -49,7 +49,12 @@ const daysFrom = n => new Date(now.getTime() + n * 86_400_000)
 async function dropAndInsert(Model, docs, label) {
   await Model.deleteMany({})
   if (!docs.length) { console.log(`  ⚠  ${label}: 0 — skipped`); return 0 }
-  const res = await Model.collection.insertMany(docs, { ordered: true })
+  // collection.insertMany() bypasse les timestamps Mongoose : sans cela createdAt/
+  // updatedAt sont absents et s'affichent en « Invalid Date ». On les pose ici par
+  // défaut (un doc qui définit explicitement createdAt — ex. notifications — garde
+  // sa valeur grâce au spread après).
+  const stamped = docs.map(d => ({ createdAt: now, updatedAt: now, ...d }))
+  const res = await Model.collection.insertMany(stamped, { ordered: true })
   console.log(`  ✓  ${label}: ${res.insertedCount}`)
   return res.insertedCount
 }
@@ -198,12 +203,14 @@ async function seed() {
       name: 'Entretien annuel 2025',
       description: 'Campagne annuelle de performance — exercice 2025.',
       status: 'active',
-      startDate: new Date('2025-01-06'),
-      endDate: new Date('2025-04-30'),
+      // Dates relatives à « maintenant » : la campagne reste réellement active et
+      // ses échéances dans le futur (sinon le scheduler expire les évals → dashboard vide).
+      startDate: daysAgo(45),
+      endDate: daysFrom(45),
       createdBy: U.hr1,
       formIds: [F.form1, F.form4],
-      deadlineEmployee: new Date('2025-03-31'),
-      deadlineManager: new Date('2025-04-15'),
+      deadlineEmployee: daysFrom(20),
+      deadlineManager: daysFrom(35),
       previousCampaignId: C.past1,
       enableN1Context: true,
       n1VisibleToEmployee: true,
@@ -213,8 +220,8 @@ async function seed() {
       name: 'Évaluation 360° Q1 2025',
       description: 'Évaluation croisée par les pairs — premier trimestre 2025.',
       status: 'active',
-      startDate: new Date('2025-02-01'),
-      endDate: new Date('2025-03-31'),
+      startDate: daysAgo(30),
+      endDate: daysFrom(60),
       createdBy: U.hr2,
       formIds: [F.form3],
     },
@@ -411,26 +418,26 @@ async function seed() {
       _id: oid(), campaignId: C.active1, formId: F.form1,
       evaluatorId: U.emp1, evaluateeId: U.emp1,
       status: 'assigned', answers: [],
-      expiresAt: new Date('2025-05-30'),
+      expiresAt: daysFrom(20),
     },
     {
       _id: oid(), campaignId: C.active1, formId: F.form1,
       evaluatorId: U.emp2, evaluateeId: U.emp2,
       status: 'in_progress', answers: answersAnnualPartial,
-      lastSavedAt: daysAgo(2), expiresAt: new Date('2025-05-30'),
+      lastSavedAt: daysAgo(2), expiresAt: daysFrom(20),
     },
     {
       _id: oid(), campaignId: C.active1, formId: F.form1,
       evaluatorId: U.emp3, evaluateeId: U.emp3,
       status: 'in_progress', answers: answersAnnualPartial,
-      lastSavedAt: daysAgo(1), expiresAt: new Date('2025-05-30'),
+      lastSavedAt: daysAgo(1), expiresAt: daysFrom(20),
     },
     {
       _id: E.emp4Active1,
       campaignId: C.active1, formId: F.form1,
       evaluatorId: U.emp4, evaluateeId: U.emp4,
       status: 'submitted', answers: answersAnnualFull,
-      lastSavedAt: daysAgo(3), expiresAt: new Date('2025-05-30'),
+      lastSavedAt: daysAgo(3), expiresAt: daysFrom(20),
     },
 
     // ── active1 + form4 (éval compétences manager — types avancés) ── 2 évals
@@ -438,13 +445,13 @@ async function seed() {
       _id: oid(), campaignId: C.active1, formId: F.form4,
       evaluatorId: U.manager1, evaluateeId: U.emp1,
       status: 'in_progress', answers: answersManagerEvalFull,
-      lastSavedAt: daysAgo(1), expiresAt: new Date('2025-05-30'),
+      lastSavedAt: daysAgo(1), expiresAt: daysFrom(20),
     },
     {
       _id: oid(), campaignId: C.active1, formId: F.form4,
       evaluatorId: U.manager1, evaluateeId: U.emp2,
       status: 'assigned', answers: [],
-      expiresAt: new Date('2025-05-30'),
+      expiresAt: daysFrom(20),
     },
 
     // ── past2 + form2 (mi-parcours S2 2024) ── 4 évals

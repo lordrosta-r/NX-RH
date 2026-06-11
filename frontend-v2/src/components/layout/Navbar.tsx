@@ -197,12 +197,11 @@ export default function Navbar({
                   <span className="avatar">{initials}</span>
                   <span
                     style={{
-                      display: "flex",
                       flexDirection: "column",
                       lineHeight: 1.15,
                       textAlign: "left",
                     }}
-                    className="hidden sm:flex"
+                    className="chip-id"
                   >
                     <b style={{ fontSize: 14 }}>
                       {user.firstName} {user.lastName}
@@ -216,7 +215,7 @@ export default function Navbar({
                   </span>
                   <ChevronDown
                     className={clsx(
-                      "w-4 h-4 transition-transform hidden sm:block",
+                      "w-4 h-4 transition-transform chip-caret",
                       avatarOpen && "rotate-180",
                     )}
                     style={{ color: "var(--ink-3)" }}

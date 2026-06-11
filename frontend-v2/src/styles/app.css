@@ -383,6 +383,14 @@
 .nx-app .user-chip:hover {
   background: var(--bg-alt);
 }
+/* Nom/rôle + chevron du user-chip : visibles en desktop, masqués en mobile
+   (cf. media query 768px) pour ne garder que l'avatar — la navbar respire. */
+.nx-app .chip-id {
+  display: flex;
+}
+.nx-app .chip-caret {
+  display: block;
+}
 .nx-app .avatar {
   width: 34px;
   height: 34px;
@@ -779,11 +787,23 @@
     padding: 0 14px;
   }
   .nx-app .header-right {
-    gap: 6px;
+    gap: 4px;
   }
   .nx-app .icon-btn {
     width: 38px;
     height: 38px;
+  }
+  /* Navbar mobile : on ne garde que l'avatar dans le user-chip (nom/rôle/chevron
+     masqués), et le chip devient un simple bouton rond autour de l'avatar. */
+  .nx-app .chip-id,
+  .nx-app .chip-caret {
+    display: none;
+  }
+  .nx-app .user-chip {
+    gap: 0;
+    padding: 4px;
+    border: none;
+    background: transparent;
   }
   /* La sous-nav horizontale disparaît : remplacée par le drawer. */
   .nx-app .subnav {
